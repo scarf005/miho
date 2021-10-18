@@ -1,0 +1,20 @@
+{
+  "name": "miho",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "pug -P -w index.pug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pig005/miho.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pig005/miho/issues"
+  },
+  "homepage": "https://github.com/pig005/miho#readme"
+}
