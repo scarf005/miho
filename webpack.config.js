@@ -1,5 +1,5 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   mode: 'none',
@@ -9,10 +9,12 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  clean: {
-    keep: /\.git/,
-  }
-  // plugins: [
-  //   new HtmlWebpackPlugin()
-  // ]
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Stage 01'
+    })
+  ]
+  // clean: {
+  //   keep: /\.git/,
+  // },
 }
