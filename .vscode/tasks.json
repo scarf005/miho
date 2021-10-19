@@ -5,7 +5,7 @@
       "type": "npm",
       "script": "build",
       "problemMatcher": [],
-      "label": "npm: test",
+      "label": "npm: build",
       "detail": "compile and run",
       "group": {
         "kind": "build",
@@ -18,7 +18,7 @@
         "panel": "shared",
         "showReuseMessage": false,
         "clear": true,
-        "close": true
+        // "close": true
       }
     }
   ]
