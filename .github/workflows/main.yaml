@@ -1,19 +1,24 @@
-name: Deploy to GitHub Pages
+name: gh-pages
 
 on:
   push:
     branches: [ main ]
 
+env:
+  .
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout 🛎️
+      - name: Checkout 🛎️
         uses: actions/checkout@v2
 
-      - name: Install and Build 🔧
+      - name: Cache dependencies 📚
+        uses: actions/setup-node@v2
+
+      - name: Build 🔧
         run: |
-          npm ci
           npm run build
 
       - name: Deploy 🚀
