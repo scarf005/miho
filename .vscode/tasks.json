@@ -3,7 +3,7 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "test",
+      "script": "build",
       "problemMatcher": [],
       "label": "npm: test",
       "detail": "compile and run",

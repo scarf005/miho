@@ -1,10 +1,11 @@
 {
   "name": "miho",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pug -P src --out dist && npx webpack && exit 0"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pug -P src --out dist && webpack && exit 0"
   },
   "repository": {
     "type": "git",
