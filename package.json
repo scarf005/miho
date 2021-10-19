@@ -1,10 +1,11 @@
 {
   "name": "miho",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pug -P -w index.pug"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pug -P src -o dist && exit 0"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/pig005/miho/issues"
   },
-  "homepage": "https://github.com/pig005/miho#readme"
+  "homepage": "https://github.com/pig005/miho#readme",
+  "devDependencies": {
+    "html-webpack-plugin": "^5.4.0",
+    "pug-loader": "^2.4.0",
+    "webpack": "^5.58.2",
+    "webpack-cli": "^4.9.1"
+  }
 }
