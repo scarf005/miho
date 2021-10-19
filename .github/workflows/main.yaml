@@ -8,14 +8,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      # - name: Checkout 🛎️
 
-      - name: Cache dependencies 📚
-        uses: actions/setup-node@v2
+      # - name: Cache dependencies 📚
+      #   run:
+
 
       - name: Build 🔧
         run: |
+          npm ci
           npm run build
 
       - name: Deploy 🚀
