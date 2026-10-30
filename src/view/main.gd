@@ -554,11 +554,15 @@ func _to_exit() -> Dictionary:
 	return _step_on(Travel.route(routes, Travel.exit(world)))
 
 
+## A step towards the nearest unexplored ground, after resting until the tails
+## have all regrown (DCSS explore_auto_rest).
 func _exploring() -> Dictionary:
 	var d := Travel.explore_step(world, routes)
-	if d == Vector2i.ZERO and _explore_walled():
-		_say("위험구역 너머는 탐험하지 않는다")
-	return {t = &"move", dir = d} if d != Vector2i.ZERO else {}
+	if d == Vector2i.ZERO:
+		if _explore_walled():
+			_say("위험구역 너머는 탐험하지 않는다")
+		return {}
+	return _resting() if world.tails < world.max_tails() else {t = &"move", dir = d}
 
 
 func _resting() -> Dictionary:
