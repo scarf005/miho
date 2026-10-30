@@ -170,11 +170,13 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "도깨비")
 	assert_string_contains(text, "쉬는 중")
-	assert_string_contains(text, "기습하면 피해 3")
+	assert_string_contains(text, "기습 시 피해 3")
+	assert_string_contains(text, "장비: 몽둥이 (피해 1)")
+	assert_string_contains(text, "주술: 여우불 (")
 	assert_string_contains(text, "2초 뒤")
 	foe.alert = Actor.HUNT
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
-	assert_string_contains(text, "할퀴면 피해 1")
+	assert_string_contains(text, "공격 시 피해 1")
 	assert_false(text.contains("기습"))
 
 
@@ -185,7 +187,7 @@ func test_hover_never_shows_a_creature_miho_cannot_see() -> void:
 	assert_eq(w.dim[Grid.index(foe.pos)], 1)
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_false(text.contains("도깨비"))
-	assert_string_contains(text, "누가 있는지 모른다")
+	assert_string_contains(text, "누가 있는지 알 수 없다")
 	assert_eq(Info.at(w.known_clone(), Vector2i(30, 2)), [], "never seen")
 
 

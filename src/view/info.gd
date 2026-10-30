@@ -69,15 +69,17 @@ static func creature(w: World, a: Actor) -> Array:
 	lines.append(state)
 	var me := w.player()
 	if w.sees(a, me.pos):
-		lines.append([["미호를 본다", Palette.HURT]])
+		lines.append([["당신을 보고 있다", Palette.HURT]])
 	else:
-		lines.append([["미호를 못 본다", Palette.SIDE[0]]])
+		lines.append([["당신을 볼 수 없다", Palette.SIDE[0]]])
 	var sneak := a.alert != Actor.HUNT or a.blind > 0
 	var claw := World.CLAW * (World.SNEAK if sneak else 1)
-	var how := "기습하면" if sneak else "할퀴면"
+	var how := "기습 시" if sneak else "공격 시"
 	lines.append([["%s 피해 " % how, Palette.TEXT], [str(claw), Palette.HURT]])
 	if spec.has("club"):
-		lines.append([["몽둥이 피해 ", Palette.TEXT], [str(spec.club), Palette.HURT]])
+		lines.append(
+			[["장비: 몽둥이 (피해 ", Palette.TEXT], [str(spec.club), Palette.HURT], [")", Palette.TEXT]]
+		)
 	for cast: Array in spec.get("casts", []):
 		lines.append(_cast(a, cast))
 	var traits := _traits(spec)
@@ -89,7 +91,7 @@ static func creature(w: World, a: Actor) -> Array:
 			lines
 			. append(
 				[
-					["쓰러뜨리면 ", Palette.TEXT],
+					["처치 시 ", Palette.TEXT],
 					[Cards.NAME[drop] + " 부적", Palette.CARD[drop]],
 				]
 			)
@@ -108,12 +110,12 @@ static func _elements(spec: Dictionary) -> Array[StringName]:
 
 static func _cast(a: Actor, cast: Array) -> Array:
 	var spell := Spell.make(cast)
-	var line: Array = [[spell.title(), Palette.CARD[spell.cards.back()]]]
-	line.append([" %d초마다" % a.info().cd, Palette.TEXT])
+	var line: Array = [["주술: ", Palette.TEXT], [spell.title(), Palette.CARD[spell.cards.back()]]]
+	line.append([" (%d초마다)" % a.info().cd, Palette.TEXT])
 	if not a.intent.is_empty() and Spell.make(a.intent).key() == spell.key():
-		line.append([". 모으는 중", Palette.HURT])
+		line.append([", 모으는 중", Palette.HURT])
 	elif a.cooldown > 0:
-		line.append([". 다음은 %d초 뒤" % a.cooldown, Palette.TEXT])
+		line.append([", %d초 뒤" % a.cooldown, Palette.TEXT])
 	return line
 
 
@@ -133,13 +135,13 @@ static func _traits(spec: Dictionary) -> Array:
 		&"nofire":
 			out.append("불로만 피해")
 	if spec.get("hunts", false):
-		out.append("미호 위치를 앎")
+		out.append("당신 위치를 앎")
 	return out
 
 
 static func shot(s: Shot) -> Array:
 	var spell := s.spell
-	var side := "미호의 " if s.faction == Actor.FOX else "적의 "
+	var side := "당신의 " if s.faction == Actor.FOX else "적의 "
 	var lines := [
 		[[side, Palette.SIDE[s.faction]], [spell.title(), Palette.shot_color(spell, s.faction)]]
 	]
@@ -185,7 +187,7 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 	if w.seen[i] == 0:
 		if w.dim[i] == 1:
 			var what := "대숲이라" if w.hides(p) else "어두워서"
-			return [[what + " 누가 있는지 모른다", Palette.DIM]]
+			return [[what + " 누가 있는지 알 수 없다", Palette.DIM]]
 		return [["지금은 보이지 않는다", Palette.DIM]]
 	return _hidden(w, p)
 
