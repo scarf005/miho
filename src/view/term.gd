@@ -1,16 +1,16 @@
 class_name Term
 extends Control
-## The screen as a Brogue-style terminal of COLS x ROWS cells in one pixel
-## font. Columns 0-7 list the creatures Miho sees, the map fills the rest, and
-## the two bottom rows hold her health, tails, storey, time and talismans.
-## Every tile takes the colour of the light on it, lantern light flickers, and
-## tiles out of sight are drawn from memory in dim blue. `play` animates a
-## round's events one by one, carrying each projectile's light with it.
+## The screen as a Brogue-style terminal of `cols` x `rows` cells in one pixel
+## font, as many as fit the window at the chosen zoom. Columns 0-7 list the
+## creatures Miho sees, the map fills the rest, and the two bottom rows hold
+## her health, tails, storey, time and talismans. When the map is larger than
+## its area, a camera shows the part around Miho. Every tile takes the colour
+## of the light on it, lantern light flickers, and tiles out of sight are
+## drawn from memory in dim blue. `play` animates a round's events one by one,
+## carrying each projectile's light with it.
 
 signal shown(e: Dictionary, at: Vector2)
 
-const COLS := 40
-const ROWS := 18
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
 const SIZE := 32
@@ -43,6 +43,10 @@ var cursor := Vector2i(-1, -1)
 var info: Array = []
 var speed := 1.0
 var banner_lines: Array[String] = []
+var cols := 40
+var rows := 18
+## The map tile drawn at the map area's top-left; negative centres a small map.
+var cam := Vector2i.ZERO
 
 var _font: FontFile
 var _vis := PackedByteArray()
@@ -58,8 +62,62 @@ var _time := 0.0
 
 func _ready() -> void:
 	_font = Fonts.pixel()
-	size = Vector2(COLS, ROWS) * CELL
+	size = Vector2(cols, rows) * CELL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+## Fills `view` (in the parent's space) with cells at `zoom` times their size,
+## or, at zoom 0, at the size that shows the whole map with sidebar and status rows.
+func fit(view: Vector2, zoom: float) -> void:
+	var k := zoom
+	if k <= 0.0:
+		var whole := Vector2(MAP.x + Grid.W, Grid.H + 2) * CELL
+		k = minf(view.x / whole.x, view.y / whole.y)
+	cols = maxi(MAP.x + 1, floori(view.x / (CELL.x * k)))
+	rows = maxi(4, floori(view.y / (CELL.y * k)))
+	size = Vector2(cols, rows) * CELL
+	scale = Vector2(k, k)
+	position = ((view - size * k) / 2.0).round()
+	if world != null:
+		follow(world.player().pos)
+
+
+## Map tiles the map area holds across and down.
+func map_view() -> Vector2i:
+	return Vector2i(cols - MAP.x, rows - 2)
+
+
+## Moves the camera only as far as needed to keep p a few tiles from the map
+## area's edges, never past the map; a map smaller than its area sits centred.
+func follow(p: Vector2i) -> void:
+	var v := map_view()
+	var grid := Vector2i(Grid.W, Grid.H)
+	for axis in 2:
+		if grid[axis] <= v[axis]:
+			cam[axis] = -(v[axis] - grid[axis]) / 2
+			continue
+		var margin := mini(6, v[axis] / 4)
+		cam[axis] = clampi(cam[axis], p[axis] - v[axis] + 1 + margin, p[axis] - margin)
+		cam[axis] = clampi(cam[axis], 0, grid[axis] - v[axis])
+
+
+## The part of this node's space where map tiles are drawn.
+func map_rect() -> Rect2:
+	var from := Vector2(MAP) + Vector2(maxi(0, -cam.x), maxi(0, -cam.y))
+	var v := map_view()
+	var to := Vector2(MAP) + Vector2(mini(v.x, Grid.W - cam.x), mini(v.y, Grid.H - cam.y))
+	return Rect2(from * CELL, (to - from) * CELL)
+
+
+## The screen cell of map tile p, and whether it is inside the map area.
+func _cell(p: Vector2i) -> Vector2:
+	return Vector2(MAP + p - cam)
+
+
+func _shown(p: Vector2i) -> bool:
+	var c := p - cam
+	var v := map_view()
+	return c.x >= 0 and c.y >= 0 and c.x < v.x and c.y < v.y
 
 
 func _process(delta: float) -> void:
@@ -74,6 +132,7 @@ func _process(delta: float) -> void:
 func show_world(w: World) -> void:
 	world = w
 	_vis = w.seen
+	follow(w.player().pos)
 	_actors.clear()
 	_shots.clear()
 	_animating = false
@@ -179,19 +238,19 @@ func _flash(at: Vector2i, color: Color) -> void:
 
 ## Screen position of the centre of map tile p, in this node's space.
 func cell_centre(p: Vector2i) -> Vector2:
-	return (Vector2(MAP + p) + Vector2(0.5, 0.5)) * CELL
+	return (_cell(p) + Vector2(0.5, 0.5)) * CELL
 
 
 ## The map tile under a point in this node's space, or (-1, -1).
 func tile_at(local: Vector2) -> Vector2i:
-	var c := Vector2i((local / CELL).floor()) - MAP
-	return c if Grid.inside(c) else Vector2i(-1, -1)
+	var c := Vector2i((local / CELL).floor()) - MAP + cam
+	return c if Grid.inside(c) and _shown(c) else Vector2i(-1, -1)
 
 
 ## Where the creature listed in the sidebar under a point stands, or (-1, -1).
 func side_at(local: Vector2) -> Vector2i:
 	var c := Vector2i((local / CELL).floor())
-	if world == null or c.x < 0 or c.x >= MAP.x or c.y < 0:
+	if world == null or c.x < 0 or c.x >= MAP.x or c.y < 0 or c.y >= rows - 2:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
 	return list[c.y / 2].pos if c.y / 2 < list.size() else Vector2i(-1, -1)
@@ -199,13 +258,13 @@ func side_at(local: Vector2) -> Vector2i:
 
 ## Whether a point in this node's space is on Miho's health and tails row.
 func status_at(local: Vector2) -> bool:
-	return int(local.y / CELL.y) == ROWS - 2
+	return floori(local.y / CELL.y) == rows - 2
 
 
 ## The talisman under a point in this node's space, or empty.
 func card_at(local: Vector2) -> StringName:
 	var c := Vector2i((local / CELL).floor())
-	if c.y != ROWS - 1 or world == null:
+	if c.y != rows - 1 or world == null:
 		return &""
 	var i := (c.x - MAP.x) / 3
 	if c.x < MAP.x or i >= world.cards.size():
@@ -275,13 +334,17 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	_draw_things(light, actors)
 	for f in _flashes:
+		if not _shown(f.at):
+			continue
 		var k: float = 1.0 - (_time - f.born) / 0.35
 		var c: Color = f.color
-		draw_rect(Rect2(Vector2(MAP + f.at) * CELL, CELL), Color(c, c.a * k))
+		draw_rect(Rect2(_cell(f.at) * CELL, CELL), Color(c, c.a * k))
 	for p in _popups:
+		if not _shown(p.at):
+			continue
 		var k: float = (_time - p.born) / p.life
 		var c: Color = p.color
-		var at := Vector2(MAP + p.at) + Vector2(0, -0.6 * k)
+		var at := _cell(p.at) + Vector2(0, -0.6 * k)
 		if p.text.length() == 1:
 			_glyph(at, p.text, Color(c, 1.0 - k * k))
 		else:
@@ -290,18 +353,22 @@ func _draw() -> void:
 		_draw_side(actors, me_pos)
 		_draw_bottom()
 		_draw_info()
+	var v := map_view()
 	if not banner_lines.is_empty():
-		draw_rect(Rect2(Vector2(MAP) * CELL, Vector2(Grid.W, Grid.H) * CELL), Color(0, 0, 0, 0.8))
+		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
+	var top := maxi(0, (v.y - banner_lines.size() * 2) / 2)
 	for i in banner_lines.size():
 		var line := banner_lines[i]
 		var color: Color = Palette.KIND[&"miho"] if i == 0 else Palette.TEXT
-		_text(Vector2(MAP.x + (Grid.W - _cells(line)) / 2.0, 5 + i * 2), line, color)
+		var w := _cells(line)
+		var x := clampf(MAP.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
+		_text(Vector2(x, top + i * 2), line, color)
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 	for i in world.tiles.size():
 		var p := Grid.at(i)
-		if world.known[i] == 0 and _vis[i] == 0:
+		if world.known[i] == 0 and _vis[i] == 0 or not _shown(p):
 			continue
 		var t := world.tiles[i]
 		var spec: Array = Palette.TILES[t]
@@ -337,7 +404,7 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		bg *= grain
 		var tint: Color = tints.get(p, Color(0, 0, 0, 0))
 		bg = bg.lerp(Color(tint, 1.0), tint.a)
-		var cell := Vector2(MAP + p)
+		var cell := _cell(p)
 		draw_rect(Rect2(cell * CELL, CELL), bg)
 		_glyph(cell, glyph, fg)
 
@@ -361,28 +428,28 @@ func _draw_telegraphs(actors: Dictionary) -> void:
 		if not spell.orb:
 			ray = ray.slice(0, Spell.RANGE)
 		for k in ray.size():
+			if not _shown(ray[k]):
+				continue
 			var pulse := 0.5 + 0.5 * sin(_time * 8.0 - k * 0.6)
 			var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
-			draw_rect(Rect2(Vector2(MAP + ray[k]) * CELL, CELL), c)
+			draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
 			if k == 0:
-				_glyph(Vector2(MAP + ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
+				_glyph(_cell(ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
 
 
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	var shots := _shots if _animating else _world_shots()
 	for id in shots:
 		var s: Dictionary = shots[id]
-		if _visible(s.pos):
+		if _visible(s.pos) and _shown(s.pos):
 			_glyph(
-				Vector2(MAP + s.pos),
-				Palette.shot_glyph(s.spell),
-				Palette.shot_color(s.spell, s.faction)
+				_cell(s.pos), Palette.shot_glyph(s.spell), Palette.shot_color(s.spell, s.faction)
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and not _visible(a.pos):
+		if a.faction != Actor.FOX and not _visible(a.pos) or not _shown(a.pos):
 			continue
-		var cell := Vector2(MAP + a.pos)
+		var cell := _cell(a.pos)
 		var l := light[Grid.index(a.pos)]
 		var c: Color = Palette.KIND[a.kind]
 		if a.faction != Actor.FOX:
@@ -400,7 +467,8 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.alert, 1)])
 	for p in marks:
 		var m: Array = marks[p]
-		_small(Vector2(MAP + p) + Vector2(0.62, 0.55), m[0], m[1])
+		if _shown(p):
+			_small(_cell(p) + Vector2(0.62, 0.55), m[0], m[1])
 
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
@@ -408,7 +476,7 @@ func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 		func(a): return a.faction != Actor.FOX and _visible(a.pos)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	return list.slice(0, (ROWS - 2) / 2)
+	return list.slice(0, (rows - 2) / 2)
 
 
 ## Creatures in sight, nearest first: glyph and health, then state and the spell it charges.
@@ -435,7 +503,7 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 
 func _draw_bottom() -> void:
 	var me := world.player()
-	var row := ROWS - 2
+	var row := rows - 2
 	_glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
 	_pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
 	var held: int = staged.reduce(func(n, s): return n + s.cards.size(), 0) + picked.size()
@@ -447,7 +515,7 @@ func _draw_bottom() -> void:
 			c = Palette.CARD[Cards.EARTH]
 		_glyph(Vector2(MAP.x + i, row), "~", c)
 	var right := "%d층 %d초" % [world.depth, world.round_no]
-	_text(Vector2(COLS - _cells(right), row), right, Palette.TEXT)
+	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
 	row += 1
 	for i in world.cards.size():
 		var card := world.cards[i]
@@ -462,14 +530,15 @@ func _draw_bottom() -> void:
 	var name := spell.title() if spell != null else ""
 	if not staged.is_empty():
 		name = "+%d %s" % [staged.size(), name]
-	_text(Vector2(COLS - _cells(name), row), name, Palette.TEXT)
+	_text(Vector2(cols - _cells(name), row), name, Palette.TEXT)
 
 
 ## A frame on the tile under the pointer, and what is there in a box on the
 ## far side of the map from it.
 func _draw_info() -> void:
-	if Grid.inside(cursor):
-		var r := Rect2(Vector2(MAP + cursor) * CELL, CELL)
+	var shown := Grid.inside(cursor) and _shown(cursor)
+	if shown:
+		var r := Rect2(_cell(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if info.is_empty():
 		return
@@ -478,10 +547,12 @@ func _draw_info() -> void:
 		width = maxf(width, line.reduce(func(n, run): return n + _cells(run[0]), 0.0))
 	width = ceilf(width) + 1.0
 	var height := info.size()
-	var from := Vector2(MAP.x, ROWS - 2 - height)
-	if Grid.inside(cursor):
-		from.x = MAP.x + Grid.W - width if cursor.x < Grid.W / 2 else MAP.x
-		from.y = Grid.H - height if cursor.y < Grid.H / 2 else 0
+	var v := map_view()
+	var from := Vector2(MAP.x, rows - 2 - height)
+	if shown:
+		var at := cursor - cam
+		from.x = MAP.x + v.x - width if at.x < v.x / 2 else MAP.x
+		from.y = v.y - height if at.y < v.y / 2 else 0
 	var box := Rect2(from * CELL, Vector2(width, height) * CELL)
 	draw_rect(box, Color(Palette.VOID, 0.92))
 	draw_rect(box.grow(-1), Palette.DIM, false, 2.0)

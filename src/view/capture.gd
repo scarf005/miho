@@ -6,7 +6,8 @@ extends Node
 ## screen cell, such as a talisman or the sidebar), `pause:seconds`, or
 ## `walk:n` (n steps towards the stairs by arrow keys; Shift+s saves a frame
 ## in between as out-1.png, out-2.png ...). --replay=seconds also saves
-## out-replay.png that long into the first highlight replay.
+## out-replay.png that long into the first highlight replay. --zoom=1.5 sets
+## the cell scale (0 fits the whole map).
 
 var main: Node
 var keys: PackedStringArray
@@ -25,6 +26,9 @@ static func attach(main: Node) -> void:
 		return
 	if args.has("seed"):
 		main._new_run(int(args.seed))
+	if args.has("zoom"):
+		main.zoom = float(args.zoom)
+		main._fit()
 	var c := Capture.new()
 	c.main = main
 	c.shot = args.shot

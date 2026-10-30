@@ -44,6 +44,9 @@ var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
 var skip := false
+## Cell scale; 0 fits the whole map to the window.
+var zoom := 0.0
+var pan: Tween
 ## Worked out once per world or talisman change: what Miho knows, the forecast
 ## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
 ## and forecasts of the spell hurled each way, filled as the pointer aims.
@@ -77,12 +80,8 @@ func _ready() -> void:
 
 
 func _fit() -> void:
-	if state == &"replay":
-		return
-	var view := get_viewport().get_visible_rect().size
-	var k := minf(view.x / term.size.x, view.y / term.size.y)
-	term.scale = Vector2(k, k)
-	term.position = ((view - term.size * k) / 2.0).round()
+	if state != &"replay":
+		term.fit(get_viewport().get_visible_rect().size, zoom)
 
 
 func _new_run(seed_value := randi()) -> void:
@@ -266,6 +265,7 @@ func _replay() -> void:
 	skip = false
 	term.replay = true
 	term.speed = REPLAY_SPEED
+	term.fit(get_viewport().get_visible_rect().size, 0.0)
 	term.show_world(w)
 	_follow(w, 0.5)
 	await get_tree().create_timer(0.5).timeout
@@ -278,6 +278,7 @@ func _replay() -> void:
 		await term.play(events, before, w)
 		if not skip:
 			await get_tree().create_timer(0.3).timeout
+	pan.kill()
 	term.replay = false
 	term.speed = 1.0
 	state = &"play"
@@ -285,19 +286,21 @@ func _replay() -> void:
 	term.show_world(world)
 
 
-## Pans the zoomed screen so Miho stays in the middle without showing past the map.
+## Pans the zoomed, whole-map screen so Miho stays in the middle without
+## showing past the map; a map narrower than the screen stays centred.
 func _follow(w: World, time: float) -> void:
 	var view := get_viewport().get_visible_rect().size
-	var k := minf(view.x / term.size.x, view.y / term.size.y) * REPLAY_ZOOM
-	var centre := term.cell_centre(w.player().pos) * k
-	var map_from := Vector2(Term.MAP) * Term.CELL * k
-	var map_size := Vector2(Grid.W, Grid.H) * Term.CELL * k
-	var at := view / 2.0 - centre
-	at.x = clampf(at.x, view.x - map_from.x - map_size.x, -map_from.x)
-	at.y = clampf(at.y, view.y - map_from.y - map_size.y, -map_from.y)
-	var t := create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
-	t.tween_property(term, "scale", Vector2(k, k), time)
-	t.tween_property(term, "position", at.round(), time)
+	var whole := Vector2(Term.MAP.x + Grid.W, Grid.H + 2) * Term.CELL
+	var k := minf(view.x / whole.x, view.y / whole.y) * REPLAY_ZOOM
+	var map := term.map_rect()
+	var at := view / 2.0 - term.cell_centre(w.player().pos) * k
+	for axis in 2:
+		var lo := view[axis] - map.end[axis] * k
+		var hi := -map.position[axis] * k
+		at[axis] = clampf(at[axis], lo, hi) if lo <= hi else (lo + hi) / 2.0
+	pan = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
+	pan.tween_property(term, "scale", Vector2(k, k), time)
+	pan.tween_property(term, "position", at.round(), time)
 	sfx.listener.position = term.cell_centre(w.player().pos)
 
 
