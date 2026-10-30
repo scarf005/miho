@@ -4,6 +4,7 @@ extends Node
 ## godot --path . -- --seed=3 --keys=Space,1,Up,Space --shot=out.png
 ## A key may also be `hover:x:y` (point at a tile), `click:x:y` (click it),
 ## `cell:x:y` (point at a screen cell, such as a talisman or the sidebar),
+## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
@@ -84,6 +85,10 @@ func _send(k: String) -> void:
 				ev.pressed = pressed
 				Input.parse_input_event(ev)
 				await get_tree().process_frame
+		"fire":
+			main.world.burning[Vector2i(int(parts[1]), int(parts[2]))] = World.BURN_ROUNDS
+			main.term.show_world(main.world)
+			main._forecast()
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":
