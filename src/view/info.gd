@@ -179,7 +179,7 @@ static func terrain(w: World, p: Vector2i) -> Array:
 		note = "사람이 된다"
 	elif w.peaches.has(p):
 		name = "복숭아"
-		note = "체력 1 회복"
+		note = "체력 1 회복. 가득 찼으면 최대 체력 +1"
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])

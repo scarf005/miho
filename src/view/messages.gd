@@ -105,6 +105,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
 		&"heal":
 			var healed := [["체력을 ", TEXT], ["1", Palette.HURT], [" 회복했다", TEXT]]
+			if e.get("grew", false):
+				healed = [["최대 체력이 ", TEXT], ["1", Palette.HURT], [" 늘었다", TEXT]]
 			return healed if last.get("t") == &"ascend" else [["복숭아를 먹었다. ", TEXT]] + healed
 		&"blind":
 			return _subject(before, after, id, "의") + [["눈이 멀었다", TEXT]]

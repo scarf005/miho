@@ -399,8 +399,10 @@ func act(action: Dictionary) -> Array[Dictionary]:
 					return events
 				if peaches.has(me.pos):
 					peaches.erase(me.pos)
-					me.hp = mini(me.max_hp, me.hp + 1)
-					emit({t = &"heal", id = me.id, hp = me.hp})
+					var grew := me.hp >= me.max_hp
+					me.max_hp += 1 if grew else 0
+					me.hp += 1
+					emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
