@@ -7,22 +7,116 @@ extends RefCounted
 ## from her, which is always lit. Watchers that never move stand by lanterns.
 
 const PLAN := {
-	1: [&"dokkaebi", &"dokkaebi", &"jangseung"],
-	2: [&"bulgae", &"dokkaebi", &"dokkaebi", &"jangseung"],
-	3: [&"haetae", &"imugi", &"dokkaebi", &"jangseung"],
-	4: [&"cheonha", &"jiha", &"dokkaebi", &"dokkaebi", &"imugi"],
-	5: [&"imugi", &"imugi", &"dokkaebi", &"dokkaebi", &"jangseung"],
-	6: [&"bulgasari", &"dokkaebi", &"imugi", &"jangseung", &"dokkaebi"],
-	7: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"imugi", &"imugi", &"jangseung"],
-	8: [&"haetae", &"dokkaebi", &"dokkaebi", &"imugi", &"jangseung", &"jangseung"],
-	9: [&"cheonnyeon", &"haetae", &"haetae", &"dokkaebi"],
+	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
+	2:
+	[
+		&"bulgae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	3:
+	[
+		&"haetae",
+		&"imugi",
+		&"imugi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	4:
+	[
+		&"cheonha",
+		&"jiha",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+	],
+	5:
+	[
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	6:
+	[
+		&"bulgasari",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+	],
+	7:
+	[
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+	],
+	8:
+	[
+		&"haetae",
+		&"haetae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+		&"jangseung",
+		&"jangseung",
+	],
+	9:
+	[
+		&"cheonnyeon",
+		&"haetae",
+		&"haetae",
+		&"haetae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+	],
 }
 const PEACH_FLOORS := [3, 5, 7, 9]
-const MIN_ROOMS := 6
-const MAX_ROOMS := 9
-const LOOPS := 2
+const MIN_ROOMS := 9
+const MAX_ROOMS := 16
+const LOOPS := 4
 const LIT_ROOMS := 0.45
-const FOE_DISTANCE := 8
+const FOE_DISTANCE := 12
 
 
 static func build(w: World) -> void:
@@ -68,10 +162,10 @@ static func _carve(w: World) -> void:
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.WALL)
 	w.rooms.clear()
-	for i in 120:
+	for i in 300:
 		if w.rooms.size() >= MAX_ROOMS:
 			break
-		var size := Vector2i(w.rng.randi_range(4, 8), w.rng.randi_range(3, 5))
+		var size := Vector2i(w.rng.randi_range(5, 12), w.rng.randi_range(4, 8))
 		var at := Vector2i(
 			w.rng.randi_range(1, Grid.W - size.x - 1), w.rng.randi_range(1, Grid.H - size.y - 1)
 		)
@@ -148,22 +242,35 @@ static func _farthest(w: World, from: Vector2i) -> Rect2i:
 	return best
 
 
-## A lantern in a corner of the goal room and of some others, never the start room.
+## A lantern in a corner of the goal room and of some others, never the start
+## room. The goal room's lantern must light the goal, beside it if no corner can.
 static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
+	var target := w.elixir if w.elixir.x >= 0 else w.stairs
 	for r in w.rooms:
 		if r == home or (r != goal and w.rng.randf() >= LIT_ROOMS):
 			continue
 		var corners := [r.position, Vector2i(r.end.x - 1, r.position.y), r.end - Vector2i.ONE]
 		corners.append(Vector2i(r.position.x, r.end.y - 1))
 		var first := w.rng.randi_range(0, 3)
+		var spots := []
 		for k in corners.size():
-			var c: Vector2i = corners[(first + k) % corners.size()]
+			spots.append(corners[(first + k) % corners.size()])
+		if r == goal:
+			spots.append_array(Grid.DIRS.map(func(d): return target + d))
+		for c: Vector2i in spots:
 			if c == w.stairs or c == w.elixir or w.tile(c) != World.FLOOR:
+				continue
+			if r == goal and not _lights(w, c, target):
 				continue
 			w.tiles[Grid.index(c)] = World.LANTERN
 			if _connected(w):
 				break
 			w.tiles[Grid.index(c)] = World.FLOOR
+
+
+static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
+	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque)[Grid.index(p)]
+	return Light.level(Light.LANTERN * s) >= Light.LIT
 
 
 static func _creatures(w: World) -> void:

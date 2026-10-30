@@ -23,8 +23,8 @@ extends RefCounted
 ## kill gives one back.
 
 const FLOORS := 9
-const REAPER_OMEN := 150
-const REAPER_ARRIVES := 160
+const REAPER_OMEN := 300
+const REAPER_ARRIVES := 320
 const TAIL_REGROW := 3
 const VIEW := 40
 const NIGHT := [2, 1]
