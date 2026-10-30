@@ -84,6 +84,7 @@ func _ready() -> void:
 	glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	glass.material = ShaderMaterial.new()
 	glass.material.shader = preload("res://src/view/crt.gdshader")
+	glass.material.set_shader_parameter("curve", Crt.CURVE)
 	crt.add_child(glass)
 	add_child(crt)
 	get_viewport().size_changed.connect(_fit)
@@ -261,7 +262,7 @@ func _click(event: InputEventMouseButton) -> void:
 		return
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
-	var local := term.get_global_transform().affine_inverse() * event.position
+	var local := _local(event.position)
 	var card := term.card_at(local)
 	if card != &"":
 		_toggle(card)
@@ -284,8 +285,15 @@ func _use_tile(tile: Vector2i, hold: bool) -> void:
 		_journey(func(): return _step_on(Travel.route(routes, tile)))
 
 
+## A screen point in the term's space, through the CRT curve when it is on.
+func _local(screen: Vector2) -> Vector2:
+	if glass.visible:
+		screen = Crt.flat(screen, get_viewport().get_visible_rect().size)
+	return term.get_global_transform().affine_inverse() * screen
+
+
 func _point(screen: Vector2) -> void:
-	var local := term.get_global_transform().affine_inverse() * screen
+	var local := _local(screen)
 	if overlay != &"" and overlay != &"log":
 		menu.point(term.panel_row_at(local))
 		term.panel = menu.panel()
@@ -537,7 +545,7 @@ func _panel_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		command = menu.back()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		var local: Vector2 = term.get_global_transform().affine_inverse() * event.position
+		var local := _local(event.position)
 		command = menu.use() if term.panel_row_at(local) >= 0 else &""
 	match command:
 		&"close":

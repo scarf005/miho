@@ -74,10 +74,10 @@ func _send(k: String) -> void:
 	match parts[0]:
 		"hover":
 			var tile := Vector2i(int(parts[1]), int(parts[2]))
-			main._point(main.term.get_global_transform() * main.term.cell_centre(tile))
+			main._point(_screen(main.term.cell_centre(tile)))
 		"cell":
 			var at := (Vector2(int(parts[1]), int(parts[2])) + Vector2(0.5, 0.5)) * Term.CELL
-			main._point(main.term.get_global_transform() * at)
+			main._point(_screen(at))
 		"click", "tap":
 			var xy := Vector2i(int(parts[1]), int(parts[2]))
 			var local: Vector2 = (
@@ -85,7 +85,7 @@ func _send(k: String) -> void:
 				if parts[0] == "click"
 				else (Vector2(xy) + Vector2(0.5, 0.5)) * Term.CELL
 			)
-			var at: Vector2 = main.term.get_global_transform() * local
+			var at := _screen(local)
 			main._point(at)
 			for pressed in [true, false]:
 				var ev := InputEventMouseButton.new()
@@ -150,3 +150,9 @@ static func _press(k: String, pressed: bool, echo: bool) -> void:
 	ev.pressed = pressed
 	ev.echo = echo
 	Input.parse_input_event(ev)
+
+
+## Where a point in the term's space shows on the screen, as a pointer finds it.
+func _screen(local: Vector2) -> Vector2:
+	var drawn: Vector2 = main.term.get_global_transform() * local
+	return Crt.seen(drawn, get_viewport().get_visible_rect().size) if main.glass.visible else drawn
