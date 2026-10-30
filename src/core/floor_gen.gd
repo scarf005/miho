@@ -1,13 +1,13 @@
 class_name FloorGen
 extends RefCounted
-## Builds each storey: two to four pavilions in open sky, joined by skybridges.
-## Inside a pavilion, rooms are joined by corridors with a few extra loops (so
-## a hunted fox has somewhere to slip away), doors where corridors meet rooms,
-## and lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
-## floorboards (a pavilion hall). Corridors stay plain and dark. Miho starts in
-## the westmost room; the stairs (the elixir on the top storey) sit in the room
-## farthest from her, which is always lit. Watchers that never move stand by
-## lanterns.
+## Builds each storey: two to four pavilions in open sky, joined by skybridges,
+## with windows in their outer walls. Inside a pavilion, rooms are joined by
+## corridors with a few extra loops (so a hunted fox has somewhere to slip
+## away), doors where corridors meet rooms, and lanterns in some rooms. Some
+## other rooms get a bamboo patch, a pond, or floorboards (a pavilion hall).
+## Corridors stay plain and dark. Miho starts in the westmost room; the stairs
+## (the elixir on the top storey) sit in the room farthest from her, which is
+## always lit. Watchers that never move stand by lanterns.
 
 const PLAN := {
 	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
@@ -129,6 +129,7 @@ const MIN_WIDTH := 9
 const MIN_HEIGHT := 14
 ## First and last row a bridge may cross on; every pavilion spans them.
 const BRIDGE_ROWS := Vector2i(10, 17)
+const WINDOWS := 0.35
 
 
 static func build(w: World) -> void:
@@ -195,6 +196,7 @@ static func _carve(w: World) -> void:
 			_bridge(w, groups, blocks, i, y)
 	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
 	_doors(w)
+	_windows(w)
 
 
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
@@ -281,6 +283,27 @@ static func _mouth(w: World, rooms: Array, mouth: Vector2i, inward: Vector2i) ->
 	)
 	w.tiles[Grid.index(mouth)] = World.FLOOR
 	_corridor(w, inner, _centre(near))
+
+
+## A window on some outer wall tiles that face the sky with room floor behind
+## them, never two side by side and never on the map's outer ring.
+static func _windows(w: World) -> void:
+	for y in range(1, Grid.H - 1):
+		for x in range(1, Grid.W - 1):
+			var p := Vector2i(x, y)
+			if w.tile(p) != World.WALL:
+				continue
+			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+				var side := Vector2i(d.y, d.x)
+				if (
+					w.tile(p + d) == World.SKY
+					and w.tile(p - d) == World.FLOOR
+					and w.tile(p + side) != World.WINDOW
+					and w.tile(p - side) != World.WINDOW
+					and w.rng.randf() < WINDOWS
+				):
+					w.tiles[Grid.index(p)] = World.WINDOW
+					break
 
 
 static func _fill(w: World, r: Rect2i, t: int) -> void:

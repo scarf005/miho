@@ -64,7 +64,7 @@ const TOOLS := [
 		name = "act",
 		description =
 		(
-			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern; "
+			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern or window; "
 			+ "wait passes a round; cast hurls spells. explore, rest (until the tails regrow), "
 			+ "stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to 200, "
 			+ "and stop when a step would harm Miho or get her noticed, fire is next to the step, "

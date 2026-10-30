@@ -42,7 +42,9 @@ extends RefCounted
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
 ## cannot be walked, but sight, light, sound and spells cross it. A bridge is
 ## walkable, creaks, never burns and is always lit by the moon, so whoever
-## crosses one is seen from afar.
+## crosses one is seen from afar. A window in an outer wall blocks walking but
+## not sight or light, and breaks to floor with a clang when Miho walks into it
+## or an orb strikes it.
 ##
 ## Each storey climbed gives back one health.
 ##
@@ -82,6 +84,7 @@ const LANTERN_BROKEN := 9
 const WALL_CRACKED := 10
 const RUBBLE := 11
 const SKY := 12
+const WINDOW := 13
 const BRIDGE := 14
 const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE]
 const FLAMMABLE := [DOOR, BAMBOO, BOARD]
@@ -333,7 +336,8 @@ func can(action: Dictionary) -> bool:
 	return false
 
 
-## A step onto a free tile, claws at a creature next to Miho, or a knock at a lantern.
+## A step onto a free tile, claws at a creature next to Miho, or a knock at a
+## lantern or window.
 func _can_move(dir: Vector2i) -> bool:
 	var me := player()
 	var to := me.pos + dir
@@ -342,7 +346,7 @@ func _can_move(dir: Vector2i) -> bool:
 	var foe := actor_at(to)
 	if foe != null:
 		return foe.faction != me.faction
-	return Terrain.lantern(tile(to)) or (me.rooted <= 0 and vacant(to))
+	return Terrain.knockable(tile(to)) or (me.rooted <= 0 and vacant(to))
 
 
 ## Every spell is valid and known, takes its own open direction, and the cards
@@ -390,7 +394,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			var foe := actor_at(to)
 			if foe != null:
 				_claw(me, foe)
-			elif Terrain.lantern(tile(to)):
+			elif Terrain.knockable(tile(to)):
 				Terrain.knock(self, me, to)
 			else:
 				_move(me, to)

@@ -1,5 +1,5 @@
 extends GutTest
-## Pavilions in open sky: skybridges and the sky itself.
+## Pavilions in open sky: skybridges, windows and the sky itself.
 
 const ORB := Cards.ORB
 const E := Vector2i(1, 0)
@@ -145,6 +145,29 @@ func test_the_grid_edge_cannot_be_walked_and_outside_it_is_wall() -> void:
 	assert_false(w.can({t = &"move", dir = Vector2i(-1, 0)}))
 
 
+func test_windows_sit_only_in_walls_between_a_room_and_the_sky() -> void:
+	var seen := [0]
+	_storeys(
+		func(w: World, label: String):
+			for i in w.tiles.size():
+				if w.tiles[i] != World.WINDOW:
+					continue
+				seen[0] += 1
+				var p := Grid.at(i)
+				assert_between(p.x, 1, Grid.W - 2, "%s %s on the ring" % [label, p])
+				assert_between(p.y, 1, Grid.H - 2, "%s %s on the ring" % [label, p])
+				var faces := Grid.DIRS.filter(
+					func(d): return d.x * d.y == 0 and w.tile(p + d) == World.SKY
+				)
+				assert_eq(faces.size(), 1, "%s %s faces the sky once" % [label, p])
+				assert_false(
+					Terrain.wall(w.tile(p - faces[0])) or w.tile(p - faces[0]) == World.SKY,
+					"%s %s has a room behind" % [label, p]
+				)
+	)
+	assert_gt(seen[0], 20, "windows are common enough to be seen")
+
+
 func test_bridges_are_lit_by_the_moon_and_a_start_in_the_dark_stays_dark() -> void:
 	_storeys(
 		func(w: World, label: String):
@@ -205,3 +228,57 @@ func test_sky_blocks_walking_but_not_sight_light_sound_or_spells() -> void:
 	assert_gt(shot.filter(func(e): return e.t == &"fly").size(), 0)
 	w.act(WAIT)
 	assert_gt(w.shots[0].pos.x, 7, "the wisp flew over the sky column")
+
+
+func test_a_window_blocks_walking_but_not_sight_or_light() -> void:
+	var w := _world()
+	_column(w, 7, World.WALL)
+	_put(w, Vector2i(7, 8), World.WINDOW)
+	_put(w, Vector2i(9, 8), World.LANTERN)
+	assert_false(w.open_floor(Vector2i(7, 8)))
+	assert_false(w.opaque(Vector2i(7, 8)))
+	assert_eq(w.fov(w.player().pos)[Grid.index(Vector2i(11, 8))], 1, "seen through it")
+	assert_true(w.lit(Vector2i(6, 8)), "the lantern's light comes through it")
+	w.player().pos = Vector2i(6, 8)
+	assert_false(w.opaque(Vector2i(7, 8)))
+
+
+func test_walking_into_a_window_breaks_it_to_floor_with_a_clang_and_a_message() -> void:
+	var w := _world()
+	var at := Vector2i(5, 8)
+	_put(w, at, World.WINDOW)
+	var listener := FloorGen.spawn(w, &"imugi", Vector2i(8, 8))
+	listener.cooldown = 99
+	w.sense()
+	assert_true(w.can({t = &"move", dir = E}), "a window can be knocked")
+	var events := w.act({t = &"move", dir = E})
+	assert_eq(w.tile(at), World.FLOOR)
+	assert_eq(w.player().pos, Vector2i(4, 8), "the knock takes her move")
+	var clang: Dictionary = _noises(events)[0]
+	assert_eq([clang.word, clang.loud, clang.at], ["쨍", World.KNOCK, at])
+	assert_eq(listener.alert, Actor.SEARCH)
+	var lines := Messages.of(w, w, events).map(Messages.plain)
+	assert_eq(lines, ["창문이 깨졌다"])
+	w.act({t = &"move", dir = E})
+	assert_eq(w.player().pos, at, "the broken window is walked through")
+
+
+func test_an_orb_breaks_the_window_it_strikes_but_a_water_orb_and_a_wisp_do_not() -> void:
+	for dist: int in [1, 4]:
+		var w := _world()
+		var at := w.player().pos + E * dist
+		_put(w, at, World.WINDOW)
+		var events := _throw(w)
+		assert_eq(w.tile(at), World.FLOOR, "orb at %d tiles" % dist)
+		assert_has(_noises(events).map(func(e): return e.word), "쨍")
+	var w := _world()
+	var at := Vector2i(6, 8)
+	_put(w, at, World.WINDOW)
+	for i in 2:
+		_throw(w, [ORB, Cards.WATER])
+	assert_eq(w.tile(at), World.WINDOW, "water does not break it")
+	_throw(w, [Cards.FOX])
+	assert_eq(w.tile(at), World.WINDOW, "a wisp does not break it")
+	_put(w, Vector2i(5, 8), World.WINDOW)
+	assert_false(w.can(_cast([Cards.FOX], E)), "a wisp cannot be cast at an adjacent window")
+	assert_true(w.can(_cast([ORB], E)), "an orb can")

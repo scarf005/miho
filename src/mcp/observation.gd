@@ -22,7 +22,7 @@ const NAMES := {
 const ALERTS := ["resting", "searching", "hunting"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
-	+ "░sky ═skybridge "
+	+ "░sky □window ═skybridge "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
 	+ "●○*projectile @Miho"
 )
@@ -149,7 +149,7 @@ static func _shot(s: Shot) -> String:
 
 
 ## The steps Miho may take, each with what stands there: a creature her claws
-## strike, or a lantern she knocks.
+## strike, or a lantern or window she knocks.
 static func _moves(k: World) -> String:
 	var out := []
 	for d in Grid.DIRS:
@@ -159,6 +159,8 @@ static func _moves(k: World) -> String:
 			var note := ""
 			if a != null:
 				note = "(claw %s)" % a.info().name
+			elif k.tile(to) == World.WINDOW:
+				note = "(knock window)"
 			elif Terrain.lantern(k.tile(to)):
 				note = "(knock lantern)"
 			out.append(NAMES[d] + note)

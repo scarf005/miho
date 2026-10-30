@@ -1,22 +1,28 @@
 class_name Terrain
 extends RefCounted
 ## Terrain that reacts to what Miho and heaven do to it: lanterns that go out,
-## light again and break, doors and walls that break. See World for the rules.
+## light again and break, doors, windows and walls that break. See World for the rules.
 
 ## What a hit leaves of a tile: a lit lantern goes out, a dark one breaks into
-## rubble, a closed door becomes floor, a wall cracks and then falls to rubble.
+## rubble, a closed door or a window becomes floor, a wall cracks and then falls to rubble.
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,
 	World.WALL_CRACKED: World.RUBBLE,
 	World.LANTERN: World.LANTERN_OUT,
 	World.LANTERN_OUT: World.LANTERN_BROKEN,
 	World.DOOR: World.FLOOR,
+	World.WINDOW: World.FLOOR,
 }
 
 
 ## A lantern that is not broken: it blocks walking and a hit moves it one step on.
 static func lantern(t: int) -> bool:
 	return t == World.LANTERN or t == World.LANTERN_OUT
+
+
+## A tile Miho knocks by walking into it: a lantern or a window.
+static func knockable(t: int) -> bool:
+	return lantern(t) or t == World.WINDOW
 
 
 ## A wall, cracked or not: it blocks walking, sight and light.
@@ -36,19 +42,21 @@ static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
 	return w.open_air(at) or (spell.orb and breakable(w, at))
 
 
-## Miho walks into a lantern: a hit, with a clang.
+## Miho walks into a lantern or window: a hit, with a clang.
 static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	hit(w, at)
 	w.noise(at, World.KNOCK, "쨍", true, me.id)
 
 
-## An orb without water hits the lantern, closed door or wall it struck; a wall
-## thuds.
+## An orb without water hits the lantern, closed door, window or wall it struck;
+## a wall thuds and a window clangs.
 static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 	if not s.spell.has(Cards.WATER) and w.tile(at) == struck and breakable(w, at):
 		hit(w, at)
 		if wall(struck):
 			w.noise(at, World.THUD, "쿵", true, s.caster)
+		elif struck == World.WINDOW:
+			w.noise(at, World.KNOCK, "쨍", true, s.caster)
 
 
 ## Moves the tile one step along BREAKS; `was` is the tile it was.
