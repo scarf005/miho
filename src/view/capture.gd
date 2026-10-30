@@ -2,9 +2,10 @@ class_name Capture
 extends Node
 ## Scripted runs for screenshots and checks, driven through the real input path:
 ## godot --path . -- --seed=3 --keys=Space,1,Up,Space --shot=out.png
-## A key may also be `hover:x:y` (point at a tile), `cell:x:y` (point at a
-## screen cell, such as a talisman or the sidebar), `pause:seconds`, or
-## `walk:n` (n steps towards the stairs by direction keys), `hold:key:seconds`
+## A key may also be `hover:x:y` (point at a tile), `click:x:y` (click it),
+## `cell:x:y` (point at a screen cell, such as a talisman or the sidebar),
+## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
+## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
 ## in between as out-1.png, out-2.png ...). Keys may carry modifiers: Shift+Up.
 ## --replay=seconds also saves out-replay.png that long into the first
@@ -52,7 +53,7 @@ func _run() -> void:
 	await get_tree().create_timer(0.6).timeout
 	for k in keys:
 		await _send(k)
-		while main.busy or main.state == &"replay":
+		while main.busy or main.walking or main.state == &"replay":
 			await get_tree().process_frame
 		await get_tree().create_timer(0.2).timeout
 	await get_tree().create_timer(0.5).timeout
@@ -69,6 +70,17 @@ func _send(k: String) -> void:
 		"cell":
 			var at := (Vector2(int(parts[1]), int(parts[2])) + Vector2(0.5, 0.5)) * Term.CELL
 			main._point(main.term.get_global_transform() * at)
+		"click":
+			var tile := Vector2i(int(parts[1]), int(parts[2]))
+			var at: Vector2 = main.term.get_global_transform() * main.term.cell_centre(tile)
+			main._point(at)
+			for pressed in [true, false]:
+				var ev := InputEventMouseButton.new()
+				ev.button_index = MOUSE_BUTTON_LEFT
+				ev.position = at
+				ev.pressed = pressed
+				Input.parse_input_event(ev)
+				await get_tree().process_frame
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":

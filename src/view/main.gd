@@ -4,12 +4,15 @@ extends Node
 ## with claws. 1-7 pick talismans; with talismans picked a direction hurls the
 ## spell, and Shift with a direction holds it so several spells leave in one
 ## turn. Space, Enter or . waits, or hurls what is held. Esc clears; M mutes.
-## Mouse: click a neighbour to move, or with talismans picked click anywhere to
-## hurl that way; click a talisman to pick it; right-click clears. Each storey
-## left behind replays its best moment.
+## > walks to the stairs, x explores, z rests until the tails regrow.
+## Mouse: click a neighbour to move or a farther known tile to walk there, or
+## with talismans picked click anywhere to hurl that way; click a talisman to
+## pick it; right-click clears. Each storey left behind replays its best moment.
 
 const REPLAY_ZOOM := 1.5
 const REPLAY_SPEED := 0.7
+## How much faster rounds play while walking many rounds.
+const WALK_SPEED := 3.0
 
 var world: World
 var term: Term
@@ -25,7 +28,12 @@ var hover_status := false
 var skip := false
 ## Cell scale; 0 fits the whole map to the window.
 var zoom := 0.0
+## How fast rounds play.
+var speed := 1.0
 var pan: Tween
+## A walk of many rounds is under way, and a key or click asked it to stop.
+var walking := false
+var halt := false
 ## Worked out once per world or talisman change: what Miho knows, the forecast
 ## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
 ## and forecasts of the spell hurled each way, filled as the pointer aims.
@@ -33,6 +41,8 @@ var known: World
 var ahead := {}
 var reach := {}
 var aims := {}
+## Shortest walks from Miho over what she knows (Travel.search).
+var routes := {}
 
 
 func _ready() -> void:
@@ -86,6 +96,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			skip = true
 			term.speed = 8.0
 		return
+	if walking:
+		halt = halt or press
+		return
 	if busy:
 		return
 	if state == &"title":
@@ -122,6 +135,12 @@ func _key(event: InputEventKey) -> void:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"cancel":
 		_clear()
+	elif action == &"stairs":
+		_journey(_to_exit)
+	elif action == &"explore":
+		_journey(_exploring)
+	elif action == &"rest":
+		_journey(_resting)
 	elif action == &"mute":
 		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 
@@ -146,6 +165,9 @@ func _click(event: InputEventMouseButton) -> void:
 		_direction(Grid.nearest_dir(hover - me), event.shift_pressed)
 	elif Grid.cheb(hover, me) == 1:
 		_act({t = &"move", dir = hover - me})
+	else:
+		var goal := hover
+		_journey(func(): return _step_on(Travel.route(routes, goal)))
 
 
 func _point(screen: Vector2) -> void:
@@ -206,10 +228,11 @@ func _direction(d: Vector2i, hold: bool) -> void:
 # --- turns ----------------------------------------------------------------------
 
 
-func _act(action: Dictionary) -> void:
+## Plays one round and returns its events (none when the action is not allowed).
+func _act(action: Dictionary) -> Array:
 	if not world.can(action):
 		sfx.play(&"click")
-		return
+		return []
 	busy = true
 	term.tints = {}
 	term.marks = {}
@@ -236,6 +259,53 @@ func _act(action: Dictionary) -> void:
 		term.banner_lines = ["쓰러졌다", "%d층" % world.depth, "R 다시"]
 	busy = false
 	_forecast()
+	return events
+
+
+## Plays `next` (an action, or empty when done) round after round. Stops
+## before a step whose forecast shows harm or being noticed, and after a round
+## in which something Miho should react to happened (Travel.interrupted), or
+## when a key or click asks.
+func _journey(next: Callable) -> void:
+	_clear()
+	var sighted := Travel.in_sight(world)
+	var rounds := 0
+	walking = true
+	halt = false
+	term.speed = speed * WALK_SPEED
+	while not halt and state == &"play":
+		var action: Dictionary = next.call()
+		var f: Forecast = (
+			ahead.get(action.get("dir", Vector2i.ZERO)) if not action.is_empty() else null
+		)
+		if f == null or f.hurt_me() > 0 or not f.noticed.is_empty() or not world.can(action):
+			break
+		var before := world.clone()
+		var events: Array = await _act(action)
+		rounds += 1
+		if Travel.interrupted(before, world, events, sighted):
+			break
+	walking = false
+	term.speed = speed
+	if rounds == 0:
+		sfx.play(&"click")
+
+
+func _step_on(path: Array[Vector2i]) -> Dictionary:
+	return {t = &"move", dir = path[0] - world.player().pos} if not path.is_empty() else {}
+
+
+func _to_exit() -> Dictionary:
+	return _step_on(Travel.route(routes, Travel.exit(world)))
+
+
+func _exploring() -> Dictionary:
+	var d := Travel.explore_step(world, routes)
+	return {t = &"move", dir = d} if d != Vector2i.ZERO else {}
+
+
+func _resting() -> Dictionary:
+	return {t = &"wait"} if world.tails < world.max_tails() else {}
 
 
 ## The storey's best moment, zoomed in on Miho and slowed down; any key skips it.
@@ -264,7 +334,7 @@ func _replay() -> void:
 			await get_tree().create_timer(0.3).timeout
 	pan.kill()
 	term.replay = false
-	term.speed = 1.0
+	term.speed = speed
 	state = &"play"
 	_fit()
 	term.show_world(world)
@@ -296,6 +366,7 @@ func _forecast() -> void:
 	if world == null:
 		return
 	known = world.known_clone()
+	routes = Travel.search(world)
 	ahead = {}
 	aims = {}
 	reach = {}
@@ -312,8 +383,9 @@ func _forecast() -> void:
 	_refresh()
 
 
-## Under the pointer: what is there, the tiles a creature there sees, and what
-## the spell in hand would do hurled that way (each aim forecast once).
+## Under the pointer: what is there, the tiles a creature there sees, what the
+## spell in hand would do hurled that way (each aim forecast once), or with
+## nothing in hand the walk a click there would take.
 func _refresh() -> void:
 	if world == null:
 		return
@@ -336,6 +408,11 @@ func _refresh() -> void:
 			spells.append({cards = picked.duplicate(), dir = aim})
 			aims[aim] = Forecast.of(world, {t = &"cast", spells = spells})
 		_paint(aims[aim], tints, marks)
+	elif (
+		picked.is_empty() and staged.is_empty() and Grid.inside(hover) and Grid.cheb(hover, me) > 1
+	):
+		for p in Travel.route(routes, hover):
+			tints[p] = Color(Palette.TEXT, 0.12)
 	var a := world.actor_at(hover) if Grid.inside(hover) else null
 	if a != null and a.faction != Actor.FOX and world.seen[Grid.index(hover)] == 1:
 		var view := known.view_of(a)
