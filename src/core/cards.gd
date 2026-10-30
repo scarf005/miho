@@ -16,6 +16,9 @@ const ALL: Array[StringName] = [FOX, ORB, FIRE, WATER, WOOD, METAL, EARTH]
 const FORMS: Array[StringName] = [FOX, ORB]
 const ELEMENTS: Array[StringName] = [FIRE, WATER, WOOD, METAL, EARTH]
 
+## 상극: each element beats the one it maps to (wood beats earth, ...).
+const BEATS := {WOOD: EARTH, EARTH: WATER, WATER: FIRE, FIRE: METAL, METAL: WOOD}
+
 const NAME := {
 	FOX: "여우불",
 	ORB: "구슬",

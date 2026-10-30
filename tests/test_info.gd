@@ -64,3 +64,26 @@ func test_a_creature_tells_the_talisman_it_drops_until_miho_has_it() -> void:
 	assert_string_contains(Info.plain(Info.creature(w, dog)), "처치 시 불 부적을 얻을 수 있다")
 	w.cards.append(Cards.FIRE)
 	assert_false(Info.plain(Info.creature(w, dog)).contains("처치 시"))
+
+
+func test_a_creature_tells_what_it_is_weak_to() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var text := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jiha", at)))
+	assert_string_contains(text, "오행 금(쇠) \n약점: 불 (피해 ×2)")
+	var dog := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
+	assert_string_contains(dog, "약점: 흙 (피해 ×2)")
+	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
+	assert_string_contains(boss, "약점: 불, 물, 흙 (피해 ×2)")
+	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", at)))
+	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
+
+
+func test_a_wood_creature_is_told_to_burn() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var wood := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonha", at)))
+	assert_string_contains(wood, "약점: 쇠 (피해 ×2)")
+	assert_string_contains(wood, "불에 탐")
+	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
+	assert_false(water.contains("불에 탐"))

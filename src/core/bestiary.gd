@@ -8,6 +8,8 @@ extends RefCounted
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" eats spells that carry fire (해태 guards against fire);
 ## &"nofire" eats every spell without fire (불가사리 dies only in fire).
+## A creature's elements are those of the spells it casts. A spell that holds
+## an element beating one of them hits it twice as hard (Cards.BEATS).
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
@@ -134,3 +136,30 @@ static func absorbs(kind: StringName, spell: Spell) -> bool:
 		&"nofire":
 			return not spell.has(Cards.FIRE)
 	return false
+
+
+## A creature's elements: those of the spells it casts, in 오행 order.
+static func elements(kind: StringName) -> Array[StringName]:
+	var out: Array[StringName] = []
+	for c in Cards.ELEMENTS:
+		if info(kind).get("casts", []).any(func(cast): return cast.has(c)):
+			out.append(c)
+	return out
+
+
+## The elements that beat one of the creature's own, in 오행 order.
+static func weak_to(kind: StringName) -> Array[StringName]:
+	var mine := elements(kind)
+	var out: Array[StringName] = []
+	out.assign(Cards.ELEMENTS.filter(func(c): return mine.has(Cards.BEATS[c])))
+	return out
+
+
+## Whether the spell holds an element that beats one of the creature's.
+static func weak(kind: StringName, spell: Spell) -> bool:
+	return weak_to(kind).any(func(c): return spell.has(c))
+
+
+## Wood creatures catch fire when a fire spell hits them.
+static func burns(kind: StringName) -> bool:
+	return elements(kind).has(Cards.WOOD)

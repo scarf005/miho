@@ -126,6 +126,9 @@ static func _creature(k: World, a: Actor) -> String:
 	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"]]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]
+	var weak := Bestiary.weak_to(a.kind)
+	if not weak.is_empty():
+		line += ", weak to " + ", ".join(weak)
 	if not a.intent.is_empty():
 		line += ", charging %s aimed %s" % [Spell.make(a.intent).title(), NAMES.get(a.aim, "?")]
 	return line
