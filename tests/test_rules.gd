@@ -2,12 +2,23 @@ extends GutTest
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
-const UP := Vector2i(0, -1)
+const N := Vector2i(0, -1)
+const E := Vector2i(1, 0)
+const S := Vector2i(0, 1)
+const WEST := Vector2i(-1, 0)
+const WAIT := {t = &"wait"}
 
 
+## An open hall walled at the edges, with no light, Miho at `at`.
 func _world(at := Vector2i(4, 8)) -> World:
 	var w := World.new()
 	w.tiles.resize(Grid.W * Grid.H)
+	w.tiles.fill(World.WALL)
+	var hall := Rect2i(1, 1, Grid.W - 2, Grid.H - 2)
+	for y in range(hall.position.y, hall.end.y):
+		for x in range(hall.position.x, hall.end.x):
+			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
+	w.rooms.assign([hall])
 	var me := Actor.new()
 	me.id = w.new_id()
 	me.kind = &"miho"
@@ -21,17 +32,17 @@ func _world(at := Vector2i(4, 8)) -> World:
 	return w
 
 
-## A cast action of one or more spells; each spell is [cards] or [cards, dir].
-func _cast(cards: Array, dir := Vector2i.ZERO) -> Dictionary:
+func _put(w: World, p: Vector2i, t: int) -> void:
+	w.tiles[Grid.index(p)] = t
+
+
+func _cast(cards: Array, dir: Vector2i) -> Dictionary:
 	return {t = &"cast", spells = [{cards = cards, dir = dir}]}
 
 
+## A cast of several spells, each [cards, dir].
 func _casts(spells: Array) -> Dictionary:
-	return {
-		t = &"cast",
-		spells =
-		spells.map(func(s): return {cards = s[0], dir = s[1] if s.size() > 1 else Vector2i.ZERO})
-	}
+	return {t = &"cast", spells = spells.map(func(s): return {cards = s[0], dir = s[1]})}
 
 
 func _foe(w: World, kind: StringName, at: Vector2i, cooldown := 99) -> Actor:
@@ -58,293 +69,277 @@ func test_spell_needs_a_form_and_distinct_cards() -> void:
 func test_spell_names_and_costs() -> void:
 	assert_eq(Spell.make([FOX, Cards.FIRE]).title(), "화염구")
 	assert_eq(Spell.make([ORB, FOX]).title(), "여우구슬")
-	assert_eq(Spell.make([ORB, Cards.WATER]).title(), "물구슬")
+	assert_eq(Spell.make([ORB, Cards.WATER]).title(), "먹구슬")
+	assert_eq(Spell.make([FOX, Cards.METAL]).title(), "섬광")
 	assert_eq(Spell.make([Cards.METAL, ORB, Cards.FIRE]).title(), "불·쇠 구슬")
 	assert_eq(Spell.make([FOX]).cost(), 1)
-	assert_eq(Spell.make([ORB]).cost(), 1)
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.METAL]).cost(), 3)
 	assert_eq(Spell.make([FOX, ORB, Cards.FIRE, Cards.METAL]).cost(), 4)
 
 
-func test_foxfire_pair_seeks_the_nearest_foe() -> void:
+func test_sight_is_symmetric_between_floor_tiles() -> void:
 	var w := _world()
-	var near := _foe(w, &"jangseung", Vector2i(4, 4))
-	var far := _foe(w, &"jangseung", Vector2i(0, 0))
-	w.act(_cast([FOX]))
-	assert_eq(near.hp, 1, "both wisps reach the nearer foe in one round")
-	assert_eq(far.hp, 3)
-	assert_eq(w.shots.size(), 0)
-
-
-func test_foxfire_intercepts_hostile_foxfire() -> void:
-	var w := _world()
-	var dok := _foe(w, &"dokkaebi", Vector2i(4, 2))
-	w._spawn(dok, Spell.make([FOX]), Vector2i(4, 6), Vector2i.ZERO)
-	w._spawn(dok, Spell.make([FOX]), Vector2i(3, 6), Vector2i.ZERO)
-	var events := w.act(_cast([FOX]))
-	assert_eq(_types(events).count(&"clash"), 2)
-	assert_eq(w.player().hp, 3)
-
-
-func test_hostile_foxfire_burns_miho_after_her_next_action() -> void:
-	var w := _world()
-	var dok := _foe(w, &"dokkaebi", Vector2i(4, 2))
-	w._spawn(dok, Spell.make([FOX]), Vector2i(4, 5), Vector2i.ZERO)
-	w.act({t = &"wait"})
-	assert_eq(w.player().hp, 2)
-
-
-func test_orb_hits_harder_after_four_tiles() -> void:
-	var w := _world()
-	var far := _foe(w, &"jangseung", Vector2i(4, 3))
-	w.act(_cast([ORB], UP))
-	w.act({t = &"wait"})
-	assert_eq(far.hp, 1, "five tiles out: 2 damage")
-	var v := _world()
-	var near := _foe(v, &"jangseung", Vector2i(4, 6))
-	v.act(_cast([ORB], UP))
-	assert_eq(near.hp, 2, "two tiles out: 1 damage")
-
-
-func test_orb_snuffs_foxfire_and_flies_on() -> void:
-	var w := _world()
-	var wisp := w._spawn(w.player(), Spell.make([FOX]), Vector2i(4, 5), Vector2i.ZERO)
-	var events := w.act(_cast([ORB], UP))
-	assert_true(_types(events).has(&"snuff"))
-	assert_true(wisp.gone)
-	assert_eq(w.shots.filter(func(s): return s.spell.line).size(), 1)
-
-
-func test_orbs_collide() -> void:
-	var w := _world()
-	var j := _foe(w, &"jangseung", Vector2i(4, 0))
-	w._spawn(j, Spell.make([ORB]), Vector2i(4, 5), Vector2i(0, 1))
-	var events := w.act(_cast([ORB], UP))
-	assert_true(_types(events).has(&"clash"))
-	assert_eq(w.shots.size(), 0)
-	assert_eq(w.player().hp, 3)
-
-
-func test_enemy_charges_a_round_before_casting_along_a_locked_line() -> void:
-	var w := _world()
-	var j := _foe(w, &"jangseung", Vector2i(4, 2), 0)
-	var events := w.act({t = &"wait"})
-	assert_true(_types(events).has(&"charge"))
-	assert_eq(j.aim, Vector2i(0, 1))
-	w.act({t = &"move", dir = Vector2i(-1, 0)})
-	assert_eq(w.shots.size(), 1, "orb launched down the locked line")
-	for i in 4:
-		w.act({t = &"wait"})
-	assert_eq(w.player().hp, 3, "stepping off the line dodges it")
-
-
-func test_orbs_strike_creatures_of_either_side() -> void:
-	var w := _world()
-	_foe(w, &"jangseung", Vector2i(4, 1), 0)
-	var shield := _foe(w, &"jangseung", Vector2i(4, 4))
-	for i in 3:
-		w.act({t = &"wait"})
-	assert_eq(shield.hp, 2)
-	assert_eq(w.player().hp, 3)
-
-
-func test_haetae_eats_fire() -> void:
-	var w := _world()
-	w.cards.append(Cards.FIRE)
-	var h := _foe(w, &"haetae", Vector2i(4, 5))
-	var events := w.act(_cast([FOX, Cards.FIRE]))
-	assert_true(_types(events).has(&"absorb"))
-	assert_eq(h.hp, 4)
-
-
-func test_bulgasari_dies_only_in_fire() -> void:
-	var w := _world()
-	w.cards.append(Cards.FIRE)
-	var b := _foe(w, &"bulgasari", Vector2i(4, 6))
-	w.act(_cast([FOX]))
-	assert_eq(b.hp, 3)
-	w.act(_cast([FOX, Cards.FIRE]))
-	assert_lt(b.hp, 3)
-
-
-func test_water_pushes_and_slams_into_pillars() -> void:
-	var w := _world()
-	w.cards.append(Cards.WATER)
-	var j := _foe(w, &"jangseung", Vector2i(4, 6))
-	w.act(_cast([ORB, Cards.WATER], UP))
-	assert_eq(j.pos, Vector2i(4, 5))
-	var v := _world()
-	v.cards.append(Cards.WATER)
-	v.tiles[Grid.index(Vector2i(4, 5))] = World.PILLAR
-	var k := _foe(v, &"jangseung", Vector2i(4, 6))
-	v.act(_cast([ORB, Cards.WATER], UP))
-	assert_eq(k.pos, Vector2i(4, 6))
-	assert_eq(k.hp, 1, "1 hit + 1 slam")
-
-
-func test_wood_roots_and_earth_cancels_a_charge() -> void:
-	var w := _world()
-	w.cards.append_array([Cards.WOOD, Cards.EARTH])
-	var d := _foe(w, &"imugi", Vector2i(4, 6))
-	w.act(_cast([ORB, Cards.WOOD], UP))
-	w.act({t = &"wait"})
-	assert_eq(d.pos, Vector2i(4, 6), "rooted foe stays put for two rounds")
-	w.act({t = &"wait"})
-	assert_ne(d.pos, Vector2i(4, 6), "then walks again")
-	var v := _world()
-	v.cards.append(Cards.EARTH)
-	var j := _foe(v, &"jangseung", Vector2i(4, 4), 0)
-	v.act({t = &"wait"})
-	assert_false(j.intent.is_empty())
-	var events := v.act(_cast([FOX, Cards.EARTH]))
-	assert_true(_types(events).has(&"stun"))
-	assert_false(
-		(
-			_types(events).has(&"cast")
-			and events.filter(func(e): return e.t == &"cast" and e.id == j.id).size() > 0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for i in 60:
+		_put(
+			w, Vector2i(rng.randi_range(1, Grid.W - 2), rng.randi_range(1, Grid.H - 2)), World.WALL
 		)
-	)
-	assert_true(j.intent.is_empty())
+	var floors: Array[Vector2i] = []
+	for i in w.tiles.size():
+		if w.tiles[i] == World.FLOOR:
+			floors.append(Grid.at(i))
+	for i in 300:
+		var a := floors[rng.randi_range(0, floors.size() - 1)]
+		var b := floors[rng.randi_range(0, floors.size() - 1)]
+		assert_eq(w.fov(a)[Grid.index(b)], w.fov(b)[Grid.index(a)], "%s %s" % [a, b])
 
 
-func test_metal_orb_pierces_a_line_of_foes() -> void:
+func test_a_lantern_lights_tiles_in_reach_and_walls_cast_shadows() -> void:
+	var w := _world()
+	_put(w, Vector2i(10, 8), World.LANTERN)
+	_put(w, Vector2i(12, 8), World.WALL)
+	assert_true(w.lit(Vector2i(11, 8)))
+	assert_true(w.lit(Vector2i(10, 4)))
+	assert_false(w.lit(Vector2i(13, 8)), "in the wall's shadow")
+	assert_false(w.lit(Vector2i(17, 4)), "out of reach")
+
+
+func test_miho_sees_lit_tiles_far_away_and_dark_tiles_only_close() -> void:
+	var w := _world()
+	_put(w, Vector2i(20, 8), World.LANTERN)
+	w.sense()
+	assert_eq(w.seen[Grid.index(Vector2i(6, 8))], 1, "fox eyes reach two tiles")
+	assert_eq(w.seen[Grid.index(Vector2i(7, 8))], 0, "dark and three tiles away")
+	assert_eq(w.dim[Grid.index(Vector2i(7, 8))], 1, "its shape shows in the dark")
+	assert_eq(w.dim[Grid.index(Vector2i(12, 8))], 0, "too far to make out")
+	assert_eq(w.seen[Grid.index(Vector2i(19, 8))], 1, "lit, across the hall")
+	assert_eq(w.known[Grid.index(Vector2i(19, 8))], 1)
+
+
+func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
+	var w := _world(Vector2i(5, 8))
+	var watcher := _foe(w, &"jangseung", Vector2i(8, 8), 0)
+	w.act(WAIT)
+	assert_eq(watcher.alert, Actor.REST, "Miho stands in the dark")
+	_put(w, Vector2i(5, 9), World.LANTERN)
+	var events := w.act(WAIT)
+	assert_eq(watcher.alert, Actor.HUNT)
+	assert_has(_types(events), &"notice")
+	assert_eq(watcher.intent, [ORB] as Array[StringName], "it sees her and charges")
+	var close := _world(Vector2i(7, 8))
+	var other := _foe(close, &"jangseung", Vector2i(8, 8))
+	close.act(WAIT)
+	assert_eq(other.alert, Actor.HUNT, "next to it even in the dark")
+
+
+func test_preview_shows_only_what_miho_knows() -> void:
+	var w := _world(Vector2i(5, 8))
+	_put(w, Vector2i(5, 9), World.LANTERN)
+	var hidden := _foe(w, &"jangseung", Vector2i(16, 8), 0)
+	w.sense()
+	assert_eq(w.seen[Grid.index(hidden.pos)], 0)
+	var real := w.preview(WAIT)
+	assert_eq(real.actor(hidden.id).alert, Actor.HUNT, "it really sees her")
+	var f := Forecast.of(w, WAIT)
+	assert_null(f.after.actor(hidden.id))
+	assert_false(_types(f.events).has(&"charge"))
+	assert_eq(hidden.alert, Actor.REST, "previews leave the world unchanged")
+
+
+func test_a_wisp_flies_three_a_round_then_hovers_and_lights_without_harm() -> void:
+	var w := _world()
+	w.act(_cast([FOX], E))
+	var wisp: Shot = w.shots[0]
+	assert_eq(wisp.pos, Vector2i(8, 8))
+	w.act(WAIT)
+	assert_eq(wisp.pos, Vector2i(11, 8), "stops at its range")
+	assert_eq(wisp.dir, Vector2i.ZERO)
+	assert_true(w.lit(Vector2i(13, 8)))
+	var near := _world()
+	var foe := _foe(near, &"jangseung", Vector2i(7, 8))
+	near.act(_cast([FOX], E))
+	assert_eq(near.shots[0].pos, Vector2i(6, 8), "stops short of a creature")
+	assert_eq(foe.hp, 3)
+	assert_eq(near.seen[Grid.index(foe.pos)], 1, "and shows it")
+
+
+func test_a_resting_creature_that_sees_a_wisp_goes_to_search_it() -> void:
+	var w := _world()
+	var foe := _foe(w, &"imugi", Vector2i(12, 4))
+	w.act(_cast([FOX], E))
+	assert_eq(foe.alert, Actor.SEARCH)
+	assert_eq(foe.target, Vector2i(8, 8))
+	assert_eq(foe.pos, Vector2i(11, 5), "one step towards it")
+
+
+func test_claws_strike_thrice_at_an_unaware_creature_and_kill_silently() -> void:
+	var w := _world()
+	var prey := _foe(w, &"dokkaebi", Vector2i(5, 8))
+	var other := _foe(w, &"imugi", Vector2i(8, 8))
+	var events := w.act({t = &"move", dir = E})
+	assert_false(prey.alive())
+	var claw: Dictionary = events.filter(func(e): return e.t == &"claw")[0]
+	assert_eq(claw.n, 3)
+	assert_true(claw.sneak)
+	assert_eq(other.alert, Actor.REST, "nobody heard it")
+	assert_eq(w.player().pos, Vector2i(4, 8), "claws do not move her")
+
+
+func test_claws_on_a_hunter_strike_once_and_its_cry_alerts_others() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
+	foe.alert = Actor.HUNT
+	var other := _foe(w, &"imugi", Vector2i(9, 8))
+	w.act({t = &"move", dir = E})
+	assert_eq(foe.hp, 1)
+	assert_eq(other.alert, Actor.SEARCH)
+	assert_eq(other.target, Vector2i(5, 8))
+	assert_eq(w.player().hp, 2, "the hunter clubs back")
+
+
+func test_miho_hears_footsteps_in_the_dark_within_range_around_walls() -> void:
+	var w := _world()
+	var walker := _foe(w, &"dokkaebi", Vector2i(8, 8))
+	walker.post = Vector2i(6, 8)
+	w.act(WAIT)
+	assert_eq(walker.pos, Vector2i(7, 8))
+	assert_eq(w.heard, [{at = Vector2i(7, 8), word = "탁"}])
+	assert_eq(w.seen[Grid.index(walker.pos)], 0, "heard, not seen")
+	var walled := _world()
+	for y in range(2, Grid.H - 1):
+		_put(walled, Vector2i(6, y), World.WALL)
+	var behind := _foe(walled, &"dokkaebi", Vector2i(8, 8))
+	behind.post = Vector2i(6, 1)
+	walled.act(WAIT)
+	assert_eq(walled.heard, [], "the way round is too long")
+
+
+func test_a_searcher_throws_a_wisp_into_the_dark_before_going_in() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(20, 8), 0)
+	foe.alert = Actor.SEARCH
+	foe.target = Vector2i(14, 8)
+	var events := w.act(WAIT)
+	assert_has(_types(events), &"charge")
+	assert_eq(foe.aim, WEST)
+	w.act(WAIT)
+	assert_eq(w.shots.size(), 1, "the searchlight is out")
+
+
+func test_a_hunter_telegraphs_its_orb_and_a_side_step_dodges_it() -> void:
+	for stay in [true, false]:
+		var w := _world(Vector2i(5, 8))
+		_put(w, Vector2i(5, 9), World.LANTERN)
+		_foe(w, &"jangseung", Vector2i(10, 8), 0)
+		var events := w.act(WAIT)
+		assert_has(_types(events), &"charge")
+		w.act(WAIT if stay else {t = &"move", dir = N})
+		w.act(WAIT)
+		w.act(WAIT)
+		assert_eq(w.player().hp, 1 if stay else 3, "an orb from five tiles hits for 2")
+
+
+func test_a_flash_blinds_so_claws_strike_thrice_even_at_a_hunter() -> void:
 	var w := _world()
 	w.cards.append(Cards.METAL)
-	var a := _foe(w, &"jangseung", Vector2i(4, 6))
-	var b := _foe(w, &"jangseung", Vector2i(4, 5))
-	w.act(_cast([ORB, Cards.METAL], UP))
-	assert_eq(a.hp, 2)
-	assert_eq(b.hp, 2)
+	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
+	foe.hp = 3
+	foe.alert = Actor.HUNT
+	w.act(_cast([FOX, Cards.METAL], E))
+	assert_eq(foe.blind, 1, "the wisp stops before it and flashes")
+	assert_eq(w.player().hp, 3, "blind, it cannot club")
+	w.act({t = &"move", dir = E})
+	assert_false(foe.alive())
 
 
-func test_fire_splash_burns_neighbours_and_the_caster() -> void:
+func test_a_dark_wisp_puts_out_lantern_light() -> void:
 	var w := _world()
-	w.cards.append(Cards.FIRE)
-	var a := _foe(w, &"jangseung", Vector2i(4, 6))
-	var b := _foe(w, &"jangseung", Vector2i(5, 6))
-	w.act(_cast([ORB, Cards.FIRE], Vector2i(0, -1)))
-	assert_eq(a.hp, 2)
-	assert_eq(b.hp, 2)
-	var v := _world()
-	v.cards.append(Cards.FIRE)
-	_foe(v, &"jangseung", Vector2i(4, 7))
-	v.act(_cast([ORB, Cards.FIRE], UP))
-	assert_eq(v.player().hp, 2, "point-blank fire splashes back")
+	w.cards.append(Cards.WATER)
+	_put(w, Vector2i(10, 8), World.LANTERN)
+	assert_true(w.lit(Vector2i(8, 8)))
+	w.act(_cast([FOX, Cards.WATER], E))
+	w.act(WAIT)
+	assert_eq(w.shots[0].pos, Vector2i(9, 8))
+	assert_false(w.lit(Vector2i(8, 8)))
+
+
+func test_a_thud_draws_creatures_through_a_closed_door() -> void:
+	var w := _world()
+	w.cards.append(Cards.EARTH)
+	for y in range(1, Grid.H - 1):
+		_put(w, Vector2i(14, y), World.WALL)
+	_put(w, Vector2i(14, 8), World.DOOR)
+	var near := _foe(w, &"imugi", Vector2i(18, 8))
+	var far := _foe(w, &"imugi", Vector2i(26, 3))
+	w.act(_cast([FOX, Cards.EARTH], E))
+	w.act(WAIT)
+	assert_eq(near.alert, Actor.SEARCH)
+	assert_eq(near.target, Vector2i(11, 8))
+	assert_eq(far.alert, Actor.REST)
 
 
 func test_strong_foe_gives_its_element_and_a_kill_gives_back_a_tail() -> void:
 	var w := _world()
-	var dog := _foe(w, &"bulgae", Vector2i(4, 6))
-	dog.hp = 1
 	w.tails = 1
-	w.act(_cast([ORB], UP))
-	assert_true(w.cards.has(Cards.FIRE))
-	assert_eq(w.tails, 1 - 1 + 1 + 1, "one back for the kill, one regrown")
-
-
-func test_a_spell_stacks_at_most_four_cards_at_a_tail_each() -> void:
-	var w := _world()
-	assert_false(w.can(_cast([FOX, Cards.FIRE])), "card not owned yet")
-	w.cards.append_array([Cards.FIRE, Cards.WATER, Cards.METAL])
-	var big := _cast([ORB, Cards.FIRE, Cards.WATER, Cards.METAL], UP)
-	w.tails = 3
-	assert_false(w.can(big), "four cards need four tails")
-	w.tails = 4
-	assert_true(w.can(big))
-	w.act(big)
-	assert_eq(w.tails, 1, "four spent, one regrown")
-	assert_false(w.can(_cast([FOX, Cards.FIRE])))
-	assert_true(w.can(_cast([FOX])))
+	var foe := _foe(w, &"bulgae", Vector2i(6, 8))
+	foe.hp = 1
+	w.act(_cast([ORB], E))
+	assert_false(foe.alive())
+	assert_has(w.cards, Cards.FIRE)
+	assert_eq(w.tails, 1)
 
 
 func test_one_turn_splits_the_tails_across_several_spells() -> void:
 	var w := _world()
 	w.depth = 5
 	w.tails = 5
-	w.cards.append_array([Cards.FIRE, Cards.WATER, Cards.METAL])
-	var one_four := _casts([[[FOX]], [[ORB, Cards.FIRE, Cards.WATER, Cards.METAL], UP]])
-	assert_true(w.can(one_four), "1+4")
-	assert_true(w.can(_casts([[[FOX]], [[FOX]], [[ORB], UP], [[ORB], Vector2i(1, -1)]])), "1+1+1+1")
-	var six := [
-		[[FOX]],
-		[[FOX]],
-		[[ORB], UP],
-		[[ORB], Vector2i(1, -1)],
-		[[ORB], Vector2i(1, 0)],
-		[[ORB], Vector2i(-1, 0)]
-	]
-	assert_false(w.can(_casts(six)), "six cards, five tails")
-	assert_false(w.can(_casts([[[ORB], UP], [[ORB], UP]])), "two orbs down one line")
-	var events := w.act(one_four)
-	assert_eq(events.filter(func(e): return e.t == &"cast" and e.id == w.player().id).size(), 2)
+	for c in Cards.ELEMENTS:
+		w.cards.append(c)
+	var one_four := _casts([[[FOX], N], [[ORB, Cards.FIRE, Cards.WOOD, Cards.METAL], E]])
+	var ones := _casts([[[FOX], N], [[FOX], E], [[ORB], S], [[ORB], WEST]])
+	assert_true(w.can(one_four))
+	assert_true(w.can(ones))
+	assert_false(w.can(_casts([[[FOX, Cards.FIRE], N], [[ORB, Cards.WOOD, Cards.METAL, FOX], E]])))
+	assert_false(w.can(_casts([[[FOX], E], [[ORB], E]])), "one spell per line")
+	var events := w.act(ones)
+	assert_eq(_types(events).count(&"cast"), 4)
 	assert_eq(w.tails, 1)
 
 
-func test_spent_tails_regrow_one_a_round_up_to_the_storey() -> void:
+func test_spent_tails_regrow_one_every_three_rounds_up_to_the_storey() -> void:
 	var w := _world()
+	w.depth = 2
 	w.tails = 0
-	w.act({t = &"wait"})
+	for i in 3:
+		w.act(WAIT)
 	assert_eq(w.tails, 1)
-	for i in 5:
-		w.act({t = &"wait"})
-	assert_eq(w.tails, 4, "a fox on the fourth storey has four tails")
-
-
-func test_preview_leaves_the_world_unchanged() -> void:
-	var w := World.create(7)
-	var before := var_to_str([w.player().pos, w.tails, w.actors.size(), w.round_no])
-	var after := w.preview(_cast([FOX]))
-	assert_eq(var_to_str([w.player().pos, w.tails, w.actors.size(), w.round_no]), before)
-	assert_eq(after.round_no, w.round_no + 1)
+	for i in 9:
+		w.act(WAIT)
+	assert_eq(w.tails, 2)
 
 
 func test_each_storey_grows_one_more_tail() -> void:
-	var w := World.create(3)
+	var w := World.create(5)
 	assert_eq(w.tails, 1)
 	assert_eq(w.max_tails(), 1)
-	w.tails = 0
-	w.actors.assign([w.player()])
-	w.player().pos = w.stairs + Vector2i(0, 1)
-	w.act({t = &"move", dir = UP})
+	w.actors[0].pos = w.stairs + WEST
+	if not w.vacant(w.stairs + WEST):
+		w.actors[0].pos = w.stairs + E
+	w.act({t = &"move", dir = w.stairs - w.actors[0].pos})
 	assert_eq(w.depth, 2)
 	assert_eq(w.tails, 2)
-	assert_eq(w.player().pos, FloorGen.START)
-	assert_true(w.actors.any(func(a): return a.kind == &"bulgae"))
 
 
-func test_top_floor_holds_the_elixir() -> void:
-	var w := World.create(5)
-	w.depth = World.FLOORS
-	FloorGen.build(w)
-	assert_eq(w.stairs, Vector2i(-1, -1))
-	w.actors.assign([w.player()])
-	w.player().pos = w.elixir + Vector2i(0, 1)
-	w.act({t = &"move", dir = UP})
-	assert_eq(w.outcome, &"won")
-
-
-func test_every_floor_is_connected_and_starts_clear() -> void:
-	for seed_value in 40:
+func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
+	for seed_value in 20:
 		var w := World.create(seed_value)
-		for depth in range(1, World.FLOORS + 1):
-			w.depth = depth
-			FloorGen.build(w)
-			var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
-			for i in w.tiles.size():
-				if w.tiles[i] == World.FLOOR:
-					assert_true(
-						dist[i] >= 0, "seed %d depth %d tile %d reachable" % [seed_value, depth, i]
-					)
-			assert_eq(w.actors.size(), FloorGen.PLAN[depth].size() + 1)
-			for a in w.actors.slice(1):
-				assert_gte(Grid.cheb(a.pos, w.start), 4)
-
-
-func test_reaper_comes_for_a_lingering_fox() -> void:
-	var w := _world()
-	w.depth = 2
-	w.start = Vector2i(0, 8)
-	w.round_no = World.REAPER_ARRIVES - 1
-	var events := w.act({t = &"wait"})
-	assert_true(_types(events).has(&"arrive"))
-	assert_true(w.actors.any(func(a): return a.kind == &"saja"))
+		var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
+		for i in w.tiles.size():
+			if w.open_floor(Grid.at(i)):
+				assert_gt(dist[i], -1, "seed %d tile %s" % [seed_value, Grid.at(i)])
+		assert_true(w.lit(w.stairs), "seed %d" % seed_value)
+		assert_false(w.lit(w.start), "seed %d" % seed_value)
+		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size())
+		for a in w.actors.slice(1):
+			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)

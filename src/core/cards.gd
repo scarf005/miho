@@ -26,11 +26,11 @@ const NAME := {
 	EARTH: "흙",
 }
 const GLYPH := {
-	FOX: "狐",
-	ORB: "珠",
-	FIRE: "火",
-	WATER: "水",
-	WOOD: "木",
-	METAL: "金",
-	EARTH: "土",
+	FOX: "여",
+	ORB: "구",
+	FIRE: "화",
+	WATER: "수",
+	WOOD: "목",
+	METAL: "금",
+	EARTH: "토",
 }

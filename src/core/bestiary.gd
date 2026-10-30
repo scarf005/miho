@@ -2,6 +2,10 @@ class_name Bestiary
 extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
 ## ones (`drop`) add an element and give it to Miho when they fall.
+## glyph: the syllable drawn for it. club: melee damage when next to Miho.
+## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
+## move: approach, align (gets in line for an orb), slow, or static.
+## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" eats spells that carry fire (해태 guards against fire);
 ## &"nofire" eats every spell without fire (불가사리 dies only in fire).
 
@@ -9,69 +13,113 @@ const FOX := Cards.FOX
 const ORB := Cards.ORB
 
 const KINDS := {
-	&"miho": {name = "미호", hp = 3},
-	&"dokkaebi": {name = "도깨비", hp = 2, casts = [[FOX]], cd = 3, move = &"approach", keep = 3},
-	&"jangseung": {name = "장승", hp = 3, casts = [[ORB]], cd = 2, move = &"static"},
-	&"imugi": {name = "이무기", hp = 2, casts = [[ORB]], cd = 3, move = &"align"},
+	&"miho": {name = "미호", glyph = "@", hp = 3},
+	&"dokkaebi":
+	{
+		name = "도깨비",
+		glyph = "도",
+		hp = 2,
+		club = 1,
+		casts = [[FOX]],
+		cd = 3,
+		move = &"approach",
+		step = 4,
+		patrol = true,
+	},
+	&"jangseung":
+	{
+		name = "장승",
+		glyph = "장",
+		hp = 3,
+		casts = [[ORB]],
+		cd = 2,
+		move = &"static",
+		deaf = true,
+	},
+	&"imugi": {name = "이무기", glyph = "이", hp = 2, casts = [[ORB]], cd = 3, move = &"align"},
 	&"bulgae":
 	{
 		name = "불개",
+		glyph = "불",
 		hp = 4,
+		club = 1,
 		casts = [[FOX, Cards.FIRE]],
 		cd = 3,
 		move = &"approach",
-		keep = 3,
+		step = 4,
+		patrol = true,
 		drop = Cards.FIRE,
 		absorb = &"fire",
 	},
 	&"haetae":
 	{
 		name = "해태",
+		glyph = "해",
 		hp = 4,
 		casts = [[ORB, Cards.WATER]],
 		cd = 3,
 		move = &"align",
+		step = 3,
 		drop = Cards.WATER,
 		absorb = &"fire",
 	},
 	&"cheonha":
 	{
 		name = "천하대장군",
+		glyph = "천",
 		hp = 4,
 		casts = [[ORB, Cards.WOOD]],
 		cd = 2,
 		move = &"static",
+		deaf = true,
 		drop = Cards.WOOD,
 	},
 	&"jiha":
 	{
 		name = "지하여장군",
+		glyph = "지",
 		hp = 4,
-		casts = [[FOX, Cards.EARTH]],
-		cd = 4,
+		casts = [[FOX, Cards.METAL]],
+		cd = 3,
 		move = &"static",
-		drop = Cards.EARTH,
+		deaf = true,
+		drop = Cards.METAL,
 	},
 	&"bulgasari":
 	{
 		name = "불가사리",
+		glyph = "가",
 		hp = 3,
-		casts = [[ORB, Cards.METAL]],
+		club = 1,
+		casts = [[ORB, Cards.EARTH]],
 		cd = 3,
 		move = &"slow",
-		drop = Cards.METAL,
+		step = 5,
+		drop = Cards.EARTH,
 		absorb = &"nofire",
 	},
 	&"cheonnyeon":
 	{
 		name = "천년 이무기",
+		glyph = "용",
 		hp = 8,
 		casts = [[FOX, ORB, Cards.WATER], [ORB, Cards.FIRE, Cards.METAL]],
 		cd = 2,
 		move = &"align",
 		boss = true,
 	},
-	&"saja": {name = "저승사자", hp = 9, casts = [[ORB]], cd = 2, move = &"approach", keep = 1},
+	&"saja":
+	{
+		name = "저승사자",
+		glyph = "사",
+		hp = 9,
+		club = 1,
+		casts = [[ORB]],
+		cd = 2,
+		move = &"approach",
+		step = 3,
+		hunts = true,
+	},
 }
 
 

@@ -11,8 +11,6 @@ var origin := Vector2i.ZERO
 var dir := Vector2i.ZERO
 var life := 0
 var gone := false
-## Actors already struck by a piercing shot.
-var struck: Array[int] = []
 
 
 ## Tiles between the caster and this shot, which sets orb damage.
@@ -31,5 +29,4 @@ func clone() -> Shot:
 	s.dir = dir
 	s.life = life
 	s.gone = gone
-	s.struck = struck.duplicate()
 	return s

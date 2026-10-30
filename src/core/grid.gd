@@ -1,9 +1,9 @@
 class_name Grid
 extends RefCounted
-## Board geometry: a 9x9 floor, eight directions, breadth-first paths.
+## Board geometry: a 32x16 storey, eight directions, breadth-first paths.
 
-const W := 9
-const H := 9
+const W := 32
+const H := 16
 const DIRS: Array[Vector2i] = [
 	Vector2i(0, -1),
 	Vector2i(1, -1),
