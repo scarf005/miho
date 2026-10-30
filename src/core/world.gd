@@ -22,16 +22,7 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
-## Lanterns and doors break. A lantern has three states: lit, out, and broken
-## (rubble that can be walked over and never lit again). Each hit moves it one
-## step on: Miho walking into it, with a clang, or an orb striking it. An orb
-## also smashes the closed door it strikes. Water douses lit lanterns next to
-## where it ends, silently, and fire relights dark ones; a searching creature
-## relights a dark lantern it stands next to.
-##
-## Walls break too, but only to orbs: two hits turn a wall into a cracked wall
-## (which still blocks walking, sight and light) and then into rubble. Each hit
-## thuds. The outermost ring of tiles never breaks.
+## Lanterns, doors, walls and windows break; Terrain holds those rules.
 ##
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
@@ -42,9 +33,7 @@ extends RefCounted
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
 ## cannot be walked, but sight, light, sound and spells cross it. A bridge is
 ## walkable, creaks, never burns and is always lit by the moon, so whoever
-## crosses one is seen from afar. A window in an outer wall blocks walking but
-## not sight or light, and breaks to floor with a clang when Miho walks into it
-## or an orb strikes it.
+## crosses one is seen from afar.
 ##
 ## Each storey climbed gives back one health.
 ##
@@ -60,7 +49,7 @@ const TAIL_REGROW := 3
 const VIEW := 40
 const NIGHT := [2, 1]
 const DIM := 7
-const SEARCH_ROUNDS := 6
+const SEARCH_ROUNDS := 15
 const CLAW := 1
 const SNEAK := 3
 const CRY := 5
@@ -117,6 +106,7 @@ var dim := PackedByteArray()
 var known := PackedByteArray()
 ## Noises Miho heard this round: {at, word}.
 var heard: Array[Dictionary] = []
+var scent := PackedInt32Array()
 var _light := PackedVector3Array()
 var _light_dirty := true
 var _fov := {}
@@ -163,6 +153,7 @@ func clone() -> World:
 	w.dim = dim.duplicate()
 	w.known = known.duplicate()
 	w.heard = heard.duplicate()
+	w.scent = scent.duplicate()
 	return w
 
 
@@ -398,6 +389,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				Terrain.knock(self, me, to)
 			else:
 				_move(me, to)
+				Scent.lay(self, to)
 				if me.pos == stairs:
 					_ascend()
 					return events
@@ -733,6 +725,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 func _ignite(p: Vector2i, force := false) -> void:
 	if (force or FLAMMABLE.has(tile(p))) and not burning.has(p):
 		burning[p] = BURN_ROUNDS
+		Scent.clear(self, p)
 		_changed()
 		emit({t = &"ignite", at = p})
 
@@ -833,6 +826,10 @@ func _hunt(a: Actor) -> void:
 		a.lost += 1
 		if a.rooted > 0 or _step_to(a, a.target):
 			return
+	var to := Scent.next(self, a)
+	if a.rooted <= 0 and _step_to(a, to):
+		a.target = to
+		return
 	a.alert = Actor.SEARCH
 	a.lost = 0
 	_search(a)
@@ -983,6 +980,7 @@ func _ascend() -> void:
 	depth += 1
 	tails = max_tails()
 	regrow = 0
+	scent.clear()
 	FloorGen.build(self)
 	_changed()
 	sense()

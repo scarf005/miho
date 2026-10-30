@@ -124,6 +124,8 @@ static func _creature(k: World, a: Actor) -> String:
 	)
 	if k.sees(a, k.player().pos):
 		line += ", sees Miho"
+	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
+		line += ", tracking scent"
 	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"]]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]

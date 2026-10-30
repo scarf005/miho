@@ -1,7 +1,20 @@
 class_name Terrain
 extends RefCounted
-## Terrain that reacts to what Miho and heaven do to it: lanterns that go out,
-## light again and break, doors, windows and walls that break. See World for the rules.
+## Terrain that reacts to what Miho and heaven do to it.
+##
+## A lantern has three states: lit, out, and broken (rubble that can be walked
+## over and never lit again). Each hit moves it one step on: Miho walking into
+## it, with a clang, or an orb striking it. An orb also smashes the closed door
+## it strikes. Water douses lit lanterns next to where it ends, silently, and
+## fire relights dark ones; a searching creature relights a dark lantern it
+## stands next to.
+##
+## Walls break only to orbs: two hits turn a wall into a cracked wall (which
+## still blocks walking, sight and light) and then into rubble. Each hit thuds.
+## The outermost ring of tiles never breaks.
+##
+## A window in an outer wall blocks walking but not sight or light, and breaks
+## to floor with a clang when Miho walks into it or an orb strikes it.
 
 ## What a hit leaves of a tile: a lit lantern goes out, a dark one breaks into
 ## rubble, a closed door or a window becomes floor, a wall cracks and then falls to rubble.
@@ -68,13 +81,15 @@ static func hit(w: World, at: Vector2i) -> void:
 
 
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,
-## and water douses lit lanterns and flames there.
+## and water douses lit lanterns and flames and washes away Miho's scent there.
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
 		var p := at + d
 		if s.spell.has(Cards.FIRE) and w.tile(p) == World.LANTERN_OUT and p != struck:
 			w.set_tile(p, World.LANTERN)
 			w.emit({t = &"relight", at = p})
+		if s.spell.has(Cards.WATER):
+			Scent.clear(w, p)
 		if s.spell.has(Cards.WATER) and (w.tile(p) == World.LANTERN or w.burning.has(p)):
 			w.burning.erase(p)
 			w.set_tile(p, World.LANTERN_OUT if w.tile(p) == World.LANTERN else w.tile(p))
