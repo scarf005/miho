@@ -29,6 +29,9 @@ var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
 var skip := false
+## This run's seed, and the creatures of heaven that fell in it.
+var run_seed := 0
+var kills := 0
 var settings: Settings
 var glass: ColorRect
 var pan: Tween
@@ -90,6 +93,8 @@ func _fit() -> void:
 
 func _new_run(seed_value := randi()) -> void:
 	world = World.create(seed_value)
+	run_seed = seed_value
+	kills = 0
 	messages = Messages.new()
 	term.log_lines = []
 	reel.clear()
@@ -264,6 +269,7 @@ func _act(action: Dictionary) -> Array:
 	var depth := world.depth
 	var events := world.act(action)
 	reel.record(before, action, events)
+	kills += events.filter(func(e): return e.t == &"die" and e.id != world.player().id).size()
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
 	for text in Messages.of(before, world, events):
@@ -277,12 +283,16 @@ func _act(action: Dictionary) -> Array:
 		if settings.replay:
 			await _replay()
 		reel.clear()
-	if world.outcome == &"won":
+	if world.outcome != &"":
 		state = &"over"
-		term.banner_lines = ["사람이 되었다", "%d초" % world.round_no, "R 다시"]
-	elif world.outcome == &"lost":
-		state = &"over"
-		term.banner_lines = ["쓰러졌다", "%d층" % world.depth, "R 다시"]
+		var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
+		term.banner_lines = [
+			"사람이 되었다" if world.outcome == &"won" else "쓰러졌다",
+			"%d층 %d초" % [world.depth, world.round_no],
+			"처치 %d" % kills,
+			"시드 %d" % run_seed,
+			again + " 다시",
+		]
 	busy = false
 	_forecast()
 	return events
