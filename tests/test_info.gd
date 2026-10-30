@@ -28,7 +28,7 @@ func test_spells_of_the_same_talismans_but_another_form_read_differently() -> vo
 func test_a_talisman_tells_what_it_adds() -> void:
 	var text := Info.plain(Info.card(Cards.ORB))
 	assert_true(text.begins_with("구슬 부적"), text)
-	assert_string_contains(text, "벽에 닿을 때까지")
+	assert_string_contains(text, "피해 1, 4칸 넘게 날면 2")
 
 
 func test_a_creature_tells_its_element() -> void:
@@ -36,4 +36,4 @@ func test_a_creature_tells_its_element() -> void:
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(1, 0))
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "오행 수(물)")
-	assert_string_contains(text, "불이 붙은 주문은 통하지 않는다")
+	assert_string_contains(text, "불 주문이 통하지 않는다")
