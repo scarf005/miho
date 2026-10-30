@@ -8,6 +8,9 @@ extends Node
 ## > walks to the stairs, o explores, z rests until the tails regrow. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
 ## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
+## In look mode the exclude key marks a danger zone (Exclusions) on the cursor
+## that exploring and travel walk around; again it makes the zone one tile, and
+## again removes it; 1-7 on a zone's centre set its radius.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
 ## with talismans picked click anywhere to hurl that way; click a talisman to
 ## pick it; right-click clears. Each storey left behind replays its best moment.
@@ -65,8 +68,11 @@ var known: World
 var ahead := {}
 var reach := {}
 var aims := {}
-## Shortest walks from Miho over what she knows (Travel.search).
+## Shortest walks from Miho over what she knows, around the travel exclusions
+## (Travel.search), and the tiles those cover.
 var routes := {}
+var excluded := Exclusions.new()
+var zone := {}
 
 
 func _ready() -> void:
@@ -127,6 +133,7 @@ func _new_run(seed_value := randi()) -> void:
 	run_seed = seed_value
 	run = SaveGame.new(save_path, seed_value)
 	kills = 0
+	excluded.clear()
 	messages = Messages.new()
 	term.log_lines = []
 	reel.clear()
@@ -197,6 +204,7 @@ func _continue() -> void:
 	run = saved
 	run_seed = run.seed_value
 	kills = run.kills
+	excluded.zones = run.exclusions.duplicate()
 	pending = null
 	state = &"play"
 	term.banner_lines = []
@@ -240,9 +248,12 @@ func _key(event: InputEventKey) -> void:
 	elif action == &"cancel":
 		_open(&"options")
 	elif action == &"stairs":
-		_journey(_to_exit, "아직 계단을 찾지 못했다")
+		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
 	elif action == &"explore":
-		_journey(_exploring, "더 탐험할 곳이 없다")
+		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
+	elif action == &"exclude_clear":
+		excluded.clear()
+		_zones_changed()
 	elif action == &"spellbook":
 		menu.cards = world.cards
 		_open(&"spells")
@@ -284,7 +295,7 @@ func _use_tile(tile: Vector2i, hold: bool) -> void:
 	elif Grid.cheb(tile, me) == 1:
 		_act({t = &"move", dir = tile - me})
 	else:
-		_journey(func(): return _step_on(Travel.route(routes, tile)))
+		_journey(func(): return _step_on(_path_to(tile)), _walled_in(tile, ""))
 
 
 ## A screen point in the term's space, through the CRT curve when it is on.
@@ -327,6 +338,12 @@ func _look_key(action: StringName, far: bool) -> bool:
 			_use_tile(goal, false)
 	elif action in [&"cancel", &"look"]:
 		_stop_look()
+	elif action == &"exclude" and world.known[Grid.index(hover)] == 1:
+		excluded.cycle(hover)
+		_zones_changed()
+	elif action.begins_with("pick_") and excluded.zones.has(hover):
+		excluded.set_radius(hover, int(action.trim_prefix("pick_")))
+		_zones_changed()
 	else:
 		_stop_look()
 		return false
@@ -422,6 +439,9 @@ func _act(action: Dictionary) -> Array:
 	var before := world.clone()
 	var depth := world.depth
 	var events := world.act(action)
+	if world.depth != depth:
+		excluded.clear()
+		run.exclusions = {}
 	reel.record(before, action, events)
 	kills += events.filter(func(e): return e.t == &"die" and e.id != world.player().id).size()
 	# Saved before the round plays out, so closing the game at any point keeps it.
@@ -493,12 +513,46 @@ func _step_on(path: Array[Vector2i]) -> Dictionary:
 	return {t = &"move", dir = path[0] - world.player().pos} if not path.is_empty() else {}
 
 
+## The shortest walk to `tile`: around the exclusions, unless `tile` is in one,
+## which Miho may walk into when told to.
+func _path_to(tile: Vector2i) -> Array[Vector2i]:
+	return Travel.route(Travel.search(world) if zone.has(tile) else routes, tile)
+
+
+## What is said when the way to `goal` is shut only by the exclusions, else `otherwise`.
+func _walled_in(goal: Vector2i, otherwise: String) -> String:
+	var shut := (
+		Grid.inside(goal)
+		and Travel.route(routes, goal).is_empty()
+		and not Travel.route(Travel.search(world), goal).is_empty()
+	)
+	return "위험구역 너머로는 가지 않는다" if shut else otherwise
+
+
+## Whether nothing is left to explore only because of the exclusions.
+func _explore_walled() -> bool:
+	return (
+		not excluded.is_empty()
+		and Travel.explore_step(world, routes) == Vector2i.ZERO
+		and Travel.explore_step(world, Travel.search(world)) != Vector2i.ZERO
+	)
+
+
+## The exclusions changed: keep them in the save and work out the walks again.
+func _zones_changed() -> void:
+	run.exclusions = excluded.zones.duplicate()
+	run.write()
+	_forecast()
+
+
 func _to_exit() -> Dictionary:
 	return _step_on(Travel.route(routes, Travel.exit(world)))
 
 
 func _exploring() -> Dictionary:
 	var d := Travel.explore_step(world, routes)
+	if d == Vector2i.ZERO and _explore_walled():
+		_say("위험구역 너머는 탐험하지 않는다")
 	return {t = &"move", dir = d} if d != Vector2i.ZERO else {}
 
 
@@ -645,11 +699,12 @@ func _forecast() -> void:
 	if world == null:
 		return
 	known = world.known_clone()
-	routes = Travel.search(world)
+	var me := world.player().pos
+	zone = excluded.tiles(world)
+	routes = Travel.search(world, excluded.tiles(world, me))
 	ahead = {}
 	aims = {}
 	reach = {}
-	var me := world.player().pos
 	if not picked.is_empty() and Spell.make(picked) != null:
 		for d in Grid.DIRS:
 			for p in Forecast.ray(world, me, d).slice(0, Spell.RANGE):
@@ -669,6 +724,7 @@ func _refresh() -> void:
 	if world == null:
 		return
 	_inspect()
+	term.zone = zone
 	term.picked = picked
 	term.staged = staged
 	var tints := reach.duplicate()
@@ -690,7 +746,7 @@ func _refresh() -> void:
 	elif (
 		picked.is_empty() and staged.is_empty() and Grid.inside(hover) and Grid.cheb(hover, me) > 1
 	):
-		for p in Travel.route(routes, hover):
+		for p in _path_to(hover):
 			tints[p] = Color(Palette.TEXT, 0.12)
 	var a := world.actor_at(hover) if Grid.inside(hover) else null
 	if a != null and a.faction != Actor.FOX and world.seen[Grid.index(hover)] == 1:
@@ -722,7 +778,16 @@ func _inspect() -> void:
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
-		term.info = Info.at(known, hover) + _ahead_lines(hover)
+		term.info = Info.at(known, hover) + _zone_lines(hover) + _ahead_lines(hover)
+
+
+## Says a tile is in a travel exclusion, and the radius at its centre.
+func _zone_lines(p: Vector2i) -> Array:
+	if not zone.has(p):
+		return []
+	var radius: Variant = excluded.zones.get(p)
+	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
+	return [[[text, Palette.ZONE]]]
 
 
 ## What stepping onto p (or waiting, on Miho's own tile) would bring, as the

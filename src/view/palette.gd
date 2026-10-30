@@ -62,6 +62,8 @@ const HURT := Color(1.0, 0.25, 0.2)
 const SOUND := Color(1.0, 0.78, 0.4)
 const ALERT := [Color(0, 0, 0, 0), Color(1.0, 0.85, 0.3), Color(1.0, 0.25, 0.2)]
 const ALERT_MARK := ["", "?", "!"]
+## A travel exclusion's tint and outline.
+const ZONE := Color(0.85, 0.2, 0.35)
 const TEXT := Color(0.8, 0.78, 0.72)
 const DIM := Color(0.35, 0.34, 0.33)
 ## Bolt glyphs by direction, as Brogue draws them.

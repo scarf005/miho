@@ -68,6 +68,8 @@ var marks := {}
 var replay := false
 ## The tile under the pointer and what it shows there, as Info lines.
 var cursor := Vector2i(-1, -1)
+## Set by the game: the tiles in travel exclusions (tile -> true).
+var zone := {}
 var info: Array = []
 var speed := 1.0
 ## Saved spells (Settings.spells), listed on the status row by their slot keys.
@@ -535,8 +537,25 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var tint: Color = tints.get(p, Color(0, 0, 0, 0))
 		bg = bg.lerp(Color(tint, 1.0), tint.a)
 		var cell := _cell(p)
+		var in_zone := zone.has(p)
+		if in_zone:
+			bg = bg.lerp(Palette.ZONE, 0.18)
 		draw_rect(Rect2(cell * CELL, CELL), bg)
 		_glyph(cell, glyph, fg)
+		if in_zone:
+			_outline(p, cell)
+
+
+## Draws a line along each side of tile p that borders a tile outside the zone.
+func _outline(p: Vector2i, cell: Vector2) -> void:
+	var line := Color(Palette.ZONE, 0.7)
+	var a := cell * CELL
+	var c := [a, a + Vector2(CELL.x, 0), a + CELL, a + Vector2(0, CELL.y)]
+	for side: Array in [
+		[Vector2i.UP, 0, 1], [Vector2i.RIGHT, 1, 2], [Vector2i.DOWN, 3, 2], [Vector2i.LEFT, 0, 3]
+	]:
+		if not zone.has(p + side[0]):
+			draw_line(c[side[1]], c[side[2]], line, 2.0)
 
 
 static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:

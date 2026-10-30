@@ -25,9 +25,10 @@ static func near_fire(w: World, p: Vector2i) -> bool:
 	return false
 
 
-## Breadth-first steps from Miho over walkable tiles (Grid.search, plus `from`).
-static func search(w: World) -> Dictionary:
-	var found := Grid.search(w.player().pos, func(p): return walkable(w, p))
+## Breadth-first steps from Miho over walkable tiles that are not in `avoid`
+## (tile -> true, the travel exclusions) (Grid.search, plus `from`).
+static func search(w: World, avoid := {}) -> Dictionary:
+	var found := Grid.search(w.player().pos, func(p): return walkable(w, p) and not avoid.has(p))
 	found.from = w.player().pos
 	return found
 

@@ -13,6 +13,9 @@ var path := PATH
 var seed_value := 0
 var actions: Array[Dictionary] = []
 var kills := 0
+## The travel exclusions of the storey Miho is on (Exclusions.zones). They are
+## the player's marks, not actions, so they play no part in the replay.
+var exclusions := {}
 ## What the replay has rebuilt so far, and how many actions it has played.
 var world: World
 var messages := Messages.new()
@@ -41,6 +44,13 @@ static func load_from(from := PATH) -> SaveGame:
 		return null
 	var s := SaveGame.new(from, seed_of)
 	s.kills = count
+	var zones: Variant = c.get_value("run", "exclusions", {})
+	if (
+		zones is Dictionary
+		and zones.keys().all(func(k): return k is Vector2i)
+		and zones.values().all(func(r): return r is int)
+	):
+		s.exclusions = zones
 	s.actions.assign(list)
 	return s
 
@@ -64,6 +74,7 @@ func write() -> void:
 	c.set_value("run", "seed", seed_value)
 	c.set_value("run", "kills", kills)
 	c.set_value("run", "actions", actions)
+	c.set_value("run", "exclusions", exclusions)
 	c.save(path)
 
 
