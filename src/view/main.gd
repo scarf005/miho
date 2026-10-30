@@ -679,7 +679,7 @@ func _refresh() -> void:
 		if f.hurt_me() > 0:
 			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
 		elif not f.noticed.is_empty():
-			tints[me + d] = Color(Palette.ALERT[1], 0.3)
+			tints[me + d] = Color(Palette.ALERT[2], 0.3)
 	if not reach.is_empty() and Grid.inside(hover) and hover != me:
 		var aim := Grid.nearest_dir(hover - me)
 		if not aims.has(aim):
@@ -698,6 +698,9 @@ func _refresh() -> void:
 		for i in view.size():
 			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
 				tints[Grid.at(i)] = Color(Palette.SIDE[1], 0.3)
+	for b in world.actors:
+		if _sneakable(b):
+			tints[b.pos] = Color(Palette.ALERT[1], 0.35)
 	term.tints = tints
 	term.marks = marks
 
@@ -719,7 +722,7 @@ func _inspect() -> void:
 
 
 ## What stepping onto p (or waiting, on Miho's own tile) would bring, as the
-## harm number or yellow tint on that tile shows it.
+## harm number or red tint on that tile shows it.
 func _ahead_lines(p: Vector2i) -> Array:
 	var d := p - world.player().pos
 	var f: Forecast = ahead.get(d) if Grid.cheb(p, world.player().pos) <= 1 else null
@@ -744,3 +747,10 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 		var a := f.after.actor(id)
 		if a != null:
 			marks[a.pos] = [str(f.harm[id]), Palette.HURT]
+
+
+## A creature in sight that a claw would catch unawares (World._claw).
+func _sneakable(a: Actor) -> bool:
+	return (
+		a.alive() and a.faction != Actor.FOX and world.seen[Grid.index(a.pos)] == 1 and a.unaware()
+	)

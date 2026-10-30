@@ -623,6 +623,8 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		elif Light.level(l) < Light.LIT:
 			c = c.darkened(0.45)
 		draw_rect(Rect2(cell * CELL, CELL), Color(0, 0, 0, 0.55))
+		if tints.has(a.pos):
+			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
 		_glyph(cell, a.info().glyph, c)
 		if a.faction != Actor.FOX:
 			var mark: String = Palette.ALERT_MARK[a.alert]

@@ -40,6 +40,11 @@ func alive() -> bool:
 	return hp > 0
 
 
+## Not hunting, or blind: a claw catches it unawares for a sneak attack.
+func unaware() -> bool:
+	return alert != HUNT or blind > 0
+
+
 func info() -> Dictionary:
 	return Bestiary.info(kind)
 

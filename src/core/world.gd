@@ -485,7 +485,7 @@ func set_tile(p: Vector2i, t: int) -> void:
 
 
 func _claw(me: Actor, foe: Actor) -> void:
-	var sneak := foe.alert != Actor.HUNT or foe.blind > 0
+	var sneak := foe.unaware()
 	var n := CLAW * (SNEAK if sneak else 1)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
