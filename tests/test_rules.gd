@@ -398,6 +398,17 @@ func test_an_orb_smashes_the_lantern_or_closed_door_it_strikes() -> void:
 		assert_eq(w.shots, [] as Array[Shot])
 
 
+func test_an_orb_cast_at_a_lantern_puts_it_out_however_near() -> void:
+	for dist: int in [1, 3, 6]:
+		var w := _world()
+		var lantern := w.player().pos + E * dist
+		_put(w, lantern, World.LANTERN)
+		w.act(_cast([ORB], E))
+		w.act(WAIT)
+		w.act(WAIT)
+		assert_eq(w.tile(lantern), World.LANTERN_OUT, "lantern %d tiles away" % dist)
+
+
 func test_bamboo_hides_who_stands_in_it_from_all_but_the_next_tile() -> void:
 	var w := _world(Vector2i(4, 8))
 	_put(w, Vector2i(6, 10), World.LANTERN)
