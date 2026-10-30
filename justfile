@@ -27,3 +27,11 @@ web:
 # Export and serve the web build on localhost.
 serve: web
     python3 -m http.server {{ web_port }} --bind 127.0.0.1 --directory build/web
+
+# Pack the web build for a claude.ai artifact in build/artifact.
+artifact: web
+    mkdir -p build/artifact
+    cp web/artifact.html build/artifact/index.html
+    cp build/web/index.js build/web/index.png build/web/index.audio.worklet.js build/web/index.audio.position.worklet.js build/artifact/
+    cp build/web/index.pck build/artifact/pck.wasm
+    gzip -9 -c build/web/index.wasm > build/artifact/wasm-gz.wasm

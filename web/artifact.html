@@ -1,0 +1,64 @@
+<title>미호</title>
+<style>
+:root { --bg: #000; --fg: #e0e0e0; --panel: #120e0a; --line: #5b3943; color-scheme: dark }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; touch-action: none; }
+#canvas { display: block; border: 0; }
+#canvas:focus { outline: none; }
+#status { position: absolute; inset: 0; background: var(--panel); display: flex; flex-direction: column; justify-content: center; align-items: center; visibility: hidden; }
+#status-splash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+#status-progress { position: absolute; bottom: 10%; left: 25%; width: 50%; display: none; }
+#status-notice { display: none; margin: 0 2rem; padding: 1rem; border: 1px solid var(--line); background: var(--panel); text-align: center; line-height: 1.3; z-index: 1; }
+</style>
+
+<canvas id="canvas"></canvas>
+<div id="status">
+	<img id="status-splash" src="index.png" alt="">
+	<progress id="status-progress"></progress>
+	<div id="status-notice"></div>
+</div>
+
+<script>
+// Artifacts serve only some file types, each up to 15 MB: the engine ships
+// gzipped and the pack renamed. Map the names and unpack the engine on request.
+(() => {
+	const realFetch = window.fetch.bind(window);
+	window.fetch = async (input, init) => {
+		const url = typeof input === 'string' ? input : input.url;
+		if (url.endsWith('index.pck')) {
+			return realFetch('pck.wasm', init);
+		}
+		if (!url.endsWith('index.wasm')) {
+			return realFetch(input, init);
+		}
+		const res = await realFetch('wasm-gz.wasm', init);
+		const bytes = new Uint8Array(await res.arrayBuffer());
+		const gzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+		const body = gzip ? new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')) : bytes;
+		return new Response(body, { headers: { 'Content-Type': 'application/wasm' } });
+	};
+})();
+</script>
+<script src="index.js"></script>
+<script>
+const engine = new Engine({ executable: 'index', canvasResizePolicy: 2, focusCanvas: true, args: [] });
+(() => {
+	const overlay = document.getElementById('status');
+	const progress = document.getElementById('status-progress');
+	const notice = document.getElementById('status-notice');
+	const fail = (err) => {
+		console.error(err);
+		notice.textContent = err instanceof Error ? err.message : String(err);
+		notice.style.display = 'block';
+		progress.style.display = 'none';
+	};
+	const missing = Engine.getMissingFeatures({ threads: false });
+	overlay.style.visibility = 'visible';
+	if (missing.length !== 0) {
+		fail('Missing browser features: ' + missing.join(', '));
+		return;
+	}
+	progress.style.display = 'block';
+	engine.startGame().then(() => overlay.remove(), fail);
+})();
+</script>
