@@ -100,10 +100,14 @@ func test_repeated_lines_are_counted() -> void:
 func test_lanterns_doors_and_fire_are_told() -> void:
 	var w := _world()
 	w.tiles[Grid.index(SEEN)] = World.LANTERN
-	assert_eq(_lines(w, [{t = &"smash", at = SEEN}]), ["등불이 꺼졌다"] as Array[String])
+	var out := {t = &"smash", at = SEEN, was = World.LANTERN}
+	assert_eq(_lines(w, [out]), ["등불이 꺼졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["등불이 꺼졌다"] as Array[String])
+	var broken := {t = &"smash", at = SEEN, was = World.LANTERN_OUT}
+	assert_eq(_lines(w, [broken]), ["꺼진 등불이 부서졌다"] as Array[String])
 	w.tiles[Grid.index(SEEN)] = World.DOOR
-	assert_eq(_lines(w, [{t = &"smash", at = SEEN}]), ["문이 부서졌다"] as Array[String])
+	var door := {t = &"smash", at = SEEN, was = World.DOOR}
+	assert_eq(_lines(w, [door]), ["문이 부서졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["문의 불이 꺼졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"relight", at = SEEN}]), ["등불이 다시 켜졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"burnout", at = SEEN}]), ["문이 다 타서 재가 되었다"] as Array[String])

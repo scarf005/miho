@@ -67,7 +67,6 @@ func test_walking_into_a_lantern_knocks_it_out_with_a_clang() -> void:
 	assert_eq([clang.word, clang.loud], ["쨍", World.KNOCK])
 	assert_eq(listener.alert, Actor.SEARCH, "heard through the door")
 	assert_eq(listener.target, Vector2i(5, 8))
-	assert_false(w.can({t = &"move", dir = E}), "a dark lantern still blocks")
 
 
 func test_a_noise_reaches_exactly_as_far_as_it_is_loud() -> void:
@@ -132,3 +131,80 @@ func test_an_orb_cast_at_a_lantern_puts_it_out_however_near() -> void:
 		w.act(WAIT)
 		w.act(WAIT)
 		assert_eq(w.tile(lantern), World.LANTERN_OUT, "lantern %d tiles away" % dist)
+
+
+func test_bumping_a_lantern_twice_puts_it_out_then_breaks_it_into_rubble_she_can_cross() -> void:
+	var w := _world()
+	var at := Vector2i(5, 8)
+	_put(w, at, World.LANTERN)
+	var first := w.act({t = &"move", dir = E})
+	assert_eq(w.tile(at), World.LANTERN_OUT)
+	assert_true(w.can({t = &"move", dir = E}), "a dark lantern can be knocked too")
+	var second := w.act({t = &"move", dir = E})
+	assert_eq(w.tile(at), World.LANTERN_BROKEN)
+	assert_eq([first[0].was, second[0].was], [World.LANTERN, World.LANTERN_OUT])
+	assert_eq(_noises(second)[0].word, "쨍", "every hit clangs")
+	assert_eq(w.player().pos, Vector2i(4, 8), "a knock takes her move")
+	w.act({t = &"move", dir = E})
+	assert_eq(w.player().pos, at, "rubble is walked over")
+
+
+func test_an_orb_puts_a_lit_lantern_out_and_breaks_a_dark_one() -> void:
+	var w := _world()
+	var at := Vector2i(10, 8)
+	_put(w, at, World.LANTERN)
+	var events := w.act(_cast([ORB], E))
+	events.append_array(w.act(WAIT))
+	events.append_array(w.act(WAIT))
+	assert_eq(w.tile(at), World.LANTERN_OUT)
+	events.append_array(w.act(_cast([ORB], E)))
+	events.append_array(w.act(WAIT))
+	events.append_array(w.act(WAIT))
+	assert_eq(w.tile(at), World.LANTERN_BROKEN)
+	var smashed := events.filter(func(e): return e.t == &"smash")
+	assert_eq(smashed.map(func(e): return e.was), [World.LANTERN, World.LANTERN_OUT])
+	w.act(_cast([ORB], E))
+	w.act(WAIT)
+	w.act(WAIT)
+	assert_eq(w.shots[0].pos, Vector2i(11, 8), "rubble no longer stops an orb")
+
+
+func test_water_douses_a_lantern_but_never_breaks_it() -> void:
+	var w := _world()
+	w.cards.append(Cards.WATER)
+	var at := Vector2i(10, 8)
+	_put(w, at, World.LANTERN)
+	for i in 3:
+		w.act(_cast([ORB, Cards.WATER], E))
+		w.act(WAIT)
+		w.act(WAIT)
+		assert_eq(w.tile(at), World.LANTERN_OUT, "water orb %d" % i)
+		w.tails = 4
+
+
+func test_fire_relights_a_dark_lantern_but_not_rubble() -> void:
+	var w := _world()
+	w.cards.append(Cards.FIRE)
+	_put(w, Vector2i(10, 8), World.LANTERN_BROKEN)
+	var events := w.act(_cast([FOX, Cards.FIRE], E))
+	events.append_array(w.act(WAIT))
+	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_BROKEN)
+	assert_does_not_have(_types(events), &"relight")
+	var orb := _world()
+	orb.cards.append(Cards.FIRE)
+	_put(orb, Vector2i(10, 8), World.LANTERN_OUT)
+	orb.act(_cast([ORB, Cards.FIRE], E))
+	orb.act(WAIT)
+	orb.act(WAIT)
+	assert_eq(orb.tile(Vector2i(10, 8)), World.LANTERN_BROKEN, "struck, not relit")
+
+
+func test_a_searcher_relights_a_dark_lantern_but_not_rubble() -> void:
+	for t in [World.LANTERN_OUT, World.LANTERN_BROKEN]:
+		var w := _world()
+		_put(w, Vector2i(10, 8), t)
+		var searcher := _foe(w, &"dokkaebi", Vector2i(11, 9))
+		searcher.alert = Actor.SEARCH
+		searcher.target = Vector2i(14, 9)
+		w.act(WAIT)
+		assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN if t == World.LANTERN_OUT else t)

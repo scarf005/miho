@@ -22,10 +22,12 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
-## Lanterns and doors break. Miho knocks a lantern out by walking into it,
-## with a clang; an orb smashes the lantern or closed door it strikes. Water
-## douses lanterns next to where it ends, silently, and fire relights them; a
-## searching creature relights a lantern it stands next to.
+## Lanterns and doors break. A lantern has three states: lit, out, and broken
+## (rubble that can be walked over and never lit again). Each hit moves it one
+## step on: Miho walking into it, with a clang, or an orb striking it. An orb
+## also smashes the closed door it strikes. Water douses lit lanterns next to
+## where it ends, silently, and fire relights dark ones; a searching creature
+## relights a dark lantern it stands next to.
 ##
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
@@ -67,7 +69,8 @@ const BAMBOO := 5
 const BOARD := 6
 const POND := 7
 const ASH := 8
-const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH]
+const LANTERN_BROKEN := 9
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN]
 const FLAMMABLE := [DOOR, BAMBOO, BOARD]
 ## How far a step onto the tile is heard, and the word for it.
 const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
@@ -323,7 +326,7 @@ func _can_move(dir: Vector2i) -> bool:
 	var foe := actor_at(to)
 	if foe != null:
 		return foe.faction != me.faction
-	return tile(to) == LANTERN or (me.rooted <= 0 and vacant(to))
+	return Terrain.lantern(tile(to)) or (me.rooted <= 0 and vacant(to))
 
 
 ## Every spell is valid and known, takes its own open direction, and the cards
@@ -371,7 +374,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			var foe := actor_at(to)
 			if foe != null:
 				_claw(me, foe)
-			elif tile(to) == LANTERN:
+			elif Terrain.lantern(tile(to)):
 				Terrain.knock(self, me, to)
 			else:
 				_move(me, to)
@@ -595,19 +598,20 @@ func _burst(s: Shot) -> void:
 	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		_splash(s, s.pos, null)
-	_effects(s, s.pos)
+	_effects(s, s.pos, s.pos + s.dir)
 
 
 ## Flash and thud happen wherever the spell ends; fire sets that tile alight
-## and relights the lanterns next to it, and water douses lanterns and flames.
-func _effects(s: Shot, at: Vector2i) -> void:
+## and relights the lanterns next to it, except the one an orb just struck, and
+## water douses lanterns and flames.
+func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.METAL):
 		_flash(s, at)
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		_ignite(at)
-	Terrain.touch(self, s, at)
+	Terrain.touch(self, s, at, struck)
 
 
 func _flash(s: Shot, at: Vector2i) -> void:
