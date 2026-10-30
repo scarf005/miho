@@ -40,3 +40,9 @@ artifact: web
     cp build/web/index.js build/web/index.png build/web/index.audio.worklet.js build/web/index.audio.position.worklet.js build/artifact/
     cp build/web/index.pck build/artifact/pck.wasm
     gzip -9 -c build/web/index.wasm > build/artifact/wasm-gz.wasm
+
+# Time storey generation, a round, forecasts and a Continue replay.
+bench:
+    {{ godot }} --headless --path . --import
+    {{ godot }} --headless --path . -s tools/bench.gd
+    {{ godot }} --headless --path . -s tools/bench_round.gd
