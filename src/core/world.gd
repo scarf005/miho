@@ -934,23 +934,11 @@ func _drift(a: Actor) -> void:
 
 
 func _align(a: Actor) -> void:
-	var me := player()
-	var good := func(q: Vector2i) -> bool:
-		var r := Grid.cheb(q, me.pos)
-		return r >= 3 and r <= 6 and clear_line(q, me.pos)
-	if good.call(a.pos):
-		return
-	var walk := _walkable(a)
-	var found := Grid.search(a.pos, func(p): return walk.call(p))
-	var dist: PackedInt32Array = found.dist
-	var best := -1
-	for i in dist.size():
-		if dist[i] > 0 and good.call(Grid.at(i)) and (best < 0 or dist[i] < dist[best]):
-			best = i
-	if best < 0:
-		_step_to(a, me.pos, 2)
-		return
-	_move(a, Grid.first_step(found, a.pos, Grid.at(best)))
+	var to := Aim.lineup(self, a, _walkable(a))
+	if to == Vector2i(-1, -1):
+		_step_to(a, player().pos, 2)
+	elif to != a.pos:
+		_move(a, to)
 
 
 func _end_round() -> void:
