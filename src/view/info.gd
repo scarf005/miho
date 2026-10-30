@@ -93,6 +93,7 @@ static func creature(w: World, a: Actor) -> Array:
 				[
 					["처치 시 ", Palette.TEXT],
 					[Cards.NAME[drop] + " 부적", Palette.CARD[drop]],
+					["을 얻을 수 있다", Palette.TEXT],
 				]
 			)
 		)
