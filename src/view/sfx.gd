@@ -1,9 +1,13 @@
 class_name Sfx
 extends Node2D
 ## Plays a sound for each event the screen shows, from where it happens, so a
-## noise heard in the dark comes from its side and fades with distance.
+## noise heard in the dark comes from its side and fades with distance. The
+## music loops under them from the start, at its own volume.
 
 const DIR := "res://assets/sfx/%s.ogg"
+const MUSIC := "res://assets/music/ambient.ogg"
+## Music sits this far below the sound effects at full volume.
+const MUSIC_DB := -10.0
 const NAMES := [
 	&"step",
 	&"foxfire",
@@ -37,6 +41,7 @@ const WORDS := {
 var listener: AudioListener2D
 var _streams := {}
 var _flat := {}
+var _music: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -51,6 +56,17 @@ func _ready() -> void:
 			p.max_polyphony = 4
 			add_child(p)
 			_flat[n] = p
+	if ResourceLoader.exists(MUSIC):
+		_music = AudioStreamPlayer.new()
+		_music.stream = load(MUSIC)
+		add_child(_music)
+		_music.play()
+
+
+## Sets the music volume, 0-100; silent at 0.
+func set_music(volume: int) -> void:
+	if _music != null:
+		_music.volume_db = maxf(linear_to_db(volume / 100.0) + MUSIC_DB, -80.0)
 
 
 ## A sound with no place: interface and storey changes.

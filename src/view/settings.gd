@@ -5,7 +5,7 @@ extends RefCounted
 ## reads and writes them through Keys.
 
 const PATH := "user://settings.cfg"
-const NAMES := ["volume", "crt", "zoom", "speed", "replay"]
+const NAMES := ["volume", "music", "crt", "zoom", "speed", "replay"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -18,6 +18,8 @@ const RETIRED := {&"explore": ["X"], &"log": ["P"]}
 var path := PATH
 ## Master volume, 0-100.
 var volume := 100
+## Music volume, 0-100, under the master volume.
+var music := 60
 var crt := true
 var zoom := 0.0
 var speed := 1.0
@@ -61,6 +63,7 @@ func to_config() -> ConfigFile:
 ## keys of actions that no longer exist are ignored.
 func from_config(c: ConfigFile) -> void:
 	volume = clampi(int(c.get_value("settings", "volume", volume)), 0, 100)
+	music = clampi(int(c.get_value("settings", "music", music)), 0, 100)
 	crt = bool(c.get_value("settings", "crt", crt))
 	zoom = _one_of(c.get_value("settings", "zoom", zoom), ZOOMS, zoom)
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)

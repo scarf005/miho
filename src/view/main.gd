@@ -108,6 +108,7 @@ func _show_title() -> void:
 func _apply() -> void:
 	menu.settings = settings
 	settings.apply_sound()
+	sfx.set_music(settings.music)
 	term.saved = settings.spells
 	glass.visible = settings.crt
 	term.speed = settings.speed
