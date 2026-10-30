@@ -277,7 +277,8 @@ func _act(action: Dictionary) -> Array:
 
 
 ## Plays `next` (an action, or empty when done) round after round. Stops
-## before a step whose forecast shows harm or being noticed, and after a round
+## before a step whose forecast shows harm or being noticed or that ends next
+## to fire, and after a round
 ## in which something Miho should react to happened (Travel.interrupted), or
 ## when a key or click asks. `why` is said when it cannot take a first step.
 func _journey(next: Callable, why := "") -> void:
@@ -293,8 +294,11 @@ func _journey(next: Callable, why := "") -> void:
 			if rounds == 0 and why != "":
 				_say(why)
 			break
+		var to: Vector2i = world.player().pos + action.get("dir", Vector2i.ZERO)
 		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
 		if f == null or f.hurt_me() > 0 or not f.noticed.is_empty() or not world.can(action):
+			break
+		if action.t == &"move" and Travel.near_fire(world, to):
 			break
 		var before := world.clone()
 		var events: Array = await _act(action)

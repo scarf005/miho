@@ -5,13 +5,24 @@ extends RefCounted
 ## sight, the nearest edge of the unexplored, and the reasons a walk stops.
 
 
-## A known open tile with no creature Miho sees on it.
+## A known open tile with no creature or fire Miho sees on it.
 static func walkable(w: World, p: Vector2i) -> bool:
 	var i := Grid.index(p)
 	if w.known[i] == 0 or not w.open_floor(p):
 		return false
+	if w.seen[i] == 0:
+		return true
 	var a := w.actor_at(p)
-	return a == null or a.faction == Actor.FOX or w.seen[i] == 0
+	return (a == null or a.faction == Actor.FOX) and not w.burning.has(p)
+
+
+## Whether Miho sees fire on p or next to it.
+static func near_fire(w: World, p: Vector2i) -> bool:
+	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
+		var q := p + d
+		if Grid.inside(q) and w.seen[Grid.index(q)] == 1 and w.burning.has(q):
+			return true
+	return false
 
 
 ## Breadth-first steps from Miho over walkable tiles (Grid.search, plus `from`).

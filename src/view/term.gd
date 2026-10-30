@@ -145,15 +145,24 @@ func show_world(w: World) -> void:
 	_animating = false
 	_lanterns.clear()
 	for i in w.tiles.size():
+		var p := Grid.at(i)
 		if w.tiles[i] == World.LANTERN:
-			var s := Light.spread(Grid.at(i), Light.LANTERN_RADIUS, w.opaque)
-			var lit := PackedInt32Array()
-			var amount := PackedFloat32Array()
-			for j in s.size():
-				if s[j] > 0.0:
-					lit.append(j)
-					amount.append(s[j])
-			_lanterns.append({lit = lit, amount = amount, phase = float(i) * 1.7})
+			_lanterns.append(_flame(w, p, Light.LANTERN_RADIUS, Light.LANTERN, false))
+		if w.burning.has(p):
+			_lanterns.append(_flame(w, p, Light.FIRE_RADIUS, Light.FIRE, true))
+
+
+## A lantern or a burning tile as a flickering light: the tiles it lights and how much.
+func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> Dictionary:
+	var s := Light.spread(p, radius, w.opaque)
+	var lit := PackedInt32Array()
+	var amount := PackedFloat32Array()
+	for j in s.size():
+		if s[j] > 0.0:
+			lit.append(j)
+			amount.append(s[j])
+	var phase := float(Grid.index(p)) * 1.7
+	return {lit = lit, amount = amount, phase = phase, color = color, fire = fire}
 
 
 ## Animates one round from `before` to `after`, then shows `after`.
@@ -282,12 +291,18 @@ func card_at(local: Vector2) -> StringName:
 # --- light -------------------------------------------------------------------
 
 
+## How bright a flame is now: lanterns waver a little, fire a lot.
+func _flicker(phase: float, fire: bool) -> float:
+	if fire:
+		return 0.78 + 0.14 * sin(_time * 9.3 + phase) + 0.08 * sin(_time * 23.0 + phase)
+	return 0.9 + 0.07 * sin(_time * 6.1 + phase) + 0.04 * sin(_time * 15.7 + phase)
+
+
 func _field() -> PackedVector3Array:
 	var out := PackedVector3Array()
 	out.resize(Grid.W * Grid.H)
 	for l in _lanterns:
-		var k: float = 0.9 + 0.07 * sin(_time * 6.1 + l.phase) + 0.04 * sin(_time * 15.7 + l.phase)
-		var c := Light.LANTERN * k
+		var c: Vector3 = l.color * _flicker(l.phase, l.fire)
 		var lit: PackedInt32Array = l.lit
 		var amount: PackedFloat32Array = l.amount
 		for j in lit.size():
@@ -394,12 +409,18 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		if world.peaches.has(p):
 			glyph = Palette.PEACH[0]
 			fg = Palette.PEACH[1]
+		var fire := _vis[i] == 1 and world.burning.has(p)
+		if fire:
+			var k := _flicker(i * 1.7, true)
+			glyph = Palette.BURNING[0]
+			fg = Color(Palette.BURNING[1] * (0.7 + 0.4 * k), 1.0)
+			bg = Color(Palette.BURNING[2] * k, 1.0)
 		if _vis[i] == 1:
 			var l := light[i]
 			var d := Grid.cheb(p, me_pos)
 			if d <= World.NIGHT[0]:
 				l += Palette.NIGHT * (1.0 - d / 3.0)
-			if t != World.LANTERN:
+			if t != World.LANTERN and not fire:
 				fg = _lit(fg, l, 0.18)
 				bg = _lit(bg, l, 0.0) + Color(l.x, l.y, l.z) * 0.06
 		elif world.dim[i] == 1:

@@ -36,7 +36,7 @@ static func of(before: World, after: World, events: Array) -> Array[String]:
 		for a in w.actors:
 			where[a.id] = a.pos
 	var out: Array[String] = []
-	var struck := -1
+	var last := {}
 	for e in events:
 		if e.t == &"move" and where.has(e.id):
 			where[e.id] = e.to
@@ -52,8 +52,8 @@ static func of(before: World, after: World, events: Array) -> Array[String]:
 			continue
 		if not seen:
 			continue
-		var text := _line(before, after, e, struck)
-		struck = e.target if e.t in [&"claw", &"club"] else -1
+		var text := _line(before, after, e, last)
+		last = e
 		if text != "":
 			out.append(text)
 	return out
@@ -63,9 +63,9 @@ static func _in(vis: PackedByteArray, p: Vector2i) -> bool:
 	return Grid.inside(p) and vis[Grid.index(p)] == 1
 
 
-## One seen event as a line, or empty. `struck` is whom the previous event
-## clawed or clubbed, whose harm that line already told.
-static func _line(before: World, after: World, e: Dictionary, struck: int) -> String:
+## One seen event as a line, or empty. Harm right after a claw or club was
+## told by that line; harm right after a creature caught fire is told as burns.
+static func _line(before: World, after: World, e: Dictionary, last: Dictionary) -> String:
 	var who := _name(before, after, e.get("id", -1))
 	match e.t:
 		&"notice":
@@ -76,7 +76,10 @@ static func _line(before: World, after: World, e: Dictionary, struck: int) -> St
 		&"club":
 			return "%s 몽둥이 %d" % [who, e.n]
 		&"hurt":
-			return "" if e.id == struck else "%s 피해 %d" % [who, e.n]
+			if last.get("target", -1) == e.id:
+				return ""
+			var how := " 불" if last.get("t") == &"burn" and last.id == e.id else ""
+			return "%s%s 피해 %d" % [who, how, e.n]
 		&"die":
 			return who + " 쓰러짐"
 		&"card":
@@ -108,7 +111,7 @@ static func _line(before: World, after: World, e: Dictionary, struck: int) -> St
 		&"burnout":
 			return "불이 꺼졌다"
 		&"douse":
-			return "등불이 꺼졌다"
+			return "등불이 꺼졌다" if before.tile(e.at) == World.LANTERN else "불이 꺼졌다"
 		&"relight":
 			return "등불이 켜졌다"
 		&"smash":

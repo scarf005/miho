@@ -95,3 +95,21 @@ func test_repeated_lines_are_counted() -> void:
 	for i in Messages.KEEP + 5:
 		log.add(str(i), 3)
 	assert_eq(log.lines.size(), Messages.KEEP)
+
+
+func test_lanterns_doors_and_fire_are_told() -> void:
+	var w := _world()
+	w.tiles[Grid.index(SEEN)] = World.LANTERN
+	assert_eq(_lines(w, [{t = &"smash", at = SEEN}]), ["등불이 깨졌다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["등불이 꺼졌다"] as Array[String])
+	w.tiles[Grid.index(SEEN)] = World.DOOR
+	assert_eq(_lines(w, [{t = &"smash", at = SEEN}]), ["문이 부서졌다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["불이 꺼졌다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"relight", at = SEEN}]), ["등불이 켜졌다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"burnout", at = SEEN}]), ["불이 꺼졌다"] as Array[String])
+	var me := w.player()
+	var burn := [
+		{t = &"burn", at = me.pos, id = me.id},
+		{t = &"hurt", id = me.id, n = 1, hp = 2, at = me.pos},
+	]
+	assert_eq(_lines(w, burn), ["미호 불 피해 1"] as Array[String])

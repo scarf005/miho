@@ -152,3 +152,16 @@ func test_a_walk_stops_when_the_storey_changes() -> void:
 	var after := w.clone()
 	after.depth += 1
 	assert_true(Travel.interrupted(w, after, [], {}))
+
+
+func test_a_route_steps_around_fire_in_sight() -> void:
+	var w := _world()
+	w.burning[Vector2i(6, 8)] = 2
+	var path := Travel.route(Travel.search(w), Vector2i(8, 8))
+	assert_eq(path.size(), 4)
+	assert_false(path.has(Vector2i(6, 8)))
+	assert_true(Travel.near_fire(w, Vector2i(5, 8)))
+	assert_true(Travel.near_fire(w, Vector2i(6, 8)))
+	assert_false(Travel.near_fire(w, Vector2i(4, 8)))
+	w.seen[Grid.index(Vector2i(6, 8))] = 0
+	assert_false(Travel.near_fire(w, Vector2i(5, 8)), "fire out of sight is not known")
