@@ -72,7 +72,7 @@ func _ready() -> void:
 	add_child(crt)
 	get_viewport().size_changed.connect(_fit)
 	_new_run()
-	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 누르면 시작"]
+	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 누르면 시작한다"]
 	_apply()
 	Capture.attach(self)
 
@@ -156,11 +156,11 @@ func _key(event: InputEventKey) -> void:
 	elif action in [&"cancel", &"options"]:
 		_open(&"options")
 	elif action == &"stairs":
-		_journey(_to_exit, "계단을 아직 못 봤다")
+		_journey(_to_exit, "아직 계단을 찾지 못했다")
 	elif action == &"explore":
-		_journey(_exploring, "더 갈 곳이 없다")
+		_journey(_exploring, "더 탐험할 곳이 없다")
 	elif action == &"rest":
-		_journey(_resting, "꼬리가 다 있다")
+		_journey(_resting, "꼬리가 이미 다 자랐다")
 	elif action in [&"log", &"help"]:
 		_open(action)
 	elif action == &"mute":
@@ -272,8 +272,8 @@ func _act(action: Dictionary) -> Array:
 	kills += events.filter(func(e): return e.t == &"die" and e.id != world.player().id).size()
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
-	for text in Messages.of(before, world, events):
-		messages.add(text, world.round_no)
+	for line in Messages.of(before, world, events):
+		messages.add(line, world.round_no)
 	_show_log()
 	if action.t == &"cast":
 		picked.clear()
@@ -287,11 +287,11 @@ func _act(action: Dictionary) -> Array:
 		state = &"over"
 		var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
 		term.banner_lines = [
-			"사람이 되었다" if world.outcome == &"won" else "쓰러졌다",
-			"%d층 %d초" % [world.depth, world.round_no],
-			"처치 %d" % kills,
+			"미호가 사람이 되었다" if world.outcome == &"won" else "미호가 쓰러졌다",
+			"%d층에서 %d초를 버텼다" % [world.depth, world.round_no],
+			"쓰러뜨린 적 %d" % kills,
 			"시드 %d" % run_seed,
-			again + " 다시",
+			"%s 키를 누르면 다시 시작한다" % again,
 		]
 	busy = false
 	_forecast()
@@ -354,7 +354,7 @@ func _resting() -> Dictionary:
 
 
 func _say(text: String) -> void:
-	messages.add(text, world.round_no)
+	messages.add([[text, Palette.TEXT]], world.round_no)
 	_show_log()
 
 
@@ -372,7 +372,7 @@ func _show_log() -> void:
 func _open(kind: StringName) -> void:
 	overlay = kind
 	if kind == &"log":
-		var rows := messages.lines.map(func(l): return [[Messages.shown(l), Palette.TEXT]])
+		var rows := messages.lines.map(Messages.shown)
 		term.panel = {title = "기록", rows = rows, selected = -1}
 		return
 	menu.open(kind)
@@ -506,7 +506,7 @@ func _refresh() -> void:
 		if f.hurt_me() > 0:
 			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
 		elif not f.noticed.is_empty():
-			marks[me + d] = ["!", Palette.ALERT[2]]
+			tints[me + d] = Color(Palette.ALERT[1], 0.3)
 	if not reach.is_empty() and Grid.inside(hover) and hover != me:
 		var aim := Grid.nearest_dir(hover - me)
 		if not aims.has(aim):
@@ -540,7 +540,24 @@ func _inspect() -> void:
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
-		term.info = Info.at(known, hover)
+		term.info = Info.at(known, hover) + _ahead_lines(hover)
+
+
+## What stepping onto p (or waiting, on Miho's own tile) would bring, as the
+## harm number or yellow tint on that tile shows it.
+func _ahead_lines(p: Vector2i) -> Array:
+	var d := p - world.player().pos
+	var f: Forecast = ahead.get(d) if Grid.cheb(p, world.player().pos) <= 1 else null
+	if f == null:
+		return []
+	var how := "기다리면" if d == Vector2i.ZERO else "이 칸으로 가면"
+	var lines := []
+	if f.hurt_me() > 0:
+		lines.append([[how + " 피해를 %d 입는다" % f.hurt_me(), Palette.HURT]])
+	if not f.noticed.is_empty():
+		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
+		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[1]]])
+	return lines
 
 
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:

@@ -1,5 +1,6 @@
 extends GutTest
-## Every glyph the game draws must be in the pixel font.
+## Every glyph the game draws must be in the pixel font, except the hearts
+## Term draws as pixels.
 
 
 func test_pixel_font_covers_every_string_in_the_game() -> void:
@@ -8,7 +9,7 @@ func test_pixel_font_covers_every_string_in_the_game() -> void:
 		for file in DirAccess.get_files_at(dir):
 			if file.ends_with(".gd"):
 				for c in FileAccess.get_file_as_string(dir.path_join(file)):
-					if c.unicode_at(0) > 0x7E:
+					if c.unicode_at(0) > 0x7E and c != "♥" and c != "♡":
 						chars[c] = file
 	assert_gt(chars.size(), 50)
 	for c in chars:

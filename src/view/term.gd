@@ -13,9 +13,32 @@ signal shown(e: Dictionary, at: Vector2)
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
+## Screen rows each creature takes in the sidebar, and its state there.
+const SIDE_ROWS := 3
+const SIDE_STATE := ["쉼", "수색", "추격"]
 const SIZE := 32
 const BIG := 48
 const SMALL := 16
+const HEART := [
+	".##...##.",
+	"####.####",
+	"#########",
+	"#########",
+	".#######.",
+	"..#####..",
+	"...###...",
+	"....#...."
+]
+const HEART_EMPTY := [
+	".##...##.",
+	"#..#.#..#",
+	"#...#...#",
+	"#.......#",
+	".#.....#.",
+	"..#...#..",
+	"...#.#...",
+	"....#...."
+]
 const DELAY := {
 	&"move": 0.05,
 	&"spawn": 0.04,
@@ -247,9 +270,10 @@ func _popup(at: Vector2i, text: String, color: Color, life := 0.9) -> void:
 	_popups.append({at = at, text = text, color = color, born = _time, life = life})
 
 
-func _flash(at: Vector2i, color: Color) -> void:
+## A tile lit up for a moment, starting `after` seconds from now.
+func _flash(at: Vector2i, color: Color, after := 0.0) -> void:
 	if _visible(at):
-		_flashes.append({at = at, color = color, born = _time})
+		_flashes.append({at = at, color = color, born = _time + after})
 
 
 ## Screen position of the centre of map tile p, in this node's space.
@@ -269,7 +293,7 @@ func side_at(local: Vector2) -> Vector2i:
 	if world == null or c.x < 0 or c.x >= MAP.x or c.y < 0 or c.y >= rows - 2:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
-	return list[c.y / 2].pos if c.y / 2 < list.size() else Vector2i(-1, -1)
+	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
 
 
 ## Whether a point in this node's space is on Miho's health and tails row.
@@ -356,7 +380,7 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	_draw_things(light, actors)
 	for f in _flashes:
-		if not _shown(f.at):
+		if not _shown(f.at) or _time < f.born:
 			continue
 		var k: float = 1.0 - (_time - f.born) / 0.35
 		var c: Color = f.color
@@ -507,29 +531,31 @@ func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 		func(a): return a.faction != Actor.FOX and _visible(a.pos)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	return list.slice(0, (rows - 2) / 2)
+	return list.slice(0, (rows - 2) / SIDE_ROWS)
 
 
-## Creatures in sight, nearest first: glyph and health, then state and the spell it charges.
+## Creatures in sight, nearest first, as Brogue lists them: glyph and name,
+## hearts, then what it is doing and the spell it charges with its aim.
 func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 	var list := _side_list(actors, me_pos)
 	for k in list.size():
 		var a: Actor = list[k]
-		var row := k * 2
+		var row := k * SIDE_ROWS
 		if a.pos == cursor:
 			draw_rect(
-				Rect2(Vector2(0, row) * CELL, Vector2(MAP.x, 2) * CELL), Color(Palette.TEXT, 0.12)
+				Rect2(Vector2(0, row) * CELL, Vector2(MAP.x, SIDE_ROWS) * CELL),
+				Color(Palette.TEXT, 0.12)
 			)
 		_glyph(Vector2(0, row), a.info().glyph, Palette.KIND[a.kind])
-		_pips(Vector2(1.5, row), a.hp, a.max_hp, Palette.HURT)
-		var mark: String = Palette.ALERT_MARK[a.alert]
-		if a.blind > 0:
-			mark = "x"
-		_glyph(Vector2(0, row + 1), mark, Palette.ALERT[maxi(a.alert, 1)])
+		_text(Vector2(1.5, row), a.info().name, Palette.KIND[a.kind])
+		_pips(Vector2(0, row + 1), a.hp, a.max_hp, Palette.HURT, MAP.x - 1)
+		var doing: String = SIDE_STATE[a.alert] if a.blind <= 0 else "눈멂"
+		_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
+		var x := _cells(doing) + 0.5
 		for j in a.intent.size():
-			_glyph(Vector2(1 + j, row + 1), Cards.GLYPH[a.intent[j]], Palette.CARD[a.intent[j]])
+			_glyph(Vector2(x + j, row + 2), Cards.GLYPH[a.intent[j]], Palette.CARD[a.intent[j]])
 		if not a.intent.is_empty():
-			_glyph(Vector2(1 + a.intent.size(), row + 1), Palette.BOLT[a.aim], Palette.SIDE[1])
+			_glyph(Vector2(x + a.intent.size(), row + 2), Palette.BOLT[a.aim], Palette.SIDE[1])
 
 
 func _draw_bottom() -> void:
@@ -596,11 +622,15 @@ func _draw_info() -> void:
 
 func _draw_log() -> void:
 	for k in log_lines.size():
-		var text: String = log_lines[k][0]
+		var runs: Array = log_lines[k][0]
 		var alpha: float = log_lines[k][1]
-		var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(_cells(text) + 1.0, 1) * CELL)
+		var width: float = runs.reduce(func(n, r): return n + _cells(r[0]), 0.0)
+		var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
 		draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
-		_text(Vector2(MAP.x + 0.5, k), text, Color(Palette.TEXT, alpha))
+		var x := MAP.x + 0.5
+		for run: Array in runs:
+			_text(Vector2(x, k), run[0], Color(run[1], alpha))
+			x += _cells(run[0])
 
 
 ## Rows of the panel that fit, and the first one shown.
@@ -642,11 +672,25 @@ func panel_row_at(local: Vector2) -> int:
 	return k if k >= span.x and k < mini(span.x + span.y, panel.rows.size()) else -1
 
 
-func _pips(at: Vector2, n: int, of: int, color: Color) -> void:
-	for i in mini(of, 6):
-		_glyph(at + Vector2(i, 0), "■" if i < n else "□", color if i < n else Palette.DIM)
-	if of > 6:
-		_small(at + Vector2(6, 0.3), str(n), color)
+## Health as hearts, at most `room` of them; more health is written as a number.
+func _pips(at: Vector2, n: int, of: int, color: Color, room := 6) -> void:
+	if of > room:
+		_heart(at, true, color)
+		_text(at + Vector2(1, 0), "%d/%d" % [n, of], color)
+		return
+	for i in of:
+		_heart(at + Vector2(i, 0), i < n, color if i < n else Palette.DIM)
+
+
+## A pixel heart filling cell `at`, full or as an outline.
+func _heart(at: Vector2, full: bool, color: Color) -> void:
+	var rows: Array = HEART if full else HEART_EMPTY
+	var px := 3.0
+	var from := at * CELL + (CELL - Vector2(rows[0].length(), rows.size()) * px) / 2.0
+	for y in rows.size():
+		for x in rows[y].length():
+			if rows[y][x] == "#":
+				draw_rect(Rect2((from + Vector2(x, y) * px).round(), Vector2(px, px)), color)
 
 
 ## Cells a string takes: Hangul is two halves wide, ASCII one half.
@@ -657,12 +701,44 @@ func _cells(s: String) -> float:
 	return n
 
 
-## A line of text at the font's doubled grid, Hangul a cell wide and ASCII half.
+## A line of text at the font's doubled grid, Hangul a cell wide and ASCII
+## half; ♥ and ♡ are drawn as pixel hearts a cell wide.
 func _text(at: Vector2, s: String, color: Color) -> void:
-	var y := at.y * CELL.y + (CELL.y - SIZE) / 2.0 + SIZE * 0.75
-	draw_string(
-		_font, Vector2(at.x * CELL.x, y).round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE, color
-	)
+	var x := at.x
+	for part in _hearts_split(s):
+		if part == "♥" or part == "♡":
+			_heart(
+				Vector2(x, at.y), part == "♥", color if part == "♥" else Color(Palette.DIM, color.a)
+			)
+		else:
+			var y := at.y * CELL.y + (CELL.y - SIZE) / 2.0 + SIZE * 0.75
+			draw_string(
+				_font,
+				Vector2(x * CELL.x, y).round(),
+				part,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				SIZE,
+				color
+			)
+		x += _cells(part)
+
+
+## Text cut into runs of plain text and single hearts.
+static func _hearts_split(s: String) -> Array[String]:
+	var out: Array[String] = []
+	var run := ""
+	for c in s:
+		if c == "♥" or c == "♡":
+			if run != "":
+				out.append(run)
+			out.append(c)
+			run = ""
+		else:
+			run += c
+	if run != "":
+		out.append(run)
+	return out
 
 
 ## One glyph centred in the cell at `cell` (in cells, may be fractional).

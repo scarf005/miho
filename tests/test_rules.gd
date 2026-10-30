@@ -169,12 +169,12 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	w.sense()
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "도깨비")
-	assert_string_contains(text, "쉰다")
-	assert_string_contains(text, "발톱 3 (기습)")
+	assert_string_contains(text, "쉬고 있다")
+	assert_string_contains(text, "기습하면 피해 3")
 	assert_string_contains(text, "2초 뒤")
 	foe.alert = Actor.HUNT
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
-	assert_string_contains(text, "발톱 1")
+	assert_string_contains(text, "할퀴면 피해 1")
 	assert_false(text.contains("기습"))
 
 

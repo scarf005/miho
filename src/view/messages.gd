@@ -1,33 +1,41 @@
 class_name Messages
 extends RefCounted
-## The message log: a round's events as short lines, from what Miho perceived
+## The message log: a round's events as sentences, from what Miho perceived
 ## only: events where she saw them, and noises she heard out of sight. Hidden
-## events and kinds of event it does not know give no line. A line repeated
-## right after itself is counted instead of written again.
+## events and kinds of event it does not know give no line. Each line is a list
+## of [text, Color] runs, with names, harm and sound words in their colours.
+## A line repeated right after itself is counted instead of written again.
 
 const KEEP := 40
+const TEXT := Palette.TEXT
 
-## {text, round, n}
+## {runs, text, round, n}
 var lines: Array[Dictionary] = []
 
 
-func add(text: String, round_no: int) -> void:
+func add(runs: Array, round_no: int) -> void:
+	var text := plain(runs)
 	if not lines.is_empty() and lines.back().text == text:
 		lines.back().n += 1
 		lines.back().round = round_no
 	else:
-		lines.append({text = text, round = round_no, n = 1})
+		lines.append({runs = runs, text = text, round = round_no, n = 1})
 	if lines.size() > KEEP:
 		lines = lines.slice(-KEEP)
 
 
 ## The line as shown, with its count.
-static func shown(line: Dictionary) -> String:
-	return line.text if line.n == 1 else "%s x%d" % [line.text, line.n]
+static func shown(line: Dictionary) -> Array:
+	return line.runs if line.n == 1 else line.runs + [[" x%d" % line.n, Palette.DIM]]
+
+
+## A line's text without its colours.
+static func plain(runs: Array) -> String:
+	return "".join(runs.map(func(r): return r[0]))
 
 
 ## Lines for one round from `before` to `after`.
-static func of(before: World, after: World, events: Array) -> Array[String]:
+static func of(before: World, after: World, events: Array) -> Array:
 	var vis := before.seen.duplicate()
 	for i in vis.size():
 		vis[i] |= after.seen[i]
@@ -35,11 +43,19 @@ static func of(before: World, after: World, events: Array) -> Array[String]:
 	for w: World in [after, before]:
 		for a in w.actors:
 			where[a.id] = a.pos
-	var out: Array[String] = []
+	var factions := {}
+	for s in before.shots:
+		factions[s.id] = s.faction
+	var out := []
 	var last := {}
-	for e in events:
+	for event: Dictionary in events:
+		var e := event
 		if e.t == &"move" and where.has(e.id):
 			where[e.id] = e.to
+		if e.t == &"spawn":
+			factions[e.shot] = e.faction
+		if e.t == &"hit":
+			e = e.merged({faction = factions.get(e.shot, Actor.HEAVEN)})
 		var at: Vector2i = e.get("to", e.get("at", where.get(e.get("id", -1), Vector2i(-1, -1))))
 		var seen: bool = (
 			not Grid.inside(at) and not e.has("id")
@@ -48,14 +64,15 @@ static func of(before: World, after: World, events: Array) -> Array[String]:
 		)
 		if e.t == &"noise":
 			if e.heard and not _in(vis, e.at):
-				out.append("멀리서 " + e.word)
+				out.append([["멀리서 ", TEXT], [e.word, Palette.SOUND], [" 소리를 들었다", TEXT]])
 			continue
 		if not seen:
 			continue
-		var text := _line(before, after, e, last)
-		last = e
-		if text != "":
-			out.append(text)
+		var line := _line(before, after, e, last)
+		if e.t != &"hurt":
+			last = e
+		if not line.is_empty():
+			out.append(line)
 	return out
 
 
@@ -63,79 +80,119 @@ static func _in(vis: PackedByteArray, p: Vector2i) -> bool:
 	return Grid.inside(p) and vis[Grid.index(p)] == 1
 
 
-## One seen event as a line, or empty. Harm right after a claw or club was
-## told by that line; harm right after a creature caught fire is told as burns.
-static func _line(before: World, after: World, e: Dictionary, last: Dictionary) -> String:
-	var who := _name(before, after, e.get("id", -1))
+## One seen event as a line, or empty. `last` is the seen event before it
+## other than harm: harm after a claw or club was told by that line, harm
+## after a creature caught fire is told as burning, and harm from Miho's
+## spells is told as harm she dealt.
+static func _line(before: World, after: World, e: Dictionary, last: Dictionary) -> Array:
+	var id: int = e.get("id", -1)
 	match e.t:
 		&"notice":
-			return _subject(who) + " 미호를 봤다"
+			return (
+				_who(before, after, id, "이", "가") + [[" ", TEXT]] + _miho("를") + [[" 발견했다", TEXT]]
+			)
 		&"claw":
-			var target := _name(before, after, e.target)
-			return "%s발톱 %d %s" % ["기습 " if e.sneak else "", e.n, target]
+			var line := [["기습! ", Palette.ALERT[1]]] if e.sneak else []
+			return line + _miho("가") + [[" 발톱으로 ", TEXT]] + _harm_to(before, after, e.target, e.n)
 		&"club":
-			return "%s 몽둥이 %d" % [who, e.n]
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" 몽둥이로 ", TEXT]]
+				+ _harm_to(before, after, e.target, e.n)
+			)
 		&"hurt":
-			if last.get("target", -1) == e.id:
-				return ""
-			var how := " 불" if last.get("t") == &"burn" and last.id == e.id else ""
-			return "%s%s 피해 %d" % [who, how, e.n]
+			if last.get("target", -1) == id:
+				return []
+			if last.get("t") == &"burn" and last.id == id:
+				return _who(before, after, id, "이", "가") + [[" 불에 타 ", TEXT]] + _took(e.n)
+			var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
+			if mine and id != after.player().id:
+				return _harm_to(before, after, id, e.n)
+			return _who(before, after, id, "이", "가") + [[" ", TEXT]] + _took(e.n)
 		&"die":
-			return who + " 쓰러짐"
+			return _who(before, after, id, "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"card":
-			return Cards.NAME[e.card] + " 부적을 얻었다"
+			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
 		&"heal":
-			return "복숭아 체력 +1"
+			return [["복숭아를 먹고 체력을 ", TEXT], ["1", Palette.PEACH[1]], [" 되찾았다", TEXT]]
 		&"blind":
-			return who + " 눈멂"
+			return _who(before, after, id, "의", "의") + [[" 눈이 멀었다", TEXT]]
 		&"root":
-			return who + " 묶임"
+			return _who(before, after, id, "이", "가") + [[" 덩굴에 묶였다", TEXT]]
 		&"stun":
-			return who + " 기절"
+			return _who(before, after, id, "이", "가") + [[" 기절했다", TEXT]]
 		&"absorb":
-			return who + "에게 안 통한다"
+			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
 		&"calm":
-			return _subject(who) + " 수색을 멈췄다"
+			return _who(before, after, id, "이", "가") + [[" 수색을 멈췄다", TEXT]]
 		&"charge":
-			return "%s %s 모은다" % [_subject(who), _object(Spell.make(e.cards).title())]
+			var spell := Spell.make(e.cards)
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" ", TEXT], [spell.title(), Palette.CARD[spell.cards.back()]]]
+				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
+			)
 		&"ascend":
-			return "%d층" % e.depth
+			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":
-			return _subject(Bestiary.info(&"saja").name) + " 온다"
+			var saja: String = Bestiary.info(&"saja").name
+			return [[saja, Palette.KIND[&"saja"]], [_particle(saja, "이", "가") + " 오고 있다", TEXT]]
 		&"arrive":
-			return _subject(who) + " 왔다"
+			return _who(before, after, id, "이", "가") + [[" 나타났다", TEXT]]
 		&"won":
-			return "사람이 되었다"
+			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
-			return "불이 붙었다"
+			return _tile(before, e.at, "에", "에") + [[" 불이 붙었다", Palette.BURNING[1]]]
 		&"burnout":
-			return "불이 꺼졌다"
+			return _tile(before, e.at, "이", "가") + [[" 다 타서 재가 되었다", TEXT]]
 		&"douse":
-			return "등불이 꺼졌다" if before.tile(e.at) == World.LANTERN else "불이 꺼졌다"
+			if before.tile(e.at) == World.LANTERN:
+				return [["등불이 꺼졌다", TEXT]]
+			return _tile(before, e.at, "의", "의") + [[" 불이 꺼졌다", TEXT]]
 		&"relight":
-			return "등불이 켜졌다"
+			if id >= 0:
+				return _who(before, after, id, "이", "가") + [[" 등불을 다시 켰다", TEXT]]
+			return [["등불이 다시 켜졌다", TEXT]]
 		&"smash":
-			return "등불이 깨졌다" if before.tile(e.at) == World.LANTERN else "문이 부서졌다"
-	return ""
+			if before.tile(e.at) == World.LANTERN:
+				return [["등불이 꺼졌다", TEXT]]
+			return _tile(before, e.at, "이", "가") + [[" 부서졌다", TEXT]]
+	return []
 
 
-static func _name(before: World, after: World, id: int) -> String:
+## "<name>에게 피해를 <n> 주었다".
+static func _harm_to(before: World, after: World, id: int, n: int) -> Array:
+	return (
+		_who(before, after, id, "에게", "에게")
+		+ [[" 피해를 ", TEXT], [str(n), Palette.HURT], [" 주었다", TEXT]]
+	)
+
+
+static func _took(n: int) -> Array:
+	return [["피해를 ", TEXT], [str(n), Palette.HURT], [" 입었다", TEXT]]
+
+
+static func _miho(particle: String) -> Array:
+	return [["미호", Palette.KIND[&"miho"]], [particle, TEXT]]
+
+
+## A creature's name in its colour, then the particle that fits it: `closed`
+## after a final consonant, `open` after a vowel.
+static func _who(before: World, after: World, id: int, closed: String, open: String) -> Array:
 	for w in [after, before]:
 		var a: Actor = w.actor(id)
 		if a != null:
-			return a.info().name
-	return ""
+			var name: String = a.info().name
+			return [[name, Palette.KIND[a.kind]], [_particle(name, closed, open), TEXT]]
+	return [["무언가", TEXT], [_particle("무언가", closed, open), TEXT]]
 
 
-## A name with the subject particle: 이 after a final consonant, else 가.
-static func _subject(name: String) -> String:
-	return name + ("이" if _closed(name) else "가")
+static func _tile(w: World, p: Vector2i, closed: String, open: String) -> Array:
+	var name: String = Info.TERRAIN[w.tile(p)][0]
+	return [[name + _particle(name, closed, open), TEXT]]
 
 
-static func _object(name: String) -> String:
-	return name + ("을" if _closed(name) else "를")
-
-
-static func _closed(word: String) -> bool:
+## `closed` after a word ending in a final consonant, else `open`.
+static func _particle(word: String, closed: String, open: String) -> String:
 	var c := word.unicode_at(word.length() - 1) if word != "" else 0
-	return c >= 0xAC00 and c <= 0xD7A3 and (c - 0xAC00) % 28 != 0
+	return closed if c >= 0xAC00 and c <= 0xD7A3 and (c - 0xAC00) % 28 != 0 else open
