@@ -372,7 +372,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			if foe != null:
 				_claw(me, foe)
 			elif tile(to) == LANTERN:
-				_knock(me, to)
+				Terrain.knock(self, me, to)
 			else:
 				_move(me, to)
 				if me.pos == stairs:
@@ -380,12 +380,12 @@ func act(action: Dictionary) -> Array[Dictionary]:
 					return events
 				if me.pos == elixir:
 					outcome = &"won"
-					_emit({t = &"won"})
+					emit({t = &"won"})
 					return events
 				if peaches.has(me.pos):
 					peaches.erase(me.pos)
 					me.hp = mini(me.max_hp, me.hp + 1)
-					_emit({t = &"heal", id = me.id, hp = me.hp})
+					emit({t = &"heal", id = me.id, hp = me.hp})
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
@@ -423,7 +423,7 @@ func sense() -> void:
 			known[i] = 1
 
 
-func _emit(e: Dictionary) -> void:
+func emit(e: Dictionary) -> void:
 	events.append(e)
 
 
@@ -433,16 +433,16 @@ func _changed() -> void:
 
 
 func _move(a: Actor, to: Vector2i) -> void:
-	_emit({t = &"move", id = a.id, from = a.pos, to = to})
+	emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()
 	var tread: Array = TREAD.get(tile(to), [0, "탁"])
-	_noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
+	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
 ## heaven creatures that hear an alarm go to search its spot.
-func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
+func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 	if loud <= 0:
 		return
 	var open := func(p): return tile(p) != WALL
@@ -452,7 +452,7 @@ func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void
 	var heard_it := by != me.id and d >= 0 and d <= loud
 	if heard_it:
 		heard.append({at = at, word = word})
-	_emit({t = &"noise", at = at, word = word, loud = loud, heard = heard_it})
+	emit({t = &"noise", at = at, word = word, loud = loud, heard = heard_it})
 	if not alarm:
 		return
 	for a in actors:
@@ -470,13 +470,7 @@ func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void
 				a.lost = 0
 
 
-func _knock(me: Actor, at: Vector2i) -> void:
-	_set_tile(at, LANTERN_OUT)
-	_emit({t = &"smash", at = at})
-	_noise(at, KNOCK, "쨍", true, me.id)
-
-
-func _set_tile(p: Vector2i, t: int) -> void:
+func set_tile(p: Vector2i, t: int) -> void:
 	tiles[Grid.index(p)] = t
 	_changed()
 
@@ -484,32 +478,32 @@ func _set_tile(p: Vector2i, t: int) -> void:
 func _claw(me: Actor, foe: Actor) -> void:
 	var sneak := foe.alert != Actor.HUNT or foe.blind > 0
 	var n := CLAW * (SNEAK if sneak else 1)
-	_emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
-	_noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
+	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
+	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	_hurt(foe, n)
 	if foe.alive():
 		_hunt_from(foe, me.pos)
 
 
 func _club(a: Actor, me: Actor, n: int) -> void:
-	_emit({t = &"club", id = a.id, target = me.id, at = me.pos, n = n})
-	_noise(me.pos, 3, "퍽", true, a.id)
+	emit({t = &"club", id = a.id, target = me.id, at = me.pos, n = n})
+	noise(me.pos, 3, "퍽", true, a.id)
 	_hurt(me, n)
 
 
 func _hunt_from(a: Actor, at: Vector2i) -> void:
 	if a.alert != Actor.HUNT:
-		_emit({t = &"notice", id = a.id, at = a.pos})
+		emit({t = &"notice", id = a.id, at = a.pos})
 	a.alert = Actor.HUNT
 	a.target = at
 	a.lost = 0
 
 
 func _cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	_emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
+	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
 	var word := "웅" if spell.orb else "휙"
-	_noise(caster.pos, spell.cast_noise(), word, caster.faction == Actor.FOX, caster.id)
+	noise(caster.pos, spell.cast_noise(), word, caster.faction == Actor.FOX, caster.id)
 	_step(_spawn(caster, spell, caster.pos, dir))
 
 
@@ -525,7 +519,7 @@ func _spawn(caster: Actor, spell: Spell, at: Vector2i, dir: Vector2i) -> Shot:
 	s.life = spell.life()
 	shots.append(s)
 	_changed()
-	_emit({t = &"spawn", shot = s.id, at = at, faction = s.faction, cards = spell.cards})
+	emit({t = &"spawn", shot = s.id, at = at, faction = s.faction, cards = spell.cards})
 	return s
 
 
@@ -538,7 +532,7 @@ func _shots_phase() -> void:
 
 
 func _fly(s: Shot, to: Vector2i) -> void:
-	_emit({t = &"fly", shot = s.id, from = s.pos, to = to})
+	emit({t = &"fly", shot = s.id, from = s.pos, to = to})
 	s.pos = to
 	_changed()
 	if s.spell.has(Cards.FIRE):
@@ -556,7 +550,7 @@ func _step(s: Shot) -> void:
 		if s.spell.orb:
 			var struck := tile(to)
 			_burst(s)
-			_smash(s, to, struck)
+			Terrain.smash(self, s, to, struck)
 		else:
 			_land(s)
 		return
@@ -572,14 +566,14 @@ func _step(s: Shot) -> void:
 	var o := shot_at(to, s)
 	if o != null:
 		if s.spell.orb and o.spell.orb:
-			_emit({t = &"clash", shot = s.id, other = o.id, at = to})
+			emit({t = &"clash", shot = s.id, other = o.id, at = to})
 			s.gone = true
 			o.gone = true
 			_changed()
 			return
 		if s.spell.orb:
 			o.gone = true
-			_emit({t = &"snuff", shot = o.id, at = to})
+			emit({t = &"snuff", shot = o.id, at = to})
 		elif o.spell.orb:
 			_land(s)
 			return
@@ -590,15 +584,15 @@ func _step(s: Shot) -> void:
 
 func _land(s: Shot) -> void:
 	s.dir = Vector2i.ZERO
-	_emit({t = &"land", shot = s.id, at = s.pos})
+	emit({t = &"land", shot = s.id, at = s.pos})
 	_effects(s, s.pos)
 
 
 func _burst(s: Shot) -> void:
-	_emit({t = &"burst", shot = s.id, at = s.pos})
+	emit({t = &"burst", shot = s.id, at = s.pos})
 	s.gone = true
 	_changed()
-	_noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
+	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		_splash(s, s.pos, null)
 	_effects(s, s.pos)
@@ -610,31 +604,14 @@ func _effects(s: Shot, at: Vector2i) -> void:
 	if s.spell.has(Cards.METAL):
 		_flash(s, at)
 	if s.spell.has(Cards.EARTH):
-		_noise(at, THUD, "쿵", true, s.caster)
+		noise(at, THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		_ignite(at)
-	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
-		var p := at + d
-		if s.spell.has(Cards.FIRE) and tile(p) == LANTERN_OUT:
-			_set_tile(p, LANTERN)
-			_emit({t = &"relight", at = p})
-		if s.spell.has(Cards.WATER) and (tile(p) == LANTERN or burning.has(p)):
-			burning.erase(p)
-			_set_tile(p, LANTERN_OUT if tile(p) == LANTERN else tile(p))
-			_emit({t = &"douse", at = p})
-
-
-## An orb without water breaks the lit lantern or the closed door it struck.
-func _smash(s: Shot, at: Vector2i, struck: int) -> void:
-	if s.spell.has(Cards.WATER) or tile(at) != struck or (struck != LANTERN and struck != DOOR):
-		return
-	burning.erase(at)
-	_set_tile(at, LANTERN_OUT if struck == LANTERN else FLOOR)
-	_emit({t = &"smash", at = at})
+	Terrain.touch(self, s, at)
 
 
 func _flash(s: Shot, at: Vector2i) -> void:
-	_emit({t = &"flash", at = at, faction = s.faction})
+	emit({t = &"flash", at = at, faction = s.faction})
 	var view := fov(at)
 	for a in actors:
 		if (
@@ -645,7 +622,7 @@ func _flash(s: Shot, at: Vector2i) -> void:
 		):
 			a.blind = 2
 			a.intent.clear()
-			_emit({t = &"blind", id = a.id})
+			emit({t = &"blind", id = a.id})
 			if a.faction == Actor.HEAVEN:
 				a.alert = Actor.SEARCH
 				a.target = at
@@ -655,10 +632,10 @@ func _flash(s: Shot, at: Vector2i) -> void:
 func _strike(s: Shot, a: Actor) -> void:
 	var spell := s.spell
 	var at := a.pos
-	_emit({t = &"hit", shot = s.id, id = a.id, at = at})
-	_noise(at, spell.burst_noise(), "쾅", true, s.caster)
+	emit({t = &"hit", shot = s.id, id = a.id, at = at})
+	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if Bestiary.absorbs(a.kind, spell):
-		_emit({t = &"absorb", id = a.id, at = at})
+		emit({t = &"absorb", id = a.id, at = at})
 		return
 	var n := spell.damage(Grid.cheb(s.origin, at))
 	if n > 0:
@@ -666,11 +643,11 @@ func _strike(s: Shot, a: Actor) -> void:
 	if a.alive():
 		if spell.has(Cards.WOOD):
 			a.rooted = maxi(a.rooted, 2)
-			_emit({t = &"root", id = a.id})
+			emit({t = &"root", id = a.id})
 		if spell.has(Cards.EARTH):
 			a.stunned = 1
 			a.intent.clear()
-			_emit({t = &"stun", id = a.id})
+			emit({t = &"stun", id = a.id})
 		if a.faction == Actor.HEAVEN and a.alert != Actor.HUNT:
 			a.alert = Actor.SEARCH
 			a.target = s.origin
@@ -684,49 +661,49 @@ func _hurt(a: Actor, n: int) -> void:
 	if not a.alive():
 		return
 	a.hp -= n
-	_emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos})
+	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos})
 	if a.alive():
 		if a.faction == Actor.HEAVEN:
-			_noise(a.pos, CRY, "끽", true, a.id)
+			noise(a.pos, CRY, "끽", true, a.id)
 		return
-	_emit({t = &"die", id = a.id, at = a.pos})
+	emit({t = &"die", id = a.id, at = a.pos})
 	a.intent.clear()
 	_changed()
 	if a.faction == Actor.FOX:
 		outcome = &"lost"
-		_emit({t = &"lost"})
+		emit({t = &"lost"})
 		return
 	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
-	_emit({t = &"soul", id = a.id, at = a.pos})
+	emit({t = &"soul", id = a.id, at = a.pos})
 	if drop != &"" and not cards.has(drop):
 		cards.append(drop)
-		_emit({t = &"card", card = drop, at = a.pos})
+		emit({t = &"card", card = drop, at = a.pos})
 
 
 func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
-	_emit({t = &"splash", at = at, faction = s.faction})
+	emit({t = &"splash", at = at, faction = s.faction})
 	for d in Grid.DIRS:
 		var p := at + d
 		_ignite(p)
 		var b := actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.kind, s.spell):
-				_emit({t = &"absorb", id = b.id, at = p})
+				emit({t = &"absorb", id = b.id, at = p})
 			else:
 				_hurt(b, 1)
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
 			_changed()
-			_emit({t = &"snuff", shot = o.id, at = p})
+			emit({t = &"snuff", shot = o.id, at = p})
 
 
 func _ignite(p: Vector2i) -> void:
 	if FLAMMABLE.has(tile(p)) and not burning.has(p):
 		burning[p] = BURN_ROUNDS
 		_changed()
-		_emit({t = &"ignite", at = p})
+		emit({t = &"ignite", at = p})
 
 
 ## Each burning tile crackles, burns whoever stands in it (unless it eats
@@ -737,12 +714,12 @@ func _burn() -> void:
 	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var caught: Array[Vector2i] = []
 	for p: Vector2i in burning.keys():
-		_noise(p, CRACKLE, "타닥", true, 0)
+		noise(p, CRACKLE, "타닥", true, 0)
 		var a := actor_at(p)
 		if a != null:
-			_emit({t = &"burn", at = p, id = a.id})
+			emit({t = &"burn", at = p, id = a.id})
 			if Bestiary.absorbs(a.kind, flame):
-				_emit({t = &"absorb", id = a.id, at = p})
+				emit({t = &"absorb", id = a.id, at = p})
 			else:
 				_hurt(a, 1)
 		for d in Grid.DIRS:
@@ -751,8 +728,8 @@ func _burn() -> void:
 		burning[p] -= 1
 		if burning[p] <= 0:
 			burning.erase(p)
-			_set_tile(p, ASH)
-			_emit({t = &"burnout", at = p})
+			set_tile(p, ASH)
+			emit({t = &"burnout", at = p})
 	for p in caught:
 		_ignite(p)
 
@@ -833,11 +810,8 @@ func _hunt(a: Actor) -> void:
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark.
 ## Next to a lantern that went out, it lights it again first.
 func _search(a: Actor) -> void:
-	for d in Grid.DIRS:
-		if tile(a.pos + d) == LANTERN_OUT:
-			_set_tile(a.pos + d, LANTERN)
-			_emit({t = &"relight", at = a.pos + d, id = a.id})
-			return
+	if Terrain.relight_beside(self, a):
+		return
 	if a.cooldown <= 0 and _charge(a, Aim.searchlight(self, a)):
 		return
 	if a.rooted > 0:
@@ -848,7 +822,7 @@ func _search(a: Actor) -> void:
 	if a.lost > SEARCH_ROUNDS:
 		a.alert = Actor.REST
 		a.lost = 0
-		_emit({t = &"calm", id = a.id})
+		emit({t = &"calm", id = a.id})
 		return
 	_drift(a)
 
@@ -869,7 +843,7 @@ func _charge(a: Actor, plan: Dictionary) -> bool:
 		return false
 	a.intent.assign(plan.cards)
 	a.aim = plan.dir
-	_emit({t = &"charge", id = a.id, cards = a.intent.duplicate(), dir = a.aim})
+	emit({t = &"charge", id = a.id, cards = a.intent.duplicate(), dir = a.aim})
 	return true
 
 
@@ -963,19 +937,19 @@ func _end_round() -> void:
 			s.life -= 1
 			if s.life == 0:
 				s.gone = true
-				_emit({t = &"fade", shot = s.id, at = s.pos})
+				emit({t = &"fade", shot = s.id, at = s.pos})
 	_prune()
 	round_no += 1
 	if outcome != &"" or depth >= FLOORS:
 		return
 	if round_no == REAPER_OMEN:
-		_emit({t = &"omen", at = start})
+		emit({t = &"omen", at = start})
 	elif round_no == REAPER_ARRIVES:
 		var spot := FloorGen.nearest_free(self, start)
 		if spot.x >= 0:
 			var saja := FloorGen.spawn(self, &"saja", spot)
 			_changed()
-			_emit({t = &"arrive", id = saja.id, at = spot})
+			emit({t = &"arrive", id = saja.id, at = spot})
 
 
 func _prune() -> void:
@@ -993,8 +967,8 @@ func _ascend() -> void:
 	FloorGen.build(self)
 	_changed()
 	sense()
-	_emit({t = &"ascend", depth = depth})
+	emit({t = &"ascend", depth = depth})
 	var me := player()
 	if me.hp < me.max_hp:
 		me.hp += 1
-		_emit({t = &"heal", id = me.id, hp = me.hp})
+		emit({t = &"heal", id = me.id, hp = me.hp})
