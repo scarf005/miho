@@ -647,9 +647,10 @@ func _strike(s: Shot, a: Actor) -> void:
 	if Bestiary.absorbs(a.kind, spell):
 		emit({t = &"absorb", id = a.id, at = at})
 		return
-	var n := spell.damage(Grid.cheb(s.origin, at))
+	var weak := Bestiary.weak(a.kind, spell)
+	var n := spell.damage(Grid.cheb(s.origin, at)) * (2 if weak else 1)
 	if n > 0:
-		_hurt(a, n)
+		_hurt(a, n, weak)
 	if a.alive():
 		if spell.has(Cards.WOOD):
 			a.rooted = maxi(a.rooted, 2)
@@ -667,11 +668,11 @@ func _strike(s: Shot, a: Actor) -> void:
 	_effects(s, at)
 
 
-func _hurt(a: Actor, n: int) -> void:
+func _hurt(a: Actor, n: int, weak := false) -> void:
 	if not a.alive():
 		return
 	a.hp -= n
-	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos})
+	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak})
 	if a.alive():
 		if a.faction == Actor.HEAVEN:
 			noise(a.pos, CRY, "끽", true, a.id)
@@ -701,7 +702,8 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			if Bestiary.absorbs(b.kind, s.spell):
 				emit({t = &"absorb", id = b.id, at = p})
 			else:
-				_hurt(b, 1)
+				var weak := Bestiary.weak(b.kind, s.spell)
+				_hurt(b, 2 if weak else 1, weak)
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true

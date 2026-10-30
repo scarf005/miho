@@ -58,12 +58,13 @@ static func creature(w: World, a: Actor) -> Array:
 	if a.faction == Actor.FOX:
 		return [head, _tails(w), _hidden(w, a.pos)]
 	var lines := [head]
-	var elements := _elements(spec)
+	var elements := Bestiary.elements(a.kind)
 	if not elements.is_empty():
 		var line := [["오행 ", Palette.DIM]]
 		for c in elements:
 			line.append([Cards.GLYPH[c] + "(" + Cards.NAME[c] + ") ", Palette.CARD[c]])
 		lines.append(line)
+		lines.append(_weakness(a.kind))
 	var state := [[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]]
 	for c in [[a.blind, "눈이 멀었다"], [a.rooted, "묶여 있다"], [a.stunned, "기절했다"]]:
 		if c[0] > 0:
@@ -102,13 +103,15 @@ static func creature(w: World, a: Actor) -> Array:
 	return lines
 
 
-## A creature's elements: those of the spells it casts, in 오행 order.
-static func _elements(spec: Dictionary) -> Array[StringName]:
-	var out: Array[StringName] = []
-	for c in Cards.ELEMENTS:
-		if spec.get("casts", []).any(func(cast): return cast.has(c)):
-			out.append(c)
-	return out
+## The elements whose spells hurt a creature twice as much.
+static func _weakness(kind: StringName) -> Array:
+	var line := [["약점: ", Palette.DIM]]
+	for c in Bestiary.weak_to(kind):
+		line.append([Cards.NAME[c], Palette.CARD[c]])
+		line.append([", ", Palette.DIM])
+	line.pop_back()
+	line.append([" (피해 ×2)", Palette.DIM])
+	return line
 
 
 static func _cast(a: Actor, cast: Array) -> Array:

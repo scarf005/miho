@@ -95,14 +95,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"club":
 			return _who(before, after, id, "의", "의") + [[" 몽둥이에 맞아 ", TEXT]] + _took(e.n)
 		&"hurt":
-			if last.get("target", -1) == id:
-				return []
-			if last.get("t") == &"burn" and last.id == id:
-				return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
-			var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
-			if mine and id != after.player().id:
-				return _harm_to(before, after, id, e.n)
-			return _subject(before, after, id) + _took(e.n)
+			var line := _hurt_line(before, after, e, last)
+			if e.get("weak", false) and not line.is_empty():
+				return [["약점! ", Palette.ALERT[1]]] + line
+			return line
 		&"die":
 			return _subject(before, after, id) + [["쓰러졌다", TEXT]]
 		&"card":
@@ -157,6 +153,18 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["금 간 벽이 무너졌다", TEXT]]
 			return _named(Info.TERRAIN[e.was][0], "이", "가") + [[" 부서졌다", TEXT]]
 	return []
+
+
+static func _hurt_line(before: World, after: World, e: Dictionary, last: Dictionary) -> Array:
+	var id: int = e.id
+	if last.get("target", -1) == id:
+		return []
+	if last.get("t") == &"burn" and last.id == id:
+		return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
+	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
+	if mine and id != after.player().id:
+		return _harm_to(before, after, id, e.n)
+	return _subject(before, after, id) + _took(e.n)
 
 
 ## "<name>에게 피해를 <n> 주었다".

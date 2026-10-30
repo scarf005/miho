@@ -162,3 +162,18 @@ func test_healing_tells_its_source() -> void:
 	assert_eq(
 		_lines(w, [{t = &"ascend", depth = 2}, heal]), ["2층으로 올라갔다", "체력을 1 회복했다"] as Array[String]
 	)
+
+
+func test_a_weakness_hit_starts_with_a_warning() -> void:
+	var w := _world()
+	var foe := FloorGen.spawn(w, &"cheonha", SEEN)
+	var me := w.player()
+	w.sense()
+	var hit := [
+		{t = &"spawn", shot = 90, at = me.pos, faction = Actor.FOX, cards = [Cards.ORB]},
+		{t = &"hit", shot = 90, id = foe.id, at = SEEN},
+	]
+	var weak := hit + [{t = &"hurt", id = foe.id, n = 2, hp = 2, at = SEEN, weak = true}]
+	assert_eq(_lines(w, weak), ["약점! 천하대장군에게 피해를 2 주었다"] as Array[String])
+	var plain := hit + [{t = &"hurt", id = foe.id, n = 1, hp = 3, at = SEEN, weak = false}]
+	assert_eq(_lines(w, plain), ["천하대장군에게 피해를 1 주었다"] as Array[String])
