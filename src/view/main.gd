@@ -29,10 +29,8 @@ var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
 var skip := false
-## Cell scale; 0 fits the whole map to the window.
-var zoom := 0.0
-## How fast rounds play.
-var speed := 1.0
+var settings: Settings
+var glass: ColorRect
 var pan: Tween
 ## A walk of many rounds is under way, and a key or click asked it to stop.
 var walking := false
@@ -54,7 +52,7 @@ var routes := {}
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Palette.VOID)
-	Keys.reset()
+	settings = Settings.load_from()
 	term = Term.new()
 	add_child(term)
 	sfx = Sfx.new()
@@ -62,7 +60,7 @@ func _ready() -> void:
 	term.shown.connect(sfx.on_event)
 	var crt := CanvasLayer.new()
 	crt.layer = 10
-	var glass := ColorRect.new()
+	glass = ColorRect.new()
 	glass.set_anchors_preset(Control.PRESET_FULL_RECT)
 	glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	glass.material = ShaderMaterial.new()
@@ -72,13 +70,22 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit)
 	_new_run()
 	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 누르면 시작"]
-	_fit()
+	_apply()
 	Capture.attach(self)
+
+
+## Puts the settings into effect.
+func _apply() -> void:
+	menu.settings = settings
+	settings.apply_sound()
+	glass.visible = settings.crt
+	term.speed = settings.speed
+	_fit()
 
 
 func _fit() -> void:
 	if state != &"replay":
-		term.fit(get_viewport().get_visible_rect().size, zoom)
+		term.fit(get_viewport().get_visible_rect().size, settings.zoom)
 
 
 func _new_run(seed_value := randi()) -> void:
@@ -108,8 +115,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		pass
 	elif overlay != &"":
 		_panel_input(event)
-	elif state == &"title" and Keys.action_of(event) == &"help":
-		_open(&"help")
+	elif state == &"title" and Keys.action_of(event) in [&"help", &"options", &"cancel"]:
+		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title":
 		state = &"play"
 		term.banner_lines = []
@@ -139,8 +146,10 @@ func _key(event: InputEventKey) -> void:
 			_toggle(world.cards[i])
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
-	elif action == &"cancel":
+	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
 		_clear()
+	elif action in [&"cancel", &"options"]:
+		_open(&"options")
 	elif action == &"stairs":
 		_journey(_to_exit, "계단을 아직 못 봤다")
 	elif action == &"explore":
@@ -150,7 +159,9 @@ func _key(event: InputEventKey) -> void:
 	elif action in [&"log", &"help"]:
 		_open(action)
 	elif action == &"mute":
-		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
+		settings.muted = not settings.muted
+		settings.apply_sound()
+		settings.save()
 
 
 func _click(event: InputEventMouseButton) -> void:
@@ -263,7 +274,8 @@ func _act(action: Dictionary) -> Array:
 		staged.clear()
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
-		await _replay()
+		if settings.replay:
+			await _replay()
 		reel.clear()
 	if world.outcome == &"won":
 		state = &"over"
@@ -287,7 +299,7 @@ func _journey(next: Callable, why := "") -> void:
 	var rounds := 0
 	walking = true
 	halt = false
-	term.speed = speed * WALK_SPEED
+	term.speed = settings.speed * WALK_SPEED
 	while not halt and state == &"play":
 		var action: Dictionary = next.call()
 		if action.is_empty():
@@ -306,7 +318,7 @@ func _journey(next: Callable, why := "") -> void:
 		if Travel.interrupted(before, world, events, sighted):
 			break
 	walking = false
-	term.speed = speed
+	term.speed = settings.speed
 	if rounds == 0:
 		sfx.play(&"click")
 
@@ -357,18 +369,34 @@ func _open(kind: StringName) -> void:
 	term.panel = menu.panel()
 
 
-## Any press closes the log; Menu pages take keys, a left click picks the row
-## under the pointer, and a right click closes.
+## Any press closes the log and help; the other Menu pages take keys, a left
+## click uses the row under the pointer, and a right click goes back.
 func _panel_input(event: InputEvent) -> void:
-	var done := overlay == &"log"
-	if event is InputEventKey and not done:
-		done = menu.key(event) == &"close"
-	elif event is InputEventMouseButton and not done:
-		done = event.button_index == MOUSE_BUTTON_RIGHT or overlay == &"help"
+	var done := overlay == &"log" or overlay == &"help" and event is InputEventMouseButton
+	var command := &"close" if done else &""
 	if done:
-		_close()
-	else:
-		term.panel = menu.panel()
+		pass
+	elif event is InputEventKey:
+		command = menu.key(event)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		command = menu.back()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		var local: Vector2 = term.get_global_transform().affine_inverse() * event.position
+		command = menu.use() if term.panel_row_at(local) >= 0 else &""
+	match command:
+		&"close":
+			_close()
+			return
+		&"changed":
+			settings.save()
+			_apply()
+		&"restart":
+			_close()
+			state = &"play"
+			term.banner_lines = []
+			_new_run()
+			return
+	term.panel = menu.panel()
 
 
 func _close() -> void:
@@ -386,7 +414,7 @@ func _replay() -> void:
 	state = &"replay"
 	skip = false
 	term.replay = true
-	term.speed = REPLAY_SPEED
+	term.speed = REPLAY_SPEED * settings.speed
 	term.fit(get_viewport().get_visible_rect().size, 0.0)
 	term.show_world(w)
 	_follow(w, 0.5)
@@ -402,7 +430,7 @@ func _replay() -> void:
 			await get_tree().create_timer(0.3).timeout
 	pan.kill()
 	term.replay = false
-	term.speed = speed
+	term.speed = settings.speed
 	state = &"play"
 	_fit()
 	term.show_world(world)
