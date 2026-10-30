@@ -120,7 +120,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		pass
 	elif overlay != &"":
 		_panel_input(event)
-	elif state == &"title" and Keys.action_of(event) in [&"help", &"options", &"cancel"]:
+	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title":
 		state = &"play"
@@ -153,7 +153,7 @@ func _key(event: InputEventKey) -> void:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
 		_clear()
-	elif action in [&"cancel", &"options"]:
+	elif action == &"cancel":
 		_open(&"options")
 	elif action == &"stairs":
 		_journey(_to_exit, "계단을 아직 못 봤다")

@@ -33,15 +33,14 @@ const ACTIONS := {
 	&"pick_5": ["부적 5", ["5"]],
 	&"pick_6": ["부적 6", ["6"]],
 	&"pick_7": ["부적 7", ["7"]],
-	&"cancel": ["취소", ["Escape"]],
-	&"stairs": ["계단으로", ["Shift+Period"]],
-	&"explore": ["탐험", ["X"]],
-	&"rest": ["쉬기", ["Z"]],
+	&"cancel": ["취소 / 설정", ["Escape"]],
+	&"stairs": ["계단으로 가기", ["Shift+Period"]],
+	&"explore": ["자동 탐험", ["O"]],
+	&"rest": ["쉬기 (꼬리가 다 자랄 때까지)", ["Z"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
-	&"log": ["기록", ["P"]],
-	&"options": ["설정", ["O"]],
+	&"log": ["지난 메시지", ["Ctrl+P", "P"]],
 	&"mute": ["소리 끄기", ["M"]],
-	&"restart": ["다시", ["R"]],
+	&"restart": ["다시 시작", ["R"]],
 }
 
 

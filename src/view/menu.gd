@@ -6,7 +6,7 @@ extends RefCounted
 ## `key`, `use` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", or nothing.
 
-const VALUE_COL := 13.0
+const VALUE_COL := 18.0
 const MOUSE := [
 	["왼쪽 클릭", "옆 칸으로 한 걸음, 먼 칸까지 걷기"],
 	["부적 고르고 클릭", "그쪽으로 던지기"],
@@ -182,7 +182,6 @@ static func _nav(e: InputEventKey) -> StringName:
 		&"move_e": &"right",
 		&"confirm": &"enter",
 		&"cancel": &"back",
-		&"options": &"back",
 	}
 	return bound.get(Keys.action_of(e), &"")
 
