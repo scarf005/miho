@@ -23,6 +23,8 @@ const LOG_ROWS := 3
 const LOG_FADE := 5
 ## Tiles a cursor moves in look mode with Shift.
 const LOOK_FAR := 5
+## Time per frame spent replaying a saved run on Continue; the rest draws the count.
+const REPLAY_BUDGET_MS := 40
 
 var world: World
 var term: Term
@@ -185,11 +187,13 @@ func _continue() -> void:
 	saved.begin()
 	while saved.played < saved.actions.size():
 		term.banner_lines = ["미호", "%d/%d" % [saved.played, saved.actions.size()]]
-		if not saved.step():
-			saved.erase()
-			busy = false
-			_show_title()
-			return
+		var until := Time.get_ticks_msec() + REPLAY_BUDGET_MS
+		while saved.played < saved.actions.size() and Time.get_ticks_msec() < until:
+			if not saved.step():
+				saved.erase()
+				busy = false
+				_show_title()
+				return
 		await get_tree().process_frame
 	busy = false
 	world = saved.world
