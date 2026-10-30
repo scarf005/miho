@@ -81,6 +81,14 @@ func test_options_step_and_wrap() -> void:
 	assert_eq(menu.key(_press("Escape")), &"close")
 
 
+func test_options_can_save_and_quit() -> void:
+	var menu := _options()
+	assert_string_contains(_text(menu.panel()), "저장하고 끝내기")
+	_select(menu, &"quit")
+	assert_eq(menu.use(), &"quit")
+	assert_eq(menu.key(_press("Enter")), &"quit")
+
+
 func test_a_new_key_leaves_the_action_that_had_it() -> void:
 	var menu := _options()
 	_select(menu, &"keys")

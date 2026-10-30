@@ -6,8 +6,8 @@ extends RefCounted
 ## spellbook lists every spell Miho's talismans make, with what the selected
 ## one does, and a slot key saves it to that slot.
 ## `key`, `use` and `back` return what the game should do: &"close",
-## &"changed" (settings or keys changed), &"restart", &"cast" (pick `chosen`),
-## or nothing.
+## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
+## game), &"cast" (pick `chosen`), or nothing.
 
 const VALUE_COL := 18.0
 const MOUSE := [
@@ -17,7 +17,9 @@ const MOUSE := [
 	["가리키기", "무엇이 있는지 보기"],
 ]
 const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, Esc 끝"]
-const OPTIONS := [&"volume", &"crt", &"zoom", &"speed", &"replay", &"keys", &"restart", &"close"]
+const OPTIONS := [
+	&"volume", &"crt", &"zoom", &"speed", &"replay", &"keys", &"restart", &"quit", &"close"
+]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
 	&"crt": "CRT 효과",
@@ -26,6 +28,7 @@ const OPTION_NAMES := {
 	&"replay": "명장면 다시보기",
 	&"keys": "키 설정",
 	&"restart": "처음부터",
+	&"quit": "저장하고 끝내기",
 	&"close": "계속",
 }
 const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
@@ -147,7 +150,7 @@ func use() -> StringName:
 		&"keys":
 			open(&"keys")
 			return &""
-		&"restart", &"close":
+		&"restart", &"quit", &"close":
 			return row
 	return _change(1)
 

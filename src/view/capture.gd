@@ -12,7 +12,9 @@ extends Node
 ## in between as out-1.png, out-2.png ...). Keys may carry modifiers: Shift+Up.
 ## --replay=seconds also saves out-replay.png that long into the first
 ## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
-## Runs start from default settings and keys, and never save them.
+## Runs start from default settings and keys, and never save them. They keep no
+## run either, unless --save=path names a file (a title that offers to continue
+## it takes Enter, not any key, to start).
 
 var main: Node
 var keys: PackedStringArray
@@ -29,8 +31,9 @@ static func attach(main: Node) -> void:
 		args[kv[0]] = kv[1] if kv.size() > 1 else ""
 	if not args.has("shot"):
 		return
-	if args.has("seed"):
-		main._new_run(int(args.seed))
+	main.save_path = args.get("save", "")
+	main._new_run(int(args.get("seed", randi())))
+	main._show_title()
 	main.settings = Settings.new()
 	main.settings.path = ""
 	main.settings.zoom = float(args.get("zoom", "0"))
