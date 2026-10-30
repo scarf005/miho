@@ -343,3 +343,15 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size())
 		for a in w.actors.slice(1):
 			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)
+
+
+func test_a_seed_builds_the_same_storey_every_time() -> void:
+	for seed_value in 5:
+		var a := World.create(seed_value)
+		var b := World.create(seed_value)
+		assert_eq(a.tiles, b.tiles, "seed %d tiles" % seed_value)
+		assert_eq(
+			a.actors.map(func(x): return x.pos),
+			b.actors.map(func(x): return x.pos),
+			"seed %d creatures" % seed_value
+		)
