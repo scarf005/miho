@@ -31,6 +31,7 @@ func test_walls_show_their_health_but_the_outer_edge_shows_none() -> void:
 	assert_eq(Info.plain(Info.terrain(w, inner)), "금 간 벽 ♥")
 	w.tiles[Grid.index(inner)] = World.RUBBLE
 	assert_true(Info.plain(Info.terrain(w, inner)).begins_with("무너진 벽\n"))
+	w.tiles[0] = World.WALL
 	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽")
 
 

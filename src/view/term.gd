@@ -519,7 +519,7 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			var d := Grid.cheb(p, me_pos)
 			if d <= World.NIGHT[0]:
 				l += Palette.NIGHT * (1.0 - d / 3.0)
-			if t != World.LANTERN and not fire:
+			if t != World.LANTERN and t != World.SKY and not fire:
 				fg = _lit(fg, l, 0.18)
 				bg = _lit(bg, l, 0.0) + Color(l.x, l.y, l.z) * 0.06
 		elif world.dim[i] == 1:
