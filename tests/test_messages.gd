@@ -168,6 +168,8 @@ func test_healing_tells_its_source() -> void:
 	var me := w.player()
 	var heal := {t = &"heal", id = me.id, hp = 3}
 	assert_eq(_lines(w, [heal]), ["복숭아를 먹었다. 체력을 1 회복했다"] as Array[String])
+	var grew := {t = &"heal", id = me.id, hp = 4, grew = true}
+	assert_eq(_lines(w, [grew]), ["복숭아를 먹었다. 최대 체력이 1 늘었다"] as Array[String])
 	assert_eq(
 		_lines(w, [{t = &"ascend", depth = 2}, heal]), ["2층으로 올라갔다", "체력을 1 회복했다"] as Array[String]
 	)

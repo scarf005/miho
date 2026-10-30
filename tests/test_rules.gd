@@ -571,3 +571,17 @@ func test_climbing_the_stairs_heals_one_up_to_full() -> void:
 		assert_eq(w.player().hp, mini(hp + 1, me.max_hp))
 		var healed := events.filter(func(e): return e.t == &"heal")
 		assert_eq(healed.size(), 1 if hp < me.max_hp else 0, "hp %d" % hp)
+
+
+func test_a_peach_heals_one_or_raises_full_health_by_one() -> void:
+	var w := _world(Vector2i(5, 8))
+	var me := w.player()
+	me.hp = 1
+	w.peaches.append(me.pos + E)
+	w.act({t = &"move", dir = E})
+	assert_eq([me.hp, me.max_hp], [2, 3])
+	w.peaches.append(me.pos + E)
+	me.hp = me.max_hp
+	var grew := w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"heal")
+	assert_eq([me.hp, me.max_hp], [4, 4])
+	assert_true(grew[0].grew)
