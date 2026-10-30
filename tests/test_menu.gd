@@ -65,6 +65,8 @@ func test_options_step_and_wrap() -> void:
 	for i in 12:
 		menu.key(_press("Left"))
 	assert_eq(menu.settings.volume, 0, "stops at 0")
+	var volume: Array = menu.panel().rows[Menu.OPTIONS.find(&"volume")]
+	assert_eq(volume[1][0], "끔", "silence is shown where the volume is set")
 	_select(menu, &"zoom")
 	var seen := []
 	for i in Settings.ZOOMS.size():

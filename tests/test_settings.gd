@@ -29,7 +29,6 @@ func test_options_and_bindings_round_trip() -> void:
 	s.zoom = 1.25
 	s.speed = 4.0
 	s.replay = false
-	s.muted = true
 	Keys.bind(&"explore", ["Shift+X", "Kp Add"])
 	Keys.bind(&"rest", [])
 	var saved := {}
@@ -100,3 +99,18 @@ func test_saved_spells_round_trip_and_bad_ones_are_dropped() -> void:
 	s.spells = {&"slot_1": "fox+fire", &"slot_2": "fire"}
 	var back := _reload(s)
 	assert_eq(back.spells, {&"slot_1": "fox+fire"})
+
+
+func test_sound_is_silent_only_at_volume_zero() -> void:
+	var c := ConfigFile.new()
+	c.set_value("settings", "muted", true)
+	var s := Settings.new()
+	s.path = ""
+	s.from_config(c)
+	s.apply_sound()
+	assert_false(AudioServer.is_bus_mute(0), "a mute saved by an older version is dropped")
+	s.volume = 0
+	s.apply_sound()
+	assert_true(AudioServer.is_bus_mute(0))
+	s.volume = 100
+	s.apply_sound()
