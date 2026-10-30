@@ -47,6 +47,8 @@ const ACTIONS := {
 	&"explore": ["자동 탐험", ["O"]],
 	&"look": ["살펴보기", ["X"]],
 	&"rest": ["쉬기", ["Z"]],
+	&"exclude": ["위험구역 표시", ["V"]],
+	&"exclude_clear": ["위험구역 모두 지우기", ["Shift+V"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
 	&"log": ["지난 메시지", ["Ctrl+P", "P"]],
 	&"restart": ["재시작", ["R"]],
