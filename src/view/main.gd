@@ -41,6 +41,8 @@ var staged: Array[Dictionary] = []
 var busy := false
 var state := &"title"
 var hover := Vector2i(-1, -1)
+var hover_card := &""
+var hover_status := false
 var skip := false
 
 
@@ -157,9 +159,16 @@ func _click(event: InputEventMouseButton) -> void:
 
 
 func _point(screen: Vector2) -> void:
-	var tile := term.tile_at(term.get_global_transform().affine_inverse() * screen)
-	if tile != hover:
+	var local := term.get_global_transform().affine_inverse() * screen
+	var tile := term.tile_at(local)
+	if not Grid.inside(tile):
+		tile = term.side_at(local)
+	var card := term.card_at(local)
+	var status := term.status_at(local)
+	if tile != hover or card != hover_card or status != hover_status:
 		hover = tile
+		hover_card = card
+		hover_status = status
 		if state == &"play" and not busy:
 			_refresh()
 
@@ -214,6 +223,8 @@ func _act(action: Dictionary) -> void:
 	busy = true
 	term.tints = {}
 	term.marks = {}
+	term.info = []
+	term.cursor = Vector2i(-1, -1)
 	var before := world.clone()
 	var depth := world.depth
 	var events := world.act(action)
@@ -285,10 +296,13 @@ func _follow(w: World, time: float) -> void:
 
 ## What each choice would do, from what Miho knows: the paths of the spell in
 ## hand, and on each neighbouring tile the harm she would take and whether she
-## would be seen there.
+## would be seen there. Under the pointer: what is there, and the tiles a
+## creature there sees.
 func _refresh() -> void:
 	if world == null:
 		return
+	var known := world.known_clone()
+	_inspect(known)
 	term.picked = picked
 	term.staged = staged
 	var tints := {}
@@ -317,8 +331,28 @@ func _refresh() -> void:
 				marks[p] = [str(f.hurt_me()), Palette.HURT]
 			elif not f.noticed.is_empty():
 				marks[p] = ["!", Palette.ALERT[2]]
+	var a := world.actor_at(hover) if Grid.inside(hover) else null
+	if a != null and a.faction != Actor.FOX and world.seen[Grid.index(hover)] == 1:
+		var view := known.view_of(a)
+		for i in view.size():
+			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
+				tints[Grid.at(i)] = Color(Palette.SIDE[1], 0.3)
 	term.tints = tints
 	term.marks = marks
+
+
+func _inspect(known: World) -> void:
+	term.info = []
+	term.cursor = Vector2i(-1, -1)
+	if state != &"play":
+		return
+	term.cursor = hover
+	if hover_card != &"":
+		term.info = Info.card(hover_card)
+	elif hover_status:
+		term.info = Info.creature(known, known.player())
+	else:
+		term.info = Info.at(known, hover)
 
 
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:

@@ -232,11 +232,23 @@ func fov(p: Vector2i) -> PackedByteArray:
 ## Whether `a` sees tile p now. Sight is symmetric, so this is read from p's side.
 ## A blinded fox still feels what is next to her; blinded heaven sees nothing.
 func sees(a: Actor, p: Vector2i) -> bool:
+	return _reaches(a, p) and (a.blind > 0 or fov(p)[Grid.index(a.pos)] == 1)
+
+
+## Every tile `a` sees now; one field from its own side, as sight is symmetric.
+func view_of(a: Actor) -> PackedByteArray:
+	var view := fov(a.pos)
+	var out := PackedByteArray()
+	out.resize(tiles.size())
+	for i in out.size():
+		out[i] = 1 if _reaches(a, Grid.at(i)) and (a.blind > 0 or view[i] == 1) else 0
+	return out
+
+
+func _reaches(a: Actor, p: Vector2i) -> bool:
 	if a.blind > 0:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
-	if Grid.cheb(a.pos, p) > NIGHT[a.faction] and not lit(p):
-		return false
-	return fov(p)[Grid.index(a.pos)] == 1
+	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] or lit(p)
 
 
 func can(action: Dictionary) -> bool:

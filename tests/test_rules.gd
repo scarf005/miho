@@ -147,6 +147,48 @@ func test_preview_shows_only_what_miho_knows() -> void:
 	assert_eq(hidden.alert, Actor.REST, "previews leave the world unchanged")
 
 
+func test_a_creature_view_is_every_tile_it_sees() -> void:
+	var w := _world(Vector2i(5, 8))
+	_put(w, Vector2i(14, 5), World.LANTERN)
+	_put(w, Vector2i(12, 8), World.WALL)
+	var foe := _foe(w, &"dokkaebi", Vector2i(10, 8))
+	for blind in [0, 2]:
+		foe.blind = blind
+		var view := w.view_of(foe)
+		var lit := 0
+		for i in view.size():
+			assert_eq(view[i] == 1, w.sees(foe, Grid.at(i)), "tile %s" % Grid.at(i))
+			lit += view[i]
+		assert_true(lit > 9 if blind == 0 else lit == 0, "blind %d sees %d" % [blind, lit])
+
+
+func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
+	var w := _world(Vector2i(5, 8))
+	_put(w, Vector2i(8, 9), World.LANTERN)
+	var foe := _foe(w, &"dokkaebi", Vector2i(8, 8), 2)
+	w.sense()
+	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
+	assert_string_contains(text, "도깨비")
+	assert_string_contains(text, "쉰다")
+	assert_string_contains(text, "발톱 3 (기습)")
+	assert_string_contains(text, "2초 뒤")
+	foe.alert = Actor.HUNT
+	text = Info.plain(Info.at(w.known_clone(), foe.pos))
+	assert_string_contains(text, "발톱 1")
+	assert_false(text.contains("기습"))
+
+
+func test_hover_never_shows_a_creature_miho_cannot_see() -> void:
+	var w := _world(Vector2i(5, 8))
+	var foe := _foe(w, &"dokkaebi", Vector2i(9, 8))
+	w.sense()
+	assert_eq(w.dim[Grid.index(foe.pos)], 1)
+	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
+	assert_false(text.contains("도깨비"))
+	assert_string_contains(text, "누가 있는지 모른다")
+	assert_eq(Info.at(w.known_clone(), Vector2i(30, 2)), [], "never seen")
+
+
 func test_a_wisp_flies_three_a_round_then_hovers_and_lights_without_harm() -> void:
 	var w := _world()
 	w.act(_cast([FOX], E))

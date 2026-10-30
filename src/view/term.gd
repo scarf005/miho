@@ -38,6 +38,9 @@ var staged: Array[Dictionary] = []
 var tints := {}
 var marks := {}
 var replay := false
+## The tile under the pointer and what it shows there, as Info lines.
+var cursor := Vector2i(-1, -1)
+var info: Array = []
 var speed := 1.0
 var banner_lines: Array[String] = []
 
@@ -185,6 +188,20 @@ func tile_at(local: Vector2) -> Vector2i:
 	return c if Grid.inside(c) else Vector2i(-1, -1)
 
 
+## Where the creature listed in the sidebar under a point stands, or (-1, -1).
+func side_at(local: Vector2) -> Vector2i:
+	var c := Vector2i((local / CELL).floor())
+	if world == null or c.x < 0 or c.x >= MAP.x or c.y < 0:
+		return Vector2i(-1, -1)
+	var list := _side_list(_world_actors(), world.player().pos)
+	return list[c.y / 2].pos if c.y / 2 < list.size() else Vector2i(-1, -1)
+
+
+## Whether a point in this node's space is on Miho's health and tails row.
+func status_at(local: Vector2) -> bool:
+	return int(local.y / CELL.y) == ROWS - 2
+
+
 ## The talisman under a point in this node's space, or empty.
 func card_at(local: Vector2) -> StringName:
 	var c := Vector2i((local / CELL).floor())
@@ -272,6 +289,7 @@ func _draw() -> void:
 	if not replay:
 		_draw_side(actors, me_pos)
 		_draw_bottom()
+		_draw_info()
 	if not banner_lines.is_empty():
 		draw_rect(Rect2(Vector2(MAP) * CELL, Vector2(Grid.W, Grid.H) * CELL), Color(0, 0, 0, 0.8))
 	for i in banner_lines.size():
@@ -385,15 +403,24 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		_small(Vector2(MAP + p) + Vector2(0.62, 0.55), m[0], m[1])
 
 
-## Creatures in sight, nearest first: glyph and health, then state and the spell it charges.
-func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
+func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	var list: Array = actors.values().filter(
 		func(a): return a.faction != Actor.FOX and _visible(a.pos)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	for k in mini(list.size(), (ROWS - 2) / 2):
+	return list.slice(0, (ROWS - 2) / 2)
+
+
+## Creatures in sight, nearest first: glyph and health, then state and the spell it charges.
+func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
+	var list := _side_list(actors, me_pos)
+	for k in list.size():
 		var a: Actor = list[k]
 		var row := k * 2
+		if a.pos == cursor:
+			draw_rect(
+				Rect2(Vector2(0, row) * CELL, Vector2(MAP.x, 2) * CELL), Color(Palette.TEXT, 0.12)
+			)
 		_glyph(Vector2(0, row), a.info().glyph, Palette.KIND[a.kind])
 		_pips(Vector2(1.5, row), a.hp, a.max_hp, Palette.HURT)
 		var mark: String = Palette.ALERT_MARK[a.alert]
@@ -436,6 +463,33 @@ func _draw_bottom() -> void:
 	if not staged.is_empty():
 		name = "+%d %s" % [staged.size(), name]
 	_text(Vector2(COLS - _cells(name), row), name, Palette.TEXT)
+
+
+## A frame on the tile under the pointer, and what is there in a box on the
+## far side of the map from it.
+func _draw_info() -> void:
+	if Grid.inside(cursor):
+		var r := Rect2(Vector2(MAP + cursor) * CELL, CELL)
+		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
+	if info.is_empty():
+		return
+	var width := 0.0
+	for line: Array in info:
+		width = maxf(width, line.reduce(func(n, run): return n + _cells(run[0]), 0.0))
+	width = ceilf(width) + 1.0
+	var height := info.size()
+	var from := Vector2(MAP.x, ROWS - 2 - height)
+	if Grid.inside(cursor):
+		from.x = MAP.x + Grid.W - width if cursor.x < Grid.W / 2 else MAP.x
+		from.y = Grid.H - height if cursor.y < Grid.H / 2 else 0
+	var box := Rect2(from * CELL, Vector2(width, height) * CELL)
+	draw_rect(box, Color(Palette.VOID, 0.92))
+	draw_rect(box.grow(-1), Palette.DIM, false, 2.0)
+	for k in info.size():
+		var x := from.x + 0.5
+		for run: Array in info[k]:
+			_text(Vector2(x, from.y + k), run[0], run[1])
+			x += _cells(run[0])
 
 
 func _pips(at: Vector2, n: int, of: int, color: Color) -> void:
