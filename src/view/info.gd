@@ -10,7 +10,7 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 ## tile -> [name, what it does, health or 0 when it cannot break]
 const TERRAIN := {
 	World.FLOOR: ["바닥", "", 0],
-	World.WALL: ["벽", "", 0],
+	World.WALL: ["벽", "", 2],
 	World.DOOR: ["문", "빛과 시야를 막는다", 1],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다", 1],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 1],
@@ -19,6 +19,8 @@ const TERRAIN := {
 	World.POND: ["연못", "건널 수 없다. 주문은 넘어간다", 0],
 	World.ASH: ["재", "", 0],
 	World.LANTERN_BROKEN: ["부서진 등불", "", 0],
+	World.WALL_CRACKED: ["금 간 벽", "", 1],
+	World.RUBBLE: ["무너진 벽", "", 0],
 }
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {
@@ -157,7 +159,7 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	var spec: Array = TERRAIN[w.tile(p)]
 	var name: String = spec[0]
 	var note: String = spec[1]
-	var health: int = spec[2]
+	var health: int = spec[2] if Terrain.breakable(w, p) else 0
 	if p == w.stairs:
 		name = "계단"
 		note = "위층으로 올라갈 수 있다"
@@ -175,7 +177,7 @@ static func terrain(w: World, p: Vector2i) -> Array:
 		lines.append([[note, Palette.DIM]])
 	if w.burning.has(p):
 		lines.append([["불타는 중. %d초 뒤 재가 된다" % w.burning[p], Palette.HURT]])
-	if w.tile(p) != World.WALL:
+	if not Terrain.wall(w.tile(p)):
 		lines.append(_light_line(w, p))
 	return lines
 

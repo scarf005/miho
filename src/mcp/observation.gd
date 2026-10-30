@@ -21,8 +21,8 @@ const NAMES := {
 }
 const ALERTS := ["resting", "searching", "hunting"]
 const LEGEND := (
-	"legend: #wall ·floor(in sight) .floor(remembered) +door 'open-door ¤lantern "
-	+ '"bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
+	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
+	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
 	+ "●○*projectile @Miho"
 )
 

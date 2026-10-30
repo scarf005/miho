@@ -29,6 +29,10 @@ extends RefCounted
 ## where it ends, silently, and fire relights dark ones; a searching creature
 ## relights a dark lantern it stands next to.
 ##
+## Walls break too, but only to orbs: two hits turn a wall into a cracked wall
+## (which still blocks walking, sight and light) and then into rubble. Each hit
+## thuds. The outermost ring of tiles never breaks.
+##
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
 ## crackles (an alarm), hides nothing, burns whoever stands in it each round
@@ -70,7 +74,9 @@ const BOARD := 6
 const POND := 7
 const ASH := 8
 const LANTERN_BROKEN := 9
-const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN]
+const WALL_CRACKED := 10
+const RUBBLE := 11
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE]
 const FLAMMABLE := [DOOR, BAMBOO, BOARD]
 ## How far a step onto the tile is heard, and the word for it.
 const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
@@ -191,10 +197,10 @@ func open_air(p: Vector2i) -> bool:
 	return open_floor(p) or tile(p) == POND
 
 
-## Walls, closed doors and bamboo block sight and light; a door is open while
-## something is in it, and nothing burning blocks anything.
+## Walls (cracked too), closed doors and bamboo block sight and light; a door is
+## open while something is in it, and nothing burning blocks anything.
 func opaque(p: Vector2i) -> bool:
-	if tile(p) == WALL or hides(p):
+	if Terrain.wall(tile(p)) or hides(p):
 		return true
 	return tile(p) == DOOR and not burning.has(p) and actor_at(p) == null and shot_at(p) == null
 
@@ -448,7 +454,7 @@ func _move(a: Actor, to: Vector2i) -> void:
 func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 	if loud <= 0:
 		return
-	var open := func(p): return tile(p) != WALL
+	var open := func(p): return not Terrain.wall(tile(p))
 	var dist: PackedInt32Array = Grid.search(at, open, func(_p): return false, loud).dist
 	var me := player()
 	var d := dist[Grid.index(me.pos)]
