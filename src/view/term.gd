@@ -627,6 +627,10 @@ func _draw_panel() -> void:
 			x = run[2] if run.size() > 2 else x
 			_text(Vector2(x, y), run[0], run[1])
 			x += _cells(run[0])
+	if span.x > 0:
+		_glyph(Vector2(1, 2), "▲", Palette.DIM)
+	if span.x + span.y < panel.rows.size():
+		_glyph(Vector2(1, 3 + span.y), "▼", Palette.DIM)
 
 
 ## The panel row under a point in this node's space, or -1.
