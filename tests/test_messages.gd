@@ -144,3 +144,13 @@ func test_names_harm_and_sounds_stand_out_in_their_colours() -> void:
 		Messages.of(w, w, [{t = &"noise", at = HIDDEN, word = "끽", loud = 9, heard = true}])[0]
 	)
 	assert_true(heard.has(["끽", Palette.SOUND]), "%s" % [heard])
+
+
+func test_healing_tells_its_source() -> void:
+	var w := _world()
+	var me := w.player()
+	var heal := {t = &"heal", id = me.id, hp = 3}
+	assert_eq(_lines(w, [heal]), ["복숭아를 먹었다. 체력을 1 회복했다"] as Array[String])
+	assert_eq(
+		_lines(w, [{t = &"ascend", depth = 2}, heal]), ["2층으로 올라갔다", "체력을 1 회복했다"] as Array[String]
+	)
