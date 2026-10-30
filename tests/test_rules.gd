@@ -321,6 +321,229 @@ func test_a_thud_draws_creatures_through_a_closed_door() -> void:
 	assert_eq(far.alert, Actor.REST)
 
 
+func _noises(events: Array) -> Array:
+	return events.filter(func(e): return e.t == &"noise")
+
+
+func test_walking_into_a_lantern_knocks_it_out_with_a_clang() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.LANTERN)
+	for y in range(1, Grid.H - 1):
+		_put(w, Vector2i(7, y), World.WALL)
+	_put(w, Vector2i(7, 8), World.DOOR)
+	var listener := _foe(w, &"imugi", Vector2i(9, 8))
+	assert_true(w.lit(Vector2i(6, 8)))
+	var events := w.act({t = &"move", dir = E})
+	assert_eq(w.tile(Vector2i(5, 8)), World.LANTERN_OUT)
+	assert_eq(w.player().pos, Vector2i(4, 8), "the knock takes her move")
+	assert_false(w.lit(Vector2i(6, 8)))
+	assert_has(_types(events), &"smash")
+	var clang: Dictionary = _noises(events)[0]
+	assert_eq([clang.word, clang.loud], ["쨍", World.KNOCK])
+	assert_eq(listener.alert, Actor.SEARCH, "heard through the door")
+	assert_eq(listener.target, Vector2i(5, 8))
+	assert_false(w.can({t = &"move", dir = E}), "a dark lantern still blocks")
+
+
+func test_a_noise_reaches_exactly_as_far_as_it_is_loud() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.LANTERN)
+	var near := _foe(w, &"imugi", Vector2i(9, 8))
+	var far := _foe(w, &"imugi", Vector2i(10, 4))
+	w.act({t = &"move", dir = E})
+	assert_eq(near.alert, Actor.SEARCH, "four steps away")
+	assert_eq(far.alert, Actor.REST, "five steps away")
+
+
+func test_water_douses_a_lantern_silently_and_a_searcher_or_fire_relights_it() -> void:
+	var w := _world()
+	w.cards.append(Cards.WATER)
+	_put(w, Vector2i(10, 8), World.LANTERN)
+	var events := w.act(_cast([FOX, Cards.WATER], E))
+	events.append_array(w.act(WAIT))
+	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_OUT)
+	assert_has(_types(events), &"douse")
+	assert_eq(_noises(events), [], "silent")
+	var searcher := _foe(w, &"dokkaebi", Vector2i(11, 9))
+	searcher.alert = Actor.SEARCH
+	searcher.target = Vector2i(14, 9)
+	events = w.act(WAIT)
+	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN)
+	var relight: Dictionary = events.filter(func(e): return e.t == &"relight")[0]
+	assert_eq(relight.id, searcher.id)
+	assert_eq(searcher.pos, Vector2i(11, 9), "relighting takes its turn")
+	var fire := _world()
+	fire.cards.append(Cards.FIRE)
+	_put(fire, Vector2i(10, 8), World.LANTERN_OUT)
+	assert_false(fire.lit(Vector2i(12, 8)))
+	fire.act(_cast([FOX, Cards.FIRE], E))
+	assert_has(_types(fire.act(WAIT)), &"relight")
+	assert_eq(fire.tile(Vector2i(10, 8)), World.LANTERN)
+	assert_true(fire.lit(Vector2i(12, 8)))
+
+
+func test_an_orb_smashes_the_lantern_or_closed_door_it_strikes() -> void:
+	for t in [World.LANTERN, World.DOOR]:
+		var w := _world()
+		if t == World.DOOR:
+			for y in range(1, Grid.H - 1):
+				_put(w, Vector2i(10, y), World.WALL)
+		_put(w, Vector2i(10, 8), t)
+		var events := w.act(_cast([ORB], E))
+		events.append_array(w.act(WAIT))
+		events.append_array(w.act(WAIT))
+		assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_OUT if t == World.LANTERN else World.FLOOR)
+		assert_has(_types(events), &"smash")
+		assert_has(_noises(events).map(func(e): return e.word), "쾅", "it bursts loudly")
+		assert_eq(w.shots, [] as Array[Shot])
+
+
+func test_bamboo_hides_who_stands_in_it_from_all_but_the_next_tile() -> void:
+	var w := _world(Vector2i(4, 8))
+	_put(w, Vector2i(6, 10), World.LANTERN)
+	_put(w, Vector2i(7, 8), World.BAMBOO)
+	var hidden := _foe(w, &"jangseung", Vector2i(7, 8))
+	w.sense()
+	assert_true(w.lit(hidden.pos))
+	assert_eq(w.seen[Grid.index(hidden.pos)], 0, "lit, yet hidden")
+	assert_eq(w.dim[Grid.index(hidden.pos)], 1, "the bamboo itself shows")
+	assert_null(w.known_clone().actor(hidden.id))
+	assert_string_contains(Info.plain(Info.at(w.known_clone(), hidden.pos)), "대숲")
+	assert_true(w.sees(hidden, w.player().pos), "it watches from inside")
+	w.player().pos = Vector2i(6, 8)
+	w.sense()
+	assert_eq(w.seen[Grid.index(hidden.pos)], 1, "right next to it")
+
+
+func test_bamboo_rustles_and_floorboards_creak_and_draw_a_resting_creature() -> void:
+	for tread in [[World.BAMBOO, ["사각", 2]], [World.BOARD, ["삐걱", 3]], [World.FLOOR, null]]:
+		var w := _world()
+		_put(w, Vector2i(5, 8), tread[0])
+		var listener := _foe(w, &"imugi", Vector2i(7, 8))
+		var noises := _noises(w.act({t = &"move", dir = E}))
+		if tread[1] == null:
+			assert_eq(noises, [], "plain floor is silent")
+			assert_eq(listener.alert, Actor.REST)
+			continue
+		assert_eq([noises[0].word, noises[0].loud], tread[1])
+		assert_eq(listener.alert, Actor.SEARCH)
+		assert_eq(listener.target, Vector2i(5, 8))
+
+
+func test_miho_hears_heaven_creak_over_floorboards() -> void:
+	var w := _world()
+	_put(w, Vector2i(7, 8), World.BOARD)
+	var walker := _foe(w, &"dokkaebi", Vector2i(8, 8))
+	walker.post = Vector2i(6, 8)
+	var other := _foe(w, &"imugi", Vector2i(9, 9))
+	w.act(WAIT)
+	assert_eq(w.heard, [{at = Vector2i(7, 8), word = "삐걱"}])
+	assert_eq(other.alert, Actor.REST, "heaven ignores its own")
+
+
+func test_a_pond_blocks_walking_but_an_orb_flies_over_it() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.POND)
+	_put(w, Vector2i(6, 8), World.POND)
+	var foe := _foe(w, &"jangseung", Vector2i(9, 8))
+	assert_false(w.can({t = &"move", dir = E}))
+	assert_eq(
+		Forecast.ray(w, w.player().pos, E).slice(0, 5),
+		[5, 6, 7, 8, 9].map(func(x): return Vector2i(x, 8))
+	)
+	w.act(_cast([ORB], E))
+	w.act(WAIT)
+	assert_eq(foe.hp, 1, "struck after a five-tile run")
+
+
+func test_a_fire_wisp_sets_bamboo_alight_which_lights_burns_and_leaves_ash() -> void:
+	var w := _world()
+	w.cards.append(Cards.FIRE)
+	for x in range(6, 13):
+		_put(w, Vector2i(x, 8), World.BAMBOO)
+	var foe := _foe(w, &"jangseung", Vector2i(8, 8))
+	assert_false(w.lit(Vector2i(8, 6)))
+	var events := w.act(_cast([FOX, Cards.FIRE], E))
+	assert_true(w.burning.has(Vector2i(6, 8)), "caught where the wisp flew")
+	assert_true(w.lit(Vector2i(8, 6)), "fire lights its surroundings")
+	assert_eq(foe.hp, 1, "struck for 1, then burnt for 1")
+	assert_eq(events.filter(func(e): return e.t == &"burn")[0].id, foe.id)
+	assert_has(w.heard.map(func(h): return h.word), "타닥")
+	assert_eq(w.seen[Grid.index(foe.pos)], 1, "burning bamboo hides nothing")
+	w.act(WAIT)
+	assert_false(foe.alive())
+	events = w.act(WAIT)
+	assert_eq(w.tile(Vector2i(6, 8)), World.ASH)
+	assert_false(w.burning.has(Vector2i(6, 8)))
+	assert_has(_types(events), &"burnout")
+	assert_true(w.open_floor(Vector2i(6, 8)))
+
+
+func test_fire_spreads_through_bamboo_the_same_way_for_a_seed() -> void:
+	var runs := []
+	for run in 2:
+		var w := _world()
+		w.rng.seed = 11
+		w.cards.append(Cards.FIRE)
+		for y in range(4, 13):
+			for x in range(8, 17):
+				_put(w, Vector2i(x, y), World.BAMBOO)
+		w.act(_cast([FOX, Cards.FIRE], E))
+		for i in 5:
+			w.act(WAIT)
+		runs.append(w)
+	assert_eq(runs[0].tiles, runs[1].tiles)
+	assert_eq(runs[0].burning, runs[1].burning)
+	var reached := 0
+	for i in runs[0].tiles.size():
+		var p := Grid.at(i)
+		if p.y != 8 and (runs[0].tiles[i] == World.ASH or runs[0].burning.has(p)):
+			reached += 1
+	assert_gt(reached, 0, "it spread off the wisp's line")
+
+
+func test_fire_burns_a_door_to_ash_and_spares_a_creature_that_eats_fire() -> void:
+	var w := _world()
+	w.cards.append(Cards.FIRE)
+	for y in range(1, Grid.H - 1):
+		_put(w, Vector2i(10, y), World.WALL)
+	_put(w, Vector2i(10, 8), World.DOOR)
+	_put(w, Vector2i(12, 4), World.BOARD)
+	w.burning[Vector2i(12, 4)] = World.BURN_ROUNDS
+	var eater := _foe(w, &"haetae", Vector2i(12, 4))
+	assert_has(_types(w.act(_cast([FOX, Cards.FIRE], E))), &"absorb")
+	assert_eq(eater.hp, 4)
+	w.act(WAIT)
+	assert_true(w.burning.has(Vector2i(10, 8)))
+	assert_false(w.opaque(Vector2i(10, 8)), "a burning door hides nothing")
+	w.act(WAIT)
+	w.act(WAIT)
+	assert_eq(w.tile(Vector2i(10, 8)), World.ASH)
+
+
+func test_water_puts_a_fire_out() -> void:
+	var w := _world()
+	w.cards.append(Cards.WATER)
+	_put(w, Vector2i(11, 8), World.BAMBOO)
+	w.burning[Vector2i(11, 8)] = World.BURN_ROUNDS
+	w.act(_cast([FOX, Cards.WATER], E))
+	var events := w.act(WAIT)
+	assert_has(_types(events), &"douse")
+	assert_eq(w.burning, {})
+	assert_eq(w.tile(Vector2i(11, 8)), World.BAMBOO)
+
+
+func test_heaven_walks_around_fire() -> void:
+	var w := _world()
+	_put(w, Vector2i(9, 8), World.BOARD)
+	w.burning[Vector2i(9, 8)] = World.BURN_ROUNDS
+	var foe := _foe(w, &"dokkaebi", Vector2i(8, 8))
+	foe.alert = Actor.SEARCH
+	foe.target = Vector2i(12, 8)
+	w.act(WAIT)
+	assert_has([Vector2i(9, 7), Vector2i(9, 9)], foe.pos)
+
+
 func test_strong_foe_gives_its_element_and_a_kill_gives_back_a_tail() -> void:
 	var w := _world()
 	w.tails = 1
@@ -374,8 +597,14 @@ func test_each_storey_grows_one_more_tail() -> void:
 
 
 func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
+	var features := {World.BAMBOO: 0, World.POND: 0, World.BOARD: 0}
 	for seed_value in 20:
 		var w := World.create(seed_value)
+		for t in w.tiles:
+			if features.has(t):
+				features[t] += 1
+		assert_eq(w.tile(w.start), World.FLOOR)
+		assert_eq(w.tile(w.stairs), World.FLOOR)
 		var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):
@@ -385,6 +614,8 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size())
 		for a in w.actors.slice(1):
 			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)
+	for t in features:
+		assert_gt(features[t], 0, "some rooms have tile %d" % t)
 
 
 func test_a_seed_builds_the_same_storey_every_time() -> void:

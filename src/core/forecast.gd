@@ -64,13 +64,13 @@ func hurt_me() -> int:
 	return harm.get(after.player().id, 0)
 
 
-## Tiles a projectile would cross from `from` heading `dir` until a wall or the edge.
+## Tiles a projectile would cross from `from` heading `dir` until something it cannot fly over.
 static func ray(world: World, from: Vector2i, dir: Vector2i) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	if dir == Vector2i.ZERO:
 		return out
 	var p := from + dir
-	while world.open_floor(p):
+	while world.open_air(p):
 		out.append(p)
 		p += dir
 	return out

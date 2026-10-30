@@ -17,14 +17,30 @@ extends RefCounted
 ## Miho's wisps, and hunt her once they see her. Claws strike three times as
 ## hard at a creature that is not hunting (Brogue CE Combat.c sneak attack).
 ##
+## Terrain feeds both senses. Bamboo hides whoever stands in it from all but
+## the tiles next to it and rustles underfoot; floorboards creak. Treading
+## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
+## but spells fly over them.
+##
+## Lanterns and doors break. Miho knocks a lantern out by walking into it,
+## with a clang; an orb smashes the lantern or closed door it strikes. Water
+## douses lanterns next to where it ends, silently, and fire relights them; a
+## searching creature relights a lantern it stands next to.
+##
+## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
+## ends, and around a fire orb's burst. A burning tile lights its surroundings,
+## crackles (an alarm), hides nothing, burns whoever stands in it each round
+## and may spread to each flammable neighbour; after BURN_ROUNDS it is ash.
+## Heaven walks around fire; water douses it.
+##
 ## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
 ## kill gives one back.
 
 const FLOORS := 9
-const REAPER_OMEN := 150
-const REAPER_ARRIVES := 160
+const REAPER_OMEN := 300
+const REAPER_ARRIVES := 320
 const TAIL_REGROW := 3
 const VIEW := 40
 const NIGHT := [2, 1]
@@ -35,11 +51,24 @@ const SNEAK := 3
 const CRY := 5
 const THUD := 9
 const FLASH := 2
+const KNOCK := 4
+const BURN_ROUNDS := 3
+const CRACKLE := 3
+const SPREAD := 0.5
 
 const FLOOR := 0
 const WALL := 1
 const DOOR := 2
 const LANTERN := 3
+const LANTERN_OUT := 4
+const BAMBOO := 5
+const BOARD := 6
+const POND := 7
+const ASH := 8
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH]
+const FLAMMABLE := [DOOR, BAMBOO, BOARD]
+## How far a step onto the tile is heard, and the word for it.
+const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -48,6 +77,8 @@ var start := Vector2i.ZERO
 var stairs := Vector2i(-1, -1)
 var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
+## Burning tiles: position -> rounds left.
+var burning := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -94,6 +125,7 @@ func clone() -> World:
 	w.stairs = stairs
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
+	w.burning = burning.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -144,16 +176,27 @@ func tile(p: Vector2i) -> int:
 	return tiles[Grid.index(p)] if Grid.inside(p) else WALL
 
 
-## Creatures and projectiles can be here.
+## Creatures can walk here.
 func open_floor(p: Vector2i) -> bool:
-	var t := tile(p)
-	return t == FLOOR or t == DOOR
+	return WALKABLE.has(tile(p))
 
 
-## Walls and closed doors block sight and light; a door is open while something is in it.
+## Projectiles can fly here: anywhere walkable, and over ponds.
+func open_air(p: Vector2i) -> bool:
+	return open_floor(p) or tile(p) == POND
+
+
+## Walls, closed doors and bamboo block sight and light; a door is open while
+## something is in it, and nothing burning blocks anything.
 func opaque(p: Vector2i) -> bool:
-	var t := tile(p)
-	return t == WALL or (t == DOOR and actor_at(p) == null and shot_at(p) == null)
+	if tile(p) == WALL or hides(p):
+		return true
+	return tile(p) == DOOR and not burning.has(p) and actor_at(p) == null and shot_at(p) == null
+
+
+## Bamboo hides who stands in it from everyone not right next to it, until it burns.
+func hides(p: Vector2i) -> bool:
+	return tile(p) == BAMBOO and not burning.has(p)
 
 
 func actor_at(p: Vector2i) -> Actor:
@@ -185,14 +228,15 @@ func vacant(p: Vector2i) -> bool:
 	return s == null or not s.spell.strikes()
 
 
-## True when no wall stands strictly between a and b on one of the eight lines.
+## True when nothing a projectile cannot cross stands strictly between a and b
+## on one of the eight lines.
 func clear_line(a: Vector2i, b: Vector2i) -> bool:
 	var d := Grid.line_dir(a, b)
 	if d == Vector2i.ZERO:
 		return false
 	var p := a + d
 	while p != b:
-		if not open_floor(p):
+		if not open_air(p):
 			return false
 		p += d
 	return true
@@ -203,6 +247,8 @@ func light_sources() -> Array[Dictionary]:
 	for i in tiles.size():
 		if tiles[i] == LANTERN:
 			out.append({at = Grid.at(i), radius = Light.LANTERN_RADIUS, color = Light.LANTERN})
+	for p in burning:
+		out.append({at = p, radius = Light.FIRE_RADIUS, color = Light.FIRE})
 	for s in shots:
 		if not s.gone:
 			var l := s.spell.light(s.faction)
@@ -248,6 +294,8 @@ func view_of(a: Actor) -> PackedByteArray:
 func _reaches(a: Actor, p: Vector2i) -> bool:
 	if a.blind > 0:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
+	if hides(p) and Grid.cheb(a.pos, p) > 1:
+		return false
 	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] or lit(p)
 
 
@@ -264,7 +312,7 @@ func can(action: Dictionary) -> bool:
 	return false
 
 
-## A step onto a free tile, or claws at a creature next to Miho.
+## A step onto a free tile, claws at a creature next to Miho, or a knock at a lantern.
 func _can_move(dir: Vector2i) -> bool:
 	var me := player()
 	var to := me.pos + dir
@@ -273,7 +321,7 @@ func _can_move(dir: Vector2i) -> bool:
 	var foe := actor_at(to)
 	if foe != null:
 		return foe.faction != me.faction
-	return me.rooted <= 0 and vacant(to)
+	return tile(to) == LANTERN or (me.rooted <= 0 and vacant(to))
 
 
 ## Every spell is valid and known, takes its own open direction, and the cards
@@ -290,7 +338,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not open_floor(me.pos + d) or aims.has(d):
+		if not Grid.DIRS.has(d) or not open_air(me.pos + d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -321,6 +369,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			var foe := actor_at(to)
 			if foe != null:
 				_claw(me, foe)
+			elif tile(to) == LANTERN:
+				_knock(me, to)
 			else:
 				_move(me, to)
 				if me.pos == stairs:
@@ -341,12 +391,13 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				_cast(me, spell, one.dir)
 	_shots_phase()
 	_heaven_phase()
+	_burn()
 	_end_round()
 	sense()
 	return events
 
 
-## Updates what Miho sees, makes out in the dark, and remembers.
+## Updates what Miho sees, makes out in the dark or in bamboo, and remembers.
 func sense() -> void:
 	_changed()
 	var me := player()
@@ -356,14 +407,16 @@ func sense() -> void:
 	dim = seen.duplicate()
 	if known.size() != tiles.size():
 		known.resize(tiles.size())
+	var clear := not opaque(me.pos)
 	for i in tiles.size():
 		if from[i] == 0:
 			continue
 		var p := Grid.at(i)
-		if sees(me, p):
+		# Sight is symmetric between clear tiles, so her own field answers for them.
+		if _reaches(me, p) and ((clear and not opaque(p)) or sees(me, p)):
 			seen[i] = 1
 			known[i] = 1
-		elif Grid.cheb(p, me.pos) <= DIM and me.blind <= 0:
+		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
 			dim[i] = 1
 			known[i] = 1
 
@@ -381,8 +434,8 @@ func _move(a: Actor, to: Vector2i) -> void:
 	_emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()
-	if a.faction == Actor.HEAVEN:
-		_noise(to, a.info().get("step", 0), "탁", false, a.id)
+	var tread: Array = TREAD.get(tile(to), [0, "탁"])
+	_noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
@@ -390,7 +443,8 @@ func _move(a: Actor, to: Vector2i) -> void:
 func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 	if loud <= 0:
 		return
-	var dist: PackedInt32Array = Grid.search(at, func(p): return tile(p) != WALL).dist
+	var open := func(p): return tile(p) != WALL
+	var dist: PackedInt32Array = Grid.search(at, open, func(_p): return false, loud).dist
 	var me := player()
 	var d := dist[Grid.index(me.pos)]
 	var heard_it := by != me.id and d >= 0 and d <= loud
@@ -412,6 +466,17 @@ func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void
 				a.alert = Actor.SEARCH
 				a.target = at
 				a.lost = 0
+
+
+func _knock(me: Actor, at: Vector2i) -> void:
+	_set_tile(at, LANTERN_OUT)
+	_emit({t = &"smash", at = at})
+	_noise(at, KNOCK, "쨍", true, me.id)
+
+
+func _set_tile(p: Vector2i, t: int) -> void:
+	tiles[Grid.index(p)] = t
+	_changed()
 
 
 func _claw(me: Actor, foe: Actor) -> void:
@@ -474,17 +539,22 @@ func _fly(s: Shot, to: Vector2i) -> void:
 	_emit({t = &"fly", shot = s.id, from = s.pos, to = to})
 	s.pos = to
 	_changed()
+	if s.spell.has(Cards.FIRE):
+		_ignite(to)
 
 
-## One tile of flight. Orbs burst on walls and strike creatures; a wisp stops
-## and hovers at a wall, before a creature, or at the end of its range.
+## One tile of flight. Orbs burst on walls and closed doors and strike
+## creatures; a wisp stops and hovers at a wall, before a creature, or at the
+## end of its range.
 func _step(s: Shot) -> void:
 	if s.spell.homing():
-		s.dir = _steer(s)
+		s.dir = Aim.steer(self, s)
 	var to := s.pos + s.dir
-	if not open_floor(to):
+	if not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
+			var struck := tile(to)
 			_burst(s)
+			_smash(s, to, struck)
 		else:
 			_land(s)
 		return
@@ -532,12 +602,33 @@ func _burst(s: Shot) -> void:
 	_effects(s, s.pos)
 
 
-## Flash and thud happen wherever the spell ends.
+## Flash and thud happen wherever the spell ends; fire sets that tile alight
+## and relights the lanterns next to it, and water douses lanterns and flames.
 func _effects(s: Shot, at: Vector2i) -> void:
 	if s.spell.has(Cards.METAL):
 		_flash(s, at)
 	if s.spell.has(Cards.EARTH):
 		_noise(at, THUD, "쿵", true, s.caster)
+	if s.spell.has(Cards.FIRE):
+		_ignite(at)
+	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
+		var p := at + d
+		if s.spell.has(Cards.FIRE) and tile(p) == LANTERN_OUT:
+			_set_tile(p, LANTERN)
+			_emit({t = &"relight", at = p})
+		if s.spell.has(Cards.WATER) and (tile(p) == LANTERN or burning.has(p)):
+			burning.erase(p)
+			_set_tile(p, LANTERN_OUT if tile(p) == LANTERN else tile(p))
+			_emit({t = &"douse", at = p})
+
+
+## An orb without water breaks the lit lantern or the closed door it struck.
+func _smash(s: Shot, at: Vector2i, struck: int) -> void:
+	if s.spell.has(Cards.WATER) or tile(at) != struck or (struck != LANTERN and struck != DOOR):
+		return
+	burning.erase(at)
+	_set_tile(at, LANTERN_OUT if struck == LANTERN else FLOOR)
+	_emit({t = &"smash", at = at})
 
 
 func _flash(s: Shot, at: Vector2i) -> void:
@@ -557,29 +648,6 @@ func _flash(s: Shot, at: Vector2i) -> void:
 				a.alert = Actor.SEARCH
 				a.target = at
 				a.lost = 0
-
-
-func _steer(s: Shot) -> Vector2i:
-	var target: Actor = null
-	for a in actors:
-		if a.alive() and a.faction != s.faction:
-			if (
-				target == null
-				or Vector2(a.pos - s.pos).length() < Vector2(target.pos - s.pos).length()
-			):
-				target = a
-	if target == null:
-		return s.dir
-	var i := Grid.DIRS.find(s.dir)
-	var best := s.dir
-	var best_len := Vector2(target.pos - (s.pos + s.dir)).length()
-	for turn in [-1, 1]:
-		var d := Grid.DIRS[(i + turn + 8) % 8]
-		var length := Vector2(target.pos - (s.pos + d)).length()
-		if length < best_len - 0.001:
-			best = d
-			best_len = length
-	return best
 
 
 func _strike(s: Shot, a: Actor) -> void:
@@ -638,6 +706,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 	_emit({t = &"splash", at = at, faction = s.faction})
 	for d in Grid.DIRS:
 		var p := at + d
+		_ignite(p)
 		var b := actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.kind, s.spell):
@@ -649,6 +718,41 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			o.gone = true
 			_changed()
 			_emit({t = &"snuff", shot = o.id, at = p})
+
+
+func _ignite(p: Vector2i) -> void:
+	if FLAMMABLE.has(tile(p)) and not burning.has(p):
+		burning[p] = BURN_ROUNDS
+		_changed()
+		_emit({t = &"ignite", at = p})
+
+
+## Each burning tile crackles, burns whoever stands in it (unless it eats
+## fire), may set each flammable neighbour alight, and burns down to ash.
+func _burn() -> void:
+	if outcome != &"":
+		return
+	var flame := Spell.make([Cards.FOX, Cards.FIRE])
+	var caught: Array[Vector2i] = []
+	for p: Vector2i in burning.keys():
+		_noise(p, CRACKLE, "타닥", true, 0)
+		var a := actor_at(p)
+		if a != null:
+			_emit({t = &"burn", at = p, id = a.id})
+			if Bestiary.absorbs(a.kind, flame):
+				_emit({t = &"absorb", id = a.id, at = p})
+			else:
+				_hurt(a, 1)
+		for d in Grid.DIRS:
+			if FLAMMABLE.has(tile(p + d)) and not burning.has(p + d) and rng.randf() < SPREAD:
+				caught.append(p + d)
+		burning[p] -= 1
+		if burning[p] <= 0:
+			burning.erase(p)
+			_set_tile(p, ASH)
+			_emit({t = &"burnout", at = p})
+	for p in caught:
+		_ignite(p)
 
 
 # --- heaven ------------------------------------------------------------------
@@ -706,7 +810,7 @@ func _hunt(a: Actor) -> void:
 		if club > 0 and Grid.cheb(a.pos, me.pos) == 1:
 			_club(a, me, club)
 			return
-		if a.cooldown <= 0 and _charge(a, _plan(a)):
+		if a.cooldown <= 0 and _charge(a, Aim.at_miho(self, a)):
 			return
 		if a.rooted <= 0:
 			_chase(a)
@@ -725,8 +829,14 @@ func _hunt(a: Actor) -> void:
 
 
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark.
+## Next to a lantern that went out, it lights it again first.
 func _search(a: Actor) -> void:
-	if a.cooldown <= 0 and _charge(a, _searchlight(a)):
+	for d in Grid.DIRS:
+		if tile(a.pos + d) == LANTERN_OUT:
+			_set_tile(a.pos + d, LANTERN)
+			_emit({t = &"relight", at = a.pos + d, id = a.id})
+			return
+	if a.cooldown <= 0 and _charge(a, Aim.searchlight(self, a)):
 		return
 	if a.rooted > 0:
 		return
@@ -761,55 +871,6 @@ func _charge(a: Actor, plan: Dictionary) -> bool:
 	return true
 
 
-## An attack along a line at Miho, when it sees her.
-func _plan(a: Actor) -> Dictionary:
-	var cast := a.next_cast()
-	var spell := Spell.make(cast)
-	var me := player()
-	if spell.homing():
-		return _plan_homing(a, cast)
-	if not spell.strikes():
-		return {}
-	var d := Grid.line_dir(a.pos, me.pos)
-	var r := Grid.cheb(a.pos, me.pos)
-	if (
-		d != Vector2i.ZERO
-		and r >= 2
-		and clear_line(a.pos, me.pos)
-		and (spell.orb or r <= Spell.RANGE)
-	):
-		return {cards = cast, dir = d}
-	return {}
-
-
-## A homing orb leaves towards Miho, or beside her line when a wall is in the way.
-func _plan_homing(a: Actor, cast: Array) -> Dictionary:
-	var me := player()
-	if Grid.cheb(a.pos, me.pos) > 6:
-		return {}
-	var i := Grid.DIRS.find(Grid.nearest_dir(me.pos - a.pos))
-	for turn in [0, -1, 1]:
-		var dir := Grid.DIRS[(i + turn + 8) % 8]
-		if open_floor(a.pos + dir):
-			return {cards = cast, dir = dir}
-	return {}
-
-
-## A wisp thrown at a dark spot it is searching.
-func _searchlight(a: Actor) -> Dictionary:
-	var cast := a.next_cast()
-	var spell := Spell.make(cast)
-	if spell == null or not spell.wisp or spell.orb or lit(a.target):
-		return {}
-	var r := Grid.cheb(a.pos, a.target)
-	if r < 2 or r > Spell.RANGE:
-		return {}
-	var dir := Grid.nearest_dir(a.target - a.pos)
-	if not open_floor(a.pos + dir):
-		return {}
-	return {cards = cast, dir = dir}
-
-
 func _chase(a: Actor) -> void:
 	var me := player()
 	match a.info().get("move", &"static"):
@@ -822,8 +883,9 @@ func _chase(a: Actor) -> void:
 			_align(a)
 
 
+## Free tiles, never into fire.
 func _walkable(a: Actor) -> Callable:
-	return func(p): return p == a.pos or vacant(p)
+	return func(p): return p == a.pos or (vacant(p) and not burning.has(p))
 
 
 ## One step along a shortest path towards `goal`, stopping `keep` tiles short;
@@ -840,7 +902,7 @@ func _step_to(a: Actor, goal: Vector2i, keep := 0) -> bool:
 	var best_cost := INF
 	for d in Grid.DIRS:
 		var p := a.pos + d
-		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not vacant(p):
+		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not walk.call(p):
 			continue
 		var cost := dist[Grid.index(p)] + Vector2(goal - p).length() * 0.01
 		if dist[Grid.index(p)] < here and cost < best_cost:
@@ -855,9 +917,10 @@ func _step_to(a: Actor, goal: Vector2i, keep := 0) -> bool:
 func _drift(a: Actor) -> void:
 	if a.info().get("move", &"static") == &"static":
 		return
+	var walk := _walkable(a)
 	var free: Array[Vector2i] = []
 	for d in Grid.DIRS:
-		if vacant(a.pos + d):
+		if walk.call(a.pos + d):
 			free.append(a.pos + d)
 	if not free.is_empty():
 		_move(a, free[rng.randi_range(0, free.size() - 1)])

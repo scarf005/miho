@@ -28,6 +28,10 @@ const WORDS := {
 	"쿵": &"blast",
 	"퍽": &"clash",
 	"끽": &"hurt",
+	"쨍": &"clash",
+	"사각": &"step",
+	"삐걱": &"click",
+	"타닥": &"burn",
 }
 
 var muted := false

@@ -2,27 +2,125 @@ class_name FloorGen
 extends RefCounted
 ## Builds each storey: rooms joined by corridors with a few extra loops (so a
 ## hunted fox has somewhere to slip away), doors where corridors meet rooms,
-## and lanterns in some rooms. Corridors stay dark. Miho starts in the westmost
+## and lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
+## floorboards (a pavilion hall). Corridors stay plain and dark. Miho starts in the westmost
 ## room; the stairs (the elixir on the top storey) sit in the room farthest
 ## from her, which is always lit. Watchers that never move stand by lanterns.
 
 const PLAN := {
-	1: [&"dokkaebi", &"dokkaebi", &"jangseung"],
-	2: [&"bulgae", &"dokkaebi", &"dokkaebi", &"jangseung"],
-	3: [&"haetae", &"imugi", &"dokkaebi", &"jangseung"],
-	4: [&"cheonha", &"jiha", &"dokkaebi", &"dokkaebi", &"imugi"],
-	5: [&"imugi", &"imugi", &"dokkaebi", &"dokkaebi", &"jangseung"],
-	6: [&"bulgasari", &"dokkaebi", &"imugi", &"jangseung", &"dokkaebi"],
-	7: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"imugi", &"imugi", &"jangseung"],
-	8: [&"haetae", &"dokkaebi", &"dokkaebi", &"imugi", &"jangseung", &"jangseung"],
-	9: [&"cheonnyeon", &"haetae", &"haetae", &"dokkaebi"],
+	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
+	2:
+	[
+		&"bulgae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	3:
+	[
+		&"haetae",
+		&"imugi",
+		&"imugi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	4:
+	[
+		&"cheonha",
+		&"jiha",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+	],
+	5:
+	[
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"jangseung",
+		&"jangseung",
+	],
+	6:
+	[
+		&"bulgasari",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+	],
+	7:
+	[
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+	],
+	8:
+	[
+		&"haetae",
+		&"haetae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+		&"imugi",
+		&"jangseung",
+		&"jangseung",
+		&"jangseung",
+		&"jangseung",
+	],
+	9:
+	[
+		&"cheonnyeon",
+		&"haetae",
+		&"haetae",
+		&"haetae",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"imugi",
+	],
 }
 const PEACH_FLOORS := [3, 5, 7, 9]
-const MIN_ROOMS := 6
-const MAX_ROOMS := 9
-const LOOPS := 2
+const MIN_ROOMS := 9
+const MAX_ROOMS := 16
+const LOOPS := 4
 const LIT_ROOMS := 0.45
-const FOE_DISTANCE := 8
+const FOE_DISTANCE := 12
+const BAMBOO_ROOMS := 0.25
+const POND_ROOMS := 0.2
+const HALL_ROOMS := 0.15
 
 
 static func build(w: World) -> void:
@@ -30,6 +128,7 @@ static func build(w: World) -> void:
 	w.actors.assign([me])
 	w.shots.clear()
 	w.peaches.clear()
+	w.burning.clear()
 	w.round_no = 0
 	w.known = PackedByteArray()
 	w.seen = PackedByteArray()
@@ -52,6 +151,7 @@ static func build(w: World) -> void:
 	else:
 		w.stairs = _centre(goal)
 	_lanterns(w, home, goal)
+	_features(w, goal)
 	_creatures(w)
 	if PEACH_FLOORS.has(w.depth):
 		var spot := _random_spot(w, 6)
@@ -68,10 +168,10 @@ static func _carve(w: World) -> void:
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.WALL)
 	w.rooms.clear()
-	for i in 120:
+	for i in 300:
 		if w.rooms.size() >= MAX_ROOMS:
 			break
-		var size := Vector2i(w.rng.randi_range(4, 8), w.rng.randi_range(3, 5))
+		var size := Vector2i(w.rng.randi_range(5, 12), w.rng.randi_range(4, 8))
 		var at := Vector2i(
 			w.rng.randi_range(1, Grid.W - size.x - 1), w.rng.randi_range(1, Grid.H - size.y - 1)
 		)
@@ -134,7 +234,7 @@ static func _doors(w: World) -> void:
 static func _connected(w: World) -> bool:
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), w.open_floor).dist
 	for i in w.tiles.size():
-		if (w.tiles[i] == World.FLOOR or w.tiles[i] == World.DOOR) and dist[i] < 0:
+		if w.open_floor(Grid.at(i)) and dist[i] < 0:
 			return false
 	return true
 
@@ -148,22 +248,79 @@ static func _farthest(w: World, from: Vector2i) -> Rect2i:
 	return best
 
 
-## A lantern in a corner of the goal room and of some others, never the start room.
+## A lantern in a corner of the goal room and of some others, never the start
+## room. The goal room's lantern must light the goal, beside it if no corner can.
 static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
+	var target := w.elixir if w.elixir.x >= 0 else w.stairs
 	for r in w.rooms:
 		if r == home or (r != goal and w.rng.randf() >= LIT_ROOMS):
 			continue
 		var corners := [r.position, Vector2i(r.end.x - 1, r.position.y), r.end - Vector2i.ONE]
 		corners.append(Vector2i(r.position.x, r.end.y - 1))
 		var first := w.rng.randi_range(0, 3)
+		var spots := []
 		for k in corners.size():
-			var c: Vector2i = corners[(first + k) % corners.size()]
+			spots.append(corners[(first + k) % corners.size()])
+		if r == goal:
+			spots.append_array(Grid.DIRS.map(func(d): return target + d))
+		for c: Vector2i in spots:
 			if c == w.stairs or c == w.elixir or w.tile(c) != World.FLOOR:
+				continue
+			if r == goal and not _lights(w, c, target):
 				continue
 			w.tiles[Grid.index(c)] = World.LANTERN
 			if _connected(w):
 				break
 			w.tiles[Grid.index(c)] = World.FLOOR
+
+
+static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
+	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque)[Grid.index(p)]
+	return Light.level(Light.LANTERN * s) >= Light.LIT
+
+
+## Every room but the goal may get one feature. A pond that would cut the
+## storey apart is drained again.
+static func _features(w: World, goal: Rect2i) -> void:
+	for r in w.rooms:
+		if r == goal:
+			continue
+		var roll := w.rng.randf()
+		if roll < BAMBOO_ROOMS:
+			_blob(w, r, World.BAMBOO)
+		elif roll < BAMBOO_ROOMS + POND_ROOMS:
+			var pond := _blob(w, r, World.POND)
+			if not _connected(w):
+				for p in pond:
+					w.tiles[Grid.index(p)] = World.FLOOR
+		elif roll < BAMBOO_ROOMS + POND_ROOMS + HALL_ROOMS:
+			for y in range(r.position.y, r.end.y):
+				for x in range(r.position.x, r.end.x):
+					if _bare(w, Vector2i(x, y)):
+						w.tiles[Grid.index(Vector2i(x, y))] = World.BOARD
+
+
+## A patch of `t` covering about a third of room r, grown tile by tile from a random one.
+static func _blob(w: World, r: Rect2i, t: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var p := (
+		r.position
+		+ Vector2i(w.rng.randi_range(0, r.size.x - 1), w.rng.randi_range(0, r.size.y - 1))
+	)
+	for i in r.get_area():
+		if out.size() >= r.get_area() / 3:
+			break
+		if r.has_point(p) and _bare(w, p) and not out.has(p):
+			w.tiles[Grid.index(p)] = t
+			out.append(p)
+		var from := p if out.is_empty() else out[w.rng.randi_range(0, out.size() - 1)]
+		p = from + Grid.DIRS[w.rng.randi_range(0, 7)]
+	return out
+
+
+## Plain floor that is not the start, the stairs or the elixir.
+static func _bare(w: World, p: Vector2i) -> bool:
+	return w.tile(p) == World.FLOOR and p != w.start and p != w.stairs and p != w.elixir
 
 
 static func _creatures(w: World) -> void:
