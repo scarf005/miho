@@ -208,12 +208,12 @@ func test_a_wisp_flies_three_a_round_then_hovers_and_lights_without_harm() -> vo
 	assert_eq(near.seen[Grid.index(foe.pos)], 1, "and shows it")
 
 
-func test_a_resting_creature_that_sees_a_wisp_goes_to_search_it() -> void:
+func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came_from() -> void:
 	var w := _world()
 	var foe := _foe(w, &"imugi", Vector2i(12, 4))
 	w.act(_cast([FOX], E))
 	assert_eq(foe.alert, Actor.SEARCH)
-	assert_eq(foe.target, Vector2i(8, 8))
+	assert_eq(foe.target, Vector2i(4, 8))
 	assert_eq(foe.pos, Vector2i(11, 5), "one step towards it")
 
 

@@ -32,7 +32,8 @@ static func heaven_phase(w: World) -> void:
 				rest(w, a)
 
 
-## Sight first: seeing Miho starts a hunt; seeing one of her wisps starts a search.
+## Sight first: seeing Miho starts a hunt; seeing one of her projectiles starts
+## a search or, for a cunning creature, a hunt (see `Bestiary` wits).
 static func perceive(w: World, a: Actor) -> void:
 	var me := w.player()
 	a.sees_me = w.sees(a, me.pos)
@@ -43,10 +44,67 @@ static func perceive(w: World, a: Actor) -> void:
 		return
 	for s in w.shots:
 		if not s.gone and s.faction != a.faction and w.sees(a, s.pos):
-			a.alert = Actor.SEARCH
-			a.target = s.pos
-			a.lost = 0
+			a.noted = s.id
+			_heed(w, a, s, s.pos)
 			return
+
+
+## A projectile of Miho's seen at `at`: a dull creature searches that spot, a
+## sharp one where the projectile came from, a cunning one hunts from there.
+static func _heed(w: World, a: Actor, s: Shot, at: Vector2i) -> void:
+	match Bestiary.wits(a.kind):
+		Bestiary.DULL:
+			_look(a, at)
+		Bestiary.SHARP:
+			_look(a, s.origin)
+		_:
+			w.hunt_from(a, s.origin)
+
+
+## It was hurt: wary for WARY_ROUNDS, and a resting creature looks around.
+static func hurt(a: Actor) -> void:
+	a.wary = World.WARY_ROUNDS
+	if a.alert == Actor.REST:
+		_look(a, a.pos)
+
+
+## A projectile of Miho's struck `a`. One it saw coming gets the reaction of
+## `perceive` again. From one it did not see, a dull creature only looks around,
+## a sharp one searches the farthest tile it sees back along the flight line, and
+## a cunning one searches where the projectile came from (and hunts as soon as
+## `perceive` sees Miho).
+static func struck(w: World, a: Actor, s: Shot) -> void:
+	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT:
+		return
+	if a.noted == s.id:
+		_heed(w, a, s, a.pos)
+		return
+	match Bestiary.wits(a.kind):
+		Bestiary.DULL:
+			_look(a, a.pos)
+		Bestiary.SHARP:
+			_look(a, _back(w, a, s))
+		_:
+			_look(a, s.origin)
+
+
+## The farthest tile `a` sees back along the line `s` flew in on, up to its origin.
+static func _back(w: World, a: Actor, s: Shot) -> Vector2i:
+	var spot := a.pos
+	var p := a.pos - s.dir
+	var reach := Grid.cheb(a.pos, s.origin)
+	while (
+		s.dir != Vector2i.ZERO and Grid.cheb(a.pos, p) <= reach and w.open_air(p) and w.sees(a, p)
+	):
+		spot = p
+		p -= s.dir
+	return spot
+
+
+static func _look(a: Actor, at: Vector2i) -> void:
+	a.alert = Actor.SEARCH
+	a.target = at
+	a.lost = 0
 
 
 static func hunt(w: World, a: Actor) -> void:
@@ -90,7 +148,7 @@ static func search(w: World, a: Actor) -> void:
 	if a.pos != a.target and _step_to(w, a, a.target):
 		return
 	a.lost += 1
-	if a.lost > World.SEARCH_ROUNDS:
+	if a.lost > World.SEARCH_ROUNDS and a.wary <= 0:
 		a.alert = Actor.REST
 		a.lost = 0
 		w.emit({t = &"calm", id = a.id})

@@ -14,8 +14,11 @@ extends RefCounted
 ## of sight when the tile is lit or close by (Miho's fox eyes reach 2 tiles in
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
-## Miho's wisps, and hunt her once they see her. Claws strike three times as
-## hard at a creature that is not hunting (Brogue CE Combat.c sneak attack).
+## Miho's projectiles, and hunt her once they see her (Mind; how they read a
+## projectile depends on their wits). Claws strike three times as hard at a
+## creature that is not hunting (Brogue CE Combat.c sneak attack). A creature
+## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
+## sees Miho one tile farther in the dark.
 ##
 ## Terrain feeds both senses. Bamboo hides whoever stands in it from all but
 ## the tiles next to it and rustles underfoot; floorboards creak. Treading
@@ -50,6 +53,7 @@ const VIEW := 40
 const NIGHT := [2, 1]
 const DIM := 7
 const SEARCH_ROUNDS := 15
+const WARY_ROUNDS := 30
 const CLAW := 1
 const SNEAK := 3
 const CRY := 5
@@ -311,7 +315,7 @@ func _reaches(a: Actor, p: Vector2i) -> bool:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
 		return false
-	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] or lit(p)
+	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] + (1 if a.wary > 0 else 0) or lit(p)
 
 
 func can(action: Dictionary) -> bool:
@@ -663,10 +667,7 @@ func _strike(s: Shot, a: Actor) -> void:
 			a.stunned = 1
 			a.intent.clear()
 			emit({t = &"stun", id = a.id})
-		if a.faction == Actor.HEAVEN and a.alert != Actor.HUNT:
-			a.alert = Actor.SEARCH
-			a.target = s.origin
-			a.lost = 0
+		Mind.struck(self, a, s)
 	if spell.orb and spell.has(Cards.FIRE):
 		_splash(s, at, a)
 	_effects(s, at)
@@ -680,6 +681,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 	if a.alive():
 		if a.faction == Actor.HEAVEN:
 			noise(a.pos, CRY, "끽", true, a.id)
+			Mind.hurt(a)
 		return
 	emit({t = &"die", id = a.id, at = a.pos})
 	a.intent.clear()
@@ -764,6 +766,7 @@ func _end_round() -> void:
 			a.cooldown = maxi(0, a.cooldown - 1)
 			a.rooted = maxi(0, a.rooted - 1)
 			a.blind = maxi(0, a.blind - 1)
+			a.wary = maxi(0, a.wary - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1
