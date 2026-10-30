@@ -36,4 +36,4 @@ func test_a_creature_tells_its_element() -> void:
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(1, 0))
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "오행 수(물)")
-	assert_string_contains(text, "불 주문이 통하지 않는다")
+	assert_string_contains(text, "불 면역")

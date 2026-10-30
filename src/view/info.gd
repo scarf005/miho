@@ -79,8 +79,9 @@ static func creature(w: World, a: Actor) -> Array:
 		lines.append([["몽둥이 피해 ", Palette.TEXT], [str(spec.club), Palette.HURT]])
 	for cast: Array in spec.get("casts", []):
 		lines.append(_cast(a, cast))
-	for t in _traits(spec):
-		lines.append([[t, Palette.DIM]])
+	var traits := _traits(spec)
+	if not traits.is_empty():
+		lines.append([[" · ".join(traits), Palette.DIM]])
 	var drop: StringName = spec.get("drop", &"")
 	if drop != &"" and not w.cards.has(drop):
 		(
@@ -118,20 +119,20 @@ static func _cast(a: Actor, cast: Array) -> Array:
 static func _traits(spec: Dictionary) -> Array:
 	var out := []
 	if spec.get("move", &"") == &"static":
-		out.append("움직이지 않는다")
+		out.append("이동 불가")
 	if spec.get("patrol", false):
-		out.append("순찰한다")
+		out.append("순찰")
 	if spec.get("deaf", false):
-		out.append("소리를 못 듣는다")
+		out.append("청각 없음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리 %d칸" % spec.step)
 	match spec.get("absorb", &""):
 		&"fire":
-			out.append("불 주문이 통하지 않는다")
+			out.append("불 면역")
 		&"nofire":
-			out.append("불 주문으로만 다친다")
+			out.append("불로만 피해")
 	if spec.get("hunts", false):
-		out.append("미호가 어디 있든 안다")
+		out.append("미호 위치를 앎")
 	return out
 
 
