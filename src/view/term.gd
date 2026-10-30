@@ -306,9 +306,10 @@ func side_at(local: Vector2) -> Vector2i:
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
 
 
-## Whether a point in this node's space is on Miho's health and tails row.
+## Whether a point in this node's space is on Miho's health or tails.
 func status_at(local: Vector2) -> bool:
-	return floori(local.y / CELL.y) == rows - 2
+	var c := Vector2i((local / CELL).floor())
+	return c.y == rows - 2 and world != null and c.x >= 0 and c.x < MAP.x + world.max_tails()
 
 
 ## The talisman under a point in this node's space, or empty.
