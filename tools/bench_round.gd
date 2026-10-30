@@ -14,7 +14,7 @@ func _init() -> void:
 		w._shots_phase()
 		cost.shots += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
-		w._heaven_phase()
+		Mind.heaven_phase(w)
 		cost.heaven += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
 		w._burn()

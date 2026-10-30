@@ -8,11 +8,17 @@ extends RefCounted
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" eats spells that carry fire (해태 guards against fire);
 ## &"nofire" eats every spell without fire (불가사리 dies only in fire).
+## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
+## dull creature looks at the spot, a sharp one at where the projectile came
+## from, a cunning one hunts from there.
 ## A creature's elements are those of the spells it casts. A spell that holds
 ## an element beating one of them hits it twice as hard (Cards.BEATS).
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
+const DULL := 0
+const SHARP := 1
+const CUNNING := 2
 
 const KINDS := {
 	&"miho": {name = "미호", glyph = "@", hp = 3},
@@ -26,6 +32,7 @@ const KINDS := {
 		cd = 3,
 		move = &"approach",
 		step = 4,
+		wits = 1,
 		patrol = true,
 	},
 	&"jangseung":
@@ -37,8 +44,10 @@ const KINDS := {
 		cd = 2,
 		move = &"static",
 		deaf = true,
+		wits = 0,
 	},
-	&"imugi": {name = "이무기", glyph = "이", hp = 2, casts = [[ORB]], cd = 3, move = &"align"},
+	&"imugi":
+	{name = "이무기", glyph = "이", hp = 2, casts = [[ORB]], cd = 3, move = &"align", wits = 1},
 	&"bulgae":
 	{
 		name = "불개",
@@ -49,6 +58,7 @@ const KINDS := {
 		cd = 3,
 		move = &"approach",
 		step = 4,
+		wits = 1,
 		patrol = true,
 		drop = Cards.FIRE,
 		absorb = &"fire",
@@ -62,6 +72,7 @@ const KINDS := {
 		cd = 3,
 		move = &"align",
 		step = 3,
+		wits = 1,
 		drop = Cards.WATER,
 		absorb = &"fire",
 	},
@@ -74,6 +85,7 @@ const KINDS := {
 		cd = 2,
 		move = &"static",
 		deaf = true,
+		wits = 0,
 		drop = Cards.WOOD,
 	},
 	&"jiha":
@@ -85,6 +97,7 @@ const KINDS := {
 		cd = 3,
 		move = &"static",
 		deaf = true,
+		wits = 0,
 		drop = Cards.METAL,
 	},
 	&"bulgasari":
@@ -97,6 +110,7 @@ const KINDS := {
 		cd = 3,
 		move = &"slow",
 		step = 5,
+		wits = 1,
 		drop = Cards.EARTH,
 		absorb = &"nofire",
 	},
@@ -109,6 +123,7 @@ const KINDS := {
 		cd = 2,
 		move = &"align",
 		boss = true,
+		wits = 2,
 	},
 	&"saja":
 	{
@@ -121,12 +136,17 @@ const KINDS := {
 		move = &"approach",
 		step = 3,
 		hunts = true,
+		wits = 2,
 	},
 }
 
 
 static func info(kind: StringName) -> Dictionary:
 	return KINDS[kind]
+
+
+static func wits(kind: StringName) -> int:
+	return info(kind).get("wits", DULL)
 
 
 static func absorbs(kind: StringName, spell: Spell) -> bool:

@@ -7,6 +7,7 @@ extends RefCounted
 ## [text, Color] runs. Health is drawn as hearts (Term draws ♥ and ♡).
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
+const WITS := ["둔함", "영리함", "교활함"]
 ## tile -> [name, what it does, health or 0 when it cannot break]
 const TERRAIN := {
 	World.FLOOR: ["바닥", "", 0],
@@ -88,7 +89,7 @@ static func creature(w: World, a: Actor) -> Array:
 		)
 	for cast: Array in spec.get("casts", []):
 		lines.append(_cast(a, cast))
-	var traits := _traits(spec, elements)
+	var traits := _traits(a, elements)
 	if not traits.is_empty():
 		lines.append([[" · ".join(traits), Palette.DIM]])
 	var drop: StringName = spec.get("drop", &"")
@@ -128,8 +129,11 @@ static func _cast(a: Actor, cast: Array) -> Array:
 	return line
 
 
-static func _traits(spec: Dictionary, elements: Array) -> Array:
-	var out := []
+static func _traits(a: Actor, elements: Array) -> Array:
+	var spec := a.info()
+	var out := [WITS[Bestiary.wits(a.kind)]]
+	if a.wary > 0:
+		out.append("경계 중 (%d초)" % a.wary)
 	if spec.get("move", &"") == &"static":
 		out.append("이동 불가")
 	if spec.get("patrol", false):

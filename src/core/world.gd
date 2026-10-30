@@ -14,8 +14,11 @@ extends RefCounted
 ## of sight when the tile is lit or close by (Miho's fox eyes reach 2 tiles in
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
-## Miho's wisps, and hunt her once they see her. Claws strike three times as
-## hard at a creature that is not hunting (Brogue CE Combat.c sneak attack).
+## Miho's projectiles, and hunt her once they see her (Mind; how they read a
+## projectile depends on their wits). Claws strike three times as hard at a
+## creature that is not hunting (Brogue CE Combat.c sneak attack). A creature
+## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
+## sees Miho one tile farther in the dark.
 ##
 ## Terrain feeds both senses. Bamboo hides whoever stands in it from all but
 ## the tiles next to it and rustles underfoot; floorboards creak. Treading
@@ -50,6 +53,7 @@ const VIEW := 40
 const NIGHT := [2, 1]
 const DIM := 7
 const SEARCH_ROUNDS := 15
+const WARY_ROUNDS := 30
 const CLAW := 1
 const SNEAK := 3
 const CRY := 5
@@ -311,7 +315,7 @@ func _reaches(a: Actor, p: Vector2i) -> bool:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
 		return false
-	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] or lit(p)
+	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] + (1 if a.wary > 0 else 0) or lit(p)
 
 
 func can(action: Dictionary) -> bool:
@@ -388,7 +392,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			elif Terrain.knockable(tile(to)):
 				Terrain.knock(self, me, to)
 			else:
-				_move(me, to)
+				move(me, to)
 				Scent.lay(self, to)
 				if me.pos == stairs:
 					_ascend()
@@ -407,9 +411,9 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
 				tails -= spell.cost()
-				_cast(me, spell, one.dir)
+				cast(me, spell, one.dir)
 	_shots_phase()
-	_heaven_phase()
+	Mind.heaven_phase(self)
 	_burn()
 	_end_round()
 	sense()
@@ -449,7 +453,7 @@ func _changed() -> void:
 	_fov.clear()
 
 
-func _move(a: Actor, to: Vector2i) -> void:
+func move(a: Actor, to: Vector2i) -> void:
 	emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()
@@ -497,18 +501,12 @@ func _claw(me: Actor, foe: Actor) -> void:
 	var n := CLAW * (SNEAK if sneak else 1)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
-	_hurt(foe, n)
+	hurt(foe, n)
 	if foe.alive():
-		_hunt_from(foe, me.pos)
+		hunt_from(foe, me.pos)
 
 
-func _club(a: Actor, me: Actor, n: int) -> void:
-	emit({t = &"club", id = a.id, target = me.id, at = me.pos, n = n})
-	noise(me.pos, 3, "퍽", true, a.id)
-	_hurt(me, n)
-
-
-func _hunt_from(a: Actor, at: Vector2i) -> void:
+func hunt_from(a: Actor, at: Vector2i) -> void:
 	if a.alert != Actor.HUNT:
 		emit({t = &"notice", id = a.id, at = a.pos})
 	a.alert = Actor.HUNT
@@ -516,7 +514,7 @@ func _hunt_from(a: Actor, at: Vector2i) -> void:
 	a.lost = 0
 
 
-func _cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
+func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
 	var word := "웅" if spell.orb else "휙"
@@ -658,7 +656,7 @@ func _strike(s: Shot, a: Actor) -> void:
 	var weak := Bestiary.weak(a.kind, spell)
 	var n := spell.damage(Grid.cheb(s.origin, at)) * (2 if weak else 1)
 	if n > 0:
-		_hurt(a, n, weak)
+		hurt(a, n, weak)
 	if spell.has(Cards.FIRE) and Bestiary.burns(a.kind):
 		_ignite(at, true)
 	if a.alive():
@@ -669,16 +667,13 @@ func _strike(s: Shot, a: Actor) -> void:
 			a.stunned = 1
 			a.intent.clear()
 			emit({t = &"stun", id = a.id})
-		if a.faction == Actor.HEAVEN and a.alert != Actor.HUNT:
-			a.alert = Actor.SEARCH
-			a.target = s.origin
-			a.lost = 0
+		Mind.struck(self, a, s)
 	if spell.orb and spell.has(Cards.FIRE):
 		_splash(s, at, a)
 	_effects(s, at)
 
 
-func _hurt(a: Actor, n: int, weak := false) -> void:
+func hurt(a: Actor, n: int, weak := false) -> void:
 	if not a.alive():
 		return
 	a.hp -= n
@@ -686,6 +681,7 @@ func _hurt(a: Actor, n: int, weak := false) -> void:
 	if a.alive():
 		if a.faction == Actor.HEAVEN:
 			noise(a.pos, CRY, "끽", true, a.id)
+			Mind.hurt(a)
 		return
 	emit({t = &"die", id = a.id, at = a.pos})
 	a.intent.clear()
@@ -713,7 +709,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 				emit({t = &"absorb", id = b.id, at = p})
 			else:
 				var weak := Bestiary.weak(b.kind, s.spell)
-				_hurt(b, 2 if weak else 1, weak)
+				hurt(b, 2 if weak else 1, weak)
 				if Bestiary.burns(b.kind):
 					_ignite(p, true)
 		var o := shot_at(p, s)
@@ -747,7 +743,7 @@ func _burn() -> void:
 			if Bestiary.absorbs(a.kind, flame):
 				emit({t = &"absorb", id = a.id, at = p})
 			else:
-				_hurt(a, 1)
+				hurt(a, 1)
 		for d in Grid.DIRS:
 			if FLAMMABLE.has(tile(p + d)) and not burning.has(p + d) and rng.randf() < SPREAD:
 				caught.append(p + d)
@@ -760,186 +756,6 @@ func _burn() -> void:
 		_ignite(p)
 
 
-# --- heaven ------------------------------------------------------------------
-
-
-func _heaven_phase() -> void:
-	for a in actors.duplicate():
-		if outcome != &"":
-			return
-		if not a.alive() or a.faction == Actor.FOX:
-			continue
-		a.acted += 1
-		if a.stunned > 0:
-			a.stunned -= 1
-			continue
-		_perceive(a)
-		if not a.intent.is_empty():
-			var spell := Spell.make(a.intent)
-			a.intent.clear()
-			a.cooldown = a.info().cd
-			_cast(a, spell, a.aim)
-			continue
-		if a.blind > 0:
-			continue
-		match a.alert:
-			Actor.HUNT:
-				_hunt(a)
-			Actor.SEARCH:
-				_search(a)
-			_:
-				_rest(a)
-
-
-## Sight first: seeing Miho starts a hunt; seeing one of her wisps starts a search.
-func _perceive(a: Actor) -> void:
-	var me := player()
-	a.sees_me = sees(a, me.pos)
-	if a.sees_me or a.info().get("hunts", false):
-		_hunt_from(a, me.pos)
-		return
-	if a.alert == Actor.HUNT or a.blind > 0:
-		return
-	for s in shots:
-		if not s.gone and s.faction != a.faction and sees(a, s.pos):
-			a.alert = Actor.SEARCH
-			a.target = s.pos
-			a.lost = 0
-			return
-
-
-func _hunt(a: Actor) -> void:
-	var me := player()
-	if a.sees_me:
-		var club: int = a.info().get("club", 0)
-		if club > 0 and Grid.cheb(a.pos, me.pos) == 1:
-			_club(a, me, club)
-			return
-		if a.cooldown <= 0 and _charge(a, Aim.at_miho(self, a)):
-			return
-		if a.rooted <= 0:
-			_chase(a)
-		return
-	if a.info().get("hunts", false):
-		if a.rooted <= 0:
-			_step_to(a, me.pos, 1)
-		return
-	if a.pos != a.target and a.lost < SEARCH_ROUNDS:
-		a.lost += 1
-		if a.rooted > 0 or _step_to(a, a.target):
-			return
-	var to := Scent.next(self, a)
-	if a.rooted <= 0 and _step_to(a, to):
-		a.target = to
-		return
-	a.alert = Actor.SEARCH
-	a.lost = 0
-	_search(a)
-
-
-## Goes to the spot, throwing a wisp at it first when it lies in the dark.
-## Next to a lantern that went out, it lights it again first.
-func _search(a: Actor) -> void:
-	if Terrain.relight_beside(self, a):
-		return
-	if a.cooldown <= 0 and _charge(a, Aim.searchlight(self, a)):
-		return
-	if a.rooted > 0:
-		return
-	if a.pos != a.target and _step_to(a, a.target):
-		return
-	a.lost += 1
-	if a.lost > SEARCH_ROUNDS:
-		a.alert = Actor.REST
-		a.lost = 0
-		emit({t = &"calm", id = a.id})
-		return
-	_drift(a)
-
-
-func _rest(a: Actor) -> void:
-	if a.rooted > 0:
-		return
-	if not a.info().get("patrol", false):
-		if a.pos != a.home:
-			_step_to(a, a.home)
-		return
-	if a.pos == a.post or not _step_to(a, a.post):
-		a.post = FloorGen.patrol_point(self)
-
-
-func _charge(a: Actor, plan: Dictionary) -> bool:
-	if plan.is_empty():
-		return false
-	a.intent.assign(plan.cards)
-	a.aim = plan.dir
-	emit({t = &"charge", id = a.id, cards = a.intent.duplicate(), dir = a.aim})
-	return true
-
-
-func _chase(a: Actor) -> void:
-	var me := player()
-	match a.info().get("move", &"static"):
-		&"approach":
-			_step_to(a, me.pos, 1)
-		&"slow":
-			if a.acted % 2 == 0:
-				_step_to(a, me.pos, 1)
-		&"align":
-			_align(a)
-
-
-## Free tiles, never into fire.
-func _walkable(a: Actor) -> Callable:
-	return func(p): return p == a.pos or (vacant(p) and not burning.has(p))
-
-
-## One step along a shortest path towards `goal`, stopping `keep` tiles short;
-## among equal paths it takes the straightest.
-func _step_to(a: Actor, goal: Vector2i, keep := 0) -> bool:
-	if a.info().get("move", &"static") == &"static":
-		return false
-	var walk := _walkable(a)
-	var dist: PackedInt32Array = Grid.search(goal, func(p): return walk.call(p)).dist
-	var here := dist[Grid.index(a.pos)]
-	if here < 0 or here <= keep:
-		return false
-	var best := a.pos
-	var best_cost := INF
-	for d in Grid.DIRS:
-		var p := a.pos + d
-		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not walk.call(p):
-			continue
-		var cost := dist[Grid.index(p)] + Vector2(goal - p).length() * 0.01
-		if dist[Grid.index(p)] < here and cost < best_cost:
-			best = p
-			best_cost = cost
-	if best == a.pos:
-		return false
-	_move(a, best)
-	return true
-
-
-func _drift(a: Actor) -> void:
-	if a.info().get("move", &"static") == &"static":
-		return
-	var walk := _walkable(a)
-	var free: Array[Vector2i] = []
-	for d in Grid.DIRS:
-		if walk.call(a.pos + d):
-			free.append(a.pos + d)
-	if not free.is_empty():
-		_move(a, free[rng.randi_range(0, free.size() - 1)])
-
-
-func _align(a: Actor) -> void:
-	var to := Aim.lineup(self, a, _walkable(a))
-	if to == Vector2i(-1, -1):
-		_step_to(a, player().pos, 2)
-	elif to != a.pos:
-		_move(a, to)
-
-
 func _end_round() -> void:
 	regrow += 1
 	if regrow >= TAIL_REGROW:
@@ -950,6 +766,7 @@ func _end_round() -> void:
 			a.cooldown = maxi(0, a.cooldown - 1)
 			a.rooted = maxi(0, a.rooted - 1)
 			a.blind = maxi(0, a.blind - 1)
+			a.wary = maxi(0, a.wary - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1

@@ -30,6 +30,11 @@ var alert := REST
 ## Where it last saw Miho, or the spot it is searching.
 var target := Vector2i.ZERO
 var lost := 0
+## Rounds left of wariness after being hurt: it does not go back to rest, and
+## notices Miho one tile farther in the dark.
+var wary := 0
+## The id of the hostile projectile it saw and reacted to last.
+var noted := 0
 var sees_me := false
 ## Where it rests, and where a patrol is heading.
 var home := Vector2i.ZERO
@@ -73,6 +78,8 @@ func clone() -> Actor:
 		"alert",
 		"target",
 		"lost",
+		"wary",
+		"noted",
 		"sees_me",
 		"home",
 		"post",

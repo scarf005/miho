@@ -20,6 +20,7 @@ const NAMES := {
 	Vector2i(-1, -1): "nw",
 }
 const ALERTS := ["resting", "searching", "hunting"]
+const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
 	+ "░sky □window ═skybridge "
@@ -129,6 +130,9 @@ static func _creature(k: World, a: Actor) -> String:
 	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"]]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]
+	if a.wary > 0:
+		line += ", wary %d" % a.wary
+	line += ", wits " + WITS[Bestiary.wits(a.kind)]
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
