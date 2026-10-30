@@ -698,6 +698,10 @@ func _refresh() -> void:
 		for i in view.size():
 			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
 				tints[Grid.at(i)] = Color(Palette.SIDE[1], 0.3)
+	if hover_status or hover == me:
+		for i in world.seen.size():
+			if world.seen[i] == 1 and not tints.has(Grid.at(i)):
+				tints[Grid.at(i)] = Color(Palette.SIDE[0], 0.2)
 	for b in world.actors:
 		if _sneakable(b):
 			tints[b.pos] = Color(Palette.ALERT[1], 0.35)
