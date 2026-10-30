@@ -11,6 +11,8 @@ extends Node
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
 ## with talismans picked click anywhere to hurl that way; click a talisman to
 ## pick it; right-click clears. Each storey left behind replays its best moment.
+## The run is saved after every round (SaveGame) and the title continues it; a
+## run that ends leaves no save.
 
 const REPLAY_ZOOM := 1.5
 const REPLAY_SPEED := 0.7
@@ -39,6 +41,11 @@ var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
 var kills := 0
+## This run as saved after every round, and the run on disk that the title
+## offers to continue (null when there is none).
+var run := SaveGame.new()
+var pending: SaveGame
+var save_path := SaveGame.PATH
 var settings: Settings
 var glass: ColorRect
 var pan: Tween
@@ -79,9 +86,20 @@ func _ready() -> void:
 	add_child(crt)
 	get_viewport().size_changed.connect(_fit)
 	_new_run()
-	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 눌러 시작"]
+	_show_title()
 	_apply()
 	Capture.attach(self)
+
+
+## The title screen, offering to continue the run on disk if there is one.
+func _show_title() -> void:
+	pending = SaveGame.load_from(save_path)
+	state = &"title"
+	term.banner_lines = [
+		"미호",
+		"천상누각 꼭대기에 사람이 되는 영약이 있다",
+		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
+	]
 
 
 ## Puts the settings into effect.
@@ -102,6 +120,7 @@ func _fit() -> void:
 func _new_run(seed_value := randi()) -> void:
 	world = World.create(seed_value)
 	run_seed = seed_value
+	run = SaveGame.new(save_path, seed_value)
 	kills = 0
 	messages = Messages.new()
 	term.log_lines = []
@@ -130,19 +149,69 @@ func _unhandled_input(event: InputEvent) -> void:
 		_panel_input(event)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
+	elif state == &"title" and pending != null:
+		if event is InputEventKey and event.keycode == KEY_N:
+			_restart()
+		elif Keys.action_of(event) == &"confirm" or _left_click(event):
+			_continue()
 	elif state == &"title":
 		state = &"play"
 		term.banner_lines = []
 		sfx.play(&"card")
 	elif state == &"over":
 		if Keys.action_of(event) == &"restart":
-			state = &"play"
-			term.banner_lines = []
-			_new_run()
+			_restart()
 	elif event is InputEventKey:
 		_key(event)
 	elif event is InputEventMouseButton and press:
 		_click(event)
+
+
+static func _left_click(event: InputEvent) -> bool:
+	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT
+
+
+## Takes up the run saved on disk where it left off, playing its rounds again
+## one a frame with the count on the title. A run the rules no longer allow is
+## dropped.
+func _continue() -> void:
+	var saved := pending
+	busy = true
+	saved.begin()
+	while saved.played < saved.actions.size():
+		term.banner_lines = ["미호", "%d/%d" % [saved.played, saved.actions.size()]]
+		if not saved.step():
+			saved.erase()
+			busy = false
+			_show_title()
+			return
+		await get_tree().process_frame
+	busy = false
+	world = saved.world
+	messages = saved.messages
+	run = saved
+	run_seed = run.seed_value
+	kills = run.kills
+	pending = null
+	state = &"play"
+	term.banner_lines = []
+	term.log_lines = []
+	reel.clear()
+	picked.clear()
+	staged.clear()
+	term.show_world(world)
+	_show_log()
+	_forecast()
+	sfx.play(&"card")
+
+
+## Starts a new run, which replaces the one on disk.
+func _restart() -> void:
+	run.erase()
+	pending = null
+	state = &"play"
+	term.banner_lines = []
+	_new_run()
 
 
 ## Moves repeat while their key is held; other actions take only fresh presses.
@@ -322,6 +391,8 @@ func _act(action: Dictionary) -> Array:
 	var events := world.act(action)
 	reel.record(before, action, events)
 	kills += events.filter(func(e): return e.t == &"die" and e.id != world.player().id).size()
+	# Saved before the round plays out, so closing the game at any point keeps it.
+	run.record(action, kills, world.outcome != &"")
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
 	for line in Messages.of(before, world, events):
@@ -454,11 +525,23 @@ func _panel_input(event: InputEvent) -> void:
 			_apply()
 		&"restart":
 			_close()
-			state = &"play"
-			term.banner_lines = []
-			_new_run()
+			_restart()
+			return
+		&"quit":
+			_quit()
 			return
 	term.panel = menu.panel()
+
+
+## Ends the game with the run kept; a web page cannot close itself, so it
+## goes back to the title.
+func _quit() -> void:
+	if not OS.has_feature("web"):
+		get_tree().quit()
+		return
+	_close()
+	_new_run()
+	_show_title()
 
 
 func _close() -> void:
