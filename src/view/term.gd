@@ -15,6 +15,8 @@ const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
 ## Screen rows each creature takes in the sidebar, and its state there.
 const SIDE_ROWS := 3
+## Tiles of tail drawn behind a projectile.
+const TRAIL := 4
 const SIDE_STATE := ["쉼", "수색", "추격"]
 const SIZE := 32
 const BIG := 48
@@ -90,6 +92,8 @@ var _popups: Array[Dictionary] = []
 var _flashes: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
+## shot id -> the tiles it last flew through, newest last (TRAIL of them).
+var _trails := {}
 var _time := 0.0
 
 
@@ -169,6 +173,9 @@ func show_world(w: World) -> void:
 	_actors.clear()
 	_shots.clear()
 	_animating = false
+	for id in _trails.keys():
+		if not w.shots.any(func(s): return s.id == id and s.dir != Vector2i.ZERO):
+			_trails.erase(id)
 	_lanterns.clear()
 	for i in w.tiles.size():
 		var p := Grid.at(i)
@@ -235,9 +242,10 @@ func _apply(e: Dictionary) -> float:
 			_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
 		&"fly":
 			if _shots.has(e.shot):
-				var s: Dictionary = _shots[e.shot]
-				_flash(e.from, Color(Palette.shot_color(s.spell, s.faction), 0.55))
-				s.pos = e.to
+				_shots[e.shot].pos = e.to
+				var tail: Array = _trails.get(e.shot, [])
+				tail.append(e.from)
+				_trails[e.shot] = tail.slice(-TRAIL)
 		&"burst", &"hit", &"fade", &"snuff":
 			_shots.erase(e.shot)
 			_flash(at, Color(1, 1, 1, 0.5))
@@ -529,6 +537,19 @@ func _draw_paths() -> void:
 
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	var shots := _shots if _animating else _world_shots()
+	for id in shots:
+		var s: Dictionary = shots[id]
+		var tail: Array = _trails.get(id, [])
+		var c := Palette.shot_color(s.spell, s.faction)
+		for k in tail.size():
+			var p: Vector2i = tail[k]
+			if p == s.pos or not _visible(p) or not _shown(p):
+				continue
+			var fade := float(k + 1) / tail.size()
+			var r := Rect2(_cell(p) * CELL, CELL)
+			draw_rect(r, Color(Palette.VOID, 0.75))
+			draw_rect(r, Color(c, 0.12 + 0.3 * fade))
+			_glyph(_cell(p), "•" if k >= tail.size() - 2 else "·", Color(c, 0.35 + 0.65 * fade))
 	for id in shots:
 		var s: Dictionary = shots[id]
 		if _visible(s.pos) and _shown(s.pos):
