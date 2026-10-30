@@ -14,6 +14,11 @@ test:
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd
 
+# Serve the game to an AI agent over MCP on stdio (see .mcp.json).
+mcp:
+    {{ godot }} --headless --path . --import >&2
+    {{ godot }} --headless --no-header --path . -s src/mcp/server.gd
+
 # Format and lint GDScript.
 lint:
     gdformat --check src tests

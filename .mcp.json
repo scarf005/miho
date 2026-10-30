@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "miho": {
+      "command": "godot",
+      "args": ["--headless", "--no-header", "--path", ".", "-s", "src/mcp/server.gd"]
+    }
+  }
+}
