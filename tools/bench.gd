@@ -28,17 +28,28 @@ func _init() -> void:
 	for i in 50:
 		w.act({t = &"wait"})
 	_say("50 x act(wait)", t)
-	var run := SaveGame.new("", 5)
-	var play := World.create(5)
-	while run.actions.size() < 300 and play.outcome == &"":
-		var a := {t = &"move", dir = Grid.DIRS[play.rng.randi() % 8]}
-		if not play.can(a):
-			a = {t = &"wait"}
-		play.act(a)
-		run.actions.append(a)
+	# Random walks (their own dice, so the world plays as it will on replay)
+	# until 300 rounds in all, over as many runs as it takes.
+	var runs: Array[SaveGame] = []
+	var rounds := 0
+	while rounds < 300:
+		var run := SaveGame.new("", 5 + runs.size())
+		var play := World.create(run.seed_value)
+		var dice := RandomNumberGenerator.new()
+		dice.seed = run.seed_value
+		while rounds + run.actions.size() < 300 and play.outcome == &"":
+			var a := {t = &"move", dir = Grid.DIRS[dice.randi() % 8]}
+			if not play.can(a):
+				a = {t = &"wait"}
+			play.act(a)
+			run.actions.append(a)
+		runs.append(run)
+		rounds += run.actions.size()
 	t = Time.get_ticks_usec()
-	run.replay()
-	_say("replay %d rounds" % run.actions.size(), t)
+	for run in runs:
+		if not run.replay():
+			push_error("replay of seed %d stopped at %d" % [run.seed_value, run.played])
+	_say("replay %d rounds" % rounds, t)
 	quit()
 
 

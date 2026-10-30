@@ -40,7 +40,9 @@ static func step(w: World) -> Dictionary:
 	for a in targets(w):
 		if Grid.cheb(a.pos, me) == 1:
 			return {t = &"move", dir = a.pos - me}
-		var found := Grid.search(me, func(p): return p == a.pos or Travel.walkable(w, p))
+		var open := Travel.open(w)
+		open[Grid.index(a.pos)] = 1
+		var found := Grid.search(me, open)
 		found.from = me
 		var path := Travel.route(found, a.pos)
 		if not path.is_empty():

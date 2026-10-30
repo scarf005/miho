@@ -19,19 +19,21 @@ body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; tou
 </div>
 
 <script>
-// Artifacts serve only some file types, each up to 15 MB: the engine ships
-// gzipped and the pack renamed. Map the names and unpack the engine on request.
+// Artifacts serve only some file types, each up to 15 MB: the engine and its
+// side module ship gzipped and the pack renamed. Map the names and unpack on request.
 (() => {
 	const realFetch = window.fetch.bind(window);
+	const gzipped = { 'index.wasm': 'wasm-gz.wasm', 'index.side.wasm': 'side-gz.wasm' };
 	window.fetch = async (input, init) => {
 		const url = typeof input === 'string' ? input : input.url;
 		if (url.endsWith('index.pck')) {
 			return realFetch('pck.wasm', init);
 		}
-		if (!url.endsWith('index.wasm')) {
+		const name = Object.keys(gzipped).find((n) => url.split('/').pop() === n);
+		if (!name) {
 			return realFetch(input, init);
 		}
-		const res = await realFetch('wasm-gz.wasm', init);
+		const res = await realFetch(gzipped[name], init);
 		const bytes = new Uint8Array(await res.arrayBuffer());
 		const gzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
 		const body = gzip ? new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')) : bytes;
@@ -41,7 +43,13 @@ body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; tou
 </script>
 <script src="index.js"></script>
 <script>
-const engine = new Engine({ executable: 'index', canvasResizePolicy: 2, focusCanvas: true, args: [] });
+const engine = new Engine({
+	executable: 'index',
+	canvasResizePolicy: 2,
+	focusCanvas: true,
+	args: [],
+	gdextensionLibs: ['miho_native.wasm'],
+});
 (() => {
 	const overlay = document.getElementById('status');
 	const progress = document.getElementById('status-progress');

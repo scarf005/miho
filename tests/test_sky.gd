@@ -77,7 +77,7 @@ func _storeys(check: Callable) -> void:
 func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_from_the_start() -> void:
 	_storeys(
 		func(w: World, label: String):
-			var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
+			var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 			for i in w.tiles.size():
 				if w.open_floor(Grid.at(i)):
 					assert_gt(dist[i], -1, "%s tile %s" % [label, Grid.at(i)])
@@ -92,11 +92,11 @@ func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_from_the_st
 
 ## The pavilions: separate blocks of everything that is not sky or bridge.
 func _pavilions(w: World) -> int:
-	var apart := func(p: Vector2i): return w.tile(p) not in [World.SKY, World.BRIDGE]
+	var apart := Grid.mask(w.tiles, Grid.table(func(t): return t not in [World.SKY, World.BRIDGE]))
 	var done := {}
 	var n := 0
 	for i in w.tiles.size():
-		if apart.call(Grid.at(i)) and not done.has(i):
+		if apart[i] == 1 and not done.has(i):
 			n += 1
 			var dist: PackedInt32Array = Grid.search(Grid.at(i), apart).dist
 			for j in dist.size():

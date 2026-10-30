@@ -205,7 +205,7 @@ static func _step_to(w: World, a: Actor, goal: Vector2i, keep := 0) -> bool:
 	if a.info().get("move", &"static") == &"static":
 		return false
 	var walk := _walkable(w, a)
-	var dist: PackedInt32Array = Grid.search(goal, func(p): return walk.call(p)).dist
+	var dist: PackedInt32Array = Grid.search(goal, Masks.walk(w, a, walk)).dist
 	var here := dist[Grid.index(a.pos)]
 	if here < 0 or here <= keep:
 		return false
@@ -238,7 +238,7 @@ static func _drift(w: World, a: Actor) -> void:
 
 
 static func _align(w: World, a: Actor) -> void:
-	var to := Aim.lineup(w, a, _walkable(w, a))
+	var to := Aim.lineup(w, a, Masks.walk(w, a, _walkable(w, a)))
 	if to == Vector2i(-1, -1):
 		_step_to(w, a, w.player().pos, 2)
 	elif to != a.pos:

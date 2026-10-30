@@ -79,14 +79,14 @@ static func steer(w: World, s: Shot) -> Vector2i:
 
 ## The first step towards the nearest tile 3 to 6 tiles from Miho with a clear
 ## line to her: its own tile when it stands on one, (-1, -1) when none is reachable.
-static func lineup(w: World, a: Actor, walk: Callable) -> Vector2i:
+static func lineup(w: World, a: Actor, walk: PackedByteArray) -> Vector2i:
 	var me := w.player()
 	var good := func(q: Vector2i) -> bool:
 		var r := Grid.cheb(q, me.pos)
 		return r >= 3 and r <= 6 and w.clear_line(q, me.pos)
 	if good.call(a.pos):
 		return a.pos
-	var found := Grid.search(a.pos, func(p): return walk.call(p))
+	var found := Grid.search(a.pos, walk)
 	var dist: PackedInt32Array = found.dist
 	var best := -1
 	for i in dist.size():

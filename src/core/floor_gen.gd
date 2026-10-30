@@ -347,7 +347,7 @@ static func _doors(w: World) -> void:
 
 
 static func _connected(w: World) -> bool:
-	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), w.open_floor).dist
+	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), Masks.floor_of(w)).dist
 	for i in w.tiles.size():
 		if w.open_floor(Grid.at(i)) and dist[i] < 0:
 			return false
@@ -355,7 +355,7 @@ static func _connected(w: World) -> bool:
 
 
 static func _farthest(w: World, from: Vector2i) -> Rect2i:
-	var dist: PackedInt32Array = Grid.search(from, w.open_floor).dist
+	var dist: PackedInt32Array = Grid.search(from, Masks.floor_of(w)).dist
 	var best := w.rooms[0]
 	for r in w.rooms:
 		if dist[Grid.index(_centre(r))] > dist[Grid.index(_centre(best))]:
@@ -390,7 +390,7 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 
 
 static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
-	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque)[Grid.index(p)]
+	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque_mask())[Grid.index(p)]
 	return Light.level(Light.LANTERN * s) >= Light.LIT
 
 
@@ -454,7 +454,7 @@ static func _creatures(w: World) -> void:
 
 
 static func _by_lantern(w: World) -> Vector2i:
-	var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
+	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var spots: Array[Vector2i] = []
 	for i in w.tiles.size():
 		if w.tiles[i] != World.LANTERN:
@@ -475,7 +475,7 @@ static func _by_lantern(w: World) -> Vector2i:
 
 ## A free room tile at least `min_dist` steps from the start.
 static func _random_spot(w: World, min_dist: int) -> Vector2i:
-	var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
+	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var spots: Array[Vector2i] = []
 	for r in w.rooms:
 		for y in range(r.position.y, r.end.y):
@@ -502,7 +502,7 @@ static func patrol_point(w: World) -> Vector2i:
 static func nearest_free(w: World, from: Vector2i) -> Vector2i:
 	if w.vacant(from):
 		return from
-	var dist: PackedInt32Array = Grid.search(from, func(p): return w.open_floor(p)).dist
+	var dist: PackedInt32Array = Grid.search(from, Masks.floor_of(w)).dist
 	var best := -1
 	for i in dist.size():
 		if dist[i] > 0 and w.vacant(Grid.at(i)) and (best < 0 or dist[i] < dist[best]):

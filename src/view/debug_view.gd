@@ -23,8 +23,7 @@ static func view(w: World) -> Dictionary:
 	var sounds := []
 	for e in w.events:
 		if e.t == &"noise":
-			var open := func(p): return not Terrain.wall(w.tile(p))
-			var found: Dictionary = Grid.search(e.at, open, func(_p): return false, e.loud)
+			var found: Dictionary = Grid.search(e.at, Masks.heard(w), e.loud)
 			var reach := {}
 			for i in found.dist.size():
 				if found.dist[i] >= 0:
