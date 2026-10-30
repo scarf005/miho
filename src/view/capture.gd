@@ -2,7 +2,8 @@ class_name Capture
 extends Node
 ## Scripted runs for screenshots and checks, driven through the real input path:
 ## godot --path . -- --seed=3 --keys=Space,1,Up,Space --shot=out.png
-## A key may also be `hover:x:y` (point at a tile), `pause:seconds`, or
+## A key may also be `hover:x:y` (point at a tile), `cell:x:y` (point at a
+## screen cell, such as a talisman or the sidebar), `pause:seconds`, or
 ## `walk:n` (n steps towards the stairs by arrow keys; Shift+s saves a frame
 ## in between as out-1.png, out-2.png ...). --replay=seconds also saves
 ## out-replay.png that long into the first highlight replay.
@@ -63,6 +64,11 @@ func _send(k: String) -> void:
 				* main.term.cell_centre(Vector2i(int(xy[1]), int(xy[2])))
 			)
 		)
+		return
+	if k.begins_with("cell:"):
+		var xy := k.split(":")
+		var at := (Vector2(int(xy[1]), int(xy[2])) + Vector2(0.5, 0.5)) * Term.CELL
+		main._point(main.term.get_global_transform() * at)
 		return
 	if k.begins_with("walk:"):
 		for i in int(k.split(":")[1]):
