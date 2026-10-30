@@ -85,7 +85,7 @@ static func creature(w: World, a: Actor) -> Array:
 		)
 	for cast: Array in spec.get("casts", []):
 		lines.append(_cast(a, cast))
-	var traits := _traits(spec)
+	var traits := _traits(spec, elements)
 	if not traits.is_empty():
 		lines.append([[" · ".join(traits), Palette.DIM]])
 	var drop: StringName = spec.get("drop", &"")
@@ -125,7 +125,7 @@ static func _cast(a: Actor, cast: Array) -> Array:
 	return line
 
 
-static func _traits(spec: Dictionary) -> Array:
+static func _traits(spec: Dictionary, elements: Array) -> Array:
 	var out := []
 	if spec.get("move", &"") == &"static":
 		out.append("이동 불가")
@@ -140,6 +140,8 @@ static func _traits(spec: Dictionary) -> Array:
 			out.append("불 면역")
 		&"nofire":
 			out.append("불로만 피해")
+	if elements.has(Cards.WOOD):
+		out.append("불에 탐")
 	if spec.get("hunts", false):
 		out.append("당신 위치를 앎")
 	return out

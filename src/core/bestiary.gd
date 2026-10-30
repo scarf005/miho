@@ -158,3 +158,8 @@ static func weak_to(kind: StringName) -> Array[StringName]:
 ## Whether the spell holds an element that beats one of the creature's.
 static func weak(kind: StringName, spell: Spell) -> bool:
 	return weak_to(kind).any(func(c): return spell.has(c))
+
+
+## Wood creatures catch fire when a fire spell hits them.
+static func burns(kind: StringName) -> bool:
+	return elements(kind).has(Cards.WOOD)

@@ -651,6 +651,8 @@ func _strike(s: Shot, a: Actor) -> void:
 	var n := spell.damage(Grid.cheb(s.origin, at)) * (2 if weak else 1)
 	if n > 0:
 		_hurt(a, n, weak)
+	if spell.has(Cards.FIRE) and Bestiary.burns(a.kind):
+		_ignite(at, true)
 	if a.alive():
 		if spell.has(Cards.WOOD):
 			a.rooted = maxi(a.rooted, 2)
@@ -704,6 +706,8 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			else:
 				var weak := Bestiary.weak(b.kind, s.spell)
 				_hurt(b, 2 if weak else 1, weak)
+				if Bestiary.burns(b.kind):
+					_ignite(p, true)
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
@@ -711,8 +715,9 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			emit({t = &"snuff", shot = o.id, at = p})
 
 
-func _ignite(p: Vector2i) -> void:
-	if FLAMMABLE.has(tile(p)) and not burning.has(p):
+## Sets p alight if it is flammable, or whatever it is when `force`d.
+func _ignite(p: Vector2i, force := false) -> void:
+	if (force or FLAMMABLE.has(tile(p))) and not burning.has(p):
 		burning[p] = BURN_ROUNDS
 		_changed()
 		emit({t = &"ignite", at = p})

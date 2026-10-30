@@ -145,6 +145,53 @@ func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
 	assert_eq(victim.hp, 2)
 
 
+func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() -> void:
+	var w := _world()
+	var foe := _foe(w, &"cheonha")
+	assert_false(w.burning.has(FOE))
+	var events := w.act(_cast([ORB, Cards.FIRE]))
+	assert_eq(_hurts(events)[0].n, 1, "fire does not beat wood")
+	assert_true(w.burning.has(FOE), "the tile it stands on burns")
+	assert_has(events.map(func(e): return e.t), &"ignite")
+	assert_eq(w.tile(FOE), World.FLOOR)
+	var before := foe.hp
+	w.act(WAIT)
+	assert_eq(foe.hp, before - 1, "standing in the flames hurts it")
+
+
+func test_a_fire_wisp_also_lights_a_wood_creature() -> void:
+	var w := _world()
+	_foe(w, &"cheonha")
+	w.act(_cast([Cards.FOX, Cards.FIRE]))
+	assert_true(w.burning.has(FOE))
+
+
+func test_fire_splash_lights_a_wood_creature_next_to_the_blast() -> void:
+	var w := _world()
+	_foe(w, &"dokkaebi")
+	var wood := _foe(w, &"cheonha", FOE + Vector2i(0, 1))
+	w.act(_cast([ORB, Cards.FIRE]))
+	assert_true(w.burning.has(wood.pos))
+
+
+func test_fire_leaves_other_creatures_tiles_alone() -> void:
+	var w := _world()
+	_foe(w, &"jiha")
+	w.act(_cast([ORB, Cards.FIRE]))
+	assert_false(w.burning.has(FOE), "metal creatures do not burn")
+	var wet := _world()
+	_foe(wet, &"cheonha")
+	wet.act(_cast([ORB, Cards.WATER]))
+	assert_false(wet.burning.has(FOE), "no fire, no flames")
+
+
+func test_a_creature_that_eats_fire_and_is_no_wood_does_not_burn() -> void:
+	var w := _world()
+	var foe := _foe(w, &"haetae")
+	w.act(_cast([ORB, Cards.FIRE]))
+	assert_false(w.burning.has(foe.pos), "water creatures are no wood")
+
+
 func test_the_forecast_includes_the_doubled_harm() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")

@@ -77,3 +77,13 @@ func test_a_creature_tells_what_it_is_weak_to() -> void:
 	assert_string_contains(boss, "약점: 불, 물, 흙 (피해 ×2)")
 	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", at)))
 	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
+
+
+func test_a_wood_creature_is_told_to_burn() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var wood := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonha", at)))
+	assert_string_contains(wood, "약점: 쇠 (피해 ×2)")
+	assert_string_contains(wood, "불에 탐")
+	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
+	assert_false(water.contains("불에 탐"))
