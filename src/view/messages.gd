@@ -88,39 +88,33 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 	var id: int = e.get("id", -1)
 	match e.t:
 		&"notice":
-			return (
-				_who(before, after, id, "이", "가") + [[" ", TEXT]] + _miho("를") + [[" 발견했다", TEXT]]
-			)
+			return _who(before, after, id, "에게", "에게") + [[" 들켰다", TEXT]]
 		&"claw":
 			var line := [["기습! ", Palette.ALERT[1]]] if e.sneak else []
-			return line + _miho("가") + [[" 발톱으로 ", TEXT]] + _harm_to(before, after, e.target, e.n)
+			return line + _harm_to(before, after, e.target, e.n)
 		&"club":
-			return (
-				_who(before, after, id, "이", "가")
-				+ [[" 몽둥이로 ", TEXT]]
-				+ _harm_to(before, after, e.target, e.n)
-			)
+			return _who(before, after, id, "의", "의") + [[" 몽둥이에 맞아 ", TEXT]] + _took(e.n)
 		&"hurt":
 			if last.get("target", -1) == id:
 				return []
 			if last.get("t") == &"burn" and last.id == id:
-				return _who(before, after, id, "이", "가") + [[" 불에 타 ", TEXT]] + _took(e.n)
+				return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
 			var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
 			if mine and id != after.player().id:
 				return _harm_to(before, after, id, e.n)
-			return _who(before, after, id, "이", "가") + [[" ", TEXT]] + _took(e.n)
+			return _subject(before, after, id) + _took(e.n)
 		&"die":
-			return _who(before, after, id, "이", "가") + [[" 쓰러졌다", TEXT]]
+			return _subject(before, after, id) + [["쓰러졌다", TEXT]]
 		&"card":
 			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
 		&"heal":
-			return [["복숭아를 먹고 체력을 ", TEXT], ["1", Palette.PEACH[1]], [" 되찾았다", TEXT]]
+			return [["복숭아를 먹어 체력 ", TEXT], ["1", Palette.PEACH[1]], [" 회복", TEXT]]
 		&"blind":
-			return _who(before, after, id, "의", "의") + [[" 눈이 멀었다", TEXT]]
+			return _subject(before, after, id, "의") + [["눈이 멀었다", TEXT]]
 		&"root":
-			return _who(before, after, id, "이", "가") + [[" 덩굴에 묶였다", TEXT]]
+			return _subject(before, after, id) + [["덩굴에 묶였다", TEXT]]
 		&"stun":
-			return _who(before, after, id, "이", "가") + [[" 기절했다", TEXT]]
+			return _subject(before, after, id) + [["기절했다", TEXT]]
 		&"absorb":
 			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
 		&"calm":
@@ -172,8 +166,13 @@ static func _took(n: int) -> Array:
 	return [["피해를 ", TEXT], [str(n), Palette.HURT], [" 입었다", TEXT]]
 
 
-static func _miho(particle: String) -> Array:
-	return [["미호", Palette.KIND[&"miho"]], [particle, TEXT]]
+## A creature as the subject of a line, or nothing for Miho: the player is
+## the one the log speaks to. `particle` replaces 이/가 when given.
+static func _subject(before: World, after: World, id: int, particle := "") -> Array:
+	if id == after.player().id:
+		return []
+	var p := [particle, particle] if particle != "" else ["이", "가"]
+	return _who(before, after, id, p[0], p[1]) + [[" ", TEXT]]
 
 
 ## A creature's name in its colour, then the particle that fits it: `closed`

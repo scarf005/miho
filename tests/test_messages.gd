@@ -35,9 +35,7 @@ func test_seen_events_are_told() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", SEEN)
 	w.sense()
-	assert_eq(
-		_lines(w, [{t = &"notice", id = foe.id, at = SEEN}]), ["도깨비가 미호를 발견했다"] as Array[String]
-	)
+	assert_eq(_lines(w, [{t = &"notice", id = foe.id, at = SEEN}]), ["도깨비에게 들켰다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"die", id = foe.id, at = SEEN}]), ["도깨비가 쓰러졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"ascend", depth = 2}]), ["2층으로 올라갔다"] as Array[String])
 	assert_eq(
@@ -83,7 +81,7 @@ func test_a_claw_tells_its_harm_once() -> void:
 	var before := w.clone()
 	var events := w.act({t = &"move", dir = Vector2i(1, 0)})
 	var lines := Messages.of(before, w, events).map(Messages.plain)
-	assert_eq(lines.slice(0, 2), ["기습! 미호가 발톱으로 도깨비에게 피해를 3 주었다", "도깨비가 쓰러졌다"])
+	assert_eq(lines.slice(0, 2), ["기습! 도깨비에게 피해를 3 주었다", "도깨비가 쓰러졌다"])
 	assert_eq(lines.filter(func(l): return l.contains("피해")).size(), 1, "%s" % [lines])
 	assert_eq(foe.hp, -1)
 
@@ -114,7 +112,7 @@ func test_lanterns_doors_and_fire_are_told() -> void:
 		{t = &"burn", at = me.pos, id = me.id},
 		{t = &"hurt", id = me.id, n = 1, hp = 2, at = me.pos},
 	]
-	assert_eq(_lines(w, burn), ["미호가 불에 타 피해를 1 입었다"] as Array[String])
+	assert_eq(_lines(w, burn), ["불에 타 피해를 1 입었다"] as Array[String])
 
 
 func test_harm_from_miho_spells_is_told_as_dealt_and_harm_to_her_as_taken() -> void:
@@ -133,7 +131,7 @@ func test_harm_from_miho_spells_is_told_as_dealt_and_harm_to_her_as_taken() -> v
 		{t = &"hit", shot = 91, id = me.id, at = me.pos},
 		{t = &"hurt", id = me.id, n = 1, hp = 2, at = me.pos},
 	]
-	assert_eq(_lines(w, theirs), ["미호가 피해를 1 입었다"] as Array[String])
+	assert_eq(_lines(w, theirs), ["피해를 1 입었다"] as Array[String])
 
 
 func test_names_harm_and_sounds_stand_out_in_their_colours() -> void:

@@ -79,7 +79,7 @@ func _ready() -> void:
 	add_child(crt)
 	get_viewport().size_changed.connect(_fit)
 	_new_run()
-	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 누르면 시작한다"]
+	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", "아무 키나 눌러 시작"]
 	_apply()
 	Capture.attach(self)
 
@@ -337,11 +337,11 @@ func _act(action: Dictionary) -> Array:
 		state = &"over"
 		var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
 		term.banner_lines = [
-			"미호가 사람이 되었다" if world.outcome == &"won" else "미호가 쓰러졌다",
-			"%d층에서 %d초를 버텼다" % [world.depth, world.round_no],
-			"쓰러뜨린 적 %d" % kills,
+			"사람이 되었다" if world.outcome == &"won" else "쓰러졌다",
+			"%d층 · %d초" % [world.depth, world.round_no],
+			"처치 %d" % kills,
 			"시드 %d" % run_seed,
-			"%s 키를 누르면 다시 시작한다" % again,
+			"%s키를 눌러 재시작" % again,
 		]
 	busy = false
 	_forecast()
