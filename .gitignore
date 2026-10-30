@@ -5,3 +5,4 @@
 .playwright-cli/
 .claude/worktrees/
 .claude/context/
+/rust/target/

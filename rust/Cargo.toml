@@ -1,0 +1,14 @@
+[package]
+name = "miho_native"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+godot = { version = "0.5.5", features = ["api-4-7"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+godot = { version = "0.5.5", features = ["api-4-7", "experimental-wasm", "experimental-wasm-nothreads", "lazy-function-tables"] }
