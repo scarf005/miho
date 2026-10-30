@@ -34,17 +34,22 @@ func save() -> void:
 		to_config().save(path)
 
 
+## The options, and the keys of the actions whose keys differ from the
+## defaults, so that new defaults reach players who saved before.
 func to_config() -> ConfigFile:
 	var c := ConfigFile.new()
 	for n in NAMES:
 		c.set_value("settings", n, get(n))
 	for action in Keys.ACTIONS:
-		c.set_value("keys", action, Keys.keys_of(action))
+		var keys := Keys.keys_of(action)
+		if keys != Keys.ACTIONS[action][1]:
+			c.set_value("keys", action, keys)
 	return c
 
 
 ## Takes what `c` holds, keeping defaults for what it lacks or holds wrongly,
-## and binds every action's keys: the saved ones, else the defaults.
+## and binds every action's keys: the saved ones, else the defaults. Saved
+## keys of actions that no longer exist are ignored.
 func from_config(c: ConfigFile) -> void:
 	volume = clampi(int(c.get_value("settings", "volume", volume)), 0, 100)
 	crt = bool(c.get_value("settings", "crt", crt))
