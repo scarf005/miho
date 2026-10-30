@@ -3,7 +3,8 @@ extends Node
 ## Scripted runs for screenshots and checks, driven through the real input path:
 ## godot --path . -- --seed=3 --keys=Space,1,Up,Space --shot=out.png
 ## A key may also be `hover:x:y` (point at a tile), `click:x:y` (click it),
-## `cell:x:y` (point at a screen cell, such as a talisman or the sidebar),
+## `cell:x:y` (point at a screen cell, such as a talisman, the sidebar or a
+## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
@@ -74,9 +75,14 @@ func _send(k: String) -> void:
 		"cell":
 			var at := (Vector2(int(parts[1]), int(parts[2])) + Vector2(0.5, 0.5)) * Term.CELL
 			main._point(main.term.get_global_transform() * at)
-		"click":
-			var tile := Vector2i(int(parts[1]), int(parts[2]))
-			var at: Vector2 = main.term.get_global_transform() * main.term.cell_centre(tile)
+		"click", "tap":
+			var xy := Vector2i(int(parts[1]), int(parts[2]))
+			var local: Vector2 = (
+				main.term.cell_centre(xy)
+				if parts[0] == "click"
+				else (Vector2(xy) + Vector2(0.5, 0.5)) * Term.CELL
+			)
+			var at: Vector2 = main.term.get_global_transform() * local
 			main._point(at)
 			for pressed in [true, false]:
 				var ev := InputEventMouseButton.new()
