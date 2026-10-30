@@ -128,6 +128,7 @@ static func build(w: World) -> void:
 	w.actors.assign([me])
 	w.shots.clear()
 	w.peaches.clear()
+	w.burning.clear()
 	w.round_no = 0
 	w.known = PackedByteArray()
 	w.seen = PackedByteArray()

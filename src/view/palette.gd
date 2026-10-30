@@ -21,8 +21,11 @@ const TILES := {
 	World.BAMBOO: ['"', Color(0.45, 0.78, 0.38), Color(0.06, 0.14, 0.06)],
 	World.BOARD: ["=", Color(0.72, 0.5, 0.3), Color(0.2, 0.12, 0.06)],
 	World.POND: ["~", Color(0.38, 0.58, 0.95), Color(0.04, 0.08, 0.2)],
+	World.ASH: [",", Color(0.45, 0.44, 0.42), Color(0.08, 0.08, 0.08)],
 }
 const OPEN_DOOR := "'"
+## A burning tile, drawn over its terrain.
+const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]

@@ -12,6 +12,7 @@ const LANTERN := Vector3(1.0, 0.6, 0.28)
 const LANTERN_RADIUS := 6
 const SIDE: Array[Vector3] = [Vector3(0.45, 0.72, 1.0), Vector3(1.0, 0.3, 0.2)]
 const FIRE := Vector3(1.0, 0.55, 0.15)
+const FIRE_RADIUS := 3
 const DARK := Vector3(-1.4, -1.4, -1.4)
 
 

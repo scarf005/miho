@@ -27,6 +27,12 @@ extends RefCounted
 ## douses lanterns next to where it ends, silently, and fire relights them; a
 ## searching creature relights a lantern it stands next to.
 ##
+## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
+## ends, and around a fire orb's burst. A burning tile lights its surroundings,
+## crackles (an alarm), hides nothing, burns whoever stands in it each round
+## and may spread to each flammable neighbour; after BURN_ROUNDS it is ash.
+## Heaven walks around fire; water douses it.
+##
 ## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
@@ -46,6 +52,9 @@ const CRY := 5
 const THUD := 9
 const FLASH := 2
 const KNOCK := 4
+const BURN_ROUNDS := 3
+const CRACKLE := 3
+const SPREAD := 0.5
 
 const FLOOR := 0
 const WALL := 1
@@ -55,7 +64,9 @@ const LANTERN_OUT := 4
 const BAMBOO := 5
 const BOARD := 6
 const POND := 7
-const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD]
+const ASH := 8
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH]
+const FLAMMABLE := [DOOR, BAMBOO, BOARD]
 ## How far a step onto the tile is heard, and the word for it.
 const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
 
@@ -66,6 +77,8 @@ var start := Vector2i.ZERO
 var stairs := Vector2i(-1, -1)
 var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
+## Burning tiles: position -> rounds left.
+var burning := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -112,6 +125,7 @@ func clone() -> World:
 	w.stairs = stairs
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
+	w.burning = burning.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -173,15 +187,16 @@ func open_air(p: Vector2i) -> bool:
 
 
 ## Walls, closed doors and bamboo block sight and light; a door is open while
-## something is in it.
+## something is in it, and nothing burning blocks anything.
 func opaque(p: Vector2i) -> bool:
-	var t := tile(p)
-	return t == WALL or hides(p) or (t == DOOR and actor_at(p) == null and shot_at(p) == null)
+	if tile(p) == WALL or hides(p):
+		return true
+	return tile(p) == DOOR and not burning.has(p) and actor_at(p) == null and shot_at(p) == null
 
 
-## Bamboo hides who stands in it from everyone not right next to it.
+## Bamboo hides who stands in it from everyone not right next to it, until it burns.
 func hides(p: Vector2i) -> bool:
-	return tile(p) == BAMBOO
+	return tile(p) == BAMBOO and not burning.has(p)
 
 
 func actor_at(p: Vector2i) -> Actor:
@@ -232,6 +247,8 @@ func light_sources() -> Array[Dictionary]:
 	for i in tiles.size():
 		if tiles[i] == LANTERN:
 			out.append({at = Grid.at(i), radius = Light.LANTERN_RADIUS, color = Light.LANTERN})
+	for p in burning:
+		out.append({at = p, radius = Light.FIRE_RADIUS, color = Light.FIRE})
 	for s in shots:
 		if not s.gone:
 			var l := s.spell.light(s.faction)
@@ -374,6 +391,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				_cast(me, spell, one.dir)
 	_shots_phase()
 	_heaven_phase()
+	_burn()
 	_end_round()
 	sense()
 	return events
@@ -521,6 +539,8 @@ func _fly(s: Shot, to: Vector2i) -> void:
 	_emit({t = &"fly", shot = s.id, from = s.pos, to = to})
 	s.pos = to
 	_changed()
+	if s.spell.has(Cards.FIRE):
+		_ignite(to)
 
 
 ## One tile of flight. Orbs burst on walls and closed doors and strike
@@ -582,20 +602,23 @@ func _burst(s: Shot) -> void:
 	_effects(s, s.pos)
 
 
-## Flash and thud happen wherever the spell ends; fire there relights the
-## lanterns next to it, and water douses them.
+## Flash and thud happen wherever the spell ends; fire sets that tile alight
+## and relights the lanterns next to it, and water douses lanterns and flames.
 func _effects(s: Shot, at: Vector2i) -> void:
 	if s.spell.has(Cards.METAL):
 		_flash(s, at)
 	if s.spell.has(Cards.EARTH):
 		_noise(at, THUD, "쿵", true, s.caster)
-	for d in Grid.DIRS:
+	if s.spell.has(Cards.FIRE):
+		_ignite(at)
+	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
 		var p := at + d
 		if s.spell.has(Cards.FIRE) and tile(p) == LANTERN_OUT:
 			_set_tile(p, LANTERN)
 			_emit({t = &"relight", at = p})
-		if s.spell.has(Cards.WATER) and tile(p) == LANTERN:
-			_set_tile(p, LANTERN_OUT)
+		if s.spell.has(Cards.WATER) and (tile(p) == LANTERN or burning.has(p)):
+			burning.erase(p)
+			_set_tile(p, LANTERN_OUT if tile(p) == LANTERN else tile(p))
 			_emit({t = &"douse", at = p})
 
 
@@ -603,6 +626,7 @@ func _effects(s: Shot, at: Vector2i) -> void:
 func _smash(s: Shot, at: Vector2i, struck: int) -> void:
 	if s.spell.has(Cards.WATER) or tile(at) != struck or (struck != LANTERN and struck != DOOR):
 		return
+	burning.erase(at)
 	_set_tile(at, LANTERN_OUT if struck == LANTERN else FLOOR)
 	_emit({t = &"smash", at = at})
 
@@ -682,6 +706,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 	_emit({t = &"splash", at = at, faction = s.faction})
 	for d in Grid.DIRS:
 		var p := at + d
+		_ignite(p)
 		var b := actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.kind, s.spell):
@@ -693,6 +718,41 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			o.gone = true
 			_changed()
 			_emit({t = &"snuff", shot = o.id, at = p})
+
+
+func _ignite(p: Vector2i) -> void:
+	if FLAMMABLE.has(tile(p)) and not burning.has(p):
+		burning[p] = BURN_ROUNDS
+		_changed()
+		_emit({t = &"ignite", at = p})
+
+
+## Each burning tile crackles, burns whoever stands in it (unless it eats
+## fire), may set each flammable neighbour alight, and burns down to ash.
+func _burn() -> void:
+	if outcome != &"":
+		return
+	var flame := Spell.make([Cards.FOX, Cards.FIRE])
+	var caught: Array[Vector2i] = []
+	for p: Vector2i in burning.keys():
+		_noise(p, CRACKLE, "타닥", true, 0)
+		var a := actor_at(p)
+		if a != null:
+			_emit({t = &"burn", at = p, id = a.id})
+			if Bestiary.absorbs(a.kind, flame):
+				_emit({t = &"absorb", id = a.id, at = p})
+			else:
+				_hurt(a, 1)
+		for d in Grid.DIRS:
+			if FLAMMABLE.has(tile(p + d)) and not burning.has(p + d) and rng.randf() < SPREAD:
+				caught.append(p + d)
+		burning[p] -= 1
+		if burning[p] <= 0:
+			burning.erase(p)
+			_set_tile(p, ASH)
+			_emit({t = &"burnout", at = p})
+	for p in caught:
+		_ignite(p)
 
 
 # --- heaven ------------------------------------------------------------------
@@ -823,8 +883,9 @@ func _chase(a: Actor) -> void:
 			_align(a)
 
 
+## Free tiles, never into fire.
 func _walkable(a: Actor) -> Callable:
-	return func(p): return p == a.pos or vacant(p)
+	return func(p): return p == a.pos or (vacant(p) and not burning.has(p))
 
 
 ## One step along a shortest path towards `goal`, stopping `keep` tiles short;
@@ -841,7 +902,7 @@ func _step_to(a: Actor, goal: Vector2i, keep := 0) -> bool:
 	var best_cost := INF
 	for d in Grid.DIRS:
 		var p := a.pos + d
-		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not vacant(p):
+		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not walk.call(p):
 			continue
 		var cost := dist[Grid.index(p)] + Vector2(goal - p).length() * 0.01
 		if dist[Grid.index(p)] < here and cost < best_cost:
@@ -856,9 +917,10 @@ func _step_to(a: Actor, goal: Vector2i, keep := 0) -> bool:
 func _drift(a: Actor) -> void:
 	if a.info().get("move", &"static") == &"static":
 		return
+	var walk := _walkable(a)
 	var free: Array[Vector2i] = []
 	for d in Grid.DIRS:
-		if vacant(a.pos + d):
+		if walk.call(a.pos + d):
 			free.append(a.pos + d)
 	if not free.is_empty():
 		_move(a, free[rng.randi_range(0, free.size() - 1)])

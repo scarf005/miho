@@ -12,9 +12,10 @@ const TERRAIN := {
 	World.DOOR: ["문", "닫히면 빛과 시야를 막는다. 구슬에 부서진다"],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다. 부딪치면 꺼진다"],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 켠다. 수색하는 적도 켠다"],
-	World.BAMBOO: ["대숲", "속이 안 보인다. 밟으면 소리 2칸"],
-	World.BOARD: ["마루", "밟으면 삐걱 소리 3칸"],
+	World.BAMBOO: ["대숲", "속이 안 보인다. 밟으면 소리 2칸. 탄다"],
+	World.BOARD: ["마루", "밟으면 삐걱 소리 3칸. 탄다"],
 	World.POND: ["연못", "못 걷는다. 주문은 넘어 난다"],
+	World.ASH: ["재", "타고 남았다"],
 }
 const EFFECT := {
 	Cards.FOX: ["해 없는 빛. 7칸 날아가 8초 떠 있다", "소리 2칸"],
@@ -146,6 +147,8 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	var lines := [[[name, Palette.TEXT]]]
 	if note != "":
 		lines.append([[note, Palette.DIM]])
+	if w.burning.has(p):
+		lines.append([["불탄다. %d초 뒤 재가 된다" % w.burning[p], Palette.HURT]])
 	if w.tile(p) != World.WALL:
 		lines.append(_light_line(w, p))
 	return lines
