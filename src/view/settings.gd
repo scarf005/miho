@@ -9,6 +9,11 @@ const NAMES := ["volume", "crt", "zoom", "speed", "replay", "muted"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
+## Bumped when default keys change. Files saved before version 2 hold every
+## action's keys; the ones that were defaults then (RETIRED) give way to the
+## new defaults, while keys the player chose stay.
+const KEYS_VERSION := 2
+const RETIRED := {&"explore": ["X"], &"log": ["P"]}
 
 var path := PATH
 ## Master volume, 0-100.
@@ -40,6 +45,7 @@ func to_config() -> ConfigFile:
 	var c := ConfigFile.new()
 	for n in NAMES:
 		c.set_value("settings", n, get(n))
+	c.set_value("settings", "keys_version", KEYS_VERSION)
 	for action in Keys.ACTIONS:
 		var keys := Keys.keys_of(action)
 		if keys != Keys.ACTIONS[action][1]:
@@ -58,9 +64,10 @@ func from_config(c: ConfigFile) -> void:
 	replay = bool(c.get_value("settings", "replay", replay))
 	muted = bool(c.get_value("settings", "muted", muted))
 	Keys.reset()
+	var old: bool = c.get_value("settings", "keys_version", 1) < KEYS_VERSION
 	for action in Keys.ACTIONS:
 		var keys = c.get_value("keys", action, false)
-		if keys is Array:
+		if keys is Array and not (old and keys == RETIRED.get(action, [])):
 			Keys.bind(action, keys)
 
 

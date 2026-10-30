@@ -78,3 +78,18 @@ func test_defaults_changed_since_saving_reach_the_player() -> void:
 	assert_eq(Keys.keys_of(&"cancel"), Keys.ACTIONS[&"cancel"][1] as Array[String])
 	assert_false(InputMap.has_action(&"gone"))
 	assert_false(InputMap.has_action(&"options"))
+
+
+func test_old_default_keys_saved_before_the_key_change_give_way_to_new_ones() -> void:
+	var c := ConfigFile.new()
+	c.set_value("keys", "explore", ["X"])
+	c.set_value("keys", "log", ["P"])
+	c.set_value("keys", "move_ne", ["Kp 9", "U", "PageUp"])
+	var s := Settings.new()
+	s.from_config(c)
+	assert_eq(Keys.keys_of(&"explore"), ["O"] as Array[String])
+	assert_eq(Keys.keys_of(&"log"), ["Ctrl+P", "P"] as Array[String])
+	assert_eq(Keys.keys_of(&"move_ne"), ["Kp 9", "U", "PageUp"] as Array[String], "own keys stay")
+	c.set_value("settings", "keys_version", Settings.KEYS_VERSION)
+	s.from_config(c)
+	assert_eq(Keys.keys_of(&"explore"), ["X"] as Array[String], "chosen after the change")
