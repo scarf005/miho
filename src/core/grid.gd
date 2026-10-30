@@ -58,10 +58,11 @@ static func nearest_dir(d: Vector2i) -> Vector2i:
 
 
 ## Breadth-first search from `from`. `open(p)` says whether p may be entered;
-## `stop(p)` marks reachable tiles that are not expanded further (targets).
+## `stop(p)` marks reachable tiles that are not expanded further (targets);
+## a `limit` of 0 or more leaves tiles farther than that unreached.
 ## Returns {dist: PackedInt32Array, parent: PackedInt32Array}; unreached tiles have -1.
 static func search(
-	from: Vector2i, open: Callable, stop: Callable = func(_p): return false
+	from: Vector2i, open: Callable, stop: Callable = func(_p): return false, limit := -1
 ) -> Dictionary:
 	var dist := PackedInt32Array()
 	dist.resize(W * H)
@@ -73,7 +74,7 @@ static func search(
 	while head < queue.size():
 		var p := queue[head]
 		head += 1
-		if p != from and stop.call(p):
+		if (p != from and stop.call(p)) or dist[index(p)] == limit:
 			continue
 		for d in DIRS:
 			var q := p + d

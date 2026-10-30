@@ -345,6 +345,16 @@ func test_walking_into_a_lantern_knocks_it_out_with_a_clang() -> void:
 	assert_false(w.can({t = &"move", dir = E}), "a dark lantern still blocks")
 
 
+func test_a_noise_reaches_exactly_as_far_as_it_is_loud() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.LANTERN)
+	var near := _foe(w, &"imugi", Vector2i(9, 8))
+	var far := _foe(w, &"imugi", Vector2i(10, 4))
+	w.act({t = &"move", dir = E})
+	assert_eq(near.alert, Actor.SEARCH, "four steps away")
+	assert_eq(far.alert, Actor.REST, "five steps away")
+
+
 func test_water_douses_a_lantern_silently_and_a_searcher_relights_it() -> void:
 	var w := _world()
 	w.cards.append(Cards.WATER)

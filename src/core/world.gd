@@ -389,11 +389,13 @@ func sense() -> void:
 	dim = seen.duplicate()
 	if known.size() != tiles.size():
 		known.resize(tiles.size())
+	var clear := not opaque(me.pos)
 	for i in tiles.size():
 		if from[i] == 0:
 			continue
 		var p := Grid.at(i)
-		if sees(me, p):
+		# Sight is symmetric between clear tiles, so her own field answers for them.
+		if _reaches(me, p) and ((clear and not opaque(p)) or sees(me, p)):
 			seen[i] = 1
 			known[i] = 1
 		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
@@ -423,7 +425,8 @@ func _move(a: Actor, to: Vector2i) -> void:
 func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 	if loud <= 0:
 		return
-	var dist: PackedInt32Array = Grid.search(at, func(p): return tile(p) != WALL).dist
+	var open := func(p): return tile(p) != WALL
+	var dist: PackedInt32Array = Grid.search(at, open, func(_p): return false, loud).dist
 	var me := player()
 	var d := dist[Grid.index(me.pos)]
 	var heard_it := by != me.id and d >= 0 and d <= loud
