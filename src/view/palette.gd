@@ -6,7 +6,7 @@ extends RefCounted
 ## Talismans of the five elements wear 오방색 (목 청, 화 적, 토 황, 금 백, 수 흑).
 
 const VOID := Color("#000000")
-const MEMORY_FG := Color(0.17, 0.19, 0.38)
+const MEMORY_FG := Color(0.1, 0.11, 0.24)
 const MEMORY_BG := Color(0.015, 0.015, 0.05)
 ## Faint blue light of fox eyes on tiles near Miho.
 const NIGHT := Vector3(0.1, 0.13, 0.24)

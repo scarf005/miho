@@ -272,13 +272,12 @@ func _draw() -> void:
 	if not replay:
 		_draw_side(actors, me_pos)
 		_draw_bottom()
+	if not banner_lines.is_empty():
+		draw_rect(Rect2(Vector2(MAP) * CELL, Vector2(Grid.W, Grid.H) * CELL), Color(0, 0, 0, 0.8))
 	for i in banner_lines.size():
 		var line := banner_lines[i]
-		var row := 6 + i * 2
-		draw_rect(
-			Rect2(Vector2(MAP.x, row) * CELL, Vector2(Grid.W, 1) * CELL), Color(0, 0, 0, 0.75)
-		)
-		_text(Vector2(MAP.x + (Grid.W - _cells(line)) / 2.0, row), line, Palette.TEXT)
+		var color: Color = Palette.KIND[&"miho"] if i == 0 else Palette.TEXT
+		_text(Vector2(MAP.x + (Grid.W - _cells(line)) / 2.0, 5 + i * 2), line, color)
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
@@ -315,6 +314,9 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			var v := fg.get_luminance()
 			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
 			bg = Palette.MEMORY_BG
+		var grain := 0.92 + 0.16 * fposmod(sin(i * 12.9898) * 43758.5453, 1.0)
+		fg *= grain
+		bg *= grain
 		var tint: Color = tints.get(p, Color(0, 0, 0, 0))
 		bg = bg.lerp(Color(tint, 1.0), tint.a)
 		var cell := Vector2(MAP + p)
