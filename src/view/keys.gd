@@ -45,6 +45,7 @@ const ACTIONS := {
 	&"cancel": ["취소 / 설정", ["Escape"]],
 	&"stairs": ["계단으로 가기", ["Shift+Period"]],
 	&"explore": ["자동 탐험", ["O"]],
+	&"fight": ["자동 공격", ["Tab"]],
 	&"look": ["살펴보기", ["X"]],
 	&"rest": ["쉬기", ["Z"]],
 	&"exclude": ["위험구역 표시", ["V"]],

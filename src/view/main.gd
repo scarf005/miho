@@ -5,7 +5,8 @@ extends Node
 ## spell, and Shift with a direction holds it so several spells leave in one
 ## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
 ## picked and, with nothing to clear, opens the options.
-## > walks to the stairs, o explores, z rests until the tails regrow.
+## > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
+## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
 ## F3 shows the debug view (DebugView), which changes nothing in the game. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
 ## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
@@ -271,6 +272,8 @@ func _key(event: InputEventKey) -> void:
 		_look_at(world.player().pos)
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 이미 다 자랐다")
+	elif action == &"fight":
+		_fight()
 	elif action == &"debug":
 		debugging = not debugging
 		_refresh()
@@ -518,6 +521,18 @@ func _journey(next: Callable, why := "") -> void:
 	term.speed = settings.speed
 	if rounds == 0:
 		sfx.play(&"click")
+
+
+## Tab: claws the nearest creature in sight or steps towards it; refuses when
+## Miho is badly hurt or sees none.
+func _fight() -> void:
+	var step := {} if Fight.too_hurt(world) else Fight.step(world)
+	if step.is_empty():
+		_say("너무 다쳐서 싸울 수 없다" if Fight.too_hurt(world) else "보이는 적이 없다")
+		sfx.play(&"click")
+		return
+	_clear()
+	await _act(step)
 
 
 func _step_on(path: Array[Vector2i]) -> Dictionary:
