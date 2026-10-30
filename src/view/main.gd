@@ -277,13 +277,14 @@ func _click(event: InputEventMouseButton) -> void:
 		_use_tile(hover, event.shift_pressed)
 
 
-## What a left click on `tile` does: wait on Miho's own, hurl towards another
-## with talismans picked, step to a neighbour, or walk to a farther tile.
+## What a left click on `tile` does: nothing on Miho's own (a stray click must not
+## pass the turn), hurl towards another with talismans picked, step to a
+## neighbour, or walk to a farther tile.
 func _use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
 	if tile == me:
-		_act({t = &"wait"})
-	elif not picked.is_empty():
+		return
+	if not picked.is_empty():
 		_direction(Grid.nearest_dir(tile - me), hold)
 	elif Grid.cheb(tile, me) == 1:
 		_act({t = &"move", dir = tile - me})
@@ -736,13 +737,13 @@ func _ahead_lines(p: Vector2i) -> Array:
 	var f: Forecast = ahead.get(d) if Grid.cheb(p, world.player().pos) <= 1 else null
 	if f == null:
 		return []
-	var how := "기다리면" if d == Vector2i.ZERO else "이 칸으로 가면"
+	var how := "기다릴 시" if d == Vector2i.ZERO else "이 칸으로 갈 시"
 	var lines := []
 	if f.hurt_me() > 0:
 		lines.append([[how + " 피해를 %d 입는다" % f.hurt_me(), Palette.HURT]])
 	if not f.noticed.is_empty():
 		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
-		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[1]]])
+		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[2]]])
 	return lines
 
 
@@ -757,8 +758,12 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 			marks[a.pos] = [str(f.harm[id]), Palette.HURT]
 
 
-## A creature in sight that a claw would catch unawares (World._claw).
+## A creature next to Miho that her claws would catch unawares (World._claw).
 func _sneakable(a: Actor) -> bool:
 	return (
-		a.alive() and a.faction != Actor.FOX and world.seen[Grid.index(a.pos)] == 1 and a.unaware()
+		a.alive()
+		and a.faction != Actor.FOX
+		and Grid.cheb(a.pos, world.player().pos) == 1
+		and world.seen[Grid.index(a.pos)] == 1
+		and a.unaware()
 	)
