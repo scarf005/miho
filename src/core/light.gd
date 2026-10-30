@@ -13,6 +13,8 @@ const LANTERN_RADIUS := 6
 const SIDE: Array[Vector3] = [Vector3(0.45, 0.72, 1.0), Vector3(1.0, 0.3, 0.2)]
 const FIRE := Vector3(1.0, 0.55, 0.15)
 const FIRE_RADIUS := 3
+## Moonlight on skybridges: bright enough to be lit anywhere along the span.
+const MOON := Vector3(0.4, 0.5, 0.75)
 const DARK := Vector3(-1.4, -1.4, -1.4)
 
 

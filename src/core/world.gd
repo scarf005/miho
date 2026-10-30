@@ -39,6 +39,11 @@ extends RefCounted
 ## and may spread to each flammable neighbour; after BURN_ROUNDS it is ash.
 ## Heaven walks around fire; water douses it.
 ##
+## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
+## cannot be walked, but sight, light, sound and spells cross it. A bridge is
+## walkable, creaks, never burns and is always lit by the moon, so whoever
+## crosses one is seen from afar.
+##
 ## Each storey climbed gives back one health.
 ##
 ## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
@@ -76,10 +81,12 @@ const ASH := 8
 const LANTERN_BROKEN := 9
 const WALL_CRACKED := 10
 const RUBBLE := 11
-const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE]
+const SKY := 12
+const BRIDGE := 14
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE]
 const FLAMMABLE := [DOOR, BAMBOO, BOARD]
 ## How far a step onto the tile is heard, and the word for it.
-const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
+const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"], BRIDGE: [3, "삐걱"]}
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -192,9 +199,9 @@ func open_floor(p: Vector2i) -> bool:
 	return WALKABLE.has(tile(p))
 
 
-## Projectiles can fly here: anywhere walkable, and over ponds.
+## Projectiles can fly here: anywhere walkable, and over ponds and sky.
 func open_air(p: Vector2i) -> bool:
-	return open_floor(p) or tile(p) == POND
+	return open_floor(p) or tile(p) == POND or tile(p) == SKY
 
 
 ## Walls (cracked too), closed doors and bamboo block sight and light; a door is
@@ -271,6 +278,9 @@ func light_sources() -> Array[Dictionary]:
 func light() -> PackedVector3Array:
 	if _light_dirty:
 		_light = Light.field(light_sources(), opaque)
+		for i in tiles.size():
+			if tiles[i] == BRIDGE:
+				_light[i] += Light.MOON
 		_light_dirty = false
 	return _light
 

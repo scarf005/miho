@@ -22,6 +22,7 @@ const NAMES := {
 const ALERTS := ["resting", "searching", "hunting"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
+	+ "░sky ═skybridge "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
 	+ "●○*projectile @Miho"
 )
@@ -153,11 +154,12 @@ static func _moves(k: World) -> String:
 	var out := []
 	for d in Grid.DIRS:
 		if k.can({t = &"move", dir = d}):
-			var a := k.actor_at(k.player().pos + d)
+			var to := k.player().pos + d
+			var a := k.actor_at(to)
 			var note := ""
 			if a != null:
 				note = "(claw %s)" % a.info().name
-			elif Terrain.lantern(k.tile(k.player().pos + d)):
+			elif Terrain.lantern(k.tile(to)):
 				note = "(knock lantern)"
 			out.append(NAMES[d] + note)
 	return ", ".join(out) if not out.is_empty() else "none"

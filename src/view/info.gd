@@ -21,6 +21,8 @@ const TERRAIN := {
 	World.LANTERN_BROKEN: ["부서진 등불", "", 0],
 	World.WALL_CRACKED: ["금 간 벽", "", 1],
 	World.RUBBLE: ["무너진 벽", "", 0],
+	World.SKY: ["하늘", "건널 수 없다. 주문은 넘어간다", 0],
+	World.BRIDGE: ["하늘다리", "달빛에 드러난다. 삐걱 소리 3칸", 0],
 }
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {

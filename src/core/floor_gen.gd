@@ -1,11 +1,13 @@
 class_name FloorGen
 extends RefCounted
-## Builds each storey: rooms joined by corridors with a few extra loops (so a
-## hunted fox has somewhere to slip away), doors where corridors meet rooms,
+## Builds each storey: two to four pavilions in open sky, joined by skybridges.
+## Inside a pavilion, rooms are joined by corridors with a few extra loops (so
+## a hunted fox has somewhere to slip away), doors where corridors meet rooms,
 ## and lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
-## floorboards (a pavilion hall). Corridors stay plain and dark. Miho starts in the westmost
-## room; the stairs (the elixir on the top storey) sit in the room farthest
-## from her, which is always lit. Watchers that never move stand by lanterns.
+## floorboards (a pavilion hall). Corridors stay plain and dark. Miho starts in
+## the westmost room; the stairs (the elixir on the top storey) sit in the room
+## farthest from her, which is always lit. Watchers that never move stand by
+## lanterns.
 
 const PLAN := {
 	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
@@ -121,6 +123,12 @@ const FOE_DISTANCE := 12
 const BAMBOO_ROOMS := 0.25
 const POND_ROOMS := 0.2
 const HALL_ROOMS := 0.15
+## Gap between pavilions in tiles (min, max); least width of a pavilion; least height.
+const SKY_GAP := Vector2i(3, 6)
+const MIN_WIDTH := 9
+const MIN_HEIGHT := 14
+## First and last row a bridge may cross on; every pavilion spans them.
+const BRIDGE_ROWS := Vector2i(10, 17)
 
 
 static func build(w: World) -> void:
@@ -166,29 +174,113 @@ static func _centre(r: Rect2i) -> Vector2i:
 static func _carve(w: World) -> void:
 	w.tiles = PackedByteArray()
 	w.tiles.resize(Grid.W * Grid.H)
-	w.tiles.fill(World.WALL)
+	w.tiles.fill(World.SKY)
 	w.rooms.clear()
-	for i in 300:
-		if w.rooms.size() >= MAX_ROOMS:
+	var blocks := _pavilions(w)
+	var groups: Array[Array] = []
+	for b in blocks:
+		_fill(w, b, World.WALL)
+		groups.append(_rooms(w, b.grow(-1), MAX_ROOMS / blocks.size()))
+	for g in groups:
+		for i in range(1, g.size()):
+			_corridor(w, _centre(g[i - 1]), _centre(g[i]))
+	for k in LOOPS:
+		var g: Array = groups[w.rng.randi_range(0, groups.size() - 1)]
+		var a := w.rng.randi_range(0, g.size() - 1)
+		var b := w.rng.randi_range(0, g.size() - 1)
+		if absi(a - b) > 1:
+			_corridor(w, _centre(g[a]), _centre(g[b]))
+	for i in range(1, blocks.size()):
+		for y in _bridge_rows(w):
+			_bridge(w, groups, blocks, i, y)
+	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
+	_doors(w)
+
+
+## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
+## storeys), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
+## straight bridge on those rows meets any two neighbours.
+static func _pavilions(w: World) -> Array[Rect2i]:
+	var n := clampi(2 + (w.depth - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
+	var gaps: Array[int] = []
+	var spare := Grid.W - 2 - MIN_WIDTH * n
+	for i in n - 1:
+		gaps.append(w.rng.randi_range(SKY_GAP.x, SKY_GAP.y))
+		spare -= gaps[i]
+	var widths: Array[int] = []
+	widths.resize(n)
+	widths.fill(MIN_WIDTH)
+	for i in spare:
+		widths[w.rng.randi_range(0, n - 1)] += 1
+	var out: Array[Rect2i] = []
+	var x := 1
+	for i in n:
+		var h := w.rng.randi_range(MIN_HEIGHT, Grid.H - 2)
+		var top := w.rng.randi_range(
+			maxi(1, BRIDGE_ROWS.y + 2 - h), mini(BRIDGE_ROWS.x - 1, Grid.H - 1 - h)
+		)
+		out.append(Rect2i(x, top, widths[i], h))
+		x += widths[i] + (gaps[i] if i < n - 1 else 0)
+	return out
+
+
+## Up to `cap` rooms inside `area`, apart from each other and from every other room, west to east.
+static func _rooms(w: World, area: Rect2i, cap: int) -> Array[Rect2i]:
+	var out: Array[Rect2i] = []
+	for i in 60:
+		if out.size() >= cap:
 			break
-		var size := Vector2i(w.rng.randi_range(5, 12), w.rng.randi_range(4, 8))
+		var size := Vector2i(
+			w.rng.randi_range(5, mini(12, area.size.x)), w.rng.randi_range(4, mini(8, area.size.y))
+		)
 		var at := Vector2i(
-			w.rng.randi_range(1, Grid.W - size.x - 1), w.rng.randi_range(1, Grid.H - size.y - 1)
+			w.rng.randi_range(area.position.x, area.end.x - size.x),
+			w.rng.randi_range(area.position.y, area.end.y - size.y)
 		)
 		var r := Rect2i(at, size)
 		if w.rooms.any(func(o: Rect2i): return o.grow(1).intersects(r)):
 			continue
+		out.append(r)
 		w.rooms.append(r)
 		_fill(w, r, World.FLOOR)
-	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
-	for i in range(1, w.rooms.size()):
-		_corridor(w, _centre(w.rooms[i - 1]), _centre(w.rooms[i]))
-	for k in LOOPS:
-		var a := w.rng.randi_range(0, w.rooms.size() - 1)
-		var b := w.rng.randi_range(0, w.rooms.size() - 1)
-		if absi(a - b) > 1:
-			_corridor(w, _centre(w.rooms[a]), _centre(w.rooms[b]))
-	_doors(w)
+	out.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
+	return out
+
+
+## One or two rows, at least 3 apart, for the bridges between a pair of pavilions.
+static func _bridge_rows(w: World) -> Array[int]:
+	var out: Array[int] = [w.rng.randi_range(BRIDGE_ROWS.x, BRIDGE_ROWS.y)]
+	var second := w.rng.randi_range(BRIDGE_ROWS.x, BRIDGE_ROWS.y)
+	if w.rng.randf() < 0.5 and absi(second - out[0]) >= 3:
+		out.append(second)
+	return out
+
+
+## A plank across the sky on row y from pavilion i - 1 to pavilion i, with an
+## opening in each of their outer walls.
+static func _bridge(w: World, groups: Array[Array], blocks: Array[Rect2i], i: int, y: int) -> void:
+	var west := blocks[i - 1]
+	var east := blocks[i]
+	for x in range(west.end.x, east.position.x):
+		w.tiles[Grid.index(Vector2i(x, y))] = World.BRIDGE
+	_mouth(w, groups[i - 1], Vector2i(west.end.x - 1, y), Vector2i.LEFT)
+	_mouth(w, groups[i], Vector2i(east.position.x, y), Vector2i.RIGHT)
+
+
+## An opening in an outer wall and a corridor from just inside it to the nearest room.
+static func _mouth(w: World, rooms: Array, mouth: Vector2i, inward: Vector2i) -> void:
+	var inner := mouth + inward
+	var near: Rect2i = rooms.reduce(
+		func(best: Rect2i, r: Rect2i):
+			return (
+				r
+				if _centre(r).distance_squared_to(inner) < _centre(best).distance_squared_to(inner)
+				else best
+			),
+		rooms[0]
+	)
+	w.tiles[Grid.index(mouth)] = World.FLOOR
+	_corridor(w, inner, _centre(near))
 
 
 static func _fill(w: World, r: Rect2i, t: int) -> void:
