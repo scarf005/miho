@@ -157,7 +157,7 @@ static func _moves(k: World) -> String:
 			var note := ""
 			if a != null:
 				note = "(claw %s)" % a.info().name
-			elif k.tile(k.player().pos + d) == World.LANTERN:
+			elif Terrain.lantern(k.tile(k.player().pos + d)):
 				note = "(knock lantern)"
 			out.append(NAMES[d] + note)
 	return ", ".join(out) if not out.is_empty() else "none"
