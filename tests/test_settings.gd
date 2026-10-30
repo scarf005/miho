@@ -93,3 +93,10 @@ func test_old_default_keys_saved_before_the_key_change_give_way_to_new_ones() ->
 	c.set_value("settings", "keys_version", Settings.KEYS_VERSION)
 	s.from_config(c)
 	assert_eq(Keys.keys_of(&"explore"), ["X"] as Array[String], "chosen after the change")
+
+
+func test_saved_spells_round_trip_and_bad_ones_are_dropped() -> void:
+	var s := Settings.new()
+	s.spells = {&"slot_1": "fox+fire", &"slot_2": "fire"}
+	var back := _reload(s)
+	assert_eq(back.spells, {&"slot_1": "fox+fire"})

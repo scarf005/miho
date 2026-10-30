@@ -14,6 +14,8 @@ const MOVES := {
 	&"move_w": Vector2i(-1, 0),
 	&"move_nw": Vector2i(-1, -1),
 }
+## Saved-spell slots, in order.
+const SLOTS: Array[StringName] = [&"slot_1", &"slot_2", &"slot_3", &"slot_4", &"slot_5", &"slot_6"]
 ## action -> [name, default keys]
 const ACTIONS := {
 	&"move_n": ["위로", ["Up", "Kp 8", "K"]],
@@ -33,6 +35,13 @@ const ACTIONS := {
 	&"pick_5": ["부적 5", ["5"]],
 	&"pick_6": ["부적 6", ["6"]],
 	&"pick_7": ["부적 7", ["7"]],
+	&"spellbook": ["주문서", ["I"]],
+	&"slot_1": ["저장 주문 1", ["Q"]],
+	&"slot_2": ["저장 주문 2", ["W"]],
+	&"slot_3": ["저장 주문 3", ["E"]],
+	&"slot_4": ["저장 주문 4", ["A"]],
+	&"slot_5": ["저장 주문 5", ["S"]],
+	&"slot_6": ["저장 주문 6", ["D"]],
 	&"cancel": ["취소 / 설정", ["Escape"]],
 	&"stairs": ["계단으로 가기", ["Shift+Period"]],
 	&"explore": ["자동 탐험", ["O"]],

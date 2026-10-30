@@ -2,9 +2,12 @@ class_name Menu
 extends RefCounted
 ## Full-screen pages over the game, moved through with the direction keys,
 ## Enter and Esc, or the pointer: help lists every action with its keys;
-## options change the settings; key settings bind keys to actions.
+## options change the settings; key settings bind keys to actions; the
+## spellbook lists every spell Miho's talismans make, with what the selected
+## one does, and a slot key saves it to that slot.
 ## `key`, `use` and `back` return what the game should do: &"close",
-## &"changed" (settings or keys changed), &"restart", or nothing.
+## &"changed" (settings or keys changed), &"restart", &"cast" (pick `chosen`),
+## or nothing.
 
 const VALUE_COL := 18.0
 const MOUSE := [
@@ -32,6 +35,9 @@ var page := &""
 var selected := 0
 ## On the key page: the selected action waits for the key to bind.
 var waiting := false
+## The spellbook's talismans, and the spell Enter chose there.
+var cards: Array[StringName] = []
+var chosen: Spell
 
 
 func open(p: StringName) -> void:
@@ -47,6 +53,10 @@ func panel() -> Dictionary:
 			return {title = "설정", rows = _options(), selected = selected}
 		&"keys":
 			return {title = "키 설정", rows = _keys(), selected = selected}
+		&"spells":
+			var list := Spell.every(cards)
+			var detail: Array = Info.spell(list[selected]) if not list.is_empty() else []
+			return {title = "주문서", rows = _spells(list), selected = selected, detail = detail}
 	return {title = "도움말", rows = _help(), selected = selected}
 
 
@@ -54,6 +64,16 @@ func panel() -> Dictionary:
 func key(e: InputEventKey) -> StringName:
 	if waiting:
 		return _bind(e)
+	var slot := Keys.action_of(e)
+	if page == &"spells" and Keys.SLOTS.has(slot) and not Spell.every(cards).is_empty():
+		var k := Spell.every(cards)[selected].key()
+		var had: bool = settings.spells.get(slot, "") == k
+		for s in settings.spells.keys():
+			if settings.spells[s] == k:
+				settings.spells.erase(s)
+		if not had:
+			settings.spells[slot] = k
+		return &"changed"
 	if (
 		page == &"keys"
 		and e.keycode in [KEY_DELETE, KEY_BACKSPACE]
@@ -77,6 +97,36 @@ func key(e: InputEventKey) -> StringName:
 	return out
 
 
+## The first key of the slot a spell is saved in, or empty.
+static func slot_key(spells: Dictionary, key: String) -> String:
+	for slot in spells:
+		if spells[slot] == key and not Keys.keys_of(slot).is_empty():
+			return Keys.label(Keys.keys_of(slot)[0])
+	return ""
+
+
+## Enter in the spellbook: cast the selected spell, or close when there is none.
+func _choose() -> StringName:
+	var list := Spell.every(cards)
+	chosen = list[selected] if not list.is_empty() else null
+	return &"cast" if chosen != null else &"close"
+
+
+## Every spell as a row: its slot key if saved, talismans, name and cost.
+func _spells(list: Array[Spell]) -> Array:
+	var rows := []
+	for s in list:
+		var row := [[slot_key(settings.spells, s.key()), Palette.SIDE[0]]]
+		for k in s.cards.size():
+			row.append([Cards.GLYPH[s.cards[k]], Palette.CARD[s.cards[k]], 2.0 + k])
+		row.append([s.title(), Palette.TEXT, 7.0])
+		row.append(["꼬리 %d" % s.cost(), Palette.DIM, VALUE_COL])
+		rows.append(row)
+	if rows.is_empty():
+		rows.append([["여우불이나 구슬 부적이 없다", Palette.DIM]])
+	return rows
+
+
 ## The pointer is over row k.
 func point(k: int) -> void:
 	if k >= 0 and not waiting:
@@ -85,14 +135,13 @@ func point(k: int) -> void:
 
 ## Enter on the selected row.
 func use() -> StringName:
-	if page == &"help":
-		return &"close"
-	if page == &"keys":
-		if selected >= _actions().size():
-			Keys.reset()
-			return &"changed"
-		waiting = true
-		return &""
+	match page:
+		&"help":
+			return &"close"
+		&"spells":
+			return _choose()
+		&"keys":
+			return _use_key_row()
 	var row: StringName = OPTIONS[selected]
 	match row:
 		&"keys":
@@ -101,6 +150,14 @@ func use() -> StringName:
 		&"restart", &"close":
 			return row
 	return _change(1)
+
+
+func _use_key_row() -> StringName:
+	if selected >= _actions().size():
+		Keys.reset()
+		return &"changed"
+	waiting = true
+	return &""
 
 
 ## Esc: the key page goes back to the options, others close.

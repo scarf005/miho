@@ -23,6 +23,8 @@ var zoom := 0.0
 var speed := 1.0
 var replay := true
 var muted := false
+## Saved spells: slot action (Keys.SLOTS) -> Spell.key().
+var spells := {}
 
 
 ## Settings from the file at `from`, or the defaults; binds the keys either way.
@@ -46,6 +48,8 @@ func to_config() -> ConfigFile:
 	for n in NAMES:
 		c.set_value("settings", n, get(n))
 	c.set_value("settings", "keys_version", KEYS_VERSION)
+	for slot in spells:
+		c.set_value("spells", slot, spells[slot])
 	for action in Keys.ACTIONS:
 		var keys := Keys.keys_of(action)
 		if keys != Keys.ACTIONS[action][1]:
@@ -63,6 +67,11 @@ func from_config(c: ConfigFile) -> void:
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)
 	replay = bool(c.get_value("settings", "replay", replay))
 	muted = bool(c.get_value("settings", "muted", muted))
+	spells = {}
+	for slot in Keys.SLOTS:
+		var key = c.get_value("spells", slot, "")
+		if key is String and Spell.from_key(key) != null:
+			spells[slot] = key
 	Keys.reset()
 	var old: bool = c.get_value("settings", "keys_version", 1) < KEYS_VERSION
 	for action in Keys.ACTIONS:

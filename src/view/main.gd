@@ -33,6 +33,8 @@ var state := &"title"
 var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
+## Key of the spell under the pointer on the status or talisman row, or empty.
+var hover_spell := ""
 ## Look mode: the direction keys move the cursor, which is `hover`.
 var looking := false
 var skip := false
@@ -89,6 +91,7 @@ func _apply() -> void:
 	menu.settings = settings
 	settings.apply_sound()
 	term.muted = settings.muted or settings.volume == 0
+	term.saved = settings.spells
 	glass.visible = settings.crt
 	term.speed = settings.speed
 	_fit()
@@ -169,6 +172,11 @@ func _key(event: InputEventKey) -> void:
 		_journey(_to_exit, "아직 계단을 찾지 못했다")
 	elif action == &"explore":
 		_journey(_exploring, "더 탐험할 곳이 없다")
+	elif action == &"spellbook":
+		menu.cards = world.cards
+		_open(&"spells")
+	elif Keys.SLOTS.has(action):
+		_recall(settings.spells.get(action, ""))
 	elif action == &"look":
 		looking = true
 		_look_at(world.player().pos)
@@ -223,10 +231,12 @@ func _point(screen: Vector2) -> void:
 		tile = term.side_at(local)
 	var card := term.card_at(local)
 	var status := term.status_at(local)
-	if tile != hover or card != hover_card or status != hover_status:
+	var spell := term.slot_at(local) + term.hand_at(local)
+	if tile != hover or card != hover_card or status != hover_status or spell != hover_spell:
 		hover = tile
 		hover_card = card
 		hover_status = status
+		hover_spell = spell
 		if state == &"play" and not busy:
 			_refresh()
 
@@ -269,6 +279,25 @@ func _toggle(card: StringName) -> void:
 		picked.erase(card)
 	elif picked.size() < Spell.MAX_CARDS and _held() + picked.size() < world.tails:
 		picked.append(card)
+	sfx.play(&"click")
+	_forecast()
+
+
+## Picks a saved spell's talismans to aim it, if Miho has them and the tails.
+func _recall(key: String) -> void:
+	var spell := Spell.from_key(key) if key != "" else null
+	var why := ""
+	if spell == null:
+		why = "저장한 주문이 없다. I로 주문서를 열고 칸 키를 눌러 저장"
+	elif not spell.cards.all(func(c): return world.cards.has(c)):
+		why = "부적이 모자라다"
+	elif spell.cost() + _held() > world.tails:
+		why = "꼬리가 모자라다"
+	if why != "":
+		_say(why)
+		sfx.play(&"click")
+		return
+	picked.assign(spell.cards)
 	sfx.play(&"click")
 	_forecast()
 
@@ -452,6 +481,11 @@ func _panel_input(event: InputEvent) -> void:
 		&"changed":
 			settings.save()
 			_apply()
+		&"cast":
+			_close()
+			_clear()
+			_recall(menu.chosen.key())
+			return
 		&"restart":
 			_close()
 			state = &"play"
@@ -587,7 +621,9 @@ func _inspect() -> void:
 	if state != &"play":
 		return
 	term.cursor = hover
-	if hover_card != &"":
+	if hover_spell != "":
+		term.info = Info.spell(Spell.from_key(hover_spell))
+	elif hover_card != &"":
 		term.info = Info.card(hover_card)
 	elif hover_status:
 		term.info = Info.creature(known, known.player())

@@ -48,6 +48,26 @@ static func make(picked: Array) -> Spell:
 	return spell
 
 
+## Every spell the talismans in `have` make, cheapest first, then in card order.
+static func every(have: Array) -> Array[Spell]:
+	var cards: Array = Cards.ALL.filter(func(c): return have.has(c))
+	var out: Array[Spell] = []
+	for mask in range(1, 1 << cards.size()):
+		var pick := []
+		for i in cards.size():
+			if mask & (1 << i):
+				pick.append(cards[i])
+		var s := make(pick)
+		if s != null:
+			out.append(s)
+	out.sort_custom(func(a, b): return [a.cost(), a._order()] < [b.cost(), b._order()])
+	return out
+
+
+func _order() -> Array:
+	return cards.map(func(c): return Cards.ALL.find(c))
+
+
 func has(card: StringName) -> bool:
 	return cards.has(card)
 
@@ -69,6 +89,11 @@ func elements() -> Array[StringName]:
 
 func key() -> String:
 	return "+".join(cards)
+
+
+## The spell a key() names, or null.
+static func from_key(k: String) -> Spell:
+	return make(Array(k.split("+")).map(func(c): return StringName(c)))
 
 
 func form_name() -> String:

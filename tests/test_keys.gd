@@ -29,7 +29,7 @@ func test_shift_with_a_direction_still_moves() -> void:
 
 
 func test_an_unbound_key_means_nothing() -> void:
-	assert_eq(Keys.action_of(_press("Q")), &"")
+	assert_eq(Keys.action_of(_press("F12")), &"")
 	assert_eq(Keys.action_of(_press("Shift+X")), &"")
 
 

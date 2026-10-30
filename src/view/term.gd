@@ -70,6 +70,8 @@ var info: Array = []
 var speed := 1.0
 ## Sound is off; the status row says so.
 var muted := false
+## Saved spells (Settings.spells), listed on the status row by their slot keys.
+var saved := {}
 var banner_lines: Array[String] = []
 ## Recent message lines over the top map rows, oldest first: [text, alpha].
 var log_lines: Array = []
@@ -312,6 +314,56 @@ func side_at(local: Vector2) -> Vector2i:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
+
+
+## Saved spells on the status row: {action, key, x, width}, left to right.
+func _slots() -> Array:
+	var out := []
+	if world == null:
+		return out
+	var x := MAP.x + world.max_tails() + 1.0
+	for action in Keys.SLOTS:
+		if not saved.has(action):
+			continue
+		var keys := Keys.keys_of(action)
+		var spell := Spell.from_key(saved[action])
+		var width := 0.5 + spell.cards.size()
+		out.append(
+			{
+				action = action,
+				key = Keys.label(keys[0]) if not keys.is_empty() else "",
+				x = x,
+				width = width
+			}
+		)
+		x += width + 1.0
+	return out
+
+
+## Whether Miho has a spell's talismans and the tails for it beside `held`.
+func _castable(spell: Spell, held: int) -> bool:
+	return (
+		spell.cards.all(func(c): return world.cards.has(c)) and spell.cost() + held <= world.tails
+	)
+
+
+## The saved spell under a point in this node's space, or empty.
+func slot_at(local: Vector2) -> String:
+	var c := local / CELL
+	if floori(c.y) != rows - 2:
+		return ""
+	for slot in _slots():
+		if c.x >= slot.x and c.x < slot.x + slot.width:
+			return saved[slot.action]
+	return ""
+
+
+## The spell in hand under a point in this node's space, or empty.
+func hand_at(local: Vector2) -> String:
+	var spell := Spell.make(picked)
+	if spell == null or floori(local.y / CELL.y) != rows - 1:
+		return ""
+	return spell.key() if local.x / CELL.x >= cols - _cells(spell.title()) else ""
 
 
 ## Whether a point in this node's space is on Miho's health or tails.
@@ -631,6 +683,15 @@ func _draw_bottom() -> void:
 	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
 	if muted:
 		_text(Vector2(cols - _cells(right) - 4.0, row), "소리 끔", Palette.HURT)
+	for slot in _slots():
+		var spell := Spell.from_key(saved[slot.action])
+		var ready := _castable(spell, held)
+		_small(Vector2(slot.x, row + 0.05), slot.key, Palette.TEXT if ready else Palette.DIM)
+		for k in spell.cards.size():
+			var c: Color = Palette.CARD[spell.cards[k]]
+			_glyph(
+				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.cards[k]], c if ready else c * 0.4
+			)
 	row += 1
 	for i in world.cards.size():
 		var card := world.cards[i]
@@ -693,15 +754,28 @@ func _draw_log() -> void:
 
 ## Rows of the panel that fit, and the first one shown.
 func _panel_span() -> Vector2i:
-	var fits := maxi(1, rows - 4)
+	var fits := maxi(1, rows - 4 - _detail_rows())
 	var count: int = panel.rows.size()
 	var selected: int = panel.get("selected", -1)
 	var first := count - fits if selected < 0 else selected - fits / 2
 	return Vector2i(clampi(first, 0, maxi(0, count - fits)), fits)
 
 
+## Rows the panel's detail takes at its foot, with a gap above.
+func _detail_rows() -> int:
+	var n: int = panel.get("detail", []).size()
+	return n + 1 if n > 0 else 0
+
+
 func _draw_panel() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(Palette.VOID, 0.92))
+	var detail: Array = panel.get("detail", [])
+	for k in detail.size():
+		var y := rows - detail.size() + k
+		var x := 2.0
+		for run: Array in detail[k]:
+			_text(Vector2(x, y), run[0], run[1])
+			x += _cells(run[0])
 	_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
 	var span := _panel_span()
 	for k in range(span.x, mini(span.x + span.y, panel.rows.size())):
