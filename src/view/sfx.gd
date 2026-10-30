@@ -34,7 +34,6 @@ const WORDS := {
 	"타닥": &"burn",
 }
 
-var muted := false
 var listener: AudioListener2D
 var _streams := {}
 var _flat := {}
@@ -56,13 +55,13 @@ func _ready() -> void:
 
 ## A sound with no place: interface and storey changes.
 func play(n: StringName) -> void:
-	if not muted and _flat.has(n):
+	if _flat.has(n):
 		_flat[n].play()
 
 
 ## A sound at a point in this node's space; quieter when heard, not seen.
 func play_at(n: StringName, at: Vector2, volume_db := 0.0) -> void:
-	if muted or not _streams.has(n):
+	if not _streams.has(n):
 		return
 	var p := AudioStreamPlayer2D.new()
 	p.stream = _streams[n]

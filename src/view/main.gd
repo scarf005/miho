@@ -4,7 +4,7 @@ extends Node
 ## with claws. 1-7 pick talismans; with talismans picked a direction hurls the
 ## spell, and Shift with a direction holds it so several spells leave in one
 ## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
-## picked and, with nothing to clear, opens the options; M mutes.
+## picked and, with nothing to clear, opens the options.
 ## > walks to the stairs, o explores, z rests until the tails regrow. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
 ## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
@@ -108,7 +108,6 @@ func _show_title() -> void:
 func _apply() -> void:
 	menu.settings = settings
 	settings.apply_sound()
-	term.muted = settings.muted or settings.volume == 0
 	term.saved = settings.spells
 	glass.visible = settings.crt
 	term.speed = settings.speed
@@ -253,11 +252,6 @@ func _key(event: InputEventKey) -> void:
 		_journey(_resting, "꼬리가 이미 다 자랐다")
 	elif action in [&"log", &"help"]:
 		_open(action)
-	elif action == &"mute":
-		settings.muted = not settings.muted
-		settings.save()
-		_apply()
-		_say("소리 끔" if settings.muted else "소리 켬")
 
 
 func _click(event: InputEventMouseButton) -> void:

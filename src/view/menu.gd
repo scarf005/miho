@@ -249,7 +249,7 @@ static func _nav(e: InputEventKey) -> StringName:
 
 func _options() -> Array:
 	var values := {
-		&"volume": str(settings.volume),
+		&"volume": str(settings.volume) if settings.volume > 0 else "끔",
 		&"crt": _on(settings.crt),
 		&"zoom": "맞춤" if settings.zoom == 0.0 else str(settings.zoom),
 		&"speed": "%dx" % int(settings.speed),

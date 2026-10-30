@@ -5,7 +5,7 @@ extends RefCounted
 ## reads and writes them through Keys.
 
 const PATH := "user://settings.cfg"
-const NAMES := ["volume", "crt", "zoom", "speed", "replay", "muted"]
+const NAMES := ["volume", "crt", "zoom", "speed", "replay"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -22,7 +22,6 @@ var crt := true
 var zoom := 0.0
 var speed := 1.0
 var replay := true
-var muted := false
 ## Saved spells: slot action (Keys.SLOTS) -> Spell.key().
 var spells := {}
 
@@ -66,7 +65,6 @@ func from_config(c: ConfigFile) -> void:
 	zoom = _one_of(c.get_value("settings", "zoom", zoom), ZOOMS, zoom)
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)
 	replay = bool(c.get_value("settings", "replay", replay))
-	muted = bool(c.get_value("settings", "muted", muted))
 	spells = {}
 	for slot in Keys.SLOTS:
 		var key = c.get_value("spells", slot, "")
@@ -84,7 +82,7 @@ static func _one_of(v: Variant, allowed: Array, fallback: float) -> float:
 	return float(v) if (v is float or v is int) and allowed.has(float(v)) else fallback
 
 
-## Sets the master bus to the volume, silent when muted or at 0.
+## Sets the master bus to the volume, silent at 0.
 func apply_sound() -> void:
 	AudioServer.set_bus_volume_db(0, linear_to_db(volume / 100.0))
-	AudioServer.set_bus_mute(0, muted or volume == 0)
+	AudioServer.set_bus_mute(0, volume == 0)

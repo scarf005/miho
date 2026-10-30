@@ -49,7 +49,6 @@ const ACTIONS := {
 	&"rest": ["쉬기", ["Z"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
 	&"log": ["지난 메시지", ["Ctrl+P", "P"]],
-	&"mute": ["소리 끄기", ["M"]],
 	&"restart": ["재시작", ["R"]],
 }
 

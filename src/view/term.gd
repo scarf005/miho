@@ -68,8 +68,6 @@ var replay := false
 var cursor := Vector2i(-1, -1)
 var info: Array = []
 var speed := 1.0
-## Sound is off; the status row says so.
-var muted := false
 ## Saved spells (Settings.spells), listed on the status row by their slot keys.
 var saved := {}
 var banner_lines: Array[String] = []
@@ -682,8 +680,6 @@ func _draw_bottom() -> void:
 		_glyph(Vector2(MAP.x + i, row), "~", c)
 	var right := "%d층 %d초" % [world.depth, world.round_no]
 	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
-	if muted:
-		_text(Vector2(cols - _cells(right) - 4.0, row), "소리 끔", Palette.HURT)
 	for slot in _slots():
 		var spell := Spell.from_key(saved[slot.action])
 		var ready := _castable(spell, held)
