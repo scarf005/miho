@@ -20,6 +20,11 @@ static func inside(p: Vector2i) -> bool:
 	return p.x >= 0 and p.y >= 0 and p.x < W and p.y < H
 
 
+## `p` moved `n` steps along direction `d`, kept on the board.
+static func nudge(p: Vector2i, d: Vector2i, n := 1) -> Vector2i:
+	return (p + d * n).clamp(Vector2i.ZERO, Vector2i(W - 1, H - 1))
+
+
 static func index(p: Vector2i) -> int:
 	return p.y * W + p.x
 

@@ -28,9 +28,12 @@ func test_help_lists_every_action_with_its_current_keys() -> void:
 	for action in Keys.ACTIONS:
 		if not action.begins_with("pick_"):
 			assert_string_contains(text, Keys.ACTIONS[action][0])
-	assert_string_contains(text, "탐험 Shift+X")
-	assert_string_contains(text, "계단으로 Shift+.")
+	assert_string_contains(text, "자동 탐험 Shift+X")
+	assert_string_contains(text, "계단으로 가기 Shift+.")
 	assert_string_contains(text, "부적 고르기 1 2 3 4 5 6 7")
+	assert_string_contains(text, "살펴보기 X")
+	assert_string_contains(text, "지난 메시지 Ctrl+P, P")
+	assert_string_contains(text, "살피는 중")
 
 
 func test_help_scrolls_and_esc_closes_it() -> void:
@@ -88,7 +91,7 @@ func test_a_new_key_leaves_the_action_that_had_it() -> void:
 	assert_true(menu.waiting)
 	assert_eq(menu.key(_press("Shift")), &"", "a modifier alone waits on")
 	assert_eq(menu.key(_press("Shift+K")), &"changed")
-	assert_eq(Keys.keys_of(&"explore"), ["X", "Shift+K"] as Array[String])
+	assert_eq(Keys.keys_of(&"explore"), ["O", "Shift+K"] as Array[String])
 	menu.key(_press("Enter"))
 	assert_eq(menu.key(_press("K")), &"changed")
 	assert_eq(Keys.keys_of(&"move_n"), ["Up", "Kp 8"] as Array[String], "K left moving up")

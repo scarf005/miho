@@ -56,3 +56,25 @@ func test_missing_or_wrong_values_fall_back_to_defaults() -> void:
 	assert_eq(s.speed, 1.0)
 	assert_eq(Keys.keys_of(&"wait"), Keys.ACTIONS[&"wait"][1] as Array[String])
 	assert_eq(Keys.keys_of(&"move_n"), Keys.ACTIONS[&"move_n"][1] as Array[String])
+
+
+func test_only_changed_keys_are_saved() -> void:
+	Keys.bind(&"explore", ["Kp Add"])
+	Keys.bind(&"rest", [])
+	var c := Settings.new().to_config()
+	assert_eq(c.get_section_keys("keys"), PackedStringArray(["explore", "rest"]))
+	assert_eq(c.get_value("keys", "rest"), [])
+	Keys.reset()
+	assert_false(Settings.new().to_config().has_section("keys"), "defaults store no keys")
+
+
+func test_defaults_changed_since_saving_reach_the_player() -> void:
+	var c := ConfigFile.new()
+	c.set_value("keys", "explore", ["Kp Add"])
+	c.set_value("keys", "options", ["O"])
+	c.set_value("keys", "gone", ["Q"])
+	Settings.new().from_config(c)
+	assert_eq(Keys.keys_of(&"explore"), ["Kp Add"] as Array[String])
+	assert_eq(Keys.keys_of(&"cancel"), Keys.ACTIONS[&"cancel"][1] as Array[String])
+	assert_false(InputMap.has_action(&"gone"))
+	assert_false(InputMap.has_action(&"options"))

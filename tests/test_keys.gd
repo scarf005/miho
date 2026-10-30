@@ -44,3 +44,16 @@ func test_labels_show_printable_keys_as_characters() -> void:
 	assert_eq(Keys.label("K"), "K")
 	assert_eq(Keys.label("Kp 8"), "Kp 8")
 	assert_eq(Keys.label("Escape"), "Escape")
+
+
+func test_default_keys_follow_roguelike_conventions() -> void:
+	assert_eq(Keys.action_of(_press("O")), &"explore")
+	assert_eq(Keys.action_of(_press("Escape")), &"cancel")
+	assert_eq(Keys.action_of(_press("Ctrl+P")), &"log")
+	assert_eq(Keys.action_of(_press("P")), &"log")
+	assert_false(Keys.ACTIONS.has(&"options"), "Esc is the one key for cancel and options")
+
+
+func test_x_looks_around_and_the_look_key_is_not_exploring() -> void:
+	assert_eq(Keys.action_of(_press("X")), &"look")
+	assert_ne(Keys.action_of(_press("X")), &"explore")
