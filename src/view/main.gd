@@ -13,6 +13,9 @@ const REPLAY_ZOOM := 1.5
 const REPLAY_SPEED := 0.7
 ## How much faster rounds play while walking many rounds.
 const WALK_SPEED := 3.0
+## Message lines shown over the map, and for how many rounds.
+const LOG_ROWS := 3
+const LOG_FADE := 5
 
 var world: World
 var term: Term
@@ -34,6 +37,9 @@ var pan: Tween
 ## A walk of many rounds is under way, and a key or click asked it to stop.
 var walking := false
 var halt := false
+var messages := Messages.new()
+## The full-screen panel open over the game, or empty.
+var overlay := &""
 ## Worked out once per world or talisman change: what Miho knows, the forecast
 ## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
 ## and forecasts of the spell hurled each way, filled as the pointer aims.
@@ -76,6 +82,8 @@ func _fit() -> void:
 
 func _new_run(seed_value := randi()) -> void:
 	world = World.create(seed_value)
+	messages = Messages.new()
+	term.log_lines = []
 	reel.clear()
 	picked.clear()
 	staged.clear()
@@ -87,33 +95,28 @@ func _new_run(seed_value := randi()) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	var press := event.is_pressed() and not event.is_echo()
 	if event is InputEventMouseMotion:
 		_point(event.position)
-		return
-	var press := event.is_pressed() and not event.is_echo()
-	if state == &"replay":
-		if press:
-			skip = true
-			term.speed = 8.0
-		return
-	if walking:
+	elif state == &"replay":
+		skip = skip or press
+		term.speed = 8.0 if skip else term.speed
+	elif walking:
 		halt = halt or press
-		return
-	if busy:
-		return
-	if state == &"title":
-		if press:
-			state = &"play"
-			term.banner_lines = []
-			sfx.play(&"card")
-		return
-	if state == &"over":
-		if press and Keys.action_of(event) == &"restart":
+	elif busy or not event.is_pressed() or event.is_echo() and (overlay != &"" or state != &"play"):
+		pass
+	elif overlay != &"":
+		_close()
+	elif state == &"title":
+		state = &"play"
+		term.banner_lines = []
+		sfx.play(&"card")
+	elif state == &"over":
+		if Keys.action_of(event) == &"restart":
 			state = &"play"
 			term.banner_lines = []
 			_new_run()
-		return
-	if event is InputEventKey and event.is_pressed():
+	elif event is InputEventKey:
 		_key(event)
 	elif event is InputEventMouseButton and press:
 		_click(event)
@@ -136,11 +139,13 @@ func _key(event: InputEventKey) -> void:
 	elif action == &"cancel":
 		_clear()
 	elif action == &"stairs":
-		_journey(_to_exit)
+		_journey(_to_exit, "계단을 아직 못 봤다")
 	elif action == &"explore":
-		_journey(_exploring)
+		_journey(_exploring, "더 갈 곳이 없다")
 	elif action == &"rest":
-		_journey(_resting)
+		_journey(_resting, "꼬리가 다 있다")
+	elif action == &"log":
+		_open(&"log")
 	elif action == &"mute":
 		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 
@@ -244,6 +249,9 @@ func _act(action: Dictionary) -> Array:
 	reel.record(before, action, events)
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
+	for text in Messages.of(before, world, events):
+		messages.add(text, world.round_no)
+	_show_log()
 	if action.t == &"cast":
 		picked.clear()
 		staged.clear()
@@ -265,8 +273,8 @@ func _act(action: Dictionary) -> Array:
 ## Plays `next` (an action, or empty when done) round after round. Stops
 ## before a step whose forecast shows harm or being noticed, and after a round
 ## in which something Miho should react to happened (Travel.interrupted), or
-## when a key or click asks.
-func _journey(next: Callable) -> void:
+## when a key or click asks. `why` is said when it cannot take a first step.
+func _journey(next: Callable, why := "") -> void:
 	_clear()
 	var sighted := Travel.in_sight(world)
 	var rounds := 0
@@ -275,9 +283,11 @@ func _journey(next: Callable) -> void:
 	term.speed = speed * WALK_SPEED
 	while not halt and state == &"play":
 		var action: Dictionary = next.call()
-		var f: Forecast = (
-			ahead.get(action.get("dir", Vector2i.ZERO)) if not action.is_empty() else null
-		)
+		if action.is_empty():
+			if rounds == 0 and why != "":
+				_say(why)
+			break
+		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
 		if f == null or f.hurt_me() > 0 or not f.noticed.is_empty() or not world.can(action):
 			break
 		var before := world.clone()
@@ -306,6 +316,36 @@ func _exploring() -> Dictionary:
 
 func _resting() -> Dictionary:
 	return {t = &"wait"} if world.tails < world.max_tails() else {}
+
+
+# --- messages and panels --------------------------------------------------------
+
+
+func _say(text: String) -> void:
+	messages.add(text, world.round_no)
+	_show_log()
+
+
+## The last few lines over the map, older ones dimmer, gone after LOG_FADE rounds.
+func _show_log() -> void:
+	var recent := messages.lines.slice(-LOG_ROWS).filter(
+		func(l): return world.round_no - l.round <= LOG_FADE
+	)
+	term.log_lines = []
+	for k in recent.size():
+		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
+
+
+## Shows a full-screen panel: the message log.
+func _open(kind: StringName) -> void:
+	overlay = kind
+	var rows := messages.lines.map(func(l): return [[Messages.shown(l), Palette.TEXT]])
+	term.panel = {title = "기록", rows = rows, selected = -1}
+
+
+func _close() -> void:
+	overlay = &""
+	term.panel = {}
 
 
 ## The storey's best moment, zoomed in on Miho and slowed down; any key skips it.

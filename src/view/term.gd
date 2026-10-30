@@ -43,6 +43,13 @@ var cursor := Vector2i(-1, -1)
 var info: Array = []
 var speed := 1.0
 var banner_lines: Array[String] = []
+## Recent message lines over the top map rows, oldest first: [text, alpha].
+var log_lines: Array = []
+## A full-screen list over everything, or empty: {title, rows, selected}, each
+## row a list of [text, Color] runs, a run optionally starting at a given
+## column ([text, Color, x]); the selected row (-1 for none) is kept in view,
+## and with none the last rows are.
+var panel := {}
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
@@ -352,6 +359,7 @@ func _draw() -> void:
 	if not replay:
 		_draw_side(actors, me_pos)
 		_draw_bottom()
+		_draw_log()
 		_draw_info()
 	var v := map_view()
 	if not banner_lines.is_empty():
@@ -363,6 +371,8 @@ func _draw() -> void:
 		var w := _cells(line)
 		var x := clampf(MAP.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
 		_text(Vector2(x, top + i * 2), line, color)
+	if not panel.is_empty():
+		_draw_panel()
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
@@ -561,6 +571,50 @@ func _draw_info() -> void:
 		for run: Array in info[k]:
 			_text(Vector2(x, from.y + k), run[0], run[1])
 			x += _cells(run[0])
+
+
+func _draw_log() -> void:
+	for k in log_lines.size():
+		var text: String = log_lines[k][0]
+		var alpha: float = log_lines[k][1]
+		var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(_cells(text) + 1.0, 1) * CELL)
+		draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
+		_text(Vector2(MAP.x + 0.5, k), text, Color(Palette.TEXT, alpha))
+
+
+## Rows of the panel that fit, and the first one shown.
+func _panel_span() -> Vector2i:
+	var fits := maxi(1, rows - 4)
+	var count: int = panel.rows.size()
+	var selected: int = panel.get("selected", -1)
+	var first := count - fits if selected < 0 else selected - fits / 2
+	return Vector2i(clampi(first, 0, maxi(0, count - fits)), fits)
+
+
+func _draw_panel() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Palette.VOID, 0.92))
+	_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
+	var span := _panel_span()
+	for k in range(span.x, mini(span.x + span.y, panel.rows.size())):
+		var y := 3 + k - span.x
+		if k == panel.get("selected", -1):
+			draw_rect(
+				Rect2(Vector2(1, y) * CELL, Vector2(cols - 2, 1) * CELL), Color(Palette.TEXT, 0.15)
+			)
+		var x := 2.0
+		for run: Array in panel.rows[k]:
+			x = run[2] if run.size() > 2 else x
+			_text(Vector2(x, y), run[0], run[1])
+			x += _cells(run[0])
+
+
+## The panel row under a point in this node's space, or -1.
+func panel_row_at(local: Vector2) -> int:
+	if panel.is_empty():
+		return -1
+	var span := _panel_span()
+	var k := floori(local.y / CELL.y) - 3 + span.x
+	return k if k >= span.x and k < mini(span.x + span.y, panel.rows.size()) else -1
 
 
 func _pips(at: Vector2, n: int, of: int, color: Color) -> void:
