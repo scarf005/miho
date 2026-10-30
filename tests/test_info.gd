@@ -22,6 +22,18 @@ func test_breakable_terrain_shows_its_health_as_hearts() -> void:
 	assert_false(text.contains("♥"), text)
 
 
+func test_walls_show_their_health_but_the_outer_edge_shows_none() -> void:
+	var w := World.create(7)
+	var inner := Vector2i(5, 5)
+	w.tiles[Grid.index(inner)] = World.WALL
+	assert_eq(Info.plain(Info.terrain(w, inner)), "벽 ♥♥")
+	w.tiles[Grid.index(inner)] = World.WALL_CRACKED
+	assert_eq(Info.plain(Info.terrain(w, inner)), "금 간 벽 ♥")
+	w.tiles[Grid.index(inner)] = World.RUBBLE
+	assert_true(Info.plain(Info.terrain(w, inner)).begins_with("무너진 벽\n"))
+	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽")
+
+
 func test_spells_of_the_same_talismans_but_another_form_read_differently() -> void:
 	var fire_orb := Info.plain(Info.spell(Spell.make([Cards.ORB, Cards.FIRE])))
 	var homing := Info.plain(Info.spell(Spell.make([Cards.FOX, Cards.ORB, Cards.FIRE])))

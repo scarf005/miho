@@ -151,6 +151,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"smash":
 			if e.was == World.LANTERN:
 				return [["등불이 꺼졌다", TEXT]]
+			if e.was == World.WALL:
+				return [["벽에 금이 갔다", TEXT]]
+			if e.was == World.WALL_CRACKED:
+				return [["금 간 벽이 무너졌다", TEXT]]
 			return _named(Info.TERRAIN[e.was][0], "이", "가") + [[" 부서졌다", TEXT]]
 	return []
 

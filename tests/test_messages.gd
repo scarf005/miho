@@ -105,6 +105,10 @@ func test_lanterns_doors_and_fire_are_told() -> void:
 	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["등불이 꺼졌다"] as Array[String])
 	var broken := {t = &"smash", at = SEEN, was = World.LANTERN_OUT}
 	assert_eq(_lines(w, [broken]), ["꺼진 등불이 부서졌다"] as Array[String])
+	var crack := {t = &"smash", at = SEEN, was = World.WALL}
+	assert_eq(_lines(w, [crack]), ["벽에 금이 갔다"] as Array[String])
+	var fall := {t = &"smash", at = SEEN, was = World.WALL_CRACKED}
+	assert_eq(_lines(w, [fall]), ["금 간 벽이 무너졌다"] as Array[String])
 	w.tiles[Grid.index(SEEN)] = World.DOOR
 	var door := {t = &"smash", at = SEEN, was = World.DOOR}
 	assert_eq(_lines(w, [door]), ["문이 부서졌다"] as Array[String])
