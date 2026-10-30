@@ -19,10 +19,6 @@ lint:
     gdformat --check src tests
     gdlint src tests
 
-# Re-subset the bundled fonts after changing Korean or Hanja text.
-fonts:
-    uv run --quiet tools/fonts.py
-
 # Export the web build to build/web.
 web:
     mkdir -p build/web

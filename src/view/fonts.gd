@@ -1,19 +1,18 @@
 class_name Fonts
 extends RefCounted
-## The bundled fonts, subset by `just fonts`. Noto Serif KR is variable; pin a weight.
+## The one font: NeoDunggeunmo Code, a monospace pixel font drawn on a 16 px
+## grid (ASCII 8 px wide, Hangul 16 px). Drawn at whole multiples of 16 px
+## without antialiasing, its pixels stay square.
 
-const SERIF := preload("res://assets/fonts/NotoSerifKR-Miho.ttf")
-const BRUSH := preload("res://assets/fonts/NanumBrushScript-Miho.ttf")
+const PIXEL := preload("res://assets/fonts/NeoDunggeunmo.ttf")
 
-static var _weights := {}
+static var _crisp: FontFile
 
 
-static func serif(weight := 600) -> Font:
-	if not _weights.has(weight):
-		var f := FontVariation.new()
-		f.base_font = SERIF
-		f.variation_opentype = {
-			TextServerManager.get_primary_interface().name_to_tag("wght"): weight
-		}
-		_weights[weight] = f
-	return _weights[weight]
+static func pixel() -> FontFile:
+	if _crisp == null:
+		_crisp = PIXEL.duplicate()
+		_crisp.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+		_crisp.hinting = TextServer.HINTING_NONE
+		_crisp.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+	return _crisp
