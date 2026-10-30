@@ -340,7 +340,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not open_air(me.pos + d) or aims.has(d):
+		if not Grid.DIRS.has(d) or not Terrain.throwable(self, spell, me.pos + d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
