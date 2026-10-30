@@ -501,7 +501,7 @@ func _fly(s: Shot, to: Vector2i) -> void:
 ## end of its range.
 func _step(s: Shot) -> void:
 	if s.spell.homing():
-		s.dir = _steer(s)
+		s.dir = Aim.steer(self, s)
 	var to := s.pos + s.dir
 	if not open_floor(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
@@ -597,29 +597,6 @@ func _flash(s: Shot, at: Vector2i) -> void:
 				a.alert = Actor.SEARCH
 				a.target = at
 				a.lost = 0
-
-
-func _steer(s: Shot) -> Vector2i:
-	var target: Actor = null
-	for a in actors:
-		if a.alive() and a.faction != s.faction:
-			if (
-				target == null
-				or Vector2(a.pos - s.pos).length() < Vector2(target.pos - s.pos).length()
-			):
-				target = a
-	if target == null:
-		return s.dir
-	var i := Grid.DIRS.find(s.dir)
-	var best := s.dir
-	var best_len := Vector2(target.pos - (s.pos + s.dir)).length()
-	for turn in [-1, 1]:
-		var d := Grid.DIRS[(i + turn + 8) % 8]
-		var length := Vector2(target.pos - (s.pos + d)).length()
-		if length < best_len - 0.001:
-			best = d
-			best_len = length
-	return best
 
 
 func _strike(s: Shot, a: Actor) -> void:
@@ -746,7 +723,7 @@ func _hunt(a: Actor) -> void:
 		if club > 0 and Grid.cheb(a.pos, me.pos) == 1:
 			_club(a, me, club)
 			return
-		if a.cooldown <= 0 and _charge(a, _plan(a)):
+		if a.cooldown <= 0 and _charge(a, Aim.at_miho(self, a)):
 			return
 		if a.rooted <= 0:
 			_chase(a)
@@ -772,7 +749,7 @@ func _search(a: Actor) -> void:
 			_set_tile(a.pos + d, LANTERN)
 			_emit({t = &"relight", at = a.pos + d, id = a.id})
 			return
-	if a.cooldown <= 0 and _charge(a, _searchlight(a)):
+	if a.cooldown <= 0 and _charge(a, Aim.searchlight(self, a)):
 		return
 	if a.rooted > 0:
 		return
@@ -805,55 +782,6 @@ func _charge(a: Actor, plan: Dictionary) -> bool:
 	a.aim = plan.dir
 	_emit({t = &"charge", id = a.id, cards = a.intent.duplicate(), dir = a.aim})
 	return true
-
-
-## An attack along a line at Miho, when it sees her.
-func _plan(a: Actor) -> Dictionary:
-	var cast := a.next_cast()
-	var spell := Spell.make(cast)
-	var me := player()
-	if spell.homing():
-		return _plan_homing(a, cast)
-	if not spell.strikes():
-		return {}
-	var d := Grid.line_dir(a.pos, me.pos)
-	var r := Grid.cheb(a.pos, me.pos)
-	if (
-		d != Vector2i.ZERO
-		and r >= 2
-		and clear_line(a.pos, me.pos)
-		and (spell.orb or r <= Spell.RANGE)
-	):
-		return {cards = cast, dir = d}
-	return {}
-
-
-## A homing orb leaves towards Miho, or beside her line when a wall is in the way.
-func _plan_homing(a: Actor, cast: Array) -> Dictionary:
-	var me := player()
-	if Grid.cheb(a.pos, me.pos) > 6:
-		return {}
-	var i := Grid.DIRS.find(Grid.nearest_dir(me.pos - a.pos))
-	for turn in [0, -1, 1]:
-		var dir := Grid.DIRS[(i + turn + 8) % 8]
-		if open_floor(a.pos + dir):
-			return {cards = cast, dir = dir}
-	return {}
-
-
-## A wisp thrown at a dark spot it is searching.
-func _searchlight(a: Actor) -> Dictionary:
-	var cast := a.next_cast()
-	var spell := Spell.make(cast)
-	if spell == null or not spell.wisp or spell.orb or lit(a.target):
-		return {}
-	var r := Grid.cheb(a.pos, a.target)
-	if r < 2 or r > Spell.RANGE:
-		return {}
-	var dir := Grid.nearest_dir(a.target - a.pos)
-	if not open_floor(a.pos + dir):
-		return {}
-	return {cards = cast, dir = dir}
 
 
 func _chase(a: Actor) -> void:
