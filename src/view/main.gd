@@ -88,6 +88,7 @@ func _ready() -> void:
 func _apply() -> void:
 	menu.settings = settings
 	settings.apply_sound()
+	term.muted = settings.muted or settings.volume == 0
 	glass.visible = settings.crt
 	term.speed = settings.speed
 	_fit()
@@ -177,8 +178,9 @@ func _key(event: InputEventKey) -> void:
 		_open(action)
 	elif action == &"mute":
 		settings.muted = not settings.muted
-		settings.apply_sound()
 		settings.save()
+		_apply()
+		_say("소리 끔" if settings.muted else "소리 켬")
 
 
 func _click(event: InputEventMouseButton) -> void:

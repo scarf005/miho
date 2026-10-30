@@ -66,6 +66,8 @@ var replay := false
 var cursor := Vector2i(-1, -1)
 var info: Array = []
 var speed := 1.0
+## Sound is off; the status row says so.
+var muted := false
 var banner_lines: Array[String] = []
 ## Recent message lines over the top map rows, oldest first: [text, alpha].
 var log_lines: Array = []
@@ -605,6 +607,8 @@ func _draw_bottom() -> void:
 		_glyph(Vector2(MAP.x + i, row), "~", c)
 	var right := "%d층 %d초" % [world.depth, world.round_no]
 	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
+	if muted:
+		_text(Vector2(cols - _cells(right) - 4.0, row), "소리 끔", Palette.HURT)
 	row += 1
 	for i in world.cards.size():
 		var card := world.cards[i]
