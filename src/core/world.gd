@@ -114,6 +114,7 @@ var scent := PackedInt32Array()
 var _light := PackedVector3Array()
 var _light_dirty := true
 var _fov := {}
+var _opaque := PackedByteArray()
 
 
 static func create(seed_value: int) -> World:
@@ -258,27 +259,20 @@ func clear_line(a: Vector2i, b: Vector2i) -> bool:
 	return true
 
 
-func light_sources() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for i in tiles.size():
-		if tiles[i] == LANTERN:
-			out.append({at = Grid.at(i), radius = Light.LANTERN_RADIUS, color = Light.LANTERN})
-	for p in burning:
-		out.append({at = p, radius = Light.FIRE_RADIUS, color = Light.FIRE})
-	for s in shots:
-		if not s.gone:
-			var l := s.spell.light(s.faction)
-			if not l.is_empty():
-				out.append({at = s.pos, radius = l.radius, color = l.color})
-	return out
+## `opaque` for every tile at once, for Sight and Light (cached until something moves).
+func opaque_mask() -> PackedByteArray:
+	if _opaque.is_empty():
+		_opaque = Masks.opaque(self)
+	return _opaque
 
 
 func light() -> PackedVector3Array:
 	if _light_dirty:
-		_light = Light.field(light_sources(), opaque)
-		for i in tiles.size():
-			if tiles[i] == BRIDGE:
-				_light[i] += Light.MOON
+		_light = Light.field(Light.sources(self), opaque_mask())
+		var i := tiles.find(BRIDGE)
+		while i >= 0:
+			_light[i] += Light.MOON
+			i = tiles.find(BRIDGE, i + 1)
 		_light_dirty = false
 	return _light
 
@@ -290,7 +284,7 @@ func lit(p: Vector2i) -> bool:
 ## Tiles in line of sight from p, lit or not (cached until something moves).
 func fov(p: Vector2i) -> PackedByteArray:
 	if not _fov.has(p):
-		_fov[p] = Sight.field(p, VIEW, opaque)
+		_fov[p] = Sight.field(p, VIEW, opaque_mask())
 	return _fov[p]
 
 
@@ -451,6 +445,7 @@ func emit(e: Dictionary) -> void:
 func _changed() -> void:
 	_light_dirty = true
 	_fov.clear()
+	_opaque = PackedByteArray()
 
 
 func move(a: Actor, to: Vector2i) -> void:
@@ -466,8 +461,7 @@ func move(a: Actor, to: Vector2i) -> void:
 func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 	if loud <= 0:
 		return
-	var open := func(p): return not Terrain.wall(tile(p))
-	var dist: PackedInt32Array = Grid.search(at, open, func(_p): return false, loud).dist
+	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
 	var me := player()
 	var d := dist[Grid.index(me.pos)]
 	var heard_it := by != me.id and d >= 0 and d <= loud

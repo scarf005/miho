@@ -62,32 +62,34 @@ static func nearest_dir(d: Vector2i) -> Vector2i:
 	return best
 
 
-## Breadth-first search from `from`. `open(p)` says whether p may be entered;
-## `stop(p)` marks reachable tiles that are not expanded further (targets);
-## a `limit` of 0 or more leaves tiles farther than that unreached.
+## Breadth-first search from `from` (in Rust, rust/src/lib.rs). `open` holds 1
+## for every tile that may be entered (see `mask`); a `limit` of 0 or more
+## leaves tiles farther than that unreached.
 ## Returns {dist: PackedInt32Array, parent: PackedInt32Array}; unreached tiles have -1.
-static func search(
-	from: Vector2i, open: Callable, stop: Callable = func(_p): return false, limit := -1
-) -> Dictionary:
-	var dist := PackedInt32Array()
-	dist.resize(W * H)
-	dist.fill(-1)
-	var parent := dist.duplicate()
-	dist[index(from)] = 0
-	var queue: Array[Vector2i] = [from]
-	var head := 0
-	while head < queue.size():
-		var p := queue[head]
-		head += 1
-		if (p != from and stop.call(p)) or dist[index(p)] == limit:
-			continue
-		for d in DIRS:
-			var q := p + d
-			if inside(q) and dist[index(q)] < 0 and open.call(q):
-				dist[index(q)] = dist[index(p)] + 1
-				parent[index(q)] = index(p)
-				queue.append(q)
-	return {dist = dist, parent = parent}
+static func search(from: Vector2i, open: PackedByteArray, limit := -1) -> Dictionary:
+	return Native.search(from, open, limit, W)
+
+
+## A mask of the board, one byte per tile: 1 where `test(p)` holds. Away from
+## the tiles in `odd` the test must depend on the tile kind alone, as `table`
+## gives it (1 at index t for kind t); at `odd` tiles `test` itself decides.
+static func mask(
+	tiles: PackedByteArray, table: PackedByteArray, odd: Array = [], test := Callable()
+) -> PackedByteArray:
+	var out := Native.mask(tiles, table)
+	for p: Vector2i in odd:
+		if inside(p):
+			out[index(p)] = 1 if test.call(p) else 0
+	return out
+
+
+## A table for `mask`: 1 for every tile kind t where `kind(t)` holds.
+static func table(kind: Callable) -> PackedByteArray:
+	var out := PackedByteArray()
+	out.resize(256)
+	for t in out.size():
+		out[t] = 1 if kind.call(t) else 0
+	return out
 
 
 ## First step from the search origin toward `to`, following `parent` links.

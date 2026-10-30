@@ -124,7 +124,7 @@ func _walk(n: int) -> void:
 	for i in n:
 		var w: World = main.world
 		var goal := w.stairs if w.stairs.x >= 0 else w.elixir
-		var found := Grid.search(goal, w.open_floor)
+		var found := Grid.search(goal, Masks.floor_of(w))
 		var me := w.player().pos
 		var here: int = found.dist[Grid.index(me)]
 		var step := Vector2i.ZERO

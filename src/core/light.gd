@@ -4,9 +4,9 @@ extends RefCounted
 ## fading with distance (Brogue CE Light.c paintLight: 100 - (100 - fade) *
 ## dist / radius). Walls and closed doors cast shadows. A negative colour is
 ## darkness. A tile is lit when its brightest channel reaches LIT.
+## `spread` and `field` run in Rust (rust/src/lib.rs, with the fade of 0.25).
 
 const LIT := 0.3
-const FADE := 0.25
 
 const LANTERN := Vector3(1.0, 0.6, 0.28)
 const LANTERN_RADIUS := 6
@@ -18,28 +18,30 @@ const MOON := Vector3(0.4, 0.5, 0.75)
 const DARK := Vector3(-1.4, -1.4, -1.4)
 
 
-## Strength (0 to 1) a source gives each tile it reaches.
-static func spread(at: Vector2i, radius: int, opaque: Callable) -> PackedFloat32Array:
-	var out := PackedFloat32Array()
-	out.resize(Grid.W * Grid.H)
-	var seen := Sight.field(at, radius, opaque)
-	for i in seen.size():
-		if seen[i] == 1:
-			var d := Vector2(Grid.at(i) - at).length()
-			out[i] = maxf(0.0, 1.0 - (1.0 - FADE) * d / maxf(1.0, radius))
-	return out
+## Strength (0 to 1) a source gives each tile it reaches; `opaque` as for Sight.field.
+static func spread(at: Vector2i, radius: int, opaque: PackedByteArray) -> PackedFloat32Array:
+	return Native.spread(at, radius, opaque, Grid.W)
 
 
 ## Sum of every source; each source is {at, radius, color}.
-static func field(sources: Array[Dictionary], opaque: Callable) -> PackedVector3Array:
-	var out := PackedVector3Array()
-	out.resize(Grid.W * Grid.H)
-	for src in sources:
-		var s := spread(src.at, src.radius, opaque)
-		var c: Vector3 = src.color
-		for i in s.size():
-			if s[i] > 0.0:
-				out[i] += c * s[i]
+static func field(sources: Array[Dictionary], opaque: PackedByteArray) -> PackedVector3Array:
+	return Native.light(sources, opaque, Grid.W)
+
+
+## Every light on the storey: lanterns, fires and glowing projectiles.
+static func sources(w: World) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var i := w.tiles.find(World.LANTERN)
+	while i >= 0:
+		out.append({at = Grid.at(i), radius = LANTERN_RADIUS, color = LANTERN})
+		i = w.tiles.find(World.LANTERN, i + 1)
+	for p in w.burning:
+		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
+	for s in w.shots:
+		if not s.gone:
+			var l := s.spell.light(s.faction)
+			if not l.is_empty():
+				out.append({at = s.pos, radius = l.radius, color = l.color})
 	return out
 
 

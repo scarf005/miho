@@ -28,9 +28,18 @@ static func near_fire(w: World, p: Vector2i) -> bool:
 ## Breadth-first steps from Miho over walkable tiles that are not in `avoid`
 ## (tile -> true, the travel exclusions) (Grid.search, plus `from`).
 static func search(w: World, avoid := {}) -> Dictionary:
-	var found := Grid.search(w.player().pos, func(p): return walkable(w, p) and not avoid.has(p))
+	var found := Grid.search(w.player().pos, open(w, avoid))
 	found.from = w.player().pos
 	return found
+
+
+## `walkable` and not in `avoid`, for every tile (a mask for Grid.search).
+static func open(w: World, avoid := {}) -> PackedByteArray:
+	var test := func(p): return walkable(w, p) and not avoid.has(p)
+	var out := Masks.floor_of(w, Masks.odd(w) + avoid.keys(), test)
+	for i in out.size():
+		out[i] &= w.known[i]
+	return out
 
 
 ## The tiles from Miho to `to`, not counting where she stands; empty when it
