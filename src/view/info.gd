@@ -22,7 +22,7 @@ const TERRAIN := {
 }
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {
-	Cards.FOX: "여우불: 해 없는 빛. 초당 3칸씩 7칸 날아가 8초 동안 떠 있다",
+	Cards.FOX: "여우불: 초당 3칸씩 7칸 날아가 8초 동안 떠 있다",
 	Cards.ORB: "구슬: 벽까지 초당 2칸씩 곧게 날아간다",
 	Cards.FIRE: "불: 여우불도 피해 1. 지나간 자리에 불을 붙인다",
 	Cards.WATER: "물: 빛과 소리를 지운다. 등불과 불을 끈다",
