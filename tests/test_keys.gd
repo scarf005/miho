@@ -1,0 +1,46 @@
+extends GutTest
+## Which action a key press means.
+
+
+func before_each() -> void:
+	Keys.reset()
+
+
+func _press(key: String) -> InputEventKey:
+	var e := Keys.event(key)
+	e.pressed = true
+	return e
+
+
+func test_every_action_has_a_default_key() -> void:
+	for action in Keys.ACTIONS:
+		assert_false(Keys.keys_of(action).is_empty(), action)
+
+
+func test_a_modifier_picks_the_action_bound_with_it() -> void:
+	assert_eq(Keys.action_of(_press("Period")), &"wait")
+	assert_eq(Keys.action_of(_press("Shift+Period")), &"stairs")
+	assert_eq(Keys.action_of(_press("Shift+Slash")), &"help")
+
+
+func test_shift_with_a_direction_still_moves() -> void:
+	assert_eq(Keys.action_of(_press("Shift+Up")), &"move_n")
+	assert_eq(Keys.action_of(_press("Shift+Kp 3")), &"move_se")
+
+
+func test_an_unbound_key_means_nothing() -> void:
+	assert_eq(Keys.action_of(_press("Q")), &"")
+	assert_eq(Keys.action_of(_press("Shift+X")), &"")
+
+
+func test_keys_read_back_as_they_were_bound() -> void:
+	Keys.bind(&"explore", ["Shift+X", "Kp Add"])
+	assert_eq(Keys.keys_of(&"explore"), ["Shift+X", "Kp Add"] as Array[String])
+	assert_eq(Keys.action_of(_press("Shift+X")), &"explore")
+
+
+func test_labels_show_printable_keys_as_characters() -> void:
+	assert_eq(Keys.label("Shift+Period"), "Shift+.")
+	assert_eq(Keys.label("K"), "K")
+	assert_eq(Keys.label("Kp 8"), "Kp 8")
+	assert_eq(Keys.label("Escape"), "Escape")

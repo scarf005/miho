@@ -1,34 +1,13 @@
 extends Node
-## Game flow and input. Arrows, numpad or hjklyubn move; moving into a
-## creature strikes it with claws. 1-7 pick talismans; with talismans picked a
-## direction hurls the spell, and Shift with a direction holds it so several
-## spells leave in one turn. Space, Enter or . waits, or hurls what is held.
-## Esc clears; M mutes. Mouse: click a neighbour to move, or with talismans
-## picked click anywhere to hurl that way; click a talisman to pick it;
-## right-click clears. Each storey left behind replays its best moment.
+## Game flow and input, through the actions in Keys. Arrows, numpad or
+## hjklyubn move, and keep moving while held; moving into a creature strikes it
+## with claws. 1-7 pick talismans; with talismans picked a direction hurls the
+## spell, and Shift with a direction holds it so several spells leave in one
+## turn. Space, Enter or . waits, or hurls what is held. Esc clears; M mutes.
+## Mouse: click a neighbour to move, or with talismans picked click anywhere to
+## hurl that way; click a talisman to pick it; right-click clears. Each storey
+## left behind replays its best moment.
 
-const KEY_DIRS := {
-	KEY_UP: Vector2i(0, -1),
-	KEY_DOWN: Vector2i(0, 1),
-	KEY_LEFT: Vector2i(-1, 0),
-	KEY_RIGHT: Vector2i(1, 0),
-	KEY_K: Vector2i(0, -1),
-	KEY_J: Vector2i(0, 1),
-	KEY_H: Vector2i(-1, 0),
-	KEY_L: Vector2i(1, 0),
-	KEY_Y: Vector2i(-1, -1),
-	KEY_U: Vector2i(1, -1),
-	KEY_B: Vector2i(-1, 1),
-	KEY_N: Vector2i(1, 1),
-	KEY_KP_8: Vector2i(0, -1),
-	KEY_KP_2: Vector2i(0, 1),
-	KEY_KP_4: Vector2i(-1, 0),
-	KEY_KP_6: Vector2i(1, 0),
-	KEY_KP_7: Vector2i(-1, -1),
-	KEY_KP_9: Vector2i(1, -1),
-	KEY_KP_1: Vector2i(-1, 1),
-	KEY_KP_3: Vector2i(1, 1),
-}
 const REPLAY_ZOOM := 1.5
 const REPLAY_SPEED := 0.7
 
@@ -58,6 +37,7 @@ var aims := {}
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Palette.VOID)
+	Keys.reset()
 	term = Term.new()
 	add_child(term)
 	sfx = Sfx.new()
@@ -115,31 +95,35 @@ func _unhandled_input(event: InputEvent) -> void:
 			sfx.play(&"card")
 		return
 	if state == &"over":
-		if event is InputEventKey and press and event.keycode == KEY_R:
+		if press and Keys.action_of(event) == &"restart":
 			state = &"play"
 			term.banner_lines = []
 			_new_run()
 		return
-	if event is InputEventKey and press:
+	if event is InputEventKey and event.is_pressed():
 		_key(event)
 	elif event is InputEventMouseButton and press:
 		_click(event)
 
 
+## Moves repeat while their key is held; other actions take only fresh presses.
+## Repeats that arrive while a round plays are dropped, so none pile up.
 func _key(event: InputEventKey) -> void:
-	var key := event.keycode
-	if key >= KEY_1 and key <= KEY_7:
-		var i := key - KEY_1
+	var action := Keys.action_of(event)
+	if event.is_echo() and not Keys.MOVES.has(action):
+		return
+	if Keys.MOVES.has(action):
+		_direction(Keys.MOVES[action], event.shift_pressed)
+	elif action.begins_with("pick_"):
+		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
 			_toggle(world.cards[i])
-	elif KEY_DIRS.has(key):
-		_direction(KEY_DIRS[key], event.shift_pressed)
-	elif key in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER, KEY_PERIOD, KEY_KP_5, KEY_KP_PERIOD]:
+	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
-	elif key == KEY_ESCAPE:
+	elif action == &"cancel":
 		_clear()
-	elif key == KEY_M:
-		sfx.muted = not sfx.muted
+	elif action == &"mute":
+		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 
 
 func _click(event: InputEventMouseButton) -> void:
