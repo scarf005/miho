@@ -13,6 +13,13 @@ func test_breakable_terrain_shows_its_health_as_hearts() -> void:
 			break
 	var text := Info.plain(Info.terrain(w, lantern))
 	assert_true(text.begins_with("등불 ♥"), text)
+	w.tiles[Grid.index(lantern)] = World.LANTERN_OUT
+	text = Info.plain(Info.terrain(w, lantern))
+	assert_true(text.begins_with("꺼진 등불 ♥"), text)
+	w.tiles[Grid.index(lantern)] = World.LANTERN_BROKEN
+	text = Info.plain(Info.terrain(w, lantern))
+	assert_true(text.begins_with("부서진 등불"), text)
+	assert_false(text.contains("♥"), text)
 
 
 func test_spells_of_the_same_talismans_but_another_form_read_differently() -> void:

@@ -13,11 +13,12 @@ const TERRAIN := {
 	World.WALL: ["벽", "", 0],
 	World.DOOR: ["문", "빛과 시야를 막는다", 1],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다", 1],
-	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 0],
+	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 1],
 	World.BAMBOO: ["대숲", "안이 보이지 않는다. 사각 소리 2칸. 불에 탄다", 0],
 	World.BOARD: ["마루", "삐걱 소리 3칸. 불에 탄다", 0],
 	World.POND: ["연못", "건널 수 없다. 주문은 넘어간다", 0],
 	World.ASH: ["재", "", 0],
+	World.LANTERN_BROKEN: ["부서진 등불", "", 0],
 }
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {

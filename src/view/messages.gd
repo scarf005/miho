@@ -149,9 +149,9 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return _who(before, after, id, "이", "가") + [[" 등불을 다시 켰다", TEXT]]
 			return [["등불이 다시 켜졌다", TEXT]]
 		&"smash":
-			if before.tile(e.at) == World.LANTERN:
+			if e.was == World.LANTERN:
 				return [["등불이 꺼졌다", TEXT]]
-			return _tile(before, e.at, "이", "가") + [[" 부서졌다", TEXT]]
+			return _named(Info.TERRAIN[e.was][0], "이", "가") + [[" 부서졌다", TEXT]]
 	return []
 
 
@@ -188,7 +188,10 @@ static func _who(before: World, after: World, id: int, closed: String, open: Str
 
 
 static func _tile(w: World, p: Vector2i, closed: String, open: String) -> Array:
-	var name: String = Info.TERRAIN[w.tile(p)][0]
+	return _named(Info.TERRAIN[w.tile(p)][0], closed, open)
+
+
+static func _named(name: String, closed: String, open: String) -> Array:
 	return [[name + _particle(name, closed, open), TEXT]]
 
 

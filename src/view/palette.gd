@@ -22,6 +22,7 @@ const TILES := {
 	World.BOARD: ["=", Color(0.72, 0.5, 0.3), Color(0.2, 0.12, 0.06)],
 	World.POND: ["~", Color(0.38, 0.58, 0.95), Color(0.04, 0.08, 0.2)],
 	World.ASH: [",", Color(0.45, 0.44, 0.42), Color(0.08, 0.08, 0.08)],
+	World.LANTERN_BROKEN: [";", Color(0.5, 0.4, 0.3), Color(0.12, 0.09, 0.07)],
 }
 const OPEN_DOOR := "'"
 ## A burning tile, drawn over its terrain.
