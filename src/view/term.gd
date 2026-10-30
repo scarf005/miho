@@ -10,6 +10,8 @@ extends Control
 ## carrying each projectile's light with it.
 
 signal shown(e: Dictionary, at: Vector2)
+## The world is on screen as it stands, after a round or a change.
+signal settled(w: World)
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
@@ -183,6 +185,7 @@ func show_world(w: World) -> void:
 			_lanterns.append(_flame(w, p, Light.LANTERN_RADIUS, Light.LANTERN, false))
 		if w.burning.has(p):
 			_lanterns.append(_flame(w, p, Light.FIRE_RADIUS, Light.FIRE, true))
+	settled.emit(w)
 
 
 ## A lantern or a burning tile as a flickering light: the tiles it lights and how much.

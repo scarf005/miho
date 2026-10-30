@@ -77,6 +77,7 @@ func _ready() -> void:
 	sfx = Sfx.new()
 	term.add_child(sfx)
 	term.shown.connect(sfx.on_event)
+	term.settled.connect(func(w: World) -> void: sfx.watch(w, term.cell_centre))
 	var crt := CanvasLayer.new()
 	crt.layer = 10
 	glass = ColorRect.new()
@@ -109,6 +110,7 @@ func _show_title() -> void:
 func _apply() -> void:
 	menu.settings = settings
 	settings.apply_sound()
+	sfx.set_music(settings.music)
 	term.saved = settings.spells
 	glass.visible = settings.crt
 	term.speed = settings.speed

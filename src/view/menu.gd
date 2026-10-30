@@ -18,10 +18,20 @@ const MOUSE := [
 ]
 const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, Esc 끝"]
 const OPTIONS := [
-	&"volume", &"crt", &"zoom", &"speed", &"replay", &"keys", &"restart", &"quit", &"close"
+	&"volume",
+	&"music",
+	&"crt",
+	&"zoom",
+	&"speed",
+	&"replay",
+	&"keys",
+	&"restart",
+	&"quit",
+	&"close"
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
+	&"music": "음악 크기",
 	&"crt": "CRT 효과",
 	&"zoom": "화면 크기",
 	&"speed": "움직임 속도",
@@ -179,6 +189,8 @@ func _change(step: int) -> StringName:
 	match OPTIONS[selected]:
 		&"volume":
 			settings.volume = clampi(settings.volume + step * 10, 0, 100)
+		&"music":
+			settings.music = clampi(settings.music + step * 10, 0, 100)
 		&"crt":
 			settings.crt = not settings.crt
 		&"zoom":
@@ -250,6 +262,7 @@ static func _nav(e: InputEventKey) -> StringName:
 func _options() -> Array:
 	var values := {
 		&"volume": str(settings.volume) if settings.volume > 0 else "끔",
+		&"music": str(settings.music) if settings.music > 0 else "끔",
 		&"crt": _on(settings.crt),
 		&"zoom": "맞춤" if settings.zoom == 0.0 else str(settings.zoom),
 		&"speed": "%dx" % int(settings.speed),

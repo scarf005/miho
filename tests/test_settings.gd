@@ -25,6 +25,7 @@ func _reload(s: Settings) -> Settings:
 func test_options_and_bindings_round_trip() -> void:
 	var s := Settings.new()
 	s.volume = 40
+	s.music = 30
 	s.crt = false
 	s.zoom = 1.25
 	s.speed = 4.0
@@ -51,10 +52,20 @@ func test_missing_or_wrong_values_fall_back_to_defaults() -> void:
 	var s := Settings.new()
 	s.from_config(c)
 	assert_eq(s.volume, 100)
+	assert_eq(s.music, 60, "a file from before the music option keeps its default")
 	assert_eq(s.zoom, 0.0)
 	assert_eq(s.speed, 1.0)
 	assert_eq(Keys.keys_of(&"wait"), Keys.ACTIONS[&"wait"][1] as Array[String])
 	assert_eq(Keys.keys_of(&"move_n"), Keys.ACTIONS[&"move_n"][1] as Array[String])
+
+
+func test_music_volume_stays_within_zero_and_one_hundred() -> void:
+	for pair in [[-5, 0], [900, 100], [70, 70]]:
+		var c := ConfigFile.new()
+		c.set_value("settings", "music", pair[0])
+		var s := Settings.new()
+		s.from_config(c)
+		assert_eq(s.music, pair[1], str(pair[0]))
 
 
 func test_only_changed_keys_are_saved() -> void:
