@@ -13,6 +13,8 @@ const FIRE := "res://assets/sfx/fire_loop.ogg"
 const FIRE_RANGE := 10
 const FIRE_FADE := 0.5
 const SILENT_DB := -40.0
+## The crackle sits above the other sounds, since distance softens it.
+const FIRE_DB := 6.0
 const NAMES := [
 	&"step",
 	&"foxfire",
@@ -114,7 +116,7 @@ func watch(w: World, centre: Callable) -> void:
 		_fire.volume_db = SILENT_DB
 		_fire.play()
 	_fade = create_tween()
-	_fade.tween_property(_fire, "volume_db", 0.0 if on else SILENT_DB, FIRE_FADE)
+	_fade.tween_property(_fire, "volume_db", FIRE_DB if on else SILENT_DB, FIRE_FADE)
 	if not on:
 		_fade.tween_callback(_fire.stop)
 
