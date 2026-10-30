@@ -133,8 +133,14 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
-			return _tile(before, e.at, "에", "에") + [[" 불이 붙었다", Palette.BURNING[1]]]
+			var a := before.actor_at(e.at)
+			var what := _tile(before, e.at, "에", "에")
+			if a != null and a.faction != Actor.FOX:
+				what = _who(before, after, a.id, "에게", "에게")
+			return what + [[" 불이 붙었다", Palette.BURNING[1]]]
 		&"burnout":
+			if not World.FLAMMABLE.has(before.tile(e.at)):
+				return []
 			return _tile(before, e.at, "이", "가") + [[" 다 타서 재가 되었다", TEXT]]
 		&"douse":
 			if before.tile(e.at) == World.LANTERN:
