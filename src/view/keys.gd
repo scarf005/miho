@@ -36,6 +36,7 @@ const ACTIONS := {
 	&"cancel": ["취소 / 설정", ["Escape"]],
 	&"stairs": ["계단으로 가기", ["Shift+Period"]],
 	&"explore": ["자동 탐험", ["O"]],
+	&"look": ["살펴보기", ["X"]],
 	&"rest": ["쉬기 (꼬리가 다 자랄 때까지)", ["Z"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
 	&"log": ["지난 메시지", ["Ctrl+P", "P"]],

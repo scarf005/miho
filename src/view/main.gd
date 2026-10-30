@@ -3,8 +3,11 @@ extends Node
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
 ## with claws. 1-7 pick talismans; with talismans picked a direction hurls the
 ## spell, and Shift with a direction holds it so several spells leave in one
-## turn. Space, Enter or . waits, or hurls what is held. Esc clears; M mutes.
-## > walks to the stairs, x explores, z rests until the tails regrow.
+## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
+## picked and, with nothing to clear, opens the options; M mutes.
+## > walks to the stairs, o explores, z rests until the tails regrow. x looks
+## around: a cursor starts on Miho and the directions move it (Shift five
+## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
 ## with talismans picked click anywhere to hurl that way; click a talisman to
 ## pick it; right-click clears. Each storey left behind replays its best moment.
@@ -16,6 +19,8 @@ const WALK_SPEED := 3.0
 ## Message lines shown over the map, and for how many rounds.
 const LOG_ROWS := 3
 const LOG_FADE := 5
+## Tiles a cursor moves in look mode with Shift.
+const LOOK_FAR := 5
 
 var world: World
 var term: Term
@@ -28,6 +33,8 @@ var state := &"title"
 var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
+## Look mode: the direction keys move the cursor, which is `hover`.
+var looking := false
 var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
@@ -143,6 +150,8 @@ func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
 	if event.is_echo() and not Keys.MOVES.has(action):
 		return
+	if looking and _look_key(action, event.shift_pressed):
+		return
 	if Keys.MOVES.has(action):
 		_direction(Keys.MOVES[action], event.shift_pressed)
 	elif action.begins_with("pick_"):
@@ -159,6 +168,9 @@ func _key(event: InputEventKey) -> void:
 		_journey(_to_exit, "계단을 아직 못 봤다")
 	elif action == &"explore":
 		_journey(_exploring, "더 갈 곳이 없다")
+	elif action == &"look":
+		looking = true
+		_look_at(world.player().pos)
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 다 있다")
 	elif action in [&"log", &"help"]:
@@ -170,6 +182,7 @@ func _key(event: InputEventKey) -> void:
 
 
 func _click(event: InputEventMouseButton) -> void:
+	looking = false
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_clear()
 		return
@@ -180,18 +193,22 @@ func _click(event: InputEventMouseButton) -> void:
 	if card != &"":
 		_toggle(card)
 		return
-	if not Grid.inside(hover):
-		return
+	if Grid.inside(hover):
+		_use_tile(hover, event.shift_pressed)
+
+
+## What a left click on `tile` does: wait on Miho's own, hurl towards another
+## with talismans picked, step to a neighbour, or walk to a farther tile.
+func _use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
-	if hover == me:
+	if tile == me:
 		_act({t = &"wait"})
 	elif not picked.is_empty():
-		_direction(Grid.nearest_dir(hover - me), event.shift_pressed)
-	elif Grid.cheb(hover, me) == 1:
-		_act({t = &"move", dir = hover - me})
+		_direction(Grid.nearest_dir(tile - me), hold)
+	elif Grid.cheb(tile, me) == 1:
+		_act({t = &"move", dir = tile - me})
 	else:
-		var goal := hover
-		_journey(func(): return _step_on(Travel.route(routes, goal)))
+		_journey(func(): return _step_on(Travel.route(routes, tile)))
 
 
 func _point(screen: Vector2) -> void:
@@ -210,6 +227,39 @@ func _point(screen: Vector2) -> void:
 		hover_status = status
 		if state == &"play" and not busy:
 			_refresh()
+
+
+## In look mode: the directions move the cursor, Enter walks to it, Esc or the
+## look key stops. Any other action stops look mode and is left to `_key`
+## (false).
+func _look_key(action: StringName, far: bool) -> bool:
+	if Keys.MOVES.has(action):
+		_look_at(Grid.nudge(hover, Keys.MOVES[action], LOOK_FAR if far else 1))
+	elif action == &"confirm":
+		var goal := hover
+		_stop_look()
+		if goal != world.player().pos:
+			_use_tile(goal, false)
+	elif action in [&"cancel", &"look"]:
+		_stop_look()
+	else:
+		_stop_look()
+		return false
+	return true
+
+
+## Puts the cursor, which shows what the pointer would, on a tile.
+func _look_at(tile: Vector2i) -> void:
+	hover = tile
+	hover_card = &""
+	hover_status = false
+	_refresh()
+
+
+## Ends look mode; the cursor goes back to the pointer.
+func _stop_look() -> void:
+	looking = false
+	_point(get_viewport().get_mouse_position())
 
 
 func _toggle(card: StringName) -> void:

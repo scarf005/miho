@@ -13,6 +13,7 @@ const MOUSE := [
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
 ]
+const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, Esc 끝"]
 const OPTIONS := [&"volume", &"crt", &"zoom", &"speed", &"replay", &"keys", &"restart", &"close"]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
@@ -235,6 +236,7 @@ static func _help() -> Array:
 			for i in range(1, 8):
 				keys.append("/".join(Keys.keys_of(StringName("pick_%d" % i)).map(Keys.label)))
 		rows.append([[name, Palette.TEXT], [sep.join(keys), Palette.SIDE[0], VALUE_COL]])
+	rows.append([[LOOK[0], Palette.TEXT], [LOOK[1], Palette.DIM, VALUE_COL]])
 	for m in MOUSE:
 		rows.append([[m[0], Palette.TEXT], [m[1], Palette.DIM, VALUE_COL]])
 	return rows

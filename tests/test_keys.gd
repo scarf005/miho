@@ -52,3 +52,8 @@ func test_default_keys_follow_roguelike_conventions() -> void:
 	assert_eq(Keys.action_of(_press("Ctrl+P")), &"log")
 	assert_eq(Keys.action_of(_press("P")), &"log")
 	assert_false(Keys.ACTIONS.has(&"options"), "Esc is the one key for cancel and options")
+
+
+func test_x_looks_around_and_the_look_key_is_not_exploring() -> void:
+	assert_eq(Keys.action_of(_press("X")), &"look")
+	assert_ne(Keys.action_of(_press("X")), &"explore")
