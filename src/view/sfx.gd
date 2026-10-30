@@ -29,6 +29,8 @@ const WORDS := {
 	"퍽": &"clash",
 	"끽": &"hurt",
 	"쨍": &"clash",
+	"사각": &"step",
+	"삐걱": &"click",
 }
 
 var muted := false

@@ -33,7 +33,7 @@ static func _homing(w: World, a: Actor, cast: Array) -> Dictionary:
 	var i := Grid.DIRS.find(Grid.nearest_dir(me.pos - a.pos))
 	for turn in [0, -1, 1]:
 		var dir := Grid.DIRS[(i + turn + 8) % 8]
-		if w.open_floor(a.pos + dir):
+		if w.open_air(a.pos + dir):
 			return {cards = cast, dir = dir}
 	return {}
 
@@ -48,7 +48,7 @@ static func searchlight(w: World, a: Actor) -> Dictionary:
 	if r < 2 or r > Spell.RANGE:
 		return {}
 	var dir := Grid.nearest_dir(a.target - a.pos)
-	if not w.open_floor(a.pos + dir):
+	if not w.open_air(a.pos + dir):
 		return {}
 	return {cards = cast, dir = dir}
 

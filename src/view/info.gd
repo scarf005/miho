@@ -12,6 +12,9 @@ const TERRAIN := {
 	World.DOOR: ["문", "닫히면 빛과 시야를 막는다. 구슬에 부서진다"],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다. 부딪치면 꺼진다"],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 켠다. 수색하는 적도 켠다"],
+	World.BAMBOO: ["대숲", "속이 안 보인다. 밟으면 소리 2칸"],
+	World.BOARD: ["마루", "밟으면 삐걱 소리 3칸"],
+	World.POND: ["연못", "못 걷는다. 주문은 넘어 난다"],
 }
 const EFFECT := {
 	Cards.FOX: ["해 없는 빛. 7칸 날아가 8초 떠 있다", "소리 2칸"],
@@ -152,13 +155,16 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 	var i := Grid.index(p)
 	if w.seen[i] == 0:
 		if w.dim[i] == 1:
-			return [["어둠 속 윤곽. 누가 있는지 모른다", Palette.DIM]]
+			var what := "대숲" if w.hides(p) else "어둠 속 윤곽"
+			return [[what + ". 누가 있는지 모른다", Palette.DIM]]
 		return [["기억. 지금은 안 보인다", Palette.DIM]]
 	return _hidden(w, p)
 
 
 ## Whether heaven would see Miho standing on p.
 static func _hidden(w: World, p: Vector2i) -> Array:
+	if w.hides(p):
+		return [["대숲 속. 바로 옆에서만 보인다", Palette.SIDE[0]]]
 	if w.lit(p):
 		return [["밝다. 멀리서도 보인다", Palette.ALERT[1]]]
 	return [["어둡다. 바로 옆에서만 보인다", Palette.SIDE[0]]]

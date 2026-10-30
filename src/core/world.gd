@@ -17,6 +17,11 @@ extends RefCounted
 ## Miho's wisps, and hunt her once they see her. Claws strike three times as
 ## hard at a creature that is not hunting (Brogue CE Combat.c sneak attack).
 ##
+## Terrain feeds both senses. Bamboo hides whoever stands in it from all but
+## the tiles next to it and rustles underfoot; floorboards creak. Treading
+## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
+## but spells fly over them.
+##
 ## Lanterns and doors break. Miho knocks a lantern out by walking into it,
 ## with a clang; an orb smashes the lantern or closed door it strikes. Water
 ## douses lanterns next to where it ends, silently, and fire relights them; a
@@ -47,6 +52,12 @@ const WALL := 1
 const DOOR := 2
 const LANTERN := 3
 const LANTERN_OUT := 4
+const BAMBOO := 5
+const BOARD := 6
+const POND := 7
+const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD]
+## How far a step onto the tile is heard, and the word for it.
+const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"]}
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -151,16 +162,26 @@ func tile(p: Vector2i) -> int:
 	return tiles[Grid.index(p)] if Grid.inside(p) else WALL
 
 
-## Creatures and projectiles can be here.
+## Creatures can walk here.
 func open_floor(p: Vector2i) -> bool:
-	var t := tile(p)
-	return t == FLOOR or t == DOOR
+	return WALKABLE.has(tile(p))
 
 
-## Walls and closed doors block sight and light; a door is open while something is in it.
+## Projectiles can fly here: anywhere walkable, and over ponds.
+func open_air(p: Vector2i) -> bool:
+	return open_floor(p) or tile(p) == POND
+
+
+## Walls, closed doors and bamboo block sight and light; a door is open while
+## something is in it.
 func opaque(p: Vector2i) -> bool:
 	var t := tile(p)
-	return t == WALL or (t == DOOR and actor_at(p) == null and shot_at(p) == null)
+	return t == WALL or hides(p) or (t == DOOR and actor_at(p) == null and shot_at(p) == null)
+
+
+## Bamboo hides who stands in it from everyone not right next to it.
+func hides(p: Vector2i) -> bool:
+	return tile(p) == BAMBOO
 
 
 func actor_at(p: Vector2i) -> Actor:
@@ -192,14 +213,15 @@ func vacant(p: Vector2i) -> bool:
 	return s == null or not s.spell.strikes()
 
 
-## True when no wall stands strictly between a and b on one of the eight lines.
+## True when nothing a projectile cannot cross stands strictly between a and b
+## on one of the eight lines.
 func clear_line(a: Vector2i, b: Vector2i) -> bool:
 	var d := Grid.line_dir(a, b)
 	if d == Vector2i.ZERO:
 		return false
 	var p := a + d
 	while p != b:
-		if not open_floor(p):
+		if not open_air(p):
 			return false
 		p += d
 	return true
@@ -255,6 +277,8 @@ func view_of(a: Actor) -> PackedByteArray:
 func _reaches(a: Actor, p: Vector2i) -> bool:
 	if a.blind > 0:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
+	if hides(p) and Grid.cheb(a.pos, p) > 1:
+		return false
 	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] or lit(p)
 
 
@@ -297,7 +321,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not open_floor(me.pos + d) or aims.has(d):
+		if not Grid.DIRS.has(d) or not open_air(me.pos + d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -355,7 +379,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	return events
 
 
-## Updates what Miho sees, makes out in the dark, and remembers.
+## Updates what Miho sees, makes out in the dark or in bamboo, and remembers.
 func sense() -> void:
 	_changed()
 	var me := player()
@@ -372,7 +396,7 @@ func sense() -> void:
 		if sees(me, p):
 			seen[i] = 1
 			known[i] = 1
-		elif Grid.cheb(p, me.pos) <= DIM and me.blind <= 0:
+		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
 			dim[i] = 1
 			known[i] = 1
 
@@ -390,8 +414,8 @@ func _move(a: Actor, to: Vector2i) -> void:
 	_emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()
-	if a.faction == Actor.HEAVEN:
-		_noise(to, a.info().get("step", 0), "탁", false, a.id)
+	var tread: Array = TREAD.get(tile(to), [0, "탁"])
+	_noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
@@ -503,7 +527,7 @@ func _step(s: Shot) -> void:
 	if s.spell.homing():
 		s.dir = Aim.steer(self, s)
 	var to := s.pos + s.dir
-	if not open_floor(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
+	if not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
 			var struck := tile(to)
 			_burst(s)

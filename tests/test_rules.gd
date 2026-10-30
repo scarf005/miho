@@ -392,6 +392,73 @@ func test_an_orb_smashes_the_lantern_or_closed_door_it_strikes() -> void:
 		assert_eq(w.shots, [] as Array[Shot])
 
 
+func test_bamboo_hides_who_stands_in_it_from_all_but_the_next_tile() -> void:
+	var w := _world(Vector2i(4, 8))
+	_put(w, Vector2i(6, 10), World.LANTERN)
+	_put(w, Vector2i(7, 8), World.BAMBOO)
+	var hidden := _foe(w, &"jangseung", Vector2i(7, 8))
+	w.sense()
+	assert_true(w.lit(hidden.pos))
+	assert_eq(w.seen[Grid.index(hidden.pos)], 0, "lit, yet hidden")
+	assert_eq(w.dim[Grid.index(hidden.pos)], 1, "the bamboo itself shows")
+	assert_null(w.known_clone().actor(hidden.id))
+	assert_string_contains(Info.plain(Info.at(w.known_clone(), hidden.pos)), "대숲")
+	assert_true(w.sees(hidden, w.player().pos), "it watches from inside")
+	w.player().pos = Vector2i(6, 8)
+	w.sense()
+	assert_eq(w.seen[Grid.index(hidden.pos)], 1, "right next to it")
+
+
+func test_stepping_into_bamboo_rustles() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.BAMBOO)
+	var listener := _foe(w, &"imugi", Vector2i(7, 8))
+	var rustle: Dictionary = _noises(w.act({t = &"move", dir = E}))[0]
+	assert_eq([rustle.word, rustle.loud], ["사각", 2])
+	assert_eq(listener.alert, Actor.SEARCH)
+
+
+func test_floorboards_creak_and_draw_a_resting_creature_that_hears_it() -> void:
+	for board in [true, false]:
+		var w := _world()
+		if board:
+			_put(w, Vector2i(5, 8), World.BOARD)
+		var listener := _foe(w, &"imugi", Vector2i(8, 8))
+		var events := w.act({t = &"move", dir = E})
+		assert_eq(listener.alert, Actor.SEARCH if board else Actor.REST)
+		if board:
+			assert_eq(listener.target, Vector2i(5, 8))
+			assert_eq(_noises(events)[0].word, "삐걱")
+		else:
+			assert_eq(_noises(events), [], "plain floor is silent")
+
+
+func test_miho_hears_heaven_creak_over_floorboards() -> void:
+	var w := _world()
+	_put(w, Vector2i(7, 8), World.BOARD)
+	var walker := _foe(w, &"dokkaebi", Vector2i(8, 8))
+	walker.post = Vector2i(6, 8)
+	var other := _foe(w, &"imugi", Vector2i(9, 9))
+	w.act(WAIT)
+	assert_eq(w.heard, [{at = Vector2i(7, 8), word = "삐걱"}])
+	assert_eq(other.alert, Actor.REST, "heaven ignores its own")
+
+
+func test_a_pond_blocks_walking_but_an_orb_flies_over_it() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.POND)
+	_put(w, Vector2i(6, 8), World.POND)
+	var foe := _foe(w, &"jangseung", Vector2i(9, 8))
+	assert_false(w.can({t = &"move", dir = E}))
+	assert_eq(
+		Forecast.ray(w, w.player().pos, E).slice(0, 5),
+		[5, 6, 7, 8, 9].map(func(x): return Vector2i(x, 8))
+	)
+	w.act(_cast([ORB], E))
+	w.act(WAIT)
+	assert_eq(foe.hp, 1, "struck after a five-tile run")
+
+
 func test_strong_foe_gives_its_element_and_a_kill_gives_back_a_tail() -> void:
 	var w := _world()
 	w.tails = 1
@@ -445,8 +512,14 @@ func test_each_storey_grows_one_more_tail() -> void:
 
 
 func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
+	var features := {World.BAMBOO: 0, World.POND: 0, World.BOARD: 0}
 	for seed_value in 20:
 		var w := World.create(seed_value)
+		for t in w.tiles:
+			if features.has(t):
+				features[t] += 1
+		assert_eq(w.tile(w.start), World.FLOOR)
+		assert_eq(w.tile(w.stairs), World.FLOOR)
 		var dist: PackedInt32Array = Grid.search(w.start, w.open_floor).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):
@@ -456,6 +529,8 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size())
 		for a in w.actors.slice(1):
 			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)
+	for t in features:
+		assert_gt(features[t], 0, "some rooms have tile %d" % t)
 
 
 func test_a_seed_builds_the_same_storey_every_time() -> void:
