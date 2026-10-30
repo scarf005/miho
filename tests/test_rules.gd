@@ -628,3 +628,17 @@ func test_a_seed_builds_the_same_storey_every_time() -> void:
 			b.actors.map(func(x): return x.pos),
 			"seed %d creatures" % seed_value
 		)
+
+
+func test_climbing_the_stairs_heals_one_up_to_full() -> void:
+	var w := World.create(5)
+	var me := w.player()
+	for hp in [1, me.max_hp]:
+		me = w.player()
+		me.hp = hp
+		w.stairs = me.pos + E
+		w.tiles[Grid.index(w.stairs)] = World.FLOOR
+		var events := w.act({t = &"move", dir = E})
+		assert_eq(w.player().hp, mini(hp + 1, me.max_hp))
+		var healed := events.filter(func(e): return e.t == &"heal")
+		assert_eq(healed.size(), 1 if hp < me.max_hp else 0, "hp %d" % hp)

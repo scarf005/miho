@@ -33,6 +33,8 @@ extends RefCounted
 ## and may spread to each flammable neighbour; after BURN_ROUNDS it is ash.
 ## Heaven walks around fire; water douses it.
 ##
+## Each storey climbed gives back one health.
+##
 ## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
@@ -992,3 +994,7 @@ func _ascend() -> void:
 	_changed()
 	sense()
 	_emit({t = &"ascend", depth = depth})
+	var me := player()
+	if me.hp < me.max_hp:
+		me.hp += 1
+		_emit({t = &"heal", id = me.id, hp = me.hp})
