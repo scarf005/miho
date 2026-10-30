@@ -6,8 +6,8 @@ extends Node2D
 
 const DIR := "res://assets/sfx/%s.ogg"
 const MUSIC := "res://assets/music/ambient.ogg"
-## Music sits this far below the sound effects at full volume.
-const MUSIC_DB := -10.0
+## Music level at full music volume, against the sound effects.
+const MUSIC_DB := 0.0
 const FIRE := "res://assets/sfx/fire_loop.ogg"
 ## How far in tiles a burning tile is heard, and how long its crackle fades.
 const FIRE_RANGE := 10
