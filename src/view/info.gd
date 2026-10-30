@@ -9,8 +9,9 @@ const STATE := ["쉰다", "수색한다", "미호를 쫓는다"]
 const TERRAIN := {
 	World.FLOOR: ["바닥", ""],
 	World.WALL: ["벽", ""],
-	World.DOOR: ["문", "닫히면 빛과 시야를 막고 소리는 통한다"],
-	World.LANTERN: ["등불", "주위 6칸을 밝힌다"],
+	World.DOOR: ["문", "닫히면 빛과 시야를 막는다. 구슬에 부서진다"],
+	World.LANTERN: ["등불", "주위 6칸을 밝힌다. 부딪치면 꺼진다"],
+	World.LANTERN_OUT: ["꺼진 등불", "불로 켠다. 수색하는 적도 켠다"],
 }
 const EFFECT := {
 	Cards.FOX: ["해 없는 빛. 7칸 날아가 8초 떠 있다", "소리 2칸"],

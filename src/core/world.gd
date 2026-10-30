@@ -17,6 +17,11 @@ extends RefCounted
 ## Miho's wisps, and hunt her once they see her. Claws strike three times as
 ## hard at a creature that is not hunting (Brogue CE Combat.c sneak attack).
 ##
+## Lanterns and doors break. Miho knocks a lantern out by walking into it,
+## with a clang; an orb smashes the lantern or closed door it strikes. Water
+## douses lanterns next to where it ends, silently, and fire relights them; a
+## searching creature relights a lantern it stands next to.
+##
 ## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
@@ -35,11 +40,13 @@ const SNEAK := 3
 const CRY := 5
 const THUD := 9
 const FLASH := 2
+const KNOCK := 4
 
 const FLOOR := 0
 const WALL := 1
 const DOOR := 2
 const LANTERN := 3
+const LANTERN_OUT := 4
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -264,7 +271,7 @@ func can(action: Dictionary) -> bool:
 	return false
 
 
-## A step onto a free tile, or claws at a creature next to Miho.
+## A step onto a free tile, claws at a creature next to Miho, or a knock at a lantern.
 func _can_move(dir: Vector2i) -> bool:
 	var me := player()
 	var to := me.pos + dir
@@ -273,7 +280,7 @@ func _can_move(dir: Vector2i) -> bool:
 	var foe := actor_at(to)
 	if foe != null:
 		return foe.faction != me.faction
-	return me.rooted <= 0 and vacant(to)
+	return tile(to) == LANTERN or (me.rooted <= 0 and vacant(to))
 
 
 ## Every spell is valid and known, takes its own open direction, and the cards
@@ -321,6 +328,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			var foe := actor_at(to)
 			if foe != null:
 				_claw(me, foe)
+			elif tile(to) == LANTERN:
+				_knock(me, to)
 			else:
 				_move(me, to)
 				if me.pos == stairs:
@@ -414,6 +423,17 @@ func _noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void
 				a.lost = 0
 
 
+func _knock(me: Actor, at: Vector2i) -> void:
+	_set_tile(at, LANTERN_OUT)
+	_emit({t = &"smash", at = at})
+	_noise(at, KNOCK, "쨍", true, me.id)
+
+
+func _set_tile(p: Vector2i, t: int) -> void:
+	tiles[Grid.index(p)] = t
+	_changed()
+
+
 func _claw(me: Actor, foe: Actor) -> void:
 	var sneak := foe.alert != Actor.HUNT or foe.blind > 0
 	var n := CLAW * (SNEAK if sneak else 1)
@@ -476,15 +496,18 @@ func _fly(s: Shot, to: Vector2i) -> void:
 	_changed()
 
 
-## One tile of flight. Orbs burst on walls and strike creatures; a wisp stops
-## and hovers at a wall, before a creature, or at the end of its range.
+## One tile of flight. Orbs burst on walls and closed doors and strike
+## creatures; a wisp stops and hovers at a wall, before a creature, or at the
+## end of its range.
 func _step(s: Shot) -> void:
 	if s.spell.homing():
 		s.dir = _steer(s)
 	var to := s.pos + s.dir
-	if not open_floor(to):
+	if not open_floor(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
+			var struck := tile(to)
 			_burst(s)
+			_smash(s, to, struck)
 		else:
 			_land(s)
 		return
@@ -532,12 +555,29 @@ func _burst(s: Shot) -> void:
 	_effects(s, s.pos)
 
 
-## Flash and thud happen wherever the spell ends.
+## Flash and thud happen wherever the spell ends; fire there relights the
+## lanterns next to it, and water douses them.
 func _effects(s: Shot, at: Vector2i) -> void:
 	if s.spell.has(Cards.METAL):
 		_flash(s, at)
 	if s.spell.has(Cards.EARTH):
 		_noise(at, THUD, "쿵", true, s.caster)
+	for d in Grid.DIRS:
+		var p := at + d
+		if s.spell.has(Cards.FIRE) and tile(p) == LANTERN_OUT:
+			_set_tile(p, LANTERN)
+			_emit({t = &"relight", at = p})
+		if s.spell.has(Cards.WATER) and tile(p) == LANTERN:
+			_set_tile(p, LANTERN_OUT)
+			_emit({t = &"douse", at = p})
+
+
+## An orb without water breaks the lit lantern or the closed door it struck.
+func _smash(s: Shot, at: Vector2i, struck: int) -> void:
+	if s.spell.has(Cards.WATER) or tile(at) != struck or (struck != LANTERN and struck != DOOR):
+		return
+	_set_tile(at, LANTERN_OUT if struck == LANTERN else FLOOR)
+	_emit({t = &"smash", at = at})
 
 
 func _flash(s: Shot, at: Vector2i) -> void:
@@ -725,7 +765,13 @@ func _hunt(a: Actor) -> void:
 
 
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark.
+## Next to a lantern that went out, it lights it again first.
 func _search(a: Actor) -> void:
+	for d in Grid.DIRS:
+		if tile(a.pos + d) == LANTERN_OUT:
+			_set_tile(a.pos + d, LANTERN)
+			_emit({t = &"relight", at = a.pos + d, id = a.id})
+			return
 	if a.cooldown <= 0 and _charge(a, _searchlight(a)):
 		return
 	if a.rooted > 0:

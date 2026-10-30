@@ -17,6 +17,7 @@ const TILES := {
 	World.WALL: ["#", Color(0.72, 0.64, 0.56), Color(0.34, 0.29, 0.26)],
 	World.DOOR: ["+", Color(0.85, 0.55, 0.25), Color(0.22, 0.12, 0.05)],
 	World.LANTERN: ["¤", Color(1.0, 0.85, 0.45), Color(0.4, 0.2, 0.06)],
+	World.LANTERN_OUT: ["¤", Color(0.45, 0.4, 0.34), Color(0.14, 0.1, 0.07)],
 }
 const OPEN_DOOR := "'"
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]

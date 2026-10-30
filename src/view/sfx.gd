@@ -28,6 +28,7 @@ const WORDS := {
 	"쿵": &"blast",
 	"퍽": &"clash",
 	"끽": &"hurt",
+	"쨍": &"clash",
 }
 
 var muted := false
