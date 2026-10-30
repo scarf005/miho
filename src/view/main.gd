@@ -38,6 +38,7 @@ var pan: Tween
 var walking := false
 var halt := false
 var messages := Messages.new()
+var menu := Menu.new()
 ## The full-screen panel open over the game, or empty.
 var overlay := &""
 ## Worked out once per world or talisman change: what Miho knows, the forecast
@@ -106,7 +107,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif busy or not event.is_pressed() or event.is_echo() and (overlay != &"" or state != &"play"):
 		pass
 	elif overlay != &"":
-		_close()
+		_panel_input(event)
+	elif state == &"title" and Keys.action_of(event) == &"help":
+		_open(&"help")
 	elif state == &"title":
 		state = &"play"
 		term.banner_lines = []
@@ -144,8 +147,8 @@ func _key(event: InputEventKey) -> void:
 		_journey(_exploring, "더 갈 곳이 없다")
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 다 있다")
-	elif action == &"log":
-		_open(&"log")
+	elif action in [&"log", &"help"]:
+		_open(action)
 	elif action == &"mute":
 		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 
@@ -177,6 +180,9 @@ func _click(event: InputEventMouseButton) -> void:
 
 func _point(screen: Vector2) -> void:
 	var local := term.get_global_transform().affine_inverse() * screen
+	if overlay != &"" and overlay != &"log":
+		menu.point(term.panel_row_at(local))
+		term.panel = menu.panel()
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
 		tile = term.side_at(local)
@@ -336,11 +342,29 @@ func _show_log() -> void:
 		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
 
 
-## Shows a full-screen panel: the message log.
+## Shows a full-screen panel: the message log, or a Menu page.
 func _open(kind: StringName) -> void:
 	overlay = kind
-	var rows := messages.lines.map(func(l): return [[Messages.shown(l), Palette.TEXT]])
-	term.panel = {title = "기록", rows = rows, selected = -1}
+	if kind == &"log":
+		var rows := messages.lines.map(func(l): return [[Messages.shown(l), Palette.TEXT]])
+		term.panel = {title = "기록", rows = rows, selected = -1}
+		return
+	menu.open(kind)
+	term.panel = menu.panel()
+
+
+## Any press closes the log; Menu pages take keys, a left click picks the row
+## under the pointer, and a right click closes.
+func _panel_input(event: InputEvent) -> void:
+	var done := overlay == &"log"
+	if event is InputEventKey and not done:
+		done = menu.key(event) == &"close"
+	elif event is InputEventMouseButton and not done:
+		done = event.button_index == MOUSE_BUTTON_RIGHT or overlay == &"help"
+	if done:
+		_close()
+	else:
+		term.panel = menu.panel()
 
 
 func _close() -> void:
