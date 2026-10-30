@@ -155,8 +155,9 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 			continue
 		var corners := [r.position, Vector2i(r.end.x - 1, r.position.y), r.end - Vector2i.ONE]
 		corners.append(Vector2i(r.position.x, r.end.y - 1))
-		corners.shuffle()
-		for c: Vector2i in corners:
+		var first := w.rng.randi_range(0, 3)
+		for k in corners.size():
+			var c: Vector2i = corners[(first + k) % corners.size()]
 			if c == w.stairs or c == w.elixir or w.tile(c) != World.FLOOR:
 				continue
 			w.tiles[Grid.index(c)] = World.LANTERN
