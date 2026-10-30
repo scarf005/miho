@@ -53,7 +53,7 @@ const TAIL_REGROW := 3
 const VIEW := 40
 const NIGHT := [2, 1]
 const DIM := 7
-const SEARCH_ROUNDS := 6
+const SEARCH_ROUNDS := 15
 const CLAW := 1
 const SNEAK := 3
 const CRY := 5
@@ -107,6 +107,7 @@ var dim := PackedByteArray()
 var known := PackedByteArray()
 ## Noises Miho heard this round: {at, word}.
 var heard: Array[Dictionary] = []
+var scent := PackedInt32Array()
 var _light := PackedVector3Array()
 var _light_dirty := true
 var _fov := {}
@@ -153,6 +154,7 @@ func clone() -> World:
 	w.dim = dim.duplicate()
 	w.known = known.duplicate()
 	w.heard = heard.duplicate()
+	w.scent = scent.duplicate()
 	return w
 
 
@@ -384,6 +386,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				Terrain.knock(self, me, to)
 			else:
 				_move(me, to)
+				Scent.lay(self, to)
 				if me.pos == stairs:
 					_ascend()
 					return events
@@ -719,6 +722,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 func _ignite(p: Vector2i, force := false) -> void:
 	if (force or FLAMMABLE.has(tile(p))) and not burning.has(p):
 		burning[p] = BURN_ROUNDS
+		Scent.clear(self, p)
 		_changed()
 		emit({t = &"ignite", at = p})
 
@@ -819,6 +823,10 @@ func _hunt(a: Actor) -> void:
 		a.lost += 1
 		if a.rooted > 0 or _step_to(a, a.target):
 			return
+	var to := Scent.next(self, a)
+	if a.rooted <= 0 and _step_to(a, to):
+		a.target = to
+		return
 	a.alert = Actor.SEARCH
 	a.lost = 0
 	_search(a)
@@ -981,6 +989,7 @@ func _ascend() -> void:
 	depth += 1
 	tails = max_tails()
 	regrow = 0
+	scent.clear()
 	FloorGen.build(self)
 	_changed()
 	sense()

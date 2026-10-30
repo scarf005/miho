@@ -60,13 +60,15 @@ static func hit(w: World, at: Vector2i) -> void:
 
 
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,
-## and water douses lit lanterns and flames there.
+## and water douses lit lanterns and flames and washes away Miho's scent there.
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
 		var p := at + d
 		if s.spell.has(Cards.FIRE) and w.tile(p) == World.LANTERN_OUT and p != struck:
 			w.set_tile(p, World.LANTERN)
 			w.emit({t = &"relight", at = p})
+		if s.spell.has(Cards.WATER):
+			Scent.clear(w, p)
 		if s.spell.has(Cards.WATER) and (w.tile(p) == World.LANTERN or w.burning.has(p)):
 			w.burning.erase(p)
 			w.set_tile(p, World.LANTERN_OUT if w.tile(p) == World.LANTERN else w.tile(p))
