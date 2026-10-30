@@ -44,6 +44,13 @@ var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
 var skip := false
+## Worked out once per world or talisman change: what Miho knows, the forecast
+## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
+## and forecasts of the spell hurled each way, filled as the pointer aims.
+var known: World
+var ahead := {}
+var reach := {}
+var aims := {}
 
 
 func _ready() -> void:
@@ -84,7 +91,7 @@ func _new_run(seed_value := randi()) -> void:
 	picked.clear()
 	staged.clear()
 	term.show_world(world)
-	_refresh()
+	_forecast()
 
 
 # --- input ----------------------------------------------------------------------
@@ -179,7 +186,7 @@ func _toggle(card: StringName) -> void:
 	elif picked.size() < Spell.MAX_CARDS and _held() + picked.size() < world.tails:
 		picked.append(card)
 	sfx.play(&"click")
-	_refresh()
+	_forecast()
 
 
 func _held() -> int:
@@ -189,7 +196,7 @@ func _held() -> int:
 func _clear() -> void:
 	picked.clear()
 	staged.clear()
-	_refresh()
+	_forecast()
 
 
 ## With talismans picked a direction hurls them (Shift holds them); otherwise it moves.
@@ -208,7 +215,7 @@ func _direction(d: Vector2i, hold: bool) -> void:
 	if hold:
 		staged = spells
 		picked.clear()
-		_refresh()
+		_forecast()
 		return
 	_act({t = &"cast", spells = spells})
 
@@ -245,7 +252,7 @@ func _act(action: Dictionary) -> void:
 		state = &"over"
 		term.banner_lines = ["쓰러졌다", "%d층" % world.depth, "R 다시"]
 	busy = false
-	_refresh()
+	_forecast()
 
 
 ## The storey's best moment, zoomed in on Miho and slowed down; any key skips it.
@@ -294,43 +301,54 @@ func _follow(w: World, time: float) -> void:
 	sfx.listener.position = term.cell_centre(w.player().pos)
 
 
-## What each choice would do, from what Miho knows: the paths of the spell in
+## What each choice would do, from what Miho knows: the reach of the spell in
 ## hand, and on each neighbouring tile the harm she would take and whether she
-## would be seen there. Under the pointer: what is there, and the tiles a
-## creature there sees.
-func _refresh() -> void:
+## would be seen there. These depend only on the world and the talismans in
+## hand, so they are worked out once per change and reused while the pointer moves.
+func _forecast() -> void:
 	if world == null:
 		return
-	var known := world.known_clone()
-	_inspect(known)
-	term.picked = picked
-	term.staged = staged
-	var tints := {}
-	var marks := {}
+	known = world.known_clone()
+	ahead = {}
+	aims = {}
+	reach = {}
 	var me := world.player().pos
 	if not picked.is_empty() and Spell.make(picked) != null:
-		var aim := (
-			Grid.nearest_dir(hover - me) if Grid.inside(hover) and hover != me else Vector2i.ZERO
-		)
 		for d in Grid.DIRS:
-			var ray := Forecast.ray(world, me, d).slice(0, Spell.RANGE)
-			for p in ray:
-				tints[p] = Color(Palette.SIDE[0], 0.12)
-		if aim != Vector2i.ZERO:
-			var spells := staged.duplicate()
-			spells.append({cards = picked.duplicate(), dir = aim})
-			_paint(Forecast.of(world, {t = &"cast", spells = spells}), tints, marks)
+			for p in Forecast.ray(world, me, d).slice(0, Spell.RANGE):
+				reach[p] = Color(Palette.SIDE[0], 0.12)
 	elif world.outcome == &"":
 		for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
 			var action := {t = &"wait"} if d == Vector2i.ZERO else {t = &"move", dir = d}
-			if not world.can(action):
-				continue
-			var f := Forecast.of(world, action)
-			var p := me + d
-			if f.hurt_me() > 0:
-				marks[p] = [str(f.hurt_me()), Palette.HURT]
-			elif not f.noticed.is_empty():
-				marks[p] = ["!", Palette.ALERT[2]]
+			if world.can(action):
+				ahead[d] = Forecast.of(world, action)
+	_refresh()
+
+
+## Under the pointer: what is there, the tiles a creature there sees, and what
+## the spell in hand would do hurled that way (each aim forecast once).
+func _refresh() -> void:
+	if world == null:
+		return
+	_inspect()
+	term.picked = picked
+	term.staged = staged
+	var tints := reach.duplicate()
+	var marks := {}
+	var me := world.player().pos
+	for d: Vector2i in ahead:
+		var f: Forecast = ahead[d]
+		if f.hurt_me() > 0:
+			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
+		elif not f.noticed.is_empty():
+			marks[me + d] = ["!", Palette.ALERT[2]]
+	if not reach.is_empty() and Grid.inside(hover) and hover != me:
+		var aim := Grid.nearest_dir(hover - me)
+		if not aims.has(aim):
+			var spells := staged.duplicate()
+			spells.append({cards = picked.duplicate(), dir = aim})
+			aims[aim] = Forecast.of(world, {t = &"cast", spells = spells})
+		_paint(aims[aim], tints, marks)
 	var a := world.actor_at(hover) if Grid.inside(hover) else null
 	if a != null and a.faction != Actor.FOX and world.seen[Grid.index(hover)] == 1:
 		var view := known.view_of(a)
@@ -341,7 +359,7 @@ func _refresh() -> void:
 	term.marks = marks
 
 
-func _inspect(known: World) -> void:
+func _inspect() -> void:
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
 	if state != &"play":
