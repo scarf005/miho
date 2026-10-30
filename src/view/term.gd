@@ -471,7 +471,8 @@ func _draw() -> void:
 	if not replay:
 		_draw_side(actors, me_pos)
 		_draw_bottom()
-		_draw_log()
+		if banner_lines.is_empty():
+			_draw_log()
 		_draw_info()
 	var v := map_view()
 	if not banner_lines.is_empty():
