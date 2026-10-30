@@ -71,6 +71,9 @@ var cursor := Vector2i(-1, -1)
 ## Set by the game: the tiles in travel exclusions (tile -> true).
 var zone := {}
 var info: Array = []
+## Set by the game: the debug view (DebugView.view) while it is on, else empty.
+## It shows every tile, creature and goal as if Miho knew them.
+var debug := {}
 var speed := 1.0
 ## Saved spells (Settings.spells), listed on the status row by their slot keys.
 var saved := {}
@@ -226,7 +229,7 @@ func play(events: Array, before: World, after: World) -> void:
 
 
 func _visible(p: Vector2i) -> bool:
-	return Grid.inside(p) and _vis[Grid.index(p)] == 1
+	return Grid.inside(p) and (not debug.is_empty() or _vis[Grid.index(p)] == 1)
 
 
 ## Applies one event to what is drawn; returns how long to hold it.
@@ -454,6 +457,7 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	if not _animating:
 		_draw_paths()
+		_draw_debug()
 	_draw_things(light, actors)
 	for f in _flashes:
 		if not _shown(f.at) or _time < f.born:
@@ -494,7 +498,7 @@ func _draw() -> void:
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 	for i in world.tiles.size():
 		var p := Grid.at(i)
-		if world.known[i] == 0 and _vis[i] == 0 or not _shown(p):
+		if world.known[i] == 0 and _vis[i] == 0 and debug.is_empty() or not _shown(p):
 			continue
 		var t := world.tiles[i]
 		var spec: Array = Palette.TILES[t]
@@ -608,6 +612,31 @@ func _draw_paths() -> void:
 					_glyph(_cell(p), Palette.BOLT[s.dir], Color(c, 0.8))
 
 
+## The debug view: Miho's scent trail (fresher is brighter), the tiles each
+## sound of this round reached with its edge and word marked, and for each
+## creature on the hunt or search a line to the tile it is bound for.
+func _draw_debug() -> void:
+	for p: Vector2i in debug.get("scent", {}):
+		if _shown(p):
+			var tint := Color(Palette.SIDE[0], 0.06 + 0.3 * debug.scent[p])
+			draw_rect(Rect2(_cell(p) * CELL, CELL), tint)
+	for s: Dictionary in debug.get("sounds", []):
+		for p: Vector2i in s.reach:
+			if _shown(p):
+				var edge: bool = s.reach[p] == s.loud
+				draw_rect(
+					Rect2(_cell(p) * CELL, CELL), Color(Palette.SOUND, 0.22 if edge else 0.05)
+				)
+		if _shown(s.at):
+			_small(_cell(s.at), s.word, Palette.SOUND)
+	for g: Dictionary in debug.get("goals", []):
+		var c: Color = Palette.ALERT[g.alert]
+		if _shown(g.from) and _shown(g.to):
+			draw_line(cell_centre(g.from), cell_centre(g.to), Color(c, 0.4), 2.0)
+		if _shown(g.to):
+			draw_rect(Rect2(_cell(g.to) * CELL, CELL).grow(-6), Color(c, 0.9), false, 2.0)
+
+
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	var shots := _shots if _animating else _world_shots()
 	for id in shots:
@@ -704,6 +733,8 @@ func _draw_bottom() -> void:
 		_glyph(Vector2(MAP.x + i, row), "~", c)
 	var right := "%d층 %d초" % [world.depth, world.round_no]
 	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
+	if not debug.is_empty():
+		_text(Vector2(cols - _cells(right) - _cells("디버그") - 1, row), "디버그", Palette.SOUND)
 	for slot in _slots():
 		var spell := Spell.from_key(saved[slot.action])
 		var ready := _castable(spell, held)

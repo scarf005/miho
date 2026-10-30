@@ -5,7 +5,8 @@ extends Node
 ## spell, and Shift with a direction holds it so several spells leave in one
 ## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
 ## picked and, with nothing to clear, opens the options.
-## > walks to the stairs, o explores, z rests until the tails regrow. x looks
+## > walks to the stairs, o explores, z rests until the tails regrow.
+## F3 shows the debug view (DebugView), which changes nothing in the game. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
 ## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
 ## In look mode the exclude key marks a danger zone (Exclusions) on the cursor
@@ -44,6 +45,8 @@ var hover_status := false
 var hover_spell := ""
 ## Look mode: the direction keys move the cursor, which is `hover`.
 var looking := false
+## The debug view is on: the whole storey, creatures and their goals are shown.
+var debugging := false
 var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
@@ -268,6 +271,9 @@ func _key(event: InputEventKey) -> void:
 		_look_at(world.player().pos)
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 이미 다 자랐다")
+	elif action == &"debug":
+		debugging = not debugging
+		_refresh()
 	elif action in [&"log", &"help"]:
 		_open(action)
 
@@ -729,6 +735,7 @@ func _refresh() -> void:
 	if world == null:
 		return
 	_inspect()
+	term.debug = DebugView.view(world) if debugging else {}
 	term.zone = zone
 	term.picked = picked
 	term.staged = staged
@@ -783,7 +790,8 @@ func _inspect() -> void:
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
-		term.info = Info.at(known, hover) + _zone_lines(hover) + _ahead_lines(hover)
+		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
+		term.info = lines + _zone_lines(hover) + _ahead_lines(hover)
 
 
 ## Says a tile is in a travel exclusion, and the radius at its centre.
