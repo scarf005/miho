@@ -172,7 +172,8 @@ const WINDOWS := 0.35
 const OPEN_DOORS := 0.3
 
 
-static func build(w: World) -> void:
+## Builds the storey; returns the set room it made, {kind, room}, or {} (SetRooms.build).
+static func build(w: World) -> Dictionary:
 	var me := w.player()
 	w.actors.assign([me])
 	w.shots.clear()
@@ -211,12 +212,13 @@ static func build(w: World) -> void:
 	_features(w, goal)
 	Placement.scatter(w, goal)
 	_drum(w)
-	SetRooms.build(w, home, goal)
+	var set_room := SetRooms.build(w, home, goal)
 	_creatures(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
 		if spot.x >= 0:
 			w.peaches.append(spot)
+	return set_room
 
 
 static func _centre(r: Rect2i) -> Vector2i:

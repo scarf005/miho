@@ -12,11 +12,19 @@ extends RefCounted
 ##
 ## 갈대 정원 (garden): reeds fill the room round a pool of shallow water.
 ## 불타기 쉬운 곳간 (granary): straw covers the floor, and a censer stands in it.
+## 안개 연못 (mist): a pond grown from the middle breathes fog from every tile.
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
 	{kind = &"granary", tier = 2},
+	{kind = &"mist", tier = 3},
 ]
+## A pond grows from the middle of a mist room like a patch (Placement), and
+## breathes fog on every tile.
+const POND := {what = World.POND, on = World.FLOOR, grow = [100, 18]}
+const FOG := {gas = Gas.FOG, amount = Gas.MAX, on = World.POND, grow = [100, 0]}
+## A pond of fewer tiles is no mist room.
+const POND_LEAST := 4
 ## A granary of this many tiles holds two censers, else one.
 const CENSERS_AREA := 40
 ## A room must hold this many floor tiles to be made into one.
@@ -69,6 +77,8 @@ static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerat
 			made = _garden(w, r)
 		&"granary":
 			made = _granary(w, r, rng)
+		&"mist":
+			made = _mist(w, r, rng)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -138,3 +148,17 @@ static func _granary(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		else:
 			w.tiles[Grid.index(p)] = World.STRAW
 	return censers > 0
+
+
+## A pond from the bare tile nearest the middle, fog on all of it; none when it
+## would cut the storey apart or stays small.
+static func _mist(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+	var spots := _bare(w, r)
+	if spots.is_empty():
+		return false
+	spots.sort_custom(func(a, b): return Grid.cheb(a, _centre(r)) < Grid.cheb(b, _centre(r)))
+	var pond := Placement.lay(w, POND, spots[0], rng)
+	if pond.size() < POND_LEAST:
+		return false
+	Placement.lay(w, FOG, pond[0], rng)
+	return true
