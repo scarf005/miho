@@ -146,7 +146,7 @@ func test_a_cast_spends_tails_and_a_cast_the_tails_cannot_pay_is_refused() -> vo
 
 
 func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:
-	var tools := _game()
+	var tools := _game(3)
 	var r := _call(tools, "act", {action = "explore"})
 	assert_false(r.error)
 	assert_gt(tools.world.round_no, 1)

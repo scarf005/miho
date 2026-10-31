@@ -118,6 +118,7 @@ const TRAP_ALARM := 29
 const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
+const VERANDA := 33
 
 var depth := 1
 var tiles := PackedByteArray()

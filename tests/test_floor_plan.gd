@@ -97,6 +97,51 @@ func test_the_storey_is_whole_with_hidden_doors_and_plates_counted_as_walls() ->
 		assert_true(FloorGen.connected(w, w.traps.keys()), _label(w))
 
 
+# --- verandas ----------------------------------------------------------------
+
+
+## The widths of sky between two verandas on one row of a storey.
+func _leaps(w: World) -> Array[int]:
+	var out: Array[int] = []
+	for y in Grid.H:
+		var from := -1
+		for x in Grid.W:
+			var t := w.tile(Vector2i(x, y))
+			if t == World.VERANDA:
+				if from >= 0 and x - from > 1:
+					out.append(x - from - 1)
+				from = x
+			elif t != World.SKY:
+				from = -1
+	return out
+
+
+func test_every_storey_has_facing_verandas_with_two_or_three_tiles_of_sky_between() -> void:
+	for w in _storeys:
+		var leaps := _leaps(w)
+		assert_gt(leaps.size(), 0, _label(w))
+		for n in leaps:
+			assert_between(n, FloorGen.LEAP.x, FloorGen.LEAP.y, _label(w))
+
+
+func test_a_veranda_hangs_between_an_outer_wall_or_doorway_and_the_sky() -> void:
+	for w in _storeys:
+		var doorways := 0
+		for i in w.tiles.size():
+			if w.tiles[i] != World.VERANDA:
+				continue
+			var p := Grid.at(i)
+			var sides := [w.tile(p + Vector2i.LEFT), w.tile(p + Vector2i.RIGHT)]
+			var label := "%s %s" % [_label(w), p]
+			assert_has(sides, World.SKY, label)
+			var inner: int = sides[0] if sides[1] == World.SKY else sides[1]
+			assert_true(
+				inner in [World.WALL, World.WINDOW, World.FLOOR, World.DOOR, World.DOOR_OPEN], label
+			)
+			doorways += 0 if inner in [World.WALL, World.WINDOW] else 1
+		assert_gte(doorways, 2, "%s: a doorway onto each veranda" % _label(w))
+
+
 # --- hidden doors: where they lie --------------------------------------------
 
 

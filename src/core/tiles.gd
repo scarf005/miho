@@ -99,6 +99,7 @@ const ROWS := {
 	World.TRAP_COLLAPSE: {name = "허방다리", walk = true, trap = true},
 	World.TRAP_FIRE: {name = "불씨 함정", walk = true, trap = true},
 	World.TRAP_VINE: {name = "덩굴 함정", walk = true, trap = true},
+	World.VERANDA: {name = "쪽마루", walk = true, burns = true, tread = [3, "삐걱"]},
 }
 const DEFAULT := {
 	name = "",
