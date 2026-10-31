@@ -502,8 +502,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.SHELF:
 			out.append("밟으면 두루마리를 읽어 이 층의 지도가 드러난다")
 			out.append("한 번뿐이다. 서고의 서가가 모두 읽은 서가가 된다")
-		World.SHELF_READ:
-			out.append("이미 읽었다")
 		World.VEIL:
 			out.append("길과 주문을 막는다. 시야는 막지 않는다")
 			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
@@ -513,7 +511,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("닫혀 있다. 시야는 막고 빛은 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
 		World.DOOR_OPEN:
-			out.append("시야와 빛이 지나간다. 문 닫기 키로 닫는다")
+			out.append("시야와 빛이 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
 		World.DRUM:
 			out.append_array((DRUM_NOTE % Drums.REACH).split("\n"))
@@ -528,7 +526,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.REEDS:
 			out.append("시야를 막는다. 밟으면 쓰러져 시야가 트인다")
 		World.PILLAR:
-			out.append("길과 시야와 빛을 막는다. 뒤에 숨을 수 있다")
+			out.append("길과 시야와 빛을 막는다")
 			out.append("부술 수 없다")
 		World.WOOD_WALL:
 			out.append("길과 시야와 빛을 막는다")
@@ -542,8 +540,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("달빛에 드러난다. 불에 타지 않는다")
 		World.ASH:
 			out.append("다시 타지 않는다")
-		World.ICE:
-			out.append("얼어붙은 연못. 걸어서 건넌다")
 		World.THORNS:
 			out.append("지나가면 피해 %d. 시야는 통한다" % Compounds.THORN)
 		World.MUD:
@@ -563,8 +559,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Tiles.of(t, "trap"):
 		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
 		out.append("적은 알고 피해 다닌다")
-	if t == World.WALL and breakable:
-		out.append("방 사이 벽은 숨은 문일 수 있다. 밝거나 %d칸 안이면 찾는다" % Traps.REACH)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:

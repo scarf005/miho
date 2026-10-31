@@ -269,10 +269,8 @@ func test_a_hit_that_cracks_a_hidden_door_leaves_a_cracked_wall_and_no_door() ->
 	assert_eq(w.tile(SECRET), World.WALL_CRACKED, "nothing left to find")
 
 
-func test_hovering_a_wall_tells_how_hidden_doors_are_found_and_gives_none_away() -> void:
+func test_hovering_a_wall_gives_no_hidden_door_away() -> void:
 	var w := _world()
 	var plain := Vector2i(SECRET.x, 4)
 	var told := Info.plain(Info.terrain(w, SECRET))
 	assert_eq(told, Info.plain(Info.terrain(w, plain)))
-	assert_string_contains(told, "숨은 문")
-	assert_string_contains(told, "%d칸 안" % Traps.REACH)

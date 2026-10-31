@@ -369,13 +369,11 @@ func test_hover_tells_the_new_ground_from_the_rules() -> void:
 	var w := _world()
 	_put(w, ME + E, World.THORNS)
 	_put(w, ME + E * 2, World.MUD)
-	_put(w, ME + E * 3, World.ICE)
 	w.hot[ME + Vector2i(0, 1)] = Vector2i(Compounds.MOLTEN, 2)
 	w.sense()
 	assert_string_contains(Info.plain(Info.at(w, ME + E)), "지나가면 피해 %d" % Compounds.THORN)
 	assert_string_contains(Info.plain(Info.at(w, ME + E)), "불이 붙으면")
 	assert_string_contains(Info.plain(Info.at(w, ME + E * 2)), "걷는 데 %d초" % Compounds.MUD)
-	assert_string_contains(Info.plain(Info.at(w, ME + E * 3)), "걸어서 건넌다")
 	var hot := Info.plain(Info.at(w, ME + Vector2i(0, 1)))
 	var spec: Dictionary = Compounds.HOT[Compounds.MOLTEN]
 	assert_string_contains(hot, "%s. 2초 뒤 식는다" % spec.name)
