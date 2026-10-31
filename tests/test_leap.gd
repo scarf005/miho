@@ -90,6 +90,38 @@ func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	assert_eq(w.tails, 4, "one tail")
 
 
+func test_from_every_veranda_one_leap_per_tile_of_sky_past_the_first_lands_across() -> void:
+	var crossed := 0
+	for seed_value in 4:
+		for depth in [2, 9, 18, 26]:
+			var w := World.create(seed_value)
+			w.depth = depth
+			FloorGen.build(w)
+			w.tails = Spell.MAX_SLOTS
+			for i in w.tiles.size():
+				var p := Grid.at(i)
+				if w.tiles[i] != World.VERANDA or w.tile(p + E) != World.SKY:
+					continue
+				var sky := 1
+				while w.tile(p + E * (sky + 1)) == World.SKY:
+					sky += 1
+				var label := "seed %d storey %d %s" % [seed_value, depth, p]
+				assert_eq(w.tile(p + E * (sky + 1)), World.VERANDA, label)
+				var v := w.clone()
+				v.player().pos = p
+				var cards := []
+				for n in sky - 1:
+					cards.append(LEAP)
+				if sky > 2:
+					assert_false(v.can(_leap([LEAP])), "one short: " + label)
+				if v.actor_at(p + E * (sky + 1)) != null:
+					continue
+				v.act(_leap(cards))
+				assert_eq(v.player().pos, p + E * (sky + 1), label)
+				crossed += 1
+	assert_gt(crossed, 0)
+
+
 func test_three_tiles_of_sky_take_two_leap_talismans() -> void:
 	var w := _world()
 	_gap(w, 5, 3)
