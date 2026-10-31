@@ -14,7 +14,7 @@ func _main() -> Node:
 
 func test_explore_rests_until_the_tails_regrow_first() -> void:
 	var m := _main()
-	m.world.depth = 3
+	m.world.depth = 4
 	m.world.tails = 1
 	m._forecast()
 	assert_eq(m._exploring(), {t = &"wait"})
