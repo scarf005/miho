@@ -257,9 +257,9 @@ func test_hovering_a_drum_shows_every_value() -> void:
 	assert_string_contains(dry, "걸어서 %d칸" % Drums.REACH)
 	assert_string_contains(dry, "영리한 적")
 	assert_string_contains(dry, "찢어짐: 구슬")
-	assert_string_contains(dry, "물: %d초 소리 없음" % Drums.WET_ROUNDS)
+	assert_string_contains(dry, "젖으면: %d초 소리 없음" % Drums.WET_ROUNDS)
 	w.wet[DRUM_AT] = 7
-	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "젖음: 7초. 소리 없음")
+	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "젖음: 7초\n소리: 없음")
 	_put(w, DRUM_AT, World.DRUM_TORN)
 	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "찢어진 북")
 

@@ -217,9 +217,9 @@ func test_hovering_the_altar_tells_the_rule_with_its_numbers_and_the_count() -> 
 	_fall(w, _foe(w, ALTAR + Vector2i(1, 1)))
 	var text := Info.plain(Info.terrain(w, ALTAR))
 	assert_string_contains(text, "혼불 제단")
-	var lit := "타오름: 주위 %d칸 안에서 하늘의 생물 %d번 쓰러짐, 추락 포함"
+	var lit := "타오름: 주위 %d칸 안에서 하늘의 생물 %d번 쓰러짐\n추락: 쓰러짐으로 셈"
 	assert_string_contains(text, lit % [Altar.REACH, Altar.NEED])
-	assert_string_contains(text, "타오르면: 꼬리 모두 회복, 이 층에서 꼬리 +1")
+	assert_string_contains(text, "타오르면: 꼬리 모두 회복\n타오르면: 이 층에서 꼬리 +1")
 	assert_string_contains(text, "쓰러진 생물: 1/3")
 	assert_false(Info.plain(Info.terrain(w, ALTAR + Vector2i(0, 2))).contains("쓰러진 생물"))
 

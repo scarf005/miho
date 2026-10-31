@@ -194,7 +194,7 @@ func test_the_hover_tells_whom_it_fights() -> void:
 	_provoke(w, fighter, rival)
 	w.sense()
 	var text := Info.plain(Info.creature(w, fighter))
-	assert_string_contains(text, "싸우는 중: 장승, %d초" % Mind.GRUDGE_ROUNDS)
+	assert_string_contains(text, "싸우는 중: 장승\n  남은 시간: %d초" % Mind.GRUDGE_ROUNDS)
 	assert_false(text.contains("무리"), text)
 	rival.pos = Vector2i(26, 8)
 	w.sense()

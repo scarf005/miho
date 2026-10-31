@@ -73,7 +73,7 @@ func test_hover_names_the_spell_and_the_weakness() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi")
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "주술: 도깨비불, ")
+	assert_string_contains(text, "주술: 도깨비불\n")
 	assert_false(text.contains("여우불"))
 	assert_string_contains(text, "약점: 물\n")
 

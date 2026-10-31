@@ -211,12 +211,13 @@ func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 		World.SCREEN:
 		["막음: 길, 시야", "타격: 쓰러짐", "소리: 부딪칠 때 %d칸" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
 		World.JAR: ["막음: 길", "타격: 깨짐", "소리: 부딪칠 때 %d칸" % Tiles.of(World.JAR, "hit")[0]],
-		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물. 불, 냄새 지움"],
+		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
-			"향 연기: 양 %d까지" % Gas.VENT_LEVEL,
+			"향 연기 양: %d까지" % Gas.VENT_LEVEL,
 			"이 칸과 옆 4칸",
-			"%d초, 피해 %d" % [Compounds.HOT_ROUNDS, Compounds.HOT[Compounds.LAVA].harm],
+			": %d초\n" % Compounds.HOT_ROUNDS,
+			"피해: 매 초 %d" % Compounds.HOT[Compounds.LAVA].harm,
 			"옆 가연성 칸에 불",
 		],
 		World.COURTYARD: ["달빛에 드러남."],

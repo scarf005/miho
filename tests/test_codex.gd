@@ -134,7 +134,7 @@ func test_the_items_are_the_elixir_the_peach_and_the_element_talismans() -> void
 	w.elixir = Codex.AT
 	w.sense()
 	assert_eq(_text(Codex.detail(_entry(3, "영약"))), _text(Info.terrain_facts(w, Codex.AT)))
-	assert_string_contains(_text(Codex.detail(_entry(3, "복숭아"))), "최대 체력 +")
+	assert_string_contains(_text(Codex.detail(_entry(3, "복숭아"))), "최대 체력: +")
 
 
 func test_the_hover_of_a_tile_is_its_facts_then_its_light() -> void:
@@ -212,7 +212,7 @@ func test_the_glossary_tells_each_shared_rule_once_by_its_tag() -> void:
 	var terms := Info.glossary()
 	assert_eq(_names(tab), terms.keys())
 	for term: String in terms:
-		assert_eq(_text(Codex.detail(_entry(tab, term))), term + ": " + terms[term])
+		assert_eq(_text(Codex.detail(_entry(tab, term))), term + ".\n" + "\n".join(terms[term]))
 	var w := Codex.stage()
 	w.set_tile(Codex.AT, World.BOARD)
 	assert_true(_text(Info.terrain_facts(w, Codex.AT)).split("\n").has("가연성."))
