@@ -71,7 +71,7 @@ static func _profile(a: Actor) -> Array:
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
 	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
-	lines.append([["다른 무리에게 맞으면 %d초 동안 그쪽과 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
+	lines.append([["다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
 	return lines
 
 
@@ -117,17 +117,16 @@ static func _arms(a: Actor, held: Array) -> Array:
 		var after := ", %d칸 던진다)" % throw if throw > 0 else ")"
 		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, after))
 		if throw > 0:
-			lines.append([["  하늘로 던져지면 한 층 아래로 떨어진다", Palette.DIM]])
+			lines.append([["  하늘로 던져지면 한 층 떨어진다", Palette.DIM]])
 	lines.append_array(_casts(a))
 	lines.append([[" · ".join(_traits(a, elements)), Palette.DIM]])
 	var cry: Dictionary = spec.get("shout", {})
 	if cry.is_empty():
 		lines.append([["외치지 않는다", Palette.DIM]])
 	else:
-		lines.append(
-			[["외침: ", Palette.TEXT], [cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
-		)
-		lines.append([["당신을 보면 외친다. 들은 적은 그곳을 수색한다", Palette.DIM]])
+		var said := [[cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
+		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
+		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		var line := [[Cards.NAME[eats], Palette.CARD[eats]], [" 주문을 먹으면 최대 체력 ", Palette.TEXT]]

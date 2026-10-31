@@ -204,7 +204,7 @@ func test_the_hover_tells_whom_it_fights() -> void:
 func test_the_doc_tells_the_group_rule() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"bulgae"), []))
 	assert_string_contains(text, "무리: 짐승")
-	assert_string_contains(text, "다른 무리에게 맞으면 %d초 동안 그쪽과 싸운다" % Mind.GRUDGE_ROUNDS)
+	assert_string_contains(text, "다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS)
 
 
 func test_the_log_tells_the_fight() -> void:

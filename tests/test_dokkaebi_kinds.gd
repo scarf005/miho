@@ -143,7 +143,7 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 		text[kind] = Info.plain(Info.creature_facts(Codex.foe(kind), []))
 	var melee: Dictionary = Bestiary.info(&"oedari").melee
 	assert_string_contains(text[&"oedari"], "근접: 씨름 (피해 %d, %d칸 던진다)" % [melee.damage, melee.throw])
-	assert_string_contains(text[&"oedari"], "하늘로 던져지면 한 층 아래로 떨어진다")
+	assert_string_contains(text[&"oedari"], "하늘로 던져지면 한 층 떨어진다")
 	assert_string_contains(text[&"bujigaengi"], "꺼진 등불을 켬")
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")
 	assert_string_contains(text[&"bitjaru"], "당신의 냄새를 따라감")
