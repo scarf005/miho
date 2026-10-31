@@ -145,6 +145,17 @@ func test_a_hover_taller_than_the_room_flows_into_a_second_column() -> void:
 	assert_eq(fit.cells, Vector2(0.5 + 3.0 + 1.0 + 3.0 + 0.5, 3))
 
 
+func test_a_column_never_starts_with_the_indented_lines_of_the_one_before() -> void:
+	var lines := []
+	for text in ["가나", "다라", "마바", "  사", "  아", "자차"]:
+		lines.append([[text, Color.WHITE]])
+	var fit := InfoBox.layout(lines, Vector2(20, 3))
+	assert_eq(fit.scale, 1.0)
+	var heads: Array = fit.columns.map(func(c): return c[1][0][0][0])
+	assert_eq(heads, ["가나", "마바", "자차"], "마바 moves over with the lines under it")
+	assert_eq(fit.cells.y, 3.0)
+
+
 func test_a_hover_too_big_for_any_columns_shrinks() -> void:
 	var lines := []
 	for k in 4:

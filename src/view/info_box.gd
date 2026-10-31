@@ -41,13 +41,29 @@ static func _fit(rows: Array, room: Vector2, least: float) -> Dictionary:
 			var height := ceili(rows.size() / float(n))
 			var columns := []
 			var x := 0.5
-			for first in range(0, rows.size(), height):
-				columns.append([x, rows.slice(first, first + height)])
-				x += widths.slice(first, first + height).max() + GAP
+			var first := 0
+			while first < rows.size():
+				var end := _end(rows, first, height)
+				columns.append([x, rows.slice(first, end)])
+				x += widths.slice(first, end).max() + GAP
+				first = end
 			var cells := Vector2(x - GAP + 0.5, height)
 			if cells.x * scale <= room.x and cells.y * scale <= room.y:
 				return {scale = scale, cells = cells, columns = columns}
 	return {}
+
+
+## Where a column of at most `height` rows from `first` ends: never between a
+## line and the indented lines under it.
+static func _end(rows: Array, first: int, height: int) -> int:
+	var end := mini(first + height, rows.size())
+	while end < rows.size() and end > first + 1 and _indented(rows[end]):
+		end -= 1
+	return end
+
+
+static func _indented(line: Array) -> bool:
+	return not line.is_empty() and String(line[0][0]).begins_with("  ")
 
 
 static func _width(line: Array) -> float:
