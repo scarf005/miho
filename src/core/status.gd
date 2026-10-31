@@ -1,6 +1,6 @@
 class_name Status
 extends RefCounted
-## What water and fire leave on a creature, for a number of rounds (Actor). A
+## What water, fire and frost leave on a creature, for a number of rounds (Actor). A
 ## creature holds at most one status at a time.
 ##
 ## 젖음 (Actor.wet, WET rounds): water wets whoever stands where it reaches
@@ -18,17 +18,25 @@ extends RefCounted
 ## health runs from her (Actor.fleeing). Water puts it out and wets it. Miho
 ## never catches alight: fire that would set her alight sets her tile alight,
 ## even where nothing burns, so she can step off it before it burns her.
+##
+## 얼어붙음 (Actor.frozen): 서리 (Compounds.FROST rounds, twice that on a wet
+## creature, which is then no longer wet) freezes a creature and puts out its
+## fire. It is rooted as long (Actor.rooted: it cannot move). The next harm it
+## takes is doubled and breaks the ice, and fire that would set it alight thaws
+## it instead; either frees it. Water does not wet it.
 
 const WET := 4
 const SPLASH := 2
 const SPLASH_WORD := "철벅"
 const ALIGHT := 3
 ## What each status is called, by its key (`of`).
-const NAME := {&"wet": "젖음", &"alight": "불붙음"}
+const NAME := {&"wet": "젖음", &"alight": "불붙음", &"frozen": "얼어붙음"}
 
 
 ## The status `a` holds, by key, or empty.
 static func of(a: Actor) -> StringName:
+	if a.frozen > 0:
+		return &"frozen"
 	if a.alight > 0:
 		return &"alight"
 	return &"wet" if a.wet > 0 else &""
@@ -36,13 +44,16 @@ static func of(a: Actor) -> StringName:
 
 ## The rounds left of the status `a` holds.
 static func rounds(a: Actor) -> int:
-	return maxi(a.wet, a.alight)
+	return maxi(a.wet, maxi(a.alight, a.frozen))
 
 
-## Water reaches `a`: its fire goes out, and it is wet for WET rounds.
+## Water reaches `a`: its fire goes out, and, unless frozen, it is wet for
+## WET rounds.
 static func soak(w: World, a: Actor) -> void:
 	if a.alight > 0:
 		_quench(w, a)
+	if a.frozen > 0:
+		return
 	if a.wet <= 0:
 		w.emit({t = &"wet", id = a.id, at = a.pos, rounds = WET})
 	a.wet = WET
@@ -57,9 +68,13 @@ static func dry(w: World, a: Actor) -> bool:
 	return true
 
 
-## Fire strikes `a`: it dries when wet; else a creature of heaven is alight
-## for ALIGHT rounds, and Miho's tile catches fire (`wild`: it always spreads).
+## Fire strikes `a`: it thaws when frozen and dries when wet; else a creature
+## of heaven is alight for ALIGHT rounds, and Miho's tile catches fire
+## (`wild`: it always spreads).
 static func ignite(w: World, a: Actor, wild := false) -> void:
+	if a.alive() and a.frozen > 0:
+		_thaw(w, a)
+		return
 	if a.alive() and dry(w, a):
 		return
 	if a.faction == Actor.FOX or not a.alive():
@@ -69,6 +84,29 @@ static func ignite(w: World, a: Actor, wild := false) -> void:
 		w.emit({t = &"alight", id = a.id, at = a.pos, rounds = ALIGHT})
 	a.alight = ALIGHT
 	w._changed()
+
+
+## Frost reaches `a`: it is frozen and rooted for `n` rounds, twice that when
+## wet; its fire goes out.
+static func freeze(w: World, a: Actor, n: int) -> void:
+	if a.wet > 0:
+		a.wet = 0
+		n *= 2
+	if a.alight > 0:
+		_quench(w, a)
+	a.frozen = maxi(a.frozen, n)
+	a.rooted = maxi(a.rooted, n)
+	w.emit({t = &"freeze", id = a.id, at = a.pos, rounds = n})
+
+
+## `a` is about to be hurt: true when it is frozen, and the ice breaks, which
+## frees it (World.hurt doubles the harm).
+static func shatter(a: Actor) -> bool:
+	if a.frozen <= 0:
+		return false
+	a.frozen = 0
+	a.rooted = 0
+	return true
 
 
 ## How far `a`'s step onto a tile of `tread` ([loud, word], Tiles) is heard,
@@ -97,6 +135,17 @@ static func tick(w: World) -> void:
 			a.wet -= 1
 			if a.wet == 0:
 				w.emit({t = &"dry", id = a.id, at = a.pos})
+		if a.alive() and a.frozen > 0:
+			a.frozen -= 1
+			if a.frozen == 0:
+				w.emit({t = &"thaw", id = a.id, at = a.pos})
+
+
+## The ice on `a` melts, and it is free to move.
+static func _thaw(w: World, a: Actor) -> void:
+	a.frozen = 0
+	a.rooted = 0
+	w.emit({t = &"thaw", id = a.id, at = a.pos})
 
 
 static func _quench(w: World, a: Actor) -> void:

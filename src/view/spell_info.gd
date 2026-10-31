@@ -24,6 +24,7 @@ const SWAP := (
 const STATUS_DOES := {
 	&"wet": "%s %d칸." % [Status.SPLASH_WORD, Status.SPLASH],
 	&"alight": "매 초 피해 %d. 빛 %d칸." % [World.FIRE_DAMAGE, Light.FIRE_RADIUS],
+	&"frozen": "다음 피해 ×2.",
 }
 const SOAK := "젖음 %d초." % Status.WET
 const ALIGHT_ON := "맞은 적 불붙음 %d초." % Status.ALIGHT
@@ -267,7 +268,8 @@ static func compound(c: StringName) -> Array[String]:
 		&"shrapnel":
 			out.assign(["적마다 피해 %d. 약점 시 ×2" % Compounds.SHRAPNEL])
 		&"frost":
-			out.assign(["적이 %d초 얼어 움직이지 못한다" % Compounds.FROST, "연못이 얼어 건널 수 있다"])
+			var ice := "맞은 적 얼어붙음 %d초." % Compounds.FROST
+			out.assign([ice, "젖은 적 %d초." % (2 * Compounds.FROST), "연못이 얼어 건널 수 있다"])
 		&"rain":
 			out.assign(["적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고 북을 적신다", SOAK])
 		&"steam":

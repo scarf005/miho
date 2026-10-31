@@ -16,10 +16,9 @@ extends RefCounted
 ## water: whoever stands on it as a round ends takes its harm, unless it eats
 ## fire. Heaven walks round it.
 ## 유탄 hurts every creature it reaches for SHRAPNEL.
-## 서리 freezes each creature it reaches for FROST rounds, so it cannot move
-## (rooted: frozen creatures, with their double harm, come with the statuses),
-## and freezes ponds, and the veil of dokkaebi fire (Veil), to ice (World.ICE)
-## that can be walked.
+## 서리 freezes each creature it reaches for FROST rounds (Status: it cannot
+## move and takes double the next harm), and freezes ponds, and the veil of
+## dokkaebi fire (Veil), to ice (World.ICE) that can be walked.
 ## 단비 roots each creature it reaches RAIN rounds, and douses fire and
 ## lanterns and wets drums (Terrain.wash).
 ## 상극, the two react:
@@ -100,8 +99,7 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
 		&"shrapnel":
 			Elements.harm(w, s, a, SHRAPNEL)
 		&"frost":
-			a.rooted = maxi(a.rooted, FROST)
-			w.emit({t = &"freeze", id = a.id, at = a.pos, rounds = FROST})
+			Status.freeze(w, a, FROST)
 		&"rain":
 			Elements.root(w, a, RAIN)
 		&"thorn":

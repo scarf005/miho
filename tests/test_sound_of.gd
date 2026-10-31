@@ -44,6 +44,7 @@ const SOUNDS := [
 	[{t = &"douse"}, &"hiss"],
 	[{t = &"dry"}, &"hiss"],
 	[{t = &"quench"}, &"hiss"],
+	[{t = &"thaw"}, &"hiss"],
 	[{t = &"alight"}, &"burn"],
 	[{t = &"ignite"}, &"burn"],
 	[{t = &"heat"}, &"burn"],

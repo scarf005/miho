@@ -12,6 +12,7 @@ const E := Vector2i(1, 0)
 const W := Vector2i(-1, 0)
 const WAIT := {t = &"wait"}
 const ME := Vector2i(20, 12)
+const FROST := [METAL, WATER]
 
 
 ## An open hall walled at the edges, with no light, Miho at ME and five tails.
@@ -65,7 +66,11 @@ func _forecast_is_the_round(w: World, action: Dictionary) -> void:
 	w.act(action)
 	for a in w.actors:
 		var b := f.after.actor(a.id)
-		assert_eq([b.wet, b.alight, b.hp], [a.wet, a.alight, a.hp], "%s %s" % [action, a.kind])
+		assert_eq(
+			[b.wet, b.alight, b.frozen, b.rooted, b.hp],
+			[a.wet, a.alight, a.frozen, a.rooted, a.hp],
+			"%s %s" % [action, a.kind]
+		)
 	assert_eq(f.after.burning, w.burning, str(action))
 
 
@@ -325,3 +330,101 @@ func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
 	events = w.act(WAIT)
 	log = Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "도깨비가 불에 타 피해를 %d 입었다" % World.FIRE_DAMAGE)
+
+
+# --- 얼어붙음 ---------------------------------------------------------------
+
+
+func test_frost_freezes_a_creature_so_it_cannot_move() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	var events := w.act(_cast(FROST))
+	assert_eq([foe.frozen, foe.rooted], [Compounds.FROST - 1, Compounds.FROST - 1])
+	assert_eq(Status.of(foe), &"frozen")
+	assert_eq(_of(events, &"freeze")[0].rounds, Compounds.FROST)
+
+
+func test_frost_on_a_wet_creature_freezes_it_twice_as_long() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.soak(w, foe)
+	w.act(_cast(FROST))
+	assert_eq([foe.frozen, foe.rooted], [2 * Compounds.FROST - 1, 2 * Compounds.FROST - 1])
+	assert_eq(foe.wet, 0, "the water is ice now")
+
+
+func test_the_next_harm_to_a_frozen_creature_is_doubled_and_frees_it() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	foe.hp = 9
+	Status.freeze(w, foe, Compounds.FROST)
+	var events := w.act(_cast([ORB]))
+	var hurts := _of(events, &"hurt")
+	assert_eq([hurts[0].n, hurts[0].shatter], [2, true], "the orb's 1, doubled")
+	assert_eq([foe.frozen, foe.rooted], [0, 0], "the ice broke")
+	events = w.act(_cast([ORB]))
+	assert_eq(_of(events, &"hurt")[0].n, 1, "once only")
+
+
+func test_fire_thaws_a_frozen_creature_instead_of_setting_it_alight() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.freeze(w, foe, Compounds.FROST)
+	var events := w.act(_cast([FIRE, FIRE]))
+	assert_eq(_of(events, &"thaw").size(), 1)
+	assert_eq([foe.frozen, foe.rooted, foe.alight], [0, 0, 0])
+
+
+func test_frost_puts_fire_out_and_water_does_not_wet_ice() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.ignite(w, foe)
+	w.act(_cast(FROST))
+	assert_eq(foe.alight, 0)
+	assert_gt(foe.frozen, 0)
+	Status.soak(w, foe)
+	assert_eq(foe.wet, 0)
+
+
+func test_the_ice_melts_after_its_rounds() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 4)
+	Status.freeze(w, foe, Compounds.FROST)
+	var thawed := []
+	for i in Compounds.FROST:
+		thawed.append(_of(w.act(WAIT), &"thaw").size())
+	assert_eq(thawed, [0, 1])
+	assert_eq([foe.frozen, foe.rooted], [0, 0])
+
+
+func test_frozen_miho_cannot_step_and_takes_double_harm() -> void:
+	var w := _world()
+	Status.freeze(w, w.player(), Compounds.FROST)
+	assert_false(w.can({t = &"move", dir = W}))
+	w.hurt(w.player(), 1)
+	assert_eq(w.player().hp, 3 - 2)
+	assert_true(w.can({t = &"move", dir = W}), "the ice broke")
+
+
+func test_the_preview_shows_the_ice_and_its_doubled_harm() -> void:
+	var w := _world()
+	_post(w, ME + E * 2)
+	_forecast_is_the_round(w, _cast(FROST))
+	_forecast_is_the_round(w, _cast([ORB]))
+	w = _world()
+	Status.soak(w, _post(w, ME + E * 2))
+	_forecast_is_the_round(w, _cast(FROST))
+	_forecast_is_the_round(w, _cast([FIRE, FIRE]))
+
+
+func test_the_hover_and_the_log_tell_of_ice() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	var before := w.clone()
+	var events := w.act(_cast(FROST))
+	assert_has(Messages.of(before, w, events).map(Messages.plain), "장승이 얼어붙었다")
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "얼어붙음 %d초. 다음 피해 ×2." % (Compounds.FROST - 1))
+	before = w.clone()
+	events = w.act(_cast([ORB]))
+	assert_has(Messages.of(before, w, events).map(Messages.plain), "얼음이 깨졌다! 장승에게 피해를 2 주었다")

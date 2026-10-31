@@ -33,7 +33,7 @@ extends RefCounted
 ## thick enough it blocks sight: see Gas.
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
-## Water wets creatures and fire sets them alight: see Status.
+## Water wets creatures, fire sets them alight and frost freezes them: see Status.
 ##
 ## Heaven falls into groups, and a creature struck by another group fights it
 ## for a while (Mind).
@@ -869,8 +869,10 @@ func rides(s: Shot) -> bool:
 func hurt(a: Actor, n: int, weak := false) -> void:
 	if not a.alive():
 		return
+	var shatter := Status.shatter(a)
+	n *= 2 if shatter else 1
 	a.hp -= n
-	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak})
+	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
 	Guise.hurt(self, a)
 	if a.alive():
 		if a.faction == Actor.HEAVEN:

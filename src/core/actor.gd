@@ -27,6 +27,7 @@ var blind := 0
 ## Rounds left of each status (Status).
 var wet := 0
 var alight := 0
+var frozen := 0
 var casts := 0
 var acted := 0
 var alert := REST
@@ -131,6 +132,7 @@ func clone() -> Actor:
 		"blind",
 		"wet",
 		"alight",
+		"frozen",
 		"casts",
 		"acted",
 		"alert",

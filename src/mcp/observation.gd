@@ -153,7 +153,8 @@ static func _creature(k: World, a: Actor) -> String:
 		[a.rooted, "rooted"],
 		[a.stunned, "stunned"],
 		[a.wet, "wet"],
-		[a.alight, "alight"]
+		[a.alight, "alight"],
+		[a.frozen, "frozen"]
 	]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]

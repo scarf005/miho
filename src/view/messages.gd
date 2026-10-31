@@ -106,7 +106,9 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"hurt":
 			var line := _hurt_line(before, after, e, last)
 			if e.get("weak", false) and not line.is_empty():
-				return [["약점! ", Palette.ALERT[1]]] + line
+				line = [["약점! ", Palette.ALERT[1]]] + line
+			if e.get("shatter", false) and not line.is_empty():
+				line = [["얼음이 깨졌다! ", Palette.STATUS[&"frozen"][1]]] + line
 			return line
 		&"die":
 			if last.get("t") == &"fall":
@@ -152,6 +154,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _who(before, after, id, "에게", "에게") + [[" 불이 붙었다", Palette.BURNING[1]]]
 		&"quench":
 			return _who(before, after, id, "의", "의") + [[" 불이 꺼졌다", TEXT]]
+		&"thaw":
+			return _subject(before, after, id) + [["녹았다", TEXT]]
 		&"become":
 			return _named(Tiles.of(e.tile, "name"), "이", "가") + [[" 생겼다", TEXT]]
 		&"heat":
