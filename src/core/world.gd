@@ -33,6 +33,7 @@ extends RefCounted
 ## thick enough it blocks sight: see Gas.
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
+## Water wets creatures, fire sets them alight and frost freezes them: see Status.
 ##
 ## Heaven falls into groups, and a creature struck by another group fights it
 ## for a while (Mind).
@@ -132,15 +133,14 @@ const TRAP_ALARM := 29
 const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
-const VERANDA := 33
-const SEAL := 34
-const ALTAR := 35
-const ALTAR_LIT := 36
-const VEIL := 37
-const LAMP := 38
-const TALISMAN := 39
-const SHELF := 40
-const SHELF_READ := 41
+const SEAL := 33
+const ALTAR := 34
+const ALTAR_LIT := 35
+const VEIL := 36
+const LAMP := 37
+const TALISMAN := 38
+const SHELF := 39
+const SHELF_READ := 40
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -539,6 +539,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Terrain.burn(self, alight)
 	Compounds.tick(self)
 	Gas.tick(self)
+	Status.tick(self)
 	Terrain.unseal(self)
 	EventRooms.tick(self)
 	Guise.tick(self)
@@ -598,7 +599,7 @@ func move(a: Actor, to: Vector2i) -> void:
 			s.pos = to
 			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
-	var tread: Array = Tiles.of(tile(to), "tread")
+	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
 	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
@@ -867,8 +868,10 @@ func rides(s: Shot) -> bool:
 func hurt(a: Actor, n: int, weak := false) -> void:
 	if not a.alive():
 		return
+	var shatter := Status.shatter(a)
+	n *= 2 if shatter else 1
 	a.hp -= n
-	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak})
+	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
 	Guise.hurt(self, a)
 	if a.alive():
 		if a.faction == Actor.HEAVEN:

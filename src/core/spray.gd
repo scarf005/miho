@@ -5,7 +5,7 @@ extends RefCounted
 ## slot sets the shape. A lone element has its own gimmick, one level up for
 ## every copy (Spell.level, up to 3):
 ## 불 a 90° fan over the tiles the caster sees (radius FAN): level 1 sets what
-## burns alight, level 2 also the tiles the creatures in it stand on, and at
+## burns alight, level 2 also the creatures in it (Status), and at
 ## level 3 the fire always spreads.
 ## 물 a jet along the line (JET tiles) up to the first creature, which it
 ## pushes PUSH tiles (World.push); level 3 goes on through and pushes every
@@ -361,7 +361,7 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 		return
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
-			w.ignite(a.pos, true, level >= 3)
+			Status.ignite(w, a, level >= 3)
 			Mind.struck(w, a, s)
 
 

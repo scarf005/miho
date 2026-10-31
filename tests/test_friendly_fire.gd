@@ -94,12 +94,12 @@ func test_a_creature_that_takes_only_fire_takes_none_without_it() -> void:
 	assert_eq(_loss(&"bulgasari", [Cards.ORB, Cards.FIRE])[0], 1)
 
 
-func test_heaven_fire_sets_a_wood_creature_s_tile_burning() -> void:
+func test_heaven_fire_sets_a_wood_creature_alight() -> void:
 	var w := _world()
 	var shooter := _creature(w, &"imugi", SHOOTER)
-	_creature(w, &"cheonha", VICTIM)
-	_hurl(w, shooter, [Cards.ORB, Cards.FIRE])
-	assert_true(w.burning.has(VICTIM) or w.tile(VICTIM) == World.ASH)
+	var victim := _creature(w, &"cheonha", VICTIM)
+	var events := _hurl(w, shooter, [Cards.ORB, Cards.FIRE])
+	assert_true(events.any(func(e): return e.t == &"alight" and e.id == victim.id))
 
 
 func test_heaven_fire_leaves_other_creatures_tiles_alone() -> void:

@@ -136,10 +136,13 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 			wash(w, p)
 
 
-## Water on p: Miho's scent washes away, a drum gets wet, a lit lantern, a
-## fire or a veil of dokkaebi fire goes out.
+## Water on p: Miho's scent washes away, the creature there and a drum get
+## wet, a lit lantern, a fire or a veil of dokkaebi fire goes out.
 static func wash(w: World, p: Vector2i) -> void:
 	Scent.clear(w, p)
+	var a := w.actor_at(p)
+	if a != null:
+		Status.soak(w, a)
 	if w.tile(p) == World.DRUM:
 		Drums.soak(w, p)
 	if w.tile(p) == World.VEIL:
@@ -163,8 +166,9 @@ static func relight_beside(w: World, a: Actor) -> bool:
 	return false
 
 
-## Each burning tile crackles, burns whoever stands in it (unless it eats
-## fire) if it was already alight when the round began (`alight`), may set each
+## Each burning tile crackles, burns and dries whoever stands in it (unless it
+## eats fire, or burns already: Status) if it was already alight when the
+## round began (`alight`), may set each
 ## flammable neighbour alight (a wild one always does), and burns down to ash.
 static func burn(w: World, alight: Array) -> void:
 	if w.outcome != &"":
@@ -174,12 +178,13 @@ static func burn(w: World, alight: Array) -> void:
 	for p: Vector2i in w.burning.keys():
 		w.noise(p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
-		if a != null and alight.has(p):
+		if a != null and alight.has(p) and a.alight <= 0:
 			w.emit({t = &"burn", at = p, id = a.id})
 			if Bestiary.absorbs(a.kind, flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
 				w.hurt(a, World.FIRE_DAMAGE)
+				Status.dry(w, a)
 		for d in Grid.DIRS:
 			var q := p + d
 			if Tiles.burns[w.tile(q)] == 1 and not w.burning.has(q):

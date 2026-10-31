@@ -10,8 +10,8 @@ extends RefCounted
 ##   eight around it that gas can lie on), the remainder going to chance, and the
 ##   kind of the strongest of them;
 ## - each tile loses 1 with the decay chance of its kind;
-## - whoever stands in a harmful gas takes its harm, and a drum in a wetting
-##   gas gets wet.
+## - whoever stands in a harmful gas takes its harm, and whoever stands in a
+##   wetting gas, and a drum there, gets wet (Status).
 ##
 ## A tile with OPAQUE or more blocks sight (World.opaque). Gas lies only where
 ## Tiles.gas allows, so walls, closed doors, windows, pillars and sky stop it,
@@ -19,7 +19,8 @@ extends RefCounted
 ## (rust/src/lib.rs), drawing its chance from the World's generator once a round.
 ##
 ## name: what the hover text calls it. decay: the percent chance each round that
-## a tile loses 1. harm: damage a round to who stands in it. wets: it wets drums.
+## a tile loses 1. harm: damage a round to who stands in it. wets: it wets
+## drums and creatures.
 
 const FOG := 0
 const STEAM := 1
@@ -104,6 +105,8 @@ static func tick(w: World) -> void:
 		if a.alive() and of(kind, "harm") > 0:
 			w.emit({t = &"scald", id = a.id, at = a.pos, kind = kind})
 			w.hurt(a, of(kind, "harm"))
+		if a.alive() and of(kind, "wets"):
+			Status.soak(w, a)
 	for p: Vector2i in w.gas:
 		if of(w.gas[p].x, "wets") and w.tile(p) == World.DRUM and not w.wet.has(p):
 			Drums.soak(w, p)

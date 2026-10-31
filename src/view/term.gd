@@ -669,6 +669,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			var mark := Perceived.mark_of(a)
 			if mark != "":
 				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.alert, 1)])
+		_status(cell + Vector2(0, 0.55), a)
 	for p in marks:
 		var m: Array = marks[p]
 		if _shown(p):
@@ -701,6 +702,7 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 		_glyph(Vector2(0, row), a.info().glyph, Palette.KIND[a.kind])
 		_text(Vector2(1.5, row), a.info().name, Palette.KIND[a.kind])
 		_pips(Vector2(0, row + 1), a.hp, a.max_hp, Palette.HURT, MAP.x - 1)
+		_status(Vector2(MAP.x - 1, row + 1), a)
 		var doing: String = Info.state(a) if a.blind <= 0 else "눈멂"
 		if a.fighting() and a.blind <= 0:
 			doing = "싸우는 중"
@@ -923,3 +925,10 @@ func _glyph(cell: Vector2, c: String, color: Color) -> void:
 func _small(cell: Vector2, s: String, color: Color) -> void:
 	var at := cell * CELL + Vector2(0, SMALL * 0.75)
 	draw_string(_font, at.round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL, color)
+
+
+## The mark of the status `a` holds (Status.of), small at `cell`.
+func _status(cell: Vector2, a: Actor) -> void:
+	var mark: Array = Palette.STATUS.get(Status.of(a), [])
+	if not mark.is_empty():
+		_small(cell, mark[0], mark[1])

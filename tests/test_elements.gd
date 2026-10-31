@@ -92,7 +92,7 @@ func test_a_fire_wisp_sets_any_creature_it_strikes_alight() -> void:
 	var foe := _post(w, ME + Vector2i(2, 0))
 	foe.hp = 9
 	w.act(_cast([FOX, FIRE]))
-	assert_true(w.burning.has(foe.pos), "no wood, yet it burns")
+	assert_gt(foe.alight, 0, "no wood, yet it burns")
 	assert_eq(foe.hp, 9 - 1, "hit for 1; the flames it lit hurt from the next round")
 	w.act(WAIT)
 	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "and each round after")
@@ -447,7 +447,7 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 
 func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
-		[[FOX, FIRE], ["맞은 적과 지나간 자리에 불을 붙인다", "매 초 피해 %d" % World.FIRE_DAMAGE]],
+		[[FOX, FIRE], ["지나간 자리에 불을 붙인다", "맞은 적 불붙음 %d초." % Status.ALIGHT]],
 		[[ORB, FIRE, FIRE], ["주위 8칸에 %d" % (World.FIRE_DAMAGE + 1)]],
 		[[ORB, WATER], ["3×3의 등불과 불을 끈다", "소리 없음"]],
 		[

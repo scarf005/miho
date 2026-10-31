@@ -78,7 +78,8 @@ static func _profile(a: Actor) -> Array:
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting. One hunting at 1 health runs.
+## shut), on patrol, walking back home, or just resting. One hunting at 1
+## health or alight runs.
 static func state(a: Actor) -> String:
 	if a.fleeing():
 		return "도망치는 중"
@@ -160,6 +161,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 		lines.append([["감투: %d칸 안이나 도깨비불이 붙으면 보임" % Hat.REACH, Palette.DIM]])
 	if Bestiary.flees(a.kind):
 		lines.append([["체력 1이면 도망친다", Palette.DIM]])
+		lines.append([["불붙음: 도망.", Palette.DIM]])
 	elif spec.get("brave", false):
 		lines.append([["용감해서 도망치지 않는다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
@@ -277,7 +279,12 @@ static func _conditions(w: World, a: Actor) -> Array:
 	for c in [[a.blind, "눈이 멀었다"], [a.rooted, "묶여 있다"], [a.stunned, "기절했다"], [a.wary, "경계 중"]]:
 		if c[0] > 0:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
-	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
+	out.append_array(_status(a))
+	if (
+		w.burning.has(a.pos)
+		and a.alight <= 0
+		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+	):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
 	if (
 		Veil.scorches(w, a.pos)
@@ -305,6 +312,16 @@ static func _conditions(w: World, a: Actor) -> Array:
 		out.append(_amount("%s 위 (%d초). 매 초 피해 " % [spec.name, h.y], spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
+
+
+## The status it holds (Status), with the seconds left and what it does.
+static func _status(a: Actor) -> Array:
+	var key := Status.of(a)
+	if key == &"":
+		return []
+	var line := [[Status.NAME[key], Palette.STATUS[key][1]]]
+	line.append([" %d초. %s" % [Status.rounds(a), SpellInfo.STATUS_DOES[key]], Palette.TEXT])
+	return [line]
 
 
 ## Each spell it casts, with its cooldown, harm and noise.
@@ -502,8 +519,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.SHELF:
 			out.append("밟으면 두루마리를 읽어 이 층의 지도가 드러난다")
 			out.append("한 번뿐이다. 서고의 서가가 모두 읽은 서가가 된다")
-		World.SHELF_READ:
-			out.append("이미 읽었다")
 		World.VEIL:
 			out.append("길과 주문을 막는다. 시야는 막지 않는다")
 			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
@@ -513,7 +528,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("닫혀 있다. 시야는 막고 빛은 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
 		World.DOOR_OPEN:
-			out.append("시야와 빛이 지나간다. 문 닫기 키로 닫는다")
+			out.append("시야와 빛이 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
 		World.DRUM:
 			out.append_array((DRUM_NOTE % Drums.REACH).split("\n"))
@@ -528,7 +543,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.REEDS:
 			out.append("시야를 막는다. 밟으면 쓰러져 시야가 트인다")
 		World.PILLAR:
-			out.append("길과 시야와 빛을 막는다. 뒤에 숨을 수 있다")
+			out.append("길과 시야와 빛을 막는다")
 			out.append("부술 수 없다")
 		World.WOOD_WALL:
 			out.append("길과 시야와 빛을 막는다")
@@ -536,16 +551,12 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.POND, World.SKY:
 			out.append("걸어서 건널 수 없다")
 			out.append("주문과 멀리뛰기는 넘어간다")
-		World.VERANDA:
-			out.append("맞은편 쪽마루는 멀리뛰기로 건넌다")
 		World.WINDOW:
 			out.append("보이지만 지나갈 수 없다")
 		World.BRIDGE:
 			out.append("달빛에 드러난다. 불에 타지 않는다")
 		World.ASH:
 			out.append("다시 타지 않는다")
-		World.ICE:
-			out.append("얼어붙은 연못. 걸어서 건넌다")
 		World.THORNS:
 			out.append("지나가면 피해 %d. 시야는 통한다" % Compounds.THORN)
 		World.MUD:
@@ -565,8 +576,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Tiles.of(t, "trap"):
 		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
 		out.append("적은 알고 피해 다닌다")
-	if t == World.WALL and breakable:
-		out.append("방 사이 벽은 숨은 문일 수 있다. 밝거나 %d칸 안이면 찾는다" % Traps.REACH)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:

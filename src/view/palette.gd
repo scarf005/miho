@@ -46,7 +46,6 @@ const TILES := {
 	World.TRAP_COLLAPSE: ["^", Color(0.82, 0.62, 0.4), Color(0.12, 0.07, 0.05)],
 	World.TRAP_FIRE: ["^", Color(1.0, 0.5, 0.2), Color(0.27, 0.09, 0.03)],
 	World.TRAP_VINE: ["^", Color(0.45, 0.86, 0.4), Color(0.06, 0.16, 0.06)],
-	World.VERANDA: ["=", Color(0.92, 0.78, 0.52), Color(0.1, 0.09, 0.14)],
 	World.SEAL: ["+", Color(0.95, 0.3, 0.25), Color(0.3, 0.06, 0.05)],
 	World.ALTAR: ["†", Color(0.62, 0.72, 0.95), Color(0.1, 0.12, 0.2)],
 	World.ALTAR_LIT: ["†", Color(0.55, 0.92, 1.0), Color(0.1, 0.3, 0.4)],
@@ -69,6 +68,12 @@ const GAS := {
 	Gas.FOG: ["◦", Color(0.62, 0.7, 0.78)],
 	Gas.STEAM: ["°", Color(0.88, 0.9, 0.96)],
 	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
+}
+## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it.
+const STATUS := {
+	&"wet": ["~", Color(0.5, 0.76, 1.0)],
+	&"alight": ["§", Color(1.0, 0.55, 0.18)],
+	&"frozen": ["◇", Color(0.78, 0.92, 1.0)],
 }
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["%", Color(0.62, 0.36, 0.3)]
