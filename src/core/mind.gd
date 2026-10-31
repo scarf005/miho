@@ -73,9 +73,9 @@ static func hurt(a: Actor) -> void:
 ## `perceive` again. From one it did not see, a dull creature only looks around,
 ## a sharp one searches the farthest tile it sees back along the flight line, and
 ## a cunning one searches where the projectile came from (and hunts as soon as
-## `perceive` sees Miho).
+## `perceive` sees Miho). A projectile of heaven only hurts it, and makes it wary.
 static func struck(w: World, a: Actor, s: Shot) -> void:
-	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT:
+	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT or s.faction == a.faction:
 		return
 	if a.noted == s.id:
 		_heed(w, a, s, a.pos)

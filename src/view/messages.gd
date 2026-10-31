@@ -180,6 +180,19 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
 	if mine and id != after.player().id:
 		return _harm_to(before, after, id, e.n)
+	var friendly: bool = (
+		last.get("faction", -1) == Actor.HEAVEN
+		and last.t in [&"hit", &"splash"]
+		and last.get("by", id) != id
+		and id != after.player().id
+	)
+	if friendly:
+		return (
+			_who(before, after, last.by, "의", "의")
+			+ [[" " + last.title + "에 ", TEXT]]
+			+ _subject(before, after, id)
+			+ _took(e.n)
+		)
 	return _subject(before, after, id) + _took(e.n)
 
 

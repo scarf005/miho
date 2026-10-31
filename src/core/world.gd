@@ -658,7 +658,7 @@ func _flash(s: Shot, at: Vector2i) -> void:
 func _strike(s: Shot, a: Actor) -> void:
 	var spell := s.spell
 	var at := a.pos
-	emit({t = &"hit", shot = s.id, id = a.id, at = at})
+	emit({t = &"hit", shot = s.id, id = a.id, at = at, by = s.caster, title = spell.title()})
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if Bestiary.absorbs(a.kind, spell):
 		emit({t = &"absorb", id = a.id, at = at})
@@ -710,7 +710,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 
 
 func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
-	emit({t = &"splash", at = at, faction = s.faction})
+	emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
 	for d in Grid.DIRS:
 		var p := at + d
 		_ignite(p)

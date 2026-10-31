@@ -165,6 +165,8 @@ static func shot(s: Shot) -> Array:
 		lines.append([["피해 ", Palette.TEXT], [str(harm), Palette.HURT]])
 	else:
 		lines.append([["피해 없음", Palette.DIM]])
+	if s.faction == Actor.HEAVEN:
+		lines.append([["다른 적도 맞힌다. 약점과 면역은 똑같이 적용된다", Palette.DIM]])
 	if s.life > 0:
 		lines.append([["%d초 뒤 사라진다" % s.life, Palette.DIM]])
 	return lines
