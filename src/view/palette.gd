@@ -51,6 +51,8 @@ const TILES := {
 	World.ALTAR: ["†", Color(0.62, 0.72, 0.95), Color(0.1, 0.12, 0.2)],
 	World.ALTAR_LIT: ["†", Color(0.55, 0.92, 1.0), Color(0.1, 0.3, 0.4)],
 	World.VEIL: ["╫", Color(1.0, 0.5, 0.14), Color(0.4, 0.1, 0.02)],
+	World.LAMP: ["¶", Color(1.0, 0.82, 0.4), Color(0.22, 0.15, 0.05)],
+	World.TALISMAN: ["◊", Color(0.5, 0.95, 0.9), Color(0.08, 0.22, 0.2)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]

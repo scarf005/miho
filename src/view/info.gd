@@ -82,6 +82,8 @@ static func state(a: Actor) -> String:
 		return STATE[a.alert]
 	if a.asleep():
 		return "자는 중"
+	if a.guard and a.pos == a.home:
+		return "지키는 중"
 	if a.info().get("patrol", false):
 		return "순찰 중"
 	return "돌아가는 중" if a.pos != a.home else STATE[Actor.REST]
@@ -321,6 +323,8 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	var out := [WITS[Bestiary.wits(a.kind)]]
 	if spec.get("patrol", false):
 		out.append("순찰")
+	if a.guard:
+		out.append("잠들지 않음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리 %d칸" % spec.step)
 	if elements.has(Cards.WOOD):
@@ -429,6 +433,9 @@ static func _sites(w: World, p: Vector2i) -> Array[String]:
 	for site: Dictionary in w.sites:
 		if site.at == p and site.kind == &"altar":
 			out.append("쓰러진 생물 (%d/%d)" % [site.fallen, Altar.NEED])
+		if site.at == p and site.kind == &"yard":
+			var card := Yard.prize(w, site)
+			out.append("얻는 부적: %s" % (Cards.NAME[card] if card != &"" else "없음. 모두 가졌다"))
 	return out
 
 
@@ -448,6 +455,12 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.ALTAR_LIT:
 			out.append("길과 주문을 막는다")
 			out.append("주위 %d칸을 밝힌다" % Light.SOUL_RADIUS)
+		World.LAMP:
+			out.append("길과 주문을 막는다. 부술 수 없고 꺼지지 않는다")
+			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
+		World.TALISMAN:
+			out.append("밟으면 아직 없는 원소 부적 하나를 얻는다")
+			out.append("한 번뿐이다. 지키는 장승은 잠들지 않는다")
 		World.VEIL:
 			out.append("길과 주문을 막는다. 시야는 막지 않는다")
 			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)

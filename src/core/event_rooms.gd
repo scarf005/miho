@@ -14,6 +14,7 @@ extends RefCounted
 ## laid after them as they were on a storey they do not appear on.
 ## 혼불 제단 (Altar): three creatures of heaven fall around the altar.
 ## 도깨비불 장막 (Veil): a line of fire splits a room; water or frost puts it out.
+## 장승 마당 (Yard): a lit yard with a guard that never sleeps and a talisman.
 
 ## The chance of a treasure room.
 const VAULTS := 0.4
@@ -21,6 +22,7 @@ const VAULTS := 0.4
 const ROWS := [
 	{kind = &"altar", tier = 1, chance = 0.12},
 	{kind = &"veil", tier = 1, chance = 0.12},
+	{kind = &"yard", tier = 1, chance = 0.12},
 ]
 
 
@@ -57,6 +59,8 @@ static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenera
 			return Altar.make(w, r)
 		&"veil":
 			return Veil.make(w, r, rng)
+		&"yard":
+			return Yard.make(w, r, rng)
 	return false
 
 

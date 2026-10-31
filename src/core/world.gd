@@ -134,6 +134,8 @@ const SEAL := 34
 const ALTAR := 35
 const ALTAR_LIT := 36
 const VEIL := 37
+const LAMP := 38
+const TALISMAN := 39
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -614,6 +616,7 @@ func arrive(me: Actor) -> bool:
 		me.max_hp += HEAL if grew else 0
 		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+	Yard.arrive(self, me)
 	return false
 
 

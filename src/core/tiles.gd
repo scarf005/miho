@@ -106,6 +106,8 @@ const ROWS := {
 	World.ALTAR: {name = "혼불 제단"},
 	World.ALTAR_LIT: {name = "타오르는 제단"},
 	World.VEIL: {name = "도깨비불 장막", opens = true},
+	World.LAMP: {name = "석등"},
+	World.TALISMAN: {name = "부적 단", walk = true},
 }
 const DEFAULT := {
 	name = "",

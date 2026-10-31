@@ -25,6 +25,7 @@ const SOUL_RADIUS := 4
 const GLOW := {
 	World.ALTAR_LIT: {radius = SOUL_RADIUS, color = SOUL},
 	World.VEIL: {radius = LANTERN_RADIUS, color = FIRE},
+	World.LAMP: {radius = LANTERN_RADIUS, color = LANTERN},
 }
 
 
