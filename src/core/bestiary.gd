@@ -23,6 +23,8 @@ extends RefCounted
 ## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
 ## dull creature looks at the spot, a sharp one at where the projectile came
 ## from, a cunning one hunts from there.
+## hat: wears the invisibility hat, seen only from the next tile or with a wisp
+## clinging to it (Hat).
 ## brave: never flees (Bestiary.flees). Any other creature that is sharp or
 ## cunning and can walk runs from Miho at 1 health (Mind.flee).
 ## A creature's elements are those of the spells it casts. A spell that holds
@@ -102,6 +104,19 @@ const KINDS := {
 		wits = 1,
 		patrol = true,
 		tracks = true,
+	},
+	&"gamtu":
+	{
+		name = "감투 도깨비",
+		glyph = "감",
+		group = &"dokkaebi",
+		hp = 2,
+		melee = {name = "방망이", hit = "맞아", damage = 1},
+		move = &"approach",
+		step = 2,
+		wits = 1,
+		patrol = true,
+		hat = true,
 	},
 	&"jangseung":
 	{

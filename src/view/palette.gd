@@ -75,6 +75,7 @@ const KIND := {
 	&"oedari": Color(0.9, 0.35, 0.55),
 	&"bujigaengi": Color(0.95, 0.62, 0.4),
 	&"bitjaru": Color(0.78, 0.7, 0.42),
+	&"gamtu": Color(0.72, 0.62, 0.95),
 	&"jangseung": Color(0.82, 0.64, 0.42),
 	&"imugi": Color(0.5, 0.8, 0.55),
 	&"bulgae": Color(1.0, 0.55, 0.2),

@@ -907,7 +907,7 @@ func _refresh() -> void:
 		for p in _path_to(hover):
 			tints[p] = Color(Palette.TEXT, 0.12)
 	var a := world.actor_at(hover) if Grid.inside(hover) else null
-	if a != null and a.faction != Actor.FOX and world.seen[Grid.index(hover)] == 1:
+	if a != null and a.faction != Actor.FOX and Hat.shown(world, a):
 		var view := known.view_of(a)
 		for i in view.size():
 			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
@@ -993,6 +993,6 @@ func _sneakable(a: Actor) -> bool:
 		a.alive()
 		and a.faction != Actor.FOX
 		and Grid.cheb(a.pos, world.player().pos) == 1
-		and world.seen[Grid.index(a.pos)] == 1
+		and Hat.shown(world, a)
 		and world.caught_unawares(a)
 	)

@@ -18,6 +18,8 @@ const TELLS := {&"notice": "!", &"heed": "?", &"blind": "x"}
 var vis := PackedByteArray()
 ## The facts, in the order of the events.
 var facts: Array[Dictionary] = []
+## The ids of the creatures under a hat that she did not see in the round.
+var veiled := {}
 
 
 ## What Miho perceives of `events`, the round from `before` to `after`.
@@ -26,6 +28,7 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 	out.vis = before.seen.duplicate()
 	for i in out.vis.size():
 		out.vis[i] |= after.seen[i]
+	out.veiled = _veiled(before, after)
 	var where := {}
 	for w: World in [after, before]:
 		for a in w.actors:
@@ -49,9 +52,27 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 		)
 		if e.t == &"noise":
 			told = e.heard and not sees(out.vis, e.at)
+		if ["id", "target", "rival"].any(func(k): return out.veiled.has(e.get(k, -1))):
+			told = false
 		if told:
 			out.facts.append(e.merged({where = at, i = i}))
 	out._tell_marks(before, after)
+	return out
+
+
+## The hat wearers (Hat) Miho saw neither at the start nor at the end of the
+## round, by id: nothing that happens to them is told, though their tile is seen.
+static func _veiled(before: World, after: World) -> Dictionary:
+	var out := {}
+	for w: World in [before, after]:
+		for a in w.actors:
+			if a.info().get("hat", false):
+				out[a.id] = true
+	for id in out.keys():
+		for w: World in [before, after]:
+			var a := w.actor(id)
+			if a != null and a.alive() and Hat.shown(w, a):
+				out.erase(id)
 	return out
 
 
@@ -64,10 +85,10 @@ func _tell_marks(before: World, after: World) -> void:
 			covered[[TELLS[f.t], f.id]] = true
 	for a in after.actors:
 		var mark := mark_of(a)
-		if a.faction == Actor.FOX or not a.alive() or mark == "" or not sees(after.seen, a.pos):
+		if a.faction == Actor.FOX or not a.alive() or mark == "" or not Hat.shown(after, a):
 			continue
 		var was := before.actor(a.id)
-		if was != null and was.alive() and sees(before.seen, was.pos) and mark_of(was) == mark:
+		if was != null and was.alive() and Hat.shown(before, was) and mark_of(was) == mark:
 			continue
 		if not covered.has([mark, a.id]):
 			facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})

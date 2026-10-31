@@ -30,7 +30,7 @@ static func at(w: World, p: Vector2i) -> Array:
 	var i := Grid.index(p)
 	if w.seen[i] == 1:
 		var a := w.actor_at(p)
-		if a != null:
+		if a != null and Hat.shown(w, a):
 			return creature(w, a)
 		var s := w.shot_at(p)
 		if s != null:
@@ -130,7 +130,7 @@ static func _rival(w: World, a: Actor) -> String:
 
 ## The name of creature `b` when Miho sees it, else "무언가".
 static func _name_of(w: World, b: Actor) -> String:
-	return b.info().name if b != null and w.seen[Grid.index(b.pos)] == 1 else "무언가"
+	return b.info().name if b != null and Hat.shown(w, b) else "무언가"
 
 
 ## What it strikes and casts with, what it eats and what it leaves.
@@ -153,6 +153,9 @@ static func _arms(a: Actor, held: Array) -> Array:
 		var said := [[cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
 		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
 		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
+	if spec.get("hat", false):
+		lines.append([["감투: %d칸 안에서만 보인다" % Hat.REACH, Palette.DIM]])
+		lines.append([["도깨비불이 붙으면 보인다", Palette.DIM]])
 	if Bestiary.flees(a.kind):
 		lines.append([["체력 1이면 도망친다", Palette.DIM]])
 	elif spec.get("brave", false):

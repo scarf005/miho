@@ -21,7 +21,7 @@ static func too_hurt(w: World) -> bool:
 static func targets(w: World) -> Array[Actor]:
 	var list: Array[Actor] = []
 	for a in w.actors:
-		if a.alive() and a.faction != Actor.FOX and w.seen[Grid.index(a.pos)] == 1:
+		if a.alive() and a.faction != Actor.FOX and Hat.shown(w, a):
 			list.append(a)
 	list.sort_custom(func(a, b): return [_rank(w, a), a.id] < [_rank(w, b), b.id])
 	return list

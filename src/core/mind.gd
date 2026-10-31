@@ -139,7 +139,7 @@ static func _fight(w: World, a: Actor) -> bool:
 		_truce(w, a)
 		return false
 	var rival := w.actor(a.rival)
-	if rival != null and w.sees(a, rival.pos):
+	if rival != null and Hat.sees(w, a, rival):
 		a.rival_at = rival.pos
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1:

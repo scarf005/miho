@@ -292,7 +292,7 @@ static func rooted(w: World, caster: Actor, level: int) -> Array[Actor]:
 	var dist: PackedInt32Array = _search(w, caster, ROOT_REACH[level - 1]).dist
 	var foes: Array[Actor] = []
 	for a in w.actors:
-		if a.alive() and a.faction != caster.faction and w.sees(caster, a.pos):
+		if a.alive() and a.faction != caster.faction and Hat.sees(w, caster, a):
 			if dist[Grid.index(a.pos)] > 0:
 				foes.append(a)
 	var steps := func(a: Actor) -> Array: return [dist[Grid.index(a.pos)], a.id]
