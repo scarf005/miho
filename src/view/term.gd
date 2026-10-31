@@ -51,6 +51,7 @@ const DELAY := {
 	&"hit": 0.1,
 	&"burst": 0.1,
 	&"splash": 0.22,
+	&"spray": 0.25,
 	&"clash": 0.1,
 	&"claw": 0.16,
 	&"melee": 0.16,
@@ -304,6 +305,10 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_flash(at, Color(Palette.BURNING[1], 0.9), 0.14)
 		&"die":
 			_actors.erase(e.id)
+		&"spray":
+			var color := Palette.card(Spell.make(e.cards).slots[0])
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
 		&"flash":
 			for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
 				_flash(at + d * 1, Color(1, 1, 1, 0.9))

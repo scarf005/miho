@@ -14,16 +14,9 @@ const BLIND := 2
 ## afflict it. False when it ate the spell.
 static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	var spell := s.spell
-	if Bestiary.absorbs(a.kind, spell):
-		w.emit({t = &"absorb", id = a.id, at = a.pos})
-		if Bestiary.eats(a.kind, spell):
-			a.max_hp += Bestiary.GROWTH
-			a.hp += Bestiary.GROWTH
-			w.emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
+	if absorbed(w, s, a):
 		return false
-	var weak := Bestiary.weak(a.kind, spell)
-	if n > 0:
-		w.hurt(a, n * (2 if weak else 1), weak)
+	harm(w, s, a, n)
 	if spell.has(Cards.FIRE) and Bestiary.burns(a.kind):
 		w.ignite(a.pos, true)
 	if a.alive():
@@ -33,6 +26,25 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 			stun(w, a, STUN + spell.extra(Cards.EARTH))
 		Mind.struck(w, a, s)
 	return true
+
+
+## Whether `a` takes no harm or effect from `s`; one that eats it grows.
+static func absorbed(w: World, s: Shot, a: Actor) -> bool:
+	if not Bestiary.absorbs(a.kind, s.spell):
+		return false
+	w.emit({t = &"absorb", id = a.id, at = a.pos})
+	if Bestiary.eats(a.kind, s.spell):
+		a.max_hp += Bestiary.GROWTH
+		a.hp += Bestiary.GROWTH
+		w.emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
+	return true
+
+
+## `s` hurts `a` for n, twice over when `a` is weak to it.
+static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
+	var weak := Bestiary.weak(a.kind, s.spell)
+	if n > 0:
+		w.hurt(a, n * (2 if weak else 1), weak)
 
 
 static func root(w: World, a: Actor, rounds: int) -> void:

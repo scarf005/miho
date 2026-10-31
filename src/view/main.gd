@@ -892,8 +892,9 @@ func _ahead_lines(p: Vector2i) -> Array:
 	return lines
 
 
-## The forecast cast: the tiles each projectile crosses, a line from Miho to
-## the creature each homing one chases, and the harm each creature takes.
+## The forecast cast: the tiles each projectile crosses or each spray covers,
+## a line from Miho to the creature each homing one chases, and the harm each
+## creature takes.
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 	for id in f.paths:
 		var path: Dictionary = f.paths[id]
@@ -903,6 +904,10 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 		var cast_now := not world.shots.any(func(s): return s.id == id)
 		if target != null and path.faction == Actor.FOX and cast_now:
 			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7)])
+	for e in f.sprays:
+		var color := Palette.card(Spell.make(e.cards).slots[0])
+		for p: Vector2i in e.tiles:
+			tints[p] = Color(color, 0.22)
 	for id in f.harm:
 		var a := f.after.actor(id)
 		if a != null:

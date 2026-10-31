@@ -111,8 +111,11 @@ var start := Vector2i.ZERO
 var stairs := Vector2i(-1, -1)
 var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
-## Burning tiles: position -> rounds left.
+## Burning tiles: position -> rounds left; the wild ones always spread.
 var burning := {}
+var wild := {}
+## Tiles a gun lights this round (Spray).
+var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).
 var wet := {}
 var actors: Array[Actor] = []
@@ -169,6 +172,7 @@ func clone() -> World:
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
 	w.burning = burning.duplicate()
+	w.wild = wild.duplicate()
 	w.changes = changes.duplicate(true)
 	w.bodies = bodies.duplicate(true)
 	w.wet = wet.duplicate()
@@ -450,19 +454,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			else:
 				move(me, to)
 				Scent.lay(self, to)
-				if me.pos == stairs:
-					_ascend()
+				if arrive(me):
 					return events
-				if me.pos == elixir:
-					outcome = &"won"
-					emit({t = &"won"})
-					return events
-				if peaches.has(me.pos):
-					peaches.erase(me.pos)
-					var grew := me.hp >= me.max_hp
-					me.max_hp += HEAL if grew else 0
-					me.hp += HEAL
-					emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
 		&"close":
 			Terrain.close_door(self, me, me.pos + action.dir)
 		&"cast":
@@ -525,6 +518,25 @@ func move(a: Actor, to: Vector2i) -> void:
 	var tread: Array = Tiles.of(tile(to), "tread")
 	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
+
+
+## Miho has come onto her tile, by a step or a push: the stairs take her up,
+## the elixir wins, a peach heals. True when the storey or the run ends.
+func arrive(me: Actor) -> bool:
+	if me.pos == stairs:
+		_ascend()
+		return true
+	if me.pos == elixir:
+		outcome = &"won"
+		emit({t = &"won"})
+		return true
+	if peaches.has(me.pos):
+		peaches.erase(me.pos)
+		var grew := me.hp >= me.max_hp
+		me.max_hp += HEAL if grew else 0
+		me.hp += HEAL
+		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+	return false
 
 
 ## Slides a creature up to n tiles along dir, off the edge into the sky if
@@ -591,6 +603,9 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
+	if spell.shape == Spell.SPRAY:
+		Spray.cast(self, caster, spell, dir)
+		return
 	var word := "웅" if spell.orb else "휙"
 	noise(caster.pos, spell.cast_noise(), word, caster.faction == Actor.FOX, caster.id)
 	for target in Homing.targets(self, caster, spell):
@@ -780,21 +795,27 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			emit({t = &"snuff", shot = o.id, at = p})
 
 
-## Sets p alight if it is flammable, or whatever it is when `force`d. Water never burns.
-func ignite(p: Vector2i, force := false) -> void:
+## Sets p alight if it is flammable, or whatever it is when `force`d; a
+## `wildfire` always spreads. Water never burns.
+func ignite(p: Vector2i, force := false, wildfire := false) -> void:
 	if (
 		(force or Tiles.burns[tile(p)] == 1)
 		and not burning.has(p)
 		and not Tiles.of(tile(p), "douses")
 	):
 		burning[p] = BURN_ROUNDS
+		if wildfire:
+			wild[p] = true
+		else:
+			wild.erase(p)
 		Scent.clear(self, p)
 		_changed()
 		emit({t = &"ignite", at = p})
 
 
 ## Each burning tile crackles, burns whoever stands in it (unless it eats
-## fire), may set each flammable neighbour alight, and burns down to ash.
+## fire), may set each flammable neighbour alight (a wild one always does), and
+## burns down to ash.
 func _burn() -> void:
 	if outcome != &"":
 		return
@@ -810,15 +831,14 @@ func _burn() -> void:
 			else:
 				hurt(a, FIRE_DAMAGE)
 		for d in Grid.DIRS:
-			if (
-				Tiles.burns[tile(p + d)] == 1
-				and not burning.has(p + d)
-				and rng.randf() < Tiles.of(tile(p + d), "spread")
-			):
-				caught.append(p + d)
+			var q := p + d
+			if Tiles.burns[tile(q)] == 1 and not burning.has(q):
+				if wild.has(p) or rng.randf() < Tiles.of(tile(q), "spread"):
+					caught.append(q)
 		burning[p] -= 1
 		if burning[p] <= 0:
 			burning.erase(p)
+			wild.erase(p)
 			set_tile(p, Tiles.of(tile(p), "burns_to"))
 			Notice.record(self, &"ash", p)
 			emit({t = &"burnout", at = p})
@@ -828,6 +848,7 @@ func _burn() -> void:
 
 func _end_round() -> void:
 	Drums.dry(self)
+	flares.clear()
 	regrow += 1
 	if regrow >= TAIL_REGROW:
 		regrow = 0

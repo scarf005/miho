@@ -13,6 +13,8 @@ const LANTERN_RADIUS := 6
 const SIDE: Array[Vector3] = [Vector3(0.45, 0.72, 1.0), Vector3(1.0, 0.3, 0.2)]
 const FIRE := Vector3(1.0, 0.55, 0.15)
 const FIRE_RADIUS := 3
+## A gun's muzzle flash lights the shooter's tile for the round it fires.
+const MUZZLE_RADIUS := 1
 ## Moonlight on skybridges: bright enough to be lit anywhere along the span.
 const MOON := Vector3(0.4, 0.5, 0.75)
 const DARK := Vector3(-1.4, -1.4, -1.4)
@@ -28,7 +30,7 @@ static func field(sources: Array[Dictionary], opaque: PackedByteArray) -> Packed
 	return Native.light(sources, opaque, Grid.W)
 
 
-## Every light on the storey: lanterns, fires and glowing projectiles.
+## Every light on the storey: lanterns, fires, muzzle flashes and glowing projectiles.
 static func sources(w: World) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var i := w.tiles.find(World.LANTERN)
@@ -37,6 +39,8 @@ static func sources(w: World) -> Array[Dictionary]:
 		i = w.tiles.find(World.LANTERN, i + 1)
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
+	for p in w.flares:
+		out.append({at = p, radius = MUZZLE_RADIUS, color = FIRE})
 	for s in w.shots:
 		if not s.gone:
 			var l := s.spell.light(s.faction)

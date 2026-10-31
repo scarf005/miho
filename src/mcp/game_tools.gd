@@ -16,7 +16,9 @@ const INSTRUCTIONS := (
 	"Play Miho, a fox climbing a pavilion of 27 storeys to drink the elixir on the top one. "
 	+ "She grows a tail every third storey, up to nine. "
 	+ "Call new_game, then act. Every result shows the map and what Miho knows. "
-	+ "Game text is Korean. Use forecast to check a step before taking it, "
+	+ "A spell is a queue of talismans, one tail each: fox or orb hurl projectiles, "
+	+ "elements alone spray at once; more copies make it stronger. "
+	+ "Game text is Korean. Use forecast to check a step or a spell before taking it, "
 	+ "and explore, rest, stairs and travel to walk many rounds safely."
 )
 ## The walks of many rounds, with what is said when one cannot take a first step.
@@ -38,8 +40,11 @@ const SPELLS := {
 		"Spells hurled this round, each along its own direction. cards is the queue in order: "
 		+ "talisman names (fox, orb, fire, water, wood, metal, earth) or their Korean names, "
 		+ "repeats allowed. A repeat stacks; an element joins the first different element "
-		+ "queued as one compound slot. A spell needs fox or orb and fills at most 5 slots; "
-		+ "every card costs one tail, and all cards together cost at most the unspent tails."
+		+ "queued as one compound slot. A spell fills at most 5 slots. With fox or orb it "
+		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
+		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
+		+ "shape); forecast lists every number. Every card costs one tail, and all cards "
+		+ "together cost at most the unspent tails."
 	),
 	items =
 	{
@@ -230,6 +235,9 @@ func _forecast(args: Dictionary) -> Dictionary:
 		out.append(
 			"spell: " + Info.plain(SpellInfo.spell(Spell.make(one.cards))).replace("\n", "; ")
 		)
+	for e in f.sprays:
+		var tiles: Array = e.tiles.map(func(p): return "(%d,%d)" % [p.x, p.y])
+		out.append("spray covers: " + (" ".join(tiles) if not tiles.is_empty() else "nothing"))
 	out.append("harm to Miho: %d" % f.hurt_me())
 	var noticing := f.noticed.keys().map(func(i): return _whom(world, i))
 	out.append("noticed by: " + (", ".join(noticing) if not noticing.is_empty() else "nobody"))
@@ -338,7 +346,7 @@ func _refusal(action: Dictionary) -> String:
 	if action.t == &"close":
 		return "There is no open door with nothing in it in that direction."
 	return (
-		"That cast is not allowed: each spell needs talismans Miho holds, fox or orb among them, "
+		"That cast is not allowed: each spell needs talismans Miho holds, "
 		+ "filling at most 5 slots, "
 		+ (
 			"its own open direction, and all cards together cost at most the %d unspent tails."

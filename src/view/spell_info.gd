@@ -11,12 +11,7 @@ const TURN_NAME := ["곧게만 간다", "45°", "90°", "135°", "마음대로"]
 ## A talisman, and what the queue becomes with it (null when it does not fit).
 static func card(c: StringName, after: Spell) -> Array:
 	var head := [[Cards.NAME[c] + " 부적", Palette.card(c)], [" 꼬리 1개", LABEL]]
-	var alone := Spell.make([c])
-	var lines := [head]
-	if alone != null:
-		lines += spell(alone).slice(1)
-	else:
-		lines.append([["여우불이나 구슬과 함께 쓴다", LABEL]])
+	var lines: Array = [head] + spell(Spell.make([c])).slice(1)
 	if after != null and after.cards.size() > 1:
 		lines.append(
 			[
@@ -45,12 +40,108 @@ static func spell(s: Spell) -> Array:
 	for c in s.slots:
 		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
+	if s.shape == Spell.SPRAY:
+		lines.append_array(_spray(s))
+		var gun := s.level() > 0 and s.slots[0] == Cards.METAL
+		lines.append(_line("빛", "발사 시 당신 칸을 밝힌다" if gun else "없음"))
+		lines.append(_line("소리", _sound(s)))
+		return lines
 	lines.append_array(_shape(s))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], _effect(s, e), Palette.CARD[e]))
 	lines.append(_line("빛", _light(s.light(Actor.FOX))))
 	lines.append(_line("소리", _sound(s)))
+	return lines
+
+
+## Shape and effect of a spray, with every number, a short line each.
+static func _spray(s: Spell) -> Array:
+	var level := s.level()
+	if level == 0:
+		return _compound(s)
+	var i := level - 1
+	var c := s.slots[0]
+	var color: Color = Palette.CARD[c]
+	match c:
+		Cards.FIRE:
+			var out := [_line("모양", _fan(Spray.FAN[i])), _line("불", "타는 칸에 불을 붙인다", color)]
+			if level >= 2:
+				out.append(_line("불", "안의 적이 선 칸도 탄다", color))
+				out.append(_line("피해", "불 위에서 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
+			if level >= 3:
+				out.append(_line("불", "늘 번진다", color))
+			return out
+		Cards.WATER:
+			var reach := "적을 꿰뚫는다" if level >= 3 else "첫 적에서 멈춘다"
+			return [
+				_line("모양", "곧게 %d칸, %s" % [Spray.JET[i], reach]),
+				_line("물", "적을 %d칸 민다" % Spray.PUSH[i], color),
+				_line("물", "하늘로 밀린 적은 떨어진다", color),
+				_line("물", "불과 등불을 끄고 북을 적신다", color),
+			]
+		Cards.METAL:
+			return _gun(level)
+		Cards.EARTH:
+			var out := [
+				_line("모양", "당신 둘레 %d칸. 방향 무관" % Spray.QUAKE[i]),
+				_line("흙", "적을 %d초 기절시킨다" % Spray.QUAKE_STUN[i], color),
+			]
+			if level >= 2:
+				out.append(_line("흙", ["벽에 금이 간다", "벽에 금이 가고 금 간 벽은 무너진다"][i - 1], color))
+			return out
+	var who := "모두" if Spray.ROOT_COUNT[i] == 0 else "%d명" % Spray.ROOT_COUNT[i]
+	return [
+		_line("모양", "땅속 뿌리. %d걸음 안" % Spray.ROOT_REACH[i]),
+		_line("노림", "보이는 가까운 적 " + who),
+		_line("나무", "%d초 묶는다" % Spray.ROOT_ROUNDS[i], color),
+		_line("막힘", "하늘, 연못, 벽, 하늘다리"),
+	]
+
+
+static func _fan(r: int) -> String:
+	return "부채꼴 90°, 반지름 %d. 보이는 칸만" % r
+
+
+static func _gun(level: int) -> Array:
+	var shape := "권총. 곧게 %d칸, 첫 적에서 멈춘다" % Spray.PISTOL
+	var harm := "1"
+	if level == 2:
+		shape = "산탄총. " + _fan(Spray.SHOTGUN)
+		harm = "적마다 1, 바로 옆 적은 2"
+	elif level >= 3:
+		shape = "철갑탄. 곧게 %d칸" % Spray.PIERCE
+		harm = "적마다 %d" % Spray.PIERCE_HARM
+	var out := [_line("모양", shape)]
+	if level >= 3:
+		out.append(_line("꿰뚫음", "모든 적과 벽 하나"))
+	out.append(_line("피해", harm + ". 약점 시 ×2", Palette.HURT))
+	return out
+
+
+## A compound's shape, then the plain effect of each element it carries.
+static func _compound(s: Spell) -> Array:
+	var shape: Array = Spray.SHAPE[s.slots[0]]
+	var n: int = shape[1]
+	var text: String = {
+		Spray.FAN_SHAPE: _fan(n),
+		Spray.LINE: "곧게 %d칸, 첫 적에서 멈춘다" % n,
+		Spray.BURST: "%d칸 앞 3×3. 막힐 시 그 앞" % n,
+		Spray.CLEAVE: "%d칸 안 첫 벽과 그 양옆" % n,
+	}[shape[0]]
+	var lines := [_line("모양", text)]
+	var plain := {
+		Cards.FIRE: "타는 칸과 나무 적에 불을 붙인다",
+		Cards.WATER: "불과 등불을 끄고 적을 %d칸 민다" % (1 + s.extra(Cards.WATER)),
+		Cards.WOOD: "적을 %d초 묶는다" % (Elements.ROOT + s.extra(Cards.WOOD)),
+		Cards.METAL: "적에게 피해 %d. 약점 시 ×2" % s.count(Cards.METAL),
+		Cards.EARTH: "적을 %d초 기절시킨다" % (Elements.STUN + s.extra(Cards.EARTH)),
+	}
+	if shape[0] == Spray.CLEAVE:
+		plain[Cards.EARTH] += ". 벽에 금이 간다"
+	for e in Cards.ELEMENTS:
+		if s.has(e):
+			lines.append(_line(Cards.NAME[e], plain[e], Palette.CARD[e]))
 	return lines
 
 

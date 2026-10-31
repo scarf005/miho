@@ -1,7 +1,7 @@
 class_name Forecast
 extends RefCounted
 ## Reads one previewed round into drawable facts: the tiles each projectile
-## crosses, what it strikes, how much harm every creature takes, and who
+## crosses or each spray covers, what it strikes, how much harm every creature takes, and who
 ## notices Miho. The preview runs on what Miho knows (World.known_clone), so
 ## creatures she cannot see take no part in it.
 
@@ -10,6 +10,8 @@ var events: Array[Dictionary] = []
 ## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live, target}, the
 ## target the creature id it chases (0 for none) as the round ends
 var paths := {}
+## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
+var sprays: Array[Dictionary] = []
 ## actor id -> total damage this round
 var harm := {}
 ## actor id -> true when it dies this round
@@ -50,6 +52,8 @@ func read(round_events: Array[Dictionary]) -> void:
 					live = true,
 					target = e.get("target", 0)
 				}
+			&"spray":
+				sprays.append(e)
 			&"fly":
 				if paths.has(e.shot):
 					paths[e.shot].tiles.append(e.to)

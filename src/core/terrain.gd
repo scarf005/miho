@@ -54,9 +54,10 @@ static func breakable(w: World, at: Vector2i) -> bool:
 
 
 ## An orb can be hurled at any open tile and at a breakable lantern or wall
-## right next to the caster, which it strikes where it stands.
+## right next to the caster, which it strikes where it stands; a spray goes
+## any way.
 static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
-	return w.open_air(at) or (spell.orb and breakable(w, at))
+	return spell.shape == Spell.SPRAY or w.open_air(at) or (spell.orb and breakable(w, at))
 
 
 ## Miho walks into a lantern or window: a hit, with a clang; a drum tears.
@@ -120,15 +121,21 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 			w.set_tile(p, World.LANTERN)
 			w.emit({t = &"relight", at = p})
 		if s.spell.has(Cards.WATER):
-			Scent.clear(w, p)
-		if s.spell.has(Cards.WATER) and w.tile(p) == World.DRUM:
-			Drums.soak(w, p)
-		if s.spell.has(Cards.WATER) and (w.tile(p) == World.LANTERN or w.burning.has(p)):
-			w.burning.erase(p)
-			if w.tile(p) == World.LANTERN:
-				Notice.smashed(w, World.LANTERN, p)
-			w.set_tile(p, World.LANTERN_OUT if w.tile(p) == World.LANTERN else w.tile(p))
-			w.emit({t = &"douse", at = p})
+			wash(w, p)
+
+
+## Water on p: Miho's scent washes away, a drum gets wet, a lit lantern or a
+## fire goes out.
+static func wash(w: World, p: Vector2i) -> void:
+	Scent.clear(w, p)
+	if w.tile(p) == World.DRUM:
+		Drums.soak(w, p)
+	if w.tile(p) == World.LANTERN or w.burning.has(p):
+		w.burning.erase(p)
+		if w.tile(p) == World.LANTERN:
+			Notice.smashed(w, World.LANTERN, p)
+		w.set_tile(p, World.LANTERN_OUT if w.tile(p) == World.LANTERN else w.tile(p))
+		w.emit({t = &"douse", at = p})
 
 
 ## A searching creature lights a lantern that went out next to it; true when it did.

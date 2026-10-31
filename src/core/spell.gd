@@ -11,7 +11,8 @@ extends RefCounted
 ## damage for every 구 and 1 more after a run-up (DCSS mon-project.cc
 ## iood_damage); 여 alone a wisp for every 여, each hitting for 1. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
-## tiles, then hovers and lights its surroundings.
+## tiles, then hovers and lights its surroundings. Elements alone spray: they
+## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element has one meaning on any form, one step stronger for every copy:
 ## 불 burns (a wisp hits for 1, an orb splashes), 물 is darkness and silence,
 ## 나무 roots, 쇠 flashes and blinds, 흙 thuds loudly and stuns.
@@ -28,7 +29,10 @@ const TURN_FREE := 4
 const HOMING := &"homing"
 const ORB := &"orb"
 const WISP := &"wisp"
+const SPRAY := &"spray"
 const SHAPE_NAME := {HOMING: "유도 구슬", ORB: "구슬", WISP: "여우불"}
+## Copies past which an element's spray grows no more.
+const MAX_LEVEL := 3
 
 ## The cards as they were queued, repeats and all; the slots they fill.
 var cards: Array[StringName] = []
@@ -74,13 +78,23 @@ static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	return out
 
 
-## The shape the slots make, read top down: a homing orb, an orb, foxfire.
+## The shape the slots make, read top down: a homing orb, an orb, foxfire, a spray.
 static func _shape(s: Spell) -> StringName:
 	if s.count(Cards.FOX) > 0 and s.count(Cards.ORB) > 0:
 		return HOMING
 	if s.count(Cards.ORB) > 0:
 		return ORB
-	return WISP if s.count(Cards.FOX) > 0 else &""
+	if s.count(Cards.FOX) > 0:
+		return WISP
+	return SPRAY if not s.slots.is_empty() else &""
+
+
+## How strong the spray of a lone element is: its copies, up to MAX_LEVEL; 0
+## when the first slot is a compound or the spell is no spray.
+func level() -> int:
+	if shape != SPRAY or not Cards.ELEMENTS.has(slots[0]):
+		return 0
+	return mini(count(slots[0]), MAX_LEVEL)
 
 
 ## Copies of a talisman in the spell; a compound holds one of each of its elements.
@@ -125,10 +139,10 @@ func title() -> String:
 			told[slot] = true
 			var n := elements().count(slot)
 			parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
-	var form: String = SHAPE_NAME.get(shape, "")
+	var form: String = SHAPE_NAME.get(shape, Spray.called(self))
 	if shape == WISP and count(Cards.FOX) > 1:
 		form += " %d발" % count(Cards.FOX)
-	return form if parts.is_empty() else "·".join(parts) + " " + form
+	return ("·".join(parts) + " " + form).strip_edges()
 
 
 func cost() -> int:
@@ -185,6 +199,8 @@ func light(faction: int) -> Dictionary:
 
 ## How far the cast is heard, and how far the orb's burst against a wall is heard.
 func cast_noise() -> int:
+	if shape == SPRAY:
+		return Spray.noise(self)
 	if has(Cards.WATER):
 		return 0
 	return 5 if orb else 2
