@@ -6,12 +6,14 @@ extends GutTest
 const HOME := Rect2i(2, 2, 6, 8)
 const MID := Rect2i(10, 2, 12, 9)
 const GOAL := Rect2i(24, 2, 6, 8)
+const HALL := Rect2i(10, 4, 12, 3)
 const SEEDS := 8
 ## The tiles each kind leaves in its room: those it must hold, and the others it may.
 const MADE_OF := {
 	&"garden": [[World.REEDS, World.SHALLOW], []],
 	&"granary": [[World.STRAW, World.CENSER], []],
 	&"mist": [[World.POND], [World.FLOOR]],
+	&"corridor": [[], [World.FLOOR]],
 }
 
 
@@ -243,6 +245,43 @@ func test_a_pond_that_would_cut_the_storey_apart_leaves_the_room_as_it_was() -> 
 	assert_true(w.vents.is_empty() and w.gas.is_empty())
 
 
+# --- 경보 복도 -------------------------------------------------------------------------
+
+
+func _corridor(w: World, r := HALL) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	return SetRooms.make(w, &"corridor", r, rng)
+
+
+func test_a_corridor_hides_alarm_plates_on_the_floor_of_a_narrow_dark_room() -> void:
+	var w := _plan(4, HALL)
+	assert_true(_corridor(w))
+	assert_between(w.traps.size(), SetRooms.PLATES.x, SetRooms.PLATES.y)
+	for p in w.traps:
+		assert_eq(w.traps[p], World.TRAP_ALARM)
+		assert_true(HALL.has_point(p), str(p))
+	assert_true(FloorGen.connected(w, w.traps.keys()), "round the plates, home meets goal")
+
+
+func test_a_plate_that_would_wall_off_the_storey_is_not_laid() -> void:
+	var lane := Rect2i(10, 5, 12, 1)
+	var w := _plan(4, lane)
+	assert_false(_corridor(w, lane), "every plate of the only way through cuts it")
+	assert_true(w.traps.is_empty())
+
+
+func test_a_wide_or_short_or_lit_room_is_no_corridor() -> void:
+	for r in [MID, Rect2i(10, 4, 6, 3)]:
+		var w := _plan(4, r)
+		assert_false(_corridor(w, r), str(r))
+		assert_true(w.traps.is_empty())
+	var lit := _plan(4, HALL)
+	lit.tiles[Grid.index(HALL.position)] = World.LANTERN
+	assert_false(_corridor(lit), "a lantern lights it")
+	assert_true(lit.traps.is_empty())
+
+
 # --- the storeys ---------------------------------------------------------------------
 
 
@@ -278,6 +317,9 @@ func test_storeys_hold_each_set_room_from_its_tier_and_stay_whole() -> void:
 		assert_false(s.set.room.has_point(w.stairs), label)
 		assert_false(s.set.room.has_point(w.elixir), label)
 		assert_true(_is_built(w, s.set.kind, s.set.room), "%s %s" % [label, s.set.kind])
+		if s.set.kind == &"corridor":
+			var plates: Array = w.traps.keys().filter(func(p): return s.set.room.has_point(p))
+			assert_gte(plates.size(), SetRooms.PLATES.x, label)
 		var first: int = SetRooms.ROWS.filter(func(row): return row.kind == s.set.kind)[0].tier
 		assert_gte(w.tier(), first, label)
 	for row: Dictionary in SetRooms.ROWS:

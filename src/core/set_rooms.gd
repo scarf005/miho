@@ -13,12 +13,20 @@ extends RefCounted
 ## 갈대 정원 (garden): reeds fill the room round a pool of shallow water.
 ## 불타기 쉬운 곳간 (granary): straw covers the floor, and a censer stands in it.
 ## 안개 연못 (mist): a pond grown from the middle breathes fog from every tile.
+## 경보 복도 (corridor): a dark, narrow room whose floor hides alarm plates (Traps).
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
 	{kind = &"granary", tier = 2},
 	{kind = &"mist", tier = 3},
+	{kind = &"corridor", tier = 4},
 ]
+## A corridor is at most CORRIDOR.x tiles across and at least CORRIDOR.y long.
+const CORRIDOR := Vector2i(4, 7)
+## A corridor holds a plate for each PLATE_AREA tiles, from PLATES.x to PLATES.y of
+## them; with fewer than PLATES.x that leave the storey whole it is no corridor.
+const PLATE_AREA := 4
+const PLATES := Vector2i(3, 8)
 ## A pond grows from the middle of a mist room like a patch (Placement), and
 ## breathes fog on every tile.
 const POND := {what = World.POND, on = World.FLOOR, grow = [100, 18]}
@@ -71,6 +79,7 @@ static func build(w: World, home: Rect2i, goal: Rect2i) -> Dictionary:
 static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	var before := [w.tiles.duplicate(), w.traps.duplicate(), w.vents.duplicate(), w.gas.duplicate()]
 	_clear(w, r)
+	w._changed()
 	var made := false
 	match kind:
 		&"garden":
@@ -79,6 +88,8 @@ static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerat
 			made = _granary(w, r, rng)
 		&"mist":
 			made = _mist(w, r, rng)
+		&"corridor":
+			made = _corridor(w, r, rng)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -162,3 +173,27 @@ static func _mist(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		return false
 	Placement.lay(w, FOG, pond[0], rng)
 	return true
+
+
+## Alarm plates on random bare tiles of a narrow room no light reaches, each one
+## that leaves the storey whole with every plate counted as a wall.
+static func _corridor(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+	if mini(r.size.x, r.size.y) > CORRIDOR.x or maxi(r.size.x, r.size.y) < CORRIDOR.y:
+		return false
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			if w.lit(Vector2i(x, y)):
+				return false
+	var spots := _bare(w, r)
+	FloorGen.shuffle(rng, spots)
+	var most := clampi(r.get_area() / PLATE_AREA, PLATES.x, PLATES.y)
+	var plates := 0
+	for p in spots:
+		if plates >= most:
+			break
+		w.traps[p] = World.TRAP_ALARM
+		if FloorGen.connected(w, w.traps.keys()):
+			plates += 1
+		else:
+			w.traps.erase(p)
+	return plates >= PLATES.x
