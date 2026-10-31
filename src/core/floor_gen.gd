@@ -1,8 +1,8 @@
 class_name FloorGen
 extends RefCounted
 ## Builds each storey: two to four pavilions in open sky, joined by skybridges,
-## with windows in their outer walls. Pavilions that stand close get verandas
-## (쪽마루) on their facing walls, a few tiles of sky apart, for a leap. A
+## with windows in their outer walls. Pavilions that stand close get ledges of
+## 마루 on their facing walls, a few tiles of sky apart, for a leap. A
 ## pavilion is a floor plan: its inside is cut into rooms by walls one tile
 ## thick (binary space partition), and one cut of a wide pavilion may be a
 ## gallery, a hall one tile wide between two walls.
@@ -159,9 +159,9 @@ const POND_ROOMS := 0.2
 const HALL_ROOMS := 0.15
 ## Gap between pavilions in tiles (min, max); least width of a pavilion; least height.
 const SKY_GAP := Vector2i(3, 6)
-## The sky between two facing verandas (min, max), and a veranda's length.
+## The sky between two facing ledges (min, max), and a ledge's length.
 const LEAP := Vector2i(2, 3)
-const VERANDA_LENGTH := Vector2i(3, 6)
+const LEDGE_LENGTH := Vector2i(3, 6)
 const MIN_WIDTH := 9
 const MIN_HEIGHT := 14
 ## First and last row a bridge may cross on; every pavilion spans them.
@@ -243,7 +243,7 @@ static func _carve(w: World) -> void:
 		var rows := _bridge_rows(w, blocks[i - 1], blocks[i], leap >= LEAP.x and leap <= LEAP.y)
 		for y in rows:
 			_bridge(w, blocks[i - 1], blocks[i], y)
-		_verandas(w, blocks[i - 1], blocks[i], rows)
+		_ledges(w, blocks[i - 1], blocks[i], rows)
 	_hide_doors(w, spots)
 	_windows(w)
 
@@ -251,7 +251,7 @@ static func _carve(w: World) -> void:
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
 ## tiers), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
 ## straight bridge on those rows meets any two neighbours. One pair, at random,
-## stands far enough apart for verandas LEAP apart.
+## stands far enough apart for ledges LEAP apart.
 static func _pavilions(w: World) -> Array[Rect2i]:
 	var n := clampi(2 + (w.tier() - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
 	var gaps: Array[int] = []
@@ -398,7 +398,7 @@ static func _hide_doors(w: World, spots: Array) -> void:
 				w.secrets[p] = true
 
 
-## One or two rows (only `one` for a pair with verandas, to leave them room),
+## One or two rows (only `one` for a pair with ledges, to leave them room),
 ## at least 3 apart, for the bridges between pavilions `west` and `east`: rows
 ## of BRIDGE_ROWS with room floor just inside both their outer walls.
 static func _bridge_rows(w: World, west: Rect2i, east: Rect2i, one: bool) -> Array[int]:
@@ -419,30 +419,30 @@ static func _bridge_rows(w: World, west: Rect2i, east: Rect2i, one: bool) -> Arr
 	return out
 
 
-## The sky between verandas on the facing walls of `west` and `east`.
+## The sky between ledges on the facing walls of `west` and `east`.
 static func _leap(west: Rect2i, east: Rect2i) -> int:
 	return east.position.x - west.end.x - 2
 
 
-## Verandas (쪽마루) outside the facing walls of `west` and `east` on the same
-## rows, when the sky between them is LEAP wide: VERANDA_LENGTH rows of both
+## Ledges of 마루 outside the facing walls of `west` and `east` on the same
+## rows, when the sky between them is LEAP wide: LEDGE_LENGTH rows of both
 ## pavilions' insides, clear of the bridge `rows` and the rows next to them.
 ## Each opens onto a room through a doorway in its wall; none when either
 ## cannot.
-static func _verandas(w: World, west: Rect2i, east: Rect2i, rows: Array[int]) -> void:
+static func _ledges(w: World, west: Rect2i, east: Rect2i, rows: Array[int]) -> void:
 	if _leap(west, east) < LEAP.x or _leap(west, east) > LEAP.y:
 		return
 	var free := func(y: int) -> bool: return not (rows.has(y - 1) or rows.has(y) or rows.has(y + 1))
 	var last := mini(west.end.y, east.end.y) - 2
 	var starts: Array[int] = []
-	for y in range(maxi(west.position.y, east.position.y) + 1, last - VERANDA_LENGTH.x + 2):
-		if range(y, y + VERANDA_LENGTH.x).all(free):
+	for y in range(maxi(west.position.y, east.position.y) + 1, last - LEDGE_LENGTH.x + 2):
+		if range(y, y + LEDGE_LENGTH.x).all(free):
 			starts.append(y)
 	if starts.is_empty():
 		return
 	var top := starts[w.rng.randi_range(0, starts.size() - 1)]
-	var most := top + w.rng.randi_range(VERANDA_LENGTH.x, VERANDA_LENGTH.y)
-	var bottom := top + VERANDA_LENGTH.x
+	var most := top + w.rng.randi_range(LEDGE_LENGTH.x, LEDGE_LENGTH.y)
+	var bottom := top + LEDGE_LENGTH.x
 	while bottom < most and bottom <= last and free.call(bottom):
 		bottom += 1
 	var doors: Array[Vector2i] = []
@@ -458,8 +458,8 @@ static func _verandas(w: World, west: Rect2i, east: Rect2i, rows: Array[int]) ->
 	for p in doors:
 		_doorway(w, p)
 	for y in range(top, bottom):
-		w.tiles[Grid.index(Vector2i(west.end.x, y))] = World.VERANDA
-		w.tiles[Grid.index(Vector2i(east.position.x - 1, y))] = World.VERANDA
+		w.tiles[Grid.index(Vector2i(west.end.x, y))] = World.BOARD
+		w.tiles[Grid.index(Vector2i(east.position.x - 1, y))] = World.BOARD
 
 
 ## A plank across the sky on row y from `west` to `east`, through an opening
