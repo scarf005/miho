@@ -342,14 +342,15 @@ static func _traits(a: Actor, elements: Array) -> Array:
 ## A tile as the hover tells it: what it is, then how well it is lit and seen.
 static func terrain(w: World, p: Vector2i) -> Array:
 	var t := w.tile(p)
-	var lines := terrain_facts(w, p)
+	var lines := terrain_facts(w, p, true)
 	if Tiles.sight[t] == 0 or Tiles.walk[t] == 1:
 		lines.append(_light_line(w, p))
 	return lines
 
 
-## What a tile is and does, whatever the light: the 도감's text.
-static func terrain_facts(w: World, p: Vector2i) -> Array:
+## What a tile is and does, whatever the light: the 도감's text. The hover also
+## tells how much gas lies on it (`now`).
+static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var t := w.tile(p)
 	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
@@ -389,7 +390,7 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 		var spec: Dictionary = Compounds.HOT[h.x]
 		lines.append([["%s. %d초 뒤 식는다" % [spec.name, h.y], Palette.HURT]])
 		lines.append(_amount("서 있으면 매 초 피해 ", spec.harm))
-	lines.append_array(_gas(w, p))
+	lines.append_array(_gas(w, p, now))
 	if w.vents.has(p):
 		var vent := [
 			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
@@ -558,15 +559,19 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	return out
 
 
-## The gas on a tile in sight: kind and amount, whether it blocks sight, how fast
-## it thins, its harm and what it wets. Tiles out of sight keep no gas.
-static func _gas(w: World, p: Vector2i) -> Array:
+## The gas on a tile in sight: kind, how fast it thins, its harm and what it
+## wets, and, when `now`, how much lies there and whether that blocks sight (the
+## 도감 tells what the gas is, not how much). Tiles out of sight keep no gas.
+static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	var g := Gas.at(w, p)
 	if g.x < 0 or w.seen[Grid.index(p)] == 0:
 		return []
 	var color: Color = Palette.GAS[g.x][1]
-	var out := [[[Gas.of(g.x, "name"), color], [" %d/%d" % [g.y, Gas.MAX], Palette.DIM]]]
-	var sight := "시야를 막는다" if g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
+	var head := [[Gas.of(g.x, "name"), color]]
+	if now:
+		head.append([" %d/%d" % [g.y, Gas.MAX], Palette.DIM])
+	var out := [head]
+	var sight := "시야를 막는다" if now and g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
 	out.append([[sight, Palette.DIM]])
 	out.append([["매 초 %d%% 로 1씩 줄어든다" % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:

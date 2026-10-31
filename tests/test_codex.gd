@@ -176,12 +176,22 @@ func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen()
 	assert_string_contains(_text(Codex.detail(_entry(4, "계단"))), "위층으로 올라간다")
 
 
+func test_a_gas_entry_tells_what_the_gas_is_not_how_much_of_it_lies_there() -> void:
+	for kind in Gas.ROWS:
+		var name: String = Gas.of(kind, "name")
+		var text := _text(Codex.detail(_entry(4, name)))
+		assert_false(text.contains("/%d" % Gas.MAX), name + " has no amount")
+		assert_string_contains(text, "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE)
+		assert_string_contains(text, "줄어든다")
+		assert_false(text.contains("\n시야를 막는다"), name + " does not say it blocks sight now")
+
+
 func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
 	for name in ["불타는 칸", "증기", "쓰러진 몸", "뜨거운 쇠"]:
 		var text := _text(Codex.detail(_entry(4, name)))
 		assert_false(text.begins_with("바닥"), name)
 		assert_false(text.is_empty(), name)
-	assert_true(_text(Codex.detail(_entry(4, "증기"))).begins_with("증기 9/9\n"))
+	assert_true(_text(Codex.detail(_entry(4, "증기"))).begins_with("증기\n"))
 	var body := _text(Codex.detail(_entry(4, "쓰러진 몸")))
 	assert_eq(body, "쓰러진 몸\n" + Info.BODY_RULE)
 	for kind in Codex.foes():
