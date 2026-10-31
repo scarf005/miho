@@ -118,8 +118,8 @@ func test_a_heaven_fire_orb_splashes_the_neighbours_of_its_target() -> void:
 	var weak := _creature(w, &"jiha", VICTIM + Vector2i(0, -1))
 	_hurl(w, shooter, [Cards.ORB, Cards.FIRE])
 	assert_eq(front.hp, 1)
-	assert_eq(side.hp, 1)
-	assert_eq(weak.hp, 2, "fire beats metal: splash 1 doubled")
+	assert_false(side.alive(), "splash 2 fells a 2-heart creature")
+	assert_false(weak.alive(), "fire beats metal: splash 2 doubled")
 
 
 func test_a_creature_hurt_by_another_becomes_wary_and_looks_around_only() -> void:

@@ -121,9 +121,10 @@ func test_a_fire_orb_splash_doubles_on_a_weak_neighbour() -> void:
 	var w := _world()
 	var front := _foe(w, &"dokkaebi")
 	var side := _foe(w, &"jiha", FOE + Vector2i(0, 1))
+	side.hp = 12
 	_hurts(w.act(_cast([ORB, Cards.FIRE])))
 	assert_eq(front.hp, 1)
-	assert_eq(side.hp, 2, "splash 1 doubled")
+	assert_eq(side.hp, 12 - 2 * World.FIRE_DAMAGE, "splash doubled")
 
 
 func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
@@ -148,6 +149,7 @@ func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
 func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")
+	foe.hp = 12
 	assert_false(w.burning.has(FOE))
 	var events := w.act(_cast([ORB, Cards.FIRE]))
 	assert_eq(_hurts(events)[0].n, 1, "fire does not beat wood")
@@ -156,7 +158,7 @@ func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() 
 	assert_eq(w.tile(FOE), World.FLOOR)
 	var before := foe.hp
 	w.act(WAIT)
-	assert_eq(foe.hp, before - 1, "standing in the flames hurts it")
+	assert_eq(foe.hp, before - World.FIRE_DAMAGE, "standing in the flames hurts it")
 
 
 func test_a_fire_wisp_also_lights_a_wood_creature() -> void:
@@ -202,3 +204,41 @@ func test_the_forecast_includes_the_doubled_harm() -> void:
 	assert_eq(f.harm.get(foe.id), 2)
 	var plain := Forecast.of(w, _cast([ORB, Cards.WATER]))
 	assert_eq(plain.harm.get(foe.id), 1)
+
+
+func test_the_starfish_eats_a_spell_with_metal_and_grows() -> void:
+	var w := _world()
+	var foe := _foe(w, &"bulgasari")
+	var types := w.act(_cast([ORB, Cards.METAL])).map(func(e): return e.t)
+	assert_has(types, &"absorb")
+	assert_has(types, &"grow")
+	assert_does_not_have(types, &"hurt")
+	assert_eq([foe.hp, foe.max_hp], [3 + Bestiary.GROWTH, 3 + Bestiary.GROWTH])
+	assert_does_not_have(types, &"flash", "an eaten spell has no other effect")
+
+
+func test_the_starfish_does_not_grow_on_a_spell_without_metal_or_with_fire() -> void:
+	var w := _world()
+	var foe := _foe(w, &"bulgasari")
+	foe.rooted = 9
+	var types := w.act(_cast([ORB, Cards.WOOD])).map(func(e): return e.t)
+	assert_has(types, &"absorb")
+	assert_does_not_have(types, &"grow")
+	assert_eq([foe.hp, foe.max_hp], [3, 3])
+	w.tails = 4
+	var hurts := _hurts(w.act(_cast([ORB, Cards.METAL, Cards.FIRE])))
+	assert_eq(hurts.size(), 1, "fire still hurts it, metal or not")
+	assert_eq(foe.max_hp, 3)
+
+
+func test_the_forecast_shows_the_starfish_grown_and_unhurt() -> void:
+	var w := _world()
+	var foe := _foe(w, &"bulgasari", Vector2i(6, 8))
+	w.sense()
+	var f := Forecast.of(w, _cast([ORB, Cards.METAL]))
+	assert_eq(f.harm, {})
+	var after := f.after.actor(foe.id)
+	assert_eq([after.hp, after.max_hp], [3 + Bestiary.GROWTH, 3 + Bestiary.GROWTH])
+	assert_eq([foe.hp, foe.max_hp], [3, 3], "the real creature is untouched")
+	w.act(_cast([ORB, Cards.METAL]))
+	assert_eq(foe.hp, after.hp, "the forecast was exact")

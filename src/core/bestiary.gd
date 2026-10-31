@@ -2,12 +2,15 @@ class_name Bestiary
 extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
 ## ones (`drop`) add an element and give it to Miho when they fall.
-## glyph: the syllable drawn for it. club: melee damage when next to Miho.
+## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
+## to her: its name, the verb the log ends in ("맞아", "물려") and the damage.
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" eats spells that carry fire (해태 guards against fire);
 ## &"nofire" eats every spell without fire (불가사리 dies only in fire).
+## eats: the element whose spells feed it when it absorbs them: max HP and HP
+## grow by GROWTH.
 ## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
 ## dull creature looks at the spot, a sharp one at where the projectile came
 ## from, a cunning one hunts from there.
@@ -16,6 +19,7 @@ extends RefCounted
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
+const GROWTH := 1
 const DULL := 0
 const SHARP := 1
 const CUNNING := 2
@@ -27,7 +31,7 @@ const KINDS := {
 		name = "도깨비",
 		glyph = "도",
 		hp = 2,
-		club = 1,
+		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [[FOX]],
 		cd = 3,
 		move = &"approach",
@@ -53,7 +57,7 @@ const KINDS := {
 		name = "불개",
 		glyph = "불",
 		hp = 4,
-		club = 1,
+		melee = {name = "이빨", hit = "물려", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
 		cd = 3,
 		move = &"approach",
@@ -105,7 +109,7 @@ const KINDS := {
 		name = "불가사리",
 		glyph = "가",
 		hp = 3,
-		club = 1,
+		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
 		cd = 3,
 		move = &"slow",
@@ -113,6 +117,7 @@ const KINDS := {
 		wits = 1,
 		drop = Cards.EARTH,
 		absorb = &"nofire",
+		eats = Cards.METAL,
 	},
 	&"cheonnyeon":
 	{
@@ -130,7 +135,7 @@ const KINDS := {
 		name = "저승사자",
 		glyph = "사",
 		hp = 9,
-		club = 1,
+		melee = {name = "오랏줄", hit = "맞아", damage = 1},
 		casts = [[ORB]],
 		cd = 2,
 		move = &"approach",
@@ -156,6 +161,11 @@ static func absorbs(kind: StringName, spell: Spell) -> bool:
 		&"nofire":
 			return not spell.has(Cards.FIRE)
 	return false
+
+
+## Whether the creature eats the spell it absorbs and grows from it.
+static func eats(kind: StringName, spell: Spell) -> bool:
+	return absorbs(kind, spell) and spell.has(info(kind).get("eats", &""))
 
 
 ## A creature's elements: those of the spells it casts, in 오행 order.

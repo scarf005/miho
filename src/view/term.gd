@@ -53,7 +53,7 @@ const DELAY := {
 	&"splash": 0.22,
 	&"clash": 0.1,
 	&"claw": 0.16,
-	&"club": 0.16,
+	&"melee": 0.16,
 	&"die": 0.14,
 	&"flash": 0.16,
 	&"charge": 0.08,
@@ -291,7 +291,7 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_shots.erase(e.shot)
 			_shots.erase(e.other)
 			_flash(at, Color(1, 1, 1, 0.8))
-		&"claw", &"club":
+		&"claw", &"melee":
 			_flash(at, Palette.HURT)
 		&"drum":
 			_flash(at, Color(Palette.SOUND, 0.6))

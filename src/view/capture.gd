@@ -9,6 +9,7 @@ extends Node
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
+## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
@@ -115,6 +116,12 @@ func _send(k: String) -> void:
 			main._forecast()
 		"tile", "at", "foe", "hunt":
 			_stage(parts)
+		"spawn":
+			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
+			FloorGen.spawn(main.world, StringName(parts[1]), at)
+			main.world.sense()
+			main.term.show_world(main.world)
+			main._forecast()
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":

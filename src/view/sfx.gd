@@ -156,7 +156,7 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 		&"drum":
 			if not e.wet:
 				play_at(&"blast", at)
-		&"clash", &"snuff", &"absorb", &"claw", &"club":
+		&"clash", &"snuff", &"absorb", &"claw", &"melee":
 			play_at(&"clash", at)
 		&"hurt":
 			play_at(&"hurt", at)
