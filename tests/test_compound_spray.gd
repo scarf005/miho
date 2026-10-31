@@ -170,14 +170,14 @@ func test_a_spray_preview_equals_the_round() -> void:
 
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
-		[FIRE]: ["불 부채꼴 꼬리 1개", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
+		[FIRE]: ["불 불길 꼬리 1개", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
 		[FIRE, FIRE]: ["반지름 3", "불 위에서 매 초 %d" % World.FIRE_DAMAGE],
 		[FIRE, FIRE, FIRE]: ["반지름 4", "늘 번진다"],
 		[WATER]: ["곧게 4칸, 첫 적에서 멈춘다", "1칸 민다", "소리 없음"],
 		[WATER, WATER]: ["곧게 6칸", "2칸 민다"],
 		[WATER, WATER, WATER]: ["곧게 8칸, 적을 꿰뚫는다", "3칸 민다"],
 		[METAL]: ["권총. 곧게 7칸", "피해 1. 약점 시 ×2", "발사 시 당신 칸을 밝힌다", "9칸"],
-		[METAL, METAL]: ["산탄총", "반지름 3", "바로 옆 적은 2"],
+		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적은 2"],
 		[METAL, METAL, METAL]: ["철갑탄. 곧게 8칸", "벽 하나", "적마다 2"],
 		[EARTH]: ["둘레 1칸", "1초 기절", "9칸"],
 		[EARTH, EARTH]: ["둘레 2칸", "벽에 금이 간다"],
@@ -197,7 +197,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
 	assert_true(card.begins_with("불 부적 꼬리 1개"), card)
 	assert_string_contains(card, "반지름 2")
-	assert_string_contains(card, "넣으면 불×2 부채꼴 꼬리 2개")
+	assert_string_contains(card, "넣으면 불×2 불길 꼬리 2개")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:

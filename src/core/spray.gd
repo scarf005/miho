@@ -63,10 +63,10 @@ const SHAPE := {
 }
 ## What a lone element's spray is called, by level.
 const NAME := {
-	Cards.FIRE: ["부채꼴", "부채꼴", "부채꼴"],
-	Cards.WATER: ["물줄기", "물줄기", "물대포"],
-	Cards.METAL: ["권총", "산탄총", "철갑탄"],
-	Cards.EARTH: ["지진", "지진", "지진"],
+	Cards.FIRE: ["불길", "불길", "불길"],
+	Cards.WATER: ["물줄기", "물줄기", "물줄기"],
+	Cards.METAL: ["권총", "산탄", "철갑탄"],
+	Cards.EARTH: ["땅울림", "땅울림", "땅울림"],
 	Cards.WOOD: ["뿌리", "뿌리", "뿌리"],
 }
 

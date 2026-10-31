@@ -107,7 +107,7 @@ static func _gun(level: int) -> Array:
 	var shape := "권총. 곧게 %d칸, 첫 적에서 멈춘다" % Spray.PISTOL
 	var harm := "1"
 	if level == 2:
-		shape = "산탄총. " + _fan(Spray.SHOTGUN)
+		shape = "산탄. " + _fan(Spray.SHOTGUN)
 		harm = "적마다 1, 바로 옆 적은 2"
 	elif level >= 3:
 		shape = "철갑탄. 곧게 %d칸" % Spray.PIERCE
