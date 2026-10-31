@@ -16,6 +16,7 @@ extends RefCounted
 ## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
 ## by tier (Placement).
 ## From tier 2 a lit room may hold a war drum. Galleries stay plain and dark.
+## One room may then be made a set room (SetRooms).
 ## Miho starts in the westmost room; the stairs (the elixir on the top storey)
 ## sit in the room farthest from her, which is always lit. Watchers that never
 ## move stand by lanterns. The creatures that walk come in bands (`bands`): those
@@ -210,6 +211,7 @@ static func build(w: World) -> void:
 	_features(w, goal)
 	Placement.scatter(w, goal)
 	_drum(w)
+	SetRooms.build(w, home, goal)
 	_creatures(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
