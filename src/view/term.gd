@@ -57,6 +57,7 @@ const DELAY := {
 	&"die": 0.14,
 	&"flash": 0.16,
 	&"charge": 0.08,
+	&"drum": 0.3,
 }
 
 var world: World
@@ -263,6 +264,9 @@ func _apply(e: Dictionary) -> float:
 			_flash(at, Color(1, 1, 1, 0.8))
 		&"claw", &"club":
 			_flash(at, Palette.HURT)
+		&"drum":
+			_flash(at, Color(Palette.SOUND, 0.6))
+			_popup(at, "둥" if not e.wet else "툭", Palette.SOUND, 1.2)
 		&"splash":
 			_flash(at, Color(1.0, 0.95, 0.7, 0.95))
 			for d in Grid.DIRS:
@@ -568,10 +572,13 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 	)
 
 
-## A charging creature's line, so every incoming spell is seen a round early.
+## A charging creature's line, so every incoming spell is seen a round early, and
+## the line from a creature running to a drum to the drum, which glows.
 func _draw_telegraphs(actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
+		if a.faction != Actor.FOX and a.drumming() and _visible(a.pos):
+			_draw_drum_run(a)
 		if a.faction == Actor.FOX or a.intent.is_empty() or not _visible(a.pos):
 			continue
 		var spell := Spell.make(a.intent)
@@ -586,6 +593,17 @@ func _draw_telegraphs(actors: Dictionary) -> void:
 			draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
 			if k == 0:
 				_glyph(_cell(ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
+
+
+func _draw_drum_run(a: Actor) -> void:
+	var pulse := 0.5 + 0.5 * sin(_time * 8.0)
+	var c := Color(Palette.SOUND, 0.5 + 0.5 * pulse)
+	if _shown(a.pos) and _shown(a.drum):
+		draw_line(cell_centre(a.pos), cell_centre(a.drum), Color(c, 0.5), 2.0)
+	if _shown(a.drum):
+		draw_rect(Rect2(_cell(a.drum) * CELL, CELL), Color(Palette.SOUND, 0.15 + 0.3 * pulse))
+		draw_rect(Rect2(_cell(a.drum) * CELL, CELL).grow(-2), c, false, 2.0)
+		_small(_cell(a.drum) + Vector2(0.62, -0.05), "둥", c)
 
 
 ## Where each projectile in sight flies next, over tiles Miho knows: an orb

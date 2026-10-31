@@ -130,6 +130,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			if id == after.player().id:
 				return [["문을 " + what, TEXT]]
 			return _who(before, after, id, "이", "가") + [[" 문을 " + what, TEXT]]
+		&"drum":
+			var who := _who(before, after, id, "이", "가")
+			if e.wet:
+				return who + [[" 젖은 북을 쳤지만 소리가 나지 않았다", TEXT]]
+			return who + [[" 북을 쳤다", TEXT]]
+		&"soak":
+			return [["북이 젖었다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

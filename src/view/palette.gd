@@ -29,6 +29,8 @@ const TILES := {
 	World.SKY: ["░", Color(0.08, 0.1, 0.22), Color(0.012, 0.016, 0.05)],
 	World.WINDOW: ["□", Color(0.55, 0.78, 0.95), Color(0.1, 0.16, 0.26)],
 	World.BRIDGE: ["═", Color(0.82, 0.7, 0.5), Color(0.19, 0.13, 0.08)],
+	World.DRUM: ["◎", Color(0.95, 0.4, 0.28), Color(0.24, 0.07, 0.04)],
+	World.DRUM_TORN: ["◌", Color(0.5, 0.36, 0.3), Color(0.12, 0.08, 0.07)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]

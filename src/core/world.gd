@@ -25,6 +25,8 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
+## A war drum calls heaven: see Drums.
+##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
 ## slides: walking into a closed one opens it with a sound and costs the move, and
 ## the close action shuts an open one. Creatures of heaven open doors on their way
@@ -84,9 +86,13 @@ const SKY := 12
 const WINDOW := 13
 const BRIDGE := 14
 const DOOR_OPEN := 15
+const DRUM := 16
+const DRUM_TORN := 17
 ## A closed door is walkable in the sense of paths: whoever walks into it opens it.
-const WALKABLE := [FLOOR, DOOR, DOOR_OPEN, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE]
-const FLAMMABLE := [DOOR, DOOR_OPEN, BAMBOO, BOARD]
+const WALKABLE := [
+	FLOOR, DOOR, DOOR_OPEN, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE, DRUM_TORN
+]
+const FLAMMABLE := [DOOR, DOOR_OPEN, BAMBOO, BOARD, DRUM]
 ## How far a step onto the tile is heard, and the word for it.
 const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"], BRIDGE: [3, "삐걱"]}
 
@@ -99,6 +105,8 @@ var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
 ## Burning tiles: position -> rounds left.
 var burning := {}
+## Wet drums: position -> rounds left (Drums).
+var wet := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -149,6 +157,7 @@ func clone() -> World:
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
 	w.burning = burning.duplicate()
+	w.wet = wet.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -531,6 +540,8 @@ func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 
 
 func set_tile(p: Vector2i, t: int) -> void:
+	if tiles[Grid.index(p)] != t:
+		wet.erase(p)
 	tiles[Grid.index(p)] = t
 	_changed()
 
@@ -548,6 +559,7 @@ func _claw(me: Actor, foe: Actor) -> void:
 func hunt_from(a: Actor, at: Vector2i) -> void:
 	if a.alert != Actor.HUNT:
 		emit({t = &"notice", id = a.id, at = a.pos})
+		Drums.plan(self, a)
 	a.alert = Actor.HUNT
 	a.target = at
 	a.lost = 0
@@ -796,6 +808,7 @@ func _burn() -> void:
 
 
 func _end_round() -> void:
+	Drums.dry(self)
 	regrow += 1
 	if regrow >= TAIL_REGROW:
 		regrow = 0

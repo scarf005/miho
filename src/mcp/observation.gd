@@ -23,7 +23,7 @@ const ALERTS := ["resting", "searching", "hunting"]
 const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +closed-door 'open-door "
-	+ "░sky □window ═skybridge "
+	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
 	+ "●○*projectile @Miho"
 )
@@ -134,6 +134,8 @@ static func _creature(k: World, a: Actor) -> String:
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
+	if a.drumming():
+		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
 	if not a.intent.is_empty():
 		line += ", charging %s aimed %s" % [Spell.make(a.intent).title(), NAMES.get(a.aim, "?")]
 	return line
@@ -173,6 +175,8 @@ static func _moves(k: World) -> String:
 				note = "(knock lantern)"
 			elif k.tile(to) == World.DOOR:
 				note = "(open door)"
+			elif k.tile(to) == World.DRUM:
+				note = "(tear drum)"
 			out.append(NAMES[d] + note)
 	var doors := NAMES.keys().filter(func(d): return k.can({t = &"close", dir = d}))
 	var line := ", ".join(out) if not out.is_empty() else "none"

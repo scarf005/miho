@@ -6,9 +6,10 @@ extends RefCounted
 ## away), sliding doors where corridors meet rooms (some start open), and
 ## lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
-## Corridors stay plain and dark. Miho starts in the westmost room; the stairs
-## (the elixir on the top storey) sit in the room farthest from her, which is
-## always lit. Watchers that never move stand by lanterns.
+## From tier 2 a lit room may hold a war drum. Corridors stay plain and dark.
+## Miho starts in the westmost room; the stairs (the elixir on the top storey)
+## sit in the room farthest from her, which is always lit. Watchers that never
+## move stand by lanterns.
 
 ## The creatures of each tier of three storeys; a boss only comes to the last storey.
 const PLAN := {
@@ -167,6 +168,7 @@ static func build(w: World) -> void:
 		w.stairs = _centre(goal)
 	_lanterns(w, home, goal)
 	_features(w, goal)
+	_drum(w)
 	_creatures(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
@@ -421,6 +423,26 @@ static func _features(w: World, goal: Rect2i) -> void:
 				for x in range(r.position.x, r.end.x):
 					if _bare(w, Vector2i(x, y)):
 						w.tiles[Grid.index(Vector2i(x, y))] = World.BOARD
+
+
+## From tier 2, at a chance, a drum on a bare tile of a lit room, unless it would
+## cut the storey apart.
+static func _drum(w: World) -> void:
+	if w.tier() < Drums.FIRST_TIER or w.rng.randf() >= Drums.CHANCE:
+		return
+	w._changed()
+	var spots: Array[Vector2i] = []
+	for r in w.rooms:
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				if _bare(w, Vector2i(x, y)) and w.lit(Vector2i(x, y)):
+					spots.append(Vector2i(x, y))
+	if spots.is_empty():
+		return
+	var at := spots[w.rng.randi_range(0, spots.size() - 1)]
+	w.tiles[Grid.index(at)] = World.DRUM
+	if not _connected(w):
+		w.tiles[Grid.index(at)] = World.FLOOR
 
 
 ## A patch of `t` covering about a third of room r, grown tile by tile from a random one.
