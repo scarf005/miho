@@ -120,6 +120,14 @@ func test_a_pillar_that_would_cut_the_storey_apart_is_taken_out_again() -> void:
 	assert_eq(w.tile(Vector2i(6, 2)), World.PILLAR)
 
 
+func test_a_pillar_that_cuts_the_storey_apart_with_the_plates_as_walls_is_taken_out() -> void:
+	var w := _hall(Rect2i(2, 2, 5, 2))
+	w.traps[Vector2i(3, 2)] = World.TRAP_ALARM
+	assert_eq(Placement.lay(w, _row(World.PILLAR), Vector2i(3, 3)), [] as Array[Vector2i])
+	assert_eq(w.tile(Vector2i(3, 3)), World.FLOOR)
+	assert_eq(Placement.lay(w, _row(World.PILLAR), Vector2i(6, 3)).size(), 1, "the end is no cut")
+
+
 ## The tiles a row has laid: its tile kind, the gas of its kind, or its plates.
 func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
