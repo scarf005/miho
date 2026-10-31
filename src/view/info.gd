@@ -18,27 +18,6 @@ const DRUM_NOTE := (
 	+ "당신을 쫓으면 달려와 친다\n"
 	+ "구슬이나 몸으로 부딪치면 찢어진다"
 )
-## tile -> [name, health or 0 when it cannot break]
-const TERRAIN := {
-	World.FLOOR: ["바닥", 0],
-	World.WALL: ["벽", 2],
-	World.DOOR: ["문", 1],
-	World.LANTERN: ["등불", 1],
-	World.LANTERN_OUT: ["꺼진 등불", 1],
-	World.BAMBOO: ["대숲", 0],
-	World.BOARD: ["마루", 0],
-	World.POND: ["연못", 0],
-	World.ASH: ["재", 0],
-	World.LANTERN_BROKEN: ["부서진 등불", 0],
-	World.WALL_CRACKED: ["금 간 벽", 1],
-	World.RUBBLE: ["무너진 벽", 0],
-	World.SKY: ["하늘", 0],
-	World.WINDOW: ["창문", 1],
-	World.BRIDGE: ["하늘다리", 0],
-	World.DOOR_OPEN: ["열린 문", 0],
-	World.DRUM: ["북", 1],
-	World.DRUM_TORN: ["찢어진 북", 0],
-}
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {
 	Cards.FOX: "여우불: 초당 3칸씩 7칸 날아가 8초 동안 떠 있다",
@@ -121,8 +100,12 @@ static func creature(w: World, a: Actor) -> Array:
 
 ## Miho herself: tails, claws, sight, footsteps, conditions and how visible she is.
 static func _miho(w: World, a: Actor, head: Array) -> Array:
-	var steps := World.TREAD.keys().map(
-		func(t): return "%s %d칸" % [TERRAIN[t][0], World.TREAD[t][0]]
+	var steps := (
+		Tiles
+		. ROWS
+		. keys()
+		. filter(func(t): return Tiles.of(t, "tread")[0] > 0)
+		. map(func(t): return "%s %d칸" % [Tiles.of(t, "name"), Tiles.of(t, "tread")[0]])
 	)
 	var claws := _amount("발톱: 피해 ", World.CLAW, ", 기습 시 ")
 	claws.append([str(World.CLAW * World.SNEAK), Palette.HURT])
@@ -264,11 +247,11 @@ static func shot(s: Shot) -> Array:
 
 static func terrain(w: World, p: Vector2i) -> Array:
 	var t := w.tile(p)
-	var name: String = TERRAIN[t][0]
+	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
 	var burns := w.burning.has(p) and w.seen[Grid.index(p)] == 1
 	var notes := _notes(t, breakable, burns)
-	var health: int = TERRAIN[t][1] if breakable else 0
+	var health: int = Tiles.of(t, "health") if breakable else 0
 	if p == w.stairs:
 		name = "계단"
 		notes = ["위층으로 올라간다. 체력 %d 회복, 꼬리가 모두 돌아온다" % World.HEAL]
@@ -354,9 +337,10 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		out.append("부술 수 없다")
 	if Terrain.knockable(t) and t != World.DRUM:
 		out.append("부딪히면 쨍 소리 %d칸" % World.KNOCK)
-	if World.TREAD.has(t):
-		out.append("밟으면 %s 소리 %d칸" % [World.TREAD[t][1], World.TREAD[t][0]])
-	if World.FLAMMABLE.has(t) and not burns:
+	var tread: Array = Tiles.of(t, "tread")
+	if tread[0] > 0:
+		out.append("밟으면 %s 소리 %d칸" % [tread[1], tread[0]])
+	if Tiles.burns[t] == 1 and not burns:
 		out.append("불이 붙으면 %d초 타고 재가 된다" % World.BURN_ROUNDS)
 	return out
 

@@ -154,7 +154,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				what = _who(before, after, a.id, "에게", "에게")
 			return what + [[" 불이 붙었다", Palette.BURNING[1]]]
 		&"burnout":
-			if not World.FLAMMABLE.has(before.tile(e.at)):
+			if Tiles.burns[before.tile(e.at)] == 0:
 				return []
 			return _tile(before, e.at, "이", "가") + [[" 다 타서 재가 되었다", TEXT]]
 		&"douse":
@@ -174,7 +174,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["금 간 벽이 무너졌다", TEXT]]
 			if e.was == World.WINDOW:
 				return [["창문이 깨졌다", TEXT]]
-			return _named(Info.TERRAIN[e.was][0], "이", "가") + [[" 부서졌다", TEXT]]
+			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 부서졌다", TEXT]]
 	return []
 
 
@@ -240,7 +240,7 @@ static func _actor(before: World, after: World, id: int) -> Actor:
 
 
 static func _tile(w: World, p: Vector2i, closed: String, open: String) -> Array:
-	return _named(Info.TERRAIN[w.tile(p)][0], closed, open)
+	return _named(Tiles.of(w.tile(p), "name"), closed, open)
 
 
 static func _named(name: String, closed: String, open: String) -> Array:

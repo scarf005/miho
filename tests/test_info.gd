@@ -185,10 +185,12 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var w := _hall()
 	var told := {
 		World.LANTERN: ["주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS, "쨍 소리 %d칸" % World.KNOCK],
-		World.BAMBOO: ["사각 소리 %d칸" % World.TREAD[World.BAMBOO][0], "%d초 타고" % World.BURN_ROUNDS],
-		World.BOARD: ["삐걱 소리 %d칸" % World.TREAD[World.BOARD][0], "%d초 타고" % World.BURN_ROUNDS],
+		World.BAMBOO:
+		["사각 소리 %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "%d초 타고" % World.BURN_ROUNDS],
+		World.BOARD:
+		["삐걱 소리 %d칸" % Tiles.of(World.BOARD, "tread")[0], "%d초 타고" % World.BURN_ROUNDS],
 		World.DOOR: ["%d초 타고" % World.BURN_ROUNDS],
-		World.BRIDGE: ["삐걱 소리 %d칸" % World.TREAD[World.BRIDGE][0], "불에 타지 않는다"],
+		World.BRIDGE: ["삐걱 소리 %d칸" % Tiles.of(World.BRIDGE, "tread")[0], "불에 타지 않는다"],
 		World.WINDOW: ["쨍 소리 %d칸" % World.KNOCK],
 		World.WALL: ["쿵 소리 %d칸" % World.THUD],
 		World.ASH: ["다시 타지 않는다"],
@@ -276,7 +278,9 @@ func test_miho_tells_her_claws_sight_footsteps_and_conditions() -> void:
 	assert_string_contains(text, "발톱: 피해 %d, 기습 시 %d" % [World.CLAW, World.CLAW * World.SNEAK])
 	assert_string_contains(text, "어둠 속 시야 %d칸" % World.NIGHT[Actor.FOX])
 	var steps := "발소리: 대숲 %d칸, 마루 %d칸, 하늘다리 %d칸"
-	var loud := [World.BAMBOO, World.BOARD, World.BRIDGE].map(func(t): return World.TREAD[t][0])
+	var loud := [World.BAMBOO, World.BOARD, World.BRIDGE].map(
+		func(t): return Tiles.of(t, "tread")[0]
+	)
 	assert_string_contains(text, steps % loud)
 	assert_string_contains(text, "눈이 멀었다 (2초)")
 	assert_string_contains(text, "묶여 있다 (1초)")

@@ -97,13 +97,6 @@ const BRIDGE := 14
 const DOOR_OPEN := 15
 const DRUM := 16
 const DRUM_TORN := 17
-## A closed door is walkable in the sense of paths: whoever walks into it opens it.
-const WALKABLE := [
-	FLOOR, DOOR, DOOR_OPEN, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE, DRUM_TORN
-]
-const FLAMMABLE := [DOOR, DOOR_OPEN, BAMBOO, BOARD, DRUM]
-## How far a step onto the tile is heard, and the word for it.
-const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"], BRIDGE: [3, "삐걱"]}
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -231,7 +224,7 @@ func tile(p: Vector2i) -> int:
 
 ## Creatures can walk here.
 func open_floor(p: Vector2i) -> bool:
-	return WALKABLE.has(tile(p))
+	return Tiles.walk[tile(p)] == 1
 
 
 ## Projectiles can fly here: anywhere walkable, and over ponds and sky.
@@ -522,7 +515,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()
-	var tread: Array = TREAD.get(tile(to), [0, "탁"])
+	var tread: Array = Tiles.of(tile(to), "tread")
 	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
 
 
@@ -799,7 +792,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 
 ## Sets p alight if it is flammable, or whatever it is when `force`d.
 func _ignite(p: Vector2i, force := false) -> void:
-	if (force or FLAMMABLE.has(tile(p))) and not burning.has(p):
+	if (force or Tiles.burns[tile(p)] == 1) and not burning.has(p):
 		burning[p] = BURN_ROUNDS
 		Scent.clear(self, p)
 		_changed()
@@ -823,12 +816,12 @@ func _burn() -> void:
 			else:
 				hurt(a, FIRE_DAMAGE)
 		for d in Grid.DIRS:
-			if FLAMMABLE.has(tile(p + d)) and not burning.has(p + d) and rng.randf() < SPREAD:
+			if Tiles.burns[tile(p + d)] == 1 and not burning.has(p + d) and rng.randf() < SPREAD:
 				caught.append(p + d)
 		burning[p] -= 1
 		if burning[p] <= 0:
 			burning.erase(p)
-			set_tile(p, ASH)
+			set_tile(p, Tiles.of(tile(p), "burns_to"))
 			Notice.record(self, &"ash", p)
 			emit({t = &"burnout", at = p})
 	for p in caught:
