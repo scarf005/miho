@@ -90,7 +90,7 @@ func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	assert_eq(w.tails, 4, "one tail")
 
 
-func test_from_every_veranda_one_leap_per_tile_of_sky_past_the_first_lands_across() -> void:
+func test_from_every_ledge_one_leap_per_tile_of_sky_past_the_first_lands_across() -> void:
 	var crossed := 0
 	for seed_value in 4:
 		for depth in [2, 9, 18, 26]:
@@ -100,13 +100,13 @@ func test_from_every_veranda_one_leap_per_tile_of_sky_past_the_first_lands_acros
 			w.tails = Spell.MAX_SLOTS
 			for i in w.tiles.size():
 				var p := Grid.at(i)
-				if w.tiles[i] != World.VERANDA or w.tile(p + E) != World.SKY:
+				if w.tiles[i] != World.BOARD or w.tile(p + E) != World.SKY:
 					continue
 				var sky := 1
 				while w.tile(p + E * (sky + 1)) == World.SKY:
 					sky += 1
 				var label := "seed %d storey %d %s" % [seed_value, depth, p]
-				assert_eq(w.tile(p + E * (sky + 1)), World.VERANDA, label)
+				assert_eq(w.tile(p + E * (sky + 1)), World.BOARD, label)
 				var v := w.clone()
 				v.player().pos = p
 				var cards := []

@@ -208,18 +208,17 @@ func test_a_courtyard_is_lit_by_the_moon_in_a_dark_hall_and_walkable() -> void:
 
 func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 	var told := {
-		World.SCREEN: ["통과 불가.", "시야 차단.", "쓰러진다.", "쿵 소리 %d칸" % World.THUD, "불이 붙으면"],
-		World.JAR: ["통과 불가.", "깨진다.", "쨍그랑 소리 %d칸" % World.KNOCK],
-		World.WATER_JAR: ["통과 불가.", "주위 8칸 얕은 물.", "불과 냄새 지움."],
+		World.SCREEN: ["통과 불가.", "시야 차단.", "타격: 쓰러짐", "쿵 소리 %d칸" % World.THUD, "불이 붙으면"],
+		World.JAR: ["통과 불가.", "타격: 깨짐", "쨍그랑 소리 %d칸" % World.KNOCK],
+		World.WATER_JAR: ["통과 불가.", "타격: 주위 8칸 얕은 물", "타격: 불과 냄새 지움"],
 		World.CENSER:
 		[
-			"향 연기 양 %d까지." % Gas.VENT_LEVEL,
-			"옆 4칸",
-			"%d초" % Compounds.HOT_ROUNDS,
-			"피해 %d." % Compounds.HOT[Compounds.LAVA].harm,
-			"옆 가연물 점화.",
+			"향 연기: 양 %d까지" % Gas.VENT_LEVEL,
+			"이 칸과 옆 4칸",
+			"%d초, 피해 %d" % [Compounds.HOT_ROUNDS, Compounds.HOT[Compounds.LAVA].harm],
+			"타격: 옆 가연물 점화",
 		],
-		World.COURTYARD: ["달빛 상시 조명."],
+		World.COURTYARD: ["조명: 달빛"],
 	}
 	for kind: int in told:
 		var text := _hover(kind)
@@ -235,8 +234,8 @@ func test_the_hover_of_incense_says_it_does_not_block_sight_and_erases_the_scent
 	w.sense()
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "향 연기")
-	assert_string_contains(text, "시야 차단 안 함.")
-	assert_string_contains(text, "냄새 지움.")
+	assert_string_contains(text, "시야 차단: 없음")
+	assert_string_contains(text, "냄새: 지움")
 	assert_string_contains(text, "매 초 %d%%" % Gas.of(Gas.INCENSE, "decay"))
 
 

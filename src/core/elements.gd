@@ -2,10 +2,10 @@ class_name Elements
 extends RefCounted
 ## What the elements a projectile carries do, by its form, one step stronger
 ## for every copy past the first (Spell.extra):
-## 불: a wisp sets the creature it strikes alight (the flames hurt it from the
-## next round, so it can step off); an orb bursts, hurting the
+## 불: a wisp sets the creature it strikes alight (Status: Miho's tile, so she
+## can step off it); an orb bursts, hurting the
 ## eight tiles round it for World.FIRE_DAMAGE and setting what burns there
-## alight (`splash`), and a wood creature it strikes burns. 1 more harm
+## alight (`splash`), and a wood creature it strikes catches alight. 1 more harm
 ## a copy. Both set alight what burns where they fly and end.
 ## 물: silent. Where it ends it douses lanterns and fire in the 3x3 round it,
 ## the struck creature's tile among them (Terrain.touch). A wisp of it carries
@@ -40,7 +40,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 		return false
 	harm(w, s, a, n)
 	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
-		w.ignite(a.pos, true)
+		Status.ignite(w, a)
 	if a.alive():
 		if spell.orb and spell.has(Cards.METAL):
 			w.push(a, s.dir, CANNON_PUSH)
@@ -101,7 +101,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak
 				)
 				if Bestiary.burns(b.kind):
-					w.ignite(p, true)
+					Status.ignite(w, b)
 				Mind.provoke(w, b, w.actor(s.caster))
 		var o := w.shot_at(p, s)
 		if o != null and not o.spell.orb:
