@@ -354,6 +354,7 @@ func test_arriving_on_a_new_storey_tells_the_plates_found_there_after_the_climb(
 	w.depth = 3
 	FloorGen.build(w)
 	w.player().hp = 1
+	w.events.clear()
 	var before := w.clone()
 	w.player().pos = w.stairs
 	w.arrive(w.player())

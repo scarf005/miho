@@ -329,6 +329,17 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력 %d 회복. 가득 찼으면 최대 체력 +%d" % [World.HEAL, World.HEAL]]
+	for seal: Vector2i in w.seals:
+		var lanterns: Array = w.seals[seal]
+		var lit := (
+			"(%d/%d)"
+			% [lanterns.filter(func(q): return w.tile(q) == World.LANTERN).size(), lanterns.size()]
+		)
+		if seal == p:
+			notes.append("꺼진 등불 셋이 모두 켜지면 열린다 " + lit)
+			notes.append("등불이 하나라도 부서지면 영영 닫힌다")
+		elif lanterns.has(p):
+			notes.append("봉인문의 등불 " + lit)
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
@@ -437,6 +448,8 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Tiles.of(t, "trap"):
 		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
 		out.append("적은 알고 피해 다닌다")
+	if t == World.WALL and breakable:
+		out.append("방 사이 벽은 숨은 문일 수 있다. 밝거나 %d칸 안이면 찾는다" % Traps.REACH)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:

@@ -36,6 +36,7 @@ extends RefCounted
 ##
 ## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
 ## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
+## Some walls between rooms are hidden doors, found the same way.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
 ## slides: walking into a closed one opens it with a sound and costs the move, and
@@ -122,6 +123,8 @@ const TRAP_ALARM := 29
 const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
+const VERANDA := 33
+const SEAL := 34
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -146,6 +149,11 @@ var hot := {}
 ## Every plate in the floor: position -> its tile kind (Traps). The tile itself
 ## is the plate only once Miho has found it, and floor until then.
 var traps := {}
+## Hidden doors Miho has not found: position -> true. Each is a wall until she
+## finds it, and then a door (Traps).
+var secrets := {}
+## Seals: position -> the dark lanterns that open it once all are lit (Terrain).
+var seals := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -208,6 +216,8 @@ func clone() -> World:
 	w.wet = wet.duplicate()
 	w.hot = hot.duplicate()
 	w.traps = traps.duplicate()
+	w.secrets = secrets.duplicate()
+	w.seals = seals.duplicate(true)
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -229,11 +239,12 @@ func clone() -> World:
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
-## sight and plates she has not found are left out, so a preview never gives
-## hidden things away.
+## sight and plates and doors she has not found are left out, so a preview
+## never gives hidden things away.
 func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
+	w.secrets = {}
 	w.actors.assign(
 		w.actors.filter(func(a): return a.faction == Actor.FOX or seen[Grid.index(a.pos)] == 1)
 	)
@@ -507,6 +518,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	_burn(alight)
 	Compounds.tick(self)
 	Gas.tick(self)
+	Terrain.unseal(self)
 	_end_round()
 	sense()
 	return events

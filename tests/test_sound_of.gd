@@ -28,6 +28,7 @@ const SOUNDS := [
 	[{t = &"find"}, &"find"],
 	[{t = &"open"}, &"door"],
 	[{t = &"close"}, &"door"],
+	[{t = &"unseal"}, &"door"],
 	[{t = &"root"}, &"root"],
 	[{t = &"freeze"}, &"root"],
 	[{t = &"sprout"}, &"root"],

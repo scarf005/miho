@@ -26,6 +26,7 @@ const WALKABLE := [
 	World.TRAP_COLLAPSE,
 	World.TRAP_FIRE,
 	World.TRAP_VINE,
+	World.VERANDA,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -38,6 +39,7 @@ const FLAMMABLE := [
 	World.LEAVES,
 	World.WOOD_WALL,
 	World.THORNS,
+	World.VERANDA,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -46,6 +48,7 @@ const TREAD := {
 	World.REEDS: [2, "바스락"],
 	World.LEAVES: [2, "바스락"],
 	World.SHALLOW: [2, "철벅"],
+	World.VERANDA: [3, "삐걱"],
 }
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,
@@ -61,7 +64,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.TRAP_VINE + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.SEAL + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -77,7 +80,7 @@ func test_each_kind_has_the_walk_burn_tread_and_break_it_always_had() -> void:
 
 func test_the_masks_for_rust_keep_their_old_tests() -> void:
 	var blocks_light := [
-		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL
+		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL, World.SEAL
 	]
 	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS]
 	for t in 256:

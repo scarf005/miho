@@ -271,8 +271,9 @@ func test_a_dark_tile_tells_how_far_heaven_sees_in_the_dark() -> void:
 	for i in w.tiles.size():
 		if w.tiles[i] == World.LANTERN:
 			w.tiles[i] = World.LANTERN_OUT
-	w.sense()
 	var p := w.player().pos + Vector2i(2, 0)
+	w.tiles[Grid.index(p)] = World.FLOOR
+	w.sense()
 	w.seen[Grid.index(p)] = 1
 	var reach: int = World.NIGHT[Actor.HEAVEN]
 	assert_string_contains(Info.plain(Info.terrain(w, p)), "어둡다. %d칸 안에서만" % reach)
