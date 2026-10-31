@@ -166,7 +166,7 @@ func test_a_spray_preview_equals_the_round() -> void:
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
 		[FIRE]: ["불 불길 꼬리 1개", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
-		[FIRE, FIRE]: ["반지름 3", "불 위에서 매 초 %d" % World.FIRE_DAMAGE],
+		[FIRE, FIRE]: ["반지름 3", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE],
 		[FIRE, FIRE, FIRE]: ["반지름 4", "늘 번진다"],
 		[WATER]: ["곧게 4칸, 첫 적에서 멈춘다", "1칸 민다", "소리 없음"],
 		[WATER, WATER]: ["곧게 6칸", "2칸 민다"],

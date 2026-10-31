@@ -93,9 +93,71 @@ func test_a_fire_wisp_sets_any_creature_it_strikes_alight() -> void:
 	foe.hp = 9
 	w.act(_cast([FOX, FIRE]))
 	assert_true(w.burning.has(foe.pos), "no wood, yet it burns")
-	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "hit for 1, then burnt that round")
+	assert_eq(foe.hp, 9 - 1, "hit for 1; the flames it lit hurt from the next round")
 	w.act(WAIT)
-	assert_eq(foe.hp, 9 - 1 - 2 * World.FIRE_DAMAGE, "and each round after")
+	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "and each round after")
+
+
+## A dokkaebi two tiles east has hurled its wisp at Miho, who has 5 health; the
+## round is not yet run.
+func _wisp_at_miho() -> World:
+	var w := _world()
+	w.player().hp = 5
+	w.player().max_hp = 5
+	var foe := _post(w, ME + Vector2i(2, 0), &"dokkaebi")
+	foe.rooted = 99
+	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
+	w.sense()
+	return w
+
+
+func test_a_wisp_hit_hurts_for_its_own_harm_and_leaves_her_on_a_burning_tile() -> void:
+	var w := _wisp_at_miho()
+	w.act(WAIT)
+	assert_eq(w.player().hp, 5 - 1, "the wisp's 1, not the flames it lit")
+	assert_true(w.burning.has(ME))
+
+
+func test_staying_a_round_in_the_flames_costs_the_fire_damage() -> void:
+	var w := _wisp_at_miho()
+	w.act(WAIT)
+	w.act(WAIT)
+	assert_eq(w.player().hp, 5 - 1 - World.FIRE_DAMAGE)
+
+
+func test_stepping_off_the_flames_costs_nothing() -> void:
+	var w := _wisp_at_miho()
+	w.act(WAIT)
+	w.act({t = &"move", dir = Vector2i(0, 1)})
+	assert_eq(w.player().hp, 5 - 1)
+
+
+func test_stepping_into_flames_burning_since_before_the_round_hurts() -> void:
+	var w := _world()
+	w.burning[ME + E] = World.BURN_ROUNDS - 1
+	w.act({t = &"move", dir = E})
+	assert_eq(w.player().hp, 3 - World.FIRE_DAMAGE)
+
+
+func test_a_fire_orb_splash_hurts_at_once_and_only_once() -> void:
+	var w := _world()
+	_post(w, ME + Vector2i(2, 0))
+	var side := _post(w, ME + Vector2i(2, 1))
+	side.hp = 9
+	w.act(_cast([ORB, FIRE]))
+	assert_eq(9 - side.hp, World.FIRE_DAMAGE, "the burst, the same round")
+	w.act(WAIT)
+	assert_eq(9 - side.hp, World.FIRE_DAMAGE, "bare floor keeps no flames to hurt it again")
+
+
+func test_the_forecast_of_a_wisp_hit_counts_its_harm_but_not_the_flames_it_lights() -> void:
+	var w := _wisp_at_miho()
+	assert_eq(Forecast.of(w, WAIT).hurt_me(), 1)
+	w.act(WAIT)
+	assert_eq(Forecast.of(w, WAIT).hurt_me(), World.FIRE_DAMAGE, "staying costs the burn")
+	assert_eq(
+		Forecast.of(w, {t = &"move", dir = Vector2i(0, 1)}).hurt_me(), 0, "a step off is free"
+	)
 
 
 func test_a_fire_orb_sets_only_a_wood_creature_alight_and_bursts_round_it() -> void:

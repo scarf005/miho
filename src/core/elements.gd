@@ -2,7 +2,8 @@ class_name Elements
 extends RefCounted
 ## What the elements a projectile carries do, by its form, one step stronger
 ## for every copy past the first (Spell.extra):
-## 불: a wisp sets the creature it strikes alight; an orb bursts, hurting the
+## 불: a wisp sets the creature it strikes alight (the flames hurt it from the
+## next round, so it can step off); an orb bursts, hurting the
 ## eight tiles round it for World.FIRE_DAMAGE and setting what burns there
 ## alight (World._splash), and a wood creature it strikes burns. 1 more harm
 ## a copy. Both set alight what burns where they fly and end.

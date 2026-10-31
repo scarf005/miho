@@ -46,7 +46,9 @@ extends RefCounted
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
 ## crackles (an alarm), hides nothing, burns whoever stands in it each round
 ## for FIRE_DAMAGE and may spread to each flammable neighbour; after BURN_ROUNDS
-## it is ash. A fire orb's burst hurts every creature around it for FIRE_DAMAGE
+## it is ash. Fire hurts those who stay in it: a tile set alight during a round
+## burns nobody until the next round, so a creature it caught can step off. A
+## fire orb's burst hurts every creature around it for FIRE_DAMAGE at once
 ## too (twice that to one weak to fire). Heaven walks around fire; water douses it.
 ##
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
@@ -468,6 +470,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	if not can(action):
 		return events
 	var me := player()
+	var alight := burning.keys()
 	if me.stunned > 0:
 		me.stunned -= 1
 	match action.t:
@@ -496,7 +499,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				cast(me, spell, one.dir)
 	_shots_phase()
 	Mind.heaven_phase(self)
-	_burn()
+	_burn(alight)
 	Compounds.tick(self)
 	Gas.tick(self)
 	_end_round()
@@ -895,9 +898,9 @@ func ignite(p: Vector2i, force := false, wildfire := false) -> void:
 
 
 ## Each burning tile crackles, burns whoever stands in it (unless it eats
-## fire), may set each flammable neighbour alight (a wild one always does), and
-## burns down to ash.
-func _burn() -> void:
+## fire) if it was already alight when the round began, may set each flammable
+## neighbour alight (a wild one always does), and burns down to ash.
+func _burn(alight: Array = burning.keys()) -> void:
 	if outcome != &"":
 		return
 	var flame := Spell.make([Cards.FOX, Cards.FIRE])
@@ -905,7 +908,7 @@ func _burn() -> void:
 	for p: Vector2i in burning.keys():
 		noise(p, CRACKLE, "타닥", true, 0)
 		var a := actor_at(p)
-		if a != null:
+		if a != null and alight.has(p):
 			emit({t = &"burn", at = p, id = a.id})
 			if Bestiary.absorbs(a.kind, flame):
 				emit({t = &"absorb", id = a.id, at = p})

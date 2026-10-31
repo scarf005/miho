@@ -356,7 +356,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("적은 사라지고 당신은 한 층 아래로 간다")
 		World.TRAP_FIRE:
 			out.append("밟은 방향 앞 %d칸에 불을 뿜는다" % Traps.FLAME_REACH)
-			out.append("불타는 칸 위에서는 매 초 피해 %d" % World.FIRE_DAMAGE)
+			out.append("불이 붙은 다음 초부터 서 있으면 매 초 피해 %d" % World.FIRE_DAMAGE)
 		World.TRAP_VINE:
 			var side := 2 * Traps.VINE_REACH + 1
 			out.append("밟으면 주위 %d×%d의 모두를 %d초 묶는다" % [side, side, Traps.ROOT_ROUNDS])
