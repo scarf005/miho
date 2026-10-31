@@ -295,8 +295,9 @@ static func _mouth(w: World, rooms: Array, mouth: Vector2i, inward: Vector2i) ->
 	_corridor(w, inner, _centre(near))
 
 
-## A window on some outer wall tiles that face the sky with room floor behind
-## them, never two side by side and never on the map's outer ring.
+## A window on some outer wall tiles that face the sky on one side only with
+## room floor behind them, never two side by side and never on the map's outer
+## ring.
 static func _windows(w: World) -> void:
 	for y in range(1, Grid.H - 1):
 		for x in range(1, Grid.W - 1):
@@ -308,6 +309,8 @@ static func _windows(w: World) -> void:
 				if (
 					w.tile(p + d) == World.SKY
 					and w.tile(p - d) == World.FLOOR
+					and w.tile(p + side) != World.SKY
+					and w.tile(p - side) != World.SKY
 					and w.tile(p + side) != World.WINDOW
 					and w.tile(p - side) != World.WINDOW
 					and w.rng.randf() < WINDOWS

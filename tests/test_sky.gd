@@ -282,3 +282,20 @@ func test_an_orb_breaks_the_window_it_strikes_but_a_water_orb_and_a_wisp_do_not(
 	_put(w, Vector2i(5, 8), World.WINDOW)
 	assert_false(w.can(_cast([Cards.FOX], E)), "a wisp cannot be cast at an adjacent window")
 	assert_true(w.can(_cast([ORB], E)), "an orb can")
+
+
+func test_a_wall_tile_facing_the_sky_on_two_sides_never_gets_a_window() -> void:
+	var corner := Vector2i(10, 10)
+	var flat := Vector2i(20, 10)
+	var flat_windows := 0
+	for seed_value in 60:
+		var w := _world()
+		w.rng.seed = seed_value
+		for p in [corner, flat]:
+			_put(w, p, World.WALL)
+		for p in [corner + Vector2i.UP, corner + Vector2i.LEFT, flat + Vector2i.UP]:
+			_put(w, p, World.SKY)
+		FloorGen._windows(w)
+		assert_eq(w.tile(corner), World.WALL, "seed %d" % seed_value)
+		flat_windows += 1 if w.tile(flat) == World.WINDOW else 0
+	assert_gt(flat_windows, 0, "a wall facing the sky once does get windows")
