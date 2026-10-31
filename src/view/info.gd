@@ -253,6 +253,17 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력 %d 회복. 가득 찼으면 최대 체력 +%d" % [World.HEAL, World.HEAL]]
+	for seal: Vector2i in w.seals:
+		var lanterns: Array = w.seals[seal]
+		var lit := (
+			"(%d/%d)"
+			% [lanterns.filter(func(q): return w.tile(q) == World.LANTERN).size(), lanterns.size()]
+		)
+		if seal == p:
+			notes.append("꺼진 등불 셋이 모두 켜지면 열린다 " + lit)
+			notes.append("등불이 하나라도 부서지면 영영 닫힌다")
+		elif lanterns.has(p):
+			notes.append("봉인문의 등불 " + lit)
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])

@@ -64,7 +64,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.VERANDA + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.SEAL + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -80,7 +80,7 @@ func test_each_kind_has_the_walk_burn_tread_and_break_it_always_had() -> void:
 
 func test_the_masks_for_rust_keep_their_old_tests() -> void:
 	var blocks_light := [
-		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL
+		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL, World.SEAL
 	]
 	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS]
 	for t in 256:

@@ -575,7 +575,8 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				features[t] += 1
 		assert_eq(w.tile(w.start), World.FLOOR)
 		assert_eq(w.tile(w.stairs), World.FLOOR)
-		var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+		var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+		var dist: PackedInt32Array = Grid.search(w.start, open).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):
 				assert_gt(dist[i], -1, "seed %d tile %s" % [seed_value, Grid.at(i)])

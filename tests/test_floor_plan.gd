@@ -157,6 +157,7 @@ func test_a_hidden_door_is_a_wall_between_two_rooms_far_apart_without_it() -> vo
 			assert_eq(w.tile(p), World.WALL, label)
 			var d := _across(w, p)
 			assert_ne(d, Vector2i.ZERO, label + " lies between two rooms")
+			assert_false(w.rooms[0].grow(1).has_point(p), label + " is not the start room's")
 			var side := Vector2i(d.y, d.x)
 			assert_true(Terrain.wall(w.tile(p + side)), label)
 			assert_true(Terrain.wall(w.tile(p - side)), label)

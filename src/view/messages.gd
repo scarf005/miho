@@ -163,6 +163,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + plate + sprung
 		&"trample":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
+		&"unseal":
+			return _named(Tiles.of(World.SEAL, "name"), "이", "가") + [[" 열렸다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

@@ -74,10 +74,11 @@ func _storeys(check: Callable) -> void:
 		check.call(built[0], built[1])
 
 
-func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_from_the_start() -> void:
+func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_once_seals_open() -> void:
 	_storeys(
 		func(w: World, label: String):
-			var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+			var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+			var dist: PackedInt32Array = Grid.search(w.start, open).dist
 			for i in w.tiles.size():
 				if w.open_floor(Grid.at(i)):
 					assert_gt(dist[i], -1, "%s tile %s" % [label, Grid.at(i)])

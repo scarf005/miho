@@ -209,7 +209,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
 		&"find":
 			return &"find"
-		&"open", &"close":
+		&"open", &"close", &"unseal":
 			return &"door"
 		&"root", &"freeze", &"sprout":
 			return &"root"

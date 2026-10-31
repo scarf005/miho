@@ -119,6 +119,7 @@ const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
 const VERANDA := 33
+const SEAL := 34
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -146,6 +147,8 @@ var traps := {}
 ## Hidden doors Miho has not found: position -> true. Each is a wall until she
 ## finds it, and then a door (Traps).
 var secrets := {}
+## Seals: position -> the dark lanterns that open it once all are lit (Terrain).
+var seals := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -209,6 +212,7 @@ func clone() -> World:
 	w.hot = hot.duplicate()
 	w.traps = traps.duplicate()
 	w.secrets = secrets.duplicate()
+	w.seals = seals.duplicate(true)
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -506,6 +510,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	_burn()
 	Compounds.tick(self)
 	Gas.tick(self)
+	Terrain.unseal(self)
 	_end_round()
 	sense()
 	return events
