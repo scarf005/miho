@@ -145,7 +145,7 @@ func test_a_hidden_plate_is_not_on_the_map_the_observation_or_the_hover() -> voi
 		assert_false(_row(w, 8).contains(glyph), "%s in the observation" % glyph)
 		assert_eq(_row(w, 8)[PLATE.x], "·", "drawn as floor")
 		var lines := Info.plain(Info.at(w.known_clone(), PLATE))
-		assert_false(lines.contains("발판"), lines)
+		assert_false(lines.contains("함정"), lines)
 		assert_false(lines.contains(Tiles.of(kind, "name")), lines)
 		assert_eq(Info.plain(Info.at(w.known_clone(), PLATE)).split("\n")[0], "바닥")
 
@@ -278,7 +278,7 @@ func test_miho_stepping_on_the_alarm_plate_is_told_in_the_log() -> void:
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var before := w.clone()
 	w.act({t = &"move", dir = E})
-	assert_has(_lines(before, w, w.events), "경보 발판을 밟았다. 징 소리가 층 전체에 울렸다")
+	assert_has(_lines(before, w, w.events), "징 함정을 밟았다. 징 소리가 층 전체에 울렸다")
 	assert_false(_lines(before, w, w.events).any(func(l): return l.contains("찾았다")))
 
 
@@ -292,7 +292,7 @@ func test_a_creature_stepping_on_a_plate_in_sight_is_told_in_the_log() -> void:
 	w.push(foe, E, 1)
 	w.sense()
 	var lines := _lines(before, w, w.events)
-	assert_has(lines, "도깨비가 덩굴 발판을 밟았다")
+	assert_has(lines, "도깨비가 덩굴 함정을 밟았다")
 	assert_has(lines, "도깨비가 덩굴에 묶였다")
 	assert_eq(w.tile(PLATE), World.TRAP_VINE, "seen going off, it is found")
 
@@ -306,7 +306,7 @@ func test_a_creature_falling_through_a_plate_is_told_in_the_log() -> void:
 	var before := w.clone()
 	w.push(foe, E, 1)
 	var lines := _lines(before, w, w.events)
-	assert_eq(lines.slice(-2), ["도깨비가 꺼지는 마루를 밟았다", "도깨비가 하늘로 떨어졌다"])
+	assert_eq(lines.slice(-2), ["도깨비가 허방다리를 밟았다", "도깨비가 하늘로 떨어졌다"])
 
 
 func test_miho_falling_through_a_plate_is_told_in_the_log() -> void:
@@ -317,7 +317,7 @@ func test_miho_falling_through_a_plate_is_told_in_the_log() -> void:
 	var before := w.clone()
 	w.act({t = &"move", dir = E})
 	var lines := _lines(before, w, w.events)
-	assert_eq(lines[0], "꺼지는 마루를 밟았다")
+	assert_eq(lines[0], "허방다리를 밟았다")
 	assert_eq(lines[1], "하늘로 떨어져 3층으로 내려왔다")
 
 
@@ -328,7 +328,7 @@ func test_the_fire_plate_is_told_with_the_fire_it_lights() -> void:
 	var before := w.clone()
 	w.act({t = &"move", dir = E})
 	var lines := _lines(before, w, w.events)
-	assert_eq(lines[0], "불 발판을 밟았다")
+	assert_eq(lines[0], "불씨 함정을 밟았다")
 	assert_eq(lines.filter(func(l): return l.ends_with("불이 붙었다")).size(), Traps.FLAME_REACH)
 
 
@@ -339,7 +339,7 @@ func test_finding_a_plate_is_told_in_the_log_and_shown_as_a_popup() -> void:
 	w.player().pos = PLATE - E
 	w.sense()
 	var facts := Perceived.of(before, w, w.events).facts
-	assert_eq(_lines(before, w, w.events), ["불 발판을 찾았다"])
+	assert_eq(_lines(before, w, w.events), ["불씨 함정을 찾았다"])
 	var popups := facts.map(Term.popup_of).filter(func(p): return not p.is_empty())
 	assert_eq(popups.map(func(p): return p.text), [Palette.TILES[World.TRAP_FIRE][0]])
 

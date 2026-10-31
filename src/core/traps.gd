@@ -11,13 +11,13 @@ extends RefCounted
 ## Heaven made the plates and walks round every one of them, found or not. A
 ## creature a push or a fall drops onto one sets it off.
 ##
-## 경보 발판 (alarm plate): a gong that the whole storey hears; every creature of
+## 징 함정 (alarm plate): a gong that the whole storey hears; every creature of
 ## heaven that can hear and is not hunting goes to search the plate.
-## 꺼지는 마루 (collapsing floor): the creature drops through the floor (Fall):
+## 허방다리 (collapsing floor): the creature drops through the floor (Fall):
 ## heaven's is gone, Miho goes down a storey.
-## 불 발판 (fire plate): sets FLAME_REACH tiles alight in the direction the
+## 불씨 함정 (fire plate): sets FLAME_REACH tiles alight in the direction the
 ## creature was stepping.
-## 덩굴 발판 (vine plate): roots every creature within VINE_REACH of the plate,
+## 덩굴 함정 (vine plate): roots every creature within VINE_REACH of the plate,
 ## itself included, for ROOT_ROUNDS.
 
 ## How near to Miho a plate must be to be found in the dark.

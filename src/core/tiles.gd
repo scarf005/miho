@@ -95,10 +95,10 @@ const ROWS := {
 	World.ICE: {name = "얼음", walk = true, douses = true},
 	World.THORNS: {name = "가시덤불", walk = true, burns = true},
 	World.MUD: {name = "진흙", walk = true, douses = true},
-	World.TRAP_ALARM: {name = "경보 발판", walk = true, trap = true},
-	World.TRAP_COLLAPSE: {name = "꺼지는 마루", walk = true, trap = true},
-	World.TRAP_FIRE: {name = "불 발판", walk = true, trap = true},
-	World.TRAP_VINE: {name = "덩굴 발판", walk = true, trap = true},
+	World.TRAP_ALARM: {name = "징 함정", walk = true, trap = true},
+	World.TRAP_COLLAPSE: {name = "허방다리", walk = true, trap = true},
+	World.TRAP_FIRE: {name = "불씨 함정", walk = true, trap = true},
+	World.TRAP_VINE: {name = "덩굴 함정", walk = true, trap = true},
 }
 const DEFAULT := {
 	name = "",
