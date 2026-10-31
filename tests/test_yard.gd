@@ -232,7 +232,7 @@ func test_hovering_the_stand_names_the_talisman_it_gives() -> void:
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, STAND))
 	assert_string_contains(text, "부적 단")
-	assert_string_contains(text, "밟으면 아직 없는 원소 부적 하나를 얻는다")
+	assert_string_contains(text, "밟으면: 아직 없는 원소 부적 하나, 한 번")
 	assert_string_contains(text, "얻는 부적: 불")
 	w.cards.assign(Cards.ALL)
 	assert_string_contains(Info.plain(Info.terrain(w, STAND)), "얻는 부적: 없음")
@@ -251,4 +251,4 @@ func test_the_codex_lists_the_lamp_and_the_stand_by_what_they_are() -> void:
 		assert_eq(entry.size(), 1, name)
 		assert_false(Info.plain(Codex.detail(entry[0])).contains("얻는 부적"), name)
 	var lamp: Dictionary = Codex.entries(4).filter(func(e): return e.name == "석등")[0]
-	assert_string_contains(Info.plain(Codex.detail(lamp)), "꺼지지 않는다")
+	assert_string_contains(Info.plain(Codex.detail(lamp)), "꺼지지 않음")

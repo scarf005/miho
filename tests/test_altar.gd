@@ -217,10 +217,10 @@ func test_hovering_the_altar_tells_the_rule_with_its_numbers_and_the_count() -> 
 	_fall(w, _foe(w, ALTAR + Vector2i(1, 1)))
 	var text := Info.plain(Info.terrain(w, ALTAR))
 	assert_string_contains(text, "혼불 제단")
-	assert_string_contains(text, "주위 %d칸 안에서 하늘의 생물이 %d번 쓰러지면 타오른다" % [Altar.REACH, Altar.NEED])
-	assert_string_contains(text, "하늘로 밀려 떨어져도 센다")
-	assert_string_contains(text, "꼬리가 모두 돌아오고 이 층에서 하나 더 돋는다")
-	assert_string_contains(text, "쓰러진 생물 (1/3)")
+	var lit := "타오름: 주위 %d칸 안에서 하늘의 생물 %d번 쓰러짐, 추락 포함"
+	assert_string_contains(text, lit % [Altar.REACH, Altar.NEED])
+	assert_string_contains(text, "타오르면: 꼬리 모두 회복, 이 층에서 꼬리 +1")
+	assert_string_contains(text, "쓰러진 생물: 1/3")
 	assert_false(Info.plain(Info.terrain(w, ALTAR + Vector2i(0, 2))).contains("쓰러진 생물"))
 
 
@@ -229,9 +229,9 @@ func test_the_codex_lists_both_altars_by_what_they_are_not_how_far_they_got() ->
 		var entry := Codex.entries(4).filter(func(e): return e.name == name)
 		assert_eq(entry.size(), 1, name)
 		var text := Info.plain(Codex.detail(entry[0]))
-		assert_string_contains(text, "길과 주문을 막는다")
-		assert_false(text.contains("(0/"), name)
+		assert_string_contains(text, "막음: 길, 주문")
+		assert_false(text.contains("0/"), name)
 	assert_string_contains(
 		Info.plain(Codex.detail(Codex.entries(4).filter(func(e): return e.name == "혼불 제단")[0])),
-		"하늘의 생물이 3번 쓰러지면"
+		"하늘의 생물 3번 쓰러짐"
 	)

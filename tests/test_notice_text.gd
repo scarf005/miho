@@ -39,9 +39,8 @@ func test_a_body_mark_tells_who_fell_and_that_the_seer_searches() -> void:
 	w.hurt(foe, 99)
 	w.sense()
 	var text := Info.plain(Info.terrain(w, AT))
-	assert_string_contains(text, "쓰러진 도깨비 · 0초 전")
-	assert_string_contains(text, "추격 중이 아닌 적은 처음 보면 이곳을 수색한다")
-	assert_string_contains(text, "이 층에 남는다")
+	assert_string_contains(text, "쓰러진 도깨비: 0초 전\n" + Info.TRACE)
+	assert_string_contains(Info.glossary()["흔적"], "그곳을 수색")
 
 
 func test_a_body_not_yet_seen_is_not_told() -> void:
@@ -56,7 +55,7 @@ func test_another_change_tells_its_age() -> void:
 	Notice.record(w, &"ash", AT)
 	w.round_no = 4
 	var text := Info.plain(Info.terrain(w, AT))
-	assert_string_contains(text, "재 · 4초 전")
+	assert_string_contains(text, "재: 4초 전")
 
 
 func test_the_map_text_marks_a_seen_body() -> void:

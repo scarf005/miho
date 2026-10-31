@@ -123,13 +123,13 @@ func test_a_tile_in_sight_tells_its_gas_from_the_rules() -> void:
 	Gas.put(w, at, Gas.FOG, 2)
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "안개 2/%d" % Gas.MAX)
-	assert_string_contains(text, "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE)
-	assert_string_contains(text, "매 초 %d%% 로 1씩 줄어든다" % Gas.of(Gas.FOG, "decay"))
+	assert_string_contains(text, "안개: 2/%d" % Gas.MAX)
+	assert_false(text.contains("시야 막음"), "thin gas leaves sight open")
+	assert_string_contains(text, "줄어듦: 매 초 %d%% 확률로 1" % Gas.of(Gas.FOG, "decay"))
 	assert_false(text.contains("피해"), text)
 	Gas.put(w, at, Gas.FOG, 1)
 	w.sense()
-	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개 3/%d\n시야를 막는다" % Gas.MAX)
+	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개: 3/%d\n시야 막음." % Gas.MAX)
 
 
 func test_steam_tells_its_harm_decay_and_wetting() -> void:
@@ -138,10 +138,10 @@ func test_steam_tells_its_harm_decay_and_wetting() -> void:
 	Gas.put(w, at, Gas.STEAM, 4)
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "증기 4/%d" % Gas.MAX)
-	assert_string_contains(text, "매 초 %d%% 로 1씩 줄어든다" % Gas.of(Gas.STEAM, "decay"))
-	assert_string_contains(text, "서 있으면 매 초 피해 %d" % Gas.of(Gas.STEAM, "harm"))
-	assert_string_contains(text, "북을 적셔 %d초 동안 소리를 없앤다" % Drums.WET_ROUNDS)
+	assert_string_contains(text, "증기: 4/%d" % Gas.MAX)
+	assert_string_contains(text, "줄어듦: 매 초 %d%% 확률로 1" % Gas.of(Gas.STEAM, "decay"))
+	assert_string_contains(text, "피해: 매 초 %d" % Gas.of(Gas.STEAM, "harm"))
+	assert_string_contains(text, "북 적심: %d초 소리 없음" % Drums.WET_ROUNDS)
 
 
 func test_smoke_tells_its_decay() -> void:
@@ -150,8 +150,8 @@ func test_smoke_tells_its_decay() -> void:
 	Gas.put(w, at, Gas.SMOKE, 5)
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "연기 5/%d" % Gas.MAX)
-	assert_string_contains(text, "매 초 %d%% 로 1씩 줄어든다" % Gas.of(Gas.SMOKE, "decay"))
+	assert_string_contains(text, "연기: 5/%d" % Gas.MAX)
+	assert_string_contains(text, "줄어듦: 매 초 %d%% 확률로 1" % Gas.of(Gas.SMOKE, "decay"))
 
 
 func test_a_remembered_tile_does_not_tell_gas() -> void:
@@ -171,11 +171,11 @@ func test_a_creature_standing_in_gas_tells_it() -> void:
 	Gas.put(w, at, Gas.STEAM, 6)
 	w.sense()
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "증기 6/%d" % Gas.MAX)
-	assert_string_contains(text, "서 있으면 매 초 피해 1")
+	assert_string_contains(text, "증기: 6/%d" % Gas.MAX)
+	assert_string_contains(text, "피해: 매 초 1")
 	Gas.put(w, ME, Gas.FOG, 4)
 	w.sense()
-	assert_string_contains(Info.plain(Info.at(w, ME)), "안개 4/%d" % Gas.MAX)
+	assert_string_contains(Info.plain(Info.at(w, ME)), "안개: 4/%d" % Gas.MAX)
 
 
 func test_every_gas_has_a_colour_and_a_glyph_for_the_map_and_the_text_view() -> void:
@@ -198,4 +198,4 @@ func test_a_vent_pond_tells_what_it_breathes_and_up_to_what_amount() -> void:
 	assert_false(Info.plain(Info.terrain(w, at)).contains("뿜는 기체"))
 	w.vents[at] = Gas.FOG
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "뿜는 기체: 안개 (매 초 양 %d까지 채운다)" % Gas.VENT_LEVEL)
+	assert_string_contains(text, "뿜는 기체: 안개, 매 초 양 %d까지" % Gas.VENT_LEVEL)

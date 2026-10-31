@@ -142,12 +142,11 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 	for kind in KINDS:
 		text[kind] = Info.plain(Info.creature_facts(Codex.foe(kind), []))
 	var melee: Dictionary = Bestiary.info(&"oedari").melee
-	assert_string_contains(text[&"oedari"], "근접: 씨름 (피해 %d, %d칸 던진다)" % [melee.damage, melee.throw])
-	assert_string_contains(text[&"oedari"], "하늘로 던져지면 한 층 떨어진다")
+	assert_string_contains(text[&"oedari"], "근접: 씨름, 피해 %d, %d칸 던짐" % [melee.damage, melee.throw])
 	assert_string_contains(text[&"bujigaengi"], "꺼진 등불을 켬")
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")
-	assert_string_contains(text[&"bitjaru"], "당신의 냄새를 따라감")
-	assert_string_contains(text[&"bitjaru"], "외치지 않는다")
+	assert_string_contains(text[&"bitjaru"], "냄새를 따라감")
+	assert_false(text[&"bitjaru"].contains("말할 수 있다"))
 
 
 ## A 부지깽이 도깨비 that sleeps whatever it does, to see what sleep takes from it.
@@ -195,4 +194,4 @@ func test_an_awake_poker_lights_it_on_patrol_searching_hunting_and_walking_home(
 
 func test_the_hover_and_the_doc_say_the_poker_lights_lanterns_when_awake() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"bujigaengi"), []))
-	assert_string_contains(text, "깨어 있으면 꺼진 등불을 켬")
+	assert_string_contains(text, "꺼진 등불을 켬")

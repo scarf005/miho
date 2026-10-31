@@ -74,7 +74,7 @@ static func at(w: World, p: Vector2i) -> Array:
 
 
 ## A creature's hidden state: what it is after, how long it has been without a
-## trail, its spell clock and aim, and what it last made of Miho.
+## trail, and its spell clock and aim.
 static func creature(a: Actor) -> Array:
 	var resting := a.alert == Actor.REST
 	var goal := a.home if resting else a.target
@@ -86,10 +86,6 @@ static func creature(a: Actor) -> Array:
 		lines.append([["놓친 지 %d/%d초" % [a.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
 	if not a.info().get("casts", []).is_empty():
 		lines.append(_clock(a))
-	if a.sees_me:
-		lines.append([["당신을 본 걸로 안다", Palette.HURT]])
-	else:
-		lines.append([["당신을 못 본 걸로 안다", Palette.SIDE[0]]])
 	return lines
 
 

@@ -165,54 +165,54 @@ func test_a_spray_preview_equals_the_round() -> void:
 
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
-		[FIRE]: ["불 불길 꼬리 1개", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
+		[FIRE]: ["불 불길 · 꼬리 1개", "반지름 2", "불: 가연성 칸에 불", "소리: 쓸 때 2칸"],
 		[FIRE, FIRE]: ["반지름 3", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE],
-		[FIRE, FIRE, FIRE]: ["반지름 4", "늘 번진다"],
-		[WATER]: ["곧게 4칸, 첫 적에서 멈춘다", "1칸 민다", "소리 없음"],
-		[WATER, WATER]: ["곧게 6칸", "2칸 민다"],
-		[WATER, WATER, WATER]: ["곧게 8칸, 적을 꿰뚫는다", "3칸 민다"],
-		[METAL]: ["권총. 곧게 7칸", "피해 1. 약점 시 ×2", "발사 시 당신 칸을 밝힌다", "9칸"],
+		[FIRE, FIRE, FIRE]: ["반지름 4", "늘 번짐"],
+		[WATER]: ["곧게 4칸, 첫 적에서 멈춤", "1칸 밀침", "소리: 없음"],
+		[WATER, WATER]: ["곧게 6칸", "2칸 밀침"],
+		[WATER, WATER, WATER]: ["곧게 8칸, 적을 꿰뚫음", "3칸 밀침"],
+		[METAL]: ["권총. 곧게 7칸", "피해: 1\n", "빛: 쏠 때 미호 칸", "9칸"],
 		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적은 2"],
 		[METAL, METAL, METAL]: ["철갑탄. 곧게 8칸", "벽 하나", "적마다 2"],
 		[EARTH]: ["둘레 1칸", "1초 기절", "9칸"],
-		[EARTH, EARTH]: ["둘레 2칸", "벽에 금이 간다"],
-		[EARTH, EARTH, EARTH]: ["둘레 3칸", "2초 기절", "금 간 벽은 무너진다"],
-		[WOOD]: ["4걸음 안", "적 1명", "2초 묶는다", "소리 없음"],
-		[WOOD, WOOD]: ["6걸음 안", "적 2명", "3초 묶는다"],
-		[WOOD, WOOD, WOOD]: ["8걸음 안", "적 모두", "4초 묶는다"],
+		[EARTH, EARTH]: ["둘레 2칸", "흙: 벽에 금"],
+		[EARTH, EARTH, EARTH]: ["둘레 3칸", "2초 기절", "금 간 벽은 무너짐"],
+		[WOOD]: ["4걸음 안", "적 1명", "2초 묶음", "소리: 없음"],
+		[WOOD, WOOD]: ["6걸음 안", "적 2명", "3초 묶음"],
+		[WOOD, WOOD, WOOD]: ["8걸음 안", "적 모두", "4초 묶음"],
 		[WATER, FIRE]:
 		[
-			"증기 꼬리 2개",
+			"증기 · 꼬리 2개",
 			"3칸 앞 3×3",
-			"증기 %d/%d. %d 이상이면 시야를 막는다" % [Compounds.STEAM, Gas.MAX, Gas.OPAQUE],
-			"서 있으면 매 초 피해 %d" % Gas.of(Gas.STEAM, "harm"),
-			"소리 없음",
+			"증기: 양 %d/%d" % [Compounds.STEAM, Gas.MAX],
+			"위에서 매 초 피해 %d" % Gas.of(Gas.STEAM, "harm"),
+			"소리: 없음",
 		],
 		[WATER, FIRE, WATER, FIRE]: ["증기×2", "3칸 앞 5×5"],
 		[METAL, WOOD]:
-		["가시", "반지름 2", "적마다 피해 %d. 지나가면 피해 %d" % [Compounds.THORN, Compounds.THORN]],
-		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽을 소리 없이 무너뜨린다", "소리 없음"],
+		["가시", "반지름 2", "적마다 피해 %d. 지날 때 피해 %d" % [Compounds.THORN, Compounds.THORN]],
+		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽을 소리 없이 무너뜨림", "소리: 없음"],
 		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
 		[FIRE, EARTH]:
 		[
 			"용암",
 			"곧게 4칸",
-			"뜨거운 땅이 %d초 남는다" % Compounds.HOT_ROUNDS,
+			"뜨거운 땅 %d초" % Compounds.HOT_ROUNDS,
 			"매 초 피해 %d" % Compounds.HOT[Compounds.LAVA].harm,
 		],
 		[FIRE, METAL]:
 		[
-			"뜨거운 쇠가 %d초 남는다" % Compounds.HOT_ROUNDS,
+			"뜨거운 쇠 %d초" % Compounds.HOT_ROUNDS,
 			"매 초 피해 %d" % Compounds.HOT[Compounds.MOLTEN].harm,
 		],
-		[WOOD, FIRE]: ["들불", "반지름 3", "불이 늘 번진다", "소리 쓸 때 %d칸" % Spray.HUSH],
+		[WOOD, FIRE]: ["들불", "반지름 3", "들불: 늘 번짐", "소리: 쓸 때 %d칸" % Spray.HUSH],
 		[EARTH, METAL]:
 		["유탄", "3칸 앞 3×3", "적마다 피해 %d" % Compounds.SHRAPNEL, "%d칸" % Spray.GUN_LOUD],
-		[METAL, WATER]: ["서리", "곧게 4칸", "얼어붙음 %d초." % Compounds.FROST, "연못이 얼어"],
-		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고"],
-		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "걷는 데 %d초, 발소리가 없다" % Compounds.MUD],
-		[EARTH, WATER, EARTH]: ["진흙·흙", "흙 적을 %d초 기절시킨다" % Elements.STUN],
-		[FOX, WATER, FIRE]: ["증기 여우불", "멈춘 곳 3×3", "증기 %d/%d" % [Compounds.STEAM, Gas.MAX]],
+		[METAL, WATER]: ["서리", "곧게 4칸", "얼어붙음 %d초" % Compounds.FROST, "연못이 얼음이 됨"],
+		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "단비: %d초 묶음" % Compounds.RAIN, "불, 등불 끔"],
+		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "걷는 데 %d초, 발소리 없음" % Compounds.MUD],
+		[EARTH, WATER, EARTH]: ["진흙·흙", "흙: %d초 기절" % Elements.STUN],
+		[FOX, WATER, FIRE]: ["증기 여우불", "멈춘 곳 3×3", "증기: 양 %d/%d" % [Compounds.STEAM, Gas.MAX]],
 		[ORB, WOOD, EARTH]: ["멈춘 곳에서 1칸 안 첫 벽과 그 양옆"],
 		[ORB, METAL, WATER, METAL, WATER]: ["서리×2 구슬", "멈춘 곳 5×5"],
 	}
@@ -221,9 +221,9 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		for part: String in rows[q]:
 			assert_string_contains(text, part)
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
-	assert_true(card.begins_with("불 부적 꼬리 1개"), card)
+	assert_true(card.begins_with("불 부적 · 꼬리 1개"), card)
 	assert_string_contains(card, "반지름 2")
-	assert_string_contains(card, "넣으면 불×2 불길 꼬리 2개")
+	assert_string_contains(card, "넣으면: 불×2 불길 · 꼬리 2개")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:

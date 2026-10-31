@@ -201,16 +201,12 @@ func test_a_lone_creature_falling_scatters_nothing() -> void:
 	assert_false(w.events.any(func(e): return e.t == &"scatter"))
 
 
-func test_the_follower_hover_names_its_leader_only_when_seen() -> void:
+func test_a_follower_reads_following() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
 	var f := _band(w, lead, &"dokkaebi", Vector2i(31, 8))
-	var text := Info.plain(Info.creature(w, f))
-	assert_string_contains(text, "우두머리: 외다리 도깨비")
 	assert_eq(Info.state(f), "따라가는 중")
-	assert_string_contains(Info.plain(Info.creature(w, lead)), "무리의 우두머리")
-	w.seen[Grid.index(lead.pos)] = 0
-	assert_string_contains(Info.plain(Info.creature(w, f)), "우두머리: 무언가")
+	assert_string_contains(Info.plain(Info.creature(w, f)), "따라가는 중")
 
 
 func test_a_sleeping_follower_reads_asleep() -> void:
@@ -220,11 +216,17 @@ func test_a_sleeping_follower_reads_asleep() -> void:
 	assert_eq(Info.state(f), "자는 중")
 
 
-func test_the_doc_tells_which_creatures_come_in_bands() -> void:
-	var band := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), []))
-	assert_string_contains(band, "최대 %d마리 무리, 우두머리는 가장 센 적" % FloorGen.BAND)
-	for kind in [&"jangseung", &"cheonnyeon"]:
-		assert_false(Info.plain(Info.creature_facts(Codex.foe(kind), [])).contains("우두머리"))
+func test_no_hover_or_doc_tells_bands_or_groups() -> void:
+	var w := _hall()
+	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
+	var f := _band(w, lead, &"dokkaebi", Vector2i(31, 8))
+	w.seen.fill(1)
+	for kind in [&"dokkaebi", &"jangseung", &"cheonnyeon"]:
+		var text := Info.plain(Info.creature_facts(Codex.foe(kind), []))
+		assert_false(text.contains("무리") or text.contains("우두머리"), str(kind))
+	for a in [lead, f]:
+		var text := Info.plain(Info.creature(w, a))
+		assert_false(text.contains("무리") or text.contains("우두머리"), text)
 
 
 func test_the_log_and_the_agent_tell_the_scattering_and_the_band() -> void:

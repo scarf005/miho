@@ -438,8 +438,8 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
 	assert_true(text.begins_with("%s %s" % [Tiles.of(World.WOOD_WALL, "name"), Info.hearts(1, 1)]))
-	assert_string_contains(text, "길과 시야와 빛을 막는다")
-	assert_string_contains(text, "불이 붙으면 %d초 타고 재가 된다" % World.BURN_ROUNDS)
+	assert_string_contains(text, "막음: 길, 시야, 빛")
+	assert_string_contains(text, "\n가연성.")
 
 
 # --- the hover lines --------------------------------------------------------
@@ -447,15 +447,15 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 
 func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
-		[[FOX, FIRE], ["지나간 자리에 불을 붙인다", "맞은 적 불붙음 %d초." % Status.ALIGHT]],
+		[[FOX, FIRE], ["불: 지나간 자리에 불", "맞은 적 불붙음 %d초" % Status.ALIGHT]],
 		[[ORB, FIRE, FIRE], ["주위 8칸에 %d" % (World.FIRE_DAMAGE + 1)]],
-		[[ORB, WATER], ["3×3의 등불과 불을 끈다", "소리 없음"]],
+		[[ORB, WATER], ["3×3 등불, 불 끔", "소리: 없음"]],
 		[
 			[FOX, METAL, METAL],
 			[
 				"유도탄. 발마다 피해 %d" % (Elements.BULLET + 1),
 				"초당 %d칸" % Spell.BULLET_SPEED,
-				"빛 없음. 발사 시 당신 칸을 밝힌다",
+				"빛: 없음, 쏠 때 미호 칸",
 				"쓸 때 %d칸" % Spray.GUN_LOUD,
 			]
 		],
@@ -463,14 +463,14 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 			[ORB, METAL],
 			[
 				"대포알. 피해 +%d" % Elements.CANNON,
-				"%d칸 민다" % Elements.CANNON_PUSH,
+				"%d칸 밀침" % Elements.CANNON_PUSH,
 				"쓸 때 %d칸" % Elements.CANNON_LOUD,
-				"발사 시 당신 칸을 밝힌다",
+				"쏠 때 미호 칸",
 			]
 		],
-		[[FOX, EARTH, EARTH], ["%d초 기절" % (Elements.STUN + 1), "쿵 %d칸" % World.THUD]],
-		[[ORB, EARTH], ["벽을 한 번에 부순다", "쿵 %d칸" % World.THUD]],
-		[[FOX, WOOD], ["%d초 묶는다" % Elements.ROOT]],
+		[[FOX, EARTH, EARTH], ["%d초 기절" % (Elements.STUN + 1), "소리: 멈춘 곳에서 %d칸" % World.THUD]],
+		[[ORB, EARTH], ["벽을 한 번에 부숨", "소리: 멈춘 곳에서 %d칸" % World.THUD]],
+		[[FOX, WOOD], ["%d초 묶음" % Elements.ROOT]],
 		[[ORB, WOOD, WOOD], ["나무벽 %d칸" % (Elements.WALL + 1), "체력 1"]],
 	]
 	for c in cases:

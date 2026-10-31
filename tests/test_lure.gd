@@ -140,10 +140,12 @@ func test_the_log_tells_a_yelp_in_sight_and_a_yelp_heard_from_the_dark() -> void
 
 func test_the_spell_info_tells_the_yelp_and_its_reach() -> void:
 	var one := Info.plain(SpellInfo.spell(Spell.make([FOX])))
-	assert_string_contains(one, "캥 %d칸" % Lure.LOUD)
+	var yelp := "소리: 떠 있는 동안 2초마다 %d칸"
+	assert_string_contains(one, yelp % Lure.LOUD)
+	assert_false(one.contains(Lure.WORD), "no word in the hover")
 	assert_string_contains(one, "교활한 적")
-	assert_string_contains(Info.plain(SpellInfo.spell(Spell.make([FOX, FOX]))), "캥 6칸")
-	assert_false(Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.WATER]))).contains("캥"))
+	assert_string_contains(Info.plain(SpellInfo.spell(Spell.make([FOX, FOX]))), yelp % 6)
+	assert_false(Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.WATER]))).contains("2초마다"))
 	var w := _world()
 	var s := _hovering(w)
-	assert_string_contains(Info.plain(SpellInfo.shot(w, s)), "캥 %d칸" % Lure.LOUD)
+	assert_string_contains(Info.plain(SpellInfo.shot(w, s)), yelp % Lure.LOUD)

@@ -223,29 +223,26 @@ func _hover(kind: int) -> String:
 	return Info.plain(Info.terrain(w, p))
 
 
-func _percent(kind: int) -> String:
-	return "초당 %d%% 로 옮겨" % roundi(Tiles.of(kind, "spread") * 100)
-
-
 func test_hover_tells_every_rule_of_each_kind_from_the_table() -> void:
-	var burn := "%d초 타고" % World.BURN_ROUNDS
-	var rustle := "바스락 소리 %d칸" % Tiles.of(World.LEAVES, "tread")[0]
-	var splash := "철벅 소리 %d칸" % Tiles.of(World.SHALLOW, "tread")[0]
+	var burn := "\n가연성."
+	var grass := "\n가연성: 이웃으로 초당 %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)
+	var rustle := "발소리: %d칸" % Tiles.of(World.LEAVES, "tread")[0]
+	var splash := "발소리: %d칸" % Tiles.of(World.SHALLOW, "tread")[0]
 	var told := {
-		World.GRASS: [burn, _percent(World.GRASS)],
-		World.STRAW: [burn, _percent(World.STRAW)],
-		World.LEAVES: [burn, _percent(World.LEAVES), rustle],
-		World.REEDS: ["시야를 막는다", "쓰러져 시야가 트인다", rustle],
-		World.SHALLOW: [splash, "냄새가 남지 않는다", "불이 붙지 않는다"],
-		World.PILLAR: ["길과 시야와 빛을 막는다", "부술 수 없다"],
+		World.GRASS: [grass],
+		World.STRAW: [burn],
+		World.LEAVES: [burn, rustle],
+		World.REEDS: ["막음: 시야. 밟으면: 쓰러짐", rustle],
+		World.SHALLOW: [splash, "냄새 안 남음.", "불 안 붙음."],
+		World.PILLAR: ["막음: 길, 시야, 빛", "부술 수 없음."],
 	}
 	for kind: int in told:
 		var text := _hover(kind)
 		assert_string_contains(text, Tiles.of(kind, "name"))
 		for part: String in told[kind]:
 			assert_string_contains(text, part)
-	assert_false(_hover(World.SHALLOW).contains(burn), "water has no burn time")
-	assert_false(_hover(World.PILLAR).contains("밝다"), "a pillar has no light line")
+	assert_false(_hover(World.SHALLOW).contains("가연성"), "water does not burn")
+	assert_false(_hover(World.PILLAR).contains("밝음"), "a pillar has no light line")
 
 
 func _lines(w: World, events: Array) -> Array[String]:

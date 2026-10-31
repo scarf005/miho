@@ -208,10 +208,10 @@ func test_the_info_panel_names_the_wits_and_the_wariness() -> void:
 		var foe := _foe(w, kind, ME + Vector2i(6, 0))
 		var text := Info.plain(Info.creature(w, foe))
 		assert_string_contains(text, foes[kind])
-		assert_false(text.contains("경계 중"), text)
+		assert_false(text.contains("경계:"), text)
 		foe.wary = 12
 		text = Info.plain(Info.creature(w, foe))
-		assert_string_contains(text, "경계 중 (12초)")
+		assert_string_contains(text, "경계: 12초")
 
 
 func test_the_observation_tells_the_wits_and_the_wariness() -> void:

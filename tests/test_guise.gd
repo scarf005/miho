@@ -196,11 +196,11 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 	assert_false(Info.plain(Info.creature(no_wood, no_wood.player())).contains("둔갑할"))
 	w.act(_self([WOOD, EARTH]))
 	var mine := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(mine, "둔갑: 도깨비의 모습 (%d초)" % (Guise.ROUNDS - 1))
-	assert_string_contains(mine, "적 옆 0/%d초" % Guise.BESIDE)
+	assert_string_contains(mine, "둔갑: 도깨비, %d초" % (Guise.ROUNDS - 1))
+	assert_string_contains(mine, "적 옆: 0/%d초" % Guise.BESIDE)
 	var its := Info.plain(Info.creature(w, searcher))
-	assert_string_contains(its, "둔갑한 당신을 알아보지 못한다")
-	assert_false(its.contains("당신을 보고 있다"))
+	assert_string_contains(its, "둔갑한 미호를 못 알아본다.")
+	assert_false(its.contains("미호를 본다"))
 	var seen := Observation.text(w)
 	assert_string_contains(seen, "in guise as 도깨비 for %d rounds" % (Guise.ROUNDS - 1))
 	assert_string_contains(seen, "sees Miho but not through her guise")
@@ -208,7 +208,7 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 
 func test_the_spell_info_tells_what_the_guise_does() -> void:
 	var text := Info.plain(SpellInfo.spell(Spell.make([WOOD, EARTH, WOOD])))
-	for part in ["둔갑", "%d초" % (Guise.ROUNDS + Guise.PER_WOOD), "적 옆에 %d초" % Guise.BESIDE]:
+	for part in ["둔갑", "%d초" % (Guise.ROUNDS + Guise.PER_WOOD), "풀림: 적 옆 %d초" % Guise.BESIDE]:
 		assert_string_contains(text, part)
 	assert_has(Codex.entries(1).map(func(e): return e.name), Guise.NAME[Guise.GUISE])
 

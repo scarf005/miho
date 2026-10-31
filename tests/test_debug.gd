@@ -112,9 +112,6 @@ func test_a_creature_out_of_sight_tells_its_hidden_state_on_hover() -> void:
 	assert_string_contains(text, "도깨비")
 	assert_string_contains(text, "목표 (12, 3) 5칸")
 	assert_string_contains(text, "놓친 지 4/%d초" % World.SEARCH_ROUNDS)
-	assert_string_contains(text, "당신을 못 본 걸로 안다")
-	a.sees_me = true
-	assert_string_contains(Info.plain(DebugView.at(w, a.pos)), "당신을 본 걸로 안다")
 
 
 func test_a_sleeper_tells_where_it_rests_and_an_empty_tile_tells_its_scent() -> void:

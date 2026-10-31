@@ -177,9 +177,9 @@ func test_the_log_tells_a_creature_in_sight_that_starts_to_flee() -> void:
 
 func test_the_doc_and_the_hover_tell_who_flees_and_who_does_not() -> void:
 	var sharp := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), []))
-	assert_string_contains(sharp, "체력 1이면 도망친다")
+	assert_string_contains(sharp, "도망: 체력 1, 불붙음")
 	var brave := Info.plain(Info.creature_facts(Codex.foe(&"haetae"), []))
-	assert_string_contains(brave, "용감해서 도망치지 않는다")
+	assert_string_contains(brave, "용감함: 도망치지 않는다")
 	var still := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
 	assert_false(still.contains("도망"))
 

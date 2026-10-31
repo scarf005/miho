@@ -182,13 +182,4 @@ func test_the_log_marks_the_weakness_of_an_ally_hit() -> void:
 		var before := w.clone()
 		lines.append_array(Messages.of(before, w, w.act(WAIT)).map(Messages.plain))
 	var n := 2 * (1 + Elements.CANNON)
-	assert_has(lines, "약점! 이무기의 쇠 구슬에 천하대장군이 피해를 %d 입었다" % n)
-
-
-func test_a_heaven_projectile_tells_it_hits_other_creatures() -> void:
-	var s := Shot.new()
-	s.faction = Actor.HEAVEN
-	s.spell = Spell.make([Cards.ORB])
-	assert_string_contains(Info.plain(SpellInfo.shot(_world(), s)), "다른 적도 맞힌다")
-	s.faction = Actor.FOX
-	assert_false(Info.plain(SpellInfo.shot(_world(), s)).contains("다른 적도 맞힌다"))
+	assert_has(lines, "이무기의 쇠 구슬에 천하대장군이 피해를 %d 입었다" % n)

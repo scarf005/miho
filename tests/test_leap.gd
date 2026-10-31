@@ -241,8 +241,9 @@ func test_the_log_tells_the_leap() -> void:
 
 func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 	var text := " ".join(SpellInfo.spell(Spell.make([LEAP, Cards.EARTH])).map(Messages.plain))
-	for part in ["멀리뛰기 3칸", "곧게 3칸", "하늘", "탁 %d칸" % Leap.LOUD, "내린 자리에서", "기절"]:
+	for part in ["멀리뛰기 3칸", "곧게 3칸", "하늘", "소리: 내릴 때 %d칸" % Leap.LOUD, "내린 자리에서:", "기절"]:
 		assert_string_contains(text, part)
+	assert_false(text.contains(Leap.WORD + " "), text)
 
 
 func _main() -> Node:
@@ -382,7 +383,8 @@ func test_the_log_tells_the_swap() -> void:
 
 func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var text := " ".join(SpellInfo.spell(Spell.make([Cards.ORB, LEAP])).map(Messages.plain))
-	for part in ["구슬 바꿔치기", "자리를 바꾼다", "%s %d칸" % [Leap.SWAP_WORD, Leap.SWAP_LOUD]]:
+	for part in ["구슬 바꿔치기", "자리 바꿈", "소리: 두 자리에서 %d칸" % Leap.SWAP_LOUD]:
 		assert_string_contains(text, part)
+	assert_false(text.contains(Leap.SWAP_WORD), text)
 	var leap := " ".join(SpellInfo.shape(Spell.LEAP).map(Messages.plain))
 	assert_string_contains(leap, "바꿔치기", "the 도감 tells both uses")

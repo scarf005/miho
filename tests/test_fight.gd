@@ -79,8 +79,7 @@ func test_a_claw_is_a_sneak_attack_only_on_an_off_guard_creature_that_does_not_s
 			var why := "blind %d, alert %d" % [blind, alert]
 			assert_eq(w.caught_unawares(foe), sneak, why)
 			var text := Info.plain(Info.at(w.known_clone(), foe.pos))
-			assert_eq(text.contains("기습 시 피해 3"), sneak, why)
-			assert_eq(text.contains("공격 시 피해 1"), not sneak, why)
+			assert_eq(text.contains("기습 피해: 3"), sneak, why)
 			var claw: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"claw")[0]
 			assert_eq(claw.sneak, sneak, why)
 			assert_eq(claw.n, 3 if sneak else 1, why)

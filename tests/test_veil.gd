@@ -274,9 +274,9 @@ func test_hovering_the_veil_tells_the_harm_and_how_to_put_it_out() -> void:
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, Vector2i(LINE_X, 12)))
 	assert_string_contains(text, "도깨비불 장막")
-	assert_string_contains(text, "매 초 피해 %d" % World.FIRE_DAMAGE)
-	assert_string_contains(text, "물 주문이 닿으면 재가 되고")
-	assert_string_contains(text, "주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
+	assert_string_contains(text, "곁 피해: 매 초 %d" % World.FIRE_DAMAGE)
+	assert_string_contains(text, "물: 재가 됨. 서리: 얼음이 됨")
+	assert_string_contains(text, "빛: %d칸" % Light.LANTERN_RADIUS)
 
 
 func test_a_creature_beside_the_veil_says_so_on_hover() -> void:
@@ -286,14 +286,14 @@ func test_a_creature_beside_the_veil_says_so_on_hover() -> void:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	assert_string_contains(
-		Info.plain(Info.creature(w, foe)), "도깨비불 장막 곁. 매 초 피해 %d" % World.FIRE_DAMAGE
+		Info.plain(Info.creature(w, foe)), "도깨비불 장막 곁. 피해: 매 초 %d" % World.FIRE_DAMAGE
 	)
 
 
 func test_the_codex_lists_the_veil_by_what_it_is() -> void:
 	var entry := Codex.entries(4).filter(func(e): return e.name == "도깨비불 장막")
 	assert_eq(entry.size(), 1)
-	assert_string_contains(Info.plain(Codex.detail(entry[0])), "물 주문이 닿으면")
+	assert_string_contains(Info.plain(Codex.detail(entry[0])), "물: 재가 됨. 서리: 얼음이 됨")
 
 
 func test_travel_will_not_walk_beside_the_veil() -> void:

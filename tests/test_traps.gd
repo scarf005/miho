@@ -240,14 +240,14 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	var text := {}
 	for kind in KINDS:
 		text[kind] = Info.plain(_hover(w, kind))
-	assert_string_contains(text[World.TRAP_ALARM], "층 전체에 징 소리가 퍼진다")
-	assert_string_contains(text[World.TRAP_COLLAPSE], "한 층 아래로 간다")
-	assert_string_contains(text[World.TRAP_FIRE], "앞 %d칸에 불을" % Traps.FLAME_REACH)
-	assert_string_contains(text[World.TRAP_FIRE], "피해 %d" % World.FIRE_DAMAGE)
-	assert_string_contains(text[World.TRAP_VINE], "주위 3×3의 모두를 %d초" % Traps.ROOT_ROUNDS)
+	assert_string_contains(text[World.TRAP_ALARM], "밟으면: 층 전체에 소리")
+	assert_string_contains(text[World.TRAP_COLLAPSE], "밟으면: 하늘로 추락")
+	assert_string_contains(text[World.TRAP_FIRE], "앞 %d칸에 불" % Traps.FLAME_REACH)
+	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 %d초" % Traps.ROOT_ROUNDS)
 	for kind in KINDS:
-		assert_string_contains(text[kind], "밝은 칸이나 %d칸 안에서만 보인다" % Traps.REACH)
-		assert_string_contains(text[kind], "적은 알고 피해 다닌다")
+		assert_true(text[kind].split("\n").has("함정."), text[kind])
+	assert_string_contains(Info.glossary()["함정"], "밝은 칸이나 %d칸 안에서 드러남" % Traps.REACH)
+	assert_string_contains(Info.glossary()["함정"], "적은 피해 감")
 
 
 func _hover(w: World, kind: int) -> Array:

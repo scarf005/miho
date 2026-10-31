@@ -186,7 +186,7 @@ func test_the_forecast_keeps_the_creature_a_wisp_struck_as_its_target() -> void:
 
 func test_a_wisp_tells_it_sticks_and_a_bullet_does_not() -> void:
 	var wisp := Info.plain(SpellInfo.spell(Spell.make([FOX])))
-	assert_string_contains(wisp, "붙어서 %d초 빛난다" % Spell.WISP_LIFE)
+	assert_string_contains(wisp, "맞히면: 붙어서 %d초 빛남" % Spell.WISP_LIFE)
 	var bullet := Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.METAL])))
 	assert_false(bullet.contains("붙어서"))
 
@@ -232,9 +232,9 @@ func test_a_creature_tells_the_wisps_riding_it_and_the_rounds_they_have_left() -
 	var w: World = s[0]
 	var foe: Actor = s[1]
 	var left: int = w.shots[0].life
-	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불이 붙어 있다 (%d초)" % left)
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불 붙음: %d초" % left)
 	w.act(WAIT)
-	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불이 붙어 있다 (%d초)" % (left - 1))
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불 붙음: %d초" % (left - 1))
 
 
 func test_miho_tells_a_wisp_riding_her_and_a_creature_without_one_tells_none() -> void:
@@ -242,5 +242,5 @@ func test_miho_tells_a_wisp_riding_her_and_a_creature_without_one_tells_none() -
 	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
 	w.act(WAIT)
-	assert_string_contains(Info.plain(Info.creature(w, w.player())), "도깨비불이 붙어 있다 (")
-	assert_false(Info.plain(Info.creature(w, foe)).contains("붙어 있다"))
+	assert_string_contains(Info.plain(Info.creature(w, w.player())), "도깨비불 붙음: ")
+	assert_false(Info.plain(Info.creature(w, foe)).contains("붙음: "))

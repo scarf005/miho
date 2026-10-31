@@ -241,10 +241,10 @@ func test_the_view_marks_a_creature_on_its_way_to_the_drum() -> void:
 	var a := _drummer(w)
 	w.sense()
 	var hover := Info.plain(Info.creature(w, a))
-	assert_string_contains(hover, "북을 치러 간다")
+	assert_string_contains(hover, "북 치러 가는 중.")
 	assert_string_contains(Observation.text(w), "running to the drum at (20,8)")
 	_until_struck(w)
-	assert_false(Info.plain(Info.creature(w, a)).contains("북을 치러 간다"))
+	assert_false(Info.plain(Info.creature(w, a)).contains("북 치러 가는 중."))
 
 
 func test_hovering_a_drum_shows_every_value() -> void:
@@ -252,13 +252,14 @@ func test_hovering_a_drum_shows_every_value() -> void:
 	w.sense()
 	var dry := Info.plain(Info.terrain(w, DRUM_AT))
 	assert_string_contains(dry, "북 ♥")
-	assert_string_contains(dry, "층 전체에 둥 소리")
+	assert_string_contains(dry, "소리: 칠 때 층 전체")
+	assert_false(dry.contains("둥"), dry)
 	assert_string_contains(dry, "걸어서 %d칸" % Drums.REACH)
 	assert_string_contains(dry, "영리한 적")
-	assert_string_contains(dry, "구슬")
-	assert_string_contains(dry, "%d초 동안 소리가 없다" % Drums.WET_ROUNDS)
+	assert_string_contains(dry, "찢어짐: 구슬")
+	assert_string_contains(dry, "물: %d초 소리 없음" % Drums.WET_ROUNDS)
 	w.wet[DRUM_AT] = 7
-	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "젖어서 소리가 나지 않는다 (7초)")
+	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "젖음: 7초. 소리 없음")
 	_put(w, DRUM_AT, World.DRUM_TORN)
 	assert_string_contains(Info.plain(Info.terrain(w, DRUM_AT)), "찢어진 북")
 

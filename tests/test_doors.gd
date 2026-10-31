@@ -225,14 +225,14 @@ func test_hovering_a_door_shows_its_state_sound_and_light() -> void:
 	var w := _world()
 	w.sense()
 	var shut := Info.plain(Info.terrain(w, DOOR_AT))
-	assert_string_contains(shut, "닫혀 있다")
-	assert_string_contains(shut, "빛은 지나간다")
-	assert_string_contains(shut, "드르륵 소리 %d칸" % Terrain.SLIDE)
+	assert_string_contains(shut, "막음: 시야\n")
+	assert_string_contains(shut, "소리: 여닫을 때 %d칸" % Terrain.SLIDE)
 	assert_string_contains(shut, "♥")
 	_put(w, DOOR_AT, World.DOOR_OPEN)
 	var open := Info.plain(Info.terrain(w, DOOR_AT))
 	assert_string_contains(open, "열린 문")
-	assert_string_contains(open, "드르륵 소리 %d칸" % Terrain.SLIDE)
+	assert_false(open.contains("막음"), open)
+	assert_string_contains(open, "소리: 여닫을 때 %d칸" % Terrain.SLIDE)
 
 
 func test_the_log_tells_who_slid_a_door() -> void:

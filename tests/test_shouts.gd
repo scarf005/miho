@@ -96,9 +96,10 @@ func test_a_silent_kind_makes_no_sound_when_it_notices() -> void:
 func test_the_hover_and_the_doc_tell_the_shout() -> void:
 	var cry: Dictionary = Bestiary.info(&"dokkaebi").shout
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), []))
-	assert_string_contains(text, "당신을 보면 외친다: %s %d칸" % [cry.word, cry.loud])
-	assert_string_contains(text, "들은 적은 그곳을 수색한다")
-	assert_string_contains(Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), [])), "외치지 않는다")
+	assert_true(text.split("\n").has("말할 수 있다."), text)
+	assert_false(text.contains(cry.word), "no word in the hover")
+	var mute := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
+	assert_false(mute.contains("말할 수 있다"), mute)
 
 
 func test_the_log_tells_a_shout_in_sight_and_one_heard_out_of_it() -> void:

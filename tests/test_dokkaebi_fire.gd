@@ -73,9 +73,9 @@ func test_hover_names_the_spell_and_the_weakness() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi")
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "주술: 도깨비불 (")
+	assert_string_contains(text, "주술: 도깨비불, ")
 	assert_false(text.contains("여우불"))
-	assert_string_contains(text, "약점: 물 (피해 ×2)")
+	assert_string_contains(text, "약점: 물\n")
 
 
 func test_the_charge_line_and_the_projectile_hover_name_it() -> void:
@@ -98,4 +98,4 @@ func test_mihos_own_fox_and_fire_keeps_its_title() -> void:
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 여우불")
 	w.cast(w.player(), own, Vector2i(1, 0))
-	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "당신의 불 여우불")
+	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "미호의 불 여우불")

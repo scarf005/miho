@@ -150,7 +150,7 @@ func test_heaven_does_not_see_a_hat_wearer_from_afar_either() -> void:
 
 func test_the_doc_tells_the_hat() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"gamtu"), []))
-	assert_string_contains(text, "감투: %d칸 안이나 도깨비불이 붙으면 보임" % Hat.REACH)
+	assert_string_contains(text, "감투: %d칸 안이나 도깨비불이 붙었을 때만 보임" % Hat.REACH)
 	assert_false(Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), [])).contains("감투"))
 
 

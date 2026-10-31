@@ -239,7 +239,7 @@ static func _extras() -> Array[Dictionary]:
 		var gas := func(w: World): Gas.put(w, AT, kind, Gas.MAX)
 		out.append(_mark(Palette.GAS[kind][0], Palette.GAS[kind][1], Gas.of(kind, "name"), gas))
 	var label: String = Notice.LABEL[&"body"]
-	var body := func(): return [[[label, Palette.BODY[1]]], [[Info.BODY_RULE, Palette.DIM]]]
+	var body := func(): return [[[label, Palette.BODY[1]]], [[Info.TRACE, Palette.DIM]]]
 	out.append(_entry(Palette.BODY[0], Palette.BODY[1], label, body))
 	return out
 

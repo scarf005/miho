@@ -203,8 +203,7 @@ func test_hovering_a_shelf_tells_what_reading_it_does() -> void:
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, Vector2i(SHELVES[0], ROOM.position.y)))
 	assert_string_contains(text, "두루마리 서가")
-	assert_string_contains(text, "밟으면 두루마리를 읽어 이 층의 지도가 드러난다")
-	assert_string_contains(text, "한 번뿐이다")
+	assert_string_contains(text, "밟으면: 이 층의 지도, 서고에서 한 번")
 
 
 func test_the_codex_lists_both_shelves_by_what_they_are() -> void:
