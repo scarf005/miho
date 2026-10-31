@@ -1,7 +1,7 @@
 class_name Info
 extends RefCounted
 ## What the pointer is over, in a few short sentences: a creature's health,
-## state, conditions, immunities, whether it sees Miho, what her claws would do
+## state, conditions, immunities, group and rival, whether it sees Miho, what her claws would do
 ## to it and what it strikes and casts with; a projectile (SpellInfo); a
 ## tile's terrain, light and sound. Every number comes from the rule
 ## constants. Built only from what Miho knows. Each line is a list of
@@ -70,6 +70,8 @@ static func _profile(a: Actor) -> Array:
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
+	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
+	lines.append([["다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
 	return lines
 
 
@@ -94,6 +96,8 @@ static func _situation(w: World, a: Actor) -> Array:
 		doing.append([_search_left(a), Palette.TEXT])
 	lines.append(doing)
 	lines.append_array(_conditions(w, a))
+	if a.fighting():
+		lines.append([[_rival(w, a) + "싸우는 중 (%d초)" % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
 		lines.append([["북을 치러 간다", Palette.SOUND]])
 	if w.sees(a, w.player().pos):
@@ -107,15 +111,34 @@ static func _situation(w: World, a: Actor) -> Array:
 	return lines
 
 
+## The rival `a` fights, with 와/과, named only when Miho sees it.
+static func _rival(w: World, a: Actor) -> String:
+	var rival := w.actor(a.rival)
+	var seen := rival != null and w.seen[Grid.index(rival.pos)] == 1
+	var name: String = rival.info().name if seen else "무언가"
+	return name + Messages._particle(name, "과", "와") + " "
+
+
 ## What it strikes and casts with, what it eats and what it leaves.
 static func _arms(a: Actor, held: Array) -> Array:
 	var spec := a.info()
 	var lines := []
 	var elements := Bestiary.elements(a.kind)
 	if spec.has("melee"):
-		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, ")"))
+		var throw: int = spec.melee.get("throw", 0)
+		var after := ", %d칸 던진다)" % throw if throw > 0 else ")"
+		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, after))
+		if throw > 0:
+			lines.append([["  하늘로 던져지면 한 층 떨어진다", Palette.DIM]])
 	lines.append_array(_casts(a))
 	lines.append([[" · ".join(_traits(a, elements)), Palette.DIM]])
+	var cry: Dictionary = spec.get("shout", {})
+	if cry.is_empty():
+		lines.append([["외치지 않는다", Palette.DIM]])
+	else:
+		var said := [[cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
+		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
+		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		var line := [[Cards.NAME[eats], Palette.CARD[eats]], [" 주문을 먹으면 최대 체력 ", Palette.TEXT]]
@@ -226,6 +249,21 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	for s in w.shots:
+		if s.host == a.id and not s.gone:
+			var title := s.spell.title()
+			var runs := [[title, Palette.card(s.spell.slots.back())]]
+			out.append(
+				(
+					runs
+					+ [
+						[
+							Messages._particle(title, "이", "가") + " 붙어 있다 (%d초)" % s.life,
+							Palette.TEXT
+						]
+					]
+				)
+			)
 	if w.hot.has(a.pos):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
@@ -284,6 +322,10 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append("불에 탐")
 	if spec.get("hunts", false):
 		out.append("당신 위치를 앎")
+	if spec.get("tracks", false):
+		out.append("당신의 냄새를 따라감")
+	if spec.get("stokes", false):
+		out.append("꺼진 등불을 켬")
 	out.append(_dark_sight(a))
 	return out
 
@@ -314,6 +356,17 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력 %d 회복. 가득 찼으면 최대 체력 +%d" % [World.HEAL, World.HEAL]]
+	for seal: Vector2i in w.seals:
+		var lanterns: Array = w.seals[seal]
+		var lit := (
+			"(%d/%d)"
+			% [lanterns.filter(func(q): return w.tile(q) == World.LANTERN).size(), lanterns.size()]
+		)
+		if seal == p:
+			notes.append("꺼진 등불 셋이 모두 켜지면 열린다 " + lit)
+			notes.append("등불이 하나라도 부서지면 영영 닫힌다")
+		elif lanterns.has(p):
+			notes.append("봉인문의 등불 " + lit)
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
@@ -415,13 +468,15 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("적은 사라지고 당신은 한 층 아래로 간다")
 		World.TRAP_FIRE:
 			out.append("밟은 방향 앞 %d칸에 불을 뿜는다" % Traps.FLAME_REACH)
-			out.append("불타는 칸 위에서는 매 초 피해 %d" % World.FIRE_DAMAGE)
+			out.append("불이 붙은 다음 초부터 서 있으면 매 초 피해 %d" % World.FIRE_DAMAGE)
 		World.TRAP_VINE:
 			var side := 2 * Traps.VINE_REACH + 1
 			out.append("밟으면 주위 %d×%d의 모두를 %d초 묶는다" % [side, side, Traps.ROOT_ROUNDS])
 	if Tiles.of(t, "trap"):
 		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
 		out.append("적은 알고 피해 다닌다")
+	if t == World.WALL and breakable:
+		out.append("방 사이 벽은 숨은 문일 수 있다. 밝거나 %d칸 안이면 찾는다" % Traps.REACH)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:

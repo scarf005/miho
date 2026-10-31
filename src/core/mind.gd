@@ -2,6 +2,16 @@ class_name Mind
 extends RefCounted
 ## What the creatures of heaven do each round: look, then rest, search the spot
 ## they heard or saw something at, or hunt Miho. All functions act on a World.
+##
+## Infighting (DCSS behaviour_event ME_WHACK): a creature struck by a spell or
+## blow of a creature of another group (Bestiary.GROUPS) fights it for
+## GRUDGE_ROUNDS, renewed by each new blow, in place of whatever else it does:
+## it strikes, charges at or walks to its rival while it sees it, and walks to
+## where it saw it last when it does not; there, still not seeing it, it stops
+## and searches. The fight also ends when the rival falls or Miho harms it.
+## One of its own group only hurts it.
+
+const GRUDGE_ROUNDS := 10
 
 
 static func heaven_phase(w: World) -> void:
@@ -21,7 +31,7 @@ static func heaven_phase(w: World) -> void:
 			a.cooldown = a.info().cd
 			w.cast(a, spell, a.aim)
 			continue
-		if a.blind > 0:
+		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
 		match a.alert:
 			Actor.HUNT:
@@ -69,12 +79,87 @@ static func hurt(a: Actor) -> void:
 		_look(a, a.pos)
 
 
+## `a` has just started to hunt Miho: it shouts its word (Bestiary shout, DCSS
+## handle_monster_shouts), a noise that sends every creature of heaven that
+## hears it, is not hunting and is not deaf to search where `a` saw her. A
+## creature without a shout is silent.
+static func shout(w: World, a: Actor) -> void:
+	var cry: Dictionary = a.info().get("shout", {})
+	if cry.is_empty():
+		return
+	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word})
+	w.noise(a.pos, cry.loud, cry.word, true, a.id, a.target)
+
+
+## `a` was struck by `by`: by Miho, it stops fighting; by a living creature
+## of heaven of another group, it fights that one for GRUDGE_ROUNDS.
+static func provoke(w: World, a: Actor, by: Actor) -> void:
+	if a.faction != Actor.HEAVEN or not a.alive() or by == null:
+		return
+	if by.faction == Actor.FOX:
+		a.rival = 0
+		a.grudge = 0
+		return
+	if by == a or not by.alive() or Bestiary.allied(a.kind, by.kind):
+		return
+	if a.rival != by.id:
+		w.emit({t = &"feud", id = a.id, rival = by.id, at = a.pos})
+	a.rival = by.id
+	a.grudge = GRUDGE_ROUNDS
+	a.rival_at = by.pos
+
+
+## `gone` has fallen: whoever fought it stops.
+static func forget(w: World, gone: Actor) -> void:
+	for a in w.actors:
+		if a.rival == gone.id:
+			a.rival = 0
+			a.grudge = 0
+
+
+## Its turn spent on its rival, while it fights one; false when it does not
+## (a fight that ran out or lost its rival ends here, and it searches).
+static func _fight(w: World, a: Actor) -> bool:
+	if a.rival == 0:
+		return false
+	if a.grudge <= 0:
+		_truce(w, a)
+		return false
+	var rival := w.actor(a.rival)
+	if rival != null and w.sees(a, rival.pos):
+		a.rival_at = rival.pos
+		var melee: Dictionary = a.info().get("melee", {})
+		if not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1:
+			_melee(w, a, rival, melee)
+			return true
+		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, rival)):
+			return true
+		if a.rooted <= 0:
+			_step_to(w, a, rival.pos, 1)
+		return true
+	if a.rooted > 0 or (a.pos != a.rival_at and _step_to(w, a, a.rival_at)):
+		return true
+	_truce(w, a)
+	return false
+
+
+## The fight is over: it searches where it last saw its rival.
+static func _truce(w: World, a: Actor) -> void:
+	a.rival = 0
+	a.grudge = 0
+	w.emit({t = &"truce", id = a.id, at = a.pos})
+	if a.alert != Actor.HUNT:
+		_look(a, a.rival_at)
+
+
 ## A projectile of Miho's struck `a`. One it saw coming gets the reaction of
 ## `perceive` again. From one it did not see, a dull creature only looks around,
 ## a sharp one searches the farthest tile it sees back along the flight line, and
 ## a cunning one searches where the projectile came from (and hunts as soon as
-## `perceive` sees Miho). A projectile of heaven only hurts it, and makes it wary.
+## `perceive` sees Miho). A projectile of heaven makes it wary, and one of
+## another group makes it fight the caster (`provoke`).
 static func struck(w: World, a: Actor, s: Shot) -> void:
+	provoke(w, a, w.actor(s.caster))
 	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT or s.faction == a.faction:
 		return
 	if a.noted == s.id:
@@ -115,9 +200,9 @@ static func hunt(w: World, a: Actor) -> void:
 	if a.sees_me:
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, me.pos) == 1:
-			_melee(w, a, me, melee.damage)
+			_melee(w, a, me, melee)
 			return
-		if a.cooldown <= 0 and _charge(w, a, Aim.at_miho(w, a)):
+		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, me)):
 			return
 		if a.rooted <= 0:
 			_chase(w, a)
@@ -139,10 +224,26 @@ static func hunt(w: World, a: Actor) -> void:
 	search(w, a)
 
 
+## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it.
+static func _stoke(w: World, a: Actor) -> bool:
+	return a.info().get("stokes", false) and Terrain.relight_beside(w, a)
+
+
+## A tracker (Bestiary tracks) on Miho's trail sweeps along it, searching.
+static func _track(w: World, a: Actor) -> bool:
+	if not a.info().get("tracks", false) or a.rooted > 0:
+		return false
+	var to := Scent.next(w, a)
+	if to == a.pos or not _step_to(w, a, to):
+		return false
+	_look(a, a.pos)
+	return true
+
+
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark.
 ## Next to a lantern that went out, it lights it again first.
 static func search(w: World, a: Actor) -> void:
-	if Terrain.relight_beside(w, a):
+	if Terrain.relight_beside(w, a) or _track(w, a):
 		return
 	if a.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
 		return
@@ -160,7 +261,7 @@ static func search(w: World, a: Actor) -> void:
 
 
 static func rest(w: World, a: Actor) -> void:
-	if a.rooted > 0:
+	if a.rooted > 0 or _track(w, a):
 		return
 	if not a.info().get("patrol", false):
 		if a.pos != a.home:
@@ -170,10 +271,15 @@ static func rest(w: World, a: Actor) -> void:
 		a.post = FloorGen.patrol_point(w)
 
 
-static func _melee(w: World, a: Actor, me: Actor, n: int) -> void:
-	w.emit({t = &"melee", id = a.id, target = me.id, at = me.pos, n = n})
-	w.noise(me.pos, 3, "퍽", true, a.id)
-	w.hurt(me, n)
+## `a` strikes `target` beside it with its `melee` (Bestiary), throwing it
+## back when the blow throws.
+static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void:
+	w.emit({t = &"melee", id = a.id, target = target.id, at = target.pos, n = melee.damage})
+	w.noise(target.pos, 3, "퍽", true, a.id)
+	w.hurt(target, melee.damage)
+	provoke(w, target, a)
+	if melee.get("throw", 0) > 0 and target.alive():
+		w.push(target, target.pos - a.pos, melee.throw)
 
 
 static func _charge(w: World, a: Actor, plan: Dictionary) -> bool:

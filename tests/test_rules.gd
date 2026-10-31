@@ -404,12 +404,13 @@ func test_a_fire_wisp_sets_bamboo_alight_which_lights_burns_and_leaves_ash() -> 
 	var events := w.act(_cast([FOX, Cards.FIRE], E))
 	assert_true(w.burning.has(Vector2i(6, 8)), "caught where the wisp flew")
 	assert_true(w.lit(Vector2i(8, 6)), "fire lights its surroundings")
-	assert_eq(foe.hp, 8 - 1 - World.FIRE_DAMAGE, "struck for 1, then burnt for FIRE_DAMAGE")
-	assert_eq(events.filter(func(e): return e.t == &"burn")[0].id, foe.id)
+	assert_eq(foe.hp, 8 - 1, "struck for 1; the flames it lit burn it from the next second")
+	assert_true(events.filter(func(e): return e.t == &"burn").is_empty())
 	assert_has(w.heard.map(func(h): return h.word), "타닥")
 	assert_eq(w.seen[Grid.index(foe.pos)], 1, "burning bamboo hides nothing")
-	w.act(WAIT)
-	assert_eq(foe.hp, 8 - 1 - 2 * World.FIRE_DAMAGE, "burnt again the next second")
+	events = w.act(WAIT)
+	assert_eq(events.filter(func(e): return e.t == &"burn")[0].id, foe.id)
+	assert_eq(foe.hp, 8 - 1 - World.FIRE_DAMAGE, "burnt the next second")
 	events = w.act(WAIT)
 	assert_eq(w.tile(Vector2i(6, 8)), World.ASH)
 	assert_false(w.burning.has(Vector2i(6, 8)))
@@ -582,7 +583,8 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				features[t] += 1
 		assert_eq(w.tile(w.start), World.FLOOR)
 		assert_eq(w.tile(w.stairs), World.FLOOR)
-		var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+		var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+		var dist: PackedInt32Array = Grid.search(w.start, open).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):
 				assert_gt(dist[i], -1, "seed %d tile %s" % [seed_value, Grid.at(i)])

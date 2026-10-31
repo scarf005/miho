@@ -13,6 +13,7 @@ const POPUP_LINE := {
 	&"card": "부적",
 	&"heal": "회복",
 	&"noise": "소리를 들었다",
+	&"shout": "소리쳤다",
 	&"find": "찾았다",
 	&"trap": "밟았다",
 }
@@ -182,7 +183,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m._new_run(1)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	return m

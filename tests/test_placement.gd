@@ -195,7 +195,8 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 
 func test_a_storey_with_patches_stays_connected_with_its_start_and_stairs_free() -> void:
 	for w in _storeys_built:
-		var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+		var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+		var dist: PackedInt32Array = Grid.search(w.start, open).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):
 				assert_gt(dist[i], -1, "tile %s of depth %d" % [Grid.at(i), w.depth])

@@ -71,9 +71,25 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var melee: Dictionary = _actor(before, after, id).info().melee
 			return (
 				_who(before, after, id, "의", "의")
-				+ [[" %s에 %s " % [melee.name, melee.hit], TEXT]]
+				+ [[" %s에 " % melee.name, TEXT]]
+				+ _subject(before, after, e.target)
+				+ [[melee.hit + " ", TEXT]]
 				+ _took(e.n)
 			)
+		&"feud":
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" ", TEXT]]
+				+ _who(before, after, e.rival, "에게", "에게")
+				+ [[" 덤벼든다", TEXT]]
+			)
+		&"shout":
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" ", TEXT], [e.word, Palette.SOUND], [" 소리쳤다", TEXT]]
+			)
+		&"truce":
+			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
 		&"grow":
 			var eaten: String = Cards.NAME[_actor(before, after, id).info().eats]
 			return (
@@ -144,6 +160,17 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ [[" ", TEXT], [spell.title(), Palette.card(spell.slots.back())]]
 				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
 			)
+		&"stick":
+			var spell := Spell.make(e.cards)
+			var host := (
+				[["당신에게", TEXT]] if id == after.player().id else _who(before, after, id, "에게", "에게")
+			)
+			return (
+				[[e.title, Palette.card(spell.slots.back())]]
+				+ [[_particle(e.title, "이", "가") + " ", TEXT]]
+				+ host
+				+ [[" 붙었다", TEXT]]
+			)
 		&"open", &"close":
 			var what := "열었다" if e.t == &"open" else "닫았다"
 			if id == after.player().id:
@@ -169,6 +196,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + plate + sprung
 		&"trample":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
+		&"unseal":
+			return _named(Tiles.of(World.SEAL, "name"), "이", "가") + [[" 열렸다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

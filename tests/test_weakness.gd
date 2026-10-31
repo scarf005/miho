@@ -109,6 +109,8 @@ func test_a_fire_wisp_beats_metal_for_two() -> void:
 	var foe := _foe(w, &"jiha")
 	foe.hp = 9
 	assert_eq(_hurts(w.act(_cast([Cards.FOX, Cards.FIRE])))[0].n, 2)
+	assert_eq(foe.hp, 9 - 2)
+	w.act({t = &"wait"})
 	assert_eq(foe.hp, 9 - 2 - World.FIRE_DAMAGE, "and it burns, unweakened")
 
 

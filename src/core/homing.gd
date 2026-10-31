@@ -1,7 +1,8 @@
 class_name Homing
 extends RefCounted
 ## How wisps and homing orbs pick their creatures and find their way to them.
-## Miho's projectiles go for every creature but her; heaven's go for Miho.
+## Miho's projectiles go for every creature but her; heaven's go for Miho, or
+## for the rival the caster fights (Mind).
 ##
 ## At the cast the caster's foes in its sight line up by (distance, id). A
 ## homing orb takes the nearest. Wisps fill each foe in turn up to what its
@@ -28,8 +29,11 @@ static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
 	out.resize(spell.shots())
 	if spell.turn() == 0:
 		return out
+	var rival := caster.rival if caster.fighting() else 0
 	var foes := w.actors.filter(
-		func(a): return a.alive() and a.faction != caster.faction and w.sees(caster, a.pos)
+		func(a):
+			var foe: bool = a.id == rival if rival != 0 else a.faction != caster.faction
+			return a.alive() and foe and w.sees(caster, a.pos)
 	)
 	foes.sort_custom(func(a, b): return _closer(caster.pos, a, b))
 	if foes.is_empty():

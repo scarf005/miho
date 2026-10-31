@@ -1,7 +1,7 @@
 class_name Placement
 extends RefCounted
 ## What lies on a storey's rooms, from a table of rows (Brogue CE
-## autoGeneratorCatalog). Corridors, and the goal room whose lantern must light
+## autoGeneratorCatalog). Galleries, and the goal room whose lantern must light
 ## the stairs, stay bare. A row has:
 ##
 ## what, on: the tile kind laid, and the one it replaces (bare floor). A row

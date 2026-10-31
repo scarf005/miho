@@ -47,6 +47,7 @@ const LEVEL := {
 	&"move": -6.0,
 	&"charge": -4.0,
 	&"notice": -4.0,
+	&"feud": -4.0,
 	&"noise": -8.0,
 	&"push": -4.0,
 	&"smash": -4.0,
@@ -211,7 +212,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
 		&"find":
 			return &"find"
-		&"open", &"close":
+		&"open", &"close", &"unseal":
 			return &"door"
 		&"root", &"freeze", &"sprout":
 			return &"root"
@@ -229,7 +230,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"hurt"
 		&"die":
 			return &"fall"
-		&"charge", &"notice", &"omen", &"arrive":
+		&"charge", &"notice", &"feud", &"omen", &"arrive":
 			return &"charge"
 		&"ascend":
 			return &"ascend"
@@ -240,5 +241,5 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"lost":
 			return &"lose"
 		&"noise":
-			return WORDS.get(e.word, &"step")
+			return WORDS.get(e.word, &"charge" if Bestiary.shouted(e.word) else &"step")
 	return &""

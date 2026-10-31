@@ -1,30 +1,31 @@
 class_name Aim
 extends RefCounted
-## Where projectiles go: the line a heaven creature casts along, at Miho or at
-## a dark spot it searches. Homing projectiles find their own way (Homing).
+## Where projectiles go: the line a heaven creature casts along, at Miho (or a
+## rival it fights) or at a dark spot it searches. Homing projectiles find their
+## own way (Homing).
 
 
-## An attack at Miho, when it sees her: {cards, dir}, or empty. An orb needs a
-## clear line; wisps and homing orbs only her in reach.
-static func at_miho(w: World, a: Actor) -> Dictionary:
+## An attack at `foe`, when it sees it: {cards, dir}, or empty. An orb needs a
+## clear line; wisps and homing orbs only the foe in reach.
+static func at(w: World, a: Actor, foe: Actor) -> Dictionary:
 	var cast := a.next_cast()
 	var spell := Spell.make(cast)
-	var me := w.player()
+	if spell == null:
+		return {}
 	if spell.turn() > 0:
-		return _homing(w, a, cast, Spell.RANGE if spell.shape == Spell.WISP else 6)
-	var d := Grid.line_dir(a.pos, me.pos)
-	var r := Grid.cheb(a.pos, me.pos)
-	if d != Vector2i.ZERO and r >= 2 and w.clear_line(a.pos, me.pos):
+		return _homing(w, a, cast, Spell.RANGE if spell.shape == Spell.WISP else 6, foe)
+	var d := Grid.line_dir(a.pos, foe.pos)
+	var r := Grid.cheb(a.pos, foe.pos)
+	if d != Vector2i.ZERO and r >= 2 and w.clear_line(a.pos, foe.pos):
 		return {cards = cast, dir = d}
 	return {}
 
 
-## A homing projectile leaves towards Miho, or beside her line when a wall is in the way.
-static func _homing(w: World, a: Actor, cast: Array, reach: int) -> Dictionary:
-	var me := w.player()
-	if Grid.cheb(a.pos, me.pos) > reach:
+## A homing projectile leaves towards `foe`, or beside its line when a wall is in the way.
+static func _homing(w: World, a: Actor, cast: Array, reach: int, foe: Actor) -> Dictionary:
+	if Grid.cheb(a.pos, foe.pos) > reach:
 		return {}
-	var i := Grid.DIRS.find(Grid.nearest_dir(me.pos - a.pos))
+	var i := Grid.DIRS.find(Grid.nearest_dir(foe.pos - a.pos))
 	for turn in [0, -1, 1]:
 		var dir := Grid.DIRS[(i + turn + 8) % 8]
 		if w.open_air(a.pos + dir):

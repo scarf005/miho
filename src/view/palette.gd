@@ -46,6 +46,8 @@ const TILES := {
 	World.TRAP_COLLAPSE: ["^", Color(0.82, 0.62, 0.4), Color(0.12, 0.07, 0.05)],
 	World.TRAP_FIRE: ["^", Color(1.0, 0.5, 0.2), Color(0.27, 0.09, 0.03)],
 	World.TRAP_VINE: ["^", Color(0.45, 0.86, 0.4), Color(0.06, 0.16, 0.06)],
+	World.VERANDA: ["=", Color(0.92, 0.78, 0.52), Color(0.1, 0.09, 0.14)],
+	World.SEAL: ["+", Color(0.95, 0.3, 0.25), Color(0.3, 0.06, 0.05)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
@@ -70,6 +72,9 @@ const SIDE := [Color(0.5, 0.78, 1.0), Color(1.0, 0.36, 0.26)]
 const KIND := {
 	&"miho": Color(1.0, 0.94, 0.8),
 	&"dokkaebi": Color(0.95, 0.42, 0.3),
+	&"oedari": Color(0.9, 0.35, 0.55),
+	&"bujigaengi": Color(0.95, 0.62, 0.4),
+	&"bitjaru": Color(0.78, 0.7, 0.42),
 	&"jangseung": Color(0.82, 0.64, 0.42),
 	&"imugi": Color(0.5, 0.8, 0.55),
 	&"bulgae": Color(1.0, 0.55, 0.2),

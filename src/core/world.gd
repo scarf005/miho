@@ -15,12 +15,12 @@ extends RefCounted
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
 ## Miho's projectiles, and hunt her once they see her (Mind; how they read a
-## projectile depends on their wits). A resting creature standing at its home is
-## asleep (Actor.asleep): it sees nothing, even next to it, until noise or a
-## wound wakes it; a patrol, which walks while it rests, never sleeps. Claws
-## strike three times as hard at a creature that is not hunting and does not
-## see Miho (Brogue CE Combat.c sneak attack; caught_unawares), so Miho can
-## creep up on a sleeper. A creature
+## projectile depends on their wits), shouting to those in earshot. A resting
+## creature standing at its home is asleep (Actor.asleep): it sees nothing, even
+## next to it, until noise or a wound wakes it; a patrol, which walks while it
+## rests, never sleeps. Claws strike three times as hard at a creature that is
+## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
+## caught_unawares), so Miho can creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -34,8 +34,12 @@ extends RefCounted
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
 ##
+## Heaven falls into groups, and a creature struck by another group fights it
+## for a while (Mind).
+##
 ## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
 ## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
+## Some walls between rooms are hidden doors, found the same way.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
 ## slides: walking into a closed one opens it with a sound and costs the move, and
@@ -49,7 +53,9 @@ extends RefCounted
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
 ## crackles (an alarm), hides nothing, burns whoever stands in it each round
 ## for FIRE_DAMAGE and may spread to each flammable neighbour; after BURN_ROUNDS
-## it is ash. A fire orb's burst hurts every creature around it for FIRE_DAMAGE
+## it is ash. Fire hurts those who stay in it: a tile set alight during a round
+## burns nobody until the next round, so a creature it caught can step off. A
+## fire orb's burst hurts every creature around it for FIRE_DAMAGE at once
 ## too (twice that to one weak to fire). Heaven walks around fire; water douses it.
 ##
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
@@ -120,6 +126,8 @@ const TRAP_ALARM := 29
 const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
+const VERANDA := 33
+const SEAL := 34
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -144,6 +152,11 @@ var hot := {}
 ## Every plate in the floor: position -> its tile kind (Traps). The tile itself
 ## is the plate only once Miho has found it, and floor until then.
 var traps := {}
+## Hidden doors Miho has not found: position -> true. Each is a wall until she
+## finds it, and then a door (Traps).
+var secrets := {}
+## Seals: position -> the dark lanterns that open it once all are lit (Terrain).
+var seals := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -206,6 +219,8 @@ func clone() -> World:
 	w.wet = wet.duplicate()
 	w.hot = hot.duplicate()
 	w.traps = traps.duplicate()
+	w.secrets = secrets.duplicate()
+	w.seals = seals.duplicate(true)
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -227,11 +242,12 @@ func clone() -> World:
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
-## sight and plates she has not found are left out, so a preview never gives
-## hidden things away.
+## sight and plates and doors she has not found are left out, so a preview
+## never gives hidden things away.
 func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
+	w.secrets = {}
 	w.actors.assign(
 		w.actors.filter(func(a): return a.faction == Actor.FOX or seen[Grid.index(a.pos)] == 1)
 	)
@@ -473,6 +489,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	if not can(action):
 		return events
 	var me := player()
+	var alight := burning.keys()
 	if me.stunned > 0:
 		me.stunned -= 1
 	match action.t:
@@ -501,9 +518,10 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				cast(me, spell, one.dir)
 	_shots_phase()
 	Mind.heaven_phase(self)
-	_burn()
+	_burn(alight)
 	Compounds.tick(self)
 	Gas.tick(self)
+	Terrain.unseal(self)
 	_end_round()
 	sense()
 	return events
@@ -593,8 +611,10 @@ func push(a: Actor, dir: Vector2i, n: int) -> void:
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
-## heaven creatures that hear an alarm go to search its spot.
-func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
+## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
+func noise(
+	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
+) -> void:
 	if loud <= 0:
 		return
 	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
@@ -617,7 +637,7 @@ func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 			var da := dist[Grid.index(a.pos)]
 			if da >= 0 and da <= loud:
 				a.alert = Actor.SEARCH
-				a.target = at
+				a.target = at if spot.x < 0 else spot
 				a.lost = 0
 
 
@@ -641,26 +661,28 @@ func _claw(me: Actor, foe: Actor) -> void:
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)
 	if foe.alive():
+		Mind.provoke(self, foe, me)
 		hunt_from(foe, me.pos)
 
 
+## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
 func hunt_from(a: Actor, at: Vector2i) -> void:
-	if a.alert != Actor.HUNT:
+	var fresh := a.alert != Actor.HUNT
+	if fresh:
 		emit({t = &"notice", id = a.id, at = a.pos})
 		Drums.plan(self, a)
 	a.alert = Actor.HUNT
 	a.target = at
 	a.lost = 0
+	if fresh:
+		Mind.shout(self, a)
 
 
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
-	if spell.shape == Spell.LEAP:
-		Leap.cast(self, caster, spell, dir)
-		return
-	if spell.shape == Spell.SPRAY:
-		Spray.cast(self, caster, spell, dir)
+	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
+		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
 		return
 	if spell.gun():
 		flares.append(caster.pos)
@@ -808,28 +830,7 @@ func _strike(s: Shot, a: Actor) -> void:
 		_splash(s, at, a)
 	_effects(s, at)
 	if not spell.orb and not spell.gun():
-		_stick(s, a)
-
-
-## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
-## lighting it as it moves (move). It stays a shot, so it hovers where `a`
-## fell when `a` dies.
-func _stick(s: Shot, a: Actor) -> void:
-	s.gone = false
-	s.dir = Vector2i.ZERO
-	s.host = a.id
-	s.life = Spell.WISP_LIFE
-	_changed()
-	emit(
-		{
-			t = &"stick",
-			shot = s.id,
-			id = a.id,
-			at = a.pos,
-			faction = s.faction,
-			cards = s.spell.cards
-		}
-	)
+		Elements.stick(self, s, a)
 
 
 ## Whether `s` rides a living creature, and so neither flies nor strikes again.
@@ -856,6 +857,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		emit({t = &"lost"})
 		return
 	Notice.fallen(self, a)
+	Mind.forget(self, a)
 	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
@@ -878,6 +880,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 				hurt(b, (FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak)
 				if Bestiary.burns(b.kind):
 					ignite(p, true)
+				Mind.provoke(self, b, actor(s.caster))
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
@@ -904,9 +907,9 @@ func ignite(p: Vector2i, force := false, wildfire := false) -> void:
 
 
 ## Each burning tile crackles, burns whoever stands in it (unless it eats
-## fire), may set each flammable neighbour alight (a wild one always does), and
-## burns down to ash.
-func _burn() -> void:
+## fire) if it was already alight when the round began, may set each flammable
+## neighbour alight (a wild one always does), and burns down to ash.
+func _burn(alight: Array = burning.keys()) -> void:
 	if outcome != &"":
 		return
 	var flame := Spell.make([Cards.FOX, Cards.FIRE])
@@ -914,7 +917,7 @@ func _burn() -> void:
 	for p: Vector2i in burning.keys():
 		noise(p, CRACKLE, "타닥", true, 0)
 		var a := actor_at(p)
-		if a != null:
+		if a != null and alight.has(p):
 			emit({t = &"burn", at = p, id = a.id})
 			if Bestiary.absorbs(a.kind, flame):
 				emit({t = &"absorb", id = a.id, at = p})
@@ -949,6 +952,7 @@ func _end_round() -> void:
 			a.rooted = maxi(0, a.rooted - 1)
 			a.blind = maxi(0, a.blind - 1)
 			a.wary = maxi(0, a.wary - 1)
+			a.grudge = maxi(0, a.grudge - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1

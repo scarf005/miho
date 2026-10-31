@@ -1,14 +1,21 @@
 class_name FloorGen
 extends RefCounted
 ## Builds each storey: two to four pavilions in open sky, joined by skybridges,
-## with windows in their outer walls. Inside a pavilion, rooms are joined by
-## corridors with a few extra loops (so a hunted fox has somewhere to slip
-## away), sliding doors where corridors meet rooms (some start open), and
-## lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
+## with windows in their outer walls. Pavilions that stand close get verandas
+## (쪽마루) on their facing walls, a few tiles of sky apart, for a leap. A
+## pavilion is a floor plan: its inside is cut into rooms by walls one tile
+## thick (binary space partition), and one cut of a wide pavilion may be a
+## gallery, a hall one tile wide between two walls.
+## Doorways in those walls join every room, with a few extra loops (so a hunted
+## fox has somewhere to slip away); some hold sliding doors (some start open).
+## A few walls between rooms far apart are hidden doors (Traps). On some
+## storeys one room is a treasure room behind a seal that three dark lanterns
+## in front of it open (Terrain), with peaches inside. Lanterns
+## light some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
 ## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
 ## by tier (Placement).
-## From tier 2 a lit room may hold a war drum. Corridors stay plain and dark.
+## From tier 2 a lit room may hold a war drum. Galleries stay plain and dark.
 ## Miho starts in the westmost room; the stairs (the elixir on the top storey)
 ## sit in the room farthest from her, which is always lit. Watchers that never
 ## move stand by lanterns.
@@ -19,7 +26,7 @@ const PLAN := {
 	2:
 	[
 		&"bulgae",
-		&"dokkaebi",
+		&"oedari",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"dokkaebi",
@@ -32,8 +39,8 @@ const PLAN := {
 		&"haetae",
 		&"imugi",
 		&"imugi",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"bujigaengi",
 		&"dokkaebi",
 		&"jangseung",
 		&"jangseung",
@@ -42,8 +49,8 @@ const PLAN := {
 	[
 		&"cheonha",
 		&"jiha",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"bitjaru",
+		&"bujigaengi",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"imugi",
@@ -57,8 +64,8 @@ const PLAN := {
 		&"imugi",
 		&"imugi",
 		&"imugi",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"bitjaru",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"jangseung",
@@ -67,9 +74,9 @@ const PLAN := {
 	6:
 	[
 		&"bulgasari",
-		&"dokkaebi",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"bujigaengi",
+		&"bitjaru",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"imugi",
@@ -79,10 +86,10 @@ const PLAN := {
 	],
 	7:
 	[
-		&"dokkaebi",
-		&"dokkaebi",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"oedari",
+		&"bujigaengi",
+		&"bitjaru",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"imugi",
@@ -96,8 +103,8 @@ const PLAN := {
 	[
 		&"haetae",
 		&"haetae",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"bitjaru",
 		&"dokkaebi",
 		&"dokkaebi",
 		&"imugi",
@@ -113,8 +120,8 @@ const PLAN := {
 		&"haetae",
 		&"haetae",
 		&"haetae",
-		&"dokkaebi",
-		&"dokkaebi",
+		&"oedari",
+		&"bujigaengi",
 		&"dokkaebi",
 		&"imugi",
 	],
@@ -122,15 +129,35 @@ const PLAN := {
 ## Peaches grow on every odd storey from the third.
 const FIRST_PEACH_FLOOR := 3
 const MIN_ROOMS := 9
-const MAX_ROOMS := 16
-const LOOPS := 4
+## A room is at least ROOM_LEAST tiles across; one that fits in ROOM_MOST stays
+## whole at the chance WHOLE, and is cut again otherwise.
+const ROOM_LEAST := 3
+const ROOM_MOST := Vector2i(12, 8)
+const WHOLE := 0.4
+## The chance that a pavilion's first cut is a gallery.
+const GALLERIES := 0.6
+## Doorways opened beyond those that join every room; the share of doorways
+## that hold a sliding door.
+const LOOPS := 6
+const DOORS := 0.6
+## A hidden door joins two rooms at least this many steps apart without it.
+const SHORTCUT := 10
 const LIT_ROOMS := 0.45
 const FOE_DISTANCE := 12
+## The chance of a three-lantern treasure room; its lanterns; the peaches in it.
+const VAULTS := 0.4
+const VAULT_LANTERNS := 3
+const PRIZE := 2
+## Nothing is placed within this many tiles of the start, even through a wall.
+const START_CLEAR := 3
 const BAMBOO_ROOMS := 0.25
 const POND_ROOMS := 0.2
 const HALL_ROOMS := 0.15
 ## Gap between pavilions in tiles (min, max); least width of a pavilion; least height.
 const SKY_GAP := Vector2i(3, 6)
+## The sky between two facing verandas (min, max), and a veranda's length.
+const LEAP := Vector2i(2, 3)
+const VERANDA_LENGTH := Vector2i(3, 6)
 const MIN_WIDTH := 9
 const MIN_HEIGHT := 14
 ## First and last row a bridge may cross on; every pavilion spans them.
@@ -167,6 +194,7 @@ static func build(w: World) -> void:
 	var home := w.rooms[0]
 	w.start = _centre(home)
 	me.pos = w.start
+	_vault(w, home)
 	var goal := _farthest(w, w.start)
 	w.elixir = Vector2i(-1, -1)
 	w.stairs = Vector2i(-1, -1)
@@ -194,37 +222,38 @@ static func _carve(w: World) -> void:
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.SKY)
 	w.rooms.clear()
+	w.secrets.clear()
+	w.seals.clear()
 	var blocks := _pavilions(w)
-	var groups: Array[Array] = []
+	var galleries: Array[Rect2i] = []
 	for b in blocks:
 		_fill(w, b, World.WALL)
-		groups.append(_rooms(w, b.grow(-1), MAX_ROOMS / blocks.size()))
-	for g in groups:
-		for i in range(1, g.size()):
-			_corridor(w, _centre(g[i - 1]), _centre(g[i]))
-	for k in LOOPS:
-		var g: Array = groups[w.rng.randi_range(0, groups.size() - 1)]
-		var a := w.rng.randi_range(0, g.size() - 1)
-		var b := w.rng.randi_range(0, g.size() - 1)
-		if absi(a - b) > 1:
-			_corridor(w, _centre(g[a]), _centre(g[b]))
-	for i in range(1, blocks.size()):
-		for y in _bridge_rows(w):
-			_bridge(w, groups, blocks, i, y)
+		_fill(w, b.grow(-1), World.FLOOR)
+		_split(w, b.grow(-1), galleries, w.rng.randf() < GALLERIES)
 	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
-	_doors(w)
+	var spots := _doorways(w, galleries)
+	for i in range(1, blocks.size()):
+		var leap := _leap(blocks[i - 1], blocks[i])
+		var rows := _bridge_rows(w, blocks[i - 1], blocks[i], leap >= LEAP.x and leap <= LEAP.y)
+		for y in rows:
+			_bridge(w, blocks[i - 1], blocks[i], y)
+		_verandas(w, blocks[i - 1], blocks[i], rows)
+	_hide_doors(w, spots)
 	_windows(w)
 
 
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
 ## tiers), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
-## straight bridge on those rows meets any two neighbours.
+## straight bridge on those rows meets any two neighbours. One pair, at random,
+## stands far enough apart for verandas LEAP apart.
 static func _pavilions(w: World) -> Array[Rect2i]:
 	var n := clampi(2 + (w.tier() - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
 	var gaps: Array[int] = []
 	var spare := Grid.W - 2 - MIN_WIDTH * n
+	var leap := w.rng.randi_range(0, n - 2)
 	for i in n - 1:
-		gaps.append(w.rng.randi_range(SKY_GAP.x, SKY_GAP.y))
+		var gap := LEAP + Vector2i(2, 2) if i == leap else SKY_GAP
+		gaps.append(w.rng.randi_range(gap.x, gap.y))
 		spare -= gaps[i]
 	var widths: Array[int] = []
 	widths.resize(n)
@@ -243,63 +272,197 @@ static func _pavilions(w: World) -> Array[Rect2i]:
 	return out
 
 
-## Up to `cap` rooms inside `area`, apart from each other and from every other room, west to east.
-static func _rooms(w: World, area: Rect2i, cap: int) -> Array[Rect2i]:
-	var out: Array[Rect2i] = []
-	for i in 60:
-		if out.size() >= cap:
-			break
-		var size := Vector2i(
-			w.rng.randi_range(5, mini(12, area.size.x)), w.rng.randi_range(4, mini(8, area.size.y))
-		)
-		var at := Vector2i(
-			w.rng.randi_range(area.position.x, area.end.x - size.x),
-			w.rng.randi_range(area.position.y, area.end.y - size.y)
-		)
-		var r := Rect2i(at, size)
-		if w.rooms.any(func(o: Rect2i): return o.grow(1).intersects(r)):
-			continue
-		out.append(r)
+## Cuts the floor `r` into rooms with walls one tile thick: across its longer
+## side (measured against ROOM_MOST) while each part keeps ROOM_LEAST, until a
+## part fits in ROOM_MOST and stays whole at the chance WHOLE. A `gallery` cut
+## is two walls with a hall one tile wide between them.
+static func _split(w: World, r: Rect2i, galleries: Array[Rect2i], gallery := false) -> void:
+	var wide := r.size.x * ROOM_MOST.y >= r.size.y * ROOM_MOST.x
+	var span := r.size.x if wide else r.size.y
+	var fits := r.size.x <= ROOM_MOST.x and r.size.y <= ROOM_MOST.y
+	gallery = gallery and span >= 2 * ROOM_LEAST + 3
+	var cut := 3 if gallery else 1
+	if span < 2 * ROOM_LEAST + cut or (fits and w.rng.randf() < WHOLE):
 		w.rooms.append(r)
-		_fill(w, r, World.FLOOR)
-	out.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
-	return out
+		return
+	var at := w.rng.randi_range(ROOM_LEAST, span - ROOM_LEAST - cut)
+	var axis := Vector2i(1, 0) if wide else Vector2i(0, 1)
+	var across := Vector2i.ONE - axis
+	var wall := Rect2i(r.position + axis * at, axis * cut + across * r.size)
+	_fill(w, wall, World.WALL)
+	if gallery:
+		var hall := Rect2i(wall.position + axis, axis + across * r.size)
+		_fill(w, hall, World.FLOOR)
+		galleries.append(hall)
+	_split(w, Rect2i(r.position, r.size - axis * (span - at)), galleries)
+	_split(w, Rect2i(r.position + axis * (at + cut), r.size - axis * (at + cut)), galleries)
 
 
-## One or two rows, at least 3 apart, for the bridges between a pair of pavilions.
-static func _bridge_rows(w: World) -> Array[int]:
-	var out: Array[int] = [w.rng.randi_range(BRIDGE_ROWS.x, BRIDGE_ROWS.y)]
-	var second := w.rng.randi_range(BRIDGE_ROWS.x, BRIDGE_ROWS.y)
-	if w.rng.randf() < 0.5 and absi(second - out[0]) >= 3:
+## Doorways in the walls between rooms and galleries. In a random order, a wall
+## tile with two different parts on opposite sides and wall on the other two
+## opens when it joins parts not yet joined, until all are one, and LOOPS more
+## open anyway. DOORS of them hold a sliding door, OPEN_DOORS of those open.
+## Returns the tiles left that could still have been doorways: [tile, across,
+## part, part], where parts below w.rooms.size() are rooms.
+static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
+	var parts := w.rooms.duplicate()
+	parts.append_array(galleries)
+	var part := PackedInt32Array()
+	part.resize(w.tiles.size())
+	part.fill(-1)
+	for k in parts.size():
+		for y in range(parts[k].position.y, parts[k].end.y):
+			for x in range(parts[k].position.x, parts[k].end.x):
+				part[Grid.index(Vector2i(x, y))] = k
+	var spots := []
+	for i in w.tiles.size():
+		var p := Grid.at(i)
+		for d: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
+			if w.tiles[i] == World.WALL and Grid.inside(p - d) and Grid.inside(p + d):
+				var a := part[Grid.index(p - d)]
+				var b := part[Grid.index(p + d)]
+				if a >= 0 and b >= 0 and a != b:
+					spots.append([p, d, a, b])
+	_shuffle(w, spots)
+	var joined := range(parts.size())
+	var loops := LOOPS
+	var left := []
+	for s: Array in spots:
+		var a := _root(joined, s[2])
+		var b := _root(joined, s[3])
+		if not _walled(w, s[0], s[1]) or (a == b and loops <= 0):
+			left.append(s)
+			continue
+		loops -= 1 if a == b else 0
+		joined[a] = b
+		_doorway(w, s[0])
+	return left
+
+
+## A doorway at p: a sliding door at the chance DOORS (open at OPEN_DOORS), else bare.
+static func _doorway(w: World, p: Vector2i) -> void:
+	var t := World.FLOOR
+	if w.rng.randf() < DOORS:
+		t = World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
+	w.tiles[Grid.index(p)] = t
+
+
+## The part that stands for every part joined with `k`.
+static func _root(joined: Array, k: int) -> int:
+	while joined[k] != k:
+		k = joined[k]
+	return k
+
+
+## Shuffles `a` with the world's generator, so that a seed builds the same storey.
+static func _shuffle(w: World, a: Array) -> void:
+	for i in range(a.size() - 1, 0, -1):
+		var j := w.rng.randi_range(0, i)
+		var t: Variant = a[i]
+		a[i] = a[j]
+		a[j] = t
+
+
+## p is a wall with wall on both sides across `across`, and no hidden door there.
+static func _walled(w: World, p: Vector2i, across: Vector2i) -> bool:
+	var side := Vector2i(across.y, across.x)
+	return (
+		w.tile(p) == World.WALL
+		and w.tile(p + side) == World.WALL
+		and w.tile(p - side) == World.WALL
+		and not w.secrets.has(p + side)
+		and not w.secrets.has(p - side)
+	)
+
+
+## 1 + (tier - 1) / 3 hidden doors, on tiles of `spots` (from _doorways)
+## between two rooms at least SHORTCUT steps apart, neither the start room
+## (rooms[0]), where one would be found, and let light in, at once.
+static func _hide_doors(w: World, spots: Array) -> void:
+	var open := Masks.floor_of(w)
+	for s: Array in spots:
+		if w.secrets.size() > (w.tier() - 1) / 3:
+			return
+		var p: Vector2i = s[0]
+		var d: Vector2i = s[1]
+		var rooms := [mini(s[2], s[3]), maxi(s[2], s[3])]
+		if rooms[0] > 0 and rooms[1] < w.rooms.size() and _walled(w, p, d):
+			var dist: PackedInt32Array = Grid.search(p - d, open).dist
+			if dist[Grid.index(p + d)] >= SHORTCUT:
+				w.secrets[p] = true
+
+
+## One or two rows (only `one` for a pair with verandas, to leave them room),
+## at least 3 apart, for the bridges between pavilions `west` and `east`: rows
+## of BRIDGE_ROWS with room floor just inside both their outer walls.
+static func _bridge_rows(w: World, west: Rect2i, east: Rect2i, one: bool) -> Array[int]:
+	var rows: Array[int] = []
+	for y in range(BRIDGE_ROWS.x, BRIDGE_ROWS.y + 1):
+		if (
+			w.tile(Vector2i(west.end.x - 2, y)) == World.FLOOR
+			and w.tile(Vector2i(east.position.x + 1, y)) == World.FLOOR
+		):
+			rows.append(y)
+	var out: Array[int] = []
+	if rows.is_empty():
+		return out
+	out.append(rows[w.rng.randi_range(0, rows.size() - 1)])
+	var second := rows[w.rng.randi_range(0, rows.size() - 1)]
+	if w.rng.randf() < 0.5 and absi(second - out[0]) >= 3 and not one:
 		out.append(second)
 	return out
 
 
-## A plank across the sky on row y from pavilion i - 1 to pavilion i, with an
-## opening in each of their outer walls.
-static func _bridge(w: World, groups: Array[Array], blocks: Array[Rect2i], i: int, y: int) -> void:
-	var west := blocks[i - 1]
-	var east := blocks[i]
+## The sky between verandas on the facing walls of `west` and `east`.
+static func _leap(west: Rect2i, east: Rect2i) -> int:
+	return east.position.x - west.end.x - 2
+
+
+## Verandas (쪽마루) outside the facing walls of `west` and `east` on the same
+## rows, when the sky between them is LEAP wide: VERANDA_LENGTH rows of both
+## pavilions' insides, clear of the bridge `rows` and the rows next to them.
+## Each opens onto a room through a doorway in its wall; none when either
+## cannot.
+static func _verandas(w: World, west: Rect2i, east: Rect2i, rows: Array[int]) -> void:
+	if _leap(west, east) < LEAP.x or _leap(west, east) > LEAP.y:
+		return
+	var free := func(y: int) -> bool: return not (rows.has(y - 1) or rows.has(y) or rows.has(y + 1))
+	var last := mini(west.end.y, east.end.y) - 2
+	var starts: Array[int] = []
+	for y in range(maxi(west.position.y, east.position.y) + 1, last - VERANDA_LENGTH.x + 2):
+		if range(y, y + VERANDA_LENGTH.x).all(free):
+			starts.append(y)
+	if starts.is_empty():
+		return
+	var top := starts[w.rng.randi_range(0, starts.size() - 1)]
+	var most := top + w.rng.randi_range(VERANDA_LENGTH.x, VERANDA_LENGTH.y)
+	var bottom := top + VERANDA_LENGTH.x
+	while bottom < most and bottom <= last and free.call(bottom):
+		bottom += 1
+	var doors: Array[Vector2i] = []
+	for side in [[west.end.x - 1, Vector2i.LEFT], [east.position.x, Vector2i.RIGHT]]:
+		var spots: Array[Vector2i] = []
+		for y in range(top, bottom):
+			var p := Vector2i(side[0], y)
+			if w.tile(p + side[1]) == World.FLOOR and _walled(w, p, side[1]):
+				spots.append(p)
+		if spots.is_empty():
+			return
+		doors.append(spots[w.rng.randi_range(0, spots.size() - 1)])
+	for p in doors:
+		_doorway(w, p)
+	for y in range(top, bottom):
+		w.tiles[Grid.index(Vector2i(west.end.x, y))] = World.VERANDA
+		w.tiles[Grid.index(Vector2i(east.position.x - 1, y))] = World.VERANDA
+
+
+## A plank across the sky on row y from `west` to `east`, through an opening
+## in each of their outer walls.
+static func _bridge(w: World, west: Rect2i, east: Rect2i, y: int) -> void:
 	for x in range(west.end.x, east.position.x):
 		w.tiles[Grid.index(Vector2i(x, y))] = World.BRIDGE
-	_mouth(w, groups[i - 1], Vector2i(west.end.x - 1, y), Vector2i.LEFT)
-	_mouth(w, groups[i], Vector2i(east.position.x, y), Vector2i.RIGHT)
-
-
-## An opening in an outer wall and a corridor from just inside it to the nearest room.
-static func _mouth(w: World, rooms: Array, mouth: Vector2i, inward: Vector2i) -> void:
-	var inner := mouth + inward
-	var near: Rect2i = rooms.reduce(
-		func(best: Rect2i, r: Rect2i):
-			return (
-				r
-				if _centre(r).distance_squared_to(inner) < _centre(best).distance_squared_to(inner)
-				else best
-			),
-		rooms[0]
-	)
-	w.tiles[Grid.index(mouth)] = World.FLOOR
-	_corridor(w, inner, _centre(near))
+	w.tiles[Grid.index(Vector2i(west.end.x - 1, y))] = World.FLOOR
+	w.tiles[Grid.index(Vector2i(east.position.x, y))] = World.FLOOR
 
 
 ## A window on some outer wall tiles that face the sky on one side only with
@@ -332,46 +495,11 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 			w.tiles[Grid.index(Vector2i(x, y))] = t
 
 
-## An L-shaped corridor; the elbow side is random.
-static func _corridor(w: World, a: Vector2i, b: Vector2i) -> void:
-	var elbow := Vector2i(b.x, a.y) if w.rng.randf() < 0.5 else Vector2i(a.x, b.y)
-	for leg in [[a, elbow], [elbow, b]]:
-		var p: Vector2i = leg[0]
-		var to: Vector2i = leg[1]
-		var d := Vector2i(signi(to.x - p.x), signi(to.y - p.y))
-		while true:
-			w.tiles[Grid.index(p)] = World.FLOOR
-			if p == to:
-				break
-			p += d
-
-
-## A corridor tile on a room's edge, walled on both sides, may get a door.
-static func _doors(w: World) -> void:
-	for r in w.rooms:
-		var ring := r.grow(1)
-		for y in range(ring.position.y, ring.end.y):
-			for x in range(ring.position.x, ring.end.x):
-				var p := Vector2i(x, y)
-				var top_or_bottom := y == ring.position.y or y == ring.end.y - 1
-				var side := x == ring.position.x or x == ring.end.x - 1
-				if top_or_bottom == side or w.tile(p) != World.FLOOR:
-					continue
-				var across := Vector2i(1, 0) if top_or_bottom else Vector2i(0, 1)
-				if (
-					w.tile(p + across) == World.WALL
-					and w.tile(p - across) == World.WALL
-					and w.rng.randf() < 0.6
-				):
-					w.tiles[Grid.index(p)] = (
-						World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
-					)
-
-
 ## Whether every open tile is reachable from the first room, walking round the
-## tiles in `blocked`.
+## tiles in `blocked` and through the seals, which open.
 static func connected(w: World, blocked: Array = []) -> bool:
-	var open := Masks.floor_of(w, blocked, func(_p): return false)
+	var through := func(p): return w.seals.has(p) and not blocked.has(p)
+	var open := Masks.floor_of(w, blocked + w.seals.keys(), through)
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
 	for i in open.size():
 		if open[i] == 1 and dist[i] < 0:
@@ -389,7 +517,9 @@ static func _farthest(w: World, from: Vector2i) -> Rect2i:
 
 
 ## A lantern in a corner of the goal room and of some others, never the start
-## room. The goal room's lantern must light the goal, beside it if no corner can.
+## room, and none that would light the start, through a doorway, with the
+## others. The goal room's lantern must light the goal, beside it if no corner
+## can.
 static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 	var target := w.elixir if w.elixir.x >= 0 else w.stairs
 	for r in w.rooms:
@@ -408,10 +538,89 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 				continue
 			if r == goal and not _lights(w, c, target):
 				continue
-			w.tiles[Grid.index(c)] = World.LANTERN
-			if connected(w):
+			w.set_tile(c, World.LANTERN)
+			if connected(w) and not w.lit(w.start):
 				break
-			w.tiles[Grid.index(c)] = World.FLOOR
+			w.set_tile(c, World.FLOOR)
+
+
+## At the chance VAULTS, a room but `home` becomes a treasure room (세 등불
+## 보물방) and leaves w.rooms; none when no room can be shut off.
+static func _vault(w: World, home: Rect2i) -> void:
+	if w.rng.randf() >= VAULTS:
+		return
+	var rooms := w.rooms.filter(func(r): return r != home)
+	_shuffle(w, rooms)
+	for r: Rect2i in rooms:
+		if _seal(w, r):
+			w.rooms.erase(r)
+			w._changed()
+			return
+
+
+## Shuts room r: every doorway in its walls is walled up but one into another
+## room, which becomes a seal; VAULT_LANTERNS dark lanterns stand in that room,
+## away from its middle and the seal, and PRIZE peaches lie in r. False, with
+## nothing changed, when r has a hidden door, can be reached another way, or
+## the storey would not be whole once the seal opens.
+static func _seal(w: World, r: Rect2i) -> bool:
+	var ways := []
+	for x in range(r.position.x, r.end.x):
+		ways.append([Vector2i(x, r.position.y - 1), Vector2i.UP])
+		ways.append([Vector2i(x, r.end.y), Vector2i.DOWN])
+	for y in range(r.position.y, r.end.y):
+		ways.append([Vector2i(r.position.x - 1, y), Vector2i.LEFT])
+		ways.append([Vector2i(r.end.x, y), Vector2i.RIGHT])
+	if ways.any(func(s): return w.secrets.has(s[0])):
+		return false
+	ways = ways.filter(func(s): return w.open_floor(s[0]))
+	var fronts := ways.filter(func(s): return _room_at(w, s[0] + s[1]).has_area())
+	if fronts.is_empty():
+		return false
+	var before := w.tiles.duplicate()
+	for s in ways:
+		w.tiles[Grid.index(s[0])] = World.WALL
+	var front: Array = fronts[w.rng.randi_range(0, fronts.size() - 1)]
+	var seal: Vector2i = front[0]
+	w.tiles[Grid.index(seal)] = World.SEAL
+	w.seals[seal] = []
+	var shut: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+	if shut[Grid.index(_centre(r))] < 0 and connected(w):
+		var hall := _room_at(w, seal + front[1])
+		var spots: Array[Vector2i] = []
+		for y in range(hall.position.y, hall.end.y):
+			for x in range(hall.position.x, hall.end.x):
+				var p := Vector2i(x, y)
+				if p != _centre(hall) and Grid.cheb(p, seal) > 2 and w.tile(p) == World.FLOOR:
+					spots.append(p)
+		_shuffle(w, spots)
+		for p in spots:
+			if w.seals[seal].size() >= VAULT_LANTERNS:
+				break
+			w.tiles[Grid.index(p)] = World.LANTERN_OUT
+			if connected(w):
+				w.seals[seal].append(p)
+			else:
+				w.tiles[Grid.index(p)] = World.FLOOR
+	if w.seals[seal].size() < VAULT_LANTERNS:
+		w.tiles = before
+		w.seals.erase(seal)
+		return false
+	var inside: Array[Vector2i] = []
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			inside.append(Vector2i(x, y))
+	_shuffle(w, inside)
+	w.peaches.append_array(inside.slice(0, PRIZE))
+	return true
+
+
+## The room that holds p, or an empty rect.
+static func _room_at(w: World, p: Vector2i) -> Rect2i:
+	for r in w.rooms:
+		if r.has_point(p):
+			return r
+	return Rect2i()
 
 
 static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
@@ -520,6 +729,7 @@ static func _by_lantern(w: World) -> Vector2i:
 				and p != w.stairs
 				and p != w.elixir
 				and dist[Grid.index(p)] >= FOE_DISTANCE
+				and Grid.cheb(p, w.start) > START_CLEAR
 			):
 				spots.append(p)
 	if spots.is_empty():
@@ -527,7 +737,8 @@ static func _by_lantern(w: World) -> Vector2i:
 	return spots[w.rng.randi_range(0, spots.size() - 1)]
 
 
-## A free room tile at least `min_dist` steps from the start.
+## A free room tile at least `min_dist` steps from the start and more than
+## START_CLEAR tiles from it.
 static func _random_spot(w: World, min_dist: int) -> Vector2i:
 	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var spots: Array[Vector2i] = []
@@ -538,6 +749,7 @@ static func _random_spot(w: World, min_dist: int) -> Vector2i:
 				if (
 					w.vacant(p)
 					and dist[Grid.index(p)] >= min_dist
+					and Grid.cheb(p, w.start) > START_CLEAR
 					and p != w.stairs
 					and p != w.elixir
 					and not w.peaches.has(p)

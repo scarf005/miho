@@ -148,6 +148,9 @@ static func _creature(k: World, a: Actor) -> String:
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
+	if a.fighting():
+		var rival := k.actor(a.rival)
+		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
 	if a.drumming():
 		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
 	if not a.intent.is_empty():

@@ -125,7 +125,9 @@ func test_two_fires_set_the_creatures_in_the_fan_alight() -> void:
 	var foe := _post(w, ME + Vector2i(3, 1))
 	w.act(_cast([FIRE, FIRE]))
 	assert_true(w.burning.has(foe.pos), "radius 3 reaches it")
-	assert_eq(foe.hp, foe.max_hp - World.FIRE_DAMAGE, "and it burns that round")
+	assert_eq(foe.hp, foe.max_hp, "and it burns from the next round")
+	w.act(WAIT)
+	assert_eq(foe.hp, foe.max_hp - World.FIRE_DAMAGE)
 
 
 func test_three_fires_always_spread() -> void:
