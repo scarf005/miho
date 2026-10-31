@@ -110,9 +110,9 @@ static func _look(a: Actor, at: Vector2i) -> void:
 static func hunt(w: World, a: Actor) -> void:
 	var me := w.player()
 	if a.sees_me:
-		var club: int = a.info().get("club", 0)
-		if club > 0 and Grid.cheb(a.pos, me.pos) == 1:
-			_club(w, a, me, club)
+		var melee: Dictionary = a.info().get("melee", {})
+		if not melee.is_empty() and Grid.cheb(a.pos, me.pos) == 1:
+			_melee(w, a, me, melee.damage)
 			return
 		if a.cooldown <= 0 and _charge(w, a, Aim.at_miho(w, a)):
 			return
@@ -167,8 +167,8 @@ static func rest(w: World, a: Actor) -> void:
 		a.post = FloorGen.patrol_point(w)
 
 
-static func _club(w: World, a: Actor, me: Actor, n: int) -> void:
-	w.emit({t = &"club", id = a.id, target = me.id, at = me.pos, n = n})
+static func _melee(w: World, a: Actor, me: Actor, n: int) -> void:
+	w.emit({t = &"melee", id = a.id, target = me.id, at = me.pos, n = n})
 	w.noise(me.pos, 3, "퍽", true, a.id)
 	w.hurt(me, n)
 

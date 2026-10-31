@@ -171,7 +171,7 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	assert_string_contains(text, "도깨비")
 	assert_string_contains(text, "쉬는 중")
 	assert_string_contains(text, "기습 시 피해 3")
-	assert_string_contains(text, "장비: 몽둥이 (피해 1)")
+	assert_string_contains(text, "근접: 방망이 (피해 1)")
 	assert_string_contains(text, "주술: 여우불 (")
 	assert_string_contains(text, "2초 뒤")
 	foe.alert = Actor.HUNT
@@ -239,7 +239,7 @@ func test_claws_on_a_hunter_strike_once_and_its_cry_alerts_others() -> void:
 	assert_eq(foe.hp, 1)
 	assert_eq(other.alert, Actor.SEARCH)
 	assert_eq(other.target, Vector2i(5, 8))
-	assert_eq(w.player().hp, 2, "the hunter clubs back")
+	assert_eq(w.player().hp, 2, "the hunter strikes back")
 
 
 func test_miho_hears_footsteps_in_the_dark_within_range_around_walls() -> void:
@@ -292,7 +292,7 @@ func test_a_flash_blinds_so_claws_strike_thrice_even_at_a_hunter() -> void:
 	foe.alert = Actor.HUNT
 	w.act(_cast([FOX, Cards.METAL], E))
 	assert_eq(foe.blind, 1, "the wisp stops before it and flashes")
-	assert_eq(w.player().hp, 3, "blind, it cannot club")
+	assert_eq(w.player().hp, 3, "blind, it cannot strike")
 	w.act({t = &"move", dir = E})
 	assert_false(foe.alive())
 

@@ -2,7 +2,8 @@ class_name Bestiary
 extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
 ## ones (`drop`) add an element and give it to Miho when they fall.
-## glyph: the syllable drawn for it. club: melee damage when next to Miho.
+## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
+## to her: its name, the verb the log ends in ("맞아", "물려") and the damage.
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
@@ -27,7 +28,7 @@ const KINDS := {
 		name = "도깨비",
 		glyph = "도",
 		hp = 2,
-		club = 1,
+		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [[FOX]],
 		cd = 3,
 		move = &"approach",
@@ -53,7 +54,7 @@ const KINDS := {
 		name = "불개",
 		glyph = "불",
 		hp = 4,
-		club = 1,
+		melee = {name = "이빨", hit = "물려", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
 		cd = 3,
 		move = &"approach",
@@ -105,7 +106,7 @@ const KINDS := {
 		name = "불가사리",
 		glyph = "가",
 		hp = 3,
-		club = 1,
+		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
 		cd = 3,
 		move = &"slow",
@@ -130,7 +131,7 @@ const KINDS := {
 		name = "저승사자",
 		glyph = "사",
 		hp = 9,
-		club = 1,
+		melee = {name = "오랏줄", hit = "맞아", damage = 1},
 		casts = [[ORB]],
 		cd = 2,
 		move = &"approach",

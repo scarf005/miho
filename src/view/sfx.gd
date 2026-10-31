@@ -150,7 +150,7 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 			play_at(&"orb" if e.cards.has(Cards.ORB) else &"foxfire", at)
 		&"hit", &"burst", &"splash":
 			play_at(&"blast", at)
-		&"clash", &"snuff", &"absorb", &"claw", &"club":
+		&"clash", &"snuff", &"absorb", &"claw", &"melee":
 			play_at(&"clash", at)
 		&"hurt":
 			play_at(&"hurt", at)

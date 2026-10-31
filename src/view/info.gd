@@ -83,9 +83,17 @@ static func creature(w: World, a: Actor) -> Array:
 	var claw := World.CLAW * (World.SNEAK if sneak else 1)
 	var how := "기습 시" if sneak else "공격 시"
 	lines.append([["%s 피해 " % how, Palette.TEXT], [str(claw), Palette.HURT]])
-	if spec.has("club"):
-		lines.append(
-			[["장비: 몽둥이 (피해 ", Palette.TEXT], [str(spec.club), Palette.HURT], [")", Palette.TEXT]]
+	if spec.has("melee"):
+		var melee: Dictionary = spec.melee
+		(
+			lines
+			. append(
+				[
+					["근접: %s (피해 " % melee.name, Palette.TEXT],
+					[str(melee.damage), Palette.HURT],
+					[")", Palette.TEXT],
+				]
+			)
 		)
 	for cast: Array in spec.get("casts", []):
 		lines.append(_cast(a, cast))

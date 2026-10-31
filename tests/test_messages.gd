@@ -188,3 +188,19 @@ func test_a_weakness_hit_starts_with_a_warning() -> void:
 	assert_eq(_lines(w, weak), ["약점! 천하대장군에게 피해를 2 주었다"] as Array[String])
 	var plain := hit + [{t = &"hurt", id = foe.id, n = 1, hp = 3, at = SEEN, weak = false}]
 	assert_eq(_lines(w, plain), ["천하대장군에게 피해를 1 주었다"] as Array[String])
+
+
+func test_a_melee_blow_names_the_weapon_of_the_creature() -> void:
+	var w := _world()
+	var told := {
+		&"dokkaebi": "도깨비의 방망이에 맞아 피해를 1 입었다",
+		&"bulgae": "불개의 이빨에 물려 피해를 1 입었다",
+		&"bulgasari": "불가사리의 쇠톱 같은 이빨에 물려 피해를 1 입었다",
+		&"saja": "저승사자의 오랏줄에 맞아 피해를 1 입었다",
+	}
+	for kind: StringName in told:
+		var foe := FloorGen.spawn(w, kind, SEEN)
+		w.sense()
+		var blow := {t = &"melee", id = foe.id, target = w.player().id, at = w.player().pos, n = 1}
+		assert_eq(_lines(w, [blow]), [told[kind]] as Array[String], str(kind))
+		w.actors.erase(foe)

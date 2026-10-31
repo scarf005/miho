@@ -88,3 +88,20 @@ func test_a_wood_creature_is_told_to_burn() -> void:
 	assert_string_contains(wood, "불에 탐")
 	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
 	assert_false(water.contains("불에 탐"))
+
+
+func test_a_creature_tells_what_it_strikes_with() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var told := {
+		&"dokkaebi": "근접: 방망이 (피해 1)",
+		&"bulgae": "근접: 이빨 (피해 1)",
+		&"bulgasari": "근접: 쇠톱 같은 이빨 (피해 1)",
+		&"saja": "근접: 오랏줄 (피해 1)",
+	}
+	for kind: StringName in told:
+		assert_string_contains(
+			Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at))), told[kind]
+		)
+	var none := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
+	assert_false(none.contains("근접"), "a caster that cannot strike has no melee line")
