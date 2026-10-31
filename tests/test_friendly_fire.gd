@@ -79,7 +79,7 @@ func test_the_orb_hits_harder_after_a_run_up_both_ways() -> void:
 
 func test_weakness_doubles_the_harm_both_ways() -> void:
 	var loss := _loss(&"cheonha", [Cards.ORB, Cards.METAL])
-	assert_eq(loss[0], 2)
+	assert_eq(loss[0], 2 * (1 + Elements.CANNON))
 	assert_eq(loss[0], loss[1])
 
 
@@ -181,7 +181,8 @@ func test_the_log_marks_the_weakness_of_an_ally_hit() -> void:
 	for i in 4:
 		var before := w.clone()
 		lines.append_array(Messages.of(before, w, w.act(WAIT)).map(Messages.plain))
-	assert_has(lines, "약점! 이무기의 쇠 구슬에 천하대장군이 피해를 2 입었다")
+	var n := 2 * (1 + Elements.CANNON)
+	assert_has(lines, "약점! 이무기의 쇠 구슬에 천하대장군이 피해를 %d 입었다" % n)
 
 
 func test_a_heaven_projectile_tells_it_hits_other_creatures() -> void:

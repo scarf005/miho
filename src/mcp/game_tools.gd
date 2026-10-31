@@ -43,7 +43,8 @@ const SPELLS := {
 		+ "queued as one compound slot. A spell fills at most 5 slots. With fox or orb it "
 		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
 		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
-		+ "shape); forecast lists every number. Every card costs one tail, and all cards "
+		+ "shape). Metal makes fox a bullet and orb a cannonball; wood on an orb grows a "
+		+ "wooden wall. The forecast lists every number. Every card costs one tail, and all cards "
 		+ "together cost at most the unspent tails."
 	),
 	items =
@@ -238,6 +239,9 @@ func _forecast(args: Dictionary) -> Dictionary:
 	for e in f.sprays:
 		var tiles: Array = e.tiles.map(func(p): return "(%d,%d)" % [p.x, p.y])
 		out.append("spray covers: " + (" ".join(tiles) if not tiles.is_empty() else "nothing"))
+	var grown: Array = f.sprouts.map(func(p): return "(%d,%d)" % [p.x, p.y])
+	if not grown.is_empty():
+		out.append("wooden wall grows at: " + " ".join(grown))
 	out.append("harm to Miho: %d" % f.hurt_me())
 	var noticing := f.noticed.keys().map(func(i): return _whom(world, i))
 	out.append("noticed by: " + (", ".join(noticing) if not noticing.is_empty() else "nobody"))

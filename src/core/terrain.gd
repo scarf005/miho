@@ -11,7 +11,11 @@ extends RefCounted
 ##
 ## Walls break only to orbs: two hits turn a wall into a cracked wall (which
 ## still blocks walking, sight and light) and then into rubble. Each hit thuds.
-## The outermost ring of tiles never breaks.
+## An orb of 흙 or 쇠 brings a wall down at once. The outermost ring of tiles
+## never breaks.
+##
+## A wooden wall, grown by an orb of 나무 (Elements.sprout), blocks walking,
+## sight and light like a wall, but burns, and one hit breaks it to floor.
 ##
 ## A door slides. Walking into a closed one, by Miho or a creature of heaven,
 ## opens it instead of stepping, with a rustle of SLIDE tiles; Miho's alarms
@@ -93,10 +97,13 @@ static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName
 
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;
-## a wall thuds and a window clangs.
+## one of 흙 or 쇠 hits a wall till it falls (Elements.fells). A wall thuds and
+## a window clangs.
 static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 	if not s.spell.has(Cards.WATER) and w.tile(at) == struck and breakable(w, at):
 		hit(w, at)
+		while Elements.fells(s.spell) and wall(w.tile(at)) and breakable(w, at):
+			hit(w, at)
 		if wall(struck):
 			w.noise(at, World.THUD, "쿵", true, s.caster)
 		elif struck == World.WINDOW:

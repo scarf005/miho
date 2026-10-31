@@ -6,6 +6,7 @@ extends RefCounted
 
 const LABEL := Palette.DIM
 const TURN_NAME := ["곧게만 간다", "45°", "90°", "135°", "마음대로"]
+const MUZZLE := "발사 시 당신 칸을 밝힌다"
 
 
 ## A talisman, and what the queue becomes with it (null when it does not fit).
@@ -42,15 +43,15 @@ static func spell(s: Spell) -> Array:
 	var lines := [head]
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
-		var gun := s.level() > 0 and s.slots[0] == Cards.METAL
-		lines.append(_line("빛", "발사 시 당신 칸을 밝힌다" if gun else "없음"))
+		lines.append(_line("빛", MUZZLE if s.gun() else "없음"))
 		lines.append(_line("소리", _sound(s)))
 		return lines
 	lines.append_array(_shape(s))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], _effect(s, e), Palette.CARD[e]))
-	lines.append(_line("빛", _light(s.light(Actor.FOX))))
+	var light := _light(s.light(Actor.FOX))
+	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
 	return lines
 
@@ -212,15 +213,30 @@ static func _effect(s: Spell, e: StringName) -> String:
 	match e:
 		Cards.FIRE:
 			var more := " 피해 +%d." % s.extra(e) if s.extra(e) > 0 else ""
-			var splash := " 터지면 주위 8칸에 %d." % (World.FIRE_DAMAGE + s.extra(e)) if s.orb else ""
-			return "지나간 자리에 불을 붙인다." + splash + more + " 나무 적은 불탄다"
+			if s.orb:
+				var splash := " 터지면 주위 8칸에 %d." % (World.FIRE_DAMAGE + s.extra(e))
+				return "지나간 자리에 불을 붙인다." + splash + more + " 나무 적은 불탄다"
+			return "맞은 적과 지나간 자리에 불을 붙인다." + more + " 매 초 피해 %d" % World.FIRE_DAMAGE
 		Cards.WATER:
-			return "빛과 소리를 지운다. 멈춘 곳 둘레의 등불과 불을 끈다"
+			var what := "소리를" if s.orb else "빛과 소리를"
+			return what + " 지운다. 멈춘 곳 3×3의 등불과 불을 끈다"
 		Cards.WOOD:
+			if s.orb:
+				var health: int = Tiles.of(World.WOOD_WALL, "health")
+				var n := Elements.WALL + s.extra(e)
+				return "멈춘 곳에 직각으로 나무벽 %d칸. 체력 %d, 불에 탄다" % [n, health]
 			return "맞은 적을 %d초 묶는다" % (Elements.ROOT + s.extra(e))
 		Cards.METAL:
-			return "멈춘 곳 %d칸 안의 적을 %d초 눈멀게 한다" % [World.FLASH, Elements.BLIND + s.extra(e)]
-	return "맞은 적을 %d초 기절시킨다. 멈춘 곳에서 쿵 %d칸" % [Elements.STUN + s.extra(e), World.THUD]
+			if s.orb:
+				return (
+					"대포알. 피해 +%d, %d칸 민다. 벽을 한 번에 부순다"
+					% [Elements.CANNON + s.extra(e), Elements.CANNON_PUSH]
+				)
+			return "유도탄. 발마다 피해 %d. 빛이 없다" % (Elements.BULLET + s.extra(e))
+	var thud := ". 멈춘 곳에서 쿵 %d칸" % World.THUD
+	if s.orb:
+		return "벽을 한 번에 부순다" + thud
+	return "맞은 적을 %d초 기절시킨다" % (Elements.STUN + s.extra(e)) + thud
 
 
 static func _light(l: Dictionary) -> String:

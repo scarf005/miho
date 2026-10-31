@@ -71,7 +71,6 @@ const CLAW := 1
 const SNEAK := 3
 const CRY := 5
 const THUD := 9
-const FLASH := 2
 const KNOCK := 4
 const BURN_ROUNDS := 3
 const FIRE_DAMAGE := 2
@@ -103,6 +102,7 @@ const REEDS_FLAT := 21
 const LEAVES := 22
 const SHALLOW := 23
 const PILLAR := 24
+const WOOD_WALL := 25
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -606,8 +606,9 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	if spell.shape == Spell.SPRAY:
 		Spray.cast(self, caster, spell, dir)
 		return
-	var word := "웅" if spell.orb else "휙"
-	noise(caster.pos, spell.cast_noise(), word, caster.faction == Actor.FOX, caster.id)
+	if spell.gun():
+		flares.append(caster.pos)
+	noise(caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id)
 	for target in Homing.targets(self, caster, spell):
 		_step(_spawn(caster, spell, dir, target))
 
@@ -640,7 +641,7 @@ func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 
 
 func _shots_phase() -> void:
-	for sub in Spell.WISP_SPEED:
+	for sub in Spell.BULLET_SPEED:
 		for s in shots.duplicate():
 			if not s.gone and sub < s.spell.speed() and (s.dir != Vector2i.ZERO or s.turn > 0):
 				_step(s)
@@ -723,17 +724,17 @@ func _burst(s: Shot) -> void:
 	_effects(s, s.pos, s.pos + s.dir)
 
 
-## Flash and thud happen wherever the spell ends; fire sets that tile alight
-## and relights the lanterns next to it, except the one an orb just struck, and
-## water douses lanterns and flames.
+## A thud happens wherever the spell ends; fire sets that tile alight and
+## relights the lanterns next to it, except the one an orb just struck, water
+## douses lanterns and flames, and a wood orb grows a wall (Elements).
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
-	if s.spell.has(Cards.METAL):
-		Elements.flash(self, s, at)
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		ignite(at)
 	Terrain.touch(self, s, at, struck)
+	if s.spell.orb and s.spell.has(Cards.WOOD):
+		Elements.sprout(self, s, at)
 
 
 func _strike(s: Shot, a: Actor) -> void:
@@ -892,6 +893,8 @@ func _ascend() -> void:
 	tails = max_tails()
 	regrow = 0
 	scent.clear()
+	for s in shots:
+		s.gone = true
 	FloorGen.build(self)
 	_changed()
 	sense()

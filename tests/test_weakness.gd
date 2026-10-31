@@ -57,11 +57,13 @@ func test_each_sangkeuk_pair_doubles_an_orb_hit() -> void:
 		var w := _world()
 		var foe := _foe(w, pair[0])
 		assert_has(Bestiary.weak_to(pair[0]), pair[1], pair[0])
+		foe.hp = 9
 		var hurts := _hurts(w.act(_cast(pair[2])))
+		var n := 2 * Spell.make(pair[2]).damage(0)
 		assert_eq(hurts.size(), 1, pair[0])
-		assert_eq(hurts[0].n, 2, "%s takes double from %s" % [pair[0], pair[1]])
+		assert_eq(hurts[0].n, n, "%s takes double from %s" % [pair[0], pair[1]])
 		assert_true(hurts[0].weak, pair[0])
-		assert_eq(foe.hp, foe.max_hp - 2, pair[0])
+		assert_eq(foe.hp, 9 - n, pair[0])
 
 
 func test_elements_that_do_not_beat_it_deal_the_plain_harm() -> void:
@@ -73,8 +75,12 @@ func test_elements_that_do_not_beat_it_deal_the_plain_harm() -> void:
 	assert_eq(foe.hp, 3)
 	var other := _world()
 	var jiha := _foe(other, &"jiha")
-	assert_eq(_hurts(other.act(_cast([ORB, Cards.METAL])))[0].n, 1, "metal does not beat metal")
-	assert_eq(jiha.hp, 3)
+	jiha.hp = 9
+	var cannon := Spell.make([ORB, Cards.METAL]).damage(0)
+	assert_eq(
+		_hurts(other.act(_cast([ORB, Cards.METAL])))[0].n, cannon, "metal does not beat metal"
+	)
+	assert_eq(jiha.hp, 9 - cannon)
 
 
 func test_weakness_follows_the_beats_table_both_ways() -> void:
@@ -89,18 +95,21 @@ func test_weakness_follows_the_beats_table_both_ways() -> void:
 	)
 
 
-func test_a_metal_wisp_beats_wood_for_two() -> void:
+func test_a_bullet_beats_wood_for_twice_its_harm() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")
-	assert_eq(_hurts(w.act(_cast([Cards.FOX, Cards.METAL]))).map(func(e): return e.n), [2])
-	assert_eq(foe.hp, 2)
+	foe.hp = 9
+	var hurts := _hurts(w.act(_cast([Cards.FOX, Cards.METAL])))
+	assert_eq(hurts.map(func(e): return e.n), [2 * Elements.BULLET])
+	assert_eq(foe.hp, 9 - 2 * Elements.BULLET)
 
 
 func test_a_fire_wisp_beats_metal_for_two() -> void:
 	var w := _world()
 	var foe := _foe(w, &"jiha")
+	foe.hp = 9
 	assert_eq(_hurts(w.act(_cast([Cards.FOX, Cards.FIRE])))[0].n, 2)
-	assert_eq(foe.hp, 2)
+	assert_eq(foe.hp, 9 - 2 - World.FIRE_DAMAGE, "and it burns, unweakened")
 
 
 func test_immunity_comes_first_and_the_weakness_does_not_break_it() -> void:
@@ -131,6 +140,7 @@ func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
 	var w := _world()
 	var caster := _foe(w, &"imugi", Vector2i(12, 8))
 	var victim := _foe(w, &"cheonha", Vector2i(9, 8))
+	victim.hp = 9
 	var shot := Shot.new()
 	shot.id = w.new_id()
 	shot.faction = Actor.HEAVEN
@@ -142,8 +152,8 @@ func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
 	w.shots.append(shot)
 	var hurts := _hurts(w.act(WAIT))
 	assert_eq(hurts.size(), 1)
-	assert_eq(hurts[0].n, 2)
-	assert_eq(victim.hp, 2)
+	assert_eq(hurts[0].n, 2 * (1 + Elements.CANNON))
+	assert_eq(victim.hp, 9 - 2 * (1 + Elements.CANNON))
 
 
 func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() -> void:
@@ -201,7 +211,7 @@ func test_the_forecast_includes_the_doubled_harm() -> void:
 	w.sense()
 	assert_eq(w.seen[Grid.index(FOE)], 1)
 	var f := Forecast.of(w, _cast([ORB, Cards.METAL]))
-	assert_eq(f.harm.get(foe.id), 2)
+	assert_eq(f.harm.get(foe.id), 2 * (1 + Elements.CANNON))
 	var plain := Forecast.of(w, _cast([ORB, Cards.WATER]))
 	assert_eq(plain.harm.get(foe.id), 1)
 
@@ -214,7 +224,7 @@ func test_the_starfish_eats_a_spell_with_metal_and_grows() -> void:
 	assert_has(types, &"grow")
 	assert_does_not_have(types, &"hurt")
 	assert_eq([foe.hp, foe.max_hp], [3 + Bestiary.GROWTH, 3 + Bestiary.GROWTH])
-	assert_does_not_have(types, &"flash", "an eaten spell has no other effect")
+	assert_does_not_have(types, &"push", "an eaten spell has no other effect")
 
 
 func test_the_starfish_does_not_grow_on_a_spell_without_metal_or_with_fire() -> void:
