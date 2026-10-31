@@ -94,7 +94,8 @@ func test_the_hover_the_log_and_the_sound_of_a_statue() -> void:
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "석상")
 	assert_string_contains(text, "통과 불가.")
-	assert_string_contains(text, "깨어남: 장승. 접근 %d칸 이내." % Statues.REACH)
+	assert_string_contains(text, "깨어남: 장승")
+	assert_string_contains(text, "거리: %d칸" % Statues.REACH)
 	w.player().pos = AT + Vector2i.LEFT
 	w.sense()
 	var events := w.act(WAIT)

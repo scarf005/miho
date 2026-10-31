@@ -39,6 +39,8 @@ extends RefCounted
 ## How far a sliding door is heard; a seal that opens.
 const SLIDE := 3
 const GRIND := World.KNOCK
+## How far a rotten board that gives way is heard.
+const CRACK := 4
 
 
 ## A lantern that is not broken: it blocks walking and a hit moves it one step on.
@@ -75,6 +77,17 @@ static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	var sound: Array = Tiles.of(w.tile(at), "hit")
 	hit(w, at)
 	w.noise(at, sound[0], sound[1], true, me.id)
+
+
+## A creature steps off the tile at `at`: a rotten board gives way to the sky, with a
+## crack heard CRACK tiles.
+static func crumble(w: World, by: Actor, at: Vector2i) -> void:
+	var was := w.tile(at)
+	var gone: int = Tiles.of(was, "crumbles")
+	if gone >= 0:
+		w.set_tile(at, gone)
+		w.emit({t = &"crumble", at = at, was = was})
+		w.noise(at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
 
 
 ## A creature steps onto reeds at `at`: they lie flat, and sight clears.

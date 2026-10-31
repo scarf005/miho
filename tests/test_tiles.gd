@@ -31,6 +31,7 @@ const WALKABLE := [
 	World.SHELF,
 	World.SHELF_READ,
 	World.COURTYARD,
+	World.BOARD_ROTTEN,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -47,6 +48,7 @@ const FLAMMABLE := [
 	World.SHELF,
 	World.SHELF_READ,
 	World.SCREEN,
+	World.BOARD_ROTTEN,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -56,6 +58,7 @@ const TREAD := {
 	World.LEAVES: [2, "바스락"],
 	World.SHALLOW: [2, "철벅"],
 	World.VERANDA: [3, "삐걱"],
+	World.BOARD_ROTTEN: [3, "삐걱"],
 }
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,
@@ -75,7 +78,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.STATUE + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.BOARD_ROTTEN + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 

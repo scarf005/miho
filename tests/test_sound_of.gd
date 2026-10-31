@@ -62,6 +62,7 @@ const SOUNDS := [
 	[{t = &"won"}, &"win"],
 	[{t = &"lost"}, &"lose"],
 	[{t = &"noise", word = Traps.GONG}, &"gong"],
+	[{t = &"noise", word = "우지끈"}, &"fall"],
 ]
 ## Events that only keep the books or are told by another event, so they are silent.
 const SILENT := [
@@ -86,6 +87,7 @@ const SILENT := [
 	{t = &"burnout"},
 	{t = &"become"},
 	{t = &"trample"},
+	{t = &"crumble"},
 	{t = &"soak"},
 	{t = &"ride"},
 	{t = &"leap"},

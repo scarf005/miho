@@ -148,6 +148,7 @@ const WATER_JAR := 44
 const CENSER := 45
 const COURTYARD := 46
 const STATUE := 47
+const BOARD_ROTTEN := 48
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -610,6 +611,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	var tread: Array = Tiles.of(tile(to), "tread")
 	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
+	Terrain.crumble(self, a, from)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
 	Traps.step(self, a, Grid.line_dir(from, to))

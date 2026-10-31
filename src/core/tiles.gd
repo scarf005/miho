@@ -14,7 +14,8 @@ extends RefCounted
 ## and the word for it. wall: a wall, cracked or not.
 ## spread: the chance each second that fire next to it takes it. douses: fire
 ## never takes it, even a burning creature standing on it. trample: what it
-## becomes when a creature steps onto it. scentless: a trail laid on it is lost.
+## becomes when a creature steps onto it; crumbles: what it becomes when a
+## creature steps off it (Terrain.crumble). scentless: a trail laid on it is lost.
 ## gas: gas can lie on it (Gas); walls, closed doors, windows, pillars and sky stop it.
 ## trap: a plate in the floor that goes off when a creature steps onto it (Traps).
 ## Heaven walks round it, and so does a walk Miho has planned. It is floor, not
@@ -148,6 +149,8 @@ const ROWS := {
 	World.CENSER: {name = "향로", health = 1, knock = true, breaks_to = World.FLOOR},
 	World.COURTYARD: {name = "마당", walk = true},
 	World.STATUE: {name = "석상"},
+	World.BOARD_ROTTEN:
+	{name = "낡은 마루", walk = true, burns = true, tread = [3, "삐걱"], crumbles = World.SKY},
 }
 const DEFAULT := {
 	name = "",
@@ -165,6 +168,7 @@ const DEFAULT := {
 	spread = 0.5,
 	douses = false,
 	trample = -1,
+	crumbles = -1,
 	scentless = false,
 	gas = true,
 	trap = false,

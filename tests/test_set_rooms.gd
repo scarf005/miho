@@ -15,6 +15,7 @@ const MADE_OF := {
 	&"mist": [[World.POND], [World.FLOOR]],
 	&"corridor": [[], [World.FLOOR]],
 	&"statues": [[World.STATUE], [World.FLOOR]],
+	&"rotten": [[World.BOARD_ROTTEN], [World.FLOOR]],
 }
 
 
@@ -331,6 +332,43 @@ func test_a_statue_hall_wakes_its_statues_as_miho_crosses_it() -> void:
 		woke += w.act({t = &"wait"}).filter(func(e): return e.t == &"wake").size()
 	assert_gt(woke, 0, "crossing the room along its middle row")
 	assert_eq(_count(w, MID, World.STATUE) + woke, 3)
+
+
+# --- 무너지는 마루 ----------------------------------------------------------------------
+
+
+func _rotten(w: World, r := MID) -> bool:
+	var rng := RandomNumberGenerator.new()
+	return SetRooms.make(w, &"rotten", r, rng)
+
+
+func test_a_rotten_floor_is_boards_on_every_other_tile_off_the_edge_of_the_room() -> void:
+	var w := _plan(6)
+	assert_true(_rotten(w))
+	for y in range(MID.position.y, MID.end.y):
+		for x in range(MID.position.x, MID.end.x):
+			var p := Vector2i(x, y)
+			var rotten := MID.grow(-1).has_point(p) and (x + y) % 2 == 1
+			assert_eq(w.tile(p), World.BOARD_ROTTEN if rotten else World.FLOOR, str(p))
+	assert_true(FloorGen.connected(w))
+
+
+func test_with_the_boards_gone_to_holes_every_plain_tile_still_meets_the_rest() -> void:
+	var w := _plan(6)
+	_rotten(w)
+	for y in range(MID.position.y, MID.end.y):
+		for x in range(MID.position.x, MID.end.x):
+			if w.tile(Vector2i(x, y)) == World.BOARD_ROTTEN:
+				w.tiles[Grid.index(Vector2i(x, y))] = World.SKY
+	assert_true(FloorGen.connected(w))
+
+
+func test_a_room_too_small_for_six_boards_is_left_as_it_was() -> void:
+	var small := Rect2i(10, 3, 5, 5)
+	var w := _plan(6, small)
+	var before := w.tiles.duplicate()
+	assert_false(_rotten(w, small))
+	assert_eq(w.tiles, before)
 
 
 # --- the storeys ---------------------------------------------------------------------

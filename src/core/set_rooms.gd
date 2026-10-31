@@ -15,6 +15,8 @@ extends RefCounted
 ## 안개 연못 (mist): a pond grown from the middle breathes fog from every tile.
 ## 경보 복도 (corridor): a dark, narrow room whose floor hides alarm plates (Traps).
 ## 깨어나는 석상 (statues): statues stand inside the room and wake as 장승 (Statues).
+## 무너지는 마루 (rotten): rotten boards fill the room but its edge, each a hole once
+## a creature steps off it.
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
@@ -22,7 +24,10 @@ const ROWS := [
 	{kind = &"mist", tier = 3},
 	{kind = &"corridor", tier = 4},
 	{kind = &"statues", tier = 5},
+	{kind = &"rotten", tier = 6},
 ]
+## A rotten floor holds at least ROTTEN_LEAST boards.
+const ROTTEN_LEAST := 6
 ## A corridor is at most CORRIDOR.x tiles across and at least CORRIDOR.y long.
 const CORRIDOR := Vector2i(4, 7)
 ## A corridor holds a plate for each PLATE_AREA tiles, from PLATES.x to PLATES.y of
@@ -95,6 +100,8 @@ static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerat
 			made = _corridor(w, r, rng)
 		&"statues":
 			made = _statues(w, r, rng)
+		&"rotten":
+			made = _rotten(w, r)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -178,6 +185,19 @@ static func _mist(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		return false
 	Placement.lay(w, FOG, pond[0], rng)
 	return true
+
+
+## Rotten boards on every other tile off the room's edge, like a chessboard, so that
+## each has plain floor beside it and Miho is never left on an island once the
+## boards behind her are holes (Terrain.crumble). None when ROTTEN_LEAST boards are
+## not to be had, or they cut the storey apart.
+static func _rotten(w: World, r: Rect2i) -> bool:
+	var boards := _bare(w, r.grow(-1)).filter(func(p): return (p.x + p.y) % 2 == 1)
+	if boards.size() < ROTTEN_LEAST:
+		return false
+	for p in boards:
+		w.tiles[Grid.index(p)] = World.BOARD_ROTTEN
+	return FloorGen.connected(w, boards)
 
 
 ## Statues (two, three in a room of LARGE_AREA tiles) on bare tiles off the room's

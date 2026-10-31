@@ -230,6 +230,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [[saja, Palette.KIND[&"saja"]], [_particle(saja, "이", "가") + " 오고 있다", TEXT]]
 		&"arrive":
 			return _who(before, after, id, "이", "가") + [[" 나타났다", TEXT]]
+		&"crumble":
+			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 꺼졌다", TEXT]]
 		&"wake":
 			return _named(Tiles.of(World.STATUE, "name"), "이", "가") + [[" 깨어났다", TEXT]]
 		&"won":
