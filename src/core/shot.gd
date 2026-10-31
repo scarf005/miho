@@ -1,9 +1,10 @@
 class_name Shot
 extends RefCounted
 ## A projectile in flight: a foxfire wisp or an orb. A homing one chases the
-## creature `target` (an actor id, 0 for none), turning at most `turn` steps of
-## 45° a tile (Spell.turn). A wisp that struck a creature rides it: `host` is
-## its actor id, and `pos` follows it (World.move) while it lives.
+## creature `target` (an actor id, 0 for none), banking `turn` degrees a tile
+## (Spell.turn) in `bank` and spending them on its turns (Homing.steer).
+## `flown` counts the tiles it has flown. A wisp that struck a creature rides
+## it: `host` is its actor id, and `pos` follows it (World.move) while it lives.
 
 var id := 0
 var faction := Actor.FOX
@@ -16,6 +17,8 @@ var life := 0
 var gone := false
 var target := 0
 var turn := 0
+var bank := 0
+var flown := 0
 var host := 0
 
 
@@ -37,5 +40,7 @@ func clone() -> Shot:
 	s.gone = gone
 	s.target = target
 	s.turn = turn
+	s.bank = bank
+	s.flown = flown
 	s.host = host
 	return s

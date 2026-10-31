@@ -619,7 +619,7 @@ func _draw_paths() -> void:
 		if s.turn > 0:
 			ray = ray.slice(0, 1)
 		elif not s.spell.orb:
-			ray = ray.slice(0, maxi(0, Spell.RANGE - s.distance()))
+			ray = ray.slice(0, maxi(0, Spell.RANGE - s.flown))
 		var c := Palette.shot_color(s.spell, s.faction)
 		for k in ray.size():
 			var p := ray[k]

@@ -56,12 +56,12 @@ func test_one_talisman_is_power_one_and_every_copy_adds_one() -> void:
 	assert_eq(Spell.make([FOX, ORB, ORB]).damage(0), 2, "a homing orb too")
 
 
-func test_a_lone_wisp_does_no_harm_and_turns_45_degrees_a_tile() -> void:
+func test_a_lone_wisp_does_no_harm_and_banks_30_degrees_a_tile() -> void:
 	assert_eq(Spell.make([FOX]).damage(0), 0, "one tail: no harm")
-	assert_eq(Spell.make([FOX]).turn(), 1)
+	assert_eq(Spell.make([FOX]).turn(), 30)
 	assert_eq(Spell.make([FOX, FOX]).damage(0), 1, "two tails: each wisp hits for 1")
-	assert_eq(Spell.make([FOX, FOX]).turn(), 2, "45° more for every 여")
-	assert_eq(Spell.make([FOX, FOX, FOX, FOX]).turn(), Spell.TURN_FREE)
+	assert_eq(Spell.make([FOX, FOX]).turn(), 60, "30° more for every 여")
+	assert_eq(Spell.make([FOX, FOX, FOX, FOX]).turn(), 120)
 	var w := _world()
 	var foe := _foe(w, &"jangseung", Vector2i(5, 8))
 	w.act(_cast([FOX], E))
@@ -78,10 +78,10 @@ func test_harmless_wisps_all_go_for_the_nearest() -> void:
 
 func test_homing_orbs_turn_45_degrees_more_for_every_fox_and_freely_with_four() -> void:
 	assert_eq(Spell.make([ORB]).turn(), 0)
-	assert_eq(Spell.make([FOX, ORB]).turn(), 1)
-	assert_eq(Spell.make([FOX, FOX, ORB]).turn(), 2)
-	assert_eq(Spell.make([FOX, FOX, FOX, FOX, ORB]).turn(), Spell.TURN_FREE)
-	assert_eq(Spell.make([FOX]).turn(), 1, "a wisp turns like a homing orb")
+	assert_eq(Spell.make([FOX, ORB]).turn(), 45)
+	assert_eq(Spell.make([FOX, FOX, ORB]).turn(), 90)
+	assert_eq(Spell.make([FOX, FOX, FOX, FOX, ORB]).turn(), 45 * Spell.TURN_FREE)
+	assert_eq(Spell.make([FOX]).turn(), 30, "a wisp turns less")
 
 
 func test_extra_copies_of_an_element_root_and_stun_a_round_longer() -> void:
@@ -173,8 +173,8 @@ func test_wisps_of_four_foxes_fly_round_a_wall_to_their_creature() -> void:
 	var w := _world()
 	for y in range(1, 11):
 		_put(w, Vector2i(8, y), World.WINDOW)
-	_put(w, Vector2i(13, 8), World.LANTERN)
-	var foe := _foe(w, &"jangseung", Vector2i(12, 8))
+	_put(w, Vector2i(12, 8), World.LANTERN)
+	var foe := _foe(w, &"jangseung", Vector2i(11, 8))
 	var events := w.act(_cast([FOX, FOX, FOX, FOX])) + w.act(WAIT) + w.act(WAIT) + w.act(WAIT)
 	var tiles := events.filter(func(e): return e.t == &"fly").map(func(e): return e.to)
 	assert_lt(foe.hp, foe.max_hp, "they got there")
@@ -245,18 +245,3 @@ func test_two_wisps_strike_the_creature_they_chase_for_one_each() -> void:
 	w.act(_cast([FOX, FOX], E))
 	assert_eq(foe.hp, foe.max_hp - 2)
 	assert_eq(w.shots.size(), 2, "both stick and strike no more")
-
-
-func test_a_hovering_wisp_chases_the_first_creature_it_then_sees() -> void:
-	var w := _world()
-	w.act(_cast([FOX], E))
-	w.act(WAIT)
-	var wisp: Shot = w.shots[0]
-	var foe := _foe(w, &"jangseung", Vector2i(13, 9))
-	for i in 4:
-		if wisp.host == 0:
-			w.act(WAIT)
-	assert_true(wisp.target == foe.id, "it took the creature it saw")
-	assert_eq(foe.hp, foe.max_hp, "a lone wisp strikes for nothing")
-	assert_eq(wisp.host, foe.id, "and stuck to it")
-	assert_eq(wisp.pos, foe.pos)

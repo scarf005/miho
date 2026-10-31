@@ -760,8 +760,7 @@ func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 func _shots_phase() -> void:
 	for sub in Spell.BULLET_SPEED:
 		for s: Shot in shots.duplicate():
-			var moves := s.dir != Vector2i.ZERO or s.turn > 0
-			if not s.gone and sub < s.spell.speed() and moves and not rides(s):
+			if not s.gone and sub < s.spell.speed() and s.dir != Vector2i.ZERO and not rides(s):
 				_step(s)
 	_prune()
 
@@ -769,28 +768,23 @@ func _shots_phase() -> void:
 func _fly(s: Shot, to: Vector2i) -> void:
 	emit({t = &"fly", shot = s.id, from = s.pos, to = to})
 	s.pos = to
+	s.flown += 1
 	_changed()
 	if s.spell.has(Cards.FIRE):
 		ignite(to)
 
 
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile
-## strikes the creature it reaches; a wisp stops and hovers at a wall or at the
-## end of its range when it chases nothing. A hovering wisp that takes a
-## creature leaves to chase it, and lasts until it strikes.
+## strikes the creature it reaches; a wisp stops and hovers at a wall or after
+## Spell.RANGE tiles, chasing or not, and flies no more.
 func _step(s: Shot) -> void:
 	if s.turn > 0:
-		var hovering := s.dir == Vector2i.ZERO
 		s.dir = Homing.steer(self, s)
 		var t := actor(s.target)
 		if t != null and t.pos == s.pos:
 			s.gone = true
 			_strike(s, t)
 			return
-		if s.dir == Vector2i.ZERO:
-			return
-		if hovering:
-			s.life = 0
 	var to := s.pos + s.dir
 	if not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
@@ -821,7 +815,7 @@ func _step(s: Shot) -> void:
 			_land(s)
 			return
 	_fly(s, to)
-	if not s.spell.orb and s.target == 0 and Grid.cheb(s.origin, s.pos) >= Spell.RANGE:
+	if not s.spell.orb and s.flown >= Spell.RANGE:
 		_land(s)
 
 
