@@ -7,12 +7,15 @@ extends Node
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `kill:x:y` (the creature there falls, leaving its body mark),
+## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
+## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
 ## in between as out-1.png, out-2.png ...). Keys may carry modifiers: Shift+Up.
-## --replay=seconds also saves out-replay.png that long into the first
-## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
+## --depth=n builds storey n in place of the first. --replay=seconds also saves
+## out-replay.png that long into the first highlight replay. --zoom=1.5 sets
+## the cell scale (0 fits the whole map).
 ## Runs start from default settings and keys, and never save them. They keep no
 ## run either, unless --save=path names a file (a title that offers to continue
 ## it takes Enter, not any key, to start).
@@ -34,6 +37,11 @@ static func attach(main: Node) -> void:
 		return
 	main.save_path = args.get("save", "")
 	main._new_run(int(args.get("seed", randi())))
+	if args.has("depth"):
+		main.world.depth = int(args.depth)
+		FloorGen.build(main.world)
+		main.world.sense()
+		main.term.show_world(main.world)
 	main._show_title()
 	main.settings = Settings.new()
 	main.settings.path = ""
@@ -105,6 +113,8 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
+		"tile", "at", "foe", "hunt":
+			_stage(parts)
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":
@@ -124,6 +134,25 @@ func _send(k: String) -> void:
 			for pressed in [true, false]:
 				_press(k, pressed, false)
 				await get_tree().process_frame
+
+
+## Changes the world for a picture: tile, at, foe and hunt.
+func _stage(parts: PackedStringArray) -> void:
+	var w: World = main.world
+	var xy := Vector2i(int(parts[-2]), int(parts[-1]))
+	match parts[0]:
+		"tile":
+			w.set_tile(Vector2i(int(parts[1]), int(parts[2])), int(parts[3]))
+		"at":
+			w.player().pos = xy
+		"foe":
+			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
+		"hunt":
+			w.hunt_from(w.actor_at(xy), w.player().pos)
+	w._changed()
+	w.sense()
+	main.term.show_world(w)
+	main._forecast()
 
 
 ## n steps towards the stairs, each by the first key of its direction.

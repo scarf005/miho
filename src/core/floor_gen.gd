@@ -3,11 +3,13 @@ extends RefCounted
 ## Builds each storey: two to four pavilions in open sky, joined by skybridges,
 ## with windows in their outer walls. Inside a pavilion, rooms are joined by
 ## corridors with a few extra loops (so a hunted fox has somewhere to slip
-## away), doors where corridors meet rooms, and lanterns in some rooms. Some
-## other rooms get a bamboo patch, a pond, or floorboards (a pavilion hall).
-## Corridors stay plain and dark. Miho starts in the westmost room; the stairs
-## (the elixir on the top storey) sit in the room farthest from her, which is
-## always lit. Watchers that never move stand by lanterns.
+## away), sliding doors where corridors meet rooms (some start open), and
+## lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
+## floorboards (a pavilion hall).
+## From tier 2 a lit room may hold a war drum. Corridors stay plain and dark.
+## Miho starts in the westmost room; the stairs (the elixir on the top storey)
+## sit in the room farthest from her, which is always lit. Watchers that never
+## move stand by lanterns.
 
 ## The creatures of each tier of three storeys; a boss only comes to the last storey.
 const PLAN := {
@@ -132,6 +134,8 @@ const MIN_HEIGHT := 14
 ## First and last row a bridge may cross on; every pavilion spans them.
 const BRIDGE_ROWS := Vector2i(10, 17)
 const WINDOWS := 0.35
+## The share of doors that start open.
+const OPEN_DOORS := 0.3
 
 
 static func build(w: World) -> void:
@@ -153,6 +157,7 @@ static func build(w: World) -> void:
 		_carve(w)
 		if w.rooms.size() >= MIN_ROOMS and _connected(w):
 			break
+	w._changed()
 	var home := w.rooms[0]
 	w.start = _centre(home)
 	me.pos = w.start
@@ -165,6 +170,7 @@ static func build(w: World) -> void:
 		w.stairs = _centre(goal)
 	_lanterns(w, home, goal)
 	_features(w, goal)
+	_drum(w)
 	_creatures(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
@@ -347,7 +353,9 @@ static func _doors(w: World) -> void:
 					and w.tile(p - across) == World.WALL
 					and w.rng.randf() < 0.6
 				):
-					w.tiles[Grid.index(p)] = World.DOOR
+					w.tiles[Grid.index(p)] = (
+						World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
+					)
 
 
 static func _connected(w: World) -> bool:
@@ -394,7 +402,7 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 
 
 static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
-	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque_mask())[Grid.index(p)]
+	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.light_mask())[Grid.index(p)]
 	return Light.level(Light.LANTERN * s) >= Light.LIT
 
 
@@ -417,6 +425,26 @@ static func _features(w: World, goal: Rect2i) -> void:
 				for x in range(r.position.x, r.end.x):
 					if _bare(w, Vector2i(x, y)):
 						w.tiles[Grid.index(Vector2i(x, y))] = World.BOARD
+
+
+## From tier 2, at a chance, a drum on a bare tile of a lit room, unless it would
+## cut the storey apart.
+static func _drum(w: World) -> void:
+	if w.tier() < Drums.FIRST_TIER or w.rng.randf() >= Drums.CHANCE:
+		return
+	w._changed()
+	var spots: Array[Vector2i] = []
+	for r in w.rooms:
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				if _bare(w, Vector2i(x, y)) and w.lit(Vector2i(x, y)):
+					spots.append(Vector2i(x, y))
+	if spots.is_empty():
+		return
+	var at := spots[w.rng.randi_range(0, spots.size() - 1)]
+	w.tiles[Grid.index(at)] = World.DRUM
+	if not _connected(w):
+		w.tiles[Grid.index(at)] = World.FLOOR
 
 
 ## A patch of `t` covering about a third of room r, grown tile by tile from a random one.
@@ -516,7 +544,10 @@ static func nearest_free(w: World, from: Vector2i) -> Vector2i:
 	return Grid.at(best) if best >= 0 else Vector2i(-1, -1)
 
 
+## A creature spawned in a doorway stands in an open door.
 static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
+	if w.tile(at) == World.DOOR:
+		w.set_tile(at, World.DOOR_OPEN)
 	var a := Actor.new()
 	a.id = w.new_id()
 	a.kind = kind

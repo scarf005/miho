@@ -57,6 +57,7 @@ const DELAY := {
 	&"die": 0.14,
 	&"flash": 0.16,
 	&"charge": 0.08,
+	&"drum": 0.3,
 }
 
 var world: World
@@ -195,7 +196,7 @@ func show_world(w: World) -> void:
 
 ## A lantern or a burning tile as a flickering light: the tiles it lights and how much.
 func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> Dictionary:
-	var s := Light.spread(p, radius, w.opaque_mask())
+	var s := Light.spread(p, radius, w.light_mask())
 	var lit := PackedInt32Array()
 	var amount := PackedFloat32Array()
 	for j in s.size():
@@ -263,6 +264,9 @@ func _apply(e: Dictionary) -> float:
 			_flash(at, Color(1, 1, 1, 0.8))
 		&"claw", &"club":
 			_flash(at, Palette.HURT)
+		&"drum":
+			_flash(at, Color(Palette.SOUND, 0.6))
+			_popup(at, "둥" if not e.wet else "툭", Palette.SOUND, 1.2)
 		&"splash":
 			_flash(at, Color(1.0, 0.95, 0.7, 0.95))
 			for d in Grid.DIRS:
@@ -418,7 +422,7 @@ func _field() -> PackedVector3Array:
 			continue
 		var key := "%d@%s" % [id, s.pos]
 		if not _shot_light.has(key):
-			_shot_light[key] = Light.spread(s.pos, l.radius, world.opaque_mask())
+			_shot_light[key] = Light.spread(s.pos, l.radius, world.light_mask())
 		var spread: PackedFloat32Array = _shot_light[key]
 		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_time * 11.0 + id))
 		for i in spread.size():
@@ -507,8 +511,6 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var glyph: String = spec[0]
 		var fg: Color = spec[1]
 		var bg: Color = spec[2]
-		if t == World.DOOR and not world.opaque(p):
-			glyph = Palette.OPEN_DOOR
 		if world.bodies.has(p) and world.bodies[p].met:
 			glyph = Palette.BODY[0]
 			fg = Palette.BODY[1]
@@ -575,10 +577,13 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 	)
 
 
-## A charging creature's line, so every incoming spell is seen a round early.
+## A charging creature's line, so every incoming spell is seen a round early, and
+## the line from a creature running to a drum to the drum, which glows.
 func _draw_telegraphs(actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
+		if a.faction != Actor.FOX and a.drumming() and _visible(a.pos):
+			_draw_drum_run(a)
 		if a.faction == Actor.FOX or a.intent.is_empty() or not _visible(a.pos):
 			continue
 		var spell := Spell.make(a.intent)
@@ -593,6 +598,17 @@ func _draw_telegraphs(actors: Dictionary) -> void:
 			draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
 			if k == 0:
 				_glyph(_cell(ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
+
+
+func _draw_drum_run(a: Actor) -> void:
+	var pulse := 0.5 + 0.5 * sin(_time * 8.0)
+	var c := Color(Palette.SOUND, 0.5 + 0.5 * pulse)
+	if _shown(a.pos) and _shown(a.drum):
+		draw_line(cell_centre(a.pos), cell_centre(a.drum), Color(c, 0.5), 2.0)
+	if _shown(a.drum):
+		draw_rect(Rect2(_cell(a.drum) * CELL, CELL), Color(Palette.SOUND, 0.15 + 0.3 * pulse))
+		draw_rect(Rect2(_cell(a.drum) * CELL, CELL).grow(-2), c, false, 2.0)
+		_small(_cell(a.drum) + Vector2(0.62, -0.05), "둥", c)
 
 
 ## Where each projectile in sight flies next, over tiles Miho knows: an orb

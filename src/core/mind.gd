@@ -109,6 +109,8 @@ static func _look(a: Actor, at: Vector2i) -> void:
 
 
 static func hunt(w: World, a: Actor) -> void:
+	if Drums.go(w, a):
+		return
 	var me := w.player()
 	if a.sees_me:
 		var club: int = a.info().get("club", 0)

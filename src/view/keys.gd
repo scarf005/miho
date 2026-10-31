@@ -48,6 +48,7 @@ const ACTIONS := {
 	&"fight": ["자동 공격", ["Tab"]],
 	&"look": ["살펴보기", ["X"]],
 	&"rest": ["쉬기", ["Z"]],
+	&"close": ["문 닫기", ["C"]],
 	&"exclude": ["위험구역 표시", ["V"]],
 	&"exclude_clear": ["위험구역 모두 지우기", ["Shift+V"]],
 	&"debug": ["디버그 보기", ["F3"]],

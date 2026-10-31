@@ -8,11 +8,24 @@ extends RefCounted
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
+## What a door does when it slides, and burns.
+const DOOR_NOTE := "드르륵 소리 %d칸. 불에 탄다" % Terrain.SLIDE
+## What a drum does, a short sentence a line; %d is how far heaven runs to it.
+const DRUM_NOTE := (
+	"치면 층 전체에 둥 소리가 난다\n"
+	+ "듣는 적은 친 적이 당신을\n"
+	+ "마지막으로 본 곳을 수색한다\n"
+	+ "영리한 적은 걸어서 %d칸 안에서\n"
+	+ "당신을 쫓으면 달려와 친다\n"
+	+ "구슬이나 몸으로 부딪치면 찢어진다\n"
+	+ "불에 탄다"
+)
 ## tile -> [name, what it does, health or 0 when it cannot break]
 const TERRAIN := {
 	World.FLOOR: ["바닥", "", 0],
 	World.WALL: ["벽", "", 2],
-	World.DOOR: ["문", "빛과 시야를 막는다", 1],
+	World.DOOR: ["문", "닫혀 있다\n시야는 막고 빛은 지나간다\n" + DOOR_NOTE, 1],
+	World.DOOR_OPEN: ["열린 문", "시야와 빛이 지나간다\n문 닫기 키로 닫는다\n" + DOOR_NOTE, 0],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다", 1],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 1],
 	World.BAMBOO: ["대숲", "안이 보이지 않는다. 사각 소리 2칸. 불에 탄다", 0],
@@ -25,6 +38,8 @@ const TERRAIN := {
 	World.SKY: ["하늘", "건널 수 없다. 주문은 넘어간다", 0],
 	World.WINDOW: ["창문", "보이지만 지나갈 수 없다", 1],
 	World.BRIDGE: ["하늘다리", "달빛에 드러난다. 삐걱 소리 3칸", 0],
+	World.DRUM: ["북", DRUM_NOTE % Drums.REACH, 1],
+	World.DRUM_TORN: ["찢어진 북", "소리가 나지 않는다", 0],
 }
 ## What a talisman adds to any spell it is part of.
 const EFFECT := {
@@ -74,6 +89,8 @@ static func creature(w: World, a: Actor) -> Array:
 		if c[0] > 0:
 			state.append([". %s (%d초)" % [c[1], c[0]], Palette.TEXT])
 	lines.append(state)
+	if a.drumming():
+		lines.append([["북을 치러 간다", Palette.SOUND]])
 	var me := w.player()
 	if w.sees(a, me.pos):
 		lines.append([["당신을 보고 있다", Palette.HURT]])
@@ -190,8 +207,10 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
 	var lines := [head]
-	if note != "":
-		lines.append([[note, Palette.DIM]])
+	for part in note.split("\n", false):
+		lines.append([[part, Palette.DIM]])
+	if w.tile(p) == World.DRUM:
+		lines.append(_drum_line(w, p))
 	if w.burning.has(p):
 		lines.append([["불타는 중. %d초 뒤 재가 된다" % w.burning[p], Palette.HURT]])
 	lines.append_array(_change_lines(w, p))
@@ -217,6 +236,13 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 		[[label, color], [" · %d초 전" % (w.round_no - change.round), Palette.DIM]],
 		[[rule, Palette.DIM]],
 	]
+
+
+## Whether a drum would sound: wet ones are silent, for how long.
+static func _drum_line(w: World, p: Vector2i) -> Array:
+	if w.wet.has(p):
+		return [["젖어서 소리가 나지 않는다 (%d초)" % w.wet[p], Palette.SIDE[0]]]
+	return [["물에 젖으면 %d초 동안 소리가 없다" % Drums.WET_ROUNDS, Palette.DIM]]
 
 
 static func _light_line(w: World, p: Vector2i) -> Array:

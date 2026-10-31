@@ -38,6 +38,8 @@ var noted := 0
 ## The ids of the changes (Notice) it has seen and reacted to.
 var marked: Array[int] = []
 var sees_me := false
+## The drum it runs to strike instead of attacking (Drums), or (-1, -1).
+var drum := Vector2i(-1, -1)
 ## Where it rests, and where a patrol is heading.
 var home := Vector2i.ZERO
 var post := Vector2i.ZERO
@@ -50,6 +52,11 @@ func alive() -> bool:
 ## Not hunting, or blind: a claw catches it unawares for a sneak attack.
 func unaware() -> bool:
 	return alert != HUNT or blind > 0
+
+
+## Hunting Miho by way of a drum.
+func drumming() -> bool:
+	return alert == HUNT and drum != Vector2i(-1, -1)
 
 
 func info() -> Dictionary:
@@ -83,6 +90,7 @@ func clone() -> Actor:
 		"wary",
 		"noted",
 		"sees_me",
+		"drum",
 		"home",
 		"post",
 	]:

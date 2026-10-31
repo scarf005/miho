@@ -22,8 +22,8 @@ const NAMES := {
 const ALERTS := ["resting", "searching", "hunting"]
 const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
-	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
-	+ "░sky □window ═skybridge "
+	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +closed-door 'open-door "
+	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach †fallen-creature '
 	+ "●○*projectile @Miho"
 )
@@ -115,8 +115,6 @@ static func _glyph(k: World, p: Vector2i) -> String:
 	if p == k.elixir:
 		return Palette.ELIXIR[0]
 	var t := k.tile(p)
-	if t == World.DOOR and in_sight and not k.opaque(p):
-		return Palette.OPEN_DOOR
 	return "." if t == World.FLOOR and not in_sight else Palette.TILES[t][0]
 
 
@@ -138,6 +136,8 @@ static func _creature(k: World, a: Actor) -> String:
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
+	if a.drumming():
+		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
 	if not a.intent.is_empty():
 		line += ", charging %s aimed %s" % [Spell.make(a.intent).title(), NAMES.get(a.aim, "?")]
 	return line
@@ -160,7 +160,8 @@ static func _shot(s: Shot) -> String:
 
 
 ## The steps Miho may take, each with what stands there: a creature her claws
-## strike, or a lantern or window she knocks.
+## strike, a lantern or window she knocks, or a closed door she slides open; then
+## the open doors she may close.
 static func _moves(k: World) -> String:
 	var out := []
 	for d in Grid.DIRS:
@@ -174,5 +175,18 @@ static func _moves(k: World) -> String:
 				note = "(knock window)"
 			elif Terrain.lantern(k.tile(to)):
 				note = "(knock lantern)"
+			elif k.tile(to) == World.DOOR:
+				note = "(open door)"
+			elif k.tile(to) == World.DRUM:
+				note = "(tear drum)"
 			out.append(NAMES[d] + note)
-	return ", ".join(out) if not out.is_empty() else "none"
+	var doors := NAMES.keys().filter(func(d): return k.can({t = &"close", dir = d}))
+	var line := ", ".join(out) if not out.is_empty() else "none"
+	return (
+		line
+		+ (
+			"; close: " + ", ".join(doors.map(func(d): return NAMES[d]))
+			if not doors.is_empty()
+			else ""
+		)
+	)
