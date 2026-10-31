@@ -79,6 +79,7 @@ const WORDS := {
 	"댕": &"gong",
 	"찌익": &"clash",
 	"타닥": &"burn",
+	"캥": &"foxfire",
 }
 
 var listener: AudioListener2D
@@ -222,7 +223,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask":
 			return &"hiss"
-		&"stick":
+		&"stick", &"yelp":
 			return &"foxfire"
 		&"ignite", &"heat", &"relight":
 			return &"burn"

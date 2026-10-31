@@ -66,6 +66,9 @@ extends RefCounted
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
 ## a new storey one below. 도 leaps her across it (Leap).
 ##
+## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
+## hovering wisp of 여 alone yelps, an alarm (Lure).
+##
 ## Each storey climbed gives back one health.
 ##
 ## Miho grows one more tail every third storey (일미호 to 구미호). Her action
@@ -522,6 +525,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Gas.tick(self)
 	Terrain.unseal(self)
 	Guise.tick(self)
+	Lure.tick(self)
 	_end_round()
 	sense()
 	return events

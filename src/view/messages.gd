@@ -178,6 +178,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ host
 				+ [[" 붙었다", TEXT]]
 			)
+		&"yelp":
+			return [["여우불이 ", TEXT], [Lure.WORD, Palette.SOUND], [" 울었다", TEXT]]
 		&"guise":
 			var form: String = Bestiary.info(e.kind).name
 			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", TEXT]]

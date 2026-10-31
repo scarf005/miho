@@ -313,6 +313,8 @@ static func shot(w: World, s: Shot) -> Array:
 		lines.append(_line("남은 시간", "%d초" % s.life))
 	if spell.swaps():
 		lines.append(_line(Cards.NAME[Cards.LEAP], SWAP, Palette.CARD[Cards.LEAP]))
+	if s.faction == Actor.FOX and Lure.lures(spell):
+		lines.append(_lure(spell))
 	lines.append(_line("빛", _light(spell.light(s.faction))))
 	if spell.burst_noise() > 0:
 		lines.append(_line("소리", "터질 때 %d칸" % spell.burst_noise()))
@@ -350,6 +352,8 @@ static func _shape(s: Spell) -> Array:
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초 빛난다" % Spell.WISP_LIFE))
 			lines.append(_line("노릴 적이 없으면", "%d칸 날아가 %d초 떠 있는다" % [Spell.RANGE, Spell.WISP_LIFE]))
+			if Lure.lures(s):
+				lines.append(_lure(s))
 		Spell.HOMING:
 			lines.append(_line("모양", "유도 구슬. 가장 가까운 적을 쫓는다"))
 			lines.append(_orb_harm(s))
@@ -360,6 +364,12 @@ static func _shape(s: Spell) -> Array:
 			lines.append(_orb_harm(s))
 	lines.append(_line("빠르기", "초당 %d칸" % s.speed()))
 	return lines
+
+
+## 여우 홀림: what a hovering wisp of 여 alone is heard as (Lure).
+static func _lure(s: Spell) -> Array:
+	var text := "2초마다 %s %d칸. 경보. 교활한 적은 던진 곳을 찾는다" % [Lure.WORD, Lure.loud(s)]
+	return _line("떠 있으면", text, Palette.SOUND)
 
 
 static func _orb_harm(s: Spell) -> Array:

@@ -43,6 +43,8 @@ const SOUNDS := [
 	[{t = &"heat"}, &"burn"],
 	[{t = &"relight"}, &"burn"],
 	[{t = &"stick"}, &"foxfire"],
+	[{t = &"yelp"}, &"foxfire"],
+	[{t = &"noise", word = Lure.WORD}, &"foxfire"],
 	[{t = &"hurt"}, &"hurt"],
 	[{t = &"die"}, &"fall"],
 	[{t = &"charge"}, &"charge"],
