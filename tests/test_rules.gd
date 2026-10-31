@@ -51,6 +51,13 @@ func _foe(w: World, kind: StringName, at: Vector2i, cooldown := 99) -> Actor:
 	return a
 
 
+## A creature resting one step from its home: awake, since one at its home sleeps.
+func _lookout(w: World, kind: StringName, at: Vector2i, cooldown := 99) -> Actor:
+	var a := _foe(w, kind, at, cooldown)
+	a.home += E
+	return a
+
+
 func _types(events: Array) -> Array:
 	return events.map(func(e): return e.t)
 
@@ -122,7 +129,7 @@ func test_miho_sees_lit_tiles_far_away_and_dark_tiles_only_close() -> void:
 
 func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 	var w := _world(Vector2i(5, 8))
-	var watcher := _foe(w, &"jangseung", Vector2i(8, 8), 0)
+	var watcher := _lookout(w, &"jangseung", Vector2i(8, 8), 0)
 	w.act(WAIT)
 	assert_eq(watcher.alert, Actor.REST, "Miho stands in the dark")
 	_put(w, Vector2i(5, 9), World.LANTERN)
@@ -131,7 +138,7 @@ func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 	assert_has(_types(events), &"notice")
 	assert_eq(watcher.intent, [ORB] as Array[StringName], "it sees her and charges")
 	var close := _world(Vector2i(7, 8))
-	var other := _foe(close, &"jangseung", Vector2i(8, 8))
+	var other := _lookout(close, &"jangseung", Vector2i(8, 8))
 	close.act(WAIT)
 	assert_eq(other.alert, Actor.HUNT, "next to it even in the dark")
 
@@ -139,7 +146,7 @@ func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 func test_preview_shows_only_what_miho_knows() -> void:
 	var w := _world(Vector2i(5, 8))
 	_put(w, Vector2i(5, 9), World.LANTERN)
-	var hidden := _foe(w, &"jangseung", Vector2i(16, 8), 0)
+	var hidden := _lookout(w, &"jangseung", Vector2i(16, 8), 0)
 	w.sense()
 	assert_eq(w.seen[Grid.index(hidden.pos)], 0)
 	var real := w.preview(WAIT)
@@ -211,7 +218,7 @@ func test_a_wisp_with_no_creature_in_sight_flies_three_a_round_then_hovers_and_l
 
 func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came_from() -> void:
 	var w := _world()
-	var foe := _foe(w, &"imugi", Vector2i(12, 4))
+	var foe := _lookout(w, &"imugi", Vector2i(12, 4))
 	w.act(_cast([FOX], E))
 	assert_eq(foe.alert, Actor.SEARCH)
 	assert_eq(foe.target, Vector2i(4, 8))
@@ -277,7 +284,7 @@ func test_a_hunter_telegraphs_its_orb_and_a_side_step_dodges_it() -> void:
 	for stay in [true, false]:
 		var w := _world(Vector2i(5, 8))
 		_put(w, Vector2i(5, 9), World.LANTERN)
-		_foe(w, &"jangseung", Vector2i(10, 8), 0)
+		_lookout(w, &"jangseung", Vector2i(10, 8), 0)
 		var events := w.act(WAIT)
 		assert_has(_types(events), &"charge")
 		w.act(WAIT if stay else {t = &"move", dir = N})
@@ -332,7 +339,7 @@ func test_bamboo_hides_who_stands_in_it_from_all_but_the_next_tile() -> void:
 	var w := _world(Vector2i(4, 8))
 	_put(w, Vector2i(6, 10), World.LANTERN)
 	_put(w, Vector2i(7, 8), World.BAMBOO)
-	var hidden := _foe(w, &"jangseung", Vector2i(7, 8))
+	var hidden := _lookout(w, &"jangseung", Vector2i(7, 8))
 	w.sense()
 	assert_true(w.lit(hidden.pos))
 	assert_eq(w.seen[Grid.index(hidden.pos)], 0, "lit, yet hidden")

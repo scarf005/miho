@@ -1,8 +1,8 @@
 class_name Actor
 extends RefCounted
 ## A creature on the board. Faction FOX is Miho; HEAVEN is everything else.
-## A heaven creature is resting, searching a spot it heard or saw something
-## at, or hunting Miho after it saw her.
+## A heaven creature is resting (asleep, unless it patrols), searching a spot it
+## heard or saw something at, or hunting Miho after it saw her.
 
 const FOX := 0
 const HEAVEN := 1
@@ -47,6 +47,20 @@ var post := Vector2i.ZERO
 
 func alive() -> bool:
 	return hp > 0
+
+
+## Resting at its home with its eyes shut: it sees nothing, even the tiles next
+## to it, until noise or a wound wakes it. One that walks while resting (a
+## patrol, or one on its way home) is awake, and one that always knows where
+## Miho is (`hunts`) never sleeps.
+func asleep() -> bool:
+	return (
+		faction == HEAVEN
+		and alert == REST
+		and pos == home
+		and not info().get("patrol", false)
+		and not info().get("hunts", false)
+	)
 
 
 ## Hunting Miho by way of a drum.

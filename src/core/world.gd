@@ -15,9 +15,12 @@ extends RefCounted
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
 ## Miho's projectiles, and hunt her once they see her (Mind; how they read a
-## projectile depends on their wits). Claws strike three times as hard at a
-## creature that is not hunting and does not see Miho (Brogue CE Combat.c
-## sneak attack; caught_unawares). A creature
+## projectile depends on their wits). A resting creature standing at its home is
+## asleep (Actor.asleep): it sees nothing, even next to it, until noise or a
+## wound wakes it; a patrol, which walks while it rests, never sleeps. Claws
+## strike three times as hard at a creature that is not hunting and does not
+## see Miho (Brogue CE Combat.c sneak attack; caught_unawares), so Miho can
+## creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -383,6 +386,8 @@ func view_of(a: Actor) -> PackedByteArray:
 
 
 func _reaches(a: Actor, p: Vector2i) -> bool:
+	if a.asleep():
+		return false
 	if a.blind > 0:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
@@ -624,7 +629,7 @@ func set_tile(p: Vector2i, t: int) -> void:
 
 
 ## Whether a claw at `a` is a sneak attack: it is off guard (not hunting) and
-## does not see Miho; a blind creature sees nothing, but a blind hunter is on guard.
+## does not see Miho; a sleeping or blind creature sees nothing, but a blind hunter is on guard.
 func caught_unawares(a: Actor) -> bool:
 	return a.alert != Actor.HUNT and not sees(a, player().pos)
 

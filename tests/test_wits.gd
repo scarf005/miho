@@ -35,6 +35,8 @@ func _world() -> World:
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.cooldown = 99
+	# One step from its home, it is awake: a creature at its home sleeps.
+	a.home += E
 	return a
 
 

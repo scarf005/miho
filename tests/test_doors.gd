@@ -70,6 +70,7 @@ func test_a_closed_door_blocks_sight_but_light_passes() -> void:
 	var w := _world()
 	_put(w, Vector2i(13, 8), World.LANTERN)
 	var far := _foe(w, &"jangseung", Vector2i(12, 8))
+	far.home += E  # awake: one at its home sleeps
 	w.sense()
 	assert_true(w.opaque(DOOR_AT))
 	assert_false(w.blocks_light(DOOR_AT))

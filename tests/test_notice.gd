@@ -34,6 +34,8 @@ func _world() -> World:
 func _watcher(w: World, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, NEXT)
 	a.cooldown = 99
+	# One step from its home, it is awake: a creature at its home sleeps.
+	a.home += Vector2i.RIGHT
 	return a
 
 

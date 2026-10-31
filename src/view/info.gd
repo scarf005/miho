@@ -37,6 +37,11 @@ static func at(w: World, p: Vector2i) -> Array:
 	return terrain(w, p)
 
 
+## What a creature is doing: resting, asleep, searching or hunting.
+static func state(a: Actor) -> String:
+	return "자는 중" if a.asleep() else STATE[a.alert]
+
+
 static func creature(w: World, a: Actor) -> Array:
 	var spec := a.info()
 	var head := [[spec.name + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]]
@@ -51,7 +56,7 @@ static func creature(w: World, a: Actor) -> Array:
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
-	var state := [[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]]
+	var state := [[state(a), Palette.ALERT[maxi(a.alert, 1)]]]
 	if a.alert == Actor.SEARCH:
 		state.append([_search_left(a), Palette.TEXT])
 	lines.append(state)
