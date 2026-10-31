@@ -7,6 +7,25 @@ extends RefCounted
 const LABEL := Palette.DIM
 const TURN_NAME := ["곧게만 간다", "45°", "90°", "135°", "마음대로"]
 const MUZZLE := "발사 시 당신 칸을 밝힌다"
+## The talismans that make each projectile shape.
+const RECIPE := {
+	Spell.WISP: [Cards.FOX],
+	Spell.HOMING: [Cards.FOX, Cards.ORB],
+	Spell.ORB: [Cards.ORB],
+}
+const SPRAY_NAME := "뿌리기"
+const SPRAY_NOTE := "오행 부적만 쓰면 투사체 없이 닿는 칸을 덮는다"
+
+
+## A shape a spell takes: its name, the talismans that make it, and its numbers.
+static func shape(kind: StringName) -> Array:
+	if kind == Spell.SPRAY:
+		return [[[SPRAY_NAME, Palette.TEXT]], [[SPRAY_NOTE, LABEL]]]
+	var s := Spell.make(RECIPE[kind])
+	var made := [["만드는 법 ", LABEL]]
+	for c in s.slots:
+		made.append([Cards.GLYPH[c] + " ", Palette.card(c)])
+	return [[[Spell.SHAPE_NAME[kind], Palette.shot_color(s, Actor.FOX)]], made] + _shape(s)
 
 
 ## A talisman, and what the queue becomes with it (null when it does not fit).
