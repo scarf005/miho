@@ -147,7 +147,10 @@ static func _creature(k: World, a: Actor) -> String:
 	if a.drumming():
 		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
 	if not a.intent.is_empty():
-		line += ", charging %s aimed %s" % [Spell.make(a.intent).title(), NAMES.get(a.aim, "?")]
+		line += (
+			", charging %s aimed %s"
+			% [Bestiary.spell(a.kind, a.intent).title(), NAMES.get(a.aim, "?")]
+		)
 	return line
 
 

@@ -44,6 +44,8 @@ var slots: Array[StringName] = []
 var shape := &""
 ## The spell is an orb: straight or homing.
 var orb := false
+## A name a creature gives its own spell (Bestiary.spell), in place of title().
+var called := ""
 
 
 ## The spell `picked` queues, or null when it is no spell.
@@ -146,6 +148,8 @@ static func from_key(k: String) -> Spell:
 
 ## The elements it carries, then its shape: "불×2 구슬".
 func title() -> String:
+	if called != "":
+		return called
 	var parts: Array[String] = []
 	var told := {}
 	for slot in elements():
