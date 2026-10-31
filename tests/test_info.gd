@@ -336,3 +336,35 @@ func test_miho_tells_her_claws_sight_footsteps_and_conditions() -> void:
 	assert_string_contains(text, steps % loud)
 	assert_string_contains(text, "눈이 멀었다 (2초)")
 	assert_string_contains(text, "묶여 있다 (1초)")
+
+
+func test_a_searching_creature_tells_how_many_more_looks_before_it_rests() -> void:
+	var w := _hall()
+	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
+	foe.alert = Actor.SEARCH
+	foe.target = foe.pos
+	foe.lost = 4
+	foe.cooldown = 99
+	var left := World.SEARCH_ROUNDS + 1 - foe.lost
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "%d번 더 둘러본다" % left)
+	for i in left - 1:
+		Mind.search(w, foe)
+	assert_eq(foe.alert, Actor.SEARCH, "still searching after one look fewer")
+	Mind.search(w, foe)
+	assert_eq(foe.alert, Actor.REST, "rests after the told number of looks")
+
+
+func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void:
+	var w := _hall()
+	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
+	foe.alert = Actor.SEARCH
+	foe.target = foe.pos
+	foe.lost = World.SEARCH_ROUNDS + 3
+	foe.wary = 2
+	foe.cooldown = 99
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "경계가 끝나면 쉰다")
+	Mind.search(w, foe)
+	assert_eq(foe.alert, Actor.SEARCH, "wary: keeps looking")
+	foe.wary = 0
+	Mind.search(w, foe)
+	assert_eq(foe.alert, Actor.REST, "rests at the first look once no longer wary")

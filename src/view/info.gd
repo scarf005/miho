@@ -51,7 +51,10 @@ static func creature(w: World, a: Actor) -> Array:
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
-	lines.append([[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]])
+	var state := [[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]]
+	if a.alert == Actor.SEARCH:
+		state.append([_search_left(a), Palette.TEXT])
+	lines.append(state)
 	lines.append_array(_conditions(w, a))
 	if a.drumming():
 		lines.append([["북을 치러 간다", Palette.SOUND]])
@@ -156,6 +159,15 @@ static func _immune(what: String, color: Color, why: String) -> Array:
 
 ## What holds it now, with the seconds left: blind, rooted, stunned, wary, and
 ## standing in fire unless it eats fire.
+## How many more looks around its spot a searching creature takes before it
+## rests (Mind.search); a wary one keeps looking until it is no longer wary.
+static func _search_left(a: Actor) -> String:
+	var left := World.SEARCH_ROUNDS + 1 - a.lost
+	if a.wary > 0 and left <= 1:
+		return " · 경계가 끝나면 쉰다"
+	return " · 그 자리를 %d번 더 둘러본다" % left
+
+
 static func _conditions(w: World, a: Actor) -> Array:
 	var out := []
 	for c in [[a.blind, "눈이 멀었다"], [a.rooted, "묶여 있다"], [a.stunned, "기절했다"], [a.wary, "경계 중"]]:
