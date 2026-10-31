@@ -309,7 +309,7 @@ func _key(event: InputEventKey) -> void:
 	elif action == &"debug":
 		debugging = not debugging
 		_refresh()
-	elif action in [&"log", &"help"]:
+	elif action in [&"log", &"help", &"codex"]:
 		_open(action)
 
 
@@ -739,7 +739,7 @@ func _open(kind: StringName) -> void:
 		var rows := messages.lines.map(Messages.shown)
 		term.panel = {title = "기록", rows = rows, selected = -1}
 		return
-	menu.open(kind)
+	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
 
 

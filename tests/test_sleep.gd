@@ -135,8 +135,22 @@ func test_the_hover_and_the_sidebar_call_a_sleeper_asleep_and_agree_with_its_sig
 	assert_string_contains(text, "수색 중")
 	assert_string_contains(text, "당신을 보고 있다")
 	assert_string_contains(text, "공격 시 피해 1")
+
+
+func test_an_awake_resting_creature_reads_by_what_it_does() -> void:
+	var w := _hall()
 	var patrol := _foe(w, PATROL, Vector2i(5, 9))
-	assert_eq(Info.state(patrol), "쉬는 중")
+	assert_eq(Info.state(patrol), "순찰 중")
+	var walker := _foe(w, SLEEPER, Vector2i(3, 8))
+	walker.home = Vector2i(2, 8)
+	assert_eq(Info.state(walker), "돌아가는 중")
+	var saja := _foe(w, &"saja", Vector2i(4, 7))
+	assert_eq(Info.state(saja), "쉬는 중", "awake at its home")
+	for foe in [patrol, walker, saja]:
+		w.sense()
+		var text := Info.plain(Info.at(w.known_clone(), foe.pos))
+		assert_string_contains(text, Info.state(foe))
+		assert_string_contains(text, "당신을 보고 있다")
 
 
 func test_the_forecast_notices_an_awake_creature_but_not_a_sleeper() -> void:
