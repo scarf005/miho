@@ -15,12 +15,12 @@ extends RefCounted
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
 ## Miho's projectiles, and hunt her once they see her (Mind; how they read a
-## projectile depends on their wits). A resting creature standing at its home is
-## asleep (Actor.asleep): it sees nothing, even next to it, until noise or a
-## wound wakes it; a patrol, which walks while it rests, never sleeps. Claws
-## strike three times as hard at a creature that is not hunting and does not
-## see Miho (Brogue CE Combat.c sneak attack; caught_unawares), so Miho can
-## creep up on a sleeper. A creature
+## projectile depends on their wits), shouting to those in earshot. A resting
+## creature standing at its home is asleep (Actor.asleep): it sees nothing, even
+## next to it, until noise or a wound wakes it; a patrol, which walks while it
+## rests, never sleeps. Claws strike three times as hard at a creature that is
+## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
+## caught_unawares), so Miho can creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -33,6 +33,9 @@ extends RefCounted
 ## thick enough it blocks sight: see Gas.
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
+##
+## Heaven falls into groups, and a creature struck by another group fights it
+## for a while (Mind).
 ##
 ## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
 ## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
@@ -608,8 +611,10 @@ func push(a: Actor, dir: Vector2i, n: int) -> void:
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
-## heaven creatures that hear an alarm go to search its spot.
-func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
+## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
+func noise(
+	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
+) -> void:
 	if loud <= 0:
 		return
 	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
@@ -632,7 +637,7 @@ func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 			var da := dist[Grid.index(a.pos)]
 			if da >= 0 and da <= loud:
 				a.alert = Actor.SEARCH
-				a.target = at
+				a.target = at if spot.x < 0 else spot
 				a.lost = 0
 
 
@@ -656,16 +661,21 @@ func _claw(me: Actor, foe: Actor) -> void:
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)
 	if foe.alive():
+		Mind.provoke(self, foe, me)
 		hunt_from(foe, me.pos)
 
 
+## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
 func hunt_from(a: Actor, at: Vector2i) -> void:
-	if a.alert != Actor.HUNT:
+	var fresh := a.alert != Actor.HUNT
+	if fresh:
 		emit({t = &"notice", id = a.id, at = a.pos})
 		Drums.plan(self, a)
 	a.alert = Actor.HUNT
 	a.target = at
 	a.lost = 0
+	if fresh:
+		Mind.shout(self, a)
 
 
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
@@ -846,6 +856,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		emit({t = &"lost"})
 		return
 	Notice.fallen(self, a)
+	Mind.forget(self, a)
 	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
@@ -868,6 +879,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 				hurt(b, (FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak)
 				if Bestiary.burns(b.kind):
 					ignite(p, true)
+				Mind.provoke(self, b, actor(s.caster))
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
@@ -939,6 +951,7 @@ func _end_round() -> void:
 			a.rooted = maxi(0, a.rooted - 1)
 			a.blind = maxi(0, a.blind - 1)
 			a.wary = maxi(0, a.wary - 1)
+			a.grudge = maxi(0, a.grudge - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1

@@ -7,7 +7,7 @@ extends RefCounted
 
 const PATH := "user://save.cfg"
 ## Bumped when a change to the rules would make old actions play differently.
-const VERSION := 20
+const VERSION := 21
 
 var path := PATH
 var seed_value := 0
