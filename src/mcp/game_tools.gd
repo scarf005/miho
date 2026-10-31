@@ -13,7 +13,8 @@ extends RefCounted
 const PROTOCOL := "2025-06-18"
 const MAX_ROUNDS := 200
 const INSTRUCTIONS := (
-	"Play Miho, a nine-tailed fox climbing a pavilion to drink the elixir on the top storey. "
+	"Play Miho, a fox climbing a pavilion of 27 storeys to drink the elixir on the top one. "
+	+ "She grows a tail every third storey, up to nine. "
 	+ "Call new_game, then act. Every result shows the map and what Miho knows. "
 	+ "Game text is Korean. Use forecast to check a step before taking it, "
 	+ "and explore, rest, stairs and travel to walk many rounds safely."

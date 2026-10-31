@@ -501,9 +501,9 @@ func test_one_turn_splits_the_tails_across_several_spells() -> void:
 	assert_eq(w.tails, 1)
 
 
-func test_spent_tails_regrow_one_every_three_rounds_up_to_the_storey() -> void:
+func test_spent_tails_regrow_one_every_three_rounds_up_to_the_most_the_storey_allows() -> void:
 	var w := _world()
-	w.depth = 2
+	w.depth = 4
 	w.tails = 0
 	for i in 3:
 		w.act(WAIT)
@@ -513,16 +513,25 @@ func test_spent_tails_regrow_one_every_three_rounds_up_to_the_storey() -> void:
 	assert_eq(w.tails, 2)
 
 
-func test_each_storey_grows_one_more_tail() -> void:
+func test_a_tail_grows_every_third_storey() -> void:
 	var w := World.create(5)
-	assert_eq(w.tails, 1)
-	assert_eq(w.max_tails(), 1)
-	w.actors[0].pos = w.stairs + WEST
-	if not w.vacant(w.stairs + WEST):
-		w.actors[0].pos = w.stairs + E
-	w.act({t = &"move", dir = w.stairs - w.actors[0].pos})
-	assert_eq(w.depth, 2)
-	assert_eq(w.tails, 2)
+	for case in [[1, 1], [3, 1], [4, 2], [6, 2], [7, 3], [25, 9], [27, 9]]:
+		w.depth = case[0]
+		assert_eq(w.max_tails(), case[1], "storey %d" % case[0])
+
+
+func test_climbing_refills_the_tails_to_what_the_new_storey_allows() -> void:
+	for depth in [1, 3]:
+		var w := World.create(5)
+		w.depth = depth
+		FloorGen.build(w)
+		w.tails = 0
+		w.actors[0].pos = w.stairs + WEST
+		if not w.vacant(w.stairs + WEST):
+			w.actors[0].pos = w.stairs + E
+		w.act({t = &"move", dir = w.stairs - w.actors[0].pos})
+		assert_eq(w.depth, depth + 1)
+		assert_eq(w.tails, 1 if depth == 1 else 2, "arriving on storey %d" % w.depth)
 
 
 func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:

@@ -9,6 +9,7 @@ extends RefCounted
 ## (the elixir on the top storey) sit in the room farthest from her, which is
 ## always lit. Watchers that never move stand by lanterns.
 
+## The creatures of each tier of three storeys; a boss only comes to the last storey.
 const PLAN := {
 	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
 	2:
@@ -114,7 +115,8 @@ const PLAN := {
 		&"imugi",
 	],
 }
-const PEACH_FLOORS := [3, 5, 7, 9]
+## Peaches grow on every odd storey from the third.
+const FIRST_PEACH_FLOOR := 3
 const MIN_ROOMS := 9
 const MAX_ROOMS := 16
 const LOOPS := 4
@@ -162,7 +164,7 @@ static func build(w: World) -> void:
 	_lanterns(w, home, goal)
 	_features(w, goal)
 	_creatures(w)
-	if PEACH_FLOORS.has(w.depth):
+	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
 		if spot.x >= 0:
 			w.peaches.append(spot)
@@ -200,10 +202,10 @@ static func _carve(w: World) -> void:
 
 
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
-## storeys), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
+## tiers), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
 ## straight bridge on those rows meets any two neighbours.
 static func _pavilions(w: World) -> Array[Rect2i]:
-	var n := clampi(2 + (w.depth - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
+	var n := clampi(2 + (w.tier() - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
 	var gaps: Array[int] = []
 	var spare := Grid.W - 2 - MIN_WIDTH * n
 	for i in n - 1:
@@ -439,8 +441,10 @@ static func _bare(w: World, p: Vector2i) -> bool:
 
 
 static func _creatures(w: World) -> void:
-	for kind in PLAN[w.depth]:
+	for kind in PLAN[w.tier()]:
 		var info := Bestiary.info(kind)
+		if info.get("boss", false) and w.depth < World.FLOORS:
+			continue
 		var spot := Vector2i(-1, -1)
 		if info.get("boss", false):
 			spot = nearest_free(w, w.elixir + Vector2i(0, 1))

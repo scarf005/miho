@@ -40,12 +40,13 @@ extends RefCounted
 ##
 ## Each storey climbed gives back one health.
 ##
-## Miho has one tail per storey she has reached (일미호 to 구미호). Her action
+## Miho grows one more tail every third storey (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
 ## kill gives one back.
 
-const FLOORS := 9
+const FLOORS := 27
+const TAIL_EVERY := 3
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
 const TAIL_REGROW := 3
@@ -186,7 +187,12 @@ func player() -> Actor:
 
 
 func max_tails() -> int:
-	return depth
+	return 1 + (depth - 1) / TAIL_EVERY
+
+
+## The difficulty step of this storey: 1 to 9, each lasting TAIL_EVERY storeys.
+func tier() -> int:
+	return (depth + TAIL_EVERY - 1) / TAIL_EVERY
 
 
 func tile(p: Vector2i) -> int:
