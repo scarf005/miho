@@ -26,7 +26,8 @@ const LEGEND := (
 	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash '
 	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar ▥wooden-wall "
-	+ "^fire ◦fog °steam ▓smoke <stairs !elixir %peach †fallen-creature "
+	+ "◇ice ‡thorns ☷mud "
+	+ "^fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir %peach †fallen-creature "
 	+ "●○*projectile @Miho"
 )
 
@@ -108,6 +109,8 @@ static func _glyph(k: World, p: Vector2i) -> String:
 			return Palette.shot_glyph(s.spell)
 		if k.burning.has(p):
 			return Palette.BURNING[0]
+		if k.hot.has(p):
+			return Palette.HOT[0]
 		if k.gas.has(p):
 			return Palette.GAS[k.gas[p].x][0]
 	if k.peaches.has(p):

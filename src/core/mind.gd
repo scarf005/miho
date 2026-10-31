@@ -197,9 +197,9 @@ static func _chase(w: World, a: Actor) -> void:
 			_align(w, a)
 
 
-## Free tiles, never into fire.
+## Free tiles, never into fire or onto hot ground.
 static func _walkable(w: World, a: Actor) -> Callable:
-	return func(p): return p == a.pos or (w.vacant(p) and not w.burning.has(p))
+	return func(p): return p == a.pos or (w.vacant(p) and not w.burning.has(p) and not w.hot.has(p))
 
 
 ## One step along a shortest path towards `goal`, stopping `keep` tiles short;

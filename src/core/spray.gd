@@ -21,11 +21,12 @@ extends RefCounted
 ## 나무 roots underground: silent, not stopped by creatures, but by sky, pond,
 ## walls and bridges. They reach the nearest creatures the caster sees within
 ## ROOT_REACH steps (ROOT_COUNT of them, 0 for all) and root them ROOT_ROUNDS.
-## A compound in the first slot has its own shape (SHAPE) and, until compounds
-## get their own effects, every element in the spell does its plain effect on
-## each tile and creature it covers: 불 sets what burns alight, 물 washes and
-## pushes 1, 흙 stuns and cracks walls, 나무 roots, 쇠 hurts 1 for each 쇠
-## (Elements.strike does the creature part).
+## A compound in the first slot has its own shape (SHAPE), one tile bigger for
+## every copy past the first, and its own effect (Compounds). Every other
+## compound in the spell adds its effect there, and every lone element its
+## plain effect on each tile and creature it covers: 불 sets what burns
+## alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots, 쇠
+## hurts 1 for each 쇠 (Elements.strike does the creature part).
 
 const FAN := [2, 3, 4]
 const JET := [4, 6, 8]
@@ -40,7 +41,7 @@ const QUAKE_STUN := [1, 1, 2]
 const ROOT_REACH := [4, 6, 8]
 const ROOT_COUNT := [1, 2, 0]
 const ROOT_ROUNDS := [2, 3, 4]
-## How far a fan of fire, or a compound spray without water, is heard.
+## How far a fan of fire, or 들불, is heard.
 const HUSH := 2
 
 const FAN_SHAPE := &"fan"
@@ -56,7 +57,7 @@ const SHAPE := {
 	&"molten": [LINE, 4],
 	&"shrapnel": [BURST, 3],
 	&"rain": [BURST, 3],
-	&"steam": [BURST, 2],
+	&"steam": [BURST, 3],
 	&"mud": [BURST, 2],
 	&"thorn": [FAN_SHAPE, 2],
 	&"split": [CLEAVE, 3],
@@ -80,12 +81,12 @@ static func called(spell: Spell) -> String:
 	return NAME[spell.slots[0]][level - 1] if level > 0 else ""
 
 
-## How far the cast is heard: water and roots are silent, guns, quakes and
-## anything with 쇠 or 흙 loud, fire hushed.
+## How far the cast is heard: anything with 물, roots and 벽 가르기 are
+## silent, guns, quakes and anything else with 쇠 or 흙 loud, fire hushed.
 static func noise(spell: Spell) -> int:
-	if spell.has(Cards.WATER) or spell.slots[0] == Cards.WOOD:
+	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"split"]:
 		return 0
-	if spell.has(Cards.METAL) or spell.has(Cards.EARTH):
+	if spell.holds(Cards.METAL) or spell.holds(Cards.EARTH):
 		return GUN_LOUD
 	return HUSH
 
@@ -128,7 +129,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	)
 	w.noise(caster.pos, noise(spell), _word(spell), caster.faction == Actor.FOX, caster.id)
 	if level == 0:
-		_plain(w, s, tiles)
+		_compound(w, s, tiles)
 		return
 	match lead:
 		Cards.FIRE:
@@ -141,7 +142,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 			_quake(w, s, tiles, level)
 		Cards.WOOD:
 			for a in rooted(w, caster, level):
-				if _hit(w, s, a):
+				if reaches(w, s, a):
 					Elements.root(w, a, ROOT_ROUNDS[level - 1])
 					Mind.struck(w, a, s)
 
@@ -164,15 +165,17 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return ring(from, QUAKE[level - 1])
 		Cards.WOOD:
 			return _paths(w, caster, rooted(w, caster, level), ROOT_REACH[level - 1])
-	var shape: Array = SHAPE[spell.slots[0]]
+	var lead := spell.slots[0]
+	var shape: Array = SHAPE[lead]
+	var n: int = shape[1] + spell.extra(lead)
 	match shape[0]:
 		FAN_SHAPE:
-			return fan(w, from, dir, shape[1])
+			return fan(w, from, dir, n)
 		LINE:
-			return line(w, from, dir, shape[1], false, 0)
+			return line(w, from, dir, n, false, 0)
 		BURST:
-			return square(w, landing(w, from, dir, shape[1]))
-	return cleave(w, from, dir, shape[1])
+			return square(w, landing(w, from, dir, shape[1]), 1 + spell.extra(lead))
+	return cleave(w, from, dir, n)
 
 
 ## Tiles within `r` (Chebyshev) of `from` and within 45° of `dir`, that `from`
@@ -245,12 +248,14 @@ static func landing(w: World, from: Vector2i, dir: Vector2i, n: int) -> Vector2i
 	return p
 
 
-## The 3x3 tiles round `at`, walls left out.
-static func square(w: World, at: Vector2i) -> Array[Vector2i]:
+## The tiles within `r` (Chebyshev) of `at`, 3x3 for 1, walls left out.
+static func square(w: World, at: Vector2i, r := 1) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
-	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
-		if Grid.inside(at + d) and not Terrain.wall(w.tile(at + d)):
-			out.append(at + d)
+	for y in range(-r, r + 1):
+		for x in range(-r, r + 1):
+			var p := at + Vector2i(x, y)
+			if Grid.inside(p) and not Terrain.wall(w.tile(p)):
+				out.append(p)
 	return out
 
 
@@ -317,7 +322,7 @@ static func _paths(w: World, caster: Actor, foes: Array[Actor], reach: int) -> A
 
 
 ## The creatures on `tiles` but the caster.
-static func _on(w: World, s: Shot, tiles: Array[Vector2i]) -> Array[Actor]:
+static func on(w: World, s: Shot, tiles: Array[Vector2i]) -> Array[Actor]:
 	var out: Array[Actor] = []
 	for p in tiles:
 		var a := w.actor_at(p)
@@ -327,7 +332,7 @@ static func _on(w: World, s: Shot, tiles: Array[Vector2i]) -> Array[Actor]:
 
 
 ## The spray reaches `a`: false when `a` takes nothing from it.
-static func _hit(w: World, s: Shot, a: Actor) -> bool:
+static func reaches(w: World, s: Shot, a: Actor) -> bool:
 	_tell(w, s, a)
 	return not Elements.absorbed(w, s, a)
 
@@ -352,8 +357,8 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 		w.ignite(p, false, level >= 3)
 	if level < 2:
 		return
-	for a in _on(w, s, tiles):
-		if _hit(w, s, a):
+	for a in on(w, s, tiles):
+		if reaches(w, s, a):
 			w.ignite(a.pos, true, level >= 3)
 			Mind.struck(w, a, s)
 
@@ -362,10 +367,10 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 static func _water(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for p in tiles:
 		Terrain.wash(w, p)
-	var foes := _on(w, s, tiles)
+	var foes := on(w, s, tiles)
 	foes.reverse()
 	for a in foes:
-		if _hit(w, s, a):
+		if reaches(w, s, a):
 			w.push(a, s.dir, PUSH[level - 1])
 			if a.alive():
 				Mind.struck(w, a, s)
@@ -374,21 +379,21 @@ static func _water(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	w.flares.append(s.origin)
 	w._changed()
-	for a in _on(w, s, tiles):
+	for a in on(w, s, tiles):
 		var n := 1
 		if level == 2 and Grid.cheb(s.origin, a.pos) <= 1:
 			n = 2
 		elif level >= 3:
 			n = PIERCE_HARM
-		if _hit(w, s, a):
+		if reaches(w, s, a):
 			Elements.harm(w, s, a, n)
 			if a.alive():
 				Mind.struck(w, a, s)
 
 
 static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
-	for a in _on(w, s, tiles):
-		if _hit(w, s, a):
+	for a in on(w, s, tiles):
+		if reaches(w, s, a):
 			Elements.stun(w, a, QUAKE_STUN[level - 1])
 			Mind.struck(w, a, s)
 	for p in tiles:
@@ -398,9 +403,12 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 			Terrain.hit(w, p)
 
 
-## A compound's spray: each element's plain effect on every tile and creature.
-static func _plain(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
+## A compound's spray: each compound's effect (Compounds), then each lone
+## element's plain effect, on every tile and creature.
+static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 	var spell := s.spell
+	for c in spell.compounds():
+		Compounds.ground(w, c, tiles)
 	for p in tiles:
 		if spell.has(Cards.FIRE):
 			w.ignite(p)
@@ -408,10 +416,13 @@ static func _plain(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			Terrain.wash(w, p)
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
 			Terrain.hit(w, p)
-	var foes := _on(w, s, tiles)
+	var foes := on(w, s, tiles)
 	foes.reverse()
 	for a in foes:
-		_tell(w, s, a)
-		if Elements.strike(w, s, a, spell.count(Cards.METAL)) and spell.has(Cards.WATER):
-			if a.alive():
+		if not reaches(w, s, a):
+			continue
+		for c in spell.compounds():
+			Compounds.strike(w, s, c, a)
+		if a.alive() and Elements.strike(w, s, a, spell.count(Cards.METAL)):
+			if spell.has(Cards.WATER) and a.alive():
 				w.push(a, s.dir, 1 + spell.extra(Cards.WATER))

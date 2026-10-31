@@ -1,7 +1,9 @@
 extends GutTest
-## Compound sprays: each compound's shape, the plain effects of the elements
-## it carries, a preview that equals the round, the hover text and the log.
+## Compound sprays: each compound's shape, the plain effects of the lone elements
+## after it, a preview that equals the round, the hover text and the log.
 
+const FOX := Cards.FOX
+const ORB := Cards.ORB
 const FIRE := Cards.FIRE
 const WATER := Cards.WATER
 const WOOD := Cards.WOOD
@@ -64,7 +66,7 @@ func _of(events: Array, t: StringName) -> Array:
 
 func test_every_compound_has_its_shape() -> void:
 	var w := _world()
-	assert_eq(_cover(w, [WATER, FIRE]), Spray.square(w, ME + E * 2), "증기 2 ahead")
+	assert_eq(_cover(w, [WATER, FIRE]), Spray.square(w, ME + E * 3), "증기 3 ahead")
 	assert_eq(_cover(w, [EARTH, WATER]), Spray.square(w, ME + E * 2), "진흙 2 ahead")
 	assert_eq(_cover(w, [WATER, WOOD]), Spray.square(w, ME + E * 3), "단비 3 ahead")
 	assert_eq(_cover(w, [EARTH, METAL]), Spray.square(w, ME + E * 3), "유탄 3 ahead")
@@ -88,43 +90,29 @@ func test_a_burst_lands_short_of_a_wall_or_on_a_creature() -> void:
 	assert_eq(_cover(w, [FIRE, EARTH]), [ME + E] as Array[Vector2i], "a line stops at it")
 
 
-func test_wall_splitting_cracks_the_first_wall_and_its_neighbours() -> void:
+func test_wall_splitting_fells_the_first_wall_and_its_neighbours_silently() -> void:
 	var w := _world()
 	for y in range(1, Grid.H - 1):
 		_put(w, Vector2i(ME.x + 3, y), World.WALL)
 	var tiles := _cover(w, [WOOD, EARTH])
 	assert_eq(tiles, [ME + E * 3, ME + Vector2i(3, 1), ME + Vector2i(3, -1)] as Array[Vector2i])
-	w.act(_cast([WOOD, EARTH]))
+	var events := w.act(_cast([WOOD, EARTH]))
 	for p in tiles:
-		assert_eq(w.tile(p), World.WALL_CRACKED, str(p))
+		assert_eq(w.tile(p), World.RUBBLE, str(p))
 	assert_eq(w.tile(ME + Vector2i(3, 2)), World.WALL)
+	assert_true(_of(events, &"noise").is_empty(), "silent")
 
 
-func test_steam_douses_and_pushes_and_thorns_hurt_and_root() -> void:
-	var w := _world()
-	_put(w, ME + E * 3, World.BOARD)
-	w.ignite(ME + E * 3)
-	var foe := _post(w, ME + Vector2i(2, 1))
-	w.act(_cast([WATER, FIRE]))
-	assert_false(w.burning.has(ME + E * 3), "doused")
-	assert_eq(foe.pos, ME + Vector2i(3, 1), "pushed 1 along the line")
-	assert_eq(foe.hp, foe.max_hp, "steam has no 쇠")
-	w = _world()
-	foe = _post(w, ME + Vector2i(2, 0))
-	var events := w.act(_cast([METAL, WOOD]))
-	assert_eq(foe.hp, foe.max_hp - 1)
-	assert_eq(_of(events, &"root")[0].rounds, Elements.ROOT)
-
-
-func test_more_slots_after_a_compound_strengthen_its_elements() -> void:
+func test_more_slots_after_a_compound_add_their_plain_effect() -> void:
 	var mud := Spell.make([EARTH, WATER, EARTH])
 	assert_eq(mud.slots, [&"mud", EARTH] as Array[StringName])
 	assert_eq(mud.title(), "진흙·흙")
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 0))
 	var events := w.act(_cast([EARTH, WATER, EARTH]))
-	assert_eq(_of(events, &"stun")[0].rounds, Elements.STUN + 1)
-	assert_eq(foe.pos, ME + Vector2i(3, 0))
+	assert_eq(_of(events, &"stun")[0].rounds, Elements.STUN, "the lone 흙 stuns")
+	assert_eq(foe.pos, ME + Vector2i(2, 0), "the 물 in 진흙 pushes no one")
+	assert_eq(w.tile(foe.pos), World.MUD)
 
 
 func test_a_spray_preview_equals_the_round() -> void:
@@ -144,14 +132,16 @@ func test_a_spray_preview_equals_the_round() -> void:
 		[WOOD],
 		[WOOD, WOOD],
 		[WOOD, WOOD, WOOD],
-		[WATER, FIRE],
-		[METAL, WOOD],
 		[EARTH, WATER, EARTH],
-		[WOOD, FIRE],
+		[WATER, FIRE, WATER, FIRE],
 	]
+	for pair: Array in Cards.PAIRS.values():
+		queues.append(pair)
 	for q in queues:
 		var w := _world()
 		_put(w, ME + Vector2i(2, 2), World.BAMBOO)
+		_put(w, ME + Vector2i(1, -1), World.POND)
+		_put(w, ME + Vector2i(3, -1), World.WALL)
 		for at in [Vector2i(1, 1), Vector2i(2, 0), Vector2i(4, 0), Vector2i(-3, 0)]:
 			_post(w, ME + at)
 		w.sense()
@@ -165,7 +155,12 @@ func test_a_spray_preview_equals_the_round() -> void:
 			harm[e.id] = harm.get(e.id, 0) + e.n
 		assert_eq(f.harm, harm, str(q))
 		for a in w.actors:
-			assert_eq(f.after.actor(a.id).pos, a.pos, "%s moves %d" % [q, a.id])
+			var b := f.after.actor(a.id)
+			assert_eq(
+				[b.pos, b.rooted, b.stunned], [a.pos, a.rooted, a.stunned], "%s %d" % [q, a.id]
+			)
+		assert_eq(f.after.tiles, w.tiles, str(q))
+		assert_eq([f.after.hot, f.after.gas, f.after.burning], [w.hot, w.gas, w.burning], str(q))
 
 
 func test_hover_tells_every_number_of_every_spray() -> void:
@@ -185,10 +180,41 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[WOOD]: ["4걸음 안", "적 1명", "2초 묶는다", "소리 없음"],
 		[WOOD, WOOD]: ["6걸음 안", "적 2명", "3초 묶는다"],
 		[WOOD, WOOD, WOOD]: ["8걸음 안", "적 모두", "4초 묶는다"],
-		[WATER, FIRE]: ["증기", "2칸 앞 3×3", "적을 1칸 민다", "타는 칸과 나무 적에 불을 붙인다"],
-		[METAL, WOOD]: ["가시", "반지름 2", "적에게 피해 1", "적을 2초 묶는다"],
-		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽에 금이 간다"],
-		[FIRE, EARTH]: ["용암", "곧게 4칸"],
+		[WATER, FIRE]:
+		[
+			"증기 꼬리 2개",
+			"3칸 앞 3×3",
+			"증기 %d/%d. %d 이상이면 시야를 막는다" % [Compounds.STEAM, Gas.MAX, Gas.OPAQUE],
+			"서 있으면 매 초 피해 %d" % Gas.of(Gas.STEAM, "harm"),
+			"소리 없음",
+		],
+		[WATER, FIRE, WATER, FIRE]: ["증기×2", "3칸 앞 5×5"],
+		[METAL, WOOD]:
+		["가시", "반지름 2", "적마다 피해 %d. 지나가면 피해 %d" % [Compounds.THORN, Compounds.THORN]],
+		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽을 소리 없이 무너뜨린다", "소리 없음"],
+		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
+		[FIRE, EARTH]:
+		[
+			"용암",
+			"곧게 4칸",
+			"뜨거운 땅이 %d초 남는다" % Compounds.HOT_ROUNDS,
+			"매 초 피해 %d" % Compounds.HOT[Compounds.LAVA].harm,
+		],
+		[FIRE, METAL]:
+		[
+			"뜨거운 쇠가 %d초 남는다" % Compounds.HOT_ROUNDS,
+			"매 초 피해 %d" % Compounds.HOT[Compounds.MOLTEN].harm,
+		],
+		[WOOD, FIRE]: ["들불", "반지름 3", "불이 늘 번진다", "소리 쓸 때 %d칸" % Spray.HUSH],
+		[EARTH, METAL]:
+		["유탄", "3칸 앞 3×3", "적마다 피해 %d" % Compounds.SHRAPNEL, "%d칸" % Spray.GUN_LOUD],
+		[METAL, WATER]: ["서리", "곧게 4칸", "%d초 얼어 움직이지 못한다" % Compounds.FROST, "연못이 얼어"],
+		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고"],
+		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "걷는 데 %d초, 발소리가 없다" % Compounds.MUD],
+		[EARTH, WATER, EARTH]: ["진흙·흙", "흙 적을 %d초 기절시킨다" % Elements.STUN],
+		[FOX, WATER, FIRE]: ["증기 여우불", "멈춘 곳 3×3", "증기 %d/%d" % [Compounds.STEAM, Gas.MAX]],
+		[ORB, WOOD, EARTH]: ["멈춘 곳에서 1칸 안 첫 벽과 그 양옆"],
+		[ORB, METAL, WATER, METAL, WATER]: ["서리×2 구슬", "멈춘 곳 5×5"],
 	}
 	for q: Array in rows:
 		var text := Info.plain(SpellInfo.spell(Spell.make(q)))

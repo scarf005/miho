@@ -89,6 +89,9 @@ const ROWS := {
 		breaks_to = World.FLOOR,
 		gas = false,
 	},
+	World.ICE: {name = "얼음", walk = true, douses = true},
+	World.THORNS: {name = "가시덤불", walk = true, burns = true},
+	World.MUD: {name = "진흙", walk = true, douses = true},
 }
 const DEFAULT := {
 	name = "",

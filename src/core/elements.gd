@@ -19,7 +19,7 @@ extends RefCounted
 ## 나무: a wisp roots ROOT rounds, a round more a copy; an orb grows a wooden
 ## wall of WALL tiles across its line where it ends, a tile more a copy.
 ## A spray carries each element's wisp effect on the creatures it covers
-## (Spray._plain), but fire there sets only wood creatures alight.
+## (Spray._compound), but fire there sets only wood creatures alight.
 
 const ROOT := 2
 const STUN := 1

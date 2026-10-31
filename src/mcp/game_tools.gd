@@ -43,7 +43,8 @@ const SPELLS := {
 		+ "queued as one compound slot. A spell fills at most 5 slots. With fox or orb it "
 		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
 		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
-		+ "shape). Metal makes fox a bullet and orb a cannonball; wood on an orb grows a "
+		+ "shape and effect, which a projectile carries to the 3x3 where it ends). Metal makes "
+		+ "fox a bullet and orb a cannonball; wood on an orb grows a "
 		+ "wooden wall. The forecast lists every number. Every card costs one tail, and all cards "
 		+ "together cost at most the unspent tails."
 	),
@@ -242,6 +243,11 @@ func _forecast(args: Dictionary) -> Dictionary:
 	var grown: Array = f.sprouts.map(func(p): return "(%d,%d)" % [p.x, p.y])
 	if not grown.is_empty():
 		out.append("wooden wall grows at: " + " ".join(grown))
+	for p: Vector2i in f.grounds:
+		out.append("(%d,%d) turns to %s" % [p.x, p.y, Tiles.of(f.grounds[p], "name")])
+	var heated: Array = f.heated.map(func(p): return "(%d,%d)" % [p.x, p.y])
+	if not heated.is_empty():
+		out.append("hot ground at: " + " ".join(heated))
 	out.append("harm to Miho: %d" % f.hurt_me())
 	var noticing := f.noticed.keys().map(func(i): return _whom(world, i))
 	out.append("noticed by: " + (", ".join(noticing) if not noticing.is_empty() else "nobody"))

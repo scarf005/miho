@@ -175,6 +175,10 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	if w.hot.has(a.pos):
+		var h: Vector2i = w.hot[a.pos]
+		var spec: Dictionary = Compounds.HOT[h.x]
+		out.append(_amount("%s 위 (%d초). 매 초 피해 " % [spec.name, h.y], spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
 
@@ -208,6 +212,9 @@ static func _spell_details(s: Spell) -> Array[String]:
 	var out: Array[String] = [harm]
 	if s.orb and s.has(Cards.FIRE):
 		out.append("터지면 주위 피해 %d" % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
+	for c in s.compounds():
+		for part in SpellInfo.compound(c):
+			out.append("%s: %s" % [Cards.NAME[c], part])
 	var noise := "소리 없음" if s.cast_noise() == 0 else "소리 %d칸" % s.cast_noise()
 	if s.burst_noise() > 0:
 		noise += ", 터질 때 %d칸" % s.burst_noise()
@@ -254,6 +261,11 @@ static func terrain(w: World, p: Vector2i) -> Array:
 		lines.append([[note, Palette.DIM]])
 	if burns:
 		lines.append_array(_burning(w.burning[p]))
+	if w.hot.has(p) and w.seen[Grid.index(p)] == 1:
+		var h: Vector2i = w.hot[p]
+		var spec: Dictionary = Compounds.HOT[h.x]
+		lines.append([["%s. %d초 뒤 식는다" % [spec.name, h.y], Palette.HURT]])
+		lines.append(_amount("서 있으면 매 초 피해 ", spec.harm))
 	lines.append_array(_gas(w, p))
 	if w.vents.has(p):
 		var vent := [
@@ -330,6 +342,12 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("달빛에 드러난다. 불에 타지 않는다")
 		World.ASH:
 			out.append("다시 타지 않는다")
+		World.ICE:
+			out.append("얼어붙은 연못. 걸어서 건넌다")
+		World.THORNS:
+			out.append("지나가면 피해 %d. 시야는 통한다" % Compounds.THORN)
+		World.MUD:
+			out.append("걷는 데 %d초 걸린다. 발소리가 나지 않는다" % Compounds.MUD)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:

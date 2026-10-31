@@ -50,6 +50,10 @@ static func spell(s: Spell) -> Array:
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], _effect(s, e), Palette.CARD[e]))
+	for c in s.compounds():
+		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
+		for part in compound(c):
+			lines.append(_line(Cards.NAME[c], part, Palette.card(c)))
 	var light := _light(s.light(Actor.FOX))
 	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
@@ -120,17 +124,22 @@ static func _gun(level: int) -> Array:
 	return out
 
 
-## A compound's shape, then the plain effect of each element it carries.
+## A compound's shape, then what each compound in it does, then the plain
+## effect of each lone element.
 static func _compound(s: Spell) -> Array:
-	var shape: Array = Spray.SHAPE[s.slots[0]]
-	var n: int = shape[1]
+	var lead := s.slots[0]
+	var shape: Array = Spray.SHAPE[lead]
+	var n: int = shape[1] + s.extra(lead)
 	var text: String = {
 		Spray.FAN_SHAPE: _fan(n),
 		Spray.LINE: "곧게 %d칸, 첫 적에서 멈춘다" % n,
-		Spray.BURST: "%d칸 앞 3×3. 막힐 시 그 앞" % n,
+		Spray.BURST: "%d칸 앞 %s. 막힐 시 그 앞" % [shape[1], _square(1 + s.extra(lead))],
 		Spray.CLEAVE: "%d칸 안 첫 벽과 그 양옆" % n,
 	}[shape[0]]
 	var lines := [_line("모양", text)]
+	for c in s.compounds():
+		for part in compound(c):
+			lines.append(_line(Cards.NAME[c], part, Palette.card(c)))
 	var plain := {
 		Cards.FIRE: "타는 칸과 나무 적에 불을 붙인다",
 		Cards.WATER: "불과 등불을 끄고 적을 %d칸 민다" % (1 + s.extra(Cards.WATER)),
@@ -144,6 +153,61 @@ static func _compound(s: Spell) -> Array:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], plain[e], Palette.CARD[e]))
 	return lines
+
+
+## What compound `c` does where it reaches, a short sentence each (Compounds).
+static func compound(c: StringName) -> Array[String]:
+	var harm := "서 있으면 매 초 피해 %d"
+	var hot := func(kind: int) -> Array[String]:
+		var spec: Dictionary = Compounds.HOT[kind]
+		var subject: String = spec.name + Messages._particle(spec.name, "이", "가")
+		return ["%s %d초 남는다" % [subject, Compounds.HOT_ROUNDS], harm % spec.harm]
+	var out: Array[String] = []
+	match c:
+		&"wildfire":
+			out.assign(["타는 칸과 닿은 적에 불을 붙인다", "불이 늘 번진다", harm % World.FIRE_DAMAGE])
+		&"lava":
+			out.assign(hot.call(Compounds.LAVA))
+		&"molten":
+			out.assign(hot.call(Compounds.MOLTEN))
+		&"shrapnel":
+			out.assign(["적마다 피해 %d. 약점 시 ×2" % Compounds.SHRAPNEL])
+		&"frost":
+			out.assign(["적이 %d초 얼어 움직이지 못한다" % Compounds.FROST, "연못이 얼어 건널 수 있다"])
+		&"rain":
+			out.assign(["적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고 북을 적신다"])
+		&"steam":
+			var gas := "증기 %d/%d. %d 이상이면 시야를 막는다" % [Compounds.STEAM, Gas.MAX, Gas.OPAQUE]
+			out.assign([gas, harm % Gas.of(Gas.STEAM, "harm"), "북을 적신다"])
+		&"thorn":
+			var name: String = Tiles.of(World.THORNS, "name")
+			(
+				out
+				. assign(
+					[
+						"%s이 자란다. 시야는 통하고 불에 탄다" % name,
+						"적마다 피해 %d. 지나가면 피해 %d" % [Compounds.THORN, Compounds.THORN],
+					]
+				)
+			)
+		&"split":
+			out.assign(["벽을 소리 없이 무너뜨린다"])
+		&"mud":
+			var name: String = Tiles.of(World.MUD, "name")
+			out.assign(["불과 등불을 끄고 땅이 %s이 된다" % name, "걷는 데 %d초, 발소리가 없다" % Compounds.MUD])
+	return out
+
+
+## Where a compound carried on a projectile reaches.
+static func _carried(s: Spell, c: StringName) -> String:
+	var r := 1 + s.extra(c)
+	if c == &"split":
+		return "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆" % r
+	return "멈춘 곳 " + _square(r)
+
+
+static func _square(r: int) -> String:
+	return "%d×%d" % [2 * r + 1, 2 * r + 1]
 
 
 ## A projectile in flight, from what Miho knows of `w`.

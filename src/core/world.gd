@@ -28,6 +28,8 @@ extends RefCounted
 ## Gas (fog, steam, smoke) lies on tiles, spreads and thins every round, and
 ## thick enough it blocks sight: see Gas.
 ##
+## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
+##
 ## A war drum calls heaven: see Drums.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
@@ -106,6 +108,9 @@ const LEAVES := 22
 const SHALLOW := 23
 const PILLAR := 24
 const WOOD_WALL := 25
+const ICE := 26
+const THORNS := 27
+const MUD := 28
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -125,6 +130,8 @@ var vents := {}
 var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).
 var wet := {}
+## Hot ground: position -> Vector2i(kind, rounds left) (Compounds).
+var hot := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -185,6 +192,7 @@ func clone() -> World:
 	w.changes = changes.duplicate(true)
 	w.bodies = bodies.duplicate(true)
 	w.wet = wet.duplicate()
+	w.hot = hot.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -475,6 +483,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	_shots_phase()
 	Mind.heaven_phase(self)
 	_burn()
+	Compounds.tick(self)
 	Gas.tick(self)
 	_end_round()
 	sense()
@@ -526,8 +535,10 @@ func move(a: Actor, to: Vector2i) -> void:
 	a.pos = to
 	_changed()
 	var tread: Array = Tiles.of(tile(to), "tread")
-	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
+	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
+	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
+	Compounds.step(self, a, to)
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
@@ -736,7 +747,8 @@ func _burst(s: Shot) -> void:
 
 ## A thud happens wherever the spell ends; fire sets that tile alight and
 ## relights the lanterns next to it, except the one an orb just struck, water
-## douses lanterns and flames, and a wood orb grows a wall (Elements).
+## douses lanterns and flames, a wood orb grows a wall (Elements), and each
+## compound acts round where it ends (Compounds).
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
@@ -745,6 +757,7 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	Terrain.touch(self, s, at, struck)
 	if s.spell.orb and s.spell.has(Cards.WOOD):
 		Elements.sprout(self, s, at)
+	Compounds.land(self, s, at)
 
 
 func _strike(s: Shot, a: Actor) -> void:

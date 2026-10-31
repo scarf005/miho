@@ -317,7 +317,8 @@ func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
 		orb, "소리 %d칸, 터질 때 %d칸" % [orb_spell.cast_noise(), orb_spell.burst_noise()]
 	)
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
-	assert_string_contains(boss, "터지면 주위 피해 %d" % World.FIRE_DAMAGE)
+	var molten: Dictionary = Compounds.HOT[Compounds.MOLTEN]
+	assert_string_contains(boss, "쇳물: %s가 %d초 남는다" % [molten.name, Compounds.HOT_ROUNDS])
 	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
 	assert_string_contains(water, "소리 없음")
 

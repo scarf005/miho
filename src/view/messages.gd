@@ -113,6 +113,14 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["밀려났다", TEXT]]
 		&"sprout":
 			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
+		&"freeze":
+			return _subject(before, after, id) + [["얼어붙었다", TEXT]]
+		&"become":
+			return _named(Tiles.of(e.tile, "name"), "이", "가") + [[" 생겼다", TEXT]]
+		&"heat":
+			return _named(Compounds.HOT[e.kind].name, "이", "가") + [[" 남았다", TEXT]]
+		&"cool":
+			return _named(Compounds.HOT[e.kind].name, "이", "가") + [[" 식었다", TEXT]]
 		&"absorb":
 			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
 		&"heed":
@@ -196,6 +204,11 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	if last.get("t") == &"scald" and last.id == id:
 		var gas := [[Gas.of(last.kind, "name"), Palette.GAS[last.kind][1]], ["에 데어 ", TEXT]]
 		return _subject(before, after, id) + gas + _took(e.n)
+	if last.get("t") == &"sear" and last.id == id:
+		var hot: String = Compounds.HOT[last.kind].name
+		return _subject(before, after, id) + [[hot + "에 데어 ", TEXT]] + _took(e.n)
+	if last.get("t") == &"prick" and last.id == id:
+		return _subject(before, after, id) + [["가시에 찔려 ", TEXT]] + _took(e.n)
 	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
 	if mine and id != after.player().id:
 		return _harm_to(before, after, id, e.n)

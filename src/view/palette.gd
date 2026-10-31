@@ -39,9 +39,14 @@ const TILES := {
 	World.SHALLOW: ["▧", Color(0.5, 0.76, 1.0), Color(0.06, 0.15, 0.3)],
 	World.PILLAR: ["■", Color(0.82, 0.76, 0.66), Color(0.2, 0.18, 0.16)],
 	World.WOOD_WALL: ["▥", Color(0.78, 0.56, 0.32), Color(0.26, 0.15, 0.07)],
+	World.ICE: ["◇", Color(0.78, 0.92, 1.0), Color(0.16, 0.25, 0.36)],
+	World.THORNS: ["‡", Color(0.6, 0.74, 0.36), Color(0.1, 0.13, 0.06)],
+	World.MUD: ["☷", Color(0.6, 0.46, 0.3), Color(0.17, 0.12, 0.07)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
+## Hot ground (Compounds), drawn over its terrain.
+const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]
