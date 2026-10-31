@@ -175,6 +175,21 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	for s in w.shots:
+		if s.host == a.id and not s.gone:
+			var title := s.spell.title()
+			var runs := [[title, Palette.card(s.spell.slots.back())]]
+			out.append(
+				(
+					runs
+					+ [
+						[
+							Messages._particle(title, "이", "가") + " 붙어 있다 (%d초)" % s.life,
+							Palette.TEXT
+						]
+					]
+				)
+			)
 	if w.hot.has(a.pos):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]

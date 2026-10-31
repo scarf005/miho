@@ -138,6 +138,17 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ [[" ", TEXT], [spell.title(), Palette.card(spell.slots.back())]]
 				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
 			)
+		&"stick":
+			var spell := Spell.make(e.cards)
+			var host := (
+				[["당신에게", TEXT]] if id == after.player().id else _who(before, after, id, "에게", "에게")
+			)
+			return (
+				[[e.title, Palette.card(spell.slots.back())]]
+				+ [[_particle(e.title, "이", "가") + " ", TEXT]]
+				+ host
+				+ [[" 붙었다", TEXT]]
+			)
 		&"open", &"close":
 			var what := "열었다" if e.t == &"open" else "닫았다"
 			if id == after.player().id:

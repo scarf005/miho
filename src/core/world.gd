@@ -821,7 +821,8 @@ func _stick(s: Shot, a: Actor) -> void:
 			id = a.id,
 			at = a.pos,
 			faction = s.faction,
-			cards = s.spell.cards
+			cards = s.spell.cards,
+			title = s.spell.title()
 		}
 	)
 
