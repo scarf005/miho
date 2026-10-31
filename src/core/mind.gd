@@ -273,9 +273,11 @@ static func flee(w: World, a: Actor) -> bool:
 	return true
 
 
-## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it.
+## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it,
+## unless it is asleep: only one awake (on patrol, searching, hunting, walking
+## home) does.
 static func _stoke(w: World, a: Actor) -> bool:
-	return a.info().get("stokes", false) and Terrain.relight_beside(w, a)
+	return a.info().get("stokes", false) and not a.asleep() and Terrain.relight_beside(w, a)
 
 
 ## A tracker (Bestiary tracks) on Miho's trail sweeps along it, searching.

@@ -8,7 +8,7 @@ extends RefCounted
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
 ## and `throw`, how many tiles the blow pushes her back (into the sky she falls).
-## stokes: lights a dark lantern beside it before anything else (Mind).
+## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
 ## tracks: follows Miho's scent while it rests or searches (Mind).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.

@@ -346,7 +346,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if spec.get("tracks", false):
 		out.append("당신의 냄새를 따라감")
 	if spec.get("stokes", false):
-		out.append("꺼진 등불을 켬")
+		out.append("깨어 있으면 꺼진 등불을 켬")
 	out.append(_dark_sight(a))
 	return out
 
