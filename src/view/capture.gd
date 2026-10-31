@@ -2,19 +2,21 @@ class_name Capture
 extends Node
 ## Scripted runs for screenshots and checks, driven through the real input path:
 ## godot --path . -- --seed=3 --keys=Space,1,Up,Space --shot=out.png
-## A key may also be `hover:x:y` (point at a tile), `click:x:y` (click it),
+## A key may also be `hover:x:y` (point at a tile), `aim:dx:dy` (point at the
+## tile that far from Miho), `click:x:y` (click it),
 ## `cell:x:y` (point at a screen cell, such as a talisman, the sidebar or a
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
+## `card:name` (Miho holds that talisman, such as fire),
 ## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
 ## in between as out-1.png, out-2.png ...). Keys may carry modifiers: Shift+Up.
-## --depth=n builds storey n in place of the first. --replay=seconds also saves
+## --depth=n builds storey n in place of the first, with its tails. --replay=seconds also saves
 ## out-replay.png that long into the first highlight replay. --zoom=1.5 sets
 ## the cell scale (0 fits the whole map).
 ## Runs start from default settings and keys, and never save them. They keep no
@@ -41,6 +43,7 @@ static func attach(main: Node) -> void:
 	if args.has("depth"):
 		main.world.depth = int(args.depth)
 		FloorGen.build(main.world)
+		main.world.tails = main.world.max_tails()
 		main.world.sense()
 		main.term.show_world(main.world)
 	main._show_title()
@@ -82,8 +85,10 @@ func _run() -> void:
 func _send(k: String) -> void:
 	var parts := k.split(":")
 	match parts[0]:
-		"hover":
+		"hover", "aim":
 			var tile := Vector2i(int(parts[1]), int(parts[2]))
+			if parts[0] == "aim":
+				tile += main.world.player().pos
 			main._point(_screen(main.term.cell_centre(tile)))
 		"cell":
 			var at := (Vector2(int(parts[1]), int(parts[2])) + Vector2(0.5, 0.5)) * Term.CELL
@@ -114,7 +119,7 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
-		"tile", "at", "foe", "hunt":
+		"tile", "at", "foe", "hunt", "card":
 			_stage(parts)
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
@@ -143,7 +148,7 @@ func _send(k: String) -> void:
 				await get_tree().process_frame
 
 
-## Changes the world for a picture: tile, at, foe and hunt.
+## Changes the world for a picture: tile, at, foe, hunt and card.
 func _stage(parts: PackedStringArray) -> void:
 	var w: World = main.world
 	var xy := Vector2i(int(parts[-2]), int(parts[-1]))
@@ -156,6 +161,9 @@ func _stage(parts: PackedStringArray) -> void:
 			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
 		"hunt":
 			w.hunt_from(w.actor_at(xy), w.player().pos)
+		"card":
+			if not w.cards.has(StringName(parts[1])):
+				w.cards.append(StringName(parts[1]))
 	w._changed()
 	w.sense()
 	main.term.show_world(w)

@@ -139,27 +139,26 @@ func test_keys_clear_cancel_and_reset() -> void:
 	assert_eq(menu.page, &"options")
 
 
-func test_the_spellbook_lists_every_spell_and_a_slot_key_saves_one() -> void:
+func test_the_spellbook_lists_the_queue_then_the_saved_spells_and_a_slot_key_saves_one() -> void:
 	var menu := Menu.new()
-	menu.cards.assign([Cards.FOX, Cards.ORB, Cards.FIRE])
+	menu.settings.spells = {&"slot_2": "orb+fire"}
+	menu.queued = Spell.make([Cards.FOX, Cards.FOX, Cards.FIRE])
 	menu.open(&"spells")
 	var text := _text(menu.panel())
-	assert_eq(menu.panel().rows.size(), Spell.every(menu.cards).size())
-	assert_string_contains(text, "화염구")
-	assert_string_contains(text, "불여우구슬")
+	assert_eq(menu.panel().rows.size(), 2, "the queue, then the saved spell")
+	assert_string_contains(text, "불 여우불 2발")
+	assert_string_contains(text, "불 구슬")
 	assert_false(menu.panel().detail.is_empty(), "the selected spell's effect")
 	assert_eq(menu.key(_press("Q")), &"changed")
-	assert_eq(menu.settings.spells, {&"slot_1": "fox"})
+	assert_eq(menu.settings.spells, {&"slot_1": "fox+fox+fire", &"slot_2": "orb+fire"})
 	assert_eq(menu.key(_press("Q")), &"changed")
-	assert_eq(menu.settings.spells, {}, "the same key again clears it")
+	assert_eq(menu.settings.spells, {&"slot_2": "orb+fire"}, "the same key again clears it")
 	assert_eq(menu.use(), &"cast")
-	assert_eq(menu.chosen.key(), "fox")
+	assert_eq(menu.chosen.key(), "fox+fox+fire")
 
 
-func test_every_spell_is_made_once_and_cheapest_first() -> void:
-	var all := Spell.every(Cards.ALL)
-	var keys := all.map(func(s): return s.key())
-	assert_eq(keys.size(), keys.filter(func(k): return keys.count(k) == 1).size())
-	assert_true(all.all(func(s): return s.cost() <= Spell.MAX_CARDS))
-	for i in all.size() - 1:
-		assert_true(all[i].cost() <= all[i + 1].cost())
+func test_an_empty_spellbook_says_so_and_enter_closes_it() -> void:
+	var menu := Menu.new()
+	menu.open(&"spells")
+	assert_string_contains(_text(menu.panel()), "저장한 주문도 없다")
+	assert_eq(menu.use(), &"close")

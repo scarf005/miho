@@ -55,23 +55,26 @@ func _types(events: Array) -> Array:
 	return events.map(func(e): return e.t)
 
 
-func test_spell_needs_a_form_and_distinct_cards() -> void:
+func test_the_queue_stacks_repeats_and_holds_five_slots_at_most() -> void:
 	assert_null(Spell.make([]))
-	assert_null(Spell.make([Cards.FIRE]))
-	assert_null(Spell.make([FOX, FOX]))
-	assert_not_null(Spell.make([Cards.FIRE, FOX]))
-	assert_not_null(Spell.make([FOX, ORB, Cards.FIRE, Cards.WATER]))
-	assert_null(
-		Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.WOOD, Cards.METAL]), "four cards at most"
-	)
+	assert_null(Spell.make([FOX, &"bomb"]))
+	assert_eq(Spell.make([FOX, FOX, FOX]).slots, [FOX, FOX, FOX] as Array[StringName])
+	assert_eq(Spell.make([FOX, FOX, FOX]).count(FOX), 3)
+	assert_not_null(Spell.make([FOX, FOX, FOX, FOX, FOX]))
+	assert_null(Spell.make([FOX, FOX, FOX, FOX, FOX, FOX]), "five slots at most")
+	var six_cards := Spell.make([FOX, ORB, ORB, Cards.FIRE, Cards.WATER, Cards.FIRE])
+	assert_eq(six_cards.slots.size(), 5, "a compound is one slot")
+	assert_eq(six_cards.cost(), 6, "and two tails")
 
 
 func test_spell_names_and_costs() -> void:
-	assert_eq(Spell.make([FOX, Cards.FIRE]).title(), "화염구")
-	assert_eq(Spell.make([ORB, FOX]).title(), "여우구슬")
-	assert_eq(Spell.make([ORB, Cards.WATER]).title(), "먹구슬")
-	assert_eq(Spell.make([FOX, Cards.METAL]).title(), "섬광")
-	assert_eq(Spell.make([Cards.METAL, ORB, Cards.FIRE]).title(), "불·쇠 구슬")
+	assert_eq(Spell.make([FOX, Cards.FIRE]).title(), "불 여우불")
+	assert_eq(Spell.make([FOX, FOX, FOX]).title(), "여우불 3발")
+	assert_eq(Spell.make([ORB, FOX]).title(), "유도 구슬")
+	assert_eq(Spell.make([ORB, Cards.WATER, Cards.WATER]).title(), "물×2 구슬")
+	assert_eq(Spell.make([Cards.METAL, ORB, Cards.FIRE]).title(), "쇳물 구슬")
+	assert_eq(Spell.make([ORB, Cards.WATER, Cards.FIRE, Cards.WOOD]).title(), "증기·나무 구슬")
+	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.FIRE]).title(), "증기·불 구슬")
 	assert_eq(Spell.make([FOX]).cost(), 1)
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.METAL]).cost(), 3)
 	assert_eq(Spell.make([FOX, ORB, Cards.FIRE, Cards.METAL]).cost(), 4)
@@ -191,21 +194,18 @@ func test_hover_never_shows_a_creature_miho_cannot_see() -> void:
 	assert_eq(Info.at(w.known_clone(), Vector2i(30, 2)), [], "never seen")
 
 
-func test_a_wisp_flies_three_a_round_then_hovers_and_lights_without_harm() -> void:
+func test_a_wisp_with_no_creature_in_sight_flies_three_a_round_then_hovers_and_lights() -> void:
 	var w := _world()
 	w.act(_cast([FOX], E))
 	var wisp: Shot = w.shots[0]
 	assert_eq(wisp.pos, Vector2i(8, 8))
+	assert_eq(wisp.target, 0)
 	w.act(WAIT)
 	assert_eq(wisp.pos, Vector2i(11, 8), "stops at its range")
 	assert_eq(wisp.dir, Vector2i.ZERO)
+	assert_eq(wisp.life, Spell.WISP_LIFE - 1, "hovers WISP_LIFE rounds from where it stopped")
 	assert_true(w.lit(Vector2i(13, 8)))
-	var near := _world()
-	var foe := _foe(near, &"jangseung", Vector2i(7, 8))
-	near.act(_cast([FOX], E))
-	assert_eq(near.shots[0].pos, Vector2i(6, 8), "stops short of a creature")
-	assert_eq(foe.hp, 3)
-	assert_eq(near.seen[Grid.index(foe.pos)], 1, "and shows it")
+	assert_true(w.vacant(wisp.pos), "creatures may share a hovering wisp's tile")
 
 
 func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came_from() -> void:

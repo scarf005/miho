@@ -6,7 +6,8 @@ extends RefCounted
 ## talisman and counts as a kill; Miho falls one storey down and lands on a
 ## fresh storey with her health and tails (her tails kept up to what that
 ## storey allows). On the first storey she has nowhere to fall to, and stops
-## at the edge like at a wall.
+## at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
+## Miho takes them as if she had stepped there (World.arrive).
 
 
 static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
@@ -23,6 +24,8 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 		if not w.vacant(to):
 			return
 		w.move(a, to)
+		if a.faction == Actor.FOX and w.arrive(a):
+			return
 
 
 ## A creature of heaven falls from the edge at `into`.

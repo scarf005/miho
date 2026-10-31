@@ -107,7 +107,7 @@ func test_old_default_keys_saved_before_the_key_change_give_way_to_new_ones() ->
 
 func test_saved_spells_round_trip_and_bad_ones_are_dropped() -> void:
 	var s := Settings.new()
-	s.spells = {&"slot_1": "fox+fire", &"slot_2": "fire"}
+	s.spells = {&"slot_1": "fox+fire", &"slot_2": "fox+bomb", &"slot_3": "fox+fox+fox+fox+fox+fox"}
 	var back := _reload(s)
 	assert_eq(back.spells, {&"slot_1": "fox+fire"})
 

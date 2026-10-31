@@ -37,7 +37,7 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 		var e: Dictionary = events[i]
 		if e.t == &"move" and where.has(e.id):
 			where[e.id] = e.to
-		if e.t == &"spawn":
+		if e.t == &"spawn" or e.t == &"spray":
 			factions[e.shot] = e.faction
 		if e.t == &"hit":
 			e = e.merged({faction = factions.get(e.shot, Actor.HEAVEN)})

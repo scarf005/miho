@@ -23,6 +23,8 @@ const SIDE_STATE := ["쉼", "수색", "추격"]
 const SIZE := 32
 const BIG := 48
 const SMALL := 16
+## Pixels between the lines of wisps chasing one creature.
+const LINE_GAP := 5.0
 const HEART := [
 	".##...##.",
 	"####.####",
@@ -51,6 +53,7 @@ const DELAY := {
 	&"hit": 0.1,
 	&"burst": 0.1,
 	&"splash": 0.22,
+	&"spray": 0.25,
 	&"clash": 0.1,
 	&"claw": 0.16,
 	&"melee": 0.16,
@@ -66,6 +69,9 @@ var staged: Array[Dictionary] = []
 ## Set by the game: tile -> Color tints, and tile -> [text, Color] marks.
 var tints := {}
 var marks := {}
+## Set by the game: lines [from tile, to tile, Color, k], one per wisp to its
+## creature; the k-th line to one creature is drawn k * LINE_GAP to the side.
+var lines: Array = []
 var replay := false
 ## The tile under the pointer and what it shows there, as Info lines.
 var cursor := Vector2i(-1, -1)
@@ -302,6 +308,10 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_flash(at, Color(Palette.BURNING[1], 0.9), 0.14)
 		&"die":
 			_actors.erase(e.id)
+		&"spray":
+			var color := Palette.card(Spell.make(e.cards).slots[0])
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
 		&"flash":
 			for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
 				_flash(at + d * 1, Color(1, 1, 1, 0.9))
@@ -338,73 +348,6 @@ func side_at(local: Vector2) -> Vector2i:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
-
-
-## Saved spells on the status row: {action, key, x, width}, left to right.
-func _slots() -> Array:
-	var out := []
-	if world == null:
-		return out
-	var x := MAP.x + world.max_tails() + 1.0
-	for action in Keys.SLOTS:
-		if not saved.has(action):
-			continue
-		var keys := Keys.keys_of(action)
-		var spell := Spell.from_key(saved[action])
-		var width := 0.5 + spell.cards.size()
-		out.append(
-			{
-				action = action,
-				key = Keys.label(keys[0]) if not keys.is_empty() else "",
-				x = x,
-				width = width
-			}
-		)
-		x += width + 1.0
-	return out
-
-
-## Whether Miho has a spell's talismans and the tails for it beside `held`.
-func _castable(spell: Spell, held: int) -> bool:
-	return (
-		spell.cards.all(func(c): return world.cards.has(c)) and spell.cost() + held <= world.tails
-	)
-
-
-## The saved spell under a point in this node's space, or empty.
-func slot_at(local: Vector2) -> String:
-	var c := local / CELL
-	if floori(c.y) != rows - 2:
-		return ""
-	for slot in _slots():
-		if c.x >= slot.x and c.x < slot.x + slot.width:
-			return saved[slot.action]
-	return ""
-
-
-## The spell in hand under a point in this node's space, or empty.
-func hand_at(local: Vector2) -> String:
-	var spell := Spell.make(picked)
-	if spell == null or floori(local.y / CELL.y) != rows - 1:
-		return ""
-	return spell.key() if local.x / CELL.x >= cols - _cells(spell.title()) else ""
-
-
-## Whether a point in this node's space is on Miho's health or tails.
-func status_at(local: Vector2) -> bool:
-	var c := Vector2i((local / CELL).floor())
-	return c.y == rows - 2 and world != null and c.x >= 0 and c.x < MAP.x + world.max_tails()
-
-
-## The talisman under a point in this node's space, or empty.
-func card_at(local: Vector2) -> StringName:
-	var c := Vector2i((local / CELL).floor())
-	if c.y != rows - 1 or world == null:
-		return &""
-	var i := (c.x - MAP.x) / 3
-	if c.x < MAP.x or i >= world.cards.size():
-		return &""
-	return world.cards[i]
 
 
 # --- light -------------------------------------------------------------------
@@ -475,6 +418,12 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	if not _animating:
 		_draw_paths()
+		for l: Array in lines:
+			if _shown(l[0]) and _shown(l[1]):
+				var a := cell_centre(l[0])
+				var b := cell_centre(l[1])
+				var side: Vector2 = (b - a).orthogonal().normalized() * LINE_GAP * l[3]
+				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
 	for f in _flashes:
@@ -495,7 +444,7 @@ func _draw() -> void:
 			_text(at, p.text, Color(c, 1.0 - k * k))
 	if not replay:
 		_draw_side(actors, me_pos)
-		_draw_bottom()
+		StatusBar.draw(self)
 		if banner_lines.is_empty():
 			_draw_log()
 		_draw_info()
@@ -630,7 +579,7 @@ func _draw_paths() -> void:
 		if s.dir == Vector2i.ZERO or not _revealed(s.pos):
 			continue
 		var ray := Forecast.ray(world, s.pos, s.dir)
-		if s.spell.homing():
+		if s.turn > 0:
 			ray = ray.slice(0, 1)
 		elif not s.spell.orb:
 			ray = ray.slice(0, maxi(0, Spell.RANGE - s.distance()))
@@ -689,7 +638,10 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	for p in marks:
 		var m: Array = marks[p]
 		if _shown(p):
-			_small(_cell(p) + Vector2(0.62, 0.55), m[0], m[1])
+			var at := _cell(p) + Vector2(0.62, 0.55)
+			var size := Vector2(_font.get_string_size(m[0], 0, -1, SMALL).x + 2, SMALL + 2)
+			draw_rect(Rect2(at * CELL - Vector2(1, 1), size), Color(Palette.VOID, 0.8))
+			_small(at, m[0], m[1])
 
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
@@ -718,53 +670,12 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 		var doing: String = SIDE_STATE[a.alert] if a.blind <= 0 else "눈멂"
 		_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
 		var x := _cells(doing) + 0.5
-		for j in a.intent.size():
-			_glyph(Vector2(x + j, row + 2), Cards.GLYPH[a.intent[j]], Palette.CARD[a.intent[j]])
-		if not a.intent.is_empty():
-			_glyph(Vector2(x + a.intent.size(), row + 2), Palette.BOLT[a.aim], Palette.SIDE[1])
-
-
-func _draw_bottom() -> void:
-	var me := world.player()
-	var row := rows - 2
-	_glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
-	_pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
-	var held: int = staged.reduce(func(n, s): return n + s.cards.size(), 0) + picked.size()
-	for i in world.max_tails():
-		var c: Color = Palette.SIDE[0]
-		if i >= world.tails:
-			c = Palette.DIM
-		elif i >= world.tails - held:
-			c = Palette.CARD[Cards.EARTH]
-		_glyph(Vector2(MAP.x + i, row), "~", c)
-	var right := "%d층 %d초" % [world.depth, world.round_no]
-	_text(Vector2(cols - _cells(right), row), right, Palette.TEXT)
-	if not debug.is_empty():
-		_text(Vector2(cols - _cells(right) - _cells("디버그") - 1, row), "디버그", Palette.SOUND)
-	for slot in _slots():
-		var spell := Spell.from_key(saved[slot.action])
-		var ready := _castable(spell, held)
-		_small(Vector2(slot.x, row + 0.05), slot.key, Palette.TEXT if ready else Palette.DIM)
-		for k in spell.cards.size():
-			var c: Color = Palette.CARD[spell.cards[k]]
-			_glyph(
-				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.cards[k]], c if ready else c * 0.4
-			)
-	row += 1
-	for i in world.cards.size():
-		var card := world.cards[i]
-		var x := MAP.x + i * 3
-		if picked.has(card):
-			draw_rect(
-				Rect2(Vector2(x, row) * CELL, Vector2(2, 1) * CELL), Palette.CARD[card] * 0.45
-			)
-		_small(Vector2(x, row + 0.05), str(i + 1), Palette.DIM)
-		_glyph(Vector2(x + 1, row), Cards.GLYPH[card], Palette.CARD[card])
-	var spell := Spell.make(picked)
-	var name := spell.title() if spell != null else ""
-	if not staged.is_empty():
-		name = "+%d %s" % [staged.size(), name]
-	_text(Vector2(cols - _cells(name), row), name, Palette.TEXT)
+		if a.intent.is_empty():
+			continue
+		var slots := Spell.make(a.intent).slots
+		for j in slots.size():
+			_glyph(Vector2(x + j, row + 2), Cards.GLYPH[slots[j]], Palette.card(slots[j]))
+		_glyph(Vector2(x + slots.size(), row + 2), Palette.BOLT[a.aim], Palette.SIDE[1])
 
 
 ## A frame on the tile under the pointer, and what is there in a box on the

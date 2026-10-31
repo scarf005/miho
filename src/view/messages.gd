@@ -123,7 +123,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var spell := Spell.make(e.cards)
 			return (
 				_who(before, after, id, "이", "가")
-				+ [[" ", TEXT], [spell.title(), Palette.CARD[spell.cards.back()]]]
+				+ [[" ", TEXT], [spell.title(), Palette.card(spell.slots.back())]]
 				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
 			)
 		&"open", &"close":

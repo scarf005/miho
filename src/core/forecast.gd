@@ -1,14 +1,17 @@
 class_name Forecast
 extends RefCounted
 ## Reads one previewed round into drawable facts: the tiles each projectile
-## crosses, what it strikes, how much harm every creature takes, and who
+## crosses or each spray covers, what it strikes, how much harm every creature takes, and who
 ## notices Miho. The preview runs on what Miho knows (World.known_clone), so
 ## creatures she cannot see take no part in it.
 
 var after: World
 var events: Array[Dictionary] = []
-## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live}
+## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live, target}, the
+## target the creature id it chases (0 for none) as the round ends
 var paths := {}
+## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
+var sprays: Array[Dictionary] = []
 ## actor id -> total damage this round
 var harm := {}
 ## actor id -> true when it dies this round
@@ -24,7 +27,12 @@ static func of(world: World, action: Dictionary) -> Forecast:
 	f.after = world.known_clone()
 	for s in f.after.shots:
 		f.paths[s.id] = {
-			faction = s.faction, spell = s.spell, tiles = [s.pos], dir = s.dir, live = true
+			faction = s.faction,
+			spell = s.spell,
+			tiles = [s.pos],
+			dir = s.dir,
+			live = true,
+			target = s.target
 		}
 	f.read(f.after.act(action))
 	return f
@@ -41,8 +49,11 @@ func read(round_events: Array[Dictionary]) -> void:
 					spell = Spell.make(e.cards),
 					tiles = [e.at],
 					dir = Vector2i.ZERO,
-					live = true
+					live = true,
+					target = e.get("target", 0)
 				}
+			&"spray":
+				sprays.append(e)
 			&"fly":
 				if paths.has(e.shot):
 					paths[e.shot].tiles.append(e.to)
@@ -59,6 +70,7 @@ func read(round_events: Array[Dictionary]) -> void:
 		paths[id].live = s != null
 		if s != null:
 			paths[id].dir = s.dir
+			paths[id].target = s.target
 
 
 func after_shot(id: int) -> Shot:

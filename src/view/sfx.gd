@@ -36,6 +36,8 @@ const WORDS := {
 	"휙": &"foxfire",
 	"웅": &"orb",
 	"쾅": &"blast",
+	"탕": &"blast",
+	"화르륵": &"burn",
 	"쿵": &"blast",
 	"퍽": &"clash",
 	"끽": &"hurt",
@@ -152,7 +154,8 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 		&"cast":
 			play_at(&"orb" if e.cards.has(Cards.ORB) else &"foxfire", at)
 		&"hit", &"burst", &"splash":
-			play_at(&"blast", at)
+			if not e.get("spray", false):
+				play_at(&"blast", at)
 		&"drum":
 			if not e.wet:
 				play_at(&"blast", at)
