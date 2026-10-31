@@ -1,8 +1,9 @@
 class_name Bestiary
 extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
-## ones (`drop`) add an element and give it to Miho when they fall, and the
-## dokkaebi (도깨비불) and 불개 add fire to their foxfire.
+## ones (`drop`) add an element and give it to Miho when they fall, and
+## 부지깽이 도깨비 (도깨비불) and 불개 add fire to their foxfire. The plain
+## dokkaebi's 도깨비불 is a lone wisp: no element, no harm.
 ## spell_name: what the log and hover call the spell it casts, in place of the
 ## name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
@@ -56,7 +57,7 @@ const KINDS := {
 		shout = {word = "낄낄", loud = 6},
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
-		casts = [[FOX, Cards.FIRE]],
+		casts = [[FOX]],
 		spell_name = "도깨비불",
 		cd = 3,
 		move = &"approach",
@@ -85,6 +86,9 @@ const KINDS := {
 		shout = {word = "낄낄", loud = 6},
 		hp = 2,
 		melee = {name = "부지깽이", hit = "맞아", damage = 1},
+		casts = [[FOX, Cards.FIRE]],
+		spell_name = "도깨비불",
+		cd = 3,
 		move = &"approach",
 		step = 4,
 		wits = 1,

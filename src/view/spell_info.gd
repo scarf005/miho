@@ -319,6 +319,8 @@ static func shot(w: World, s: Shot) -> Array:
 	var lines := [
 		[[side, Palette.SIDE[s.faction]], [spell.title(), Palette.shot_color(spell, s.faction)]]
 	]
+	if elements(spell) != "":
+		lines.append(_line("원소", elements(spell)))
 	lines.append(_line("피해", str(spell.damage(s.distance())), Palette.HURT))
 	if s.faction == Actor.HEAVEN:
 		lines.append([["다른 적도 맞힌다. 약점과 면역은 똑같이 적용된다", LABEL]])
@@ -340,6 +342,16 @@ static func shot(w: World, s: Shot) -> Array:
 	if spell.burst_noise() > 0:
 		lines.append(_line("소리", "터질 때 %d칸" % spell.burst_noise()))
 	return lines
+
+
+## The elements a spell a creature calls by its own name carries, "·" between
+## them; "" when it carries none or its title tells them.
+static func elements(s: Spell) -> String:
+	var names: Array[String] = []
+	for c in s.elements():
+		if s.called != "" and not names.has(Cards.NAME[c]):
+			names.append(Cards.NAME[c])
+	return "·".join(names)
 
 
 ## A turn of `degrees` a tile.

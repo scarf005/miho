@@ -343,7 +343,8 @@ static func _casts(a: Actor) -> Array:
 	return out
 
 
-## Harm, the burst of a fire orb and noise of a spell, one short line each.
+## The elements of a spell its title does not tell (SpellInfo.elements), harm,
+## the burst of a fire orb and noise of a spell, one short line each.
 static func _spell_details(s: Spell) -> Array[String]:
 	var near := s.damage(0)
 	var far := s.damage(Spell.MOMENTUM)
@@ -351,6 +352,8 @@ static func _spell_details(s: Spell) -> Array[String]:
 	if far > near:
 		harm += " (%d칸 이상 날면 %d)" % [Spell.MOMENTUM, far]
 	var out: Array[String] = [harm]
+	if SpellInfo.elements(s) != "":
+		out.push_front("원소 " + SpellInfo.elements(s))
 	if s.orb and s.has(Cards.FIRE):
 		out.append("터지면 주위 피해 %d" % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
 	for c in s.compounds():
