@@ -117,7 +117,7 @@ static func explore_step(w: World, found: Dictionary) -> Vector2i:
 static func in_sight(w: World) -> Dictionary:
 	var out := {}
 	for a in w.actors:
-		if a.alive() and a.faction != Actor.FOX and w.seen[Grid.index(a.pos)] == 1:
+		if a.alive() and a.faction != Actor.FOX and Hat.shown(w, a):
 			out[a.id] = true
 	return out
 

@@ -243,9 +243,10 @@ func test_claws_on_a_hunter_strike_once_and_its_cry_alerts_others() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
 	foe.alert = Actor.HUNT
+	foe.hp = 3
 	var other := _foe(w, &"imugi", Vector2i(9, 8))
 	w.act({t = &"move", dir = E})
-	assert_eq(foe.hp, 1)
+	assert_eq(foe.hp, 2, "at 1 health it would run instead of striking back")
 	assert_eq(other.alert, Actor.SEARCH)
 	assert_eq(other.target, Vector2i(5, 8))
 	assert_eq(w.player().hp, 2, "the hunter strikes back")

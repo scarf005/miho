@@ -99,6 +99,8 @@ var cam := Vector2i.ZERO
 
 var _font: FontFile
 var _vis := PackedByteArray()
+## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
+var _veiled := {}
 var _actors := {}
 var _shots := {}
 var _animating := false
@@ -185,6 +187,7 @@ func _process(delta: float) -> void:
 func show_world(w: World) -> void:
 	world = w
 	_vis = w.seen
+	_veiled = Hat.unseen(w)
 	follow(w.player().pos)
 	_actors.clear()
 	_shots.clear()
@@ -220,6 +223,7 @@ func play(events: Array, before: World, after: World) -> void:
 	world = after
 	var perceived := Perceived.of(before, after, events)
 	_vis = perceived.vis
+	_veiled = perceived.veiled
 	_told.clear()
 	for f in perceived.facts:
 		if f.i >= 0:
@@ -242,6 +246,11 @@ func play(events: Array, before: World, after: World) -> void:
 ## Whether Miho sees tile p: what the log and the popups are told from.
 func _visible(p: Vector2i) -> bool:
 	return Perceived.sees(_vis, p)
+
+
+## Whether `a` wears a hat that hides it now; the debug view sees through it.
+func _hatted(a: Actor) -> bool:
+	return debug.is_empty() and _veiled.has(a.id)
 
 
 ## Whether tile p is drawn: seen, or any tile with the debug view on.
@@ -635,7 +644,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos):
+		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos) or _hatted(a):
 			continue
 		var cell := _cell(a.pos)
 		var l := light[Grid.index(a.pos)]
@@ -668,7 +677,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	var list: Array = actors.values().filter(
-		func(a): return a.faction != Actor.FOX and _revealed(a.pos)
+		func(a): return a.faction != Actor.FOX and _revealed(a.pos) and not _hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
 	return list.slice(0, (rows - 2) / SIDE_ROWS)

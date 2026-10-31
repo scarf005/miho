@@ -248,9 +248,7 @@ func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
 	w.secrets = {}
-	w.actors.assign(
-		w.actors.filter(func(a): return a.faction == Actor.FOX or seen[Grid.index(a.pos)] == 1)
-	)
+	w.actors.assign(w.actors.filter(func(a): return a.faction == Actor.FOX or Hat.shown(self, a)))
 	w.shots.assign(w.shots.filter(func(s): return seen[Grid.index(s.pos)] == 1))
 	return w
 

@@ -64,6 +64,7 @@ const SILENT := [
 	{t = &"heed"},
 	{t = &"calm"},
 	{t = &"truce"},
+	{t = &"scatter"},
 	{t = &"shout"},
 	{t = &"spawn"},
 	{t = &"spray"},

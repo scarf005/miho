@@ -75,6 +75,7 @@ const KIND := {
 	&"oedari": Color(0.9, 0.35, 0.55),
 	&"bujigaengi": Color(0.95, 0.62, 0.4),
 	&"bitjaru": Color(0.78, 0.7, 0.42),
+	&"gamtu": Color(0.72, 0.62, 0.95),
 	&"jangseung": Color(0.82, 0.64, 0.42),
 	&"imugi": Color(0.5, 0.8, 0.55),
 	&"bulgae": Color(1.0, 0.55, 0.2),
@@ -99,6 +100,8 @@ const HURT := Color(1.0, 0.25, 0.2)
 const SOUND := Color(1.0, 0.78, 0.4)
 const ALERT := [Color(0, 0, 0, 0), Color(1.0, 0.85, 0.3), Color(1.0, 0.25, 0.2)]
 const ALERT_MARK := ["", "?", "!"]
+## The mark by a fleeing creature, in place of the hunting one.
+const FLEE_MARK := "<"
 ## A travel exclusion's tint and outline.
 const ZONE := Color(0.85, 0.2, 0.35)
 const TEXT := Color(0.8, 0.78, 0.72)
