@@ -436,7 +436,7 @@ func _add(card: StringName) -> void:
 	elif _held() + picked.size() >= world.tails:
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
-		why = "도약은 줄 맨 앞에만 넣는다"
+		why = "도약은 맨 앞이나 여, 구 뒤 끝에 한 장만 넣는다"
 	if why != "":
 		_refuse(why)
 	else:
@@ -866,7 +866,7 @@ func _forecast() -> void:
 	var spell := Spell.make(picked)
 	if spell != null and spell.shape == Spell.LEAP:
 		for d in Grid.DIRS:
-			if Leap.can(known, known.player(), spell, d):
+			if Leap.open(known, known.player(), spell, d):
 				reach[Leap.landing(known, me, d, spell.leap())] = Color(Palette.SIDE[0], 0.3)
 	elif spell != null:
 		for d in Grid.DIRS:

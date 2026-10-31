@@ -8,11 +8,13 @@ extends RefCounted
 ## costs: one card is power 1.
 ## The shape is read top down: 도 leading the queue leaps Miho LEAP_BASE tiles
 ## and one more for every 도, and casts the rest of the spell where she lands
-## (Leap); 도 after any other talisman makes no spell. 여 and 구 make a homing
+## (Leap). One 도 last behind 여 or 구 swaps: Miho goes where the projectile
+## ends, trading places with the creature it strikes (Leap.swap); 도 anywhere
+## else makes no spell. 여 and 구 make a homing
 ## orb that turns 45° more each tile for every 여 (freely with four); 구 alone
 ## a loud straight orb, 1 damage for every 구 and 1 more after a run-up (DCSS
-## mon-project.cc iood_damage); 여 alone a wisp for every 여, each hitting for 1 (a lone 여
-## for none), turning like a homing orb. Homing
+## mon-project.cc iood_damage); 여 alone a wisp for every 여 (one with 도),
+## each hitting for 1 (a lone 여 for none), turning like a homing orb. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. A wisp that strikes a
 ## creature that does not eat it sticks to it for WISP_LIFE rounds and lights
@@ -59,7 +61,15 @@ var called := ""
 static func make(picked: Array) -> Spell:
 	if not picked.all(func(c): return Cards.ALL.has(c)):
 		return null
-	if picked.slice(0, picked.count(Cards.LEAP)).any(func(c): return c != Cards.LEAP):
+	var leaps := picked.count(Cards.LEAP)
+	if (
+		not picked.slice(0, leaps).all(func(c): return c == Cards.LEAP)
+		and not (
+			leaps == 1
+			and picked.back() == Cards.LEAP
+			and (picked.has(Cards.FOX) or picked.has(Cards.ORB))
+		)
+	):
 		return null
 	var slots := fill(picked)
 	var spell := Spell.new()
@@ -96,7 +106,7 @@ static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 ## The shape the slots make, read top down: a leap, a homing orb, an orb,
 ## foxfire, a spray.
 static func _shape(s: Spell) -> StringName:
-	if s.count(Cards.LEAP) > 0:
+	if not s.slots.is_empty() and s.slots[0] == Cards.LEAP:
 		return LEAP
 	if s.count(Cards.FOX) > 0 and s.count(Cards.ORB) > 0:
 		return HOMING
@@ -115,6 +125,16 @@ func leap() -> int:
 ## What a leap casts where it lands: the talismans after its 도, or null.
 func rest() -> Spell:
 	return make(cards.slice(count(Cards.LEAP)))
+
+
+## Whether the projectile takes Miho where it ends: 도 behind it (Leap.swap).
+func swaps() -> bool:
+	return shape != LEAP and has(Cards.LEAP)
+
+
+## The spell without its 도: the projectile once it has swapped.
+func spent() -> Spell:
+	return make(cards.filter(func(c): return c != Cards.LEAP))
 
 
 ## How strong the spray of a lone element is: its copies, up to MAX_LEVEL; 0
@@ -183,8 +203,10 @@ func title() -> String:
 			var n := elements().count(slot)
 			parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
 	var form: String = SHAPE_NAME.get(shape, Spray.called(self))
-	if shape == WISP and count(Cards.FOX) > 1:
-		form += " %d발" % count(Cards.FOX)
+	if shots() > 1:
+		form += " %d발" % shots()
+	if swaps():
+		form += " 바꿔치기"
 	return ("·".join(parts) + " " + form).strip_edges()
 
 
@@ -214,7 +236,7 @@ func life() -> int:
 
 ## Projectiles one cast hurls: a wisp per 여, else one.
 func shots() -> int:
-	return count(Cards.FOX) if shape == WISP else 1
+	return count(Cards.FOX) if shape == WISP and not swaps() else 1
 
 
 ## How far a projectile may turn each tile, in steps of 45°; TURN_FREE turns
@@ -234,7 +256,8 @@ func extra(element: StringName) -> int:
 ## bullet, an orb 1 for every 구 and 1 more after a run-up, Elements.CANNON
 ## more a cannonball, and 1 more for every 불 or 쇠 past the first.
 func damage(distance: int) -> int:
-	var n := Elements.BULLET if has(Cards.METAL) else (0 if cost() == 1 else 1)
+	var lone := cost() - count(Cards.LEAP) == 1
+	var n := Elements.BULLET if has(Cards.METAL) else (0 if lone else 1)
 	if orb:
 		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)
 		n += Elements.CANNON if has(Cards.METAL) else 0

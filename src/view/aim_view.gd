@@ -2,7 +2,8 @@ class_name AimView
 extends RefCounted
 ## The aim preview: a forecast cast drawn into the term's tints, marks and
 ## lines. It shows the tiles each projectile crosses or each spray covers, the
-## line a leap takes with Miho where it lands, a line from Miho to the
+## line a leap takes with Miho where it lands (or where a swap takes her this
+## round), a line from Miho to the
 ## creature each homing one chases, the harm each creature takes, the wooden
 ## walls that grow and the ground compounds change. `known` is what Miho
 ## knows of `world` (World.known_clone), which the forecast ran on.
@@ -31,6 +32,8 @@ static func paint(
 		for i in range(1, Grid.cheb(leap[0], leap[1]) + 1):
 			tints[leap[0] + d * i] = Color(Palette.SIDE[0], 0.35)
 		marks[leap[1]] = [Bestiary.info(&"miho").glyph, Palette.SIDE[0]]
+	for swap: Array in f.swaps:
+		marks[swap[1]] = [Bestiary.info(&"miho").glyph, Palette.SIDE[0]]
 	for p in f.sprouts:
 		tints[p] = Color(Palette.TILES[World.WOOD_WALL][1], 0.5)
 	for p in f.grounds:

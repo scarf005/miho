@@ -14,8 +14,9 @@ var events: Array[Dictionary] = []
 var paths := {}
 ## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
 var sprays: Array[Dictionary] = []
-## Each leap of the round: [from, to] (Leap).
+## Each leap of the round, and each swap: [from, to] (Leap).
 var leaps: Array = []
+var swaps: Array = []
 ## actor id -> total damage this round
 var harm := {}
 ## actor id -> true when it dies this round
@@ -66,6 +67,8 @@ func read(round_events: Array[Dictionary]) -> void:
 				sprays.append(e)
 			&"leap":
 				leaps.append([e.from, e.to])
+			&"swap":
+				swaps.append([e.from, e.to])
 			&"fly":
 				if paths.has(e.shot):
 					paths[e.shot].tiles.append(e.to)

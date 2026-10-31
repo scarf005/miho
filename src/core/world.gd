@@ -58,7 +58,7 @@ extends RefCounted
 ## crosses one is seen from afar.
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## a new storey one below. Miho leaps across the sky with 도 (Leap).
+## a new storey one below. 도 leaps her across it (Leap).
 ##
 ## Each storey climbed gives back one health.
 ##
@@ -450,12 +450,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		var open := (
-			Leap.can(self, me, spell, d)
-			if spell.shape == Spell.LEAP
-			else Terrain.throwable(self, spell, me.pos + d)
-		)
-		if not Grid.DIRS.has(d) or not open or aims.has(d):
+		if not Grid.DIRS.has(d) or not Leap.open(self, me, spell, d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -789,7 +784,7 @@ func _burst(s: Shot) -> void:
 ## A thud happens wherever the spell ends; fire sets that tile alight and
 ## relights the lanterns next to it, except the one an orb just struck, water
 ## douses lanterns and flames, a wood orb grows a wall (Elements), and each
-## compound acts round where it ends (Compounds).
+## compound acts round where it ends (Compounds); 도 brings Miho (Leap.swap).
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
@@ -799,6 +794,7 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.orb and s.spell.has(Cards.WOOD):
 		Elements.sprout(self, s, at)
 	Compounds.land(self, s, at)
+	Leap.swap(self, s, actor_at(at))
 
 
 func _strike(s: Shot, a: Actor) -> void:
