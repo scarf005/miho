@@ -239,10 +239,11 @@ func test_a_mist_room_is_a_pond_from_the_middle_breathing_fog_from_every_tile() 
 
 
 func test_a_pond_that_would_cut_the_storey_apart_leaves_the_room_as_it_was() -> void:
-	var lane := Rect2i(10, 5, 1, 12)
+	var lane := Rect2i(10, 5, 12, 1)
 	var w := _plan(3, lane)
 	var before := w.tiles.duplicate()
 	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
 	assert_false(SetRooms.make(w, &"mist", lane, rng))
 	assert_eq(w.tiles, before)
 	assert_true(w.vents.is_empty() and w.gas.is_empty())
