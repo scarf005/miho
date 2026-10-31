@@ -14,6 +14,7 @@ extends RefCounted
 ## spread: the chance each second that fire next to it takes it. douses: fire
 ## never takes it, even a burning creature standing on it. trample: what it
 ## becomes when a creature steps onto it. scentless: a trail laid on it is lost.
+## gas: gas can lie on it (Gas); walls, closed doors, windows, pillars and sky stop it.
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -24,10 +25,19 @@ const ROWS := {
 		sight = true,
 		light = false,
 		wall = true,
+		gas = false,
 		breaks_to = World.WALL_CRACKED,
 	},
 	World.DOOR:
-	{name = "문", health = 1, walk = true, sight = true, burns = true, breaks_to = World.FLOOR},
+	{
+		name = "문",
+		health = 1,
+		walk = true,
+		sight = true,
+		burns = true,
+		gas = false,
+		breaks_to = World.FLOOR,
+	},
 	World.LANTERN: {name = "등불", health = 1, knock = true, breaks_to = World.LANTERN_OUT},
 	World.LANTERN_OUT: {name = "꺼진 등불", health = 1, knock = true, breaks_to = World.LANTERN_BROKEN},
 	World.BAMBOO:
@@ -51,11 +61,12 @@ const ROWS := {
 		sight = true,
 		light = false,
 		wall = true,
+		gas = false,
 		breaks_to = World.RUBBLE,
 	},
 	World.RUBBLE: {name = "무너진 벽", walk = true},
-	World.SKY: {name = "하늘"},
-	World.WINDOW: {name = "창문", health = 1, knock = true, breaks_to = World.FLOOR},
+	World.SKY: {name = "하늘", gas = false},
+	World.WINDOW: {name = "창문", health = 1, knock = true, gas = false, breaks_to = World.FLOOR},
 	World.BRIDGE: {name = "하늘다리", walk = true, tread = [3, "삐걱"]},
 	World.DOOR_OPEN: {name = "열린 문", walk = true, burns = true},
 	World.DRUM: {name = "북", health = 1, knock = true, burns = true, breaks_to = World.DRUM_TORN},
@@ -67,9 +78,17 @@ const ROWS := {
 	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true},
 	World.LEAVES: {name = "낙엽", walk = true, burns = true, tread = [2, "바스락"]},
 	World.SHALLOW: {name = "얕은 물", walk = true, tread = [2, "철벅"], douses = true, scentless = true},
-	World.PILLAR: {name = "기둥", sight = true, light = false},
+	World.PILLAR: {name = "기둥", sight = true, light = false, gas = false},
 	World.WOOD_WALL:
-	{name = "나무벽", health = 1, sight = true, light = false, burns = true, breaks_to = World.FLOOR},
+	{
+		name = "나무벽",
+		health = 1,
+		sight = true,
+		light = false,
+		burns = true,
+		breaks_to = World.FLOOR,
+		gas = false,
+	},
 }
 const DEFAULT := {
 	name = "",
@@ -87,6 +106,7 @@ const DEFAULT := {
 	douses = false,
 	trample = -1,
 	scentless = false,
+	gas = true,
 }
 
 ## One byte per tile kind, 1 where the column holds: the tables Masks feeds to Rust.
@@ -96,6 +116,7 @@ static var light := _flags("light")
 static var burns := _flags("burns")
 static var knock := _flags("knock")
 static var wall := _flags("wall")
+static var gas := _flags("gas")
 
 
 ## The value of `column` for tile kind `t`.

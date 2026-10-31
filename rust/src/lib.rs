@@ -1,9 +1,10 @@
 //! Board primitives the rules call many times a round: breadth-first search,
-//! shadowcast sight and light. GDScript reaches them through Grid.search,
-//! Sight.field and Light.spread/field, passing masks (one byte per tile, row
-//! by row) instead of callables, so no call goes back to GDScript per tile.
-//! Results match the GDScript originals bit for bit: saved runs replay their
-//! actions, so the same order, tie-breaks and float precision are kept.
+//! shadowcast sight and light, and a round of gas. GDScript reaches them through
+//! Grid.search, Sight.field, Light.spread/field and Gas.spread, passing masks
+//! (one byte per tile, row by row) instead of callables, so no call goes back to
+//! GDScript per tile. Results match the GDScript originals bit for bit: saved
+//! runs replay their actions, so the same order, tie-breaks and float precision
+//! are kept.
 
 use godot::prelude::*;
 
@@ -131,6 +132,33 @@ impl Native {
         )
     }
 
+    /// Gas.spread: one round of gas over `amount` and `kind` (a byte per tile)
+    /// where `hold` is not 0, thinned by `decay[kind]` percent; [tile, amount,
+    /// kind] triplets of the tiles with gas left.
+    #[func]
+    fn gas(
+        amount: PackedByteArray,
+        kind: PackedByteArray,
+        hold: PackedByteArray,
+        decay: PackedByteArray,
+        seed: i64,
+        width: i32,
+    ) -> PackedInt32Array {
+        let amount = amount.as_slice();
+        let b = Board::of(amount.len(), width);
+        PackedInt32Array::from(
+            gas(
+                amount,
+                kind.as_slice(),
+                hold.as_slice(),
+                decay.as_slice(),
+                seed as u64,
+                b,
+            )
+            .as_slice(),
+        )
+    }
+
     /// Light.spread: the strength (0 to 1) a source gives each tile it reaches.
     #[func]
     fn spread(
@@ -244,6 +272,71 @@ impl Cast<'_> {
             self.scan(quadrant, depth + 1, start, end);
         }
     }
+}
+
+/// splitmix64, seeded by the World's own generator once a round, so a round of
+/// gas is the same on every machine and in every replay.
+struct Rng(u64);
+
+impl Rng {
+    /// 0 up to but not including `n`.
+    fn below(&mut self, n: u64) -> u64 {
+        self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        let mut z = self.0;
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        (z ^ (z >> 31)) % n
+    }
+}
+
+/// One round of gas (Gas.spread): each tile that holds gas (`hold`, never on
+/// the outermost ring) takes the average of its own amount and that of its
+/// neighbours that hold gas, the remainder going to chance, and the kind of the
+/// strongest of them; then it loses 1 with the percent chance `decay[kind]`.
+/// Returns [tile, amount, kind] for every tile left with gas, in tile order.
+fn gas(amount: &[u8], kind: &[u8], hold: &[u8], decay: &[u8], seed: u64, b: Board) -> Vec<i32> {
+    let mut rng = Rng(seed);
+    let holds =
+        |x: i32, y: i32| x > 0 && y > 0 && x < b.w - 1 && y < b.h - 1 && hold[b.index(x, y)] != 0;
+    let mut spread = vec![0u8; amount.len()];
+    let mut strongest = vec![0u8; amount.len()];
+    for y in 1..b.h - 1 {
+        for x in 1..b.w - 1 {
+            let i = b.index(x, y);
+            if !holds(x, y) {
+                continue;
+            }
+            let (mut sum, mut count) = (amount[i] as u64, 1u64);
+            let (mut best, mut k) = (amount[i], kind[i]);
+            for (dx, dy) in DIRS {
+                if holds(x + dx, y + dy) {
+                    let j = b.index(x + dx, y + dy);
+                    sum += amount[j] as u64;
+                    count += 1;
+                    if amount[j] > best {
+                        (best, k) = (amount[j], kind[j]);
+                    }
+                }
+            }
+            if sum > 0 {
+                let odd = rng.below(count) < sum % count;
+                spread[i] = (sum / count) as u8 + odd as u8;
+                strongest[i] = k;
+            }
+        }
+    }
+    let mut out = Vec::new();
+    for (i, &a) in spread.iter().enumerate() {
+        if a == 0 {
+            continue;
+        }
+        let chance = decay.get(strongest[i] as usize).copied().unwrap_or(0) as u64;
+        let left = a - (chance > 0 && rng.below(100) < chance) as u8;
+        if left > 0 {
+            out.extend([i as i32, left as i32, strongest[i] as i32]);
+        }
+    }
+    out
 }
 
 /// Brogue fade: 1 - (1 - FADE) * distance / radius, in the GDScript precision

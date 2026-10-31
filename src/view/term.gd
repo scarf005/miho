@@ -506,6 +506,13 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			var v := fg.get_luminance()
 			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
 			bg = Palette.MEMORY_BG
+		if _vis[i] == 1 and world.gas.has(p):
+			var g: Vector2i = world.gas[p]
+			var glow := clampf(0.35 + Light.level(light[i]), 0.35, 1.0)
+			var gas: Color = Palette.GAS[g.x][1] * glow
+			var k := Palette.gas_alpha(g.y)
+			bg = bg.lerp(Color(gas, 1.0), k)
+			fg = fg.lerp(Color(gas, 1.0), k * 0.5)
 		var grain := 0.92 + 0.16 * fposmod(sin(i * 12.9898) * 43758.5453, 1.0)
 		fg *= grain
 		bg *= grain

@@ -8,9 +8,11 @@ extends Node
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `kill:x:y` (the creature there falls, leaving its body mark),
+## `peace` (every creature of heaven is gone, for long waits),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
 ## `card:name` (Miho holds that talisman, such as fire),
+## `gas:x:y:kind:amount` (lay that much gas, a Gas constant, on a tile),
 ## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
@@ -119,11 +121,18 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
-		"tile", "at", "foe", "hunt", "card":
+		"tile", "at", "foe", "hunt", "card", "gas":
 			_stage(parts)
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
 			FloorGen.spawn(main.world, StringName(parts[1]), at)
+			main.world.sense()
+			main.term.show_world(main.world)
+			main._forecast()
+		"peace":
+			main.world.actors.assign(
+				main.world.actors.filter(func(a): return a.faction == Actor.FOX)
+			)
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
@@ -148,7 +157,7 @@ func _send(k: String) -> void:
 				await get_tree().process_frame
 
 
-## Changes the world for a picture: tile, at, foe, hunt and card.
+## Changes the world for a picture: tile, at, foe, hunt, card and gas.
 func _stage(parts: PackedStringArray) -> void:
 	var w: World = main.world
 	var xy := Vector2i(int(parts[-2]), int(parts[-1]))
@@ -164,6 +173,8 @@ func _stage(parts: PackedStringArray) -> void:
 		"card":
 			if not w.cards.has(StringName(parts[1])):
 				w.cards.append(StringName(parts[1]))
+		"gas":
+			Gas.put(w, Vector2i(int(parts[1]), int(parts[2])), int(parts[3]), int(parts[4]))
 	w._changed()
 	w.sense()
 	main.term.show_world(w)

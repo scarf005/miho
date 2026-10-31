@@ -175,6 +175,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	out.append_array(_gas(w, a.pos))
 	return out
 
 
@@ -253,6 +254,12 @@ static func terrain(w: World, p: Vector2i) -> Array:
 		lines.append([[note, Palette.DIM]])
 	if burns:
 		lines.append_array(_burning(w.burning[p]))
+	lines.append_array(_gas(w, p))
+	if w.vents.has(p):
+		var vent := [
+			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
+		]
+		lines.append(vent + [[" (매 초 양 %d까지 채운다)" % Gas.VENT_LEVEL, Palette.DIM]])
 	if t == World.DRUM:
 		lines.append(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))
@@ -343,6 +350,24 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Tiles.burns[t] == 1 and not burns:
 		out.append("불이 붙으면 %d초 타고 재가 된다" % World.BURN_ROUNDS)
 		out.append("이웃이 타면 초당 %d%% 로 옮겨 붙는다" % roundi(Tiles.of(t, "spread") * 100))
+	return out
+
+
+## The gas on a tile in sight: kind and amount, whether it blocks sight, how fast
+## it thins, its harm and what it wets. Tiles out of sight keep no gas.
+static func _gas(w: World, p: Vector2i) -> Array:
+	var g := Gas.at(w, p)
+	if g.x < 0 or w.seen[Grid.index(p)] == 0:
+		return []
+	var color: Color = Palette.GAS[g.x][1]
+	var out := [[[Gas.of(g.x, "name"), color], [" %d/%d" % [g.y, Gas.MAX], Palette.DIM]]]
+	var sight := "시야를 막는다" if g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
+	out.append([[sight, Palette.DIM]])
+	out.append([["매 초 %d%% 로 1씩 줄어든다" % Gas.of(g.x, "decay"), Palette.DIM]])
+	if Gas.of(g.x, "harm") > 0:
+		out.append(_amount("서 있으면 매 초 피해 ", Gas.of(g.x, "harm")))
+	if Gas.of(g.x, "wets"):
+		out.append([["북을 적셔 %d초 동안 소리를 없앤다" % Drums.WET_ROUNDS, Palette.DIM]])
 	return out
 
 
