@@ -73,6 +73,12 @@ func fighting() -> bool:
 	return rival != 0 and grudge > 0
 
 
+## Hunting Miho at 1 health, and not one to stand and fight (Bestiary.flees):
+## it runs from her (Mind.flee).
+func fleeing() -> bool:
+	return faction == HEAVEN and alert == HUNT and hp == 1 and Bestiary.flees(kind)
+
+
 ## Hunting Miho by way of a drum.
 func drumming() -> bool:
 	return alert == HUNT and drum != Vector2i(-1, -1)

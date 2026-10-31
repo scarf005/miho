@@ -10,6 +10,9 @@ extends RefCounted
 ## where it saw it last when it does not; there, still not seeing it, it stops
 ## and searches. The fight also ends when the rival falls or Miho harms it.
 ## One of its own group only hurts it.
+##
+## Fleeing (DCSS mon-behv): a sharp or cunning creature that is not brave and
+## hunts Miho at 1 health runs from her, towards its own group (`flee`).
 
 const GRUDGE_ROUNDS := 10
 
@@ -194,7 +197,7 @@ static func _look(a: Actor, at: Vector2i) -> void:
 
 
 static func hunt(w: World, a: Actor) -> void:
-	if Drums.go(w, a):
+	if flee(w, a) or Drums.go(w, a):
 		return
 	var me := w.player()
 	if a.sees_me:
@@ -222,6 +225,42 @@ static func hunt(w: World, a: Actor) -> void:
 	a.alert = Actor.SEARCH
 	a.lost = 0
 	search(w, a)
+
+
+## A fleeing creature (Actor.fleeing) that sees Miho steps to the neighbouring
+## tile that is farther from her by foot, the one nearest its own group among
+## them (DCSS mon-behv: a weak, not brave monster runs). With no such tile, or
+## rooted, or with no way to her, it fights as before. Once she is out of sight
+## it stops and searches where it stands. True when it spent its turn.
+static func flee(w: World, a: Actor) -> bool:
+	if not a.fleeing() or a.rooted > 0:
+		return false
+	if not a.sees_me:
+		_look(a, a.pos)
+		return true
+	var walk := _walkable(w, a)
+	var dist: PackedInt32Array = Grid.search(w.player().pos, Masks.walk(w, a, walk)).dist
+	var here := dist[Grid.index(a.pos)]
+	var kin := w.actors.filter(
+		func(k): return k != a and k.alive() and Bestiary.allied(k.kind, a.kind)
+	)
+	var best := a.pos
+	var best_cost := [INF, 0]
+	for d in Grid.DIRS:
+		var p := a.pos + d
+		if not Grid.inside(p) or here < 0 or dist[Grid.index(p)] <= here or not walk.call(p):
+			continue
+		var near: int = (
+			kin.map(func(k): return Grid.cheb(p, k.pos)).min() if not kin.is_empty() else 0
+		)
+		var cost := [near, -dist[Grid.index(p)]]
+		if cost < best_cost:
+			best = p
+			best_cost = cost
+	if best == a.pos:
+		return false
+	w.move(a, best)
+	return true
 
 
 ## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it.

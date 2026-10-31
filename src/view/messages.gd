@@ -10,7 +10,12 @@ extends RefCounted
 const KEEP := 40
 const TEXT := Palette.TEXT
 ## What a creature's map mark says, for one that comes into sight marked.
-const STATE := {"!": "당신을 쫓고 있다", "?": "수색하고 있다", "x": "눈이 멀어 있다"}
+const STATE := {
+	"!": "당신을 쫓고 있다",
+	"?": "수색하고 있다",
+	"x": "눈이 멀어 있다",
+	Palette.FLEE_MARK: "도망치고 있다",
+}
 
 ## {runs, text, round, n}
 var lines: Array[Dictionary] = []

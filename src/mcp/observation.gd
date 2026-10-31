@@ -135,6 +135,8 @@ static func _creature(k: World, a: Actor) -> String:
 		"%s %s (%d,%d) hp %d/%d, %s"
 		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.alert]]
 	)
+	if a.fleeing():
+		line += ", fleeing"
 	if k.sees(a, k.player().pos):
 		line += ", sees Miho"
 	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):

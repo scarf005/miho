@@ -76,8 +76,10 @@ static func _profile(a: Actor) -> Array:
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting.
+## shut), on patrol, walking back home, or just resting. One hunting at 1 health runs.
 static func state(a: Actor) -> String:
+	if a.fleeing():
+		return "도망치는 중"
 	if a.alert != Actor.REST:
 		return STATE[a.alert]
 	if a.asleep():
@@ -139,6 +141,10 @@ static func _arms(a: Actor, held: Array) -> Array:
 		var said := [[cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
 		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
 		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
+	if Bestiary.flees(a.kind):
+		lines.append([["체력 1이면 도망친다", Palette.DIM]])
+	elif spec.get("brave", false):
+		lines.append([["용감해서 도망치지 않는다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		var line := [[Cards.NAME[eats], Palette.CARD[eats]], [" 주문을 먹으면 최대 체력 ", Palette.TEXT]]

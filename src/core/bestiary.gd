@@ -23,6 +23,8 @@ extends RefCounted
 ## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
 ## dull creature looks at the spot, a sharp one at where the projectile came
 ## from, a cunning one hunts from there.
+## brave: never flees (Bestiary.flees). Any other creature that is sharp or
+## cunning and can walk runs from Miho at 1 health (Mind.flee).
 ## A creature's elements are those of the spells it casts. A spell that holds
 ## an element beating one of them hits it twice as hard (Cards.BEATS).
 
@@ -156,6 +158,7 @@ const KINDS := {
 		wits = 1,
 		drop = Cards.WATER,
 		absorb = &"fire",
+		brave = true,
 	},
 	&"cheonha":
 	{
@@ -228,6 +231,7 @@ const KINDS := {
 		step = 3,
 		hunts = true,
 		wits = 2,
+		brave = true,
 	},
 }
 
@@ -255,6 +259,17 @@ static func shouted(word: String) -> bool:
 
 static func wits(kind: StringName) -> int:
 	return info(kind).get("wits", DULL)
+
+
+## Whether a creature of `kind` runs from Miho at 1 health: sharp or cunning,
+## not brave, and able to walk.
+static func flees(kind: StringName) -> bool:
+	var spec := info(kind)
+	return (
+		wits(kind) >= SHARP
+		and not spec.get("brave", false)
+		and spec.get("move", &"static") != &"static"
+	)
 
 
 static func absorbs(kind: StringName, spell: Spell) -> bool:
