@@ -4,7 +4,8 @@ extends RefCounted
 ## autoGeneratorCatalog). Corridors, and the goal room whose lantern must light
 ## the stairs, stay bare. A row has:
 ##
-## what, on: the tile kind laid, and the one it replaces (bare floor).
+## what, on: the tile kind laid, and the one it replaces (bare floor). A row
+## lays `gas` of `amount` (Gas) in place of `what`, over the tiles of kind `on`.
 ## tiers: the first and last tier (World.tier, 1 to 9) it appears on.
 ## chance: the percent chance that each patch is laid.
 ## count: [intercept, slope, most]. A storey has (intercept + tier * slope) / 100
@@ -65,6 +66,15 @@ const ROWS := [
 		count = [0, 80, 4],
 		grow = [0, 0],
 	},
+	{
+		gas = Gas.FOG,
+		amount = Gas.MAX,
+		on = World.POND,
+		tiers = [2, 9],
+		chance = 100,
+		count = [50, 25, 2],
+		grow = [100, 30],
+	},
 ]
 const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 
@@ -103,7 +113,20 @@ static func _spots(w: World, row: Dictionary, goal: Rect2i) -> Array[Vector2i]:
 
 
 static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
-	return w.tile(p) == row.on and p != w.start and p != w.stairs and p != w.elixir
+	return (
+		w.tile(p) == row.on
+		and not w.gas.has(p)
+		and p != w.start
+		and p != w.stairs
+		and p != w.elixir
+	)
+
+
+static func _put(w: World, row: Dictionary, p: Vector2i) -> void:
+	if row.has("gas"):
+		Gas.put(w, p, row.gas, row.amount)
+	else:
+		w.tiles[Grid.index(p)] = row.what
 
 
 ## A patch of `row` grown from `at` inside its room; the tiles laid, none when it
@@ -112,7 +135,7 @@ static func lay(w: World, row: Dictionary, at: Vector2i) -> Array[Vector2i]:
 	var room: Rect2i = w.rooms.filter(func(r: Rect2i): return r.has_point(at))[0]
 	var laid: Array[Vector2i] = [at]
 	var ring: Array[Vector2i] = [at]
-	w.tiles[Grid.index(at)] = row.what
+	_put(w, row, at)
 	var chance: int = row.grow[0]
 	while chance > 0 and not ring.is_empty():
 		var next: Array[Vector2i] = []
@@ -123,12 +146,12 @@ static func lay(w: World, row: Dictionary, at: Vector2i) -> Array[Vector2i]:
 					and _free(w, p + d, row)
 					and w.rng.randi_range(1, 100) <= chance
 				):
-					w.tiles[Grid.index(p + d)] = row.what
+					_put(w, row, p + d)
 					next.append(p + d)
 		laid.append_array(next)
 		ring = next
 		chance -= row.grow[1]
-	if Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
+	if row.has("what") and Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
 		for p in laid:
 			w.tiles[Grid.index(p)] = row.on
 		laid.clear()

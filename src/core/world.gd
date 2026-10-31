@@ -25,6 +25,9 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
+## Gas (fog, steam, smoke) lies on tiles, spreads and thins every round, and
+## thick enough it blocks sight: see Gas.
+##
 ## A war drum calls heaven: see Drums.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
@@ -114,6 +117,8 @@ var peaches: Array[Vector2i] = []
 ## Burning tiles: position -> rounds left; the wild ones always spread.
 var burning := {}
 var wild := {}
+## Gas: position -> Vector2i(kind, amount) (Gas).
+var gas := {}
 ## Tiles a gun lights this round (Spray).
 var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).
@@ -173,6 +178,7 @@ func clone() -> World:
 	w.peaches = peaches.duplicate()
 	w.burning = burning.duplicate()
 	w.wild = wild.duplicate()
+	w.gas = gas.duplicate()
 	w.changes = changes.duplicate(true)
 	w.bodies = bodies.duplicate(true)
 	w.wet = wet.duplicate()
@@ -242,10 +248,10 @@ func open_air(p: Vector2i) -> bool:
 	return open_floor(p) or tile(p) == POND or tile(p) == SKY
 
 
-## Walls (cracked too), closed doors, bamboo, reeds and pillars block sight; nothing burning
-## blocks anything.
+## Walls (cracked too), closed doors, bamboo, reeds and pillars block sight, as does
+## gas of Gas.OPAQUE or more; nothing burning hides what is behind it.
 func opaque(p: Vector2i) -> bool:
-	return Tiles.sight[tile(p)] == 1 and not burning.has(p)
+	return (Tiles.sight[tile(p)] == 1 and not burning.has(p)) or Gas.blocks(self, p)
 
 
 ## Walls (cracked too), bamboo and pillars cast shadows; a closed door's paper lets light through.
@@ -466,6 +472,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	_shots_phase()
 	Mind.heaven_phase(self)
 	_burn()
+	Gas.tick(self)
 	_end_round()
 	sense()
 	return events

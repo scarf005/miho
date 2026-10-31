@@ -23,9 +23,9 @@ static func fly(w: World) -> PackedByteArray:
 	)
 
 
-## World.opaque for every tile: only fire changes what the tile kind says.
+## World.opaque for every tile: only fire and gas change what the tile kind says.
 static func opaque(w: World) -> PackedByteArray:
-	return Grid.mask(w.tiles, Tiles.sight, w.burning.keys(), w.opaque)
+	return Grid.mask(w.tiles, Tiles.sight, w.burning.keys() + w.gas.keys(), w.opaque)
 
 
 ## World.blocks_light for every tile.

@@ -19,7 +19,7 @@ func before_all() -> void:
 
 
 func _row(what: int) -> Dictionary:
-	return Placement.ROWS.filter(func(r): return r.what == what)[0]
+	return Placement.ROWS.filter(func(r): return r.get("what") == what)[0]
 
 
 ## A walled board with one floor room of `room`, rooms[0] being it.
@@ -120,21 +120,59 @@ func test_a_pillar_that_would_cut_the_storey_apart_is_taken_out_again() -> void:
 	assert_eq(w.tile(Vector2i(6, 2)), World.PILLAR)
 
 
+## The tiles a row has laid: its tile kind, or the gas of its kind.
+func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
+	if row.has("gas"):
+		var out: Array[Vector2i] = []
+		out.assign(w.gas.keys().filter(func(p): return w.gas[p].x == row.gas))
+		return out
+	return _tiles_of(w, row.what)
+
+
 func test_no_tile_of_a_row_appears_before_its_first_tier_or_after_its_last() -> void:
 	for w in _storeys_built:
 		for row: Dictionary in Placement.ROWS:
 			if w.tier() < row.tiers[0] or w.tier() > row.tiers[1]:
-				assert_eq(_tiles_of(w, row.what), [], "tier %d has no %d" % [w.tier(), row.what])
+				assert_eq(_laid(w, row), [], "tier %d has no %s" % [w.tier(), row.keys()])
 
 
 func test_each_row_turns_up_on_the_tiers_it_asks_for() -> void:
 	for row: Dictionary in Placement.ROWS:
 		var found := {}
 		for w in _storeys_built:
-			if not _tiles_of(w, row.what).is_empty():
+			if not _laid(w, row).is_empty():
 				found[w.tier()] = true
 		for tier in range(row.tiers[0], row.tiers[1] + 1):
-			assert_true(found.has(tier), "kind %d on tier %d" % [row.what, tier])
+			assert_true(
+				found.has(tier), "row %s on tier %d" % [row.get("what", row.get("gas")), tier]
+			)
+
+
+func test_fog_is_laid_over_ponds_outside_the_goal_room_at_full_amount() -> void:
+	var row: Dictionary = Placement.ROWS.filter(func(r): return r.get("gas") == Gas.FOG)[0]
+	var found := 0
+	for w in _storeys_built:
+		var goal: Vector2i = w.elixir if w.elixir.x >= 0 else w.stairs
+		for p in _laid(w, row):
+			found += 1
+			assert_eq(w.tile(p), World.POND, "%s is over a pond" % p)
+			assert_eq(w.gas[p].y, row.amount)
+			assert_false(w.rooms.any(func(r: Rect2i): return r.has_point(p) and r.has_point(goal)))
+	assert_gt(found, 20, "storeys of tier 2 and up have fog")
+
+
+func test_a_gas_patch_grows_like_a_tile_patch_and_leaves_the_tiles_alone() -> void:
+	var w := _hall(Rect2i(10, 5, 12, 8))
+	for p in [Vector2i(14, 8), Vector2i(15, 8), Vector2i(16, 8), Vector2i(15, 9)]:
+		w.tiles[Grid.index(p)] = World.POND
+	var row := {gas = Gas.STEAM, amount = 4, on = World.POND, grow = [100, 50]}
+	var laid := Placement.lay(w, row, Vector2i(15, 8))
+	assert_eq(laid.size(), 4, "all four pond tiles touch")
+	assert_eq(w.gas.size(), 4, "only the pond is covered")
+	for p in laid:
+		assert_eq(w.gas[p], Vector2i(Gas.STEAM, 4))
+		assert_eq(w.tile(p), World.POND)
+	assert_eq(w.events, [] as Array[Dictionary], "laid in silence")
 
 
 func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
