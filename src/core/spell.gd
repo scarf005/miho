@@ -17,9 +17,11 @@ extends RefCounted
 ## orb that turns 45° more each tile for every 여 (freely with four); 구 alone
 ## a loud straight orb, 1 damage for every 구 and 1 more after a run-up (DCSS
 ## mon-project.cc iood_damage); 여 alone a wisp for every 여 (one with 도약),
-## each hitting for 1 (a lone 여 for none), turning like a homing orb. Homing
-## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
-## tiles, then hovers and lights its surroundings. A wisp that strikes a
+## each hitting for 1 (a lone 여 for none), turning WISP_TURN for every 여.
+## Homing projectiles chase a creature (Homing). A wisp flies up to RANGE
+## tiles, chasing or not, and where it stops, at a wall or the end of its
+## range, it hovers WISP_LIFE rounds, lights its surroundings and flies no
+## more. A wisp that strikes a
 ## creature that does not eat it sticks to it for WISP_LIFE rounds and lights
 ## it wherever it goes (Elements.stick); a bullet does not stick. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
@@ -38,6 +40,10 @@ const RANGE := 7
 const WISP_LIFE := 8
 const HOMING_LIFE := 6
 const TURN_FREE := 4
+## Degrees of turn: one step of the eight directions, and what a wisp banks
+## each tile for every 여.
+const TURN_STEP := 45
+const WISP_TURN := 30
 ## Tiles a leap reaches past the 도약 slot's own and one for every 목 behind it.
 const LEAP_BASE := 2
 
@@ -253,10 +259,14 @@ func shots() -> int:
 	return count(Cards.FOX) if shape == WISP and not swaps() else 1
 
 
-## How far a projectile may turn each tile, in steps of 45°; TURN_FREE turns
-## any way. A wisp or a homing orb turns 45° for every 여.
+## Degrees of turn a projectile banks each tile it flies (Homing.steer): a
+## homing orb TURN_STEP for every 여, any way with TURN_FREE of them; a wisp
+## WISP_TURN for every 여.
 func turn() -> int:
-	return mini(count(Cards.FOX), TURN_FREE) if shape == WISP or homing() else 0
+	var foxes := mini(count(Cards.FOX), TURN_FREE)
+	if homing():
+		return TURN_STEP * foxes
+	return WISP_TURN * foxes if shape == WISP else 0
 
 
 ## Copies of an element or a compound past the first: each makes its effect

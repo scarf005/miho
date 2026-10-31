@@ -200,7 +200,7 @@ static func _shot(k: World, s: Shot) -> String:
 	)
 	var t := k.actor(s.target)
 	if t != null:
-		line += ", chasing %s (%d,%d), turns %d°" % [t.info().name, t.pos.x, t.pos.y, 45 * s.turn]
+		line += ", chasing %s (%d,%d), turns %d°" % [t.info().name, t.pos.x, t.pos.y, s.turn]
 	if s.life > 0:
 		line += ", %d rounds left" % s.life
 	return line

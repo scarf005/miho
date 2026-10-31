@@ -5,7 +5,6 @@ extends RefCounted
 ## it costs, what each element does, its light and its sound.
 
 const LABEL := Palette.DIM
-const TURN_NAME := ["곧게만 간다", "45°", "90°", "135°", "마음대로"]
 const MUZZLE := "발사 시 당신 칸을 밝힌다"
 ## The talismans that make each shape but a spray.
 const RECIPE := {
@@ -329,7 +328,7 @@ static func shot(w: World, s: Shot) -> Array:
 		if t != null and t.faction == Actor.FOX:
 			aim = "당신"
 		lines.append(_line("노림", aim))
-		lines.append(_line("꺾임", TURN_NAME[s.turn]))
+		lines.append(_line("꺾임", _turn(s.turn)))
 	lines.append(_line("빠르기", "초당 %d칸" % spell.speed() if s.dir != Vector2i.ZERO else "떠 있음"))
 	if s.life > 0:
 		lines.append(_line("남은 시간", "%d초" % s.life))
@@ -341,6 +340,13 @@ static func shot(w: World, s: Shot) -> Array:
 	if spell.burst_noise() > 0:
 		lines.append(_line("소리", "터질 때 %d칸" % spell.burst_noise()))
 	return lines
+
+
+## A turn of `degrees` a tile.
+static func _turn(degrees: int) -> String:
+	if degrees >= Spell.TURN_STEP * Spell.TURN_FREE:
+		return "마음대로"
+	return "%d°" % degrees if degrees > 0 else "곧게만 간다"
 
 
 static func _cost(s: Spell) -> String:
@@ -374,16 +380,17 @@ static func _shape(s: Spell) -> Array:
 			lines.append(_line("모양", "여우불 %d발. 보이는 적을 체력만큼 나눠 쫓는다" % s.shots()))
 			var harm := "발마다 %d" % s.damage(0) if s.damage(0) > 0 else "없음"
 			lines.append(_line("피해", harm, Palette.HURT))
-			lines.append(_line("꺾임", "한 칸에 " + TURN_NAME[s.turn()]))
+			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초 빛난다" % Spell.WISP_LIFE))
-			lines.append(_line("노릴 적이 없으면", "%d칸 날아가 %d초 떠 있는다" % [Spell.RANGE, Spell.WISP_LIFE]))
+			lines.append(_line("사거리", "%d칸" % Spell.RANGE))
+			lines.append(_line("떠 있음", "%d초" % Spell.WISP_LIFE))
 			if Lure.lures(s):
 				lines.append(_lure(s))
 		Spell.HOMING:
 			lines.append(_line("모양", "유도 구슬. 가장 가까운 적을 쫓는다"))
 			lines.append(_orb_harm(s))
-			lines.append(_line("꺾임", "한 칸에 " + TURN_NAME[s.turn()]))
+			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			lines.append(_line("남은 시간", "%d초" % Spell.HOMING_LIFE))
 		Spell.ORB:
 			lines.append(_line("모양", "구슬. 벽까지 곧게 날아간다"))

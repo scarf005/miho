@@ -12,14 +12,17 @@ extends RefCounted
 ##
 ## Each tile, a breadth-first search from the creature over the tiles a
 ## projectile may fly through (Masks.fly) gives the distance of every tile to
-## it, and the projectile takes the neighbour one tile nearer, within its turn
-## (Shot.turn; any way for a hovering wisp, which has no heading): straight on
-## first, then the smallest turns, left before right.
+## it, and the projectile takes the neighbour one tile nearer, within its turn:
+## straight on first, then the smallest turns, left before right.
+## Its turn is a bank of degrees: every tile it gains Shot.turn, holding no
+## more than that or Spell.TURN_STEP, whichever is more, and each 45° step of a
+## turn spends Spell.TURN_STEP. A homing orb so turns Shot.turn every tile; a
+## lone wisp (30°) one step at most every second tile.
 ## With no such neighbour it flies straight on, and so may lose its creature
 ## round a corner it cannot turn. A wisp that has struck sticks to its creature
-## and steers no more; it chases again if the creature dies (World.rides).
+## and steers no more, nor does one that hovers (World._step).
 
-## Turns tried, in steps of 45° from the heading.
+## Turns tried, in steps of Spell.TURN_STEP from the heading.
 const TURNS := [0, -1, 1, -2, 2, -3, 3, 4]
 
 
@@ -53,8 +56,10 @@ static func _closer(from: Vector2i, a: Actor, b: Actor) -> bool:
 	return [Grid.cheb(from, a.pos), a.id] < [Grid.cheb(from, b.pos), b.id]
 
 
-## The direction `s` flies next, after taking a new creature when it needs one.
+## The direction `s` flies next, after banking this tile's turn and taking a
+## new creature when it needs one.
 static func steer(w: World, s: Shot) -> Vector2i:
+	s.bank = mini(s.bank + s.turn, maxi(s.turn, Spell.TURN_STEP))
 	var t := w.actor(s.target)
 	if t == null or not t.alive():
 		s.target = _nearest(w, s)
@@ -66,14 +71,12 @@ static func steer(w: World, s: Shot) -> Vector2i:
 	if here <= 0:
 		return s.dir
 	var i := maxi(0, Grid.DIRS.find(s.dir))
-	# A hovering wisp has no heading: it sets off whichever way.
-	var turn := s.turn if s.dir != Vector2i.ZERO else Spell.TURN_FREE
 	for k: int in TURNS:
-		if absi(k) > turn:
-			continue
+		var cost := absi(k) * Spell.TURN_STEP
 		var d := Grid.DIRS[(i + k + 8) % 8]
 		var p := s.pos + d
-		if Grid.inside(p) and dist[Grid.index(p)] == here - 1:
+		if cost <= s.bank and Grid.inside(p) and dist[Grid.index(p)] == here - 1:
+			s.bank -= cost
 			return d
 	return s.dir
 
