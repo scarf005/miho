@@ -6,6 +6,7 @@ extends Node
 ## `cell:x:y` (point at a screen cell, such as a talisman, the sidebar or a
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
+## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
@@ -96,6 +97,12 @@ func _send(k: String) -> void:
 				await get_tree().process_frame
 		"fire":
 			main.world.burning[Vector2i(int(parts[1]), int(parts[2]))] = World.BURN_ROUNDS
+			main.term.show_world(main.world)
+			main._forecast()
+		"spawn":
+			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
+			FloorGen.spawn(main.world, StringName(parts[1]), at)
+			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
 		"walk":
