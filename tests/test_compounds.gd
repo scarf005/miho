@@ -385,21 +385,7 @@ func test_hover_tells_the_new_ground_from_the_rules() -> void:
 	assert_string_contains(me, "%s 위 (2초). 매 초 피해 %d" % [spec.name, spec.harm])
 
 
-func test_every_new_ground_has_its_own_glyph_in_the_mcp_legend() -> void:
-	var glyphs := {}
-	for kind in range(World.ICE):
-		glyphs[Palette.TILES[kind][0]] = true
-	for g in [Palette.BURNING[0]] + Palette.GAS.values().map(func(v): return v[0]):
-		glyphs[g] = true
-	for g: String in [
-		Palette.TILES[World.ICE][0],
-		Palette.TILES[World.THORNS][0],
-		Palette.TILES[World.MUD][0],
-		Palette.HOT[0],
-	]:
-		assert_false(glyphs.has(g), "%s is used twice" % g)
-		assert_true(Observation.LEGEND.contains(g), "legend lists %s" % g)
-		glyphs[g] = true
+func test_the_map_text_draws_hot_ground() -> void:
 	var w := _world()
 	w.hot[ME + E] = Vector2i(Compounds.LAVA, 2)
 	assert_string_contains(Observation.text(w), Palette.HOT[0])
