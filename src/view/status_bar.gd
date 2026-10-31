@@ -58,10 +58,13 @@ static func draw(t: Term) -> void:
 			t._glyph(at, Cards.GLYPH[slots[i]], c)
 		else:
 			t._glyph(at, "·", Palette.TEXT if i - slots.size() < room else Palette.DIM)
-	var name := queued.title() if queued != null else ""
-	if not t.staged.is_empty():
-		name = "+%d %s" % [t.staged.size(), name]
-	t._text(Vector2(title_x(t, name), row), name, Palette.TEXT)
+	var name := _name(t, queued)
+	var at := title_at(t, name)
+	if at.y < row:
+		t.draw_rect(
+			Rect2(at * Term.CELL, Vector2(t._cells(name), 1) * Term.CELL), Color(Palette.VOID, 0.85)
+		)
+	t._text(at, name, Palette.TEXT)
 
 
 ## Tails the spells held with Shift spend.
@@ -74,9 +77,18 @@ static func queue_x(t: Term) -> float:
 	return Term.MAP.x + t.world.cards.size() * 3 + 1.0
 
 
-## Where the queued spell's name starts: at the right edge, but never over the queue.
-static func title_x(t: Term, name: String) -> float:
-	return maxf(queue_x(t) + Spell.MAX_SLOTS + 0.5, t.cols - t._cells(name))
+## The queued spell's name as drawn, with the count of spells held with Shift.
+static func _name(t: Term, spell: Spell) -> String:
+	var name := spell.title() if spell != null else ""
+	return "+%d %s" % [t.staged.size(), name] if not t.staged.is_empty() else name
+
+
+## Where the queued spell's name starts, flush with the right edge: on the lower
+## row after the queue when it fits there, else on the map row above it.
+static func title_at(t: Term, name: String) -> Vector2:
+	var x := t.cols - t._cells(name)
+	var fits := x >= queue_x(t) + Spell.MAX_SLOTS + 0.5
+	return Vector2(x if fits else maxf(0.0, x), t.rows - (1 if fits else 3))
 
 
 ## Saved spells on the upper row: {action, key, x, width}, left to right.
@@ -124,9 +136,11 @@ static func slot_at(t: Term, local: Vector2) -> String:
 ## The queued spell's key when a point is on its name or a filled queue slot, else empty.
 static func hand_at(t: Term, local: Vector2) -> String:
 	var spell := Spell.make(t.picked)
-	if spell == null or floori(local.y / Term.CELL.y) != t.rows - 1:
+	if spell == null:
 		return ""
-	var on_name := local.x / Term.CELL.x >= title_x(t, spell.title())
+	var c := local / Term.CELL
+	var name := title_at(t, _name(t, spell))
+	var on_name := floori(c.y) == int(name.y) and c.x >= name.x
 	return spell.key() if on_name or queue_at(t, local) >= 0 else ""
 
 
