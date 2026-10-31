@@ -9,7 +9,8 @@ extends RefCounted
 var after: World
 var events: Array[Dictionary] = []
 ## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live, target}, the
-## target the creature id it chases (0 for none) as the round ends
+## target the creature id it chases (0 for none) as the round ends; a wisp
+## that struck keeps the one it chased
 var paths := {}
 ## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
 var sprays: Array[Dictionary] = []
@@ -84,7 +85,8 @@ func read(round_events: Array[Dictionary]) -> void:
 		paths[id].live = s != null
 		if s != null:
 			paths[id].dir = s.dir
-			paths[id].target = s.target
+			if s.host == 0:
+				paths[id].target = s.target
 
 
 func after_shot(id: int) -> Shot:

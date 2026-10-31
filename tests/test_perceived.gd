@@ -148,7 +148,8 @@ func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
 			var lines := _lines(before, w, events)
 			var ctx := "seed %d round %d" % [seed_value, round_no]
 			for a in w.actors:
-				if not _in_sight(before, a) or not _in_sight(w, a):
+				var was := before.actor(a.id)
+				if was == null or not _in_sight(before, was) or not _in_sight(w, a):
 					told.erase(a.id)
 			for f in facts:
 				match f.t:

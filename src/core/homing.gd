@@ -15,7 +15,8 @@ extends RefCounted
 ## (Shot.turn; any way for a hovering wisp, which has no heading): straight on
 ## first, then the smallest turns, left before right.
 ## With no such neighbour it flies straight on, and so may lose its creature
-## round a corner it cannot turn.
+## round a corner it cannot turn. A wisp that has struck sticks to its creature
+## and steers no more; it chases again if the creature dies (World.rides).
 
 ## Turns tried, in steps of 45° from the heading.
 const TURNS := [0, -1, 1, -2, 2, -3, 3, 4]

@@ -66,7 +66,7 @@ func test_a_lone_wisp_does_no_harm_and_turns_45_degrees_a_tile() -> void:
 	var foe := _foe(w, &"jangseung", Vector2i(5, 8))
 	w.act(_cast([FOX], E))
 	assert_eq(foe.hp, foe.max_hp, "it strikes and does nothing")
-	assert_true(w.shots.is_empty(), "it is spent on the creature")
+	assert_eq(w.shots.map(func(s): return s.host), [foe.id], "it sticks to the creature")
 
 
 func test_harmless_wisps_all_go_for_the_nearest() -> void:
@@ -244,7 +244,7 @@ func test_two_wisps_strike_the_creature_they_chase_for_one_each() -> void:
 	var foe := _foe(w, &"jangseung", Vector2i(7, 8))
 	w.act(_cast([FOX, FOX], E))
 	assert_eq(foe.hp, foe.max_hp - 2)
-	assert_true(w.shots.is_empty())
+	assert_eq(w.shots.size(), 2, "both stick and strike no more")
 
 
 func test_a_hovering_wisp_chases_the_first_creature_it_then_sees() -> void:
@@ -254,9 +254,9 @@ func test_a_hovering_wisp_chases_the_first_creature_it_then_sees() -> void:
 	var wisp: Shot = w.shots[0]
 	var foe := _foe(w, &"jangseung", Vector2i(13, 9))
 	for i in 4:
-		if not wisp.gone:
+		if wisp.host == 0:
 			w.act(WAIT)
 	assert_true(wisp.target == foe.id, "it took the creature it saw")
 	assert_eq(foe.hp, foe.max_hp, "a lone wisp strikes for nothing")
-	assert_true(w.shots.is_empty())
-	assert_true(wisp.gone)
+	assert_eq(wisp.host, foe.id, "and stuck to it")
+	assert_eq(wisp.pos, foe.pos)

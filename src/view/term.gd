@@ -299,6 +299,11 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 				var tail: Array = _trails.get(e.shot, [])
 				tail.append(e.from)
 				_trails[e.shot] = tail.slice(-TRAIL)
+		&"stick":
+			_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
+		&"ride":
+			if _shots.has(e.shot):
+				_shots[e.shot].pos = e.to
 		&"burst", &"hit", &"fade", &"snuff":
 			_shots.erase(e.shot)
 			_flash(at, Color(1, 1, 1, 0.5))
@@ -645,6 +650,10 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		if tints.has(a.pos):
 			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
 		_glyph(cell, a.info().glyph, c)
+		for s: Dictionary in shots.values():
+			if s.pos == a.pos:
+				var glow := Palette.shot_color(s.spell, s.faction)
+				_small(cell + Vector2(0, -0.05), Palette.shot_glyph(s.spell), glow)
 		if a.faction != Actor.FOX and _visible(a.pos):
 			var mark := Perceived.mark_of(a)
 			if mark != "":
