@@ -166,8 +166,8 @@ func test_rest_waits_until_the_tails_regrow() -> void:
 
 func test_travel_walks_to_a_known_tile() -> void:
 	var tools := _game()
-	var me := tools.world.player().pos
-	var goal := me + Vector2i(3, 0)
+	var dist: PackedInt32Array = Travel.search(tools.world).dist
+	var goal := Grid.at(dist.find(2))
 	assert_true(Travel.walkable(tools.world, goal))
 	var r := _call(tools, "act", {action = "travel", x = goal.x, y = goal.y})
 	assert_false(r.error)
