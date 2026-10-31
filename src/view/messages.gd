@@ -4,10 +4,13 @@ extends RefCounted
 ## only: events where she saw them, and noises she heard out of sight. Hidden
 ## events and kinds of event it does not know give no line. Each line is a list
 ## of [text, Color] runs, with names, harm and sound words in their colours.
+## What she perceived is Perceived's: the map's popups read the same facts.
 ## A line repeated right after itself is counted instead of written again.
 
 const KEEP := 40
 const TEXT := Palette.TEXT
+## What a creature's map mark says, for one that comes into sight marked.
+const STATE := {"!": "당신을 쫓고 있다", "?": "수색하고 있다", "x": "눈이 멀어 있다"}
 
 ## {runs, text, round, n}
 var lines: Array[Dictionary] = []
@@ -34,50 +37,20 @@ static func plain(runs: Array) -> String:
 	return "".join(runs.map(func(r): return r[0]))
 
 
-## Lines for one round from `before` to `after`.
+## Lines for one round from `before` to `after`: one per fact Miho is told.
 static func of(before: World, after: World, events: Array) -> Array:
-	var vis := before.seen.duplicate()
-	for i in vis.size():
-		vis[i] |= after.seen[i]
-	var where := {}
-	for w: World in [after, before]:
-		for a in w.actors:
-			where[a.id] = a.pos
-	var factions := {}
-	for s in before.shots:
-		factions[s.id] = s.faction
 	var out := []
 	var last := {}
-	for event: Dictionary in events:
-		var e := event
-		if e.t == &"move" and where.has(e.id):
-			where[e.id] = e.to
-		if e.t == &"spawn":
-			factions[e.shot] = e.faction
-		if e.t == &"hit":
-			e = e.merged({faction = factions.get(e.shot, Actor.HEAVEN)})
-		var at: Vector2i = e.get("to", e.get("at", where.get(e.get("id", -1), Vector2i(-1, -1))))
-		var seen: bool = (
-			not Grid.inside(at) and not e.has("id")
-			or _in(vis, at)
-			or (e.has("from") and _in(vis, e.from))
-		)
-		if e.t == &"noise":
-			if e.heard and not _in(vis, e.at):
-				out.append([["멀리서 ", TEXT], [e.word, Palette.SOUND], [" 소리를 들었다", TEXT]])
+	for f in Perceived.of(before, after, events).facts:
+		if f.t == &"noise":
+			out.append([["멀리서 ", TEXT], [f.word, Palette.SOUND], [" 소리를 들었다", TEXT]])
 			continue
-		if not seen:
-			continue
-		var line := _line(before, after, e, last)
-		if e.t != &"hurt":
-			last = e
+		var line := _line(before, after, f, last)
+		if f.t != &"hurt":
+			last = f
 		if not line.is_empty():
 			out.append(line)
 	return out
-
-
-static func _in(vis: PackedByteArray, p: Vector2i) -> bool:
-	return Grid.inside(p) and vis[Grid.index(p)] == 1
 
 
 ## One seen event as a line, or empty. `last` is the seen event before it
@@ -89,6 +62,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 	match e.t:
 		&"notice":
 			return _who(before, after, id, "에게", "에게") + [[" 들켰다", TEXT]]
+		&"state":
+			return _subject(before, after, id) + [[STATE[e.mark], TEXT]]
 		&"claw":
 			var line := [["기습! ", Palette.ALERT[1]]] if e.sneak else []
 			return line + _harm_to(before, after, e.target, e.n)
