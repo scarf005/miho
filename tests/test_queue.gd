@@ -192,3 +192,98 @@ func test_another_key_after_a_refused_talisman_lets_the_direction_walk() -> void
 	m._close()
 	_press(m, "Right")
 	assert_eq(m.world.player().pos, start + Vector2i.RIGHT)
+
+
+func test_a_picked_talisman_aims_at_the_nearest_creature_and_space_hurls_it() -> void:
+	var m := _main()
+	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
+	foe.cooldown = 99
+	m._forecast()
+	_press(m, "2")
+	assert_eq(m.hover, foe.pos, "the cursor goes to the nearest creature in sight")
+	var round_no: int = m.world.round_no
+	_press(m, "Space")
+	assert_eq(m.world.round_no, round_no + 1, "the round is played")
+	assert_eq(m.world.shots.map(func(s): return s.dir), [Vector2i.RIGHT], "hurled at it")
+	while m.busy:
+		await get_tree().process_frame
+	assert_true(m.picked.is_empty())
+
+
+func test_tab_moves_the_aim_to_the_next_creature_in_sight() -> void:
+	var m := _main()
+	var near := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
+	var far := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(4, 5))
+	m._forecast()
+	_press(m, "2")
+	assert_eq(m.hover, near.pos)
+	_press(m, "Tab")
+	assert_eq(m.hover, far.pos)
+	_press(m, "Tab")
+	assert_eq(m.hover, near.pos, "and round again")
+	assert_eq(m.picked, [ORB] as Array[StringName], "Tab does not fight while aiming")
+
+
+func test_space_with_talismans_and_nothing_to_aim_at_keeps_the_turn() -> void:
+	var m := _main()
+	_press(m, "2")
+	var round_no: int = m.world.round_no
+	_press(m, "Space")
+	assert_eq(m.world.round_no, round_no, "no wasted wait")
+	assert_eq(m.picked, [ORB] as Array[StringName])
+
+
+func test_f_picks_the_last_hurled_spell_again() -> void:
+	var m := _main()
+	for k in ["1", "1", "Right"]:
+		_press(m, k)
+	while m.busy:
+		await get_tree().process_frame
+	assert_true(m.picked.is_empty())
+	_press(m, "F")
+	assert_eq(m.picked, [FOX, FOX] as Array[StringName])
+
+
+func test_period_with_talismans_picked_hurls_at_the_cursor_too() -> void:
+	var m := _main()
+	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
+	foe.cooldown = 99
+	m._forecast()
+	_press(m, "2")
+	_press(m, "Period")
+	assert_eq(m.world.shots.map(func(s): return s.dir), [Vector2i.RIGHT])
+
+
+func test_a_cursor_already_on_a_creature_stays_when_picking() -> void:
+	var m := _main()
+	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
+	var far := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(4, 5))
+	m._look_at(far.pos)
+	_press(m, "2")
+	assert_eq(m.hover, far.pos)
+
+
+func test_a_direction_after_a_refused_confirm_still_hurls() -> void:
+	var m := _main()
+	_press(m, "2")
+	_press(m, "Space")
+	_press(m, "Right")
+	assert_eq(m.world.shots.map(func(s): return s.dir), [Vector2i.RIGHT])
+
+
+func test_f_with_nothing_hurled_yet_refuses_and_picks_nothing() -> void:
+	var m := _main()
+	var round_no: int = m.world.round_no
+	_press(m, "F")
+	assert_true(m.picked.is_empty())
+	assert_eq(m.world.round_no, round_no)
+	assert_true(m.refused)
+
+
+func test_esc_sends_the_cursor_back_to_the_pointer() -> void:
+	var m := _main()
+	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
+	_press(m, "2")
+	assert_eq(m.hover, foe.pos)
+	_press(m, "Escape")
+	assert_ne(m.hover, foe.pos)
