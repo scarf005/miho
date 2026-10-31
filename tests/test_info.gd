@@ -122,7 +122,7 @@ func test_a_creature_tells_what_it_is_weak_to() -> void:
 	assert_string_contains(dog, "약점: 흙 (피해 ×2)")
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
 	assert_string_contains(boss, "약점: 불, 물, 흙 (피해 ×2)")
-	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", at)))
+	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
 	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
 
 

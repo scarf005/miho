@@ -261,10 +261,10 @@ func test_observation_tells_what_a_creature_is_weak_to() -> void:
 	var tools := _game()
 	var w := tools.world
 	FloorGen.spawn(w, &"cheonha", w.player().pos + Vector2i(1, 0))
-	FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(0, 1))
+	FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(0, 1))
 	w.sense()
 	var lines: Array = _call(tools, "observe").text.split("\n")
 	var wood: Array = lines.filter(func(l): return l.contains("천하대장군"))
 	assert_string_contains(wood[0], ", weak to metal")
-	var plain: Array = lines.filter(func(l): return l.contains("도깨비 ("))
+	var plain: Array = lines.filter(func(l): return l.contains("장승 ("))
 	assert_false(plain[0].contains("weak to"))

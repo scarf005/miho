@@ -16,7 +16,7 @@ static func heaven_phase(w: World) -> void:
 			continue
 		perceive(w, a)
 		if not a.intent.is_empty():
-			var spell := Spell.make(a.intent)
+			var spell := Bestiary.spell(a.kind, a.intent)
 			a.intent.clear()
 			a.cooldown = a.info().cd
 			w.cast(a, spell, a.aim)

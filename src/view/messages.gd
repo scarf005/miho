@@ -132,7 +132,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"calm":
 			return _who(before, after, id, "이", "가") + [[" 수색을 멈췄다", TEXT]]
 		&"charge":
-			var spell := Spell.make(e.cards)
+			var spell := Bestiary.spell(_actor(before, after, id).kind, e.cards)
 			return (
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [spell.title(), Palette.card(spell.slots.back())]]

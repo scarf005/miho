@@ -187,7 +187,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 static func _casts(a: Actor) -> Array:
 	var out := []
 	for cast: Array in a.info().get("casts", []):
-		var spell := Spell.make(cast)
+		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
 			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]

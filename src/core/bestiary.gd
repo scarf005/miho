@@ -1,7 +1,10 @@
 class_name Bestiary
 extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
-## ones (`drop`) add an element and give it to Miho when they fall.
+## ones (`drop`) add an element and give it to Miho when they fall, and the
+## dokkaebi (도깨비불) and 불개 add fire to their foxfire.
+## spell_name: what the log and hover call the spell it casts, in place of the
+## name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage.
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
@@ -32,7 +35,8 @@ const KINDS := {
 		glyph = "도",
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
-		casts = [[FOX]],
+		casts = [[FOX, Cards.FIRE]],
+		spell_name = "도깨비불",
 		cd = 3,
 		move = &"approach",
 		step = 4,
@@ -148,6 +152,13 @@ const KINDS := {
 
 static func info(kind: StringName) -> Dictionary:
 	return KINDS[kind]
+
+
+## The spell a `kind` hurls from `cards`, called by its own name if it has one.
+static func spell(kind: StringName, cards: Array) -> Spell:
+	var s := Spell.make(cards)
+	s.called = info(kind).get("spell_name", "")
+	return s
 
 
 static func wits(kind: StringName) -> int:
