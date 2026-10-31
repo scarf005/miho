@@ -88,12 +88,22 @@ static func fells(spell: Spell) -> bool:
 
 ## Tiles a wooden wall grows across: `spell` hurled along `dir` ending at
 ## `at`, WALL of them and one more for every 나무 past the first, centred on
-## `at` and then alternately to either side.
+## `at` and then alternately to either side. Across a diagonal cast it climbs
+## like stairs, one row or column at a time, so no step slips between its tiles.
 static func wall_tiles(spell: Spell, at: Vector2i, dir: Vector2i) -> Array[Vector2i]:
 	var across := Vector2i(-dir.y, dir.x)
-	var out: Array[Vector2i] = []
-	for k in WALL + spell.extra(Cards.WOOD):
-		out.append(at + across * ((k + 1) / 2) * (1 if k % 2 == 1 else -1))
+	var steps := [[across], [-across]]
+	if across.x != 0 and across.y != 0:
+		steps = [
+			[Vector2i(across.x, 0), Vector2i(0, across.y)],
+			[Vector2i(0, -across.y), Vector2i(-across.x, 0)],
+		]
+	var ends: Array[Vector2i] = [at, at]
+	var out: Array[Vector2i] = [at]
+	for k in range(1, WALL + spell.extra(Cards.WOOD)):
+		var side := (k - 1) % 2
+		ends[side] += steps[side][((k - 1) / 2) % steps[side].size()]
+		out.append(ends[side])
 	return out
 
 
