@@ -6,6 +6,8 @@ extends RefCounted
 ## away), sliding doors where corridors meet rooms (some start open), and
 ## lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
+## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
+## by tier (Placement).
 ## From tier 2 a lit room may hold a war drum. Corridors stay plain and dark.
 ## Miho starts in the westmost room; the stairs (the elixir on the top storey)
 ## sit in the room farthest from her, which is always lit. Watchers that never
@@ -155,7 +157,7 @@ static func build(w: World) -> void:
 	me.blind = 0
 	for attempt in 100:
 		_carve(w)
-		if w.rooms.size() >= MIN_ROOMS and _connected(w):
+		if w.rooms.size() >= MIN_ROOMS and connected(w):
 			break
 	w._changed()
 	var home := w.rooms[0]
@@ -170,6 +172,7 @@ static func build(w: World) -> void:
 		w.stairs = _centre(goal)
 	_lanterns(w, home, goal)
 	_features(w, goal)
+	Placement.scatter(w, goal)
 	_drum(w)
 	_creatures(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
@@ -361,7 +364,7 @@ static func _doors(w: World) -> void:
 					)
 
 
-static func _connected(w: World) -> bool:
+static func connected(w: World) -> bool:
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), Masks.floor_of(w)).dist
 	for i in w.tiles.size():
 		if w.open_floor(Grid.at(i)) and dist[i] < 0:
@@ -399,7 +402,7 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 			if r == goal and not _lights(w, c, target):
 				continue
 			w.tiles[Grid.index(c)] = World.LANTERN
-			if _connected(w):
+			if connected(w):
 				break
 			w.tiles[Grid.index(c)] = World.FLOOR
 
@@ -420,7 +423,7 @@ static func _features(w: World, goal: Rect2i) -> void:
 			_blob(w, r, World.BAMBOO)
 		elif roll < BAMBOO_ROOMS + POND_ROOMS:
 			var pond := _blob(w, r, World.POND)
-			if not _connected(w):
+			if not connected(w):
 				for p in pond:
 					w.tiles[Grid.index(p)] = World.FLOOR
 		elif roll < BAMBOO_ROOMS + POND_ROOMS + HALL_ROOMS:
@@ -446,7 +449,7 @@ static func _drum(w: World) -> void:
 		return
 	var at := spots[w.rng.randi_range(0, spots.size() - 1)]
 	w.tiles[Grid.index(at)] = World.DRUM
-	if not _connected(w):
+	if not connected(w):
 		w.tiles[Grid.index(at)] = World.FLOOR
 
 

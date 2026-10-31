@@ -1,0 +1,135 @@
+class_name Placement
+extends RefCounted
+## What lies on a storey's rooms, from a table of rows (Brogue CE
+## autoGeneratorCatalog). Corridors, and the goal room whose lantern must light
+## the stairs, stay bare. A row has:
+##
+## what, on: the tile kind laid, and the one it replaces (bare floor).
+## tiers: the first and last tier (World.tier, 1 to 9) it appears on.
+## chance: the percent chance that each patch is laid.
+## count: [intercept, slope, most]. A storey has (intercept + tier * slope) / 100
+## patches, at most `most`; the remainder is the chance of one more.
+## grow: [start, step]. A patch starts on one random tile and spreads to each of
+## its four neighbours in the room with `start` percent, then on from those with
+## `start - step` percent, and so on (Brogue CE spawnDungeonFeature); [0, 0] is a
+## single tile.
+##
+## A patch that cuts the storey apart is taken out again.
+
+const ROWS := [
+	{
+		what = World.GRASS,
+		on = World.FLOOR,
+		tiers = [1, 9],
+		chance = 100,
+		count = [200, 25, 5],
+		grow = [80, 15],
+	},
+	{
+		what = World.LEAVES,
+		on = World.FLOOR,
+		tiers = [1, 9],
+		chance = 80,
+		count = [100, 20, 3],
+		grow = [75, 15],
+	},
+	{
+		what = World.STRAW,
+		on = World.FLOOR,
+		tiers = [2, 9],
+		chance = 100,
+		count = [0, 50, 3],
+		grow = [85, 15],
+	},
+	{
+		what = World.REEDS,
+		on = World.FLOOR,
+		tiers = [1, 9],
+		chance = 100,
+		count = [100, 25, 3],
+		grow = [75, 12],
+	},
+	{
+		what = World.SHALLOW,
+		on = World.FLOOR,
+		tiers = [1, 9],
+		chance = 100,
+		count = [100, 15, 2],
+		grow = [80, 14],
+	},
+	{
+		what = World.PILLAR,
+		on = World.FLOOR,
+		tiers = [2, 9],
+		chance = 100,
+		count = [0, 80, 4],
+		grow = [0, 0],
+	},
+]
+const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
+
+
+## Lays every row's patches for this storey's tier in the rooms but `goal`.
+static func scatter(w: World, goal: Rect2i) -> void:
+	for row: Dictionary in ROWS:
+		if w.tier() < row.tiers[0] or w.tier() > row.tiers[1]:
+			continue
+		for i in count(row, w.tier(), w.rng):
+			var spots := _spots(w, row, goal)
+			if spots.is_empty():
+				break
+			if w.rng.randi_range(1, 100) <= row.chance:
+				lay(w, row, spots[w.rng.randi_range(0, spots.size() - 1)])
+	w._changed()
+
+
+## How many patches of `row` a storey of `tier` has.
+static func count(row: Dictionary, tier: int, rng: RandomNumberGenerator) -> int:
+	var hundredths := maxi(0, row.count[0] + tier * row.count[1])
+	var extra := 1 if rng.randi_range(0, 99) < hundredths % 100 else 0
+	return mini(row.count[2], hundredths / 100 + extra)
+
+
+## The tiles `row` may start on: free tiles of `row.on` in a room but `goal`.
+static func _spots(w: World, row: Dictionary, goal: Rect2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for r in w.rooms:
+		if r != goal:
+			for y in range(r.position.y, r.end.y):
+				for x in range(r.position.x, r.end.x):
+					if _free(w, Vector2i(x, y), row):
+						out.append(Vector2i(x, y))
+	return out
+
+
+static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
+	return w.tile(p) == row.on and p != w.start and p != w.stairs and p != w.elixir
+
+
+## A patch of `row` grown from `at` inside its room; the tiles laid, none when it
+## would cut the storey apart.
+static func lay(w: World, row: Dictionary, at: Vector2i) -> Array[Vector2i]:
+	var room: Rect2i = w.rooms.filter(func(r: Rect2i): return r.has_point(at))[0]
+	var laid: Array[Vector2i] = [at]
+	var ring: Array[Vector2i] = [at]
+	w.tiles[Grid.index(at)] = row.what
+	var chance: int = row.grow[0]
+	while chance > 0 and not ring.is_empty():
+		var next: Array[Vector2i] = []
+		for p in ring:
+			for d in SIDES:
+				if (
+					room.has_point(p + d)
+					and _free(w, p + d, row)
+					and w.rng.randi_range(1, 100) <= chance
+				):
+					w.tiles[Grid.index(p + d)] = row.what
+					next.append(p + d)
+		laid.append_array(next)
+		ring = next
+		chance -= row.grow[1]
+	if Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
+		for p in laid:
+			w.tiles[Grid.index(p)] = row.on
+		laid.clear()
+	return laid
