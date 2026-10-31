@@ -56,7 +56,7 @@ func test_a_creature_tells_its_element() -> void:
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(1, 0))
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "오행 수(물)")
-	assert_string_contains(text, "불 면역")
+	assert_string_contains(text, "면역: 불 (불이 든 주문, 불타는 칸)")
 
 
 func test_a_creature_tells_the_talisman_it_drops_until_miho_has_it() -> void:
@@ -114,3 +114,33 @@ func test_the_starfish_tells_it_grows_on_metal() -> void:
 	assert_string_contains(text, "쇠 주문을 먹으면 최대 체력 +%d, 체력 +%d" % [Bestiary.GROWTH, Bestiary.GROWTH])
 	var other := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", foe.pos)))
 	assert_false(other.contains("먹으면"))
+
+
+func test_every_immunity_is_its_own_line() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var told := {
+		&"bulgae": ["면역: 불 (불이 든 주문, 불타는 칸)"],
+		&"bulgasari": ["면역: 불이 없는 모든 주문"],
+		&"jangseung": ["면역: 소리 (경보를 듣지 못한다)", "면역: 묶기 (움직이지 못한다)"],
+		&"dokkaebi": [],
+	}
+	for kind: StringName in told:
+		var lines := Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at))).split("\n")
+		var got := Array(lines).filter(func(l): return l.begins_with("면역"))
+		assert_eq(got, told[kind], str(kind))
+
+
+func test_the_old_trait_words_for_immunity_are_gone() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	for kind in [&"haetae", &"bulgasari", &"jiha"]:
+		var text := Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at)))
+		for word in ["불 면역", "불로만 피해", "청각 없음", "이동 불가"]:
+			assert_false(text.contains(word), "%s says %s" % [kind, word])
+
+
+func test_a_starfish_weakness_holds_only_with_fire() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"bulgasari", w.player().pos + Vector2i(1, 0))
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "약점: 나무 (피해 ×2, 불이 든 주문일 때)")

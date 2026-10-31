@@ -69,6 +69,7 @@ static func creature(w: World, a: Actor) -> Array:
 			line.append([Cards.GLYPH[c] + "(" + Cards.NAME[c] + ") ", Palette.CARD[c]])
 		lines.append(line)
 		lines.append(_weakness(a.kind))
+	lines.append_array(_immunities(a))
 	var state := [[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]]
 	for c in [[a.blind, "눈이 멀었다"], [a.rooted, "묶여 있다"], [a.stunned, "기절했다"]]:
 		if c[0] > 0:
@@ -136,7 +137,31 @@ static func _weakness(kind: StringName) -> Array:
 		line.append([Cards.NAME[c], Palette.CARD[c]])
 		line.append([", ", Palette.DIM])
 	line.pop_back()
-	line.append([" (피해 ×2)", Palette.DIM])
+	var only_fire: bool = Bestiary.info(kind).get("absorb", &"") == &"nofire"
+	line.append([" (피해 ×2%s)" % (", 불이 든 주문일 때" if only_fire else ""), Palette.DIM])
+	return line
+
+
+## Everything the creature takes no harm or effect from, one "면역" line each.
+static func _immunities(a: Actor) -> Array:
+	var spec := a.info()
+	var out := []
+	match spec.get("absorb", &""):
+		&"fire":
+			out.append(_immune(Cards.NAME[Cards.FIRE], Palette.CARD[Cards.FIRE], "불이 든 주문, 불타는 칸"))
+		&"nofire":
+			out.append(_immune("불이 없는 모든 주문", Palette.DIM, ""))
+	if spec.get("deaf", false):
+		out.append(_immune("소리", Palette.SOUND, "경보를 듣지 못한다"))
+	if spec.get("move", &"") == &"static":
+		out.append(_immune("묶기", Palette.CARD[Cards.WOOD], "움직이지 못한다"))
+	return out
+
+
+static func _immune(what: String, color: Color, why: String) -> Array:
+	var line := [["면역: ", Palette.DIM], [what, color]]
+	if why != "":
+		line.append([" (%s)" % why, Palette.DIM])
 	return line
 
 
@@ -156,19 +181,10 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	var out := [WITS[Bestiary.wits(a.kind)]]
 	if a.wary > 0:
 		out.append("경계 중 (%d초)" % a.wary)
-	if spec.get("move", &"") == &"static":
-		out.append("이동 불가")
 	if spec.get("patrol", false):
 		out.append("순찰")
-	if spec.get("deaf", false):
-		out.append("청각 없음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리 %d칸" % spec.step)
-	match spec.get("absorb", &""):
-		&"fire":
-			out.append("불 면역")
-		&"nofire":
-			out.append("불로만 피해")
 	if elements.has(Cards.WOOD):
 		out.append("불에 탐")
 	if spec.get("hunts", false):
