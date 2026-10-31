@@ -96,7 +96,7 @@ static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
 static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
 	match c:
 		&"wildfire":
-			w.ignite(a.pos, true, true)
+			Status.ignite(w, a, true)
 		&"shrapnel":
 			Elements.harm(w, s, a, SHRAPNEL)
 		&"frost":

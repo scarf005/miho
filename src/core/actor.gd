@@ -24,6 +24,8 @@ var aim := Vector2i.ZERO
 var rooted := 0
 var stunned := 0
 var blind := 0
+## Rounds left of each status (Status).
+var wet := 0
 var casts := 0
 var acted := 0
 var alert := REST
@@ -126,6 +128,7 @@ func clone() -> Actor:
 		"rooted",
 		"stunned",
 		"blind",
+		"wet",
 		"casts",
 		"acted",
 		"alert",

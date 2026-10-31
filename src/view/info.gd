@@ -277,6 +277,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	for c in [[a.blind, "눈이 멀었다"], [a.rooted, "묶여 있다"], [a.stunned, "기절했다"], [a.wary, "경계 중"]]:
 		if c[0] > 0:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
+	out.append_array(_status(a))
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
 	if (
@@ -305,6 +306,17 @@ static func _conditions(w: World, a: Actor) -> Array:
 		out.append(_amount("%s 위 (%d초). 매 초 피해 " % [spec.name, h.y], spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
+
+
+## The status it holds (Status), with the seconds left and what it does.
+static func _status(a: Actor) -> Array:
+	var key := Status.of(a)
+	if key == &"":
+		return []
+	var head := [[Status.NAME[key], Palette.STATUS[key][1]]]
+	head.append([" (%d초)" % Status.rounds(a), Palette.TEXT])
+	var does: String = {&"wet": SpellInfo.WET_DOES}[key]
+	return [head, [[does, Palette.DIM]]]
 
 
 ## Each spell it casts, with its cooldown, harm and noise.

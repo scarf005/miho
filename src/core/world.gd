@@ -33,6 +33,7 @@ extends RefCounted
 ## thick enough it blocks sight: see Gas.
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
+## Water leaves creatures wet: see Status.
 ##
 ## Heaven falls into groups, and a creature struck by another group fights it
 ## for a while (Mind).
@@ -539,6 +540,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Terrain.burn(self, alight)
 	Compounds.tick(self)
 	Gas.tick(self)
+	Status.tick(self)
 	Terrain.unseal(self)
 	EventRooms.tick(self)
 	Guise.tick(self)
@@ -598,7 +600,7 @@ func move(a: Actor, to: Vector2i) -> void:
 			s.pos = to
 			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
-	var tread: Array = Tiles.of(tile(to), "tread")
+	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
 	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)

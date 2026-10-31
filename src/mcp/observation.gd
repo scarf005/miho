@@ -51,6 +51,8 @@ static func text(world: World) -> String:
 	]
 	if me.guise > 0:
 		out.append("in guise as %s for %d rounds" % [Bestiary.info(me.form).name, me.guise])
+	if Status.of(me) != &"":
+		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":
 		out.append("game over: " + ("won, Miho became human" if k.outcome == &"won" else "lost"))
 	out.append_array(_map(k))
@@ -146,7 +148,7 @@ static func _creature(k: World, a: Actor) -> String:
 		line += ", sees Miho but not through her guise"
 	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
-	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"]]:
+	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"], [a.wet, "wet"]]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]
 	if a.wary > 0:

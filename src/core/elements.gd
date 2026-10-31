@@ -40,7 +40,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 		return false
 	harm(w, s, a, n)
 	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
-		w.ignite(a.pos, true)
+		Status.ignite(w, a)
 	if a.alive():
 		if spell.orb and spell.has(Cards.METAL):
 			w.push(a, s.dir, CANNON_PUSH)
@@ -101,7 +101,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak
 				)
 				if Bestiary.burns(b.kind):
-					w.ignite(p, true)
+					Status.ignite(w, b)
 				Mind.provoke(w, b, w.actor(s.caster))
 		var o := w.shot_at(p, s)
 		if o != null and not o.spell.orb:

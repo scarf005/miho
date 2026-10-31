@@ -144,6 +144,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
 		&"freeze":
 			return _subject(before, after, id) + [["얼어붙었다", TEXT]]
+		&"wet":
+			return _subject(before, after, id) + [["물에 젖었다", TEXT]]
+		&"dry":
+			return _subject(before, after, id) + [["말랐다", TEXT]]
 		&"become":
 			return _named(Tiles.of(e.tile, "name"), "이", "가") + [[" 생겼다", TEXT]]
 		&"heat":

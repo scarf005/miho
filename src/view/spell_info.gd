@@ -19,6 +19,9 @@ const SWAP := (
 	"바꿔치기. 멈춘 자리로 간다. 맞힌 적과는 자리를 바꾼다. 하늘 위로는 가지 않는다. %s %d칸, 두 자리에서"
 	% [Leap.SWAP_WORD, Leap.SWAP_LOUD]
 )
+## What being wet does (Status), and what a spell that wets says of it.
+const WET_DOES := "걸으면 %s %d칸. 불이 붙는 대신 마른다" % [Status.SPLASH_WORD, Status.SPLASH]
+const SOAK := "닿은 생물이 %d초 젖는다. " % Status.WET + WET_DOES
 const SPRAY_NAME := "뿌리기"
 const SPRAY_NOTE := "오행 부적만 쓰면 투사체 없이 닿는 칸을 덮는다"
 
@@ -92,6 +95,8 @@ static func spell(s: Spell) -> Array:
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], _effect(s, e), Palette.CARD[e]))
+	if s.has(Cards.WATER):
+		lines.append(_line(Cards.NAME[Cards.WATER], SOAK, Palette.CARD[Cards.WATER]))
 	for c in s.compounds():
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
 		for part in compound(c):
@@ -165,6 +170,7 @@ static func _spray(s: Spell) -> Array:
 				_line("물", "적을 %d칸 민다" % Spray.PUSH[i], color),
 				_line("물", "하늘로 밀린 적은 떨어진다", color),
 				_line("물", "불과 등불을 끄고 북을 적신다", color),
+				_line("물", SOAK, color),
 			]
 		Cards.METAL:
 			return _gun(level)
@@ -233,6 +239,8 @@ static func _compound(s: Spell) -> Array:
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append(_line(Cards.NAME[e], plain[e], Palette.CARD[e]))
+	if s.has(Cards.WATER):
+		lines.append(_line(Cards.NAME[Cards.WATER], SOAK, Palette.CARD[Cards.WATER]))
 	return lines
 
 
@@ -256,10 +264,10 @@ static func compound(c: StringName) -> Array[String]:
 		&"frost":
 			out.assign(["적이 %d초 얼어 움직이지 못한다" % Compounds.FROST, "연못이 얼어 건널 수 있다"])
 		&"rain":
-			out.assign(["적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고 북을 적신다"])
+			out.assign(["적을 %d초 묶는다" % Compounds.RAIN, "불과 등불을 끄고 북을 적신다", SOAK])
 		&"steam":
 			var gas := "증기 %d/%d. %d 이상이면 시야를 막는다" % [Compounds.STEAM, Gas.MAX, Gas.OPAQUE]
-			out.assign([gas, harm % Gas.of(Gas.STEAM, "harm"), "북을 적신다"])
+			out.assign([gas, harm % Gas.of(Gas.STEAM, "harm"), "북을 적신다", SOAK])
 		&"thorn":
 			var name: String = Tiles.of(World.THORNS, "name")
 			(
@@ -275,7 +283,16 @@ static func compound(c: StringName) -> Array[String]:
 			out.assign(["벽을 소리 없이 무너뜨린다"])
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
-			out.assign(["불과 등불을 끄고 땅이 %s이 된다" % name, "걷는 데 %d초, 발소리가 없다" % Compounds.MUD])
+			(
+				out
+				. assign(
+					[
+						"불과 등불을 끄고 땅이 %s이 된다" % name,
+						"걷는 데 %d초, 발소리가 없다" % Compounds.MUD,
+						SOAK,
+					]
+				)
+			)
 	return out
 
 

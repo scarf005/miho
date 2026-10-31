@@ -361,7 +361,7 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 		return
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
-			w.ignite(a.pos, true, level >= 3)
+			Status.ignite(w, a, level >= 3)
 			Mind.struck(w, a, s)
 
 
