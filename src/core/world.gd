@@ -62,7 +62,8 @@ extends RefCounted
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
 ## cannot be walked, but sight, light, sound and spells cross it. A bridge is
 ## walkable, creaks, never burns and is always lit by the moon, so whoever
-## crosses one is seen from afar.
+## crosses one is seen from afar; so is a courtyard, ground with no roof.
+## Screens, jars and censers stand in rooms and react when hit (Structures).
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
 ## a new storey one below. 도약 leaps her across it (Leap).
@@ -141,6 +142,13 @@ const LAMP := 37
 const TALISMAN := 38
 const SHELF := 39
 const SHELF_READ := 40
+const SCREEN := 41
+const JAR := 42
+const WATER_JAR := 43
+const CENSER := 44
+const COURTYARD := 45
+const STATUE := 46
+const BOARD_ROTTEN := 47
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -383,10 +391,11 @@ func light_mask() -> PackedByteArray:
 func light() -> PackedVector3Array:
 	if _light_dirty:
 		_light = Light.field(Light.sources(self), light_mask())
-		var i := tiles.find(BRIDGE)
-		while i >= 0:
-			_light[i] += Light.MOON
-			i = tiles.find(BRIDGE, i + 1)
+		for t in Light.MOONLIT:
+			var i := tiles.find(t)
+			while i >= 0:
+				_light[i] += Light.MOON
+				i = tiles.find(t, i + 1)
 		_light_dirty = false
 	return _light
 
@@ -542,6 +551,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Status.tick(self)
 	Terrain.unseal(self)
 	EventRooms.tick(self)
+	Statues.tick(self)
 	Guise.tick(self)
 	Lure.tick(self)
 	_end_round()
@@ -602,6 +612,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
 	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
+	Terrain.crumble(self, a, from)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
 	Traps.step(self, a, Grid.line_dir(from, to))
@@ -898,6 +909,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 ## Sets p alight if it is flammable, or whatever it is when `force`d; a
 ## `wildfire` always spreads. Water never burns.
 func ignite(p: Vector2i, force := false, wildfire := false) -> void:
+	Gas.light(self, p)
 	if (
 		(force or Tiles.burns[tile(p)] == 1)
 		and not burning.has(p)

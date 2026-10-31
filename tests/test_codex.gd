@@ -189,7 +189,10 @@ func test_a_gas_entry_tells_what_the_gas_is_not_how_much_of_it_lies_there() -> v
 		var name: String = Gas.of(kind, "name")
 		var text := _text(Codex.detail(_entry(4, name)))
 		assert_false(text.contains("/%d" % Gas.MAX), name + " has no amount")
-		assert_string_contains(text, "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE)
+		if Gas.of(kind, "blocks"):
+			assert_string_contains(text, "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE)
+		else:
+			assert_string_contains(text, "시야 차단: 없음")
 		assert_string_contains(text, "줄어든다")
 		assert_false(text.contains("\n시야를 막는다"), name + " does not say it blocks sight now")
 

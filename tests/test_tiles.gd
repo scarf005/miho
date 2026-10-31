@@ -29,6 +29,8 @@ const WALKABLE := [
 	World.TALISMAN,
 	World.SHELF,
 	World.SHELF_READ,
+	World.COURTYARD,
+	World.BOARD_ROTTEN,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -43,6 +45,8 @@ const FLAMMABLE := [
 	World.THORNS,
 	World.SHELF,
 	World.SHELF_READ,
+	World.SCREEN,
+	World.BOARD_ROTTEN,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -51,6 +55,7 @@ const TREAD := {
 	World.REEDS: [2, "바스락"],
 	World.LEAVES: [2, "바스락"],
 	World.SHALLOW: [2, "철벅"],
+	World.BOARD_ROTTEN: [3, "삐걱"],
 }
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,
@@ -61,12 +66,16 @@ const BREAKS := {
 	World.WINDOW: World.FLOOR,
 	World.DRUM: World.DRUM_TORN,
 	World.WOOD_WALL: World.FLOOR,
+	World.SCREEN: World.FLOOR,
+	World.JAR: World.FLOOR,
+	World.WATER_JAR: World.SHALLOW,
+	World.CENSER: World.FLOOR,
 }
 const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.SHELF_READ + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.BOARD_ROTTEN + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -84,12 +93,24 @@ func test_the_masks_for_rust_keep_their_old_tests() -> void:
 	var blocks_light := [
 		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL, World.SEAL
 	]
-	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS]
+	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS, World.SCREEN]
 	for t in 256:
 		assert_eq(Tiles.sight[t] == 1, blocks_sight.has(t), "sight %d" % t)
 		assert_eq(Tiles.light[t] == 0, blocks_light.has(t), "light %d" % t)
 		assert_eq(Terrain.wall(t), t == World.WALL or t == World.WALL_CRACKED, "wall %d" % t)
-		var knocked := t in [World.LANTERN, World.LANTERN_OUT, World.WINDOW, World.DRUM]
+		var knocked := (
+			t
+			in [
+				World.LANTERN,
+				World.LANTERN_OUT,
+				World.WINDOW,
+				World.DRUM,
+				World.SCREEN,
+				World.JAR,
+				World.WATER_JAR,
+				World.CENSER
+			]
+		)
 		assert_eq(Terrain.knockable(t), knocked, "knock %d" % t)
 
 
