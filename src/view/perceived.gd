@@ -94,6 +94,27 @@ func _tell_marks(before: World, after: World) -> void:
 			facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})
 
 
+## Where the useful things first come into Miho's sight in the round from
+## `before` to `after`: the stairs, the elixir, a peach, a talisman stand and a
+## library. A tile she made out on this storey before, or knew by the scrolls, is
+## not new; on a new storey every tile is.
+static func spotted(before: World, after: World) -> Array[Vector2i]:
+	var things: Array[Vector2i] = [after.stairs, after.elixir]
+	things.append_array(after.peaches)
+	for site: Dictionary in after.sites:
+		if site.kind in [&"yard", &"library"]:
+			things.append(site.at)
+	var out: Array[Vector2i] = []
+	for p in things:
+		if not Grid.inside(p):
+			continue
+		var i := Grid.index(p)
+		var was := before.depth == after.depth and before.known.size() > i and before.known[i] == 1
+		if (after.seen[i] == 1 or after.dim[i] == 1) and not was:
+			out.append(p)
+	return out
+
+
 ## Whether tile p is seen in `vis`.
 static func sees(vis: PackedByteArray, p: Vector2i) -> bool:
 	return Grid.inside(p) and vis[Grid.index(p)] == 1

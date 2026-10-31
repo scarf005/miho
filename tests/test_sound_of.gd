@@ -6,7 +6,15 @@ const PLATE := Vector2i(7, 8)
 const FAR := Vector2i(30, 8)
 ## One sample of every event that makes a sound, and the sound it makes.
 const SOUNDS := [
-	[{t = &"move"}, &"step"],
+	[{t = &"move", word = "탁", loud = 0}, &"step"],
+	[{t = &"move", word = "사각", loud = 2}, &"rustle"],
+	[{t = &"move", word = "바스락", loud = 2}, &"rustle"],
+	[{t = &"move", word = "철벅", loud = 2}, &"splash"],
+	[{t = &"move", word = "삐걱", loud = 3}, &"creak"],
+	[{t = &"leap"}, &"foxfire"],
+	[{t = &"swap"}, &"foxfire"],
+	[{t = &"crumble"}, &"fall"],
+	[{t = &"spot"}, &"find"],
 	[{t = &"cast", cards = [Cards.FOX, Cards.FIRE]}, &"foxfire"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.WATER, Cards.WOOD, Cards.FIRE]}, &"orb"],
@@ -30,7 +38,11 @@ const SOUNDS := [
 	[{t = &"read"}, &"card"],
 	[{t = &"trap", kind = World.TRAP_ALARM}, &"gong"],
 	[{t = &"trap", kind = World.TRAP_FIRE}, &"trap"],
-	[{t = &"find"}, &"find"],
+	[{t = &"find", kind = World.DOOR}, &"find"],
+	[{t = &"find", kind = World.TRAP_FIRE}, &"warn"],
+	[{t = &"find", kind = World.TRAP_ALARM}, &"warn"],
+	[{t = &"noise", word = "바스락"}, &"rustle"],
+	[{t = &"noise", word = "철벅"}, &"splash"],
 	[{t = &"open"}, &"door"],
 	[{t = &"close"}, &"door"],
 	[{t = &"unseal"}, &"door"],
@@ -93,12 +105,9 @@ const SILENT := [
 	{t = &"burnout"},
 	{t = &"become"},
 	{t = &"trample"},
-	{t = &"crumble"},
 	{t = &"soak"},
 	{t = &"wet"},
 	{t = &"ride"},
-	{t = &"leap"},
-	{t = &"swap"},
 	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE, Cards.EARTH]},
 ]
 
@@ -210,3 +219,116 @@ func test_a_creature_stepping_on_the_alarm_plate_out_of_sight_is_heard_as_a_nois
 	w.push(foe, E, 1)
 	w.sense()
 	assert_eq(_heard(before, w).count(&"gong"), 1)
+
+
+## What Miho's step east onto a tile of `tile` sounds like: the sound and its level.
+func _step_onto(tile: int, wet := 0) -> Dictionary:
+	var w := _world()
+	w.tiles[Grid.index(w.player().pos + E)] = tile
+	w._changed()
+	w.player().wet = wet
+	var step: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"move")[0]
+	return {sound = Sfx.sound_of(step), db = Sfx.level_of(step)}
+
+
+func test_a_step_sounds_by_the_tile_stepped_onto() -> void:
+	assert_eq(_step_onto(World.FLOOR).sound, &"step")
+	assert_eq(_step_onto(World.BAMBOO).sound, &"rustle")
+	assert_eq(_step_onto(World.LEAVES).sound, &"rustle")
+	assert_eq(_step_onto(World.REEDS).sound, &"rustle")
+	assert_eq(_step_onto(World.BOARD).sound, &"creak")
+	assert_eq(_step_onto(World.SHALLOW).sound, &"splash")
+
+
+func test_a_wet_creature_splashes_on_dry_floor() -> void:
+	assert_eq(_step_onto(World.FLOOR, Status.WET).sound, &"splash")
+
+
+func test_a_step_is_louder_the_farther_its_tread_is_heard() -> void:
+	var bare: float = _step_onto(World.FLOOR).db
+	assert_lt(bare, _step_onto(World.BAMBOO).db)
+	assert_lt(_step_onto(World.BAMBOO).db, _step_onto(World.BOARD).db)
+	assert_eq(bare, Sfx.LEVEL[&"move"], "bare ground keeps the old level")
+
+
+func test_mud_swallows_the_step_to_the_plain_one() -> void:
+	assert_eq(_step_onto(World.MUD).sound, &"step")
+
+
+## The find events of a round in which Miho notices what stands next to her.
+func _finds(setup: Callable) -> Array:
+	var w := _world()
+	setup.call(w)
+	w.sense()
+	return w.events.filter(func(e): return e.t == &"find")
+
+
+func test_finding_a_plate_warns() -> void:
+	var finds := _finds(func(w): w.traps[w.player().pos + E] = World.TRAP_FIRE)
+	assert_eq(finds.size(), 1)
+	assert_eq(Sfx.sound_of(finds[0]), &"warn")
+
+
+func test_finding_a_hidden_door_chimes() -> void:
+	var finds := _finds(
+		func(w):
+			w.tiles[Grid.index(w.player().pos + E)] = World.WALL
+			w.secrets[w.player().pos + E] = true
+	)
+	assert_eq(finds.size(), 1)
+	assert_eq(Sfx.sound_of(finds[0]), &"find")
+
+
+## The useful things first seen in Miho's move from tile `from` to tile `to` of the hall.
+func _spotted_on(w: World, from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	w.player().pos = from
+	w.sense()
+	var before := w.clone()
+	w.player().pos = to
+	w.sense()
+	return Perceived.spotted(before, w)
+
+
+func test_the_stairs_a_peach_and_the_elixir_are_spotted_once() -> void:
+	var w := _world()
+	w.stairs = Vector2i(24, 8)
+	w.peaches.assign([Vector2i(24, 10)])
+	w.elixir = Vector2i(24, 6)
+	var far := Vector2i(4, 8)
+	var near := Vector2i(18, 8)
+	assert_eq(_spotted_on(w, far, far), [], "out of sight")
+	assert_eq(_spotted_on(w, far, near).size(), 3, "all three come into sight")
+	assert_eq(_spotted_on(w, near, near), [], "not again while in sight")
+	_spotted_on(w, near, far)
+	assert_eq(_spotted_on(w, far, near), [], "not again on coming back")
+
+
+func test_a_new_storey_spots_what_is_in_sight_at_once() -> void:
+	var w := _world()
+	w.stairs = Vector2i(6, 8)
+	var before := w.clone()
+	before.depth -= 1
+	assert_eq(Perceived.spotted(before, w), [w.stairs])
+
+
+func test_a_talisman_stand_and_a_library_are_spotted_but_not_an_altar() -> void:
+	var w := _world()
+	w.sites.append({kind = &"yard", at = Vector2i(24, 8), card = Cards.FIRE})
+	w.sites.append({kind = &"library", at = Vector2i(24, 10)})
+	w.sites.append({kind = &"altar", at = Vector2i(24, 6), fallen = 0})
+	assert_eq(_spotted_on(w, Vector2i(4, 8), Vector2i(18, 8)).size(), 2)
+
+
+func test_the_view_chimes_for_a_spotted_thing_in_the_round_it_comes_into_sight() -> void:
+	var w := _world()
+	w.stairs = Vector2i(24, 8)
+	var t: Term = autofree(Term.new())
+	watch_signals(t)
+	var before := w.clone()
+	w.player().pos = Vector2i(18, 8)
+	w.sense()
+	await t.play([], before, w)
+	assert_signal_emit_count(t, "shown", 1)
+	assert_eq(get_signal_parameters(t, "shown")[0].t, &"spot")
+	await t.play([], w.clone(), w)
+	assert_signal_emit_count(t, "shown", 1, "the next round is quiet")

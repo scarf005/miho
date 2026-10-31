@@ -244,6 +244,9 @@ func play(events: Array, before: World, after: World) -> void:
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0:
 			await get_tree().create_timer(wait / speed).timeout
+	if not replay:
+		for p in Perceived.spotted(before, after):
+			shown.emit({t = &"spot", at = p}, cell_centre(p))
 	show_world(after)
 
 
