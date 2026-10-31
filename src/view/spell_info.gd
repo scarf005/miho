@@ -58,9 +58,10 @@ static func card(c: StringName, after: Spell) -> Array:
 	return lines
 
 
-## A queue slot: its talisman and its tails, then the whole spell.
+## A queue slot: its talisman and its tails, then the whole spell. A lone
+## plain talisman is the whole spell, so it is named once.
 static func slot(s: Spell, i: int) -> Array:
-	return [_slot_head(s, i)] + spell(s)
+	return spell(s) if s.cards.size() == 1 else [_slot_head(s, i)] + spell(s)
 
 
 ## A compound talisman alone: its tails and parts, then what it does.
