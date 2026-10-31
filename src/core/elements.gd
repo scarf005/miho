@@ -136,6 +136,8 @@ static func stick(w: World, s: Shot, a: Actor) -> void:
 	s.gone = false
 	s.dir = Vector2i.ZERO
 	s.host = a.id
+	# A swap may have moved `a` off the tile the wisp struck it on.
+	s.pos = a.pos
 	s.life = Spell.WISP_LIFE
 	w._changed()
 	w.emit(
