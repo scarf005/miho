@@ -45,13 +45,23 @@ static func card(c: StringName, after: Spell) -> Array:
 
 ## A queue slot: its talisman and its tails, then the whole spell.
 static func slot(s: Spell, i: int) -> Array:
+	return [_slot_head(s, i)] + spell(s)
+
+
+## A compound talisman alone: its tails and two parts, then what it does.
+static func combo(c: StringName) -> Array:
+	var s := Spell.make(Cards.PAIRS[c])
+	return [_slot_head(s, 0)] + spell(s).slice(1)
+
+
+static func _slot_head(s: Spell, i: int) -> Array:
 	var c := s.slots[i]
 	var tails := 2 if Cards.PAIRS.has(c) else 1
 	var head := [[Cards.NAME[c], Palette.card(c)], [" 꼬리 %d개" % tails, LABEL]]
 	if Cards.PAIRS.has(c):
 		var parts: Array = Cards.PAIRS[c]
 		head.append([" (%s+%s)" % [Cards.NAME[parts[0]], Cards.NAME[parts[1]]], LABEL])
-	return [head] + spell(s)
+	return head
 
 
 ## A spell: name, cost and slots, then every number.

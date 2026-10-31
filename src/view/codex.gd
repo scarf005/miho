@@ -2,10 +2,11 @@ class_name Codex
 extends RefCounted
 ## The 도감: every creature, spell, compound, item and terrain feature, whether
 ## or not Miho has met it. The list is on the left; on the right the selected
-## entry reads as its hover does, from the same Info and SpellInfo functions
-## run on a stand-in world (`stage`): an unlit hall with Miho at ME, a creature
-## standing far off at FAR, and the feature on the tile AT next to her. The
-## entries come from the data tables, so a new kind appears with no change here.
+## entry reads as its hover does, from the same Info and SpellInfo functions,
+## less the lines about how it stands now (state, sight, light): a creature
+## from `foe`, a feature of the floor on the tile AT of a stand-in world
+## (`stage`, an unlit hall with Miho at ME). The entries come from the data
+## tables, so a new kind appears with no change here.
 ## `key` returns &"close" or nothing.
 
 const TABS := ["적", "주문", "조합", "아이템", "지형지물"]
@@ -13,7 +14,6 @@ const TABS := ["적", "주문", "조합", "아이템", "지형지물"]
 const SIDE_X := 13.0
 const ME := Vector2i(4, 8)
 const AT := Vector2i(5, 8)
-const FAR := Vector2i(20, 8)
 
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
@@ -53,9 +53,7 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 		0:
 			for kind in foes():
 				var spec := Bestiary.info(kind)
-				var lines := func():
-					var w := stage()
-					return Info.creature(w, FloorGen.spawn(w, kind, FAR))
+				var lines := func(): return Info.creature_facts(foe(kind), [])
 				out.append(_entry(spec.glyph, Palette.KIND[kind], spec.name, lines))
 		1:
 			for c in Cards.FORMS + Cards.ELEMENTS:
@@ -69,7 +67,7 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 			out.append(_entry(":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY)))
 		2:
 			for c in Cards.PAIRS:
-				var lines := func(): return SpellInfo.slot(Spell.make(Cards.PAIRS[c]), 0)
+				var lines := func(): return SpellInfo.combo(c)
 				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines))
 		3:
 			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir))
@@ -91,7 +89,16 @@ static func foes() -> Array:
 	return Bestiary.KINDS.keys().filter(func(k): return k != &"miho")
 
 
-## The hover lines of an entry.
+## A creature of `kind` at full health, unaware.
+static func foe(kind: StringName) -> Actor:
+	var a := Actor.new()
+	a.kind = kind
+	a.hp = Bestiary.info(kind).hp
+	a.max_hp = a.hp
+	return a
+
+
+## The lines of an entry: what the hover tells of it, less how it stands now.
 static func detail(entry: Dictionary) -> Array:
 	return entry.lines.call()
 
@@ -133,17 +140,24 @@ func panel() -> Dictionary:
 	var lines := flow(detail(list[selected]), room.x - SIDE_X - 1.0)
 	var fits := room.y - 4
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
+	var shown := lines.slice(scroll, scroll + fits).map(_legible)
 	return {
 		title = "도감",
 		tabs = TABS,
 		tab = tab,
 		rows = rows,
 		selected = selected,
-		aside = lines.slice(scroll, scroll + fits),
+		aside = shown,
 		aside_x = SIDE_X,
+		opaque = true,
 		aside_up = scroll > 0,
 		aside_down = scroll + fits < lines.size(),
 	}
+
+
+## A line with the dim runs in plain text colour, so a whole page reads.
+static func _legible(line: Array) -> Array:
+	return line.map(func(run): return [run[0], Palette.TEXT if run[1] == Palette.DIM else run[1]])
 
 
 ## Handles a key press that menu movement `nav` names: Left and Right (or 1 to
@@ -199,12 +213,11 @@ static func _ground(change: Callable) -> Array:
 	var w := stage()
 	change.call(w)
 	w.sense()
-	return Info.terrain(w, AT)
+	return Info.terrain_facts(w, AT)
 
 
-## Like `_feature`, for what lies on a plain floor tile (fire, hot ground, gas,
-## a body): the hover's floor name line is left out, as the mark's own lines
-## say what it is.
+## Like `_feature`, for what lies on a plain floor tile (fire, hot ground, gas):
+## the hover's floor name line is left out, as the mark's own lines say what it is.
 static func _mark(glyph: String, color: Color, name: String, change: Callable) -> Dictionary:
 	return _entry(glyph, color, name, func(): return _ground(change).slice(1))
 
@@ -221,13 +234,9 @@ static func _extras() -> Array[Dictionary]:
 	for kind in Gas.ROWS:
 		var gas := func(w: World): Gas.put(w, AT, kind, Gas.MAX)
 		out.append(_mark(Palette.GAS[kind][0], Palette.GAS[kind][1], Gas.of(kind, "name"), gas))
-	var body := func(w: World):
-		var a := Actor.new()
-		a.kind = foes()[0]
-		a.pos = AT
-		Notice.fallen(w, a)
-		w.bodies[AT].met = true
-	out.append(_mark(Palette.BODY[0], Palette.BODY[1], Notice.LABEL[&"body"], body))
+	var label: String = Notice.LABEL[&"body"]
+	var body := func(): return [[[label, Palette.BODY[1]]], [[Info.BODY_RULE, Palette.DIM]]]
+	out.append(_entry(Palette.BODY[0], Palette.BODY[1], label, body))
 	return out
 
 

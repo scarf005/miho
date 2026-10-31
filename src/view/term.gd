@@ -751,7 +751,9 @@ func _detail_rows() -> int:
 
 
 func _draw_panel() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Palette.VOID, 0.92))
+	draw_rect(
+		Rect2(Vector2.ZERO, size), Color(Palette.VOID, 1.0 if panel.get("opaque", false) else 0.92)
+	)
 	var detail: Array = panel.get("detail", [])
 	for k in detail.size():
 		var y := rows - detail.size() + k

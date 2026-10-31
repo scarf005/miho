@@ -1,6 +1,8 @@
 extends GutTest
 ## The 도감: every creature, spell, compound, item and tile, told as the hover tells it.
 
+const FAR := Vector2i(20, 8)
+
 
 func before_each() -> void:
 	Keys.reset()
@@ -41,14 +43,48 @@ func test_the_foes_are_every_bestiary_kind_but_miho() -> void:
 		assert_eq(names.has(Bestiary.info(kind).name), kind != &"miho", kind)
 
 
-func test_a_foe_reads_as_its_hover_does() -> void:
+## Every line of `facts` is a line of `hover`, in order.
+func _assert_within(facts: Array, hover: Array, what: String) -> void:
+	var at := 0
+	for line in facts:
+		var found := false
+		while at < hover.size() and not found:
+			found = _text([hover[at]]) == _text([line])
+			at += 1
+		assert_true(found, "%s: %s" % [what, _text([line])])
+
+
+func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 	for kind in Codex.foes():
 		var w := Codex.stage()
-		var hover := Info.creature(w, FloorGen.spawn(w, kind, Codex.FAR))
-		assert_eq(_text(Codex.detail(_entry(0, Bestiary.info(kind).name))), _text(hover), kind)
+		var hover := Info.creature(w, FloorGen.spawn(w, kind, FAR))
+		var facts := Codex.detail(_entry(0, Bestiary.info(kind).name))
+		var rest := facts.filter(func(l): return _text([l]).begins_with("발톱"))
+		_assert_within(facts.filter(func(l): return not rest.has(l)), hover, kind)
+		assert_eq(rest.size(), 1, "the claw harm is told as a fact")
 	var text := _text(Codex.detail(_entry(0, "불개")))
 	assert_string_contains(text, "불개 ♥♥♥♥")
+	assert_string_contains(text, "발톱: 피해 1, 기습 시 3")
 	assert_string_contains(text, "처치 시 불 부적")
+
+
+func test_the_hover_of_a_creature_keeps_its_state_lines() -> void:
+	var w := Codex.stage()
+	var hover := _text(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", FAR)))
+	for part in ["쉬는 중", "당신을 볼 수 없다", "기습 시 피해 3"]:
+		assert_string_contains(hover, part)
+
+
+func test_no_entry_tells_how_it_stands_now() -> void:
+	var now := ["당신을 볼", "당신을 보고", "기습 시 피해", "초 뒤 쉰다"]
+	var light := ["어둡다", "밝다. 멀리", "대숲 속. 바로", "누가 있는지", "지금은 보이지 않는다"]
+	for tab in Codex.TABS.size():
+		for e in Codex.entries(tab):
+			var text := _text(Codex.detail(e))
+			for part in now + light:
+				assert_false(text.contains(part), "%s: %s" % [e.name, part])
+			for state in Info.STATE:
+				assert_false(text.split("\n").has(state), "%s: %s" % [e.name, state])
 
 
 func test_the_spells_are_the_forms_the_elements_and_the_shapes() -> void:
@@ -76,7 +112,11 @@ func test_every_compound_is_listed_with_its_two_parts() -> void:
 		var text := _text(Codex.detail(_entry(2, Cards.NAME[c])))
 		var parts: Array = Cards.PAIRS[c]
 		assert_string_contains(text, "(%s+%s)" % [Cards.NAME[parts[0]], Cards.NAME[parts[1]]])
-		assert_eq(text, _text(SpellInfo.slot(Spell.make(parts), 0)), c)
+		assert_eq(text, _text(SpellInfo.combo(c)), c)
+		assert_eq(text.count("꼬리 2개"), 1, "one head line: " + text)
+		assert_eq(
+			text.get_slice("\n", 1).split(" ")[0], "모양", "the head line is followed by the shape"
+		)
 
 
 func test_the_items_are_the_elixir_the_peach_and_the_element_talismans() -> void:
@@ -87,11 +127,25 @@ func test_the_items_are_the_elixir_the_peach_and_the_element_talismans() -> void
 	var w := Codex.stage()
 	w.elixir = Codex.AT
 	w.sense()
-	assert_eq(_text(Codex.detail(_entry(3, "영약"))), _text(Info.terrain(w, Codex.AT)))
+	assert_eq(_text(Codex.detail(_entry(3, "영약"))), _text(Info.terrain_facts(w, Codex.AT)))
 	assert_string_contains(_text(Codex.detail(_entry(3, "복숭아"))), "최대 체력 +")
 
 
-func test_every_named_tile_reads_as_its_hover_does() -> void:
+func test_the_hover_of_a_tile_is_its_facts_then_its_light() -> void:
+	var w := Codex.stage()
+	w.sense()
+	var facts := Info.terrain_facts(w, Codex.AT)
+	var hover := Info.terrain(w, Codex.AT)
+	assert_eq(hover.slice(0, facts.size()), facts)
+	assert_eq(hover.size(), facts.size() + 1)
+	assert_string_contains(_text(hover.slice(facts.size())), "어둡다")
+	w.set_tile(Codex.AT, World.WALL)
+	assert_eq(
+		Info.terrain(w, Codex.AT), Info.terrain_facts(w, Codex.AT), "a wall has no light line"
+	)
+
+
+func test_every_named_tile_is_its_hover_facts() -> void:
 	var names := _names(4)
 	for t in Tiles.ROWS:
 		var name: String = Tiles.of(t, "name")
@@ -101,7 +155,10 @@ func test_every_named_tile_reads_as_its_hover_does() -> void:
 		var w := Codex.stage()
 		w.set_tile(Codex.AT, t)
 		w.sense()
-		assert_eq(_text(Codex.detail(_entry(4, name))), _text(Info.terrain(w, Codex.AT)), name)
+		var facts := _text(Info.terrain_facts(w, Codex.AT))
+		assert_eq(_text(Codex.detail(_entry(4, name))), facts, name)
+		var hover := _text(Info.terrain(w, Codex.AT))
+		assert_true(hover.begins_with(facts), name)
 
 
 func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen() -> void:
@@ -125,11 +182,10 @@ func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
 		assert_false(text.begins_with("바닥"), name)
 		assert_false(text.is_empty(), name)
 	assert_true(_text(Codex.detail(_entry(4, "증기"))).begins_with("증기 9/9\n"))
-	assert_true(
-		_text(Codex.detail(_entry(4, "쓰러진 몸"))).begins_with(
-			"쓰러진 " + Bestiary.info(Codex.foes()[0]).name
-		)
-	)
+	var body := _text(Codex.detail(_entry(4, "쓰러진 몸")))
+	assert_eq(body, "쓰러진 몸\n" + Info.BODY_RULE)
+	for kind in Codex.foes():
+		assert_false(body.contains(Bestiary.info(kind).name), "a body names no creature")
 
 
 func test_the_codex_key_is_slash_and_help_keeps_shift_slash() -> void:
@@ -193,6 +249,16 @@ func test_the_rows_show_a_glyph_and_a_name_and_the_detail_sits_to_the_right() ->
 	assert_eq(panel.rows[0][1][0], "도깨비")
 	assert_eq(panel.aside_x, Codex.SIDE_X)
 	assert_string_contains(_text(panel.aside), "도깨비")
+
+
+func test_the_page_is_opaque_and_draws_no_dim_text() -> void:
+	var menu := _open()
+	menu.codex.selected = Codex.foes().find(&"bulgae")
+	var panel := menu.panel()
+	assert_true(panel.opaque)
+	for line in panel.aside:
+		for run in line:
+			assert_ne(run[1], Palette.DIM, run[0])
 
 
 func test_the_detail_wraps_to_the_room_and_scrolls() -> void:

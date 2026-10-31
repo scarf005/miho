@@ -9,6 +9,9 @@ extends RefCounted
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
+## What a change or a body mark makes a creature do.
+const NOTICE_RULE := "추격 중이 아닌 적은 처음 보면 이곳을 수색한다"
+const BODY_RULE := NOTICE_RULE + ". 이 층에 남는다"
 ## What a drum does, a short sentence a line; %d is how far heaven runs to it.
 const DRUM_NOTE := (
 	"치면 층 전체에 둥 소리가 난다\n"
@@ -37,12 +40,28 @@ static func at(w: World, p: Vector2i) -> Array:
 	return terrain(w, p)
 
 
+## A creature as the hover tells it: what it is, how it stands now (state,
+## conditions, sight, the harm a claw does it now), then what it strikes and
+## casts with.
 static func creature(w: World, a: Actor) -> Array:
-	var spec := a.info()
-	var head := [[spec.name + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]]
 	if a.faction == Actor.FOX:
-		return _miho(w, a, head)
-	var lines := [head]
+		return _miho(w, a, _head(a))
+	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
+
+
+## What a creature is, whatever its state: the 도감's text. `held` are the
+## talismans Miho holds, whose drop is no news.
+static func creature_facts(a: Actor, held: Array) -> Array:
+	return _profile(a) + [_claws()] + _arms(a, held)
+
+
+static func _head(a: Actor) -> Array:
+	return [[a.info().name + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]]
+
+
+## Name and health, elements, weakness and immunities.
+static func _profile(a: Actor) -> Array:
+	var lines := [_head(a)]
 	var elements := Bestiary.elements(a.kind)
 	if not elements.is_empty():
 		var line := [["오행 ", Palette.DIM]]
@@ -51,6 +70,13 @@ static func creature(w: World, a: Actor) -> Array:
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
+	return lines
+
+
+## How a creature stands now: its state, conditions, whether it sees Miho and
+## what her claw does to it.
+static func _situation(w: World, a: Actor) -> Array:
+	var lines := []
 	var state := [[STATE[a.alert], Palette.ALERT[maxi(a.alert, 1)]]]
 	if a.alert == Actor.SEARCH:
 		state.append([_search_left(a), Palette.TEXT])
@@ -66,6 +92,14 @@ static func creature(w: World, a: Actor) -> Array:
 	lines.append(
 		_amount("기습 시 피해 " if sneak else "공격 시 피해 ", World.CLAW * (World.SNEAK if sneak else 1))
 	)
+	return lines
+
+
+## What it strikes and casts with, what it eats and what it leaves.
+static func _arms(a: Actor, held: Array) -> Array:
+	var spec := a.info()
+	var lines := []
+	var elements := Bestiary.elements(a.kind)
 	if spec.has("melee"):
 		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, ")"))
 	lines.append_array(_casts(a))
@@ -77,7 +111,7 @@ static func creature(w: World, a: Actor) -> Array:
 		line.append(["+%d" % Bestiary.GROWTH, Palette.HURT])
 		lines.append(line)
 	var drop: StringName = spec.get("drop", &"")
-	if drop != &"" and not w.cards.has(drop):
+	if drop != &"" and not held.has(drop):
 		(
 			lines
 			. append(
@@ -100,13 +134,18 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 		. filter(func(t): return Tiles.of(t, "tread")[0] > 0)
 		. map(func(t): return "%s %d칸" % [Tiles.of(t, "name"), Tiles.of(t, "tread")[0]])
 	)
-	var claws := _amount("발톱: 피해 ", World.CLAW, ", 기습 시 ")
-	claws.append([str(World.CLAW * World.SNEAK), Palette.HURT])
-	var lines := [head, _tails(w), claws, [[_dark_sight(a), Palette.DIM]]]
+	var lines := [head, _tails(w), _claws(), [[_dark_sight(a), Palette.DIM]]]
 	lines.append([["발소리: " + ", ".join(steps), Palette.DIM]])
 	lines.append_array(_conditions(w, a))
 	lines.append(_hidden(w, a.pos))
 	return lines
+
+
+## What Miho's claws do: plain, and to a creature caught unawares.
+static func _claws() -> Array:
+	var line := _amount("발톱: 피해 ", World.CLAW, ", 기습 시 ")
+	line.append([str(World.CLAW * World.SNEAK), Palette.HURT])
+	return line
 
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.
@@ -237,7 +276,17 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	return out
 
 
+## A tile as the hover tells it: what it is, then how well it is lit and seen.
 static func terrain(w: World, p: Vector2i) -> Array:
+	var t := w.tile(p)
+	var lines := terrain_facts(w, p)
+	if Tiles.sight[t] == 0 or Tiles.walk[t] == 1:
+		lines.append(_light_line(w, p))
+	return lines
+
+
+## What a tile is and does, whatever the light: the 도감's text.
+static func terrain_facts(w: World, p: Vector2i) -> Array:
 	var t := w.tile(p)
 	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
@@ -275,8 +324,6 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	if t == World.DRUM:
 		lines.append(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))
-	if Tiles.sight[t] == 0 or Tiles.walk[t] == 1:
-		lines.append(_light_line(w, p))
 	return lines
 
 
@@ -288,10 +335,10 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 		return []
 	var label: String = Notice.LABEL[change.kind]
 	var color := Palette.TEXT
-	var rule := "추격 중이 아닌 적은 처음 보면 이곳을 수색한다"
+	var rule := NOTICE_RULE
 	if change.kind == &"body":
 		label = "쓰러진 " + Bestiary.info(body.kind).name
-		rule += ". 이 층에 남는다"
+		rule = BODY_RULE
 		color = Palette.KIND[body.kind]
 	return [
 		[[label, color], [" · %d초 전" % (w.round_no - change.round), Palette.DIM]],
