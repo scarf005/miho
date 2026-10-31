@@ -3,9 +3,11 @@ extends Node
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
 ## with claws. 1-7 put talismans in the queue (Spell); with a queue a direction
 ## hurls the spell, and Shift with a direction holds it so several spells leave
-## in one turn. Space, Enter or . waits, or hurls what is held. QWEASD fill the
-## queue with a saved spell. Esc clears the queue and what is held and, with
-## nothing to clear, opens the options.
+## in one turn. Space, Enter or . waits, or with a queue hurls it at the cursor
+## (or casts what is held). Picking from the keyboard puts the cursor on the
+## nearest creature in sight, and Tab moves it to the next. QWEASD fill the
+## queue with a saved spell, F with the last spell hurled. Esc clears the queue
+## and what is held and, with nothing to clear, opens the options.
 ## c shuts an open door next to Miho (a direction key picks one when several are
 ## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
@@ -55,6 +57,8 @@ var shutting := false
 ## A talisman or saved spell was just refused: the next direction or tile is
 ## eaten, so the press meant to hurl it does not walk Miho instead.
 var refused := false
+## Key (Spell.key) of the last spell hurled this run, or empty; F picks it again.
+var last_spell := ""
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
 var skip := false
@@ -148,6 +152,7 @@ func _new_run(seed_value := randi()) -> void:
 	run_seed = seed_value
 	run = SaveGame.new(save_path, seed_value)
 	kills = 0
+	last_spell = ""
 	excluded.clear()
 	messages = Messages.new()
 	term.log_lines = []
@@ -265,6 +270,9 @@ func _key(event: InputEventKey) -> void:
 		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
 			_add(world.cards[i])
+			_aim()
+	elif action in [&"wait", &"confirm"] and not picked.is_empty():
+		_hurl_at_cursor()
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
@@ -283,6 +291,9 @@ func _key(event: InputEventKey) -> void:
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
 		_recall(settings.spells.get(action, ""))
+		_aim()
+	elif action == &"again":
+		_again()
 	elif action == &"look":
 		looking = true
 		_look_at(world.player().pos)
@@ -291,7 +302,10 @@ func _key(event: InputEventKey) -> void:
 	elif action == &"close":
 		_shut()
 	elif action == &"fight":
-		_fight()
+		if picked.is_empty():
+			_fight()
+		else:
+			_aim_next()
 	elif action == &"debug":
 		debugging = not debugging
 		_refresh()
@@ -447,6 +461,45 @@ func _recall(key: String) -> void:
 	_forecast()
 
 
+## Picks the last spell hurled again.
+func _again() -> void:
+	if last_spell == "":
+		_refuse("아직 던진 주문이 없다")
+	else:
+		_recall(last_spell)
+		_aim()
+
+
+## For keyboard picks, which have no pointer to aim with: puts the cursor on the
+## nearest creature in sight, unless it is on one already.
+func _aim() -> void:
+	var foes := Fight.targets(world)
+	if picked.is_empty() or foes.is_empty() or foes.any(func(a): return a.pos == hover):
+		return
+	_look_at(foes[0].pos)
+
+
+## With talismans picked, Tab moves the cursor to the next creature in sight.
+func _aim_next() -> void:
+	var foes := Fight.targets(world)
+	if foes.is_empty():
+		_say("보이는 적이 없다")
+		sfx.play(&"click")
+		return
+	var at := foes.find_custom(func(a): return a.pos == hover)
+	_look_at(foes[(at + 1) % foes.size()].pos)
+
+
+## Hurls the picked talismans towards the cursor; with none on a tile besides
+## Miho's it says so instead of passing the round.
+func _hurl_at_cursor() -> void:
+	var me := world.player().pos
+	if Grid.inside(hover) and hover != me:
+		_direction(Grid.nearest_dir(hover - me), false)
+	else:
+		_refuse("겨눌 곳이 없다")
+
+
 ## Says why a talisman or saved spell cannot be picked, with the warning sound.
 func _refuse(why: String) -> void:
 	_say(why)
@@ -458,13 +511,16 @@ func _held() -> int:
 	return staged.reduce(func(n, s): return n + s.cards.size(), 0)
 
 
+## Empties the queue and what is held; the cursor goes back to the pointer.
 func _clear() -> void:
 	picked.clear()
 	staged.clear()
+	_point(get_viewport().get_mouse_position())
 	_forecast()
 
 
 ## With talismans picked a direction hurls them (Shift holds them); otherwise it moves.
+## Space and the like hurl towards the cursor through here.
 func _direction(d: Vector2i, hold: bool) -> void:
 	if picked.is_empty():
 		if not staged.is_empty() and not hold:
@@ -515,8 +571,10 @@ func _act(action: Dictionary) -> Array:
 		messages.add(line, world.round_no)
 	_show_log()
 	if action.t == &"cast":
+		last_spell = "+".join(action.spells.back().cards)
 		picked.clear()
 		staged.clear()
+		_point(get_viewport().get_mouse_position())
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
 		if settings.replay:
@@ -881,7 +939,7 @@ func _inspect() -> void:
 		term.info = Info.creature(known, known.player())
 	else:
 		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
-		term.info = lines + _zone_lines(hover) + _ahead_lines(hover)
+		term.info = lines + _zone_lines(hover) + Info.ahead(world, ahead, hover)
 
 
 ## Says a tile is in a travel exclusion, and the radius at its centre.
@@ -891,25 +949,6 @@ func _zone_lines(p: Vector2i) -> Array:
 	var radius: Variant = excluded.zones.get(p)
 	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
 	return [[[text, Palette.ZONE]]]
-
-
-## What stepping onto p (or waiting, on Miho's own tile) would bring, as the
-## harm number or red tint on that tile shows it.
-func _ahead_lines(p: Vector2i) -> Array:
-	var d := p - world.player().pos
-	var f: Forecast = ahead.get(d) if Grid.cheb(p, world.player().pos) <= 1 else null
-	if f == null:
-		return []
-	var how := "기다릴 시" if d == Vector2i.ZERO else "이 칸으로 갈 시"
-	var lines := []
-	if f.hurt_me() > 0:
-		lines.append([[how + " 피해를 %d 입는다" % f.hurt_me(), Palette.HURT]])
-	if f.drops_me():
-		lines.append([[how + " 하늘로 떨어져 %d층으로 내려간다" % f.after.depth, Palette.HURT]])
-	if not f.noticed.is_empty():
-		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
-		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[2]]])
-	return lines
 
 
 ## The forecast cast: the tiles each projectile crosses or each spray covers,

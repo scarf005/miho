@@ -448,3 +448,23 @@ static func hearts(n: int, of: int) -> String:
 ## The lines as plain text, for tests.
 static func plain(lines: Array) -> String:
 	return "\n".join(lines.map(func(l): return "".join(l.map(func(r): return r[0]))))
+
+
+## What stepping onto p (or waiting, on Miho's own tile) would bring, from the
+## forecasts `ahead` by direction, as the harm number or red tint on that tile
+## shows it.
+static func ahead(w: World, forecasts: Dictionary, p: Vector2i) -> Array:
+	var d := p - w.player().pos
+	var f: Forecast = forecasts.get(d) if Grid.cheb(p, w.player().pos) <= 1 else null
+	if f == null:
+		return []
+	var how := "기다릴 시" if d == Vector2i.ZERO else "이 칸으로 갈 시"
+	var lines := []
+	if f.hurt_me() > 0:
+		lines.append([[how + " 피해를 %d 입는다" % f.hurt_me(), Palette.HURT]])
+	if f.drops_me():
+		lines.append([[how + " 하늘로 떨어져 %d층으로 내려간다" % f.after.depth, Palette.HURT]])
+	if not f.noticed.is_empty():
+		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
+		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[2]]])
+	return lines
