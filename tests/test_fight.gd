@@ -59,12 +59,50 @@ func test_it_claws_the_creature_next_to_miho() -> void:
 func test_it_prefers_an_unaware_one_among_those_next_to_her() -> void:
 	var w := _hall()
 	_foe(w, Vector2i(5, 8), Actor.HUNT)
-	_foe(w, Vector2i(4, 9))
+	var blind := _foe(w, Vector2i(4, 9))
+	assert_eq(Fight.step(w), {t = &"move", dir = E}, "it sees her: no sneak attack")
+	blind.blind = 2
 	assert_eq(Fight.step(w), {t = &"move", dir = S}, "the sneak attack")
-	w.actor_at(Vector2i(4, 9)).alert = Actor.HUNT
-	assert_eq(Fight.step(w), {t = &"move", dir = E}, "both aware: the older one")
-	w.actor_at(Vector2i(4, 9)).blind = 2
-	assert_eq(Fight.step(w), {t = &"move", dir = S}, "a blind one is unaware")
+	blind.alert = Actor.HUNT
+	assert_eq(Fight.step(w), {t = &"move", dir = E}, "a blind hunter is on guard: the older one")
+
+
+func test_a_claw_is_a_sneak_attack_only_on_an_off_guard_creature_that_does_not_see_her() -> void:
+	for blind in [0, 2]:
+		for alert in [Actor.REST, Actor.HUNT]:
+			var w := _hall()
+			var foe := _foe(w, Vector2i(5, 8), alert)
+			foe.hp = 9
+			foe.blind = blind
+			w.sense()
+			var sneak: bool = blind > 0 and alert == Actor.REST
+			var why := "blind %d, alert %d" % [blind, alert]
+			assert_eq(w.caught_unawares(foe), sneak, why)
+			var text := Info.plain(Info.at(w.known_clone(), foe.pos))
+			assert_eq(text.contains("기습 시 피해 3"), sneak, why)
+			assert_eq(text.contains("공격 시 피해 1"), not sneak, why)
+			var claw: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"claw")[0]
+			assert_eq(claw.sneak, sneak, why)
+			assert_eq(claw.n, 3 if sneak else 1, why)
+			assert_eq(foe.hp, 9 - claw.n, why)
+
+
+func test_an_off_guard_creature_next_to_her_sees_her_even_in_bamboo() -> void:
+	var w := _hall()
+	var foe := _foe(w, Vector2i(5, 8))
+	assert_false(w.caught_unawares(foe))
+	w.tiles[Grid.index(w.player().pos)] = World.BAMBOO
+	assert_false(w.caught_unawares(foe), "bamboo hides her from afar, not from the next tile")
+
+
+func test_the_map_tints_only_the_creatures_her_claws_catch_unawares() -> void:
+	var m := _main()
+	var seeing := _foe(m.world, Vector2i(5, 8))
+	var blind := _foe(m.world, Vector2i(4, 9))
+	blind.blind = 2
+	m.world.sense()
+	assert_false(m._sneakable(seeing))
+	assert_true(m._sneakable(blind))
 
 
 func test_it_steps_towards_the_nearest_when_none_is_next_to_her() -> void:
