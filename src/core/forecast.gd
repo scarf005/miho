@@ -7,7 +7,8 @@ extends RefCounted
 
 var after: World
 var events: Array[Dictionary] = []
-## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live}
+## shot id -> {faction, spell, tiles: Array[Vector2i], dir, live, target}, the
+## target the creature id it chases (0 for none) as the round ends
 var paths := {}
 ## actor id -> total damage this round
 var harm := {}
@@ -24,7 +25,12 @@ static func of(world: World, action: Dictionary) -> Forecast:
 	f.after = world.known_clone()
 	for s in f.after.shots:
 		f.paths[s.id] = {
-			faction = s.faction, spell = s.spell, tiles = [s.pos], dir = s.dir, live = true
+			faction = s.faction,
+			spell = s.spell,
+			tiles = [s.pos],
+			dir = s.dir,
+			live = true,
+			target = s.target
 		}
 	f.read(f.after.act(action))
 	return f
@@ -41,7 +47,8 @@ func read(round_events: Array[Dictionary]) -> void:
 					spell = Spell.make(e.cards),
 					tiles = [e.at],
 					dir = Vector2i.ZERO,
-					live = true
+					live = true,
+					target = e.get("target", 0)
 				}
 			&"fly":
 				if paths.has(e.shot):
@@ -59,6 +66,7 @@ func read(round_events: Array[Dictionary]) -> void:
 		paths[id].live = s != null
 		if s != null:
 			paths[id].dir = s.dir
+			paths[id].target = s.target
 
 
 func after_shot(id: int) -> Shot:

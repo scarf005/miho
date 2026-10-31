@@ -223,11 +223,12 @@ func test_sky_blocks_walking_but_not_sight_light_sound_or_spells() -> void:
 	listener.cooldown = 99
 	w.noise(Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
 	assert_eq(listener.alert, Actor.SEARCH, "sound crosses it")
-	var shot := w.act(_cast([Cards.FOX], E))
 	assert_true(w.can(_cast([Cards.FOX], E)), "a wisp is cast over sky")
-	assert_gt(shot.filter(func(e): return e.t == &"fly").size(), 0)
-	w.act(WAIT)
-	assert_gt(w.shots[0].pos.x, 7, "the wisp flew over the sky column")
+	var events := w.act(_cast([Cards.FOX], E)) + w.act(WAIT)
+	assert_true(
+		events.any(func(e): return e.t == &"fly" and e.to.x > 7),
+		"the wisp flew over the sky column"
+	)
 
 
 func test_a_window_blocks_walking_but_not_sight_or_light() -> void:

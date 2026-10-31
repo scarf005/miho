@@ -66,6 +66,8 @@ var staged: Array[Dictionary] = []
 ## Set by the game: tile -> Color tints, and tile -> [text, Color] marks.
 var tints := {}
 var marks := {}
+## Set by the game: lines [from tile, to tile, Color], one per wisp to its creature.
+var lines: Array = []
 var replay := false
 ## The tile under the pointer and what it shows there, as Info lines.
 var cursor := Vector2i(-1, -1)
@@ -408,6 +410,9 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	if not _animating:
 		_draw_paths()
+		for l: Array in lines:
+			if _shown(l[0]) and _shown(l[1]):
+				draw_line(cell_centre(l[0]), cell_centre(l[1]), l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
 	for f in _flashes:
@@ -563,7 +568,7 @@ func _draw_paths() -> void:
 		if s.dir == Vector2i.ZERO or not _revealed(s.pos):
 			continue
 		var ray := Forecast.ray(world, s.pos, s.dir)
-		if s.spell.homing():
+		if s.turn > 0:
 			ray = ray.slice(0, 1)
 		elif not s.spell.orb:
 			ray = ray.slice(0, maxi(0, Spell.RANGE - s.distance()))

@@ -7,6 +7,20 @@ extends RefCounted
 
 static var _shade := Grid.table(func(t): return Tiles.light[t] == 0)
 static var _heard := Grid.table(func(t): return Tiles.wall[t] == 0)
+static var _fly := Grid.table(
+	func(t): return t != World.DOOR and (Tiles.walk[t] == 1 or t == World.POND or t == World.SKY)
+)
+
+
+## The tiles a homing projectile may fly through: open air (World.open_air)
+## but closed doors.
+static func fly(w: World) -> PackedByteArray:
+	return Grid.mask(
+		w.tiles,
+		_fly,
+		odd(w),
+		func(p): return w.open_air(p) and not (w.tile(p) == World.DOOR and w.opaque(p))
+	)
 
 
 ## World.opaque for every tile: only fire changes what the tile kind says.

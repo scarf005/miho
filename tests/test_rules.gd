@@ -194,21 +194,18 @@ func test_hover_never_shows_a_creature_miho_cannot_see() -> void:
 	assert_eq(Info.at(w.known_clone(), Vector2i(30, 2)), [], "never seen")
 
 
-func test_a_wisp_flies_three_a_round_then_hovers_and_lights_without_harm() -> void:
+func test_a_wisp_with_no_creature_in_sight_flies_three_a_round_then_hovers_and_lights() -> void:
 	var w := _world()
 	w.act(_cast([FOX], E))
 	var wisp: Shot = w.shots[0]
 	assert_eq(wisp.pos, Vector2i(8, 8))
+	assert_eq(wisp.target, 0)
 	w.act(WAIT)
 	assert_eq(wisp.pos, Vector2i(11, 8), "stops at its range")
 	assert_eq(wisp.dir, Vector2i.ZERO)
+	assert_eq(wisp.life, Spell.WISP_LIFE - 1, "hovers WISP_LIFE rounds from where it stopped")
 	assert_true(w.lit(Vector2i(13, 8)))
-	var near := _world()
-	var foe := _foe(near, &"jangseung", Vector2i(7, 8))
-	near.act(_cast([FOX], E))
-	assert_eq(near.shots[0].pos, Vector2i(6, 8), "stops short of a creature")
-	assert_eq(foe.hp, 3)
-	assert_eq(near.seen[Grid.index(foe.pos)], 1, "and shows it")
+	assert_true(w.vacant(wisp.pos), "creatures may share a hovering wisp's tile")
 
 
 func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came_from() -> void:

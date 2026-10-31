@@ -2,10 +2,10 @@ class_name Info
 extends RefCounted
 ## What the pointer is over, in a few short sentences: a creature's health,
 ## state, conditions, immunities, whether it sees Miho, what her claws would do
-## to it and what it strikes and casts with; a projectile's harm; a tile's
-## terrain, light and sound; a talisman's or a spell's effect. Every number
-## comes from the rule constants. Built only from what Miho knows. Each line is
-## a list of [text, Color] runs. Health is drawn as hearts (Term draws ♥ and ♡).
+## to it and what it strikes and casts with; a projectile (SpellInfo); a
+## tile's terrain, light and sound. Every number comes from the rule
+## constants. Built only from what Miho knows. Each line is a list of
+## [text, Color] runs. Health is drawn as hearts (Term draws ♥ and ♡).
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
@@ -18,16 +18,6 @@ const DRUM_NOTE := (
 	+ "당신을 쫓으면 달려와 친다\n"
 	+ "구슬이나 몸으로 부딪치면 찢어진다"
 )
-## What a talisman adds to any spell it is part of.
-const EFFECT := {
-	Cards.FOX: "여우불: 초당 3칸씩 7칸 날아가 8초 동안 떠 있다",
-	Cards.ORB: "구슬: 벽까지 초당 2칸씩 곧게 날아간다",
-	Cards.FIRE: "불: 여우불도 피해 1. 지나간 자리에 불을 붙인다",
-	Cards.WATER: "물: 빛과 소리를 지운다. 등불과 불을 끈다",
-	Cards.WOOD: "나무: 맞은 적을 2초 묶는다",
-	Cards.METAL: "쇠: 멈춘 곳 2칸 안의 적을 2초 눈멀게 한다",
-	Cards.EARTH: "흙: 맞은 적을 기절시킨다. 멈춘 곳에서 쿵 소리 9칸",
-}
 
 
 ## Lines for map tile p, or empty when Miho knows nothing there.
@@ -41,7 +31,7 @@ static func at(w: World, p: Vector2i) -> Array:
 			return creature(w, a)
 		var s := w.shot_at(p)
 		if s != null:
-			return shot(s)
+			return SpellInfo.shot(w, s)
 	if w.known[i] == 0:
 		return []
 	return terrain(w, p)
@@ -204,7 +194,7 @@ static func _spell_details(s: Spell) -> Array[String]:
 		harm += " (%d칸 이상 날면 %d)" % [Spell.MOMENTUM, far]
 	var out: Array[String] = [harm]
 	if s.orb and s.has(Cards.FIRE):
-		out.append("터지면 주위 피해 %d" % World.FIRE_DAMAGE)
+		out.append("터지면 주위 피해 %d" % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
 	var noise := "소리 없음" if s.cast_noise() == 0 else "소리 %d칸" % s.cast_noise()
 	if s.burst_noise() > 0:
 		noise += ", 터질 때 %d칸" % s.burst_noise()
@@ -225,24 +215,6 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append("당신 위치를 앎")
 	out.append(_dark_sight(a))
 	return out
-
-
-static func shot(s: Shot) -> Array:
-	var spell := s.spell
-	var side := "당신의 " if s.faction == Actor.FOX else "적의 "
-	var lines := [
-		[[side, Palette.SIDE[s.faction]], [spell.title(), Palette.shot_color(spell, s.faction)]]
-	]
-	var harm := spell.damage(s.distance())
-	if harm > 0:
-		lines.append([["피해 ", Palette.TEXT], [str(harm), Palette.HURT]])
-	else:
-		lines.append([["피해 없음", Palette.DIM]])
-	if s.faction == Actor.HEAVEN:
-		lines.append([["다른 적도 맞힌다. 약점과 면역은 똑같이 적용된다", Palette.DIM]])
-	if s.life > 0:
-		lines.append([["%d초 뒤 사라진다" % s.life, Palette.DIM]])
-	return lines
 
 
 static func terrain(w: World, p: Vector2i) -> Array:
@@ -389,44 +361,6 @@ static func _tails(w: World) -> Array:
 		["꼬리 %d/%d" % [w.tails, w.max_tails()], Palette.SIDE[0]],
 		[". %d초마다 1개 회복" % World.TAIL_REGROW, Palette.DIM],
 	]
-
-
-## A talisman: what it adds to a spell; a form alone is already a spell.
-static func card(c: StringName) -> Array:
-	var head := [[Cards.NAME[c] + " 부적", Palette.CARD[c]], [" 꼬리 1개", Palette.DIM]]
-	if Cards.FORMS.has(c):
-		return [head] + spell(Spell.make([c])).slice(1)
-	return [
-		head, [[EFFECT[c].get_slice(": ", 1), Palette.TEXT]], [["여우불이나 구슬과 함께 쓴다", Palette.DIM]]
-	]
-
-
-## A spell: its name, cost, and what each of its talismans makes it do.
-static func spell(s: Spell) -> Array:
-	var head := [[s.title(), Palette.card(s.slots.back())], [" 꼬리 %d개 " % s.cost(), Palette.DIM]]
-	for c in s.slots:
-		head.append([Cards.GLYPH[c], Palette.card(c)])
-	var lines := [head]
-	if s.homing():
-		lines.append([["가장 가까운 적을 쫓아 초당 2칸씩 날아간다. 6초 뒤 사라진다", Palette.TEXT]])
-	elif s.orb:
-		lines.append([[EFFECT[Cards.ORB].get_slice(": ", 1), Palette.TEXT]])
-	else:
-		lines.append([[EFFECT[Cards.FOX].get_slice(": ", 1), Palette.TEXT]])
-	if s.orb and s.has(Cards.FIRE):
-		lines.append([["불: 터지면 주위 8칸에 피해 %d, 불을 붙인다" % World.FIRE_DAMAGE, Palette.TEXT]])
-	for c in s.elements():
-		if not (s.orb and c == Cards.FIRE):
-			lines.append([[EFFECT[c], Palette.TEXT]])
-	var harm := (
-		"피해 1, %d칸 이상 날면 2" % Spell.MOMENTUM if s.orb else ("피해 1" if s.damage(0) > 0 else "피해 없음")
-	)
-	var noise := s.cast_noise()
-	var sound := "소리 없음" if noise == 0 else "소리 %d칸" % noise
-	if s.burst_noise() > 0:
-		sound += ", 터질 때 %d칸" % s.burst_noise()
-	lines.append([[harm + ". " + sound, Palette.DIM]])
-	return lines
 
 
 ## Health as hearts: one full heart per point left, an empty one per point lost.

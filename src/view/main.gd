@@ -476,6 +476,7 @@ func _act(action: Dictionary) -> Array:
 	busy = true
 	term.tints = {}
 	term.marks = {}
+	term.lines = []
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
 	var before := world.clone()
@@ -805,6 +806,7 @@ func _refresh() -> void:
 	term.staged = staged
 	var tints := reach.duplicate()
 	var marks := {}
+	term.lines = []
 	var me := world.player().pos
 	for d: Vector2i in ahead:
 		var f: Forecast = ahead[d]
@@ -849,10 +851,12 @@ func _inspect() -> void:
 	if state != &"play":
 		return
 	term.cursor = hover
-	if hover_spell != "":
-		term.info = Info.spell(Spell.from_key(hover_spell))
+	if hover_slot >= 0:
+		term.info = SpellInfo.slot(Spell.make(picked), hover_slot)
+	elif hover_spell != "":
+		term.info = SpellInfo.spell(Spell.from_key(hover_spell))
 	elif hover_card != &"":
-		term.info = Info.card(hover_card)
+		term.info = SpellInfo.card(hover_card, Spell.make(picked + [hover_card]))
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
@@ -888,11 +892,17 @@ func _ahead_lines(p: Vector2i) -> Array:
 	return lines
 
 
+## The forecast cast: the tiles each projectile crosses, a line from Miho to
+## the creature each homing one chases, and the harm each creature takes.
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 	for id in f.paths:
 		var path: Dictionary = f.paths[id]
 		for p in path.tiles:
 			tints[p] = Color(Palette.SIDE[path.faction], 0.35)
+		var target := known.actor(path.target)
+		var cast_now := not world.shots.any(func(s): return s.id == id)
+		if target != null and path.faction == Actor.FOX and cast_now:
+			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7)])
 	for id in f.harm:
 		var a := f.after.actor(id)
 		if a != null:

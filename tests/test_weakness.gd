@@ -89,11 +89,11 @@ func test_weakness_follows_the_beats_table_both_ways() -> void:
 	)
 
 
-func test_a_wisp_that_deals_no_harm_stays_harmless_to_a_weak_creature() -> void:
+func test_a_metal_wisp_beats_wood_for_two() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")
-	assert_eq(_hurts(w.act(_cast([Cards.FOX, Cards.METAL]))).size(), 0)
-	assert_eq(foe.hp, 4)
+	assert_eq(_hurts(w.act(_cast([Cards.FOX, Cards.METAL]))).map(func(e): return e.n), [2])
+	assert_eq(foe.hp, 2)
 
 
 func test_a_fire_wisp_beats_metal_for_two() -> void:

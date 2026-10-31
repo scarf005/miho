@@ -54,7 +54,7 @@ static func text(world: World) -> String:
 	if not shots.is_empty():
 		out.append("projectiles in sight:")
 		for s: Shot in shots:
-			out.append(_shot(s))
+			out.append(_shot(k, s))
 	out.append("moves: " + _moves(k))
 	return "\n".join(out)
 
@@ -145,10 +145,10 @@ static func _creature(k: World, a: Actor) -> String:
 	return line
 
 
-static func _shot(s: Shot) -> String:
+static func _shot(k: World, s: Shot) -> String:
 	var side := "Miho's" if s.faction == Actor.FOX else "heaven's"
-	return (
-		"%s (%d,%d) %s %s dir %s, harm %d"
+	var line := (
+		"%s (%d,%d) %s %s dir %s, harm %d, speed %d"
 		% [
 			Palette.shot_glyph(s.spell),
 			s.pos.x,
@@ -156,9 +156,16 @@ static func _shot(s: Shot) -> String:
 			side,
 			s.spell.title(),
 			NAMES.get(s.dir, "none"),
-			s.spell.damage(s.distance())
+			s.spell.damage(s.distance()),
+			s.spell.speed() if s.dir != Vector2i.ZERO else 0
 		]
 	)
+	var t := k.actor(s.target)
+	if t != null:
+		line += ", chasing %s (%d,%d), turns %d°" % [t.info().name, t.pos.x, t.pos.y, 45 * s.turn]
+	if s.life > 0:
+		line += ", %d rounds left" % s.life
+	return line
 
 
 ## The steps Miho may take, each with what stands there: a creature her claws

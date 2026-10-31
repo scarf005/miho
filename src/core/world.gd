@@ -275,12 +275,12 @@ func shot_at(p: Vector2i, except: Shot = null) -> Shot:
 	return null
 
 
-## Creatures may share a tile with a wisp that strikes nothing; it is only light.
+## Creatures may share a tile with a hovering wisp; it strikes only when it chases.
 func vacant(p: Vector2i) -> bool:
 	if not open_floor(p) or actor_at(p) != null:
 		return false
 	var s := shot_at(p)
-	return s == null or not s.spell.strikes()
+	return s == null or not s.spell.orb and s.dir == Vector2i.ZERO
 
 
 ## True when nothing a projectile cannot cross stands strictly between a and b
@@ -593,29 +593,41 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	caster.casts += 1
 	var word := "웅" if spell.orb else "휙"
 	noise(caster.pos, spell.cast_noise(), word, caster.faction == Actor.FOX, caster.id)
-	_step(_spawn(caster, spell, caster.pos, dir))
+	for target in Homing.targets(self, caster, spell):
+		_step(_spawn(caster, spell, dir, target))
 
 
-func _spawn(caster: Actor, spell: Spell, at: Vector2i, dir: Vector2i) -> Shot:
+func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 	var s := Shot.new()
 	s.id = new_id()
 	s.faction = caster.faction
 	s.caster = caster.id
 	s.spell = spell
-	s.pos = at
+	s.pos = caster.pos
 	s.origin = caster.pos
 	s.dir = dir
 	s.life = spell.life()
+	s.target = target
+	s.turn = spell.turn()
 	shots.append(s)
 	_changed()
-	emit({t = &"spawn", shot = s.id, at = at, faction = s.faction, cards = spell.cards})
+	emit(
+		{
+			t = &"spawn",
+			shot = s.id,
+			at = s.pos,
+			faction = s.faction,
+			cards = spell.cards,
+			target = target
+		}
+	)
 	return s
 
 
 func _shots_phase() -> void:
 	for sub in Spell.WISP_SPEED:
 		for s in shots.duplicate():
-			if not s.gone and sub < s.spell.speed() and s.dir != Vector2i.ZERO:
+			if not s.gone and sub < s.spell.speed() and (s.dir != Vector2i.ZERO or s.turn > 0):
 				_step(s)
 	_prune()
 
@@ -625,15 +637,26 @@ func _fly(s: Shot, to: Vector2i) -> void:
 	s.pos = to
 	_changed()
 	if s.spell.has(Cards.FIRE):
-		_ignite(to)
+		ignite(to)
 
 
-## One tile of flight. Orbs burst on walls and closed doors and strike
-## creatures; a wisp stops and hovers at a wall, before a creature, or at the
-## end of its range.
+## One tile of flight. Orbs burst on walls and closed doors; every projectile
+## strikes the creature it reaches; a wisp stops and hovers at a wall or at the
+## end of its range when it chases nothing. A hovering wisp that takes a
+## creature leaves to chase it, and lasts until it strikes.
 func _step(s: Shot) -> void:
-	if s.spell.homing():
-		s.dir = Aim.steer(self, s)
+	if s.turn > 0:
+		var hovering := s.dir == Vector2i.ZERO
+		s.dir = Homing.steer(self, s)
+		var t := actor(s.target)
+		if t != null and t.pos == s.pos:
+			s.gone = true
+			_strike(s, t)
+			return
+		if s.dir == Vector2i.ZERO:
+			return
+		if hovering:
+			s.life = 0
 	var to := s.pos + s.dir
 	if not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
@@ -645,12 +668,9 @@ func _step(s: Shot) -> void:
 		return
 	var a := actor_at(to)
 	if a != null:
-		if s.spell.strikes():
-			_fly(s, to)
-			s.gone = true
-			_strike(s, a)
-		else:
-			_land(s)
+		_fly(s, to)
+		s.gone = true
+		_strike(s, a)
 		return
 	var o := shot_at(to, s)
 	if o != null:
@@ -667,12 +687,13 @@ func _step(s: Shot) -> void:
 			_land(s)
 			return
 	_fly(s, to)
-	if not s.spell.orb and Grid.cheb(s.origin, s.pos) >= Spell.RANGE:
+	if not s.spell.orb and s.target == 0 and Grid.cheb(s.origin, s.pos) >= Spell.RANGE:
 		_land(s)
 
 
 func _land(s: Shot) -> void:
 	s.dir = Vector2i.ZERO
+	s.life = Spell.WISP_LIFE
 	emit({t = &"land", shot = s.id, at = s.pos})
 	_effects(s, s.pos)
 
@@ -692,31 +713,12 @@ func _burst(s: Shot) -> void:
 ## water douses lanterns and flames.
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.METAL):
-		_flash(s, at)
+		Elements.flash(self, s, at)
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
-		_ignite(at)
+		ignite(at)
 	Terrain.touch(self, s, at, struck)
-
-
-func _flash(s: Shot, at: Vector2i) -> void:
-	emit({t = &"flash", at = at, faction = s.faction})
-	var view := fov(at)
-	for a in actors:
-		if (
-			a.alive()
-			and a.faction != s.faction
-			and Grid.cheb(a.pos, at) <= FLASH
-			and view[Grid.index(a.pos)] == 1
-		):
-			a.blind = 2
-			a.intent.clear()
-			emit({t = &"blind", id = a.id})
-			if a.faction == Actor.HEAVEN:
-				a.alert = Actor.SEARCH
-				a.target = at
-				a.lost = 0
 
 
 func _strike(s: Shot, a: Actor) -> void:
@@ -724,28 +726,8 @@ func _strike(s: Shot, a: Actor) -> void:
 	var at := a.pos
 	emit({t = &"hit", shot = s.id, id = a.id, at = at, by = s.caster, title = spell.title()})
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
-	if Bestiary.absorbs(a.kind, spell):
-		emit({t = &"absorb", id = a.id, at = at})
-		if Bestiary.eats(a.kind, spell):
-			a.max_hp += Bestiary.GROWTH
-			a.hp += Bestiary.GROWTH
-			emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
+	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
 		return
-	var weak := Bestiary.weak(a.kind, spell)
-	var n := spell.damage(Grid.cheb(s.origin, at)) * (2 if weak else 1)
-	if n > 0:
-		hurt(a, n, weak)
-	if spell.has(Cards.FIRE) and Bestiary.burns(a.kind):
-		_ignite(at, true)
-	if a.alive():
-		if spell.has(Cards.WOOD):
-			a.rooted = maxi(a.rooted, 2)
-			emit({t = &"root", id = a.id})
-		if spell.has(Cards.EARTH):
-			a.stunned = 1
-			a.intent.clear()
-			emit({t = &"stun", id = a.id})
-		Mind.struck(self, a, s)
 	if spell.orb and spell.has(Cards.FIRE):
 		_splash(s, at, a)
 	_effects(s, at)
@@ -781,16 +763,16 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 	emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
 	for d in Grid.DIRS:
 		var p := at + d
-		_ignite(p)
+		ignite(p)
 		var b := actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.kind, s.spell):
 				emit({t = &"absorb", id = b.id, at = p})
 			else:
 				var weak := Bestiary.weak(b.kind, s.spell)
-				hurt(b, FIRE_DAMAGE * (2 if weak else 1), weak)
+				hurt(b, (FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak)
 				if Bestiary.burns(b.kind):
-					_ignite(p, true)
+					ignite(p, true)
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
@@ -799,7 +781,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 
 
 ## Sets p alight if it is flammable, or whatever it is when `force`d. Water never burns.
-func _ignite(p: Vector2i, force := false) -> void:
+func ignite(p: Vector2i, force := false) -> void:
 	if (
 		(force or Tiles.burns[tile(p)] == 1)
 		and not burning.has(p)
@@ -841,7 +823,7 @@ func _burn() -> void:
 			Notice.record(self, &"ash", p)
 			emit({t = &"burnout", at = p})
 	for p in caught:
-		_ignite(p)
+		ignite(p)
 
 
 func _end_round() -> void:

@@ -4,11 +4,15 @@ extends RefCounted
 ## A card of the same talisman again stacks; an element added while a
 ## different element is queued merges with the first such slot into their
 ## compound (Cards.PAIRS), one slot worth two cards. Every card costs one tail.
-## Every spell is hurled along one of eight lines.
-## 여우불 alone: a wisp that flies up to RANGE tiles, then hovers and lights
-## its surroundings. 구슬 alone: a loud straight orb that hits harder after a
-## run-up (DCSS mon-project.cc iood_damage). Both: a homing orb.
-## Each element has one meaning on any form:
+## Every spell is hurled along one of eight lines, and grows with the tails it
+## costs: one card is power 1.
+## The shape is read top down: 여 and 구 make a homing orb that turns 45° more
+## each tile for every 여 (freely with four); 구 alone a loud straight orb, 1
+## damage for every 구 and 1 more after a run-up (DCSS mon-project.cc
+## iood_damage); 여 alone a wisp for every 여, each hitting for 1. Homing
+## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
+## tiles, then hovers and lights its surroundings.
+## Each element has one meaning on any form, one step stronger for every copy:
 ## 불 burns (a wisp hits for 1, an orb splashes), 물 is darkness and silence,
 ## 나무 roots, 쇠 flashes and blinds, 흙 thuds loudly and stuns.
 
@@ -19,6 +23,7 @@ const ORB_SPEED := 2
 const RANGE := 7
 const WISP_LIFE := 8
 const HOMING_LIFE := 6
+const TURN_FREE := 4
 
 const HOMING := &"homing"
 const ORB := &"orb"
@@ -134,23 +139,38 @@ func speed() -> int:
 	return ORB_SPEED if orb else WISP_SPEED
 
 
-## Rounds a projectile lasts; 0 means until it hits something.
+## Rounds a projectile lasts in flight; 0 means until it hits something. A
+## wisp lasts WISP_LIFE rounds once it hovers.
 func life() -> int:
-	if homing():
-		return HOMING_LIFE
-	return 0 if orb else WISP_LIFE
+	return HOMING_LIFE if homing() else 0
 
 
-## Damage on a direct hit by a projectile that has come `distance` tiles from its caster.
+## Projectiles one cast hurls: a wisp per 여, else one.
+func shots() -> int:
+	return count(Cards.FOX) if shape == WISP else 1
+
+
+## How far a projectile may turn each tile, in steps of 45°; TURN_FREE turns
+## any way. A homing orb turns 45° more for every 여, a wisp turns freely.
+func turn() -> int:
+	if shape == WISP:
+		return TURN_FREE
+	return mini(count(Cards.FOX), TURN_FREE) if homing() else 0
+
+
+## Copies of an element past the first: each makes its effect one step stronger.
+func extra(element: StringName) -> int:
+	return maxi(0, count(element) - 1)
+
+
+## Damage on a direct hit by a projectile that has come `distance` tiles from
+## its caster: 1 a wisp, an orb 1 for every 구 and 1 more after a run-up, and
+## 1 more for every 불 past the first.
 func damage(distance: int) -> int:
+	var n := 1
 	if orb:
-		return 2 if distance >= MOMENTUM else 1
-	return 1 if has(Cards.FIRE) else 0
-
-
-## A wisp alone stops short of creatures; anything else strikes them.
-func strikes() -> bool:
-	return orb or has(Cards.FIRE) or has(Cards.WOOD) or has(Cards.EARTH)
+		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)
+	return n + extra(Cards.FIRE)
 
 
 ## The light this projectile carries: {radius, color}, or empty for none.

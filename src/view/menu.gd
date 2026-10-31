@@ -68,7 +68,7 @@ func panel() -> Dictionary:
 			return {title = "키 설정", rows = _keys(), selected = selected}
 		&"spells":
 			var list := spells()
-			var detail: Array = Info.spell(list[selected]) if not list.is_empty() else []
+			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
 			return {title = "주문서", rows = _spells(list), selected = selected, detail = detail}
 	return {title = "도움말", rows = _help(), selected = selected}
 

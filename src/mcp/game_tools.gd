@@ -225,7 +225,12 @@ func _forecast(args: Dictionary) -> Dictionary:
 		return _fail(_refusal(action))
 	var f := Forecast.of(world, action)
 	var me := f.after.player().id
-	var out: Array[String] = ["harm to Miho: %d" % f.hurt_me()]
+	var out: Array[String] = []
+	for one: Dictionary in action.get("spells", []):
+		out.append(
+			"spell: " + Info.plain(SpellInfo.spell(Spell.make(one.cards))).replace("\n", "; ")
+		)
+	out.append("harm to Miho: %d" % f.hurt_me())
 	var noticing := f.noticed.keys().map(func(i): return _whom(world, i))
 	out.append("noticed by: " + (", ".join(noticing) if not noticing.is_empty() else "nobody"))
 	for i: int in f.harm:
