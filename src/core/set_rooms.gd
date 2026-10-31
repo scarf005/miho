@@ -11,10 +11,14 @@ extends RefCounted
 ## storey as it was, and every room keeps the storey whole (FloorGen.connected).
 ##
 ## 갈대 정원 (garden): reeds fill the room round a pool of shallow water.
+## 불타기 쉬운 곳간 (granary): straw covers the floor, and a censer stands in it.
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
+	{kind = &"granary", tier = 2},
 ]
+## A granary of this many tiles holds two censers, else one.
+const CENSERS_AREA := 40
 ## A room must hold this many floor tiles to be made into one.
 const LEAST_AREA := 12
 ## What a room is cleared of: patches (Placement) and the pond and floorboards.
@@ -49,20 +53,22 @@ static func build(w: World, home: Rect2i, goal: Rect2i) -> Dictionary:
 	for row: Dictionary in kinds:
 		FloorGen.shuffle(rng, rooms)
 		for r: Rect2i in rooms:
-			if _try(w, row.kind, r):
+			if make(w, row.kind, r, rng):
 				return {kind = row.kind, room = r}
 	return {}
 
 
 ## Clears `r` and builds `kind` there; when it cannot, the tiles, plates, vents
 ## and gas are put back.
-static func _try(w: World, kind: StringName, r: Rect2i) -> bool:
+static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	var before := [w.tiles.duplicate(), w.traps.duplicate(), w.vents.duplicate(), w.gas.duplicate()]
 	_clear(w, r)
 	var made := false
 	match kind:
 		&"garden":
 			made = _garden(w, r)
+		&"granary":
+			made = _granary(w, r, rng)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -110,3 +116,25 @@ static func _garden(w: World, r: Rect2i) -> bool:
 	for p in _bare(w, r):
 		w.tiles[Grid.index(p)] = World.SHALLOW if Grid.cheb(p, _centre(r)) <= pool else World.REEDS
 	return true
+
+
+## Straw all over, and censers (two in a room of CENSERS_AREA tiles, else one) on
+## tiles of it that leave the storey whole.
+static func _granary(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+	var spots := _bare(w, r)
+	for p in spots:
+		w.tiles[Grid.index(p)] = World.STRAW
+	FloorGen.shuffle(rng, spots)
+	var most := 2 if r.get_area() >= CENSERS_AREA else 1
+	var censers := 0
+	for p in spots:
+		if censers >= most:
+			break
+		w.tiles[Grid.index(p)] = World.CENSER
+		if FloorGen.connected(w):
+			Gas.put(w, p, Gas.INCENSE, Gas.VENT_LEVEL)
+			w.vents[p] = Gas.INCENSE
+			censers += 1
+		else:
+			w.tiles[Grid.index(p)] = World.STRAW
+	return censers > 0

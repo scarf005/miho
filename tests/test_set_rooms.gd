@@ -131,6 +131,73 @@ func test_a_garden_leaves_the_storey_whole_and_reeds_hide_what_stands_behind_the
 	assert_true(w.opaque(MID.position + Vector2i(1, 1)))
 
 
+# --- 불타기 쉬운 곳간 -------------------------------------------------------------------
+
+
+func _granary(w: World, r := MID) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	assert_true(SetRooms.make(w, &"granary", r, rng))
+
+
+func _censers(w: World, r: Rect2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			if w.tile(Vector2i(x, y)) == World.CENSER:
+				out.append(Vector2i(x, y))
+	return out
+
+
+func test_a_granary_is_straw_all_over_with_a_censer_that_breathes_incense() -> void:
+	var w := _plan(2)
+	_granary(w)
+	var kinds := _kinds(w, MID)
+	assert_eq(kinds.keys().size(), 2)
+	assert_eq(kinds[World.CENSER], 2, "two in a room of %d tiles" % MID.get_area())
+	assert_eq(kinds[World.STRAW] + kinds[World.CENSER], MID.get_area())
+	for p in _censers(w, MID):
+		assert_eq(w.vents[p], Gas.INCENSE)
+		assert_eq(w.gas[p].x, Gas.INCENSE)
+	assert_true(FloorGen.connected(w))
+
+
+func test_a_small_granary_holds_one_censer() -> void:
+	var w := _plan(2, Rect2i(10, 2, 5, 5))
+	_granary(w, Rect2i(10, 2, 5, 5))
+	assert_eq(_censers(w, Rect2i(10, 2, 5, 5)).size(), 1)
+
+
+func test_a_censer_never_goes_where_it_would_cut_the_storey_apart() -> void:
+	var lane := Rect2i(10, 5, 1, 12)
+	var w := _plan(2, lane)
+	_granary(w, lane)
+	assert_eq(_censers(w, lane), [Vector2i(10, 16)] as Array[Vector2i], "only the dead end")
+	assert_true(FloorGen.connected(w))
+
+
+func test_a_spark_spreads_over_the_straw_of_a_granary() -> void:
+	var w := _plan(2)
+	_granary(w)
+	w.ignite(Vector2i(16, 6))
+	for i in 8:
+		w.act({t = &"wait"})
+	var burnt := _count(w, MID, World.ASH) + w.burning.size()
+	assert_gt(burnt, MID.get_area() / 2, "most of the room is alight or ash")
+
+
+func test_knocking_a_censer_over_lights_the_straw_beside_it() -> void:
+	var w := _plan(2)
+	_granary(w)
+	var censer := _censers(w, MID)[0]
+	w.player().pos = censer + Vector2i.LEFT
+	w.sense()
+	w.act({t = &"move", dir = Vector2i.RIGHT})
+	assert_eq(w.tile(censer), World.FLOOR)
+	assert_true(w.burning.size() > 0, "the straw beside it burns")
+	assert_true(w.hot.has(censer))
+
+
 # --- the storeys ---------------------------------------------------------------------
 
 
@@ -145,25 +212,42 @@ func _storeys() -> Array[World]:
 	return out
 
 
-## The rooms that are reeds and shallow water and nothing else but lanterns and drums.
-func _gardens(w: World) -> Array[Rect2i]:
+## The rooms made of `needs` and `only` kinds of tile and nothing else but lanterns
+## and drums, each of `needs` at least once.
+func _made_of(w: World, needs: Array, only: Array = []) -> Array[Rect2i]:
 	var out: Array[Rect2i] = []
 	for r in w.rooms:
 		var kinds := _kinds(w, r)
-		for t in [World.LANTERN, World.DRUM, World.REEDS, World.SHALLOW]:
+		for t in [World.LANTERN, World.DRUM] + needs + only:
 			kinds.erase(t)
-		if kinds.is_empty() and _count(w, r, World.SHALLOW) > 0 and _count(w, r, World.REEDS) > 0:
+		if kinds.is_empty() and needs.all(func(t): return _count(w, r, t) > 0):
 			out.append(r)
 	return out
 
 
-func test_storeys_hold_gardens_and_stay_whole() -> void:
-	var gardens := 0
+## The rooms of a storey that each kind of set room would be, by its tiles.
+func _built(w: World) -> Dictionary:
+	return {
+		&"garden": _made_of(w, [World.REEDS, World.SHALLOW]),
+		&"granary": _made_of(w, [World.STRAW, World.CENSER]),
+	}
+
+
+func test_storeys_hold_each_set_room_from_its_tier_and_stay_whole() -> void:
+	var storeys := {}
 	for w in _storeys():
 		var label := "seed %d storey %d" % [w.rng.seed, w.depth]
 		assert_true(FloorGen.connected(w, w.traps.keys()), label)
-		for r in _gardens(w):
-			assert_ne(r, w.rooms[0], label)
-			assert_false(r.has_point(w.stairs), label)
-		gardens += 1 if not _gardens(w).is_empty() else 0
-	assert_gt(gardens, SEEDS * World.FLOORS / 10)
+		var built := _built(w)
+		for kind: StringName in built:
+			for r: Rect2i in built[kind]:
+				assert_ne(r, w.rooms[0], label)
+				assert_false(r.has_point(w.stairs), label)
+				assert_false(r.has_point(w.elixir), label)
+			if not built[kind].is_empty():
+				storeys[kind] = storeys.get(kind, 0) + 1
+				assert_gte(
+					w.tier(), SetRooms.ROWS.filter(func(row): return row.kind == kind)[0].tier
+				)
+	for kind: StringName in _built(_plan()):
+		assert_gt(storeys.get(kind, 0), SEEDS * World.FLOORS / 20, str(kind))
