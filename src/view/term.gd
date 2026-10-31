@@ -720,25 +720,38 @@ func _draw_info() -> void:
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if info.is_empty():
 		return
-	var width := 0.0
-	for line: Array in info:
-		width = maxf(width, line.reduce(func(n, run): return n + _cells(run[0]), 0.0))
-	width = ceilf(width) + 1.0
-	var height := info.size()
-	var v := map_view()
-	var from := Vector2(MAP.x, rows - 2 - height)
-	if shown:
-		var at := cursor - cam
-		from.x = MAP.x + v.x - width if at.x < v.x / 2 else MAP.x
-		from.y = v.y - height if at.y < v.y / 2 else 0
-	var box := Rect2(from * CELL, Vector2(width, height) * CELL)
+	var fit := _info_fit(cursor if shown else null)
+	draw_set_transform(fit.at * CELL, 0.0, Vector2(fit.scale, fit.scale))
+	var box := Rect2(Vector2.ZERO, fit.cells * CELL)
 	draw_rect(box, Color(Palette.VOID, 0.92))
 	draw_rect(box.grow(-1), Palette.DIM, false, 2.0)
-	for k in info.size():
-		var x := from.x + 0.5
-		for run: Array in info[k]:
-			_text(Vector2(x, from.y + k), run[0], run[1])
-			x += _cells(run[0])
+	for column: Array in fit.columns:
+		for k in column[1].size():
+			var x: float = column[0]
+			for run: Array in column[1][k]:
+				_text(Vector2(x, k), run[0], run[1])
+				x += _cells(run[0])
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The layout of `info` (InfoBox) and `at`, the cell of its top-left corner. It
+## lies in the map area, or in the whole width when that would make the text
+## too small to read, on the far side from the map tile `p` (null for none).
+func _info_fit(p: Variant = null) -> Dictionary:
+	var v := map_view()
+	var room := Rect2(Vector2(MAP), Vector2(v))
+	var least := minf(1.0, InfoBox.READABLE / scale.x)
+	var fit := InfoBox.layout(info, room.size, least)
+	if fit.scale < least:
+		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
+		fit = InfoBox.layout(info, room.size, least)
+	var wide: Vector2 = fit.cells * fit.scale
+	var at := Vector2(room.position.x, room.end.y - wide.y)
+	if p != null:
+		var c: Vector2i = p - cam
+		at.x = room.end.x - wide.x if c.x < v.x / 2 else room.position.x
+		at.y = room.end.y - wide.y if c.y < v.y / 2 else 0
+	return fit.merged({at = at})
 
 
 func _draw_log() -> void:
