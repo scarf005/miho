@@ -10,26 +10,30 @@ extends RefCounted
 ##   eight around it that gas can lie on), the remainder going to chance, and the
 ##   kind of the strongest of them;
 ## - each tile loses 1 with the decay chance of its kind;
-## - whoever stands in a harmful gas takes its harm, and a drum in a wetting
-##   gas gets wet.
+## - whoever stands in a harmful gas takes its harm, a drum in a wetting gas
+##   gets wet, and Miho's scent is lost on a tile of a gas that erases it.
 ##
-## A tile with OPAQUE or more blocks sight (World.opaque). Gas lies only where
+## A tile with OPAQUE or more of a gas that blocks sight blocks sight
+## (World.opaque). Gas lies only where
 ## Tiles.gas allows, so walls, closed doors, windows, pillars and sky stop it,
 ## and never on the outermost ring of the map. The spreading runs in Rust
 ## (rust/src/lib.rs), drawing its chance from the World's generator once a round.
 ##
 ## name: what the hover text calls it. decay: the percent chance each round that
 ## a tile loses 1. harm: damage a round to who stands in it. wets: it wets drums.
+## blocks: thick enough, it blocks sight. erases: Miho's scent is lost where it lies.
 
 const FOG := 0
 const STEAM := 1
 const SMOKE := 2
+const INCENSE := 3
 const ROWS := {
 	FOG: {name = "안개", decay = 20},
 	STEAM: {name = "증기", decay = 50, harm = 1, wets = true},
 	SMOKE: {name = "연기", decay = 50},
+	INCENSE: {name = "향 연기", decay = 20, blocks = false, erases = true},
 }
-const DEFAULT := {name = "", decay = 0, harm = 0, wets = false}
+const DEFAULT := {name = "", decay = 0, harm = 0, wets = false, blocks = true, erases = false}
 const MAX := 9
 const OPAQUE := 3
 const SMOKE_PUFF := 4
@@ -59,7 +63,7 @@ static func at(w: World, p: Vector2i) -> Vector2i:
 
 ## Gas on p thick enough to block sight.
 static func blocks(w: World, p: Vector2i) -> bool:
-	return not w.gas.is_empty() and at(w, p).y >= OPAQUE
+	return not w.gas.is_empty() and at(w, p).y >= OPAQUE and of(at(w, p).x, "blocks")
 
 
 ## Gas on p that hurts whoever stands in it.
@@ -107,6 +111,8 @@ static func tick(w: World) -> void:
 	for p: Vector2i in w.gas:
 		if of(w.gas[p].x, "wets") and w.tile(p) == World.DRUM and not w.wet.has(p):
 			Drums.soak(w, p)
+		if of(w.gas[p].x, "erases"):
+			Scent.clear(w, p)
 	w._changed()
 
 

@@ -10,7 +10,8 @@ extends RefCounted
 ## through. burns, burns_to: fire can take it, and what it is once burnt.
 ## breaks_to: what a hit leaves of it (the outermost ring of the map never
 ## breaks). tread: [how far a step onto it is heard, the word for it].
-## knock: Miho knocks it by walking into it. wall: a wall, cracked or not.
+## knock: Miho knocks it by walking into it, and `hit` is how far that is heard
+## and the word for it. wall: a wall, cracked or not.
 ## spread: the chance each second that fire next to it takes it. douses: fire
 ## never takes it, even a burning creature standing on it. trample: what it
 ## becomes when a creature steps onto it. scentless: a trail laid on it is lost.
@@ -74,7 +75,15 @@ const ROWS := {
 	World.WINDOW: {name = "창문", health = 1, knock = true, gas = false, breaks_to = World.FLOOR},
 	World.BRIDGE: {name = "하늘다리", walk = true, tread = [3, "삐걱"]},
 	World.DOOR_OPEN: {name = "열린 문", walk = true, burns = true},
-	World.DRUM: {name = "북", health = 1, knock = true, burns = true, breaks_to = World.DRUM_TORN},
+	World.DRUM:
+	{
+		name = "북",
+		health = 1,
+		knock = true,
+		burns = true,
+		breaks_to = World.DRUM_TORN,
+		hit = [World.KNOCK, "찌익"],
+	},
 	World.DRUM_TORN: {name = "찢어진 북", walk = true},
 	World.GRASS: {name = "풀", walk = true, burns = true, spread = 0.15},
 	World.STRAW: {name = "마른 짚", walk = true, burns = true},
@@ -110,6 +119,34 @@ const ROWS := {
 	World.TALISMAN: {name = "부적 단", walk = true},
 	World.SHELF: {name = "두루마리 서가", walk = true, burns = true},
 	World.SHELF_READ: {name = "읽은 서가", walk = true, burns = true},
+	World.SCREEN:
+	{
+		name = "병풍",
+		health = 1,
+		sight = true,
+		burns = true,
+		knock = true,
+		breaks_to = World.FLOOR,
+		hit = [World.THUD, "쿵"],
+	},
+	World.JAR:
+	{
+		name = "장독",
+		health = 1,
+		knock = true,
+		breaks_to = World.FLOOR,
+		hit = [World.KNOCK, "쨍그랑"],
+	},
+	World.WATER_JAR:
+	{
+		name = "물독",
+		health = 1,
+		knock = true,
+		breaks_to = World.SHALLOW,
+		hit = [World.KNOCK, "쨍그랑"],
+	},
+	World.CENSER: {name = "향로", health = 1, knock = true, breaks_to = World.FLOOR},
+	World.COURTYARD: {name = "마당", walk = true},
 }
 const DEFAULT := {
 	name = "",
@@ -122,6 +159,7 @@ const DEFAULT := {
 	breaks_to = -1,
 	tread = [0, "탁"],
 	knock = false,
+	hit = [World.KNOCK, "쨍"],
 	wall = false,
 	spread = 0.5,
 	douses = false,

@@ -69,9 +69,9 @@ static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
 			for p in tiles:
 				w.ignite(p, false, true)
 		&"lava":
-			_heat(w, tiles, LAVA)
+			heat(w, tiles, LAVA)
 		&"molten":
-			_heat(w, tiles, MOLTEN)
+			heat(w, tiles, MOLTEN)
 		&"frost":
 			_become(
 				w, tiles.filter(func(p): return w.tile(p) in [World.POND, World.VEIL]), World.ICE
@@ -156,7 +156,7 @@ static func _open(w: World, p: Vector2i) -> bool:
 
 ## Lays hot ground of `kind` on the walkable dry tiles; the harsher kind and the
 ## longer time stay where it lies already.
-static func _heat(w: World, tiles: Array[Vector2i], kind: int) -> void:
+static func heat(w: World, tiles: Array[Vector2i], kind: int) -> void:
 	var laid: Array[Vector2i] = []
 	for p in tiles:
 		if w.open_floor(p) and not Tiles.of(w.tile(p), "douses"):

@@ -69,11 +69,12 @@ static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
 	return spell.shape == Spell.SPRAY or w.open_air(at) or (spell.orb and breakable(w, at))
 
 
-## Miho walks into a lantern or window: a hit, with a clang; a drum tears.
+## Miho walks into a lantern, window, drum or piece of furniture: a hit, with the
+## sound of its row.
 static func knock(w: World, me: Actor, at: Vector2i) -> void:
-	var word := "찌익" if w.tile(at) == World.DRUM else "쨍"
+	var sound: Array = Tiles.of(w.tile(at), "hit")
 	hit(w, at)
-	w.noise(at, World.KNOCK, word, true, me.id)
+	w.noise(at, sound[0], sound[1], true, me.id)
 
 
 ## A creature steps onto reeds at `at`: they lie flat, and sight clears.
@@ -122,6 +123,7 @@ static func hit(w: World, at: Vector2i) -> void:
 	w.set_tile(at, Tiles.of(was, "breaks_to"))
 	Notice.smashed(w, was, at)
 	w.emit({t = &"smash", at = at, was = was})
+	Structures.broke(w, was, at)
 
 
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,

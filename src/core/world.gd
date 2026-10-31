@@ -61,7 +61,8 @@ extends RefCounted
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
 ## cannot be walked, but sight, light, sound and spells cross it. A bridge is
 ## walkable, creaks, never burns and is always lit by the moon, so whoever
-## crosses one is seen from afar.
+## crosses one is seen from afar; so is a courtyard, ground with no roof.
+## Screens, jars and censers stand in rooms and react when hit (Structures).
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
 ## a new storey one below. 도 leaps her across it (Leap).
@@ -141,6 +142,11 @@ const LAMP := 38
 const TALISMAN := 39
 const SHELF := 40
 const SHELF_READ := 41
+const SCREEN := 42
+const JAR := 43
+const WATER_JAR := 44
+const CENSER := 45
+const COURTYARD := 46
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -383,10 +389,11 @@ func light_mask() -> PackedByteArray:
 func light() -> PackedVector3Array:
 	if _light_dirty:
 		_light = Light.field(Light.sources(self), light_mask())
-		var i := tiles.find(BRIDGE)
-		while i >= 0:
-			_light[i] += Light.MOON
-			i = tiles.find(BRIDGE, i + 1)
+		for t in Light.MOONLIT:
+			var i := tiles.find(t)
+			while i >= 0:
+				_light[i] += Light.MOON
+				i = tiles.find(t, i + 1)
 		_light_dirty = false
 	return _light
 

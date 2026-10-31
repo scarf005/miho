@@ -84,6 +84,7 @@ const WORDS := {
 	"퍽": &"clash",
 	"끽": &"hurt",
 	"쨍": &"clash",
+	"쨍그랑": &"clash",
 	"사각": &"step",
 	"삐걱": &"click",
 	"드르륵": &"door",

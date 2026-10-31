@@ -241,11 +241,13 @@ func test_gas_of_the_threshold_blocks_sight_and_thinner_gas_does_not() -> void:
 	assert_eq(w.fov(ME)[Grid.index(between)], 1, "its near face is seen, like a wall's")
 
 
-func test_every_kind_of_gas_blocks_sight_at_the_threshold() -> void:
+func test_a_kind_of_gas_that_blocks_sight_does_so_at_the_threshold() -> void:
 	for kind: int in Gas.ROWS:
 		var w := _hall()
 		Gas.put(w, Vector2i(7, 8), kind, Gas.OPAQUE)
-		assert_true(w.opaque(Vector2i(7, 8)), str(kind))
+		assert_eq(w.opaque(Vector2i(7, 8)), Gas.of(kind, "blocks"), str(kind))
+		Gas.put(w, Vector2i(7, 8), kind, Gas.MAX)
+		assert_eq(w.opaque(Vector2i(7, 8)), Gas.of(kind, "blocks"), str(kind))
 
 
 func test_sight_returns_as_a_wall_of_fog_thins_out() -> void:

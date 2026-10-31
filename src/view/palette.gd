@@ -55,6 +55,11 @@ const TILES := {
 	World.TALISMAN: ["◊", Color(0.5, 0.95, 0.9), Color(0.08, 0.22, 0.2)],
 	World.SHELF: ["▒", Color(0.95, 0.8, 0.45), Color(0.24, 0.16, 0.07)],
 	World.SHELF_READ: ["▒", Color(0.55, 0.5, 0.42), Color(0.13, 0.11, 0.09)],
+	World.SCREEN: ["║", Color(0.85, 0.62, 0.3), Color(0.25, 0.14, 0.06)],
+	World.JAR: ["0", Color(0.78, 0.52, 0.32), Color(0.2, 0.12, 0.07)],
+	World.WATER_JAR: ["0", Color(0.45, 0.7, 1.0), Color(0.06, 0.14, 0.28)],
+	World.CENSER: ["&", Color(0.9, 0.75, 0.35), Color(0.24, 0.17, 0.06)],
+	World.COURTYARD: ["▫", Color(0.7, 0.82, 1.0), Color(0.12, 0.15, 0.24)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
@@ -69,6 +74,7 @@ const GAS := {
 	Gas.FOG: ["◦", Color(0.62, 0.7, 0.78)],
 	Gas.STEAM: ["°", Color(0.88, 0.9, 0.96)],
 	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
+	Gas.INCENSE: ["•", Color(0.82, 0.7, 0.52)],
 }
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["%", Color(0.62, 0.36, 0.3)]

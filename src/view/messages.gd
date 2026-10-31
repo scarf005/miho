@@ -259,6 +259,14 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["금 간 벽이 무너졌다", TEXT]]
 			if e.was == World.WINDOW:
 				return [["창문이 깨졌다", TEXT]]
+			if e.was == World.SCREEN:
+				return [["병풍이 쓰러졌다", TEXT]]
+			if e.was == World.JAR:
+				return [["장독이 깨졌다", TEXT]]
+			if e.was == World.WATER_JAR:
+				return [["물독이 깨졌다", TEXT]]
+			if e.was == World.CENSER:
+				return [["향로가 쓰러졌다", TEXT]]
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 부서졌다", TEXT]]
 	return []
 

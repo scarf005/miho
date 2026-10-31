@@ -533,6 +533,25 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.WOOD_WALL:
 			out.append("길과 시야와 빛을 막는다")
 			out.append("구슬에 맞으면 부서진다")
+		World.SCREEN:
+			out.append("통과 불가. 시야 차단.")
+			out.append("타격 시 쓰러진다.")
+		World.JAR:
+			out.append("통과 불가.")
+			out.append("타격 시 깨진다.")
+		World.WATER_JAR:
+			out.append("통과 불가.")
+			out.append("타격 시 주위 8칸 얕은 물. 불과 냄새 지움.")
+		World.CENSER:
+			out.append("통과 불가.")
+			out.append("%s 양 %d까지." % [Gas.of(Gas.INCENSE, "name"), Gas.VENT_LEVEL])
+			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
+			out.append(
+				"타격 시 숯불. 이 칸과 옆 4칸 %s %d초, 피해 %d." % [coals.name, Compounds.HOT_ROUNDS, coals.harm]
+			)
+			out.append("옆 가연물 점화.")
+		World.COURTYARD:
+			out.append("달빛 상시 조명.")
 		World.POND, World.SKY:
 			out.append("걸어서 건널 수 없다")
 			out.append("주문과 멀리뛰기는 넘어간다")
@@ -576,7 +595,8 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	elif Terrain.wall(t):
 		out.append("부술 수 없다")
 	if Terrain.knockable(t) and t != World.DRUM:
-		out.append("부딪히면 쨍 소리 %d칸" % World.KNOCK)
+		var hit: Array = Tiles.of(t, "hit")
+		out.append("부딪히면 %s 소리 %d칸" % [hit[1], hit[0]])
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
 		out.append("밟으면 %s 소리 %d칸" % [tread[1], tread[0]])
@@ -602,13 +622,17 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if now:
 		head.append([" %d/%d" % [g.y, Gas.MAX], Palette.DIM])
 	var out := [head]
-	var sight := "시야를 막는다" if now and g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
+	var sight := "시야 차단 안 함."
+	if Gas.of(g.x, "blocks"):
+		sight = "시야를 막는다" if now and g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
 	out.append([[sight, Palette.DIM]])
 	out.append([["매 초 %d%% 로 1씩 줄어든다" % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:
 		out.append(_amount("서 있으면 매 초 피해 ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
 		out.append([["북을 적셔 %d초 동안 소리를 없앤다" % Drums.WET_ROUNDS, Palette.DIM]])
+	if Gas.of(g.x, "erases"):
+		out.append([["냄새 지움.", Palette.DIM]])
 	return out
 
 
