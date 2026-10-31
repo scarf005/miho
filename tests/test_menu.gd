@@ -123,8 +123,9 @@ func test_a_new_key_leaves_the_action_that_had_it() -> void:
 
 
 func test_keys_clear_cancel_and_reset() -> void:
-	var menu := Menu.new()
-	menu.open(&"keys")
+	var menu := _options()
+	_select(menu, &"keys")
+	menu.use()
 	_select(menu, &"rest")
 	assert_eq(menu.key(_press("Delete")), &"changed")
 	assert_true(Keys.keys_of(&"rest").is_empty())
@@ -162,3 +163,24 @@ func test_an_empty_spellbook_says_so_and_enter_closes_it() -> void:
 	menu.open(&"spells")
 	assert_string_contains(_text(menu.panel()), "저장한 주문도 없다")
 	assert_eq(menu.use(), &"close")
+
+
+func test_the_one_row_of_an_empty_spellbook_stays_selected_whatever_the_key() -> void:
+	var menu := Menu.new()
+	menu.open(&"spells")
+	for key in ["Up", "Down", "PageUp", "PageDown", "Home", "End"]:
+		menu.key(_press(key))
+		assert_eq(menu.selected, 0, key)
+
+
+func test_the_keys_page_wraps_and_a_click_selects_a_row_without_binding() -> void:
+	var menu := _options()
+	_select(menu, &"keys")
+	menu.use()
+	menu.key(_press("Up"))
+	assert_eq(menu.selected, Keys.ACTIONS.size(), "up from the first row reaches the reset row")
+	assert_eq(menu.click(2, -1), &"", "the click on an action starts the wait")
+	assert_eq(menu.selected, 2)
+	assert_true(menu.waiting)
+	assert_eq(menu.click(4, -1), &"", "a click while a key is awaited does nothing")
+	assert_eq(menu.selected, 2)
