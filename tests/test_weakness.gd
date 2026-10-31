@@ -121,9 +121,10 @@ func test_a_fire_orb_splash_doubles_on_a_weak_neighbour() -> void:
 	var w := _world()
 	var front := _foe(w, &"dokkaebi")
 	var side := _foe(w, &"jiha", FOE + Vector2i(0, 1))
+	side.hp = 12
 	_hurts(w.act(_cast([ORB, Cards.FIRE])))
 	assert_eq(front.hp, 1)
-	assert_eq(side.hp, 2, "splash 1 doubled")
+	assert_eq(side.hp, 12 - 2 * World.FIRE_DAMAGE, "splash doubled")
 
 
 func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
@@ -148,6 +149,7 @@ func test_a_weak_creature_hit_by_another_creatures_spell_takes_double() -> void:
 func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")
+	foe.hp = 12
 	assert_false(w.burning.has(FOE))
 	var events := w.act(_cast([ORB, Cards.FIRE]))
 	assert_eq(_hurts(events)[0].n, 1, "fire does not beat wood")
@@ -156,7 +158,7 @@ func test_a_fire_spell_sets_a_wood_creatures_tile_burning_and_does_not_double() 
 	assert_eq(w.tile(FOE), World.FLOOR)
 	var before := foe.hp
 	w.act(WAIT)
-	assert_eq(foe.hp, before - 1, "standing in the flames hurts it")
+	assert_eq(foe.hp, before - World.FIRE_DAMAGE, "standing in the flames hurts it")
 
 
 func test_a_fire_wisp_also_lights_a_wood_creature() -> void:
