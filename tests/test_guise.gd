@@ -182,7 +182,7 @@ func test_the_log_tells_the_guise_and_its_end() -> void:
 	before = w.clone()
 	var cast := {t = &"cast", spells = [{cards = [Cards.FOX], dir = E}]}
 	lines = Messages.of(before, w, w.act(cast)).map(Messages.plain)
-	assert_has(lines, "주문을 써서 둔갑이 풀렸다")
+	assert_has(lines, "둔갑이 풀렸다")
 
 
 func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:

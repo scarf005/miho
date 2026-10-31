@@ -428,4 +428,4 @@ func test_the_hover_and_the_log_tell_of_ice() -> void:
 	assert_string_contains(text, "얼어붙음: %d초. 다음 피해: ×2" % (Compounds.FROST - 1))
 	before = w.clone()
 	events = w.act(_cast([ORB]))
-	assert_has(Messages.of(before, w, events).map(Messages.plain), "얼음이 깨졌다! 장승에게 피해를 2 주었다")
+	assert_has(Messages.of(before, w, events).map(Messages.plain), "장승에게 피해를 2 주었다")

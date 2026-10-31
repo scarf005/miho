@@ -11,7 +11,7 @@ const KEEP := 40
 const TEXT := Palette.TEXT
 ## What a creature's map mark says, for one that comes into sight marked.
 const STATE := {
-	"!": "당신을 쫓고 있다",
+	"!": "쫓고 있다",
 	"?": "수색하고 있다",
 	"x": "눈이 멀어 있다",
 	Palette.FLEE_MARK: "도망치고 있다",
@@ -70,8 +70,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"state":
 			return _subject(before, after, id) + [[STATE[e.mark], TEXT]]
 		&"claw":
-			var line := [["기습! ", Palette.ALERT[1]]] if e.sneak else []
-			return line + _harm_to(before, after, e.target, e.n)
+			return _harm_to(before, after, e.target, e.n)
 		&"melee":
 			var melee: Dictionary = _actor(before, after, id).info().melee
 			return (
@@ -86,15 +85,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT]]
 				+ _who(before, after, e.rival, "에게", "에게")
-				+ [[" 덤벼든다", TEXT]]
+				+ [[" 덤벼들었다", TEXT]]
 			)
 		&"shout":
 			return (
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [e.word, Palette.SOUND], [" 소리쳤다", TEXT]]
 			)
-		&"scatter":
-			return _who(before, after, id, "의", "의") + [[" 무리가 흩어졌다", TEXT]]
 		&"truce":
 			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
 		&"grow":
@@ -104,12 +101,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ [[" %s%s 먹고 커졌다" % [eaten, _particle(eaten, "을", "를")], TEXT]]
 			)
 		&"hurt":
-			var line := _hurt_line(before, after, e, last)
-			if e.get("weak", false) and not line.is_empty():
-				line = [["약점! ", Palette.ALERT[1]]] + line
-			if e.get("shatter", false) and not line.is_empty():
-				line = [["얼음이 깨졌다! ", Palette.STATUS[&"frozen"][1]]] + line
-			return line
+			return _hurt_line(before, after, e, last)
 		&"die":
 			if last.get("t") == &"fall":
 				return []
@@ -168,7 +160,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var what: String = Notice.LABEL[e.kind]
 			return (
 				_who(before, after, id, "이", "가")
-				+ [[" " + what + _particle(what, "을", "를") + " 보고 살피러 간다", TEXT]]
+				+ [[" " + what + _particle(what, "을", "를") + " 보고 살피러 갔다", TEXT]]
 			)
 		&"calm":
 			return _who(before, after, id, "이", "가") + [[" 수색을 멈췄다", TEXT]]
@@ -182,13 +174,15 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"stick":
 			var spell := Spell.make(e.cards)
 			var host := (
-				[["당신에게", TEXT]] if id == after.player().id else _who(before, after, id, "에게", "에게")
+				[]
+				if id == after.player().id
+				else _who(before, after, id, "에게", "에게") + [[" ", TEXT]]
 			)
 			return (
 				[[e.title, Palette.card(spell.slots.back())]]
 				+ [[_particle(e.title, "이", "가") + " ", TEXT]]
 				+ host
-				+ [[" 붙었다", TEXT]]
+				+ [["붙었다", TEXT]]
 			)
 		&"yelp":
 			return [["여우불이 ", TEXT], [Lure.WORD, Palette.SOUND], [" 울었다", TEXT]]
@@ -196,7 +190,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var form: String = Bestiary.info(e.kind).name
 			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", TEXT]]
 		&"unmask":
-			return [[Guise.ENDS[e.why] + "둔갑이 풀렸다", TEXT]]
+			return [["둔갑이 풀렸다", TEXT]]
 		&"fade":
 			if not e.get("lit", false):
 				return []
@@ -208,9 +202,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _who(before, after, id, "이", "가") + [[" 문을 " + what, TEXT]]
 		&"drum":
 			var who := _who(before, after, id, "이", "가")
-			if e.wet:
-				return who + [[" 젖은 북을 쳤지만 소리가 나지 않았다", TEXT]]
-			return who + [[" 북을 쳤다", TEXT]]
+			return who + [[" 젖은 북을 쳤다" if e.wet else " 북을 쳤다", TEXT]]
 		&"soak":
 			return [["북이 젖었다", TEXT]]
 		&"gas":
@@ -220,21 +212,18 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _named(Tiles.of(e.kind, "name"), "을", "를") + [[" 찾았다", TEXT]]
 		&"trap":
 			var plate := _named(Tiles.of(e.kind, "name"), "을", "를")
-			var sprung := [[" 밟았다", TEXT]]
-			if e.kind == World.TRAP_ALARM:
-				sprung = [[" 밟았다. 징 소리가 층 전체에 울렸다", TEXT]]
-			return _subject(before, after, id) + plate + sprung
+			return _subject(before, after, id) + plate + [[" 밟았다", TEXT]]
 		&"trample":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"unseal":
 			return _named(Tiles.of(World.SEAL, "name"), "이", "가") + [[" 열렸다", TEXT]]
 		&"altar":
-			var altar := _named(Tiles.of(World.ALTAR_LIT, "name"), "이", "가")
+			var altar := _named(Tiles.of(World.ALTAR, "name"), "이", "가")
 			return altar + [[" 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다", TEXT]]
 		&"read":
 			return [["두루마리를 읽었다. 이 층의 지도가 드러났다", TEXT]]
 		&"creak":
-			return [["마루의 해태가 쓰러졌다. 꼬리가 모두 돌아왔다", TEXT]]
+			return [["꼬리가 모두 돌아왔다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":
@@ -249,7 +238,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"burnout":
 			if Tiles.burns[before.tile(e.at)] == 0:
 				return []
-			return _tile(before, e.at, "이", "가") + [[" 다 타서 재가 되었다", TEXT]]
+			return _tile(before, e.at, "이", "가") + [[" 재가 되었다", TEXT]]
 		&"douse":
 			if before.tile(e.at) == World.LANTERN:
 				return [["등불이 꺼졌다", TEXT]]

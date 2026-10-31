@@ -28,9 +28,9 @@ func test_a_creature_that_heeds_a_change_is_named_in_the_log() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", AT)
 	var lines := Messages.of(w, w, [{t = &"heed", id = foe.id, at = AT, kind = &"body"}])
-	assert_eq(Messages.plain(lines[0]), "도깨비가 쓰러진 몸을 보고 살피러 간다")
+	assert_eq(Messages.plain(lines[0]), "도깨비가 쓰러진 몸을 보고 살피러 갔다")
 	lines = Messages.of(w, w, [{t = &"heed", id = foe.id, at = AT, kind = &"ash"}])
-	assert_eq(Messages.plain(lines[0]), "도깨비가 재를 보고 살피러 간다")
+	assert_eq(Messages.plain(lines[0]), "도깨비가 재를 보고 살피러 갔다")
 
 
 func test_a_body_mark_tells_who_fell_and_that_the_seer_searches() -> void:

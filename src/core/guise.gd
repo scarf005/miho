@@ -32,13 +32,6 @@ const NO_PREY := "아직 처치한 적이 없다"
 const ROUNDS := 8
 const PER_WOOD := 2
 const BESIDE := 2
-## What the log says ends a guise, by the `why` of its `unmask` event.
-const ENDS := {
-	&"beside": "적 옆에 오래 있어 ",
-	&"cast": "주문을 써서 ",
-	&"hurt": "맞아서 ",
-	&"time": "",
-}
 
 
 ## What `spell` does cast on oneself: SHADOW, GUISE, or empty when it does not

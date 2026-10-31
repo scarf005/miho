@@ -271,7 +271,7 @@ func test_the_log_tells_the_blow() -> void:
 	var loud := Messages.of(w, w, [{t = &"drum", at = Vector2i(5, 9), id = a.id, wet = false}])
 	assert_eq(loud.map(Messages.plain), ["도깨비가 북을 쳤다"])
 	var soaked := Messages.of(w, w, [{t = &"drum", at = Vector2i(5, 9), id = a.id, wet = true}])
-	assert_eq(soaked.map(Messages.plain), ["도깨비가 젖은 북을 쳤지만 소리가 나지 않았다"])
+	assert_eq(soaked.map(Messages.plain), ["도깨비가 젖은 북을 쳤다"])
 	assert_eq(
 		Messages.of(w, w, [{t = &"soak", at = Vector2i(5, 9)}]).map(Messages.plain), ["북이 젖었다"]
 	)

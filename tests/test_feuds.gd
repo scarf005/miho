@@ -217,7 +217,7 @@ func test_the_log_tells_the_fight() -> void:
 	for i in 3:
 		var before := w.clone()
 		lines.append_array(Messages.of(before, w, w.act(WAIT)).map(Messages.plain))
-	assert_has(lines, "도깨비가 이무기에게 덤벼든다")
+	assert_has(lines, "도깨비가 이무기에게 덤벼들었다")
 
 
 func test_the_log_names_the_creature_a_blow_strikes() -> void:

@@ -278,7 +278,7 @@ func test_miho_stepping_on_the_alarm_plate_is_told_in_the_log() -> void:
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var before := w.clone()
 	w.act({t = &"move", dir = E})
-	assert_has(_lines(before, w, w.events), "징 함정을 밟았다. 징 소리가 층 전체에 울렸다")
+	assert_has(_lines(before, w, w.events), "징 함정을 밟았다")
 	assert_false(_lines(before, w, w.events).any(func(l): return l.contains("찾았다")))
 
 

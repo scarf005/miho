@@ -229,7 +229,7 @@ func test_no_hover_or_doc_tells_bands_or_groups() -> void:
 		assert_false(text.contains("무리") or text.contains("우두머리"), text)
 
 
-func test_the_log_and_the_agent_tell_the_scattering_and_the_band() -> void:
+func test_the_agent_tells_the_band_and_the_log_tells_no_scattering() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
 	var f := _band(w, lead, &"dokkaebi", Vector2i(31, 8))
@@ -239,7 +239,8 @@ func test_the_log_and_the_agent_tell_the_scattering_and_the_band() -> void:
 	w.events = events
 	w.hurt(lead, 1)
 	var lines := Messages.of(before, w, events).map(func(l): return Messages.plain(l))
-	assert_true(lines.has("외다리 도깨비의 무리가 흩어졌다"), str(lines))
+	assert_true(events.any(func(e): return e.t == &"scatter"), "the band scatters")
+	assert_false(lines.any(func(l): return l.contains("무리")), str(lines))
 	var again := _hall()
 	var boss := FloorGen.spawn(again, &"oedari", Vector2i(30, 8))
 	_band(again, boss, &"dokkaebi", Vector2i(31, 8))

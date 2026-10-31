@@ -132,7 +132,7 @@ func test_creatures_that_fall_near_the_altar_are_counted_and_the_third_lights_it
 	assert_eq(w.tails, 3, "every tail returned, though the third fall gave one")
 	assert_has(w.events.map(func(e): return e.t), &"altar")
 	assert_has(
-		Messages.of(before, w, w.events).map(Messages.plain), "타오르는 제단이 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다"
+		Messages.of(before, w, w.events).map(Messages.plain), "혼불 제단이 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다"
 	)
 
 

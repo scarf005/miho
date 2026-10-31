@@ -94,7 +94,7 @@ func test_a_claw_tells_its_harm_once() -> void:
 	var before := w.clone()
 	var events := w.act({t = &"move", dir = Vector2i(1, 0)})
 	var lines := Messages.of(before, w, events).map(Messages.plain)
-	assert_eq(lines.slice(0, 2), ["기습! 도깨비에게 피해를 3 주었다", "도깨비가 쓰러졌다"])
+	assert_eq(lines.slice(0, 2), ["도깨비에게 피해를 3 주었다", "도깨비가 쓰러졌다"])
 	assert_eq(lines.filter(func(l): return l.contains("피해")).size(), 1, "%s" % [lines])
 	assert_eq(foe.hp, -1)
 
@@ -127,7 +127,7 @@ func test_lanterns_doors_and_fire_are_told() -> void:
 	assert_eq(_lines(w, [door]), ["문이 부서졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["문의 불이 꺼졌다"] as Array[String])
 	assert_eq(_lines(w, [{t = &"relight", at = SEEN}]), ["등불이 다시 켜졌다"] as Array[String])
-	assert_eq(_lines(w, [{t = &"burnout", at = SEEN}]), ["문이 다 타서 재가 되었다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"burnout", at = SEEN}]), ["문이 재가 되었다"] as Array[String])
 	var me := w.player()
 	var burn := [
 		{t = &"burn", at = me.pos, id = me.id},
@@ -189,7 +189,7 @@ func test_a_weakness_hit_starts_with_a_warning() -> void:
 		{t = &"hit", shot = 90, id = foe.id, at = SEEN},
 	]
 	var weak := hit + [{t = &"hurt", id = foe.id, n = 2, hp = 2, at = SEEN, weak = true}]
-	assert_eq(_lines(w, weak), ["약점! 천하대장군에게 피해를 2 주었다"] as Array[String])
+	assert_eq(_lines(w, weak), ["천하대장군에게 피해를 2 주었다"] as Array[String])
 	var plain := hit + [{t = &"hurt", id = foe.id, n = 1, hp = 3, at = SEEN, weak = false}]
 	assert_eq(_lines(w, plain), ["천하대장군에게 피해를 1 주었다"] as Array[String])
 

@@ -157,7 +157,7 @@ func test_the_log_and_the_hover_tell_the_shadow() -> void:
 	var w := _world()
 	var before := w.clone()
 	var lines := Messages.of(before, w, w.act(_self([FOX, WATER]))).map(Messages.plain)
-	assert_has(lines, "그림자가 당신에게 붙었다")
+	assert_has(lines, "그림자가 붙었다")
 	var text := Info.plain(Info.creature(w, w.player()))
 	assert_string_contains(text, "그림자 붙음: %d초" % (Spell.WISP_LIFE - 1))
 

@@ -207,7 +207,7 @@ func test_the_log_names_the_spell_a_creature_gives_its_wisp_and_speaks_to_miho()
 	w.sense()
 	var before := w.clone()
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
-	assert_has(lines, "도깨비불이 당신에게 붙었다")
+	assert_has(lines, "도깨비불이 붙었다")
 
 
 func test_the_log_is_silent_about_a_wisp_that_sticks_out_of_sight() -> void:
