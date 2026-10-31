@@ -298,9 +298,20 @@ func test_a_wood_orb_grows_a_wall_across_its_line_where_it_bursts() -> void:
 	assert_eq(grown.size(), Elements.WALL + 1, "a tile more a copy")
 
 
-func test_a_diagonal_wood_orb_grows_its_wall_on_the_other_diagonal() -> void:
-	var tiles := Elements.wall_tiles(Spell.make([ORB, WOOD]), ME, Vector2i(1, 1))
-	assert_eq(tiles, [ME, ME + Vector2i(-1, 1), ME + Vector2i(1, -1)] as Array[Vector2i])
+func test_a_diagonal_wood_orb_grows_a_wall_with_no_gap_to_slip_through() -> void:
+	for dir: Vector2i in [Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
+		for cards in [[ORB, WOOD], [ORB, WOOD, WOOD, WOOD]]:
+			var tiles := Elements.wall_tiles(Spell.make(cards), ME, dir)
+			assert_eq(tiles.size(), Elements.WALL + cards.count(WOOD) - 1)
+			assert_eq(tiles[0], ME, "centred where it ends")
+			for p in tiles:
+				var touching := tiles.filter(func(q): return absi(q.x - p.x) + absi(q.y - p.y) == 1)
+				assert_false(touching.is_empty(), "%s: %s shares an edge with the wall" % [dir, p])
+			var across := Vector2i(-dir.y, dir.x)
+			for k in [1, -1]:
+				var side := func(q):
+					return (q - ME).x * across.x * k > 0 or (q - ME).y * across.y * k > 0
+				assert_true(tiles.any(side), "%s: it reaches both sides" % dir)
 
 
 func test_a_wood_wall_grows_round_a_struck_creature_and_never_on_doors_or_stairs() -> void:
