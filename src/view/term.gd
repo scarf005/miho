@@ -19,7 +19,7 @@ const MAP := Vector2i(8, 0)
 const SIDE_ROWS := 3
 ## Tiles of tail drawn behind a projectile.
 const TRAIL := 4
-const SIDE_STATE := ["쉼", "수색", "추격"]
+const SIDE_STATE := ["쉬는 중", "수색 중", "추격 중"]
 const SIZE := 32
 const BIG := 48
 const SMALL := 16
@@ -565,13 +565,11 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 	)
 
 
-## A charging creature's line, so every incoming spell is seen a round early, and
-## the line from a creature running to a drum to the drum, which glows.
+## A charging creature's line, so every incoming spell is seen a round early.
+## A creature running to a drum shows no line: the sidebar and its info say so.
 func _draw_telegraphs(actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and a.drumming() and _revealed(a.pos):
-			_draw_drum_run(a)
 		if a.faction == Actor.FOX or a.intent.is_empty() or not _revealed(a.pos):
 			continue
 		var spell := Spell.make(a.intent)
@@ -586,17 +584,6 @@ func _draw_telegraphs(actors: Dictionary) -> void:
 			draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
 			if k == 0:
 				_glyph(_cell(ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
-
-
-func _draw_drum_run(a: Actor) -> void:
-	var pulse := 0.5 + 0.5 * sin(_time * 8.0)
-	var c := Color(Palette.SOUND, 0.5 + 0.5 * pulse)
-	if _shown(a.pos) and _shown(a.drum):
-		draw_line(cell_centre(a.pos), cell_centre(a.drum), Color(c, 0.5), 2.0)
-	if _shown(a.drum):
-		draw_rect(Rect2(_cell(a.drum) * CELL, CELL), Color(Palette.SOUND, 0.15 + 0.3 * pulse))
-		draw_rect(Rect2(_cell(a.drum) * CELL, CELL).grow(-2), c, false, 2.0)
-		_small(_cell(a.drum) + Vector2(0.62, -0.05), "둥", c)
 
 
 ## Where each projectile in sight flies next, over tiles Miho knows: an orb
