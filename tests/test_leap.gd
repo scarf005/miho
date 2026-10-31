@@ -283,11 +283,11 @@ func test_the_log_tells_the_leap() -> void:
 
 func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 	var text := " ".join(SpellInfo.spell(Spell.make(LEAP + [Cards.EARTH])).map(Messages.plain))
-	for part in ["멀리뛰기 3칸", "곧게 3칸.", "하늘", "소리 %d칸." % Leap.LOUD, "내린 자리에서", "기절"]:
+	for part in ["멀리뛰기 3칸", "모양 곧게 3칸", "거리 +1칸/나무", "소리 %d칸." % Leap.LOUD, "내린 자리에서: 흙", "기절"]:
 		assert_string_contains(text, part)
 	assert_false(text.contains(Leap.WORD), "no sound word in the hover")
 	var slot := " ".join(SpellInfo.slot(Spell.make(LEAP), 0).map(Messages.plain))
-	assert_string_contains(slot, "도약 꼬리 3개 (물+나무+불)")
+	assert_string_contains(slot, "도약 꼬리: 3 (물+나무+불)")
 
 
 func _main() -> Node:
@@ -356,7 +356,7 @@ func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
 	_press(m, "3")
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP))
-	assert_eq(m.messages.lines.back().text, "도약은 맨 앞이나 여·구 뒤 끝.")
+	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 끝")
 
 
 # --- 바꿔치기 -------------------------------------------------------------------
@@ -437,8 +437,8 @@ func test_the_log_tells_the_swap() -> void:
 
 func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var text := " ".join(SpellInfo.spell(Spell.make([Cards.ORB] + LEAP)).map(Messages.plain))
-	for part in ["구슬 바꿔치기", "자리 교환.", "소리 %d칸" % Leap.SWAP_LOUD]:
+	for part in ["구슬 바꿔치기", "바꿔치기 멈춘 칸으로 이동", "맞힌 적 자리 교환", "바꿔치기 소리 %d칸" % Leap.SWAP_LOUD]:
 		assert_string_contains(text, part)
 	var leap := " ".join(SpellInfo.shape(Spell.LEAP).map(Messages.plain))
 	assert_string_contains(leap, "바꿔치기", "the 도감 tells both uses")
-	assert_string_contains(leap, "만드는 법 수 목 화")
+	assert_string_contains(leap, "만드는 법: 물+나무+불")

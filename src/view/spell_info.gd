@@ -14,8 +14,8 @@ const RECIPE := {
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
 }
-## What 도약 behind a projectile does (Leap.swap).
-const SWAP := "바꿔치기. 멈춘 칸으로 이동. 맞힌 적과 자리 교환. 하늘 제외. 소리 %d칸, 두 자리." % Leap.SWAP_LOUD
+## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
+const SWAP := [["바꿔치기", "멈춘 칸으로 이동"], ["맞힌 적", "자리 교환"], ["바꿔치기 소리", "%d칸" % Leap.SWAP_LOUD]]
 ## The numbers of each status (Status) past its name and time, by key, and
 ## what a spell that causes it says.
 const STATUS_DOES := {
@@ -34,15 +34,20 @@ static func shape(kind: StringName) -> Array:
 	if kind == Spell.SPRAY:
 		return [[[SPRAY_NAME, Palette.TEXT]], [[SPRAY_NOTE, LABEL]]]
 	var s := Spell.make(RECIPE[kind])
-	var made := [["만드는 법 ", LABEL]]
-	for c in s.cards:
-		made.append([Cards.GLYPH[c] + " ", Palette.card(c)])
-	return [[[Spell.SHAPE_NAME[kind], Palette.shot_color(s, Actor.FOX)]], made] + _shape(s)
+	return [[[Spell.SHAPE_NAME[kind], Palette.shot_color(s, Actor.FOX)]], _recipe(s)] + _shape(s)
+
+
+## The talismans a spell is made of: "만드는 법: 물+나무+불".
+static func _recipe(s: Spell) -> Array:
+	var made := [["만드는 법: ", LABEL]]
+	for i in s.cards.size():
+		made.append([("+" if i > 0 else "") + Cards.NAME[s.cards[i]], Palette.card(s.cards[i])])
+	return made
 
 
 ## A talisman, and what the queue becomes with it (null when it does not fit).
 static func card(c: StringName, after: Spell) -> Array:
-	var head := [[Cards.NAME[c] + " 부적", Palette.card(c)], [" 꼬리 1개", LABEL]]
+	var head := [[Cards.NAME[c] + " 부적", Palette.card(c)], [" 꼬리: 1", LABEL]]
 	var lines: Array = [head] + spell(Spell.make([c])).slice(1)
 	if after != null and after.cards.size() > 1:
 		lines.append(
@@ -69,7 +74,7 @@ static func combo(c: StringName) -> Array:
 static func _slot_head(s: Spell, i: int) -> Array:
 	var c := s.slots[i]
 	var parts := Cards.made_of(c)
-	var head := [[Cards.NAME[c], Palette.card(c)], [" 꼬리 %d개" % parts.size(), LABEL]]
+	var head := [[Cards.NAME[c], Palette.card(c)], [" 꼬리: %d" % parts.size(), LABEL]]
 	if parts.size() > 1:
 		head.append([" (%s)" % "+".join(parts.map(func(e): return Cards.NAME[e])), LABEL])
 	return head
@@ -85,7 +90,7 @@ static func spell(s: Spell) -> Array:
 		lines.append_array(_shape(s))
 		var then := s.rest()
 		if then != null:
-			lines.append([["내린 자리에서 ", LABEL], [then.title(), Palette.card(then.slots.back())]])
+			lines.append([["내린 자리에서: ", LABEL], [then.title(), Palette.card(then.slots.back())]])
 			lines.append_array(spell(then).slice(1))
 		return lines
 	if s.shape == Spell.SPRAY:
@@ -104,7 +109,7 @@ static func spell(s: Spell) -> Array:
 		for part in compound(c):
 			lines.append(_line(Cards.NAME[c], part, Palette.card(c)))
 	if s.swaps():
-		lines.append(_line(Cards.NAME[Cards.VAULT], SWAP, Palette.card(Cards.VAULT)))
+		lines.append_array(_swap())
 	var light := _light(s.light(Actor.FOX))
 	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
@@ -115,11 +120,8 @@ static func spell(s: Spell) -> Array:
 ## what it does there.
 static func own(kind: StringName) -> Array:
 	var s := Spell.make(Guise.RECIPE[kind])
-	var made := [["만드는 법 ", LABEL]]
-	for c in s.cards:
-		made.append([Cards.GLYPH[c] + " ", Palette.card(c)])
 	return (
-		[[[Guise.NAME[kind], Palette.card(s.slots.back())], [" " + _cost(s), LABEL]], made]
+		[[[Guise.NAME[kind], Palette.card(s.slots.back())], [" " + _cost(s), LABEL]], _recipe(s)]
 		+ ward(s)
 	)
 
@@ -332,7 +334,7 @@ static func shot(w: World, s: Shot) -> Array:
 	if s.life > 0:
 		lines.append(_line("남은 시간", "%d초" % s.life))
 	if spell.swaps():
-		lines.append(_line(Cards.NAME[Cards.VAULT], SWAP, Palette.card(Cards.VAULT)))
+		lines.append_array(_swap())
 	if s.faction == Actor.FOX and Lure.lures(spell):
 		lines.append(_lure(spell))
 	lines.append(_line("빛", _light(spell.light(s.faction))))
@@ -342,11 +344,15 @@ static func shot(w: World, s: Shot) -> Array:
 
 
 static func _cost(s: Spell) -> String:
-	return "꼬리 %d개" % s.cost()
+	return "꼬리: %d" % s.cost()
 
 
 static func _line(label: String, value: String, color := Palette.TEXT) -> Array:
 	return [[label + " ", LABEL], [value, color]]
+
+
+static func _swap() -> Array:
+	return SWAP.map(func(l): return _line(l[0], l[1], Palette.card(Cards.VAULT)))
 
 
 ## Shape, damage, speed, turn and reach of a projectile spell; where a leap
@@ -354,13 +360,13 @@ static func _line(label: String, value: String, color := Palette.TEXT) -> Array:
 static func _shape(s: Spell) -> Array:
 	if s.shape == Spell.LEAP:
 		return [
-			_line("모양", "곧게 %d칸. 가장 먼 설 곳." % s.leap()),
-			_line("거리", "뒤의 나무 1장마다 +1칸."),
-			_line("넘는 것", "하늘, 연못, 생물."),
-			_line("막는 것", "벽, 닫힌 문, 등불."),
+			_line("모양", "곧게 %d칸" % s.leap()),
+			_line("거리", "+1칸/%s" % Cards.NAME[Cards.WOOD]),
+			_line("넘는 것", "하늘, 연못, 생물"),
+			_line("막는 것", "벽, 닫힌 문, 등불"),
 			_line("소리", "%d칸. 진흙 위 없음." % Leap.LOUD),
-			_line("냄새", "내린 칸만."),
-			_line("여·구 뒤 끝", SWAP),
+			_line("냄새", "내린 칸만"),
+			_line("여·구 뒤 끝", "바꿔치기"),
 		]
 	var lines := []
 	match s.shape:

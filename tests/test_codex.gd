@@ -99,7 +99,7 @@ func test_the_spells_are_the_forms_the_elements_and_the_shapes() -> void:
 
 func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
 	var homing := _text(Codex.detail(_entry(1, "유도 구슬")))
-	assert_string_contains(homing, "만드는 법 여 구")
+	assert_string_contains(homing, "만드는 법: 여우불+구슬")
 	assert_string_contains(homing, "가장 가까운 적")
 	assert_string_contains(homing, "꺾임 한 칸에 45°")
 	assert_string_contains(_text(Codex.detail(_entry(1, "뿌리기"))), "투사체 없이")
@@ -113,7 +113,7 @@ func test_every_compound_is_listed_with_its_two_parts() -> void:
 		var parts: Array = Cards.PAIRS[c]
 		assert_string_contains(text, "(%s+%s)" % [Cards.NAME[parts[0]], Cards.NAME[parts[1]]])
 		assert_eq(text, _text(SpellInfo.combo(c)), c)
-		assert_eq(text.count("꼬리 2개"), 1, "one head line: " + text)
+		assert_eq(text.count("꼬리: 2"), 1, "one head line: " + text)
 		assert_eq(
 			text.get_slice("\n", 1).split(" ")[0], "모양", "the head line is followed by the shape"
 		)
@@ -122,9 +122,9 @@ func test_every_compound_is_listed_with_its_two_parts() -> void:
 func test_the_leap_compound_is_listed_with_its_three_parts() -> void:
 	var text := _text(Codex.detail(_entry(2, "도약")))
 	assert_eq(text, _text(SpellInfo.combo(Cards.VAULT)))
-	assert_string_contains(text.get_slice("\n", 0), "도약 꼬리 3개 (물+나무+불)")
+	assert_string_contains(text.get_slice("\n", 0), "도약 꼬리: 3 (물+나무+불)")
 	assert_eq(text.get_slice("\n", 1).split(" ")[0], "모양")
-	assert_string_contains(text, "곧게 3칸.")
+	assert_string_contains(text, "모양 곧게 3칸")
 
 
 func test_the_items_are_the_elixir_the_peach_and_the_element_talismans() -> void:

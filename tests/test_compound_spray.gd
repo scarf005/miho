@@ -165,7 +165,7 @@ func test_a_spray_preview_equals_the_round() -> void:
 
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
-		[FIRE]: ["불 불길 꼬리 1개", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
+		[FIRE]: ["불 불길 꼬리: 1", "반지름 2", "타는 칸에 불을 붙인다", "소리 쓸 때 2칸"],
 		[FIRE, FIRE]: ["반지름 3", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE],
 		[FIRE, FIRE, FIRE]: ["반지름 4", "늘 번진다"],
 		[WATER]: ["곧게 4칸, 첫 적에서 멈춘다", "1칸 민다", "소리 없음"],
@@ -182,7 +182,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[WOOD, WOOD, WOOD]: ["8걸음 안", "적 모두", "4초 묶는다"],
 		[WATER, FIRE]:
 		[
-			"증기 꼬리 2개",
+			"증기 꼬리: 2",
 			"3칸 앞 3×3",
 			"증기 %d/%d. %d 이상이면 시야를 막는다" % [Compounds.STEAM, Gas.MAX, Gas.OPAQUE],
 			"서 있으면 매 초 피해 %d" % Gas.of(Gas.STEAM, "harm"),
@@ -221,9 +221,9 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		for part: String in rows[q]:
 			assert_string_contains(text, part)
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
-	assert_true(card.begins_with("불 부적 꼬리 1개"), card)
+	assert_true(card.begins_with("불 부적 꼬리: 1"), card)
 	assert_string_contains(card, "반지름 2")
-	assert_string_contains(card, "넣으면 불×2 불길 꼬리 2개")
+	assert_string_contains(card, "넣으면 불×2 불길 꼬리: 2")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:
