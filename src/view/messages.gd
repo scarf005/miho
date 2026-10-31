@@ -100,7 +100,16 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["약점! ", Palette.ALERT[1]]] + line
 			return line
 		&"die":
+			if last.get("t") == &"fall":
+				return []
 			return _subject(before, after, id) + [["쓰러졌다", TEXT]]
+		&"fall":
+			if e.has("depth"):
+				return (
+					[["하늘로 떨어져 ", TEXT], ["%d층" % e.depth, Palette.KIND[&"miho"]]]
+					+ [["으로 내려왔다", TEXT]]
+				)
+			return _who(before, after, id, "이", "가") + [[" 하늘로 떨어졌다", TEXT]]
 		&"card":
 			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
 		&"heal":

@@ -41,6 +41,9 @@ extends RefCounted
 ## walkable, creaks, never burns and is always lit by the moon, so whoever
 ## crosses one is seen from afar.
 ##
+## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
+## a new storey one below.
+##
 ## Each storey climbed gives back one health.
 ##
 ## Miho grows one more tail every third storey (일미호 to 구미호). Her action
@@ -470,6 +473,12 @@ func move(a: Actor, to: Vector2i) -> void:
 	_changed()
 	var tread: Array = TREAD.get(tile(to), [0, "탁"])
 	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
+
+
+## Slides a creature up to n tiles along dir, off the edge into the sky if
+## nothing stops it (see Fall).
+func push(a: Actor, dir: Vector2i, n: int) -> void:
+	Fall.push(self, a, dir, n)
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;

@@ -8,7 +8,7 @@ static func heaven_phase(w: World) -> void:
 	for a in w.actors.duplicate():
 		if w.outcome != &"":
 			return
-		if not a.alive() or a.faction == Actor.FOX:
+		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
 			continue
 		a.acted += 1
 		if a.stunned > 0:
