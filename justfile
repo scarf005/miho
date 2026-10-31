@@ -23,10 +23,20 @@ rust-web:
 run: rust
     {{ godot }} --path .
 
-# Run the rule tests.
+# Run the rule tests. GUT skips a test script that fails to load and still
+# passes, so a script error fails the run here.
 test: rust
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ godot }} --headless --path . --import
-    {{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd
+    status=0
+    out=$({{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd 2>&1) || status=$?
+    printf '%s\n' "$out"
+    if rg -q 'SCRIPT ERROR|Ignoring script' <<<"$out"; then
+        echo "error: a script failed to load (see SCRIPT ERROR above)" >&2
+        exit 1
+    fi
+    exit "$status"
 
 # Serve the game to an AI agent over MCP on stdio (see .mcp.json).
 mcp: rust
