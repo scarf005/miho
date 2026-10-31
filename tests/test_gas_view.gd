@@ -188,3 +188,14 @@ func test_every_gas_has_a_colour_and_a_glyph_for_the_map_and_the_text_view() -> 
 	)
 	for n in range(1, Gas.MAX):
 		assert_lt(Palette.gas_alpha(n), Palette.gas_alpha(n + 1), "amount %d" % n)
+
+
+func test_a_vent_pond_tells_what_it_breathes_and_up_to_what_amount() -> void:
+	var w := _hall()
+	var at := ME + Vector2i(1, 0)
+	w.set_tile(at, World.POND)
+	w.sense()
+	assert_false(Info.plain(Info.terrain(w, at)).contains("뿜는 기체"))
+	w.vents[at] = Gas.FOG
+	var text := Info.plain(Info.terrain(w, at))
+	assert_string_contains(text, "뿜는 기체: 안개 (매 초 양 %d까지 채운다)" % Gas.VENT_LEVEL)

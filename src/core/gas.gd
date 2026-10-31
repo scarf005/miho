@@ -4,7 +4,8 @@ extends RefCounted
 ## in an amount of 1 to MAX; `World.gas` maps each such tile to Vector2i(kind,
 ## amount). Each round, in `tick`:
 ##
-## - every burning tile breathes out SMOKE_PUFF smoke;
+## - every burning tile breathes out SMOKE_PUFF smoke, and every vent (World.vents)
+##   is topped up to VENT_LEVEL of its gas;
 ## - every tile takes the average of its own amount and its neighbours' (the
 ##   eight around it that gas can lie on), the remainder going to chance, and the
 ##   kind of the strongest of them;
@@ -32,6 +33,7 @@ const DEFAULT := {name = "", decay = 0, harm = 0, wets = false}
 const MAX := 9
 const OPAQUE := 3
 const SMOKE_PUFF := 4
+const VENT_LEVEL := 5
 ## What a tile with no gas holds: no kind, no amount.
 const NONE := Vector2i(-1, 0)
 const INNER := Rect2i(1, 1, Grid.W - 2, Grid.H - 2)
@@ -92,6 +94,8 @@ static func tick(w: World) -> void:
 		return
 	for p: Vector2i in w.burning:
 		add(w, p, SMOKE, SMOKE_PUFF)
+	for p: Vector2i in w.vents:
+		put(w, p, w.vents[p], VENT_LEVEL - (at(w, p).y if at(w, p).x == w.vents[p] else 0))
 	if w.gas.is_empty():
 		return
 	spread(w)

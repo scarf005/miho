@@ -243,6 +243,11 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	if burns:
 		lines.append_array(_burning(w.burning[p]))
 	lines.append_array(_gas(w, p))
+	if w.vents.has(p):
+		var vent := [
+			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
+		]
+		lines.append(vent + [[" (매 초 양 %d까지 채운다)" % Gas.VENT_LEVEL, Palette.DIM]])
 	if t == World.DRUM:
 		lines.append(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))

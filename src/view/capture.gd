@@ -8,6 +8,7 @@ extends Node
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `kill:x:y` (the creature there falls, leaving its body mark),
+## `peace` (every creature of heaven is gone, for long waits),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
 ## `card:name` (Miho holds that talisman, such as fire),
@@ -125,6 +126,13 @@ func _send(k: String) -> void:
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
 			FloorGen.spawn(main.world, StringName(parts[1]), at)
+			main.world.sense()
+			main.term.show_world(main.world)
+			main._forecast()
+		"peace":
+			main.world.actors.assign(
+				main.world.actors.filter(func(a): return a.faction == Actor.FOX)
+			)
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()

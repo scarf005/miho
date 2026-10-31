@@ -430,7 +430,104 @@ func test_the_same_seed_and_actions_leave_the_same_gas_and_events() -> void:
 func test_a_new_storey_starts_with_none_but_its_own_fog() -> void:
 	var w := World.create(3)
 	w.gas[Vector2i(1, 1)] = Vector2i(Gas.SMOKE, 5)
+	w.vents[Vector2i(1, 1)] = Gas.FOG
 	w.depth = 1
 	FloorGen.build(w)
 	assert_false(w.gas.has(Vector2i(1, 1)))
 	assert_true(w.gas.is_empty(), "tier 1 has no fog")
+	assert_true(w.vents.is_empty(), "and no vents")
+
+
+# --- vents ---------------------------------------------------------------------
+
+
+## A storey of tier 2 or more with fog ponds, built at `seed_value`.
+func _fog_storey(seed_value: int) -> World:
+	var w := World.create(seed_value)
+	w.depth = 4
+	FloorGen.build(w)
+	w.sense()
+	return w
+
+
+func test_a_vent_keeps_a_bank_of_gas_that_blocks_sight_indefinitely() -> void:
+	var w := _hall()
+	for x in range(20, 24):
+		w.vents[Vector2i(x, 14)] = Gas.FOG
+	for r in 200:
+		Gas.tick(w)
+	assert_gt(w.gas.size(), 8)
+	assert_true(w.gas.values().any(func(g): return g.y >= Gas.OPAQUE), "thick somewhere")
+	var thick := w.gas.values().filter(func(g): return g.y >= Gas.OPAQUE).size()
+	assert_gt(thick, 3)
+	for p: Vector2i in w.gas:
+		assert_eq(w.gas[p].x, Gas.FOG)
+
+
+func test_a_vent_alone_does_not_flood_the_storey() -> void:
+	var w := _hall()
+	for x in range(20, 24):
+		for y in range(12, 15):
+			w.vents[Vector2i(x, y)] = Gas.FOG
+	var most := 0
+	for r in 300:
+		Gas.tick(w)
+		most = maxi(most, w.gas.size())
+	assert_lt(most, 120, "12 vents spread to a bank, not the whole hall")
+
+
+func test_fog_ponds_of_built_storeys_keep_their_bank_for_300_rounds() -> void:
+	var seen := 0
+	for s in [1, 5, 6, 10]:
+		var w := _fog_storey(s)
+		assert_false(w.vents.is_empty(), "seed %d has a fog pond" % s)
+		var most := 0
+		for r in 300:
+			Gas.tick(w)
+			most = maxi(most, w.gas.size())
+		seen += 1
+		assert_gt(w.gas.size(), w.vents.size(), "seed %d keeps a bank" % s)
+		assert_true(w.gas.values().any(func(g): return g.y >= Gas.OPAQUE), "seed %d" % s)
+		assert_lt(most, 100, "seed %d does not flood" % s)
+	assert_eq(seen, 4)
+
+
+func test_vents_are_ponds_and_gas_stops_with_no_vent() -> void:
+	var w := _fog_storey(1)
+	for p: Vector2i in w.vents:
+		assert_eq(w.tile(p), World.POND)
+		assert_eq(w.vents[p], Gas.FOG)
+	w.vents.clear()
+	for r in 100:
+		Gas.tick(w)
+	assert_true(w.gas.is_empty(), "without its pond the fog dies away")
+
+
+func test_a_clone_keeps_the_vents_and_a_preview_leaves_the_same_bank() -> void:
+	var w := _fog_storey(1)
+	var c := w.clone()
+	assert_eq(c.vents, w.vents)
+	c.vents.erase(c.vents.keys()[0])
+	assert_eq(w.vents.size(), c.vents.size() + 1, "the copy is its own")
+	var previewed := w.preview({t = &"wait"})
+	w.act({t = &"wait"})
+	assert_eq(previewed.gas, w.gas)
+
+
+func test_the_same_seed_and_actions_leave_the_same_bank_around_vents() -> void:
+	var runs := []
+	for i in 2:
+		var w := _fog_storey(1)
+		var told := []
+		for r in 40:
+			told.append(w.act({t = &"wait"}))
+		runs.append({gas = w.gas, vents = w.vents, events = told, rng = w.rng.state})
+	assert_eq(runs[0], runs[1])
+	assert_gt(runs[0].gas.size(), runs[0].vents.size())
+
+
+func test_a_vent_makes_no_noise_in_the_log() -> void:
+	var w := _hall()
+	w.vents[MID] = Gas.FOG
+	var events := w.act({t = &"wait"})
+	assert_false(events.any(func(e): return e.t == &"gas"), "the bank is ambient")

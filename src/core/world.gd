@@ -119,6 +119,8 @@ var burning := {}
 var wild := {}
 ## Gas: position -> Vector2i(kind, amount) (Gas).
 var gas := {}
+## Tiles that breathe gas: position -> gas kind (Gas).
+var vents := {}
 ## Tiles a gun lights this round (Spray).
 var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).
@@ -179,6 +181,7 @@ func clone() -> World:
 	w.burning = burning.duplicate()
 	w.wild = wild.duplicate()
 	w.gas = gas.duplicate()
+	w.vents = vents.duplicate()
 	w.changes = changes.duplicate(true)
 	w.bodies = bodies.duplicate(true)
 	w.wet = wet.duplicate()

@@ -147,6 +147,7 @@ static func build(w: World) -> void:
 	w.peaches.clear()
 	w.burning.clear()
 	w.gas.clear()
+	w.vents.clear()
 	w.changes.clear()
 	w.bodies.clear()
 	w.round_no = 0

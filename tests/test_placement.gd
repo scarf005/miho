@@ -169,6 +169,7 @@ func test_a_gas_patch_grows_like_a_tile_patch_and_leaves_the_tiles_alone() -> vo
 	var laid := Placement.lay(w, row, Vector2i(15, 8))
 	assert_eq(laid.size(), 4, "all four pond tiles touch")
 	assert_eq(w.gas.size(), 4, "only the pond is covered")
+	assert_eq(w.vents.keys().size(), 4, "and each tile breathes on")
 	for p in laid:
 		assert_eq(w.gas[p], Vector2i(Gas.STEAM, 4))
 		assert_eq(w.tile(p), World.POND)

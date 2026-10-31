@@ -5,7 +5,8 @@ extends RefCounted
 ## the stairs, stay bare. A row has:
 ##
 ## what, on: the tile kind laid, and the one it replaces (bare floor). A row
-## lays `gas` of `amount` (Gas) in place of `what`, over the tiles of kind `on`.
+## lays `gas` of `amount` (Gas) in place of `what`, over the tiles of kind `on`,
+## and each of those tiles keeps breathing that gas (World.vents).
 ## tiers: the first and last tier (World.tier, 1 to 9) it appears on.
 ## chance: the percent chance that each patch is laid.
 ## count: [intercept, slope, most]. A storey has (intercept + tier * slope) / 100
@@ -125,6 +126,7 @@ static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
 static func _put(w: World, row: Dictionary, p: Vector2i) -> void:
 	if row.has("gas"):
 		Gas.put(w, p, row.gas, row.amount)
+		w.vents[p] = row.gas
 	else:
 		w.tiles[Grid.index(p)] = row.what
 
