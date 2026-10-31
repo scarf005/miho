@@ -896,6 +896,7 @@ func _ahead_lines(p: Vector2i) -> Array:
 ## a line from Miho to the creature each homing one chases, and the harm each
 ## creature takes.
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
+	var aimed := {}
 	for id in f.paths:
 		var path: Dictionary = f.paths[id]
 		for p in path.tiles:
@@ -903,13 +904,16 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 		var target := known.actor(path.target)
 		var cast_now := not world.shots.any(func(s): return s.id == id)
 		if target != null and path.faction == Actor.FOX and cast_now:
-			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7)])
+			var k: int = aimed.get(target.id, 0)
+			aimed[target.id] = k + 1
+			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7), k])
 	for e in f.sprays:
 		var color := Palette.card(Spell.make(e.cards).slots[0])
 		for p: Vector2i in e.tiles:
 			tints[p] = Color(color, 0.22)
 	for id in f.harm:
-		var a := f.after.actor(id)
+		# A creature the round kills is gone from `after`: mark where it stood.
+		var a := f.after.actor(id) if f.after.actor(id) != null else known.actor(id)
 		if a != null:
 			marks[a.pos] = [str(f.harm[id]), Palette.HURT]
 	for id in f.falls:

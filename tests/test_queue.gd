@@ -124,3 +124,28 @@ func test_two_different_elements_merge_into_the_first_ones_compound() -> void:
 	queue = Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.WOOD, Cards.FIRE])
 	assert_eq(queue.slots, [ORB, &"steam", &"wildfire"] as Array[StringName], "never a compound")
 	assert_true(queue.has(Cards.WATER))
+
+
+func test_the_spell_name_never_covers_the_queue() -> void:
+	var m := _main()
+	m.world.cards.assign(Cards.ALL)
+	for k in ["1", "1", "1", "1", "1"]:
+		_press(m, k)
+	var t: Term = m.term
+	t.cols = 30
+	var name := Spell.make(m.picked).title()
+	assert_true(StatusBar.title_x(t, name) >= StatusBar.queue_x(t) + Spell.MAX_SLOTS)
+
+
+func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> void:
+	var m := _main()
+	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
+	foe.cooldown = 99
+	m._forecast()
+	for k in ["1", "1"]:
+		_press(m, k)
+	m.hover = Vector2i(7, 8)
+	m._refresh()
+	assert_eq(m.term.marks.get(foe.pos), [str(foe.hp), Palette.HURT], "dies, still marked")
+	var gaps: Array = m.term.lines.map(func(l): return l[3])
+	assert_eq(gaps, [0, 1], "two wisps, two lines side by side")

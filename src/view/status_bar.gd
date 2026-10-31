@@ -61,7 +61,7 @@ static func draw(t: Term) -> void:
 	var name := queued.title() if queued != null else ""
 	if not t.staged.is_empty():
 		name = "+%d %s" % [t.staged.size(), name]
-	t._text(Vector2(t.cols - t._cells(name), row), name, Palette.TEXT)
+	t._text(Vector2(title_x(t, name), row), name, Palette.TEXT)
 
 
 ## Tails the spells held with Shift spend.
@@ -72,6 +72,11 @@ static func _held(t: Term) -> int:
 ## Where the queue's first slot is drawn on the lower row.
 static func queue_x(t: Term) -> float:
 	return Term.MAP.x + t.world.cards.size() * 3 + 1.0
+
+
+## Where the queued spell's name starts: at the right edge, but never over the queue.
+static func title_x(t: Term, name: String) -> float:
+	return maxf(queue_x(t) + Spell.MAX_SLOTS + 0.5, t.cols - t._cells(name))
 
 
 ## Saved spells on the upper row: {action, key, x, width}, left to right.
@@ -121,7 +126,7 @@ static func hand_at(t: Term, local: Vector2) -> String:
 	var spell := Spell.make(t.picked)
 	if spell == null or floori(local.y / Term.CELL.y) != t.rows - 1:
 		return ""
-	var on_name := local.x / Term.CELL.x >= t.cols - t._cells(spell.title())
+	var on_name := local.x / Term.CELL.x >= title_x(t, spell.title())
 	return spell.key() if on_name or queue_at(t, local) >= 0 else ""
 
 

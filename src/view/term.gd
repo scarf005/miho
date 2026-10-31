@@ -23,6 +23,8 @@ const SIDE_STATE := ["쉼", "수색", "추격"]
 const SIZE := 32
 const BIG := 48
 const SMALL := 16
+## Pixels between the lines of wisps chasing one creature.
+const LINE_GAP := 5.0
 const HEART := [
 	".##...##.",
 	"####.####",
@@ -67,7 +69,8 @@ var staged: Array[Dictionary] = []
 ## Set by the game: tile -> Color tints, and tile -> [text, Color] marks.
 var tints := {}
 var marks := {}
-## Set by the game: lines [from tile, to tile, Color], one per wisp to its creature.
+## Set by the game: lines [from tile, to tile, Color, k], one per wisp to its
+## creature; the k-th line to one creature is drawn k * LINE_GAP to the side.
 var lines: Array = []
 var replay := false
 ## The tile under the pointer and what it shows there, as Info lines.
@@ -417,7 +420,10 @@ func _draw() -> void:
 		_draw_paths()
 		for l: Array in lines:
 			if _shown(l[0]) and _shown(l[1]):
-				draw_line(cell_centre(l[0]), cell_centre(l[1]), l[2], 2.0)
+				var a := cell_centre(l[0])
+				var b := cell_centre(l[1])
+				var side: Vector2 = (b - a).orthogonal().normalized() * LINE_GAP * l[3]
+				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
 	for f in _flashes:
@@ -632,7 +638,10 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	for p in marks:
 		var m: Array = marks[p]
 		if _shown(p):
-			_small(_cell(p) + Vector2(0.62, 0.55), m[0], m[1])
+			var at := _cell(p) + Vector2(0.62, 0.55)
+			var size := Vector2(_font.get_string_size(m[0], 0, -1, SMALL).x + 2, SMALL + 2)
+			draw_rect(Rect2(at * CELL - Vector2(1, 1), size), Color(Palette.VOID, 0.8))
+			_small(at, m[0], m[1])
 
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
