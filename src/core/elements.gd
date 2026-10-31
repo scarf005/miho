@@ -127,3 +127,25 @@ static func sprout(w: World, s: Shot, at: Vector2i) -> void:
 			grown.append(p)
 	if not grown.is_empty():
 		w.emit({t = &"sprout", at = at, tiles = grown})
+
+
+## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
+## lighting it as it moves (World.move). It stays a shot, so it hovers where
+## `a` fell when `a` dies.
+static func stick(w: World, s: Shot, a: Actor) -> void:
+	s.gone = false
+	s.dir = Vector2i.ZERO
+	s.host = a.id
+	s.life = Spell.WISP_LIFE
+	w._changed()
+	w.emit(
+		{
+			t = &"stick",
+			shot = s.id,
+			id = a.id,
+			at = a.pos,
+			faction = s.faction,
+			cards = s.spell.cards,
+			title = s.spell.title()
+		}
+	)

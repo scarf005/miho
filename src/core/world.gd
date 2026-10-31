@@ -819,29 +819,7 @@ func _strike(s: Shot, a: Actor) -> void:
 		_splash(s, at, a)
 	_effects(s, at)
 	if not spell.orb and not spell.gun():
-		_stick(s, a)
-
-
-## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
-## lighting it as it moves (move). It stays a shot, so it hovers where `a`
-## fell when `a` dies.
-func _stick(s: Shot, a: Actor) -> void:
-	s.gone = false
-	s.dir = Vector2i.ZERO
-	s.host = a.id
-	s.life = Spell.WISP_LIFE
-	_changed()
-	emit(
-		{
-			t = &"stick",
-			shot = s.id,
-			id = a.id,
-			at = a.pos,
-			faction = s.faction,
-			cards = s.spell.cards,
-			title = s.spell.title()
-		}
-	)
+		Elements.stick(self, s, a)
 
 
 ## Whether `s` rides a living creature, and so neither flies nor strikes again.

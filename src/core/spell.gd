@@ -14,7 +14,7 @@ extends RefCounted
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. A wisp that strikes a
 ## creature that does not eat it sticks to it for WISP_LIFE rounds and lights
-## it wherever it goes (World._stick); a bullet does not stick. Elements alone spray: they
+## it wherever it goes (Elements.stick); a bullet does not stick. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
