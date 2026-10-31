@@ -24,7 +24,7 @@ const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +door 'open-door "
 	+ "░sky □window ═skybridge "
-	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach '
+	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach †fallen-creature '
 	+ "●○*projectile @Miho"
 )
 
@@ -108,6 +108,8 @@ static func _glyph(k: World, p: Vector2i) -> String:
 			return Palette.BURNING[0]
 	if k.peaches.has(p):
 		return Palette.PEACH[0]
+	if k.bodies.has(p) and k.bodies[p].met:
+		return Palette.BODY[0]
 	if p == k.stairs:
 		return Palette.STAIRS[0]
 	if p == k.elixir:

@@ -47,6 +47,7 @@ static func perceive(w: World, a: Actor) -> void:
 			a.noted = s.id
 			_heed(w, a, s, s.pos)
 			return
+	Notice.react(w, a)
 
 
 ## A projectile of Miho's seen at `at`: a dull creature searches that spot, a

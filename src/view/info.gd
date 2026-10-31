@@ -192,9 +192,29 @@ static func terrain(w: World, p: Vector2i) -> Array:
 		lines.append([[note, Palette.DIM]])
 	if w.burning.has(p):
 		lines.append([["불타는 중. %d초 뒤 재가 된다" % w.burning[p], Palette.HURT]])
+	lines.append_array(_change_lines(w, p))
 	if not Terrain.wall(w.tile(p)):
 		lines.append(_light_line(w, p))
 	return lines
+
+
+## A change creatures notice (Notice) and, for a fallen creature, its body mark.
+static func _change_lines(w: World, p: Vector2i) -> Array:
+	var change := Notice.at(w, p)
+	var body: Dictionary = w.bodies.get(p, {})
+	if change.is_empty() or (change.kind == &"body" and not body.get("met", false)):
+		return []
+	var label: String = Notice.LABEL[change.kind]
+	var color := Palette.TEXT
+	var rule := "추격 중이 아닌 적은 처음 보면 이곳을 수색한다"
+	if change.kind == &"body":
+		label = "쓰러진 " + Bestiary.info(body.kind).name
+		rule += ". 이 층에 남는다"
+		color = Palette.KIND[body.kind]
+	return [
+		[[label, color], [" · %d초 전" % (w.round_no - change.round), Palette.DIM]],
+		[[rule, Palette.DIM]],
+	]
 
 
 static func _light_line(w: World, p: Vector2i) -> Array:

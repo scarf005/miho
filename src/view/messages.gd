@@ -116,6 +116,12 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["기절했다", TEXT]]
 		&"absorb":
 			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
+		&"heed":
+			var what: String = Notice.LABEL[e.kind]
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" " + what + _particle(what, "을", "를") + " 보고 살피러 간다", TEXT]]
+			)
 		&"calm":
 			return _who(before, after, id, "이", "가") + [[" 수색을 멈췄다", TEXT]]
 		&"charge":

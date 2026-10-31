@@ -35,6 +35,8 @@ const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]
+## The mark a fallen creature leaves on its tile.
+const BODY := ["†", Color(0.46, 0.3, 0.3)]
 ## Dark tiles Miho makes out by shape only.
 const STARLIGHT := Color(0.05, 0.06, 0.14)
 

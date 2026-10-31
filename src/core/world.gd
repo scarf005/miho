@@ -25,7 +25,10 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
-## Lanterns, doors, walls and windows break; Terrain holds those rules.
+## Lanterns, doors, walls and windows break; Terrain holds those rules. A
+## heaven creature that is not hunting and sees a lantern that went out or
+## broke, a door or wall that broke, a burnt tile or a fallen creature goes to
+## search there, once per change (Notice). A fallen creature leaves a body mark.
 ##
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
@@ -104,6 +107,10 @@ var round_no := 0
 var outcome := &""
 var rng := RandomNumberGenerator.new()
 var events: Array[Dictionary] = []
+## What creatures can notice this storey, and the bodies of the fallen by tile
+## (see Notice).
+var changes: Array[Dictionary] = []
+var bodies := {}
 ## Tiles Miho sees now; dark tiles whose shape she makes out but where she
 ## cannot see who stands; and every tile she has seen on this storey.
 var seen := PackedByteArray()
@@ -143,6 +150,8 @@ func clone() -> World:
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
 	w.burning = burning.duplicate()
+	w.changes = changes.duplicate(true)
+	w.bodies = bodies.duplicate(true)
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -442,6 +451,7 @@ func sense() -> void:
 		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
 			dim[i] = 1
 			known[i] = 1
+	Notice.remember(self)
 
 
 func emit(e: Dictionary) -> void:
@@ -690,6 +700,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		outcome = &"lost"
 		emit({t = &"lost"})
 		return
+	Notice.fallen(self, a)
 	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
@@ -751,6 +762,7 @@ func _burn() -> void:
 		if burning[p] <= 0:
 			burning.erase(p)
 			set_tile(p, ASH)
+			Notice.record(self, &"ash", p)
 			emit({t = &"burnout", at = p})
 	for p in caught:
 		_ignite(p)
