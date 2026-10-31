@@ -362,6 +362,15 @@ func test_a_projectile_that_stops_over_the_sky_takes_miho_nowhere() -> void:
 	assert_eq(w.player().pos, ME)
 
 
+func test_a_wisp_that_swaps_with_a_creature_rides_it_to_miho_s_old_tile() -> void:
+	var w := _world()
+	var foe := _foe(w, Vector2i(6, 8))
+	foe.stunned = 9
+	_until_still(w, [Cards.FOX, LEAP])
+	assert_eq(foe.pos, ME, "they traded places")
+	assert_eq(w.shots.map(func(s): return s.pos), [ME], "the wisp sits on the creature it rides")
+
+
 func test_the_log_tells_the_swap() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(6, 8))
