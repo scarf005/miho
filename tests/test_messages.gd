@@ -86,6 +86,7 @@ func test_unknown_events_are_ignored() -> void:
 func test_a_claw_tells_its_harm_once() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(5, 8))
+	foe.blind = 2
 	w.sense()
 	var before := w.clone()
 	var events := w.act({t = &"move", dir = Vector2i(1, 0)})

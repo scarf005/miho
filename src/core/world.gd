@@ -16,7 +16,8 @@ extends RefCounted
 ## range, heaven creatures go to search where they heard an alarm or saw one of
 ## Miho's projectiles, and hunt her once they see her (Mind; how they read a
 ## projectile depends on their wits). Claws strike three times as hard at a
-## creature that is not hunting (Brogue CE Combat.c sneak attack). A creature
+## creature that is not hunting and does not see Miho (Brogue CE Combat.c
+## sneak attack; caught_unawares). A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -618,8 +619,14 @@ func set_tile(p: Vector2i, t: int) -> void:
 	_changed()
 
 
+## Whether a claw at `a` is a sneak attack: it is off guard (not hunting) and
+## does not see Miho; a blind creature sees nothing, but a blind hunter is on guard.
+func caught_unawares(a: Actor) -> bool:
+	return a.alert != Actor.HUNT and not sees(a, player().pos)
+
+
 func _claw(me: Actor, foe: Actor) -> void:
-	var sneak := foe.unaware()
+	var sneak := caught_unawares(foe)
 	var n := CLAW * (SNEAK if sneak else 1)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)

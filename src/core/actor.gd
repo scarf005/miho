@@ -49,11 +49,6 @@ func alive() -> bool:
 	return hp > 0
 
 
-## Not hunting, or blind: a claw catches it unawares for a sneak attack.
-func unaware() -> bool:
-	return alert != HUNT or blind > 0
-
-
 ## Hunting Miho by way of a drum.
 func drumming() -> bool:
 	return alert == HUNT and drum != Vector2i(-1, -1)

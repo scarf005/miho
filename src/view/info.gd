@@ -62,7 +62,7 @@ static func creature(w: World, a: Actor) -> Array:
 		lines.append([["당신을 보고 있다", Palette.HURT]])
 	else:
 		lines.append([["당신을 볼 수 없다", Palette.SIDE[0]]])
-	var sneak := a.unaware()
+	var sneak := w.caught_unawares(a)
 	lines.append(
 		_amount("기습 시 피해 " if sneak else "공격 시 피해 ", World.CLAW * (World.SNEAK if sneak else 1))
 	)

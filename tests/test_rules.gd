@@ -169,6 +169,7 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	var w := _world(Vector2i(5, 8))
 	_put(w, Vector2i(8, 9), World.LANTERN)
 	var foe := _foe(w, &"dokkaebi", Vector2i(8, 8), 2)
+	foe.blind = 2
 	w.sense()
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "도깨비")
@@ -220,6 +221,7 @@ func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came
 func test_claws_strike_thrice_at_an_unaware_creature_and_kill_silently() -> void:
 	var w := _world()
 	var prey := _foe(w, &"dokkaebi", Vector2i(5, 8))
+	prey.blind = 2
 	var other := _foe(w, &"imugi", Vector2i(8, 8))
 	var events := w.act({t = &"move", dir = E})
 	assert_false(prey.alive())
@@ -284,7 +286,7 @@ func test_a_hunter_telegraphs_its_orb_and_a_side_step_dodges_it() -> void:
 		assert_eq(w.player().hp, 1 if stay else 3, "an orb from five tiles hits for 2")
 
 
-func test_claws_strike_a_blind_hunter_thrice_and_it_cannot_strike_back() -> void:
+func test_a_blind_hunter_cannot_strike_back_and_takes_a_plain_claw() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
 	foe.hp = 3
@@ -293,7 +295,7 @@ func test_claws_strike_a_blind_hunter_thrice_and_it_cannot_strike_back() -> void
 	w.act(WAIT)
 	assert_eq(w.player().hp, 3, "blind, it cannot strike")
 	w.act({t = &"move", dir = E})
-	assert_false(foe.alive())
+	assert_eq(foe.hp, 2, "it is on guard")
 
 
 func test_a_dark_wisp_puts_out_lantern_light() -> void:

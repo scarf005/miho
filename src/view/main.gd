@@ -955,5 +955,5 @@ func _sneakable(a: Actor) -> bool:
 		and a.faction != Actor.FOX
 		and Grid.cheb(a.pos, world.player().pos) == 1
 		and world.seen[Grid.index(a.pos)] == 1
-		and a.unaware()
+		and world.caught_unawares(a)
 	)

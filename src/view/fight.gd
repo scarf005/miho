@@ -2,8 +2,9 @@ class_name Fight
 extends RefCounted
 ## Auto-fight, as DCSS's Tab (autofight.lua): strike the nearest hostile in
 ## sight when it is next to Miho, else take one step towards it. Of several
-## next to her it picks one that is unaware (the sneak attack). Like DCSS it
-## refuses when she is at or under half her health (autofight_stop 50).
+## next to her it picks one caught unawares (World.caught_unawares, the sneak
+## attack). Like DCSS it refuses when she is at or under half her health
+## (autofight_stop 50).
 
 ## Health, in percent of the most, at and under which Tab refuses.
 const STOP := 50
@@ -16,20 +17,19 @@ static func too_hurt(w: World) -> bool:
 
 
 ## The creatures of heaven Miho sees, nearest first; among those next to her,
-## unaware ones first. Ties go to the older creature.
+## those caught unawares first. Ties go to the older creature.
 static func targets(w: World) -> Array[Actor]:
-	var me := w.player().pos
 	var list: Array[Actor] = []
 	for a in w.actors:
 		if a.alive() and a.faction != Actor.FOX and w.seen[Grid.index(a.pos)] == 1:
 			list.append(a)
-	list.sort_custom(func(a, b): return [_rank(a, me), a.id] < [_rank(b, me), b.id])
+	list.sort_custom(func(a, b): return [_rank(w, a), a.id] < [_rank(w, b), b.id])
 	return list
 
 
-static func _rank(a: Actor, me: Vector2i) -> int:
-	var d := Grid.cheb(a.pos, me)
-	return d * 2 + (1 if d > 1 or not a.unaware() else 0)
+static func _rank(w: World, a: Actor) -> int:
+	var d := Grid.cheb(a.pos, w.player().pos)
+	return d * 2 + (1 if d > 1 or not w.caught_unawares(a) else 0)
 
 
 ## The move that claws the first target next to Miho, or steps along the
