@@ -16,6 +16,7 @@ const TILES := {
 	World.FLOOR: ["·", Color(0.62, 0.58, 0.52), Color(0.11, 0.1, 0.09)],
 	World.WALL: ["#", Color(0.72, 0.64, 0.56), Color(0.34, 0.29, 0.26)],
 	World.DOOR: ["+", Color(0.85, 0.55, 0.25), Color(0.22, 0.12, 0.05)],
+	World.DOOR_OPEN: ["'", Color(0.85, 0.55, 0.25), Color(0.11, 0.08, 0.05)],
 	World.LANTERN: ["¤", Color(1.0, 0.85, 0.45), Color(0.4, 0.2, 0.06)],
 	World.LANTERN_OUT: ["¤", Color(0.45, 0.4, 0.34), Color(0.14, 0.1, 0.07)],
 	World.BAMBOO: ['"', Color(0.45, 0.78, 0.38), Color(0.06, 0.14, 0.06)],
@@ -29,7 +30,6 @@ const TILES := {
 	World.WINDOW: ["□", Color(0.55, 0.78, 0.95), Color(0.1, 0.16, 0.26)],
 	World.BRIDGE: ["═", Color(0.82, 0.7, 0.5), Color(0.19, 0.13, 0.08)],
 }
-const OPEN_DOOR := "'"
 ## A burning tile, drawn over its terrain.
 const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]

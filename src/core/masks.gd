@@ -8,13 +8,19 @@ extends RefCounted
 static var _opaque := Grid.table(
 	func(t): return Terrain.wall(t) or t == World.BAMBOO or t == World.DOOR
 )
+static var _shade := Grid.table(func(t): return Terrain.wall(t) or t == World.BAMBOO)
 static var _floor := Grid.table(func(t): return World.WALKABLE.has(t))
 static var _heard := Grid.table(func(t): return not Terrain.wall(t))
 
 
-## World.opaque for every tile.
+## World.opaque for every tile: only fire changes what the tile kind says.
 static func opaque(w: World) -> PackedByteArray:
-	return Grid.mask(w.tiles, _opaque, odd(w), w.opaque)
+	return Grid.mask(w.tiles, _opaque, w.burning.keys(), w.opaque)
+
+
+## World.blocks_light for every tile.
+static func shade(w: World) -> PackedByteArray:
+	return Grid.mask(w.tiles, _shade, w.burning.keys(), w.blocks_light)
 
 
 ## World.open_floor for every tile, but `test` decides at the `extra` tiles.

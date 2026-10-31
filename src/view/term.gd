@@ -195,7 +195,7 @@ func show_world(w: World) -> void:
 
 ## A lantern or a burning tile as a flickering light: the tiles it lights and how much.
 func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> Dictionary:
-	var s := Light.spread(p, radius, w.opaque_mask())
+	var s := Light.spread(p, radius, w.light_mask())
 	var lit := PackedInt32Array()
 	var amount := PackedFloat32Array()
 	for j in s.size():
@@ -416,7 +416,7 @@ func _field() -> PackedVector3Array:
 			continue
 		var key := "%d@%s" % [id, s.pos]
 		if not _shot_light.has(key):
-			_shot_light[key] = Light.spread(s.pos, l.radius, world.opaque_mask())
+			_shot_light[key] = Light.spread(s.pos, l.radius, world.light_mask())
 		var spread: PackedFloat32Array = _shot_light[key]
 		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_time * 11.0 + id))
 		for i in spread.size():
@@ -505,8 +505,6 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var glyph: String = spec[0]
 		var fg: Color = spec[1]
 		var bg: Color = spec[2]
-		if t == World.DOOR and not world.opaque(p):
-			glyph = Palette.OPEN_DOOR
 		for item in [[world.stairs, Palette.STAIRS], [world.elixir, Palette.ELIXIR]]:
 			if p == item[0]:
 				glyph = item[1][0]

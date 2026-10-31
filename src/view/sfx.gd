@@ -42,6 +42,7 @@ const WORDS := {
 	"쨍": &"clash",
 	"사각": &"step",
 	"삐걱": &"click",
+	"드르륵": &"click",
 	"타닥": &"burn",
 }
 

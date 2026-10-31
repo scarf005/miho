@@ -5,7 +5,8 @@ extends Node
 ## spell, and Shift with a direction holds it so several spells leave in one
 ## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
 ## picked and, with nothing to clear, opens the options.
-## > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
+## c shuts an open door next to Miho (a direction key picks one when several are
+## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
 ## F3 shows the debug view (DebugView), which changes nothing in the game. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
@@ -46,6 +47,8 @@ var hover_status := false
 var hover_spell := ""
 ## Look mode: the direction keys move the cursor, which is `hover`.
 var looking := false
+## Several open doors are next to Miho: the next direction key shuts that one.
+var shutting := false
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
 var skip := false
@@ -241,6 +244,11 @@ func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
 	if event.is_echo() and not Keys.MOVES.has(action):
 		return
+	if shutting:
+		shutting = false
+		if Keys.MOVES.has(action):
+			_act({t = &"close", dir = Keys.MOVES[action]})
+		return
 	if looking and _look_key(action, event.shift_pressed):
 		return
 	if Keys.MOVES.has(action):
@@ -272,6 +280,8 @@ func _key(event: InputEventKey) -> void:
 		_look_at(world.player().pos)
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 이미 다 자랐다")
+	elif action == &"close":
+		_shut()
 	elif action == &"fight":
 		_fight()
 	elif action == &"debug":
@@ -283,6 +293,7 @@ func _key(event: InputEventKey) -> void:
 
 func _click(event: InputEventMouseButton) -> void:
 	looking = false
+	shutting = false
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_clear()
 		return
@@ -521,6 +532,17 @@ func _journey(next: Callable, why := "") -> void:
 	term.speed = settings.speed
 	if rounds == 0:
 		sfx.play(&"click")
+
+
+## Shuts the open door next to Miho; with several, waits for a direction key.
+func _shut() -> void:
+	var doors := Grid.DIRS.filter(func(d): return world.can({t = &"close", dir = d}))
+	if doors.size() == 1:
+		_act({t = &"close", dir = doors[0]})
+		return
+	sfx.play(&"click")
+	shutting = not doors.is_empty()
+	_say("어느 쪽 문을 닫을까? 방향키" if shutting else "닫을 문이 없다")
 
 
 ## Tab: claws the nearest creature in sight or steps towards it; refuses when

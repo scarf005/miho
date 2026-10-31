@@ -125,6 +125,11 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ [[" ", TEXT], [spell.title(), Palette.CARD[spell.cards.back()]]]
 				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
 			)
+		&"open", &"close":
+			var what := "열었다" if e.t == &"open" else "닫았다"
+			if id == after.player().id:
+				return [["문을 " + what, TEXT]]
+			return _who(before, after, id, "이", "가") + [[" 문을 " + what, TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

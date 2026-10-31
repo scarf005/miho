@@ -25,7 +25,10 @@ extends RefCounted
 ## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
 ## but spells fly over them.
 ##
-## Lanterns, doors, walls and windows break; Terrain holds those rules.
+## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
+## slides: walking into a closed one opens it with a sound and costs the move, and
+## the close action shuts an open one. Creatures of heaven open doors on their way
+## and leave them open. A closed door blocks sight, but its paper lets light through.
 ##
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
@@ -80,8 +83,10 @@ const RUBBLE := 11
 const SKY := 12
 const WINDOW := 13
 const BRIDGE := 14
-const WALKABLE := [FLOOR, DOOR, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE]
-const FLAMMABLE := [DOOR, BAMBOO, BOARD]
+const DOOR_OPEN := 15
+## A closed door is walkable in the sense of paths: whoever walks into it opens it.
+const WALKABLE := [FLOOR, DOOR, DOOR_OPEN, BAMBOO, BOARD, ASH, LANTERN_BROKEN, RUBBLE, BRIDGE]
+const FLAMMABLE := [DOOR, DOOR_OPEN, BAMBOO, BOARD]
 ## How far a step onto the tile is heard, and the word for it.
 const TREAD := {BAMBOO: [2, "사각"], BOARD: [3, "삐걱"], BRIDGE: [3, "삐걱"]}
 
@@ -116,6 +121,7 @@ var _light := PackedVector3Array()
 var _light_dirty := true
 var _fov := {}
 var _opaque := PackedByteArray()
+var _shade := PackedByteArray()
 
 
 static func create(seed_value: int) -> World:
@@ -209,12 +215,14 @@ func open_air(p: Vector2i) -> bool:
 	return open_floor(p) or tile(p) == POND or tile(p) == SKY
 
 
-## Walls (cracked too), closed doors and bamboo block sight and light; a door is
-## open while something is in it, and nothing burning blocks anything.
+## Walls (cracked too), closed doors and bamboo block sight; nothing burning blocks anything.
 func opaque(p: Vector2i) -> bool:
-	if Terrain.wall(tile(p)) or hides(p):
-		return true
-	return tile(p) == DOOR and not burning.has(p) and actor_at(p) == null and shot_at(p) == null
+	return blocks_light(p) or (tile(p) == DOOR and not burning.has(p))
+
+
+## Walls (cracked too) and bamboo cast shadows; a closed door's paper lets light through.
+func blocks_light(p: Vector2i) -> bool:
+	return Terrain.wall(tile(p)) or hides(p)
 
 
 ## Bamboo hides who stands in it from everyone not right next to it, until it burns.
@@ -265,16 +273,23 @@ func clear_line(a: Vector2i, b: Vector2i) -> bool:
 	return true
 
 
-## `opaque` for every tile at once, for Sight and Light (cached until something moves).
+## `opaque` for every tile at once, for Sight (cached until something moves).
 func opaque_mask() -> PackedByteArray:
 	if _opaque.is_empty():
 		_opaque = Masks.opaque(self)
 	return _opaque
 
 
+## `blocks_light` for every tile at once, for Light (cached until something moves).
+func light_mask() -> PackedByteArray:
+	if _shade.is_empty():
+		_shade = Masks.shade(self)
+	return _shade
+
+
 func light() -> PackedVector3Array:
 	if _light_dirty:
-		_light = Light.field(Light.sources(self), opaque_mask())
+		_light = Light.field(Light.sources(self), light_mask())
 		var i := tiles.find(BRIDGE)
 		while i >= 0:
 			_light[i] += Light.MOON
@@ -328,11 +343,13 @@ func can(action: Dictionary) -> bool:
 			return _can_move(action.get("dir", Vector2i.ZERO))
 		&"cast":
 			return _can_cast(action.get("spells", []))
+		&"close":
+			return _can_close(action.get("dir", Vector2i.ZERO))
 	return false
 
 
-## A step onto a free tile, claws at a creature next to Miho, or a knock at a
-## lantern or window.
+## A step onto a free tile (a closed door slides open instead), claws at a
+## creature next to Miho, or a knock at a lantern or window.
 func _can_move(dir: Vector2i) -> bool:
 	var me := player()
 	var to := me.pos + dir
@@ -342,6 +359,19 @@ func _can_move(dir: Vector2i) -> bool:
 	if foe != null:
 		return foe.faction != me.faction
 	return Terrain.knockable(tile(to)) or (me.rooted <= 0 and vacant(to))
+
+
+## An open door next to Miho with nothing in it.
+func _can_close(dir: Vector2i) -> bool:
+	var to := player().pos + dir
+	return (
+		player().stunned <= 0
+		and Grid.DIRS.has(dir)
+		and tile(to) == DOOR_OPEN
+		and not burning.has(to)
+		and actor_at(to) == null
+		and shot_at(to) == null
+	)
 
 
 ## Every spell is valid and known, takes its own open direction, and the cards
@@ -391,6 +421,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				_claw(me, foe)
 			elif Terrain.knockable(tile(to)):
 				Terrain.knock(self, me, to)
+			elif tile(to) == DOOR:
+				Terrain.open_door(self, me, to)
 			else:
 				move(me, to)
 				Scent.lay(self, to)
@@ -407,6 +439,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 					me.max_hp += 1 if grew else 0
 					me.hp += 1
 					emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+		&"close":
+			Terrain.close_door(self, me, me.pos + action.dir)
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
@@ -452,9 +486,14 @@ func _changed() -> void:
 	_light_dirty = true
 	_fov.clear()
 	_opaque = PackedByteArray()
+	_shade = PackedByteArray()
 
 
+## A step; into a closed door it slides the door open instead and stays put.
 func move(a: Actor, to: Vector2i) -> void:
+	if tile(to) == DOOR:
+		Terrain.open_door(self, a, to)
+		return
 	emit({t = &"move", id = a.id, from = a.pos, to = to})
 	a.pos = to
 	_changed()

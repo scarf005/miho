@@ -12,7 +12,8 @@ const WITS := ["둔함", "영리함", "교활함"]
 const TERRAIN := {
 	World.FLOOR: ["바닥", "", 0],
 	World.WALL: ["벽", "", 2],
-	World.DOOR: ["문", "빛과 시야를 막는다", 1],
+	World.DOOR: ["문", "닫혀 있다. 시야를 막고 빛은 지나간다. 밀면 열린다 (드르륵 소리 %d칸). 불에 탄다" % Terrain.SLIDE, 1],
+	World.DOOR_OPEN: ["열린 문", "시야와 빛이 지나간다. C로 닫는다 (드르륵 소리 %d칸). 불에 탄다" % Terrain.SLIDE, 0],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다", 1],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 1],
 	World.BAMBOO: ["대숲", "안이 보이지 않는다. 사각 소리 2칸. 불에 탄다", 0],

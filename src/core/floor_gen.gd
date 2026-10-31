@@ -3,8 +3,9 @@ extends RefCounted
 ## Builds each storey: two to four pavilions in open sky, joined by skybridges,
 ## with windows in their outer walls. Inside a pavilion, rooms are joined by
 ## corridors with a few extra loops (so a hunted fox has somewhere to slip
-## away), doors where corridors meet rooms, and lanterns in some rooms. Some
-## other rooms get a bamboo patch, a pond, or floorboards (a pavilion hall).
+## away), sliding doors where corridors meet rooms (some start open), and
+## lanterns in some rooms. Some other rooms get a bamboo patch, a pond, or
+## floorboards (a pavilion hall).
 ## Corridors stay plain and dark. Miho starts in the westmost room; the stairs
 ## (the elixir on the top storey) sit in the room farthest from her, which is
 ## always lit. Watchers that never move stand by lanterns.
@@ -132,6 +133,8 @@ const MIN_HEIGHT := 14
 ## First and last row a bridge may cross on; every pavilion spans them.
 const BRIDGE_ROWS := Vector2i(10, 17)
 const WINDOWS := 0.35
+## The share of doors that start open.
+const OPEN_DOORS := 0.3
 
 
 static func build(w: World) -> void:
@@ -151,6 +154,7 @@ static func build(w: World) -> void:
 		_carve(w)
 		if w.rooms.size() >= MIN_ROOMS and _connected(w):
 			break
+	w._changed()
 	var home := w.rooms[0]
 	w.start = _centre(home)
 	me.pos = w.start
@@ -345,7 +349,9 @@ static func _doors(w: World) -> void:
 					and w.tile(p - across) == World.WALL
 					and w.rng.randf() < 0.6
 				):
-					w.tiles[Grid.index(p)] = World.DOOR
+					w.tiles[Grid.index(p)] = (
+						World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
+					)
 
 
 static func _connected(w: World) -> bool:
@@ -392,7 +398,7 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 
 
 static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
-	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.opaque_mask())[Grid.index(p)]
+	var s := Light.spread(lantern, Light.LANTERN_RADIUS, w.light_mask())[Grid.index(p)]
 	return Light.level(Light.LANTERN * s) >= Light.LIT
 
 

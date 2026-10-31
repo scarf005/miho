@@ -13,8 +13,17 @@ extends RefCounted
 ## still blocks walking, sight and light) and then into rubble. Each hit thuds.
 ## The outermost ring of tiles never breaks.
 ##
+## A door slides. Walking into a closed one, by Miho or a creature of heaven,
+## opens it instead of stepping, with a rustle of SLIDE tiles; Miho's alarms
+## heaven. Open it stays until Miho shuts it with the close action (same sound).
+## A closed door blocks sight, not light. An orb smashes a closed door to floor.
+## An open door burns like a closed one.
+
 ## A window in an outer wall blocks walking but not sight or light, and breaks
 ## to floor with a clang when Miho walks into it or an orb strikes it.
+
+## How far a sliding door is heard.
+const SLIDE := 3
 
 ## What a hit leaves of a tile: a lit lantern goes out, a dark one breaks into
 ## rubble, a closed door or a window becomes floor, a wall cracks and then falls to rubble.
@@ -59,6 +68,22 @@ static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
 static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	hit(w, at)
 	w.noise(at, World.KNOCK, "쨍", true, me.id)
+
+
+## `by` slides the closed door at `at` open; its move is spent.
+static func open_door(w: World, by: Actor, at: Vector2i) -> void:
+	_slide(w, by, at, World.DOOR_OPEN, &"open")
+
+
+## Miho slides the open door at `at` shut.
+static func close_door(w: World, by: Actor, at: Vector2i) -> void:
+	_slide(w, by, at, World.DOOR, &"close")
+
+
+static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName) -> void:
+	w.set_tile(at, to)
+	w.emit({t = event, at = at, id = by.id})
+	w.noise(at, SLIDE, "드르륵", by.faction == Actor.FOX, by.id)
 
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;

@@ -61,7 +61,7 @@ func test_a_saved_run_loads_to_the_same_world() -> void:
 
 
 func test_loading_rebuilds_the_message_log() -> void:
-	_play(40)
+	_play(55)
 	var back := SaveGame.load_from(PATH)
 	assert_true(back.replay())
 	var live := Messages.new()

@@ -65,7 +65,8 @@ const TOOLS := [
 		name = "act",
 		description =
 		(
-			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern or window; "
+			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern or window, "
+			+ "or slides a closed door open (Miho stays put); close shuts the open door in dir; "
 			+ "wait passes a round; cast hurls spells. explore, rest (until the tails regrow), "
 			+ "stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to 200, "
 			+ "and stop when a step would harm Miho or get her noticed, fire is next to the step, "
@@ -79,7 +80,8 @@ const TOOLS := [
 				action =
 				{
 					"type": "string",
-					"enum": ["move", "wait", "cast", "explore", "rest", "stairs", "travel"],
+					"enum":
+					["move", "close", "wait", "cast", "explore", "rest", "stairs", "travel"],
 				},
 				dir = DIRS,
 				spells = SPELLS,
@@ -111,7 +113,7 @@ const TOOLS := [
 			type = "object",
 			properties =
 			{
-				action = {"type": "string", "enum": ["move", "wait", "cast"]},
+				action = {"type": "string", "enum": ["move", "close", "wait", "cast"]},
 				dir = DIRS,
 				spells = SPELLS,
 			},
@@ -215,8 +217,8 @@ func _look(args: Dictionary) -> Dictionary:
 
 func _forecast(args: Dictionary) -> Dictionary:
 	var action := _action(args)
-	if not action.has("t") or not [&"move", &"wait", &"cast"].has(action.t):
-		return _fail(action.get("error", "forecast takes move, wait or cast."))
+	if not action.has("t") or not [&"move", &"close", &"wait", &"cast"].has(action.t):
+		return _fail(action.get("error", "forecast takes move, close, wait or cast."))
 	if not world.can(action):
 		return _fail(_refusal(action))
 	var f := Forecast.of(world, action)
@@ -253,16 +255,16 @@ func _act(args: Dictionary) -> Dictionary:
 ## rest, stairs, travel with a goal), or {error} when the arguments are not valid.
 func _action(args: Dictionary) -> Dictionary:
 	var name: Variant = args.get("action")
-	var out := {error = "action must be move, wait, cast, explore, rest, stairs or travel."}
+	var out := {error = "action must be move, close, wait, cast, explore, rest, stairs or travel."}
 	match name:
 		"wait", "explore", "rest", "stairs":
 			out = {t = StringName(name)}
-		"move":
+		"move", "close":
 			var dir := Observation.dir_of(args.get("dir"))
 			out = (
-				{t = &"move", dir = dir}
+				{t = StringName(name), dir = dir}
 				if dir != Vector2i.ZERO
-				else {error = "move needs dir: n, ne, e, se, s, sw, w or nw."}
+				else {error = "%s needs dir: n, ne, e, se, s, sw, w or nw." % name}
 			)
 		"cast":
 			out = _cast(args.get("spells"))
@@ -326,6 +328,8 @@ func _refusal(action: Dictionary) -> String:
 		return "Miho is stunned and cannot act."
 	if action.t == &"move":
 		return "Miho cannot step there: it is blocked, off the map, or she is rooted."
+	if action.t == &"close":
+		return "There is no open door with nothing in it in that direction."
 	return (
 		"That cast is not allowed: each spell needs 1-4 different talismans Miho holds with fox or orb, "
 		+ (
