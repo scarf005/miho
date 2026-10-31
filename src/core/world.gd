@@ -96,6 +96,13 @@ const BRIDGE := 14
 const DOOR_OPEN := 15
 const DRUM := 16
 const DRUM_TORN := 17
+const GRASS := 18
+const STRAW := 19
+const REEDS := 20
+const REEDS_FLAT := 21
+const LEAVES := 22
+const SHALLOW := 23
+const PILLAR := 24
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -231,14 +238,15 @@ func open_air(p: Vector2i) -> bool:
 	return open_floor(p) or tile(p) == POND or tile(p) == SKY
 
 
-## Walls (cracked too), closed doors and bamboo block sight; nothing burning blocks anything.
+## Walls (cracked too), closed doors, bamboo, reeds and pillars block sight; nothing burning
+## blocks anything.
 func opaque(p: Vector2i) -> bool:
-	return blocks_light(p) or (tile(p) == DOOR and not burning.has(p))
+	return Tiles.sight[tile(p)] == 1 and not burning.has(p)
 
 
-## Walls (cracked too) and bamboo cast shadows; a closed door's paper lets light through.
+## Walls (cracked too), bamboo and pillars cast shadows; a closed door's paper lets light through.
 func blocks_light(p: Vector2i) -> bool:
-	return Terrain.wall(tile(p)) or hides(p)
+	return Tiles.light[tile(p)] == 0 and not burning.has(p)
 
 
 ## Bamboo hides who stands in it from everyone not right next to it, until it burns.
@@ -516,6 +524,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	_changed()
 	var tread: Array = Tiles.of(tile(to), "tread")
 	noise(to, maxi(a.info().get("step", 0), tread[0]), tread[1], a.faction == Actor.FOX, a.id)
+	Terrain.trample(self, to)
 
 
 ## Slides a creature up to n tiles along dir, off the edge into the sky if
@@ -789,9 +798,13 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 			emit({t = &"snuff", shot = o.id, at = p})
 
 
-## Sets p alight if it is flammable, or whatever it is when `force`d.
+## Sets p alight if it is flammable, or whatever it is when `force`d. Water never burns.
 func _ignite(p: Vector2i, force := false) -> void:
-	if (force or Tiles.burns[tile(p)] == 1) and not burning.has(p):
+	if (
+		(force or Tiles.burns[tile(p)] == 1)
+		and not burning.has(p)
+		and not Tiles.of(tile(p), "douses")
+	):
 		burning[p] = BURN_ROUNDS
 		Scent.clear(self, p)
 		_changed()

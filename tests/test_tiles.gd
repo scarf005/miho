@@ -12,10 +12,32 @@ const WALKABLE := [
 	World.LANTERN_BROKEN,
 	World.RUBBLE,
 	World.BRIDGE,
-	World.DRUM_TORN
+	World.DRUM_TORN,
+	World.GRASS,
+	World.STRAW,
+	World.REEDS,
+	World.REEDS_FLAT,
+	World.LEAVES,
+	World.SHALLOW,
 ]
-const FLAMMABLE := [World.DOOR, World.DOOR_OPEN, World.BAMBOO, World.BOARD, World.DRUM]
-const TREAD := {World.BAMBOO: [2, "사각"], World.BOARD: [3, "삐걱"], World.BRIDGE: [3, "삐걱"]}
+const FLAMMABLE := [
+	World.DOOR,
+	World.DOOR_OPEN,
+	World.BAMBOO,
+	World.BOARD,
+	World.DRUM,
+	World.GRASS,
+	World.STRAW,
+	World.LEAVES,
+]
+const TREAD := {
+	World.BAMBOO: [2, "사각"],
+	World.BOARD: [3, "삐걱"],
+	World.BRIDGE: [3, "삐걱"],
+	World.REEDS: [2, "바스락"],
+	World.LEAVES: [2, "바스락"],
+	World.SHALLOW: [2, "철벅"],
+}
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,
 	World.WALL_CRACKED: World.RUBBLE,
@@ -29,7 +51,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.DRUM_TORN + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.PILLAR + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -44,8 +66,8 @@ func test_each_kind_has_the_walk_burn_tread_and_break_it_always_had() -> void:
 
 
 func test_the_masks_for_rust_keep_their_old_tests() -> void:
-	var blocks_light := [World.WALL, World.WALL_CRACKED, World.BAMBOO]
-	var blocks_sight: Array = blocks_light + [World.DOOR]
+	var blocks_light := [World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR]
+	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS]
 	for t in 256:
 		assert_eq(Tiles.sight[t] == 1, blocks_sight.has(t), "sight %d" % t)
 		assert_eq(Tiles.light[t] == 0, blocks_light.has(t), "light %d" % t)
@@ -68,11 +90,22 @@ func test_worlds_of_several_seeds_follow_the_old_tables_at_every_tile() -> void:
 			assert_eq(Terrain.breakable(w, p), BREAKS.has(t) and (inner or not wall), str(p))
 
 
-func test_every_kind_that_burns_takes_fire_at_half_a_chance_each_second() -> void:
+func test_grass_takes_fire_at_15_percent_and_every_other_kind_at_half() -> void:
 	for t in 256:
-		assert_eq(Tiles.of(t, "spread"), 0.5, "spread %d" % t)
+		assert_eq(Tiles.of(t, "spread"), 0.15 if t == World.GRASS else 0.5, "spread %d" % t)
 
 
-func test_only_bamboo_holds_no_scent() -> void:
+func test_only_bamboo_and_shallow_water_hold_no_scent() -> void:
+	var scentless := [World.BAMBOO, World.SHALLOW]
 	for t in 256:
-		assert_eq(Tiles.of(t, "scentless"), t == World.BAMBOO, "scentless %d" % t)
+		assert_eq(Tiles.of(t, "scentless"), scentless.has(t), "scentless %d" % t)
+
+
+func test_only_shallow_water_is_never_taken_by_fire() -> void:
+	for t in 256:
+		assert_eq(Tiles.of(t, "douses"), t == World.SHALLOW, "douses %d" % t)
+
+
+func test_only_reeds_lie_flat_when_stepped_on() -> void:
+	for t in 256:
+		assert_eq(Tiles.of(t, "trample"), World.REEDS_FLAT if t == World.REEDS else -1, str(t))

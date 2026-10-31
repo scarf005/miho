@@ -24,6 +24,9 @@ extends RefCounted
 ##
 ## A window in an outer wall blocks walking but not sight or light, and breaks
 ## to floor with a clang when Miho walks into it or an orb strikes it.
+##
+## Reeds block sight until a creature steps onto them: they lie flat. A pillar
+## blocks walking, sight and light, and never breaks.
 
 ## How far a sliding door is heard.
 const SLIDE := 3
@@ -61,6 +64,15 @@ static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	var word := "찌익" if w.tile(at) == World.DRUM else "쨍"
 	hit(w, at)
 	w.noise(at, World.KNOCK, word, true, me.id)
+
+
+## A creature steps onto reeds at `at`: they lie flat, and sight clears.
+static func trample(w: World, at: Vector2i) -> void:
+	var was := w.tile(at)
+	var flat: int = Tiles.of(was, "trample")
+	if flat >= 0:
+		w.set_tile(at, flat)
+		w.emit({t = &"trample", at = at, was = was})
 
 
 ## `by` slides the closed door at `at` open; its move is spent.

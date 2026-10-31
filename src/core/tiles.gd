@@ -11,8 +11,9 @@ extends RefCounted
 ## breaks_to: what a hit leaves of it (the outermost ring of the map never
 ## breaks). tread: [how far a step onto it is heard, the word for it].
 ## knock: Miho knocks it by walking into it. wall: a wall, cracked or not.
-## spread: the chance each second that fire next to it takes it. scentless: a
-## trail laid on it is lost.
+## spread: the chance each second that fire next to it takes it. douses: fire
+## never takes it, even a burning creature standing on it. trample: what it
+## becomes when a creature steps onto it. scentless: a trail laid on it is lost.
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -59,6 +60,14 @@ const ROWS := {
 	World.DOOR_OPEN: {name = "열린 문", walk = true, burns = true},
 	World.DRUM: {name = "북", health = 1, knock = true, burns = true, breaks_to = World.DRUM_TORN},
 	World.DRUM_TORN: {name = "찢어진 북", walk = true},
+	World.GRASS: {name = "풀", walk = true, burns = true, spread = 0.15},
+	World.STRAW: {name = "마른 짚", walk = true, burns = true},
+	World.REEDS:
+	{name = "갈대", walk = true, sight = true, tread = [2, "바스락"], trample = World.REEDS_FLAT},
+	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true},
+	World.LEAVES: {name = "낙엽", walk = true, burns = true, tread = [2, "바스락"]},
+	World.SHALLOW: {name = "얕은 물", walk = true, tread = [2, "철벅"], douses = true, scentless = true},
+	World.PILLAR: {name = "기둥", sight = true, light = false},
 }
 const DEFAULT := {
 	name = "",
@@ -73,6 +82,8 @@ const DEFAULT := {
 	knock = false,
 	wall = false,
 	spread = 0.5,
+	douses = false,
+	trample = -1,
 	scentless = false,
 }
 

@@ -284,10 +284,9 @@ func test_miho_tells_her_claws_sight_footsteps_and_conditions() -> void:
 	var text := Info.plain(Info.creature(w, me))
 	assert_string_contains(text, "발톱: 피해 %d, 기습 시 %d" % [World.CLAW, World.CLAW * World.SNEAK])
 	assert_string_contains(text, "어둠 속 시야 %d칸" % World.NIGHT[Actor.FOX])
-	var steps := "발소리: 대숲 %d칸, 마루 %d칸, 하늘다리 %d칸"
-	var loud := [World.BAMBOO, World.BOARD, World.BRIDGE].map(
-		func(t): return Tiles.of(t, "tread")[0]
-	)
+	var steps := "발소리: 대숲 %d칸, 마루 %d칸, 하늘다리 %d칸, 갈대 %d칸, 낙엽 %d칸, 얕은 물 %d칸"
+	var kinds := [World.BAMBOO, World.BOARD, World.BRIDGE, World.REEDS, World.LEAVES, World.SHALLOW]
+	var loud := kinds.map(func(t): return Tiles.of(t, "tread")[0])
 	assert_string_contains(text, steps % loud)
 	assert_string_contains(text, "눈이 멀었다 (2초)")
 	assert_string_contains(text, "묶여 있다 (1초)")
