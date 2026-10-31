@@ -5,14 +5,15 @@ extends RefCounted
 ##
 ## At the cast the caster's foes in its sight line up by (distance, id). A
 ## homing orb takes the nearest. Wisps fill each foe in turn up to what its
-## health needs, and the wisps left over go to the nearest. A projectile whose
-## creature has fallen, or that had none, takes the nearest foe it sees from
-## where it is; others keep theirs.
+## health needs (harmless wisps all take the nearest), and the wisps left over
+## go to the nearest. A projectile whose creature has fallen, or that had none,
+## takes the nearest foe it sees from where it is; others keep theirs.
 ##
 ## Each tile, a breadth-first search from the creature over the tiles a
 ## projectile may fly through (Masks.fly) gives the distance of every tile to
 ## it, and the projectile takes the neighbour one tile nearer, within its turn
-## (Shot.turn): straight on first, then the smallest turns, left before right.
+## (Shot.turn; any way for a hovering wisp, which has no heading): straight on
+## first, then the smallest turns, left before right.
 ## With no such neighbour it flies straight on, and so may lose its creature
 ## round a corner it cannot turn.
 
@@ -34,7 +35,7 @@ static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
 		return out
 	var i := 0
 	for a: Actor in foes:
-		var need := ceili(float(a.hp) / spell.damage(0))
+		var need := ceili(float(a.hp) / maxi(1, spell.damage(0)))
 		for k in mini(need, out.size() - i):
 			out[i + k] = a.id
 		i += mini(need, out.size() - i)
@@ -60,8 +61,10 @@ static func steer(w: World, s: Shot) -> Vector2i:
 	if here <= 0:
 		return s.dir
 	var i := maxi(0, Grid.DIRS.find(s.dir))
+	# A hovering wisp has no heading: it sets off whichever way.
+	var turn := s.turn if s.dir != Vector2i.ZERO else Spell.TURN_FREE
 	for k: int in TURNS:
-		if absi(k) > s.turn:
+		if absi(k) > turn:
 			continue
 		var d := Grid.DIRS[(i + k + 8) % 8]
 		var p := s.pos + d

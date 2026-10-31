@@ -45,7 +45,8 @@ func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 
 
 func test_one_talisman_is_power_one_and_every_copy_adds_one() -> void:
-	assert_eq(Spell.make([FOX]).damage(0), 1, "a wisp")
+	assert_eq(Spell.make([FOX]).damage(0), 0, "a lone wisp: none")
+	assert_eq(Spell.make([FOX, FOX]).damage(0), 1, "each of two wisps")
 	assert_eq(Spell.make([FOX, FOX, FOX]).damage(0), 1, "each of three wisps")
 	assert_eq(Spell.make([FOX, FOX, FOX]).shots(), 3)
 	assert_eq(Spell.make([FOX, Cards.FIRE, Cards.FIRE]).damage(0), 2, "불 again: +1")
@@ -55,12 +56,32 @@ func test_one_talisman_is_power_one_and_every_copy_adds_one() -> void:
 	assert_eq(Spell.make([FOX, ORB, ORB]).damage(0), 2, "a homing orb too")
 
 
+func test_a_lone_wisp_does_no_harm_and_turns_45_degrees_a_tile() -> void:
+	assert_eq(Spell.make([FOX]).damage(0), 0, "one tail: no harm")
+	assert_eq(Spell.make([FOX]).turn(), 1)
+	assert_eq(Spell.make([FOX, FOX]).damage(0), 1, "two tails: each wisp hits for 1")
+	assert_eq(Spell.make([FOX, FOX]).turn(), 2, "45° more for every 여")
+	assert_eq(Spell.make([FOX, FOX, FOX, FOX]).turn(), Spell.TURN_FREE)
+	var w := _world()
+	var foe := _foe(w, &"jangseung", Vector2i(5, 8))
+	w.act(_cast([FOX], E))
+	assert_eq(foe.hp, foe.max_hp, "it strikes and does nothing")
+	assert_true(w.shots.is_empty(), "it is spent on the creature")
+
+
+func test_harmless_wisps_all_go_for_the_nearest() -> void:
+	var w := _world()
+	var a := _foe(w, &"imugi", Vector2i(6, 8))
+	_foe(w, &"jangseung", Vector2i(4, 11))
+	assert_eq(Homing.targets(w, w.player(), Spell.make([FOX])), [a.id] as Array[int])
+
+
 func test_homing_orbs_turn_45_degrees_more_for_every_fox_and_freely_with_four() -> void:
 	assert_eq(Spell.make([ORB]).turn(), 0)
 	assert_eq(Spell.make([FOX, ORB]).turn(), 1)
 	assert_eq(Spell.make([FOX, FOX, ORB]).turn(), 2)
 	assert_eq(Spell.make([FOX, FOX, FOX, FOX, ORB]).turn(), Spell.TURN_FREE)
-	assert_eq(Spell.make([FOX]).turn(), Spell.TURN_FREE, "a wisp turns freely")
+	assert_eq(Spell.make([FOX]).turn(), 1, "a wisp turns like a homing orb")
 
 
 func test_extra_copies_of_an_element_root_and_stun_a_round_longer() -> void:
@@ -148,15 +169,15 @@ func test_only_a_wisp_whose_creature_fell_takes_another() -> void:
 	assert_eq(b.hp, 0, "the second kept its own")
 
 
-func test_a_wisp_flies_round_a_wall_to_its_creature() -> void:
+func test_wisps_of_four_foxes_fly_round_a_wall_to_their_creature() -> void:
 	var w := _world()
 	for y in range(1, 11):
 		_put(w, Vector2i(8, y), World.WINDOW)
 	_put(w, Vector2i(13, 8), World.LANTERN)
 	var foe := _foe(w, &"jangseung", Vector2i(12, 8))
-	var events := w.act(_cast([FOX])) + w.act(WAIT) + w.act(WAIT) + w.act(WAIT)
+	var events := w.act(_cast([FOX, FOX, FOX, FOX])) + w.act(WAIT) + w.act(WAIT) + w.act(WAIT)
 	var tiles := events.filter(func(e): return e.t == &"fly").map(func(e): return e.to)
-	assert_eq(foe.hp, 2, "it got there")
+	assert_lt(foe.hp, foe.max_hp, "they got there")
 	assert_true(tiles.has(Vector2i(8, 11)), "under the windows")
 	assert_false(tiles.any(func(p): return w.tile(p) == World.WINDOW))
 
@@ -218,11 +239,11 @@ func test_the_forecast_of_a_cast_of_wisps_is_what_the_round_does() -> void:
 	assert_true(f.paths.values().all(func(p): return p.target != 0), "each wisp chases someone")
 
 
-func test_a_wisp_strikes_the_creature_it_chases_for_one() -> void:
+func test_two_wisps_strike_the_creature_they_chase_for_one_each() -> void:
 	var w := _world()
 	var foe := _foe(w, &"jangseung", Vector2i(7, 8))
-	w.act(_cast([FOX], E))
-	assert_eq(foe.hp, 2)
+	w.act(_cast([FOX, FOX], E))
+	assert_eq(foe.hp, foe.max_hp - 2)
 	assert_true(w.shots.is_empty())
 
 
@@ -232,7 +253,10 @@ func test_a_hovering_wisp_chases_the_first_creature_it_then_sees() -> void:
 	w.act(WAIT)
 	var wisp: Shot = w.shots[0]
 	var foe := _foe(w, &"jangseung", Vector2i(13, 9))
-	w.act(WAIT)
-	assert_eq(foe.hp, 2, "it saw the creature from its light and struck it")
+	for i in 4:
+		if not wisp.gone:
+			w.act(WAIT)
+	assert_true(wisp.target == foe.id, "it took the creature it saw")
+	assert_eq(foe.hp, foe.max_hp, "a lone wisp strikes for nothing")
 	assert_true(w.shots.is_empty())
 	assert_true(wisp.gone)

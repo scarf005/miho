@@ -9,7 +9,8 @@ extends RefCounted
 ## The shape is read top down: 여 and 구 make a homing orb that turns 45° more
 ## each tile for every 여 (freely with four); 구 alone a loud straight orb, 1
 ## damage for every 구 and 1 more after a run-up (DCSS mon-project.cc
-## iood_damage); 여 alone a wisp for every 여, each hitting for 1. Homing
+## iood_damage); 여 alone a wisp for every 여, each hitting for 1 (a lone 여
+## for none), turning like a homing orb. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
@@ -176,11 +177,9 @@ func shots() -> int:
 
 
 ## How far a projectile may turn each tile, in steps of 45°; TURN_FREE turns
-## any way. A homing orb turns 45° more for every 여, a wisp turns freely.
+## any way. A wisp or a homing orb turns 45° for every 여.
 func turn() -> int:
-	if shape == WISP:
-		return TURN_FREE
-	return mini(count(Cards.FOX), TURN_FREE) if homing() else 0
+	return mini(count(Cards.FOX), TURN_FREE) if shape == WISP or homing() else 0
 
 
 ## Copies of an element past the first: each makes its effect one step stronger.
@@ -189,11 +188,11 @@ func extra(element: StringName) -> int:
 
 
 ## Damage on a direct hit by a projectile that has come `distance` tiles from
-## its caster: 1 a wisp, Elements.BULLET a bullet, an orb 1 for every 구 and
-## 1 more after a run-up, Elements.CANNON more a cannonball, and 1 more for
-## every 불 or 쇠 past the first.
+## its caster: 1 a wisp (none from a lone 여, one tail), Elements.BULLET a
+## bullet, an orb 1 for every 구 and 1 more after a run-up, Elements.CANNON
+## more a cannonball, and 1 more for every 불 or 쇠 past the first.
 func damage(distance: int) -> int:
-	var n := Elements.BULLET if has(Cards.METAL) else 1
+	var n := Elements.BULLET if has(Cards.METAL) else (0 if cost() == 1 else 1)
 	if orb:
 		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)
 		n += Elements.CANNON if has(Cards.METAL) else 0

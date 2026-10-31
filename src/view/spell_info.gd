@@ -186,7 +186,9 @@ static func _shape(s: Spell) -> Array:
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", "여우불 %d발. 보이는 적을 체력만큼 나눠 쫓는다" % s.shots()))
-			lines.append(_line("피해", "발마다 %d" % s.damage(0), Palette.HURT))
+			var harm := "발마다 %d" % s.damage(0) if s.damage(0) > 0 else "없음"
+			lines.append(_line("피해", harm, Palette.HURT))
+			lines.append(_line("꺾임", "한 칸에 " + TURN_NAME[s.turn()]))
 			lines.append(_line("노릴 적이 없으면", "%d칸 날아가 %d초 떠 있는다" % [Spell.RANGE, Spell.WISP_LIFE]))
 		Spell.HOMING:
 			lines.append(_line("모양", "유도 구슬. 가장 가까운 적을 쫓는다"))
