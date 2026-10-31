@@ -200,6 +200,9 @@ func show_world(w: World) -> void:
 		var p := Grid.at(i)
 		if w.tiles[i] == World.LANTERN:
 			_lanterns.append(_flame(w, p, Light.LANTERN_RADIUS, Light.LANTERN, false))
+		if Light.GLOW.has(w.tiles[i]):
+			var glow: Dictionary = Light.GLOW[w.tiles[i]]
+			_lanterns.append(_flame(w, p, glow.radius, glow.color, false))
 		if w.burning.has(p):
 			_lanterns.append(_flame(w, p, Light.FIRE_RADIUS, Light.FIRE, true))
 	settled.emit(w)

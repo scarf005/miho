@@ -216,6 +216,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"unseal":
 			return _named(Tiles.of(World.SEAL, "name"), "이", "가") + [[" 열렸다", TEXT]]
+		&"altar":
+			var altar := _named(Tiles.of(World.ALTAR_LIT, "name"), "이", "가")
+			return altar + [[" 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다", TEXT]]
+		&"read":
+			return [["두루마리를 읽었다. 이 층의 지도가 드러났다", TEXT]]
+		&"creak":
+			return [["마루의 해태가 쓰러졌다. 꼬리가 모두 돌아왔다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

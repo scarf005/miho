@@ -487,7 +487,7 @@ func test_a_vent_alone_does_not_flood_the_storey() -> void:
 
 func test_fog_ponds_of_built_storeys_keep_their_bank_for_300_rounds() -> void:
 	var seen := 0
-	for s in [1, 5, 6, 10]:
+	for s in [1, 5, 6, 9]:
 		var w := _fog_storey(s)
 		assert_false(w.vents.is_empty(), "seed %d has a fog pond" % s)
 		var most := 0

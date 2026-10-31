@@ -6,6 +6,8 @@ extends GutTest
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
 const SEEDS := 6
+## What a feature laid after the exit was picked may add to a route, breaking a tie.
+const DECOR := 1
 ## The hidden door in the wall column of `_world`.
 const SECRET := Vector2i(7, 8)
 
@@ -89,7 +91,7 @@ func test_miho_starts_in_the_westmost_room_and_the_exit_is_in_the_farthest() -> 
 		var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
 		for r in w.rooms:
 			var centre := r.position + r.size / 2
-			assert_lte(dist[Grid.index(centre)], dist[Grid.index(exit)], _label(w))
+			assert_lte(dist[Grid.index(centre)], dist[Grid.index(exit)] + DECOR, _label(w))
 
 
 func test_the_storey_is_whole_with_hidden_doors_and_plates_counted_as_walls() -> void:

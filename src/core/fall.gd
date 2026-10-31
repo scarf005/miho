@@ -58,10 +58,10 @@ static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 static func _drop(w: World, me: Actor, into: Vector2i) -> void:
 	w.emit({t = &"fall", id = me.id, from = me.pos, at = into, depth = w.depth - 1})
 	w.depth -= 1
-	w.tails = mini(w.tails, w.max_tails())
 	w.scent.clear()
 	for s in w.shots:
 		s.gone = true
 	FloorGen.build(w)
+	w.tails = mini(w.tails, w.max_tails())
 	w._changed()
 	w.sense()

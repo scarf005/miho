@@ -18,6 +18,8 @@ extends RefCounted
 ## trap: a plate in the floor that goes off when a creature steps onto it (Traps).
 ## Heaven walks round it, and so does a walk Miho has planned. It is floor, not
 ## this tile kind, until Miho finds it.
+## opens: it shuts the way now and is gone in time (a seal opens, a veil goes
+## out), so the storey is whole without it (FloorGen.connected).
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -100,7 +102,14 @@ const ROWS := {
 	World.TRAP_FIRE: {name = "불씨 함정", walk = true, trap = true},
 	World.TRAP_VINE: {name = "덩굴 함정", walk = true, trap = true},
 	World.VERANDA: {name = "쪽마루", walk = true, burns = true, tread = [3, "삐걱"]},
-	World.SEAL: {name = "봉인문", sight = true, light = false, gas = false},
+	World.SEAL: {name = "봉인문", sight = true, light = false, gas = false, opens = true},
+	World.ALTAR: {name = "혼불 제단"},
+	World.ALTAR_LIT: {name = "타오르는 제단"},
+	World.VEIL: {name = "도깨비불 장막", opens = true},
+	World.LAMP: {name = "석등"},
+	World.TALISMAN: {name = "부적 단", walk = true},
+	World.SHELF: {name = "두루마리 서가", walk = true, burns = true},
+	World.SHELF_READ: {name = "읽은 서가", walk = true, burns = true},
 }
 const DEFAULT := {
 	name = "",
@@ -120,6 +129,7 @@ const DEFAULT := {
 	scentless = false,
 	gas = true,
 	trap = false,
+	opens = false,
 }
 
 ## One byte per tile kind, 1 where the column holds: the tables Masks feeds to Rust.
@@ -130,6 +140,9 @@ static var burns := _flags("burns")
 static var knock := _flags("knock")
 static var wall := _flags("wall")
 static var gas := _flags("gas")
+static var opens := _flags("opens")
+## Walkable once everything that `opens` has.
+static var reachable := Grid.table(func(t): return of(t, "walk") or of(t, "opens"))
 
 
 ## The value of `column` for tile kind `t`.

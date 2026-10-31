@@ -38,6 +38,8 @@ var noted := 0
 ## The ids of the changes (Notice) it has seen and reacted to.
 var marked: Array[int] = []
 var sees_me := false
+## A guard (Yard) never sleeps: it keeps its eyes open at its post.
+var guard := false
 ## The drum it runs to strike instead of attacking (Drums), or (-1, -1).
 var drum := Vector2i(-1, -1)
 ## Where it rests, and where a patrol is heading.
@@ -67,7 +69,7 @@ func alive() -> bool:
 ## Resting at its home with its eyes shut: it sees nothing, even the tiles next
 ## to it, until noise or a wound wakes it. One that walks while resting (a
 ## patrol, or one on its way home) is awake, and one that always knows where
-## Miho is (`hunts`) never sleeps.
+## Miho is (`hunts`), or guards a yard (`guard`), never sleeps.
 func asleep() -> bool:
 	return (
 		faction == HEAVEN
@@ -75,6 +77,7 @@ func asleep() -> bool:
 		and pos == home
 		and not info().get("patrol", false)
 		and not info().get("hunts", false)
+		and not guard
 	)
 
 
@@ -131,6 +134,7 @@ func clone() -> Actor:
 		"wary",
 		"noted",
 		"sees_me",
+		"guard",
 		"drum",
 		"home",
 		"post",

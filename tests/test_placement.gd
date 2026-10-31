@@ -182,7 +182,10 @@ func test_a_gas_patch_grows_like_a_tile_patch_and_leaves_the_tiles_alone() -> vo
 func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 	for w in _storeys_built:
 		var goal: Vector2i = w.elixir if w.elixir.x >= 0 else w.stairs
+		var library := w.sites.any(func(s): return s.kind == &"library")
 		for kind: int in KINDS:
+			if kind == World.STRAW and library:
+				continue
 			for p in _tiles_of(w, kind):
 				assert_true(
 					w.rooms.any(func(r: Rect2i): return r.has_point(p)), "%s is in a room" % p
@@ -195,7 +198,7 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 
 func test_a_storey_with_patches_stays_connected_with_its_start_and_stairs_free() -> void:
 	for w in _storeys_built:
-		var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):

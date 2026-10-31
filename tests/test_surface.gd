@@ -53,7 +53,7 @@ func _catch_rate(kind: int) -> float:
 		_put(w, NEXT, kind)
 		w.burning.clear()
 		w.burning[SOURCE] = World.BURN_ROUNDS
-		w._burn()
+		Terrain.burn(w, w.burning.keys())
 		caught += 1 if w.burning.has(NEXT) else 0
 	return float(caught) / TRIALS
 

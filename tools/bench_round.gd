@@ -24,7 +24,7 @@ func _init() -> void:
 		Mind.heaven_phase(w)
 		cost.heaven += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
-		w._burn()
+		Terrain.burn(w, w.burning.keys())
 		cost.burn += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
 		Gas.tick(w)

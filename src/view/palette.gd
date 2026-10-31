@@ -48,6 +48,13 @@ const TILES := {
 	World.TRAP_VINE: ["^", Color(0.45, 0.86, 0.4), Color(0.06, 0.16, 0.06)],
 	World.VERANDA: ["=", Color(0.92, 0.78, 0.52), Color(0.1, 0.09, 0.14)],
 	World.SEAL: ["+", Color(0.95, 0.3, 0.25), Color(0.3, 0.06, 0.05)],
+	World.ALTAR: ["†", Color(0.62, 0.72, 0.95), Color(0.1, 0.12, 0.2)],
+	World.ALTAR_LIT: ["†", Color(0.55, 0.92, 1.0), Color(0.1, 0.3, 0.4)],
+	World.VEIL: ["╫", Color(1.0, 0.5, 0.14), Color(0.4, 0.1, 0.02)],
+	World.LAMP: ["¶", Color(1.0, 0.82, 0.4), Color(0.22, 0.15, 0.05)],
+	World.TALISMAN: ["◊", Color(0.5, 0.95, 0.9), Color(0.08, 0.22, 0.2)],
+	World.SHELF: ["▒", Color(0.95, 0.8, 0.45), Color(0.24, 0.16, 0.07)],
+	World.SHELF_READ: ["▒", Color(0.55, 0.5, 0.42), Color(0.13, 0.11, 0.09)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]

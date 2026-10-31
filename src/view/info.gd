@@ -46,7 +46,7 @@ static func at(w: World, p: Vector2i) -> Array:
 static func creature(w: World, a: Actor) -> Array:
 	if a.faction == Actor.FOX:
 		return _miho(w, a, _head(a))
-	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
+	return _profile(a) + _situation(w, a) + _site_lines(w, a) + _arms(a, w.cards)
 
 
 ## What a creature is, whatever its state: the 도감's text. `held` are the
@@ -86,6 +86,8 @@ static func state(a: Actor) -> String:
 		return STATE[a.alert]
 	if a.asleep():
 		return "자는 중"
+	if a.guard and a.pos == a.home:
+		return "지키는 중"
 	if a.following():
 		return "따라가는 중"
 	if a.info().get("patrol", false):
@@ -277,6 +279,11 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	if (
+		Veil.scorches(w, a.pos)
+		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+	):
+		out.append(_amount("도깨비불 장막 곁. 매 초 피해 ", World.FIRE_DAMAGE))
 	for s in w.shots:
 		if s.host == a.id and not s.gone:
 			var title := s.spell.title()
@@ -344,6 +351,8 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	var out := [WITS[Bestiary.wits(a.kind)]]
 	if spec.get("patrol", false):
 		out.append("순찰")
+	if a.guard:
+		out.append("잠들지 않음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리 %d칸" % spec.step)
 	if elements.has(Cards.WOOD):
@@ -361,14 +370,15 @@ static func _traits(a: Actor, elements: Array) -> Array:
 ## A tile as the hover tells it: what it is, then how well it is lit and seen.
 static func terrain(w: World, p: Vector2i) -> Array:
 	var t := w.tile(p)
-	var lines := terrain_facts(w, p)
+	var lines := terrain_facts(w, p, true)
 	if Tiles.sight[t] == 0 or Tiles.walk[t] == 1:
 		lines.append(_light_line(w, p))
 	return lines
 
 
-## What a tile is and does, whatever the light: the 도감's text.
-static func terrain_facts(w: World, p: Vector2i) -> Array:
+## What a tile is and does, whatever the light: the 도감's text. The hover also
+## tells how much gas lies on it (`now`).
+static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var t := w.tile(p)
 	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
@@ -391,10 +401,10 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 			% [lanterns.filter(func(q): return w.tile(q) == World.LANTERN).size(), lanterns.size()]
 		)
 		if seal == p:
-			notes.append("꺼진 등불 셋이 모두 켜지면 열린다 " + lit)
-			notes.append("등불이 하나라도 부서지면 영영 닫힌다")
+			notes.append("켜진 등불 " + lit)
 		elif lanterns.has(p):
 			notes.append("봉인문의 등불 " + lit)
+	notes.append_array(_sites(w, p))
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
@@ -408,7 +418,7 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 		var spec: Dictionary = Compounds.HOT[h.x]
 		lines.append([["%s. %d초 뒤 식는다" % [spec.name, h.y], Palette.HURT]])
 		lines.append(_amount("서 있으면 매 초 피해 ", spec.harm))
-	lines.append_array(_gas(w, p))
+	lines.append_array(_gas(w, p, now))
 	if w.vents.has(p):
 		var vent := [
 			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
@@ -446,10 +456,59 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 	return [["물에 젖으면 %d초 동안 소리가 없다" % Drums.WET_ROUNDS, Palette.DIM]]
 
 
+## What the creature's fall would bring in an event room (Creak).
+static func _site_lines(w: World, a: Actor) -> Array:
+	var out := []
+	for site: Dictionary in w.sites:
+		if site.kind == &"creak" and site.id == a.id:
+			out.append([["마루의 해태. 쓰러지면 꼬리가 모두 돌아온다", Palette.TEXT]])
+	return out
+
+
+## How the event room whose tile p is stands now (EventRooms).
+static func _sites(w: World, p: Vector2i) -> Array[String]:
+	var out: Array[String] = []
+	for site: Dictionary in w.sites:
+		if site.at == p and site.kind == &"altar":
+			out.append("쓰러진 생물 (%d/%d)" % [site.fallen, Altar.NEED])
+		if site.at == p and site.kind == &"yard":
+			var card := Yard.prize(w, site)
+			out.append("얻는 부적: %s" % (Cards.NAME[card] if card != &"" else "없음. 모두 가졌다"))
+	return out
+
+
 ## What a kind of tile does, one short sentence each; numbers from the rules.
 static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	var out: Array[String] = []
 	match t:
+		World.SEAL:
+			out.append("길과 시야와 빛을 막는다. 부술 수 없다")
+			out.append("앞방의 꺼진 등불 셋이 모두 켜지면 열린다")
+			out.append("등불이 하나라도 부서지면 영영 닫힌다")
+		World.ALTAR:
+			out.append("길과 주문을 막는다")
+			out.append("주위 %d칸 안에서 하늘의 생물이 %d번 쓰러지면 타오른다" % [Altar.REACH, Altar.NEED])
+			out.append("하늘로 밀려 떨어져도 센다")
+			out.append("타오르면 꼬리가 모두 돌아오고 이 층에서 하나 더 돋는다")
+		World.ALTAR_LIT:
+			out.append("길과 주문을 막는다")
+			out.append("주위 %d칸을 밝힌다" % Light.SOUL_RADIUS)
+		World.LAMP:
+			out.append("길과 주문을 막는다. 부술 수 없고 꺼지지 않는다")
+			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
+		World.TALISMAN:
+			out.append("밟으면 아직 없는 원소 부적 하나를 얻는다")
+			out.append("한 번뿐이다. 지키는 장승은 잠들지 않는다")
+		World.SHELF:
+			out.append("밟으면 두루마리를 읽어 이 층의 지도가 드러난다")
+			out.append("한 번뿐이다. 서고의 서가가 모두 읽은 서가가 된다")
+		World.SHELF_READ:
+			out.append("이미 읽었다")
+		World.VEIL:
+			out.append("길과 주문을 막는다. 시야는 막지 않는다")
+			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
+			out.append("곁에 선 채 초가 끝나면 매 초 피해 %d. 불을 먹는 적은 입지 않는다" % World.FIRE_DAMAGE)
+			out.append("물 주문이 닿으면 재가 되고, 서리가 닿으면 얼음이 되어 건널 수 있다")
 		World.DOOR:
 			out.append("닫혀 있다. 시야는 막고 빛은 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
@@ -531,15 +590,19 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	return out
 
 
-## The gas on a tile in sight: kind and amount, whether it blocks sight, how fast
-## it thins, its harm and what it wets. Tiles out of sight keep no gas.
-static func _gas(w: World, p: Vector2i) -> Array:
+## The gas on a tile in sight: kind, how fast it thins, its harm and what it
+## wets, and, when `now`, how much lies there and whether that blocks sight (the
+## 도감 tells what the gas is, not how much). Tiles out of sight keep no gas.
+static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	var g := Gas.at(w, p)
 	if g.x < 0 or w.seen[Grid.index(p)] == 0:
 		return []
 	var color: Color = Palette.GAS[g.x][1]
-	var out := [[[Gas.of(g.x, "name"), color], [" %d/%d" % [g.y, Gas.MAX], Palette.DIM]]]
-	var sight := "시야를 막는다" if g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
+	var head := [[Gas.of(g.x, "name"), color]]
+	if now:
+		head.append([" %d/%d" % [g.y, Gas.MAX], Palette.DIM])
+	var out := [head]
+	var sight := "시야를 막는다" if now and g.y >= Gas.OPAQUE else "%d 이상 모이면 시야를 막는다" % Gas.OPAQUE
 	out.append([[sight, Palette.DIM]])
 	out.append([["매 초 %d%% 로 1씩 줄어든다" % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:

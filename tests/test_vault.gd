@@ -25,7 +25,7 @@ func _label(w: World) -> String:
 
 ## Every walkable tile reachable from the start: with the seals shut, or open.
 func _reach(w: World, open: bool) -> PackedInt32Array:
-	var mask := Masks.floor_of(w, w.seals.keys(), func(_p): return open)
+	var mask := Masks.opened(w) if open else Masks.floor_of(w)
 	return Grid.search(w.start, mask).dist
 
 
@@ -151,6 +151,8 @@ func test_a_clone_keeps_the_seal_and_its_lanterns() -> void:
 func test_hovering_the_seal_or_one_of_its_lanterns_tells_how_many_are_lit() -> void:
 	var w := _world()
 	_light(w, 2)
-	assert_string_contains(Info.plain(Info.terrain(w, SEAL)), "꺼진 등불 셋이 모두 켜지면 열린다 (2/3)")
+	var seal := Info.plain(Info.terrain(w, SEAL))
+	assert_string_contains(seal, "꺼진 등불 셋이 모두 켜지면 열린다")
+	assert_string_contains(seal, "켜진 등불 (2/3)")
 	assert_string_contains(Info.plain(Info.terrain(w, LANTERNS[2])), "봉인문의 등불 (2/3)")
 	assert_false(Info.plain(Info.terrain(w, Vector2i(20, 8))).contains("봉인문"))

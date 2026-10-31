@@ -71,6 +71,9 @@ extends RefCounted
 ##
 ## Each storey climbed gives back one health.
 ##
+## A storey may hold one event room, built by hand, whose reward is used on the
+## spot: see EventRooms.
+##
 ## Miho grows one more tail every third storey (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
@@ -131,6 +134,13 @@ const TRAP_FIRE := 31
 const TRAP_VINE := 32
 const VERANDA := 33
 const SEAL := 34
+const ALTAR := 35
+const ALTAR_LIT := 36
+const VEIL := 37
+const LAMP := 38
+const TALISMAN := 39
+const SHELF := 40
+const SHELF_READ := 41
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -160,6 +170,10 @@ var traps := {}
 var secrets := {}
 ## Seals: position -> the dark lanterns that open it once all are lit (Terrain).
 var seals := {}
+## The event rooms' state on this storey (EventRooms): {kind, at, ...} each.
+var sites: Array[Dictionary] = []
+## Tails this storey allows beyond max_tails' count by depth (Altar).
+var tail_bonus := 0
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -224,6 +238,8 @@ func clone() -> World:
 	w.traps = traps.duplicate()
 	w.secrets = secrets.duplicate()
 	w.seals = seals.duplicate(true)
+	w.sites.assign(sites.duplicate(true))
+	w.tail_bonus = tail_bonus
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -269,7 +285,7 @@ func player() -> Actor:
 
 
 func max_tails() -> int:
-	return 1 + (depth - 1) / TAIL_EVERY
+	return 1 + (depth - 1) / TAIL_EVERY + tail_bonus
 
 
 ## The difficulty step of this storey: 1 to 9, each lasting TAIL_EVERY storeys.
@@ -520,10 +536,11 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				cast(me, spell, one.dir)
 	_shots_phase()
 	Mind.heaven_phase(self)
-	_burn(alight)
+	Terrain.burn(self, alight)
 	Compounds.tick(self)
 	Gas.tick(self)
 	Terrain.unseal(self)
+	EventRooms.tick(self)
 	Guise.tick(self)
 	Lure.tick(self)
 	_end_round()
@@ -605,6 +622,7 @@ func arrive(me: Actor) -> bool:
 		me.max_hp += HEAL if grew else 0
 		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+	EventRooms.arrive(self, me)
 	return false
 
 
@@ -892,39 +910,6 @@ func ignite(p: Vector2i, force := false, wildfire := false) -> void:
 		emit({t = &"ignite", at = p})
 
 
-## Each burning tile crackles, burns whoever stands in it (unless it eats
-## fire) if it was already alight when the round began, may set each flammable
-## neighbour alight (a wild one always does), and burns down to ash.
-func _burn(alight: Array = burning.keys()) -> void:
-	if outcome != &"":
-		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
-	var caught: Array[Vector2i] = []
-	for p: Vector2i in burning.keys():
-		noise(p, CRACKLE, "타닥", true, 0)
-		var a := actor_at(p)
-		if a != null and alight.has(p):
-			emit({t = &"burn", at = p, id = a.id})
-			if Bestiary.absorbs(a.kind, flame):
-				emit({t = &"absorb", id = a.id, at = p})
-			else:
-				hurt(a, FIRE_DAMAGE)
-		for d in Grid.DIRS:
-			var q := p + d
-			if Tiles.burns[tile(q)] == 1 and not burning.has(q):
-				if wild.has(p) or rng.randf() < Tiles.of(tile(q), "spread"):
-					caught.append(q)
-		burning[p] -= 1
-		if burning[p] <= 0:
-			burning.erase(p)
-			wild.erase(p)
-			set_tile(p, Tiles.of(tile(p), "burns_to"))
-			Notice.record(self, &"ash", p)
-			emit({t = &"burnout", at = p})
-	for p in caught:
-		ignite(p)
-
-
 func _end_round() -> void:
 	Drums.dry(self)
 	flares.clear()
@@ -969,12 +954,12 @@ func _prune() -> void:
 
 func _ascend() -> void:
 	depth += 1
-	tails = max_tails()
 	regrow = 0
 	scent.clear()
 	for s in shots:
 		s.gone = true
 	FloorGen.build(self)
+	tails = max_tails()
 	_changed()
 	emit({t = &"ascend", depth = depth})
 	var me := player()

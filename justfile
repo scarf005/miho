@@ -84,3 +84,8 @@ bench: rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/bench.gd
     {{ godot }} --headless --path . -s tools/bench_round.gd
+
+# Print how often each event room appears and can be opened over N seeds x 27 storeys.
+event-rooms seeds="200": rust
+    {{ godot }} --headless --path . --import
+    {{ godot }} --headless --path . -s tools/event_rooms.gd -- {{ seeds }}

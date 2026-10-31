@@ -18,6 +18,15 @@ const MUZZLE_RADIUS := 1
 ## Moonlight on skybridges: bright enough to be lit anywhere along the span.
 const MOON := Vector3(0.4, 0.5, 0.75)
 const DARK := Vector3(-1.4, -1.4, -1.4)
+## The soul fire of a lit altar.
+const SOUL := Vector3(0.4, 0.62, 1.0)
+const SOUL_RADIUS := 4
+## Tiles that always shine: tile kind -> {radius, color}.
+const GLOW := {
+	World.ALTAR_LIT: {radius = SOUL_RADIUS, color = SOUL},
+	World.VEIL: {radius = LANTERN_RADIUS, color = FIRE},
+	World.LAMP: {radius = LANTERN_RADIUS, color = LANTERN},
+}
 
 
 ## Strength (0 to 1) a source gives each tile it reaches; `opaque` as for Sight.field.
@@ -30,13 +39,19 @@ static func field(sources: Array[Dictionary], opaque: PackedByteArray) -> Packed
 	return Native.light(sources, opaque, Grid.W)
 
 
-## Every light on the storey: lanterns, fires, muzzle flashes and glowing projectiles.
+## Every light on the storey: lanterns, glowing tiles, fires, muzzle flashes
+## and glowing projectiles.
 static func sources(w: World) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var i := w.tiles.find(World.LANTERN)
 	while i >= 0:
 		out.append({at = Grid.at(i), radius = LANTERN_RADIUS, color = LANTERN})
 		i = w.tiles.find(World.LANTERN, i + 1)
+	for t: int in GLOW:
+		i = w.tiles.find(t)
+		while i >= 0:
+			out.append({at = Grid.at(i), radius = GLOW[t].radius, color = GLOW[t].color})
+			i = w.tiles.find(t, i + 1)
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
 	for p in w.flares:
