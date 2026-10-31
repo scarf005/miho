@@ -52,6 +52,7 @@ const DELAY := {
 	&"hit": 0.1,
 	&"burst": 0.1,
 	&"splash": 0.22,
+	&"blast": 0.25,
 	&"spray": 0.25,
 	&"clash": 0.1,
 	&"claw": 0.16,
@@ -87,10 +88,10 @@ var saved := {}
 var banner_lines: Array[String] = []
 ## Recent message lines over the top map rows, oldest first: [text, alpha].
 var log_lines: Array = []
-## A full-screen list over everything, or empty: {title, rows, selected}, each
-## row a list of [text, Color] runs, a run optionally starting at a given
-## column ([text, Color, x]); the selected row (-1 for none) is kept in view,
-## and with none the last rows are.
+## A full-screen list over everything, or empty: {title, rows, selected, top,
+## hover}, each row a list of [text, Color] runs, a run optionally starting at a
+## given column ([text, Color, x]); `top` is the first row shown, `selected` and
+## `hover` (-1 for none) the rows lit.
 var panel := {}
 var cols := 40
 var rows := 18
@@ -342,6 +343,9 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"sprout":
 			for p: Vector2i in e.tiles:
 				_flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))
+		&"blast":
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(Palette.BURNING[1], 0.9), 0.03 * Grid.cheb(p, e.at))
 		&"become", &"heat":
 			var color: Color = Palette.HOT[1] if e.t == &"heat" else Palette.TILES[e.tile][1]
 			for p: Vector2i in e.tiles:
@@ -772,19 +776,16 @@ func _draw_log() -> void:
 			x += _cells(run[0])
 
 
-## Rows of the panel that fit, and the first one shown.
+## Rows of a panel list that fit on `screen_rows` rows under a detail of `detail` lines.
+static func list_fits(screen_rows: int, detail: int) -> int:
+	return maxi(1, screen_rows - 4 - (detail + 1 if detail > 0 else 0))
+
+
+## Rows of the panel that fit, and the first one shown (`top`).
 func _panel_span() -> Vector2i:
-	var fits := maxi(1, rows - 4 - _detail_rows())
+	var fits := list_fits(rows, panel.get("detail", []).size())
 	var count: int = panel.rows.size()
-	var selected: int = panel.get("selected", -1)
-	var first := count - fits if selected < 0 else selected - fits / 2
-	return Vector2i(clampi(first, 0, maxi(0, count - fits)), fits)
-
-
-## Rows the panel's detail takes at its foot, with a gap above.
-func _detail_rows() -> int:
-	var n: int = panel.get("detail", []).size()
-	return n + 1 if n > 0 else 0
+	return Vector2i(clampi(panel.get("top", 0), 0, maxi(0, count - fits)), fits)
 
 
 func _draw_panel() -> void:
@@ -816,10 +817,10 @@ func _draw_panel() -> void:
 	var span := _panel_span()
 	for k in range(span.x, mini(span.x + span.y, panel.rows.size())):
 		var y := 3 + k - span.x
-		if k == panel.get("selected", -1):
+		if k == panel.get("selected", -1) or k == panel.get("hover", -1):
 			draw_rect(
 				Rect2(Vector2(1, y) * CELL, Vector2(minf(aside_x, cols) - 2, 1) * CELL),
-				Color(Palette.TEXT, 0.15)
+				Color(Palette.TEXT, 0.15 if k == panel.get("selected", -1) else 0.07)
 			)
 		var x := 2.0
 		for run: Array in panel.rows[k]:
@@ -832,13 +833,30 @@ func _draw_panel() -> void:
 		_glyph(Vector2(1, 3 + span.y), "▼", Palette.DIM)
 
 
-## The panel row under a point in this node's space, or -1.
+## The panel row under a point in this node's space, or -1 (the detail beside the
+## list holds no rows).
 func panel_row_at(local: Vector2) -> int:
-	if panel.is_empty():
+	if panel.is_empty() or panel_aside_at(local):
 		return -1
 	var span := _panel_span()
 	var k := floori(local.y / CELL.y) - 3 + span.x
 	return k if k >= span.x and k < mini(span.x + span.y, panel.rows.size()) else -1
+
+
+## The panel tab under a point in this node's space, or -1.
+func panel_tab_at(local: Vector2) -> int:
+	var x := 6.0
+	for k in panel.get("tabs", []).size():
+		var width := _cells(panel.tabs[k]) + 1.0
+		if floori(local.y / CELL.y) == 1 and local.x / CELL.x >= x and local.x / CELL.x < x + width:
+			return k
+		x += width
+	return -1
+
+
+## Whether a point in this node's space is over the panel's detail.
+func panel_aside_at(local: Vector2) -> bool:
+	return not panel.is_empty() and local.x / CELL.x >= panel.get("aside_x", cols)
 
 
 ## Health as hearts, at most `room` of them; more health is written as a number.

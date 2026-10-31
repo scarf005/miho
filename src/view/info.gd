@@ -492,6 +492,29 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.WOOD_WALL:
 			out.append("막음: 길, 시야, 빛")
 			out.append("부서짐: 구슬")
+		World.SCREEN:
+			out.append("막음: 길, 시야")
+			out.append("타격: 쓰러짐")
+		World.JAR:
+			out.append("막음: 길")
+			out.append("타격: 깨짐")
+		World.WATER_JAR:
+			out.append("막음: 길")
+			out.append("타격: 주위 8칸 얕은 물. 불, 냄새 지움")
+		World.CENSER:
+			out.append("막음: 길")
+			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
+			out.append("%s: 양 %d까지" % [Gas.of(Gas.INCENSE, "name"), Gas.VENT_LEVEL])
+			out.append("타격: %s, 이 칸과 옆 4칸. 옆 가연성 칸에 불" % coals.name)
+			out.append("%s: %d초, 피해 %d" % [coals.name, Compounds.HOT_ROUNDS, coals.harm])
+		World.COURTYARD:
+			out.append("달빛에 드러남.")
+		World.BOARD_ROTTEN:
+			out.append("벗어난 뒤: 하늘")
+			out.append("소리: %d칸" % Terrain.CRACK)
+		World.STATUE:
+			out.append("막음: 길")
+			out.append("깨어남: %s, %d칸 안" % [Bestiary.info(Statues.KIND).name, Statues.REACH])
 		World.POND:
 			out.append("넘어감: 주문, 멀리뛰기만")
 		World.SKY:
@@ -523,7 +546,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	elif Terrain.wall(t):
 		out.append("부술 수 없음.")
 	if Terrain.knockable(t) and t != World.DRUM:
-		out.append("소리: 부딪칠 때 %d칸" % World.KNOCK)
+		out.append("소리: 부딪칠 때 %d칸" % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
 		out.append("발소리: %d칸" % tread[0])
@@ -550,7 +573,9 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if now:
 		head.append([": %d/%d" % [g.y, Gas.MAX], Palette.DIM])
 	var out := [head]
-	if not now:
+	if not Gas.of(g.x, "blocks"):
+		out.append([["시야 막음: 없음", Palette.DIM]])
+	elif not now:
 		out.append([["시야 막음: %d 이상" % Gas.OPAQUE, Palette.DIM]])
 	elif g.y >= Gas.OPAQUE:
 		out.append([["시야 막음.", Palette.DIM]])
@@ -559,6 +584,11 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append(_amount("피해: 매 초 ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
 		out.append([["북 적심: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]])
+	if Gas.of(g.x, "explodes"):
+		out.append(_amount("폭발 피해: ", Gas.BLAST))
+		out.append([["폭발 범위: 이어진 구름 전체", Palette.DIM]])
+	if Gas.of(g.x, "erases"):
+		out.append([["냄새: 지움", Palette.DIM]])
 	return out
 
 

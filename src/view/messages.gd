@@ -231,6 +231,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [[saja, Palette.KIND[&"saja"]], [_particle(saja, "이", "가") + " 오고 있다", TEXT]]
 		&"arrive":
 			return _who(before, after, id, "이", "가") + [[" 나타났다", TEXT]]
+		&"blast":
+			var name: String = Gas.of(e.kind, "name")
+			return [[name, Palette.GAS[e.kind][1]], [_particle(name, "이", "가") + " 폭발했다", TEXT]]
+		&"crumble":
+			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 꺼졌다", TEXT]]
+		&"wake":
+			return _named(Tiles.of(World.STATUE, "name"), "이", "가") + [[" 깨어났다", TEXT]]
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
@@ -256,6 +263,14 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["금 간 벽이 무너졌다", TEXT]]
 			if e.was == World.WINDOW:
 				return [["창문이 깨졌다", TEXT]]
+			if e.was == World.SCREEN:
+				return [["병풍이 쓰러졌다", TEXT]]
+			if e.was == World.JAR:
+				return [["장독이 깨졌다", TEXT]]
+			if e.was == World.WATER_JAR:
+				return [["물독이 깨졌다", TEXT]]
+			if e.was == World.CENSER:
+				return [["향로가 쓰러졌다", TEXT]]
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 부서졌다", TEXT]]
 	return []
 

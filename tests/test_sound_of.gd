@@ -9,8 +9,10 @@ const SOUNDS := [
 	[{t = &"move"}, &"step"],
 	[{t = &"cast", cards = [Cards.FOX, Cards.FIRE]}, &"foxfire"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
+	[{t = &"cast", cards = [Cards.ORB, Cards.WATER, Cards.WOOD, Cards.FIRE]}, &"orb"],
 	[{t = &"hit"}, &"blast"],
 	[{t = &"burst"}, &"blast"],
+	[{t = &"blast"}, &"blast"],
 	[{t = &"splash"}, &"blast"],
 	[{t = &"drum", wet = false}, &"blast"],
 	[{t = &"clash"}, &"clash"],
@@ -60,11 +62,13 @@ const SOUNDS := [
 	[{t = &"noise", word = "낄낄"}, &"charge"],
 	[{t = &"omen"}, &"charge"],
 	[{t = &"arrive"}, &"charge"],
+	[{t = &"wake"}, &"charge"],
 	[{t = &"ascend"}, &"ascend"],
 	[{t = &"fall", depth = 2}, &"fall"],
 	[{t = &"won"}, &"win"],
 	[{t = &"lost"}, &"lose"],
 	[{t = &"noise", word = Traps.GONG}, &"gong"],
+	[{t = &"noise", word = "우지끈"}, &"fall"],
 ]
 ## Events that only keep the books or are told by another event, so they are silent.
 const SILENT := [
@@ -89,12 +93,13 @@ const SILENT := [
 	{t = &"burnout"},
 	{t = &"become"},
 	{t = &"trample"},
+	{t = &"crumble"},
 	{t = &"soak"},
 	{t = &"wet"},
 	{t = &"ride"},
 	{t = &"leap"},
 	{t = &"swap"},
-	{t = &"cast", cards = [Cards.LEAP, Cards.EARTH]},
+	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE, Cards.EARTH]},
 ]
 
 

@@ -1,19 +1,22 @@
 class_name Spell
 extends RefCounted
 ## A spell is a queue of up to MAX_SLOTS talisman slots, filled card by card.
-## A card of the same talisman again stacks; an element added while a
-## different element is queued merges with the first such slot into their
-## compound (Cards.PAIRS), one slot worth two cards. Every card costs one tail.
+## A card of the same talisman again stacks; an element merges with the first
+## slot it can join (Cards.join): a different element into their compound
+## (Cards.PAIRS), one slot worth two cards, or a compound of two other
+## elements of its 상생 chain into the 3단 compound (Cards.TRIPLES), one slot
+## worth three. Every card costs one tail.
 ## Every spell is hurled along one of eight lines, and grows with the tails it
 ## costs: one card is power 1.
-## The shape is read top down: 도 leading the queue leaps Miho LEAP_BASE tiles
-## and one more for every 도, and casts the rest of the spell where she lands
-## (Leap). One 도 last behind 여 or 구 swaps: Miho goes where the projectile
-## ends, trading places with the creature it strikes (Leap.swap); 도 anywhere
-## else makes no spell. 여 and 구 make a homing
+## The shape is read top down: 도약 (Cards.VAULT) leading the queue leaps
+## Miho LEAP_BASE tiles and one more for every 목 slot right behind it, and
+## casts the rest of the spell where she lands (Leap). 도약 last behind 여 or
+## 구 swaps: Miho goes where the projectile ends, trading places with the
+## creature it strikes (Leap.swap); 도약 anywhere else makes no spell. 여 and
+## 구 make a homing
 ## orb that turns 45° more each tile for every 여 (freely with four); 구 alone
 ## a loud straight orb, 1 damage for every 구 and 1 more after a run-up (DCSS
-## mon-project.cc iood_damage); 여 alone a wisp for every 여 (one with 도),
+## mon-project.cc iood_damage); 여 alone a wisp for every 여 (one with 도약),
 ## each hitting for 1 (a lone 여 for none), turning like a homing orb. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. A wisp that strikes a
@@ -35,7 +38,7 @@ const RANGE := 7
 const WISP_LIFE := 8
 const HOMING_LIFE := 6
 const TURN_FREE := 4
-## Tiles a leap reaches past one for every 도.
+## Tiles a leap reaches past the 도약 slot's own and one for every 목 behind it.
 const LEAP_BASE := 2
 
 const LEAP := &"leap"
@@ -61,16 +64,6 @@ var called := ""
 static func make(picked: Array) -> Spell:
 	if not picked.all(func(c): return Cards.ALL.has(c)):
 		return null
-	var leaps := picked.count(Cards.LEAP)
-	if (
-		not picked.slice(0, leaps).all(func(c): return c == Cards.LEAP)
-		and not (
-			leaps == 1
-			and picked.back() == Cards.LEAP
-			and (picked.has(Cards.FOX) or picked.has(Cards.ORB))
-		)
-	):
-		return null
 	var slots := fill(picked)
 	var spell := Spell.new()
 	spell.cards.assign(picked)
@@ -78,6 +71,9 @@ static func make(picked: Array) -> Spell:
 	spell.shape = _shape(spell)
 	spell.orb = spell.shape in [HOMING, ORB]
 	if slots.is_empty() or slots.size() > MAX_SLOTS or spell.shape == &"":
+		return null
+	var vault := slots.find(Cards.VAULT, 1)
+	if vault != -1 and (vault < slots.size() - 1 or spell.shape in [LEAP, SPRAY]):
 		return null
 	return spell
 
@@ -90,23 +86,32 @@ static func fill(picked: Array) -> Array[StringName]:
 	return slots
 
 
-## The slots after card `c` joins them: an element merges with the first
-## different element; anything else goes at the end.
+## The slots after card `c` joins them: an element merges with the first slot
+## it can join (Cards.join); anything else goes at the end.
 static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	var out := slots.duplicate()
 	if Cards.ELEMENTS.has(c):
 		for i in out.size():
-			if Cards.ELEMENTS.has(out[i]) and out[i] != c:
-				out[i] = Cards.pair(out[i], c)
+			var joined := Cards.join(out[i], c)
+			if joined != &"":
+				out[i] = joined
 				return out
 	out.append(c)
+	return out
+
+
+## The cards `slots` are worth, in order: what a part of a spell casts.
+static func _cards_of(slots: Array) -> Array:
+	var out := []
+	for slot: StringName in slots:
+		out.append_array(Cards.made_of(slot))
 	return out
 
 
 ## The shape the slots make, read top down: a leap, a homing orb, an orb,
 ## foxfire, a spray.
 static func _shape(s: Spell) -> StringName:
-	if not s.slots.is_empty() and s.slots[0] == Cards.LEAP:
+	if not s.slots.is_empty() and s.slots[0] == Cards.VAULT:
 		return LEAP
 	if s.count(Cards.FOX) > 0 and s.count(Cards.ORB) > 0:
 		return HOMING
@@ -117,24 +122,33 @@ static func _shape(s: Spell) -> StringName:
 	return SPRAY if not s.slots.is_empty() else &""
 
 
-## Tiles a leap reaches: LEAP_BASE and one for every 도.
+## Tiles a leap reaches: LEAP_BASE, one for its 도약 and one for every 목
+## slot right behind it.
 func leap() -> int:
-	return LEAP_BASE + count(Cards.LEAP)
+	return LEAP_BASE + 1 + _woods()
 
 
-## What a leap casts where it lands: the talismans after its 도, or null.
+## The 목 slots right behind a leading 도약: they add reach, not roots.
+func _woods() -> int:
+	var n := 0
+	while 1 + n < slots.size() and slots[1 + n] == Cards.WOOD:
+		n += 1
+	return n
+
+
+## What a leap casts where it lands: the slots after its 도약 and 목, or null.
 func rest() -> Spell:
-	return make(cards.slice(count(Cards.LEAP)))
+	return make(_cards_of(slots.slice(1 + _woods())))
 
 
-## Whether the projectile takes Miho where it ends: 도 behind it (Leap.swap).
+## Whether the projectile takes Miho where it ends: 도약 behind it (Leap.swap).
 func swaps() -> bool:
-	return shape != LEAP and has(Cards.LEAP)
+	return shape != LEAP and has(Cards.VAULT)
 
 
-## The spell without its 도: the projectile once it has swapped.
+## The spell without its 도약: the projectile once it has swapped.
 func spent() -> Spell:
-	return make(cards.filter(func(c): return c != Cards.LEAP))
+	return make(_cards_of(slots.filter(func(c): return c != Cards.VAULT)))
 
 
 ## How strong the spray of a lone element is: its copies, up to MAX_LEVEL; 0
@@ -172,10 +186,10 @@ func homing() -> bool:
 	return shape == HOMING
 
 
-## The element slots, compounds among them, in queue order.
+## The element slots, compounds among them but 도약, in queue order.
 func elements() -> Array[StringName]:
 	var out: Array[StringName] = []
-	out.assign(slots.filter(func(c): return not Cards.FORMS.has(c)))
+	out.assign(slots.filter(func(c): return not Cards.FORMS.has(c) and c != Cards.VAULT))
 	return out
 
 
@@ -256,7 +270,7 @@ func extra(element: StringName) -> int:
 ## bullet, an orb 1 for every 구 and 1 more after a run-up, Elements.CANNON
 ## more a cannonball, and 1 more for every 불 or 쇠 past the first.
 func damage(distance: int) -> int:
-	var lone := cost() - count(Cards.LEAP) == 1
+	var lone := cost() - Cards.made_of(Cards.VAULT).size() * count(Cards.VAULT) == 1
 	var n := Elements.BULLET if has(Cards.METAL) else (0 if lone else 1)
 	if orb:
 		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)

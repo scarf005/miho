@@ -51,7 +51,8 @@ func test_no_storey_has_more_plates_of_a_kind_than_its_row_allows() -> void:
 	for w in _storeys:
 		for row in _rows():
 			var n := w.traps.values().count(row.what)
-			assert_lte(n, row.count[2], "depth %d kind %d" % [w.depth, row.what])
+			var corridor := SetRooms.PLATES.y if row.what == World.TRAP_ALARM else 0
+			assert_lte(n, row.count[2] + corridor, "depth %d kind %d" % [w.depth, row.what])
 
 
 func test_the_first_tier_has_only_alarm_plates() -> void:

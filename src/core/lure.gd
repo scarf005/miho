@@ -1,6 +1,6 @@
 class_name Lure
 extends RefCounted
-## 여우 홀림: one of Miho's wisps of 여 alone (no element, no 도) that hovers
+## 여우 홀림: one of Miho's wisps of 여 alone (no element, no 도약) that hovers
 ## yelps WORD in the round it comes to hover and every second round after (at
 ## the end of each round its rounds left are even, so four times in
 ## Spell.WISP_LIFE), heard LOUD tiles and PER_FOX more for every 여 past the

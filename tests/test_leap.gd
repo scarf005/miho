@@ -1,9 +1,12 @@
 extends GutTest
-## 멀리뛰기: the 도 talisman leads a spell that leaps Miho along a line over
-## sky, ponds and creatures onto the farthest tile in reach she can stand on;
-## the rest of the spell is cast where she lands (Leap).
+## 멀리뛰기: 수, 목 and 화 merge into the 3단 compound 도약, which leading a
+## spell leaps Miho along a line over sky, ponds and creatures onto the
+## farthest tile in reach she can stand on; the rest of the spell is cast where
+## she lands (Leap).
 
-const LEAP := Cards.LEAP
+const LEAP := [Cards.WATER, Cards.WOOD, Cards.FIRE]
+const VAULT := Cards.VAULT
+const WOOD := Cards.WOOD
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
 
@@ -31,7 +34,7 @@ func _world() -> World:
 	w.dim.resize(w.tiles.size())
 	w.depth = 13
 	w.tails = 5
-	w.cards.append(Cards.EARTH)
+	w.cards.append_array([Cards.EARTH, Cards.WATER, WOOD, Cards.FIRE])
 	return w
 
 
@@ -52,45 +55,84 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	return a
 
 
-func test_miho_starts_with_the_leap_talisman_third() -> void:
-	assert_eq(World.new().cards, [Cards.FOX, Cards.ORB, LEAP] as Array[StringName])
+func test_miho_starts_with_the_two_forms_only() -> void:
+	assert_eq(World.new().cards, [Cards.FOX, Cards.ORB] as Array[StringName])
+	assert_false(Cards.ALL.has(&"leap"), "no 도 talisman")
 
 
-func test_each_leap_talisman_reaches_one_tile_farther() -> void:
-	var one := Spell.make([LEAP])
+func test_water_wood_and_fire_merge_into_one_leap_slot_in_any_order() -> void:
+	var w := Cards.WATER
+	var f := Cards.FIRE
+	for cards in [
+		[w, WOOD, f], [WOOD, f, w], [w, f, WOOD], [WOOD, w, f], [f, w, WOOD], [f, WOOD, w]
+	]:
+		assert_eq(Spell.make(cards).slots, [VAULT] as Array[StringName], str(cards))
+	assert_eq(Cards.NAME[VAULT], "도약")
+	assert_eq(Cards.GLYPH[VAULT], "약")
+	assert_eq(
+		Spell.make([w, w, WOOD, f]).slots,
+		[VAULT, w] as Array[StringName],
+		"the third element joins the first slot it can"
+	)
+
+
+func test_other_three_element_picks_still_make_a_compound_and_an_element() -> void:
+	var picks := {
+		[Cards.WATER, WOOD, Cards.EARTH]: [&"rain", Cards.EARTH],
+		[WOOD, Cards.FIRE, Cards.METAL]: [&"wildfire", Cards.METAL],
+		[Cards.METAL, Cards.WATER, WOOD]: [&"frost", WOOD],
+		[Cards.FIRE, Cards.EARTH, Cards.WATER]: [&"lava", Cards.WATER],
+	}
+	for cards in picks:
+		assert_eq(Spell.make(cards).slots, _typed(picks[cards]), str(cards))
+
+
+func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_it() -> void:
+	var one := Spell.make(LEAP)
 	assert_eq(one.shape, Spell.LEAP)
 	assert_eq(one.leap(), 3)
-	assert_eq(Spell.make([LEAP, LEAP]).leap(), 4)
-	assert_eq(Spell.make([LEAP, LEAP]).cost(), 2)
-	assert_eq(Spell.make([LEAP, LEAP]).title(), "멀리뛰기 4칸")
+	assert_eq(one.cost(), 3)
+	assert_eq(one.title(), "멀리뛰기 3칸")
+	var two := Spell.make(LEAP + [WOOD])
+	assert_eq(two.slots, [VAULT, WOOD] as Array[StringName])
+	assert_eq(two.leap(), 4)
+	assert_eq(two.cost(), 4)
+	assert_eq(two.title(), "멀리뛰기 4칸")
+	assert_null(two.rest(), "the 목 is reach, not roots")
+	assert_eq(Spell.make(LEAP + [WOOD, WOOD]).leap(), 5)
+	var split := Spell.make(LEAP + [WOOD, Cards.EARTH])
+	assert_eq(split.slots, [VAULT, &"split"] as Array[StringName])
+	assert_eq(split.leap(), 3, "a 목 merged into a compound adds no reach")
+	assert_eq(split.rest().slots, [&"split"] as Array[StringName])
 
 
-func test_a_leap_talisman_leads_a_spell_or_ends_one_projectile() -> void:
-	assert_not_null(Spell.make([LEAP, LEAP, Cards.EARTH]))
-	assert_null(Spell.make([LEAP, Cards.EARTH, LEAP]), "not in the middle")
-	assert_null(Spell.make([Cards.EARTH, LEAP]), "not behind a spray")
-	assert_null(Spell.make([Cards.ORB, LEAP, LEAP]), "one behind a projectile")
-	assert_null(Spell.make([Cards.ORB, LEAP, Cards.EARTH]), "last behind a projectile")
-	var swap := Spell.make([Cards.ORB, LEAP])
+func test_the_leap_slot_leads_a_spell_or_ends_one_projectile() -> void:
+	assert_not_null(Spell.make(LEAP + [Cards.EARTH]))
+	assert_eq(Spell.make(LEAP + [Cards.EARTH]).rest().slots, [Cards.EARTH] as Array[StringName])
+	assert_null(Spell.make([Cards.FIRE, Cards.METAL] + LEAP), "not behind a spray")
+	assert_null(Spell.make([Cards.ORB] + LEAP + [Cards.EARTH]), "last behind a projectile")
+	var swap := Spell.make([Cards.ORB] + LEAP)
 	assert_eq(swap.shape, Spell.ORB)
 	assert_true(swap.swaps())
-	assert_false(Spell.make([LEAP, Cards.ORB]).swaps(), "a leap that hurls an orb")
+	assert_false(Spell.make(LEAP + [Cards.ORB]).swaps(), "a leap that hurls an orb")
 	assert_eq(swap.title(), "구슬 바꿔치기")
 	assert_eq(swap.damage(0), Spell.make([Cards.ORB]).damage(0), "the orb is the same orb")
-	assert_eq(Spell.make([Cards.FOX, Cards.FOX, LEAP]).shots(), 1, "one wisp to follow")
-	assert_eq(Spell.make([Cards.FOX, LEAP]).damage(0), 0, "a lone 여 still hurts nothing")
+	assert_false(swap.holds(Cards.FIRE), "the leap slot carries no element")
+	assert_eq(swap.spent().slots, [Cards.ORB] as Array[StringName])
+	assert_eq(Spell.make([Cards.FOX, Cards.FOX] + LEAP).shots(), 1, "one wisp to follow")
+	assert_eq(Spell.make([Cards.FOX] + LEAP).damage(0), 0, "a lone 여 still hurts nothing")
 
 
 func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	var w := _world()
 	_gap(w, 5, 2)
-	w.act(_leap([LEAP]))
+	w.act(_leap(LEAP))
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	assert_eq(w.depth, 13, "no fall")
-	assert_eq(w.tails, 4, "one tail")
+	assert_eq(w.tails, 2, "three tails")
 
 
-func test_from_every_ledge_one_leap_per_tile_of_sky_past_the_first_lands_across() -> void:
+func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_across() -> void:
 	var crossed := 0
 	for seed_value in 4:
 		for depth in [2, 9, 18, 26]:
@@ -98,6 +140,7 @@ func test_from_every_ledge_one_leap_per_tile_of_sky_past_the_first_lands_across(
 			w.depth = depth
 			FloorGen.build(w)
 			w.tails = Spell.MAX_SLOTS
+			w.cards.assign(Cards.ALL)
 			for i in w.tiles.size():
 				var p := Grid.at(i)
 				if w.tiles[i] != World.BOARD or w.tile(p + E) != World.SKY:
@@ -109,11 +152,11 @@ func test_from_every_ledge_one_leap_per_tile_of_sky_past_the_first_lands_across(
 				assert_eq(w.tile(p + E * (sky + 1)), World.BOARD, label)
 				var v := w.clone()
 				v.player().pos = p
-				var cards := []
-				for n in sky - 1:
-					cards.append(LEAP)
+				var cards := LEAP.duplicate()
+				for n in sky - 2:
+					cards.append(WOOD)
 				if sky > 2:
-					assert_false(v.can(_leap([LEAP])), "one short: " + label)
+					assert_false(v.can(_leap(LEAP)), "one short: " + label)
 				if v.actor_at(p + E * (sky + 1)) != null:
 					continue
 				v.act(_leap(cards))
@@ -122,18 +165,19 @@ func test_from_every_ledge_one_leap_per_tile_of_sky_past_the_first_lands_across(
 	assert_gt(crossed, 0)
 
 
-func test_three_tiles_of_sky_take_two_leap_talismans() -> void:
+func test_three_tiles_of_sky_take_the_leap_and_one_wood() -> void:
 	var w := _world()
 	_gap(w, 5, 3)
-	assert_false(w.can(_leap([LEAP])), "nowhere to land")
-	assert_true(w.can(_leap([LEAP, LEAP])))
-	w.act(_leap([LEAP, LEAP]))
+	assert_false(w.can(_leap(LEAP)), "nowhere to land")
+	assert_true(w.can(_leap(LEAP + [WOOD])))
+	w.act(_leap(LEAP + [WOOD]))
 	assert_eq(w.player().pos, Vector2i(8, 8))
+	assert_eq(w.tails, 1, "four tails")
 
 
 func test_a_leap_lands_on_the_farthest_tile_in_reach() -> void:
 	var w := _world()
-	w.act(_leap([LEAP]))
+	w.act(_leap(LEAP))
 	assert_eq(w.player().pos, ME + E * 3)
 
 
@@ -141,54 +185,54 @@ func test_a_wall_or_a_closed_door_stops_the_leap_short_of_it() -> void:
 	for t in [World.WALL, World.DOOR, World.LANTERN]:
 		var w := _world()
 		w.set_tile(Vector2i(6, 8), t)
-		w.act(_leap([LEAP]))
+		w.act(_leap(LEAP))
 		assert_eq(w.player().pos, Vector2i(5, 8), "stops before tile %d" % t)
 	var w := _world()
 	w.set_tile(ME + E, World.WALL)
-	assert_false(w.can(_leap([LEAP])), "no room at all")
+	assert_false(w.can(_leap(LEAP)), "no room at all")
 
 
 func test_a_leap_clears_creatures_and_ponds_but_never_lands_on_them() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(5, 8))
 	w.set_tile(Vector2i(7, 8), World.POND)
-	w.act(_leap([LEAP]))
+	w.act(_leap(LEAP))
 	assert_eq(w.player().pos, Vector2i(6, 8), "over the creature, short of the pond")
 	assert_eq(foe.pos, Vector2i(5, 8))
 	var v := _world()
 	_foe(v, Vector2i(7, 8))
-	v.act(_leap([LEAP]))
+	v.act(_leap(LEAP))
 	assert_eq(v.player().pos, Vector2i(6, 8), "not onto the creature")
 
 
 func test_a_rooted_or_stunned_miho_cannot_leap() -> void:
 	var w := _world()
 	w.player().rooted = 2
-	assert_false(w.can(_leap([LEAP])))
+	assert_false(w.can(_leap(LEAP)))
 	w.player().rooted = 0
 	w.player().stunned = 1
-	assert_false(w.can(_leap([LEAP])))
+	assert_false(w.can(_leap(LEAP)))
 
 
 func test_the_landing_is_heard_but_not_on_mud() -> void:
 	var w := _world()
 	var words := (
 		w
-		. act(_leap([LEAP]))
+		. act(_leap(LEAP))
 		. filter(func(e): return e.t == &"noise")
 		. map(func(e): return [e.word, e.at, e.loud])
 	)
 	assert_has(words, [Leap.WORD, Vector2i(7, 8), Leap.LOUD])
 	var v := _world()
 	v.set_tile(Vector2i(7, 8), World.MUD)
-	var muddy := v.act(_leap([LEAP])).filter(func(e): return e.t == &"noise")
+	var muddy := v.act(_leap(LEAP)).filter(func(e): return e.t == &"noise")
 	assert_true(muddy.is_empty(), "mud swallows it")
 	assert_eq(v.player().pos, Vector2i(7, 8))
 
 
 func test_a_leap_lays_no_scent_on_the_tiles_it_clears() -> void:
 	var w := _world()
-	w.act(_leap([LEAP]))
+	w.act(_leap(LEAP))
 	assert_gt(w.scent[Grid.index(Vector2i(7, 8))], 0, "where she lands")
 	for x in [5, 6]:
 		assert_eq(w.scent[Grid.index(Vector2i(x, 8))], 0, "none at x %d" % x)
@@ -197,9 +241,7 @@ func test_a_leap_lays_no_scent_on_the_tiles_it_clears() -> void:
 func test_a_fire_plate_under_the_landing_flames_on_along_the_leap() -> void:
 	var w := _world()
 	w.traps[Vector2i(7, 8)] = World.TRAP_FIRE
-	var lit := (
-		w.act(_leap([LEAP])).filter(func(e): return e.t == &"ignite").map(func(e): return e.at)
-	)
+	var lit := w.act(_leap(LEAP)).filter(func(e): return e.t == &"ignite").map(func(e): return e.at)
 	assert_eq(lit.slice(0, 3), [Vector2i(8, 8), Vector2i(9, 8), Vector2i(10, 8)])
 
 
@@ -207,17 +249,17 @@ func test_the_rest_of_the_spell_is_cast_where_miho_lands() -> void:
 	var w := _world()
 	var far := _foe(w, Vector2i(8, 8))
 	_foe(w, Vector2i(5, 9))
-	var events := w.act(_leap([LEAP, Cards.EARTH]))
+	var events := w.act(_leap(LEAP + [Cards.EARTH]))
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	var stunned := events.filter(func(e): return e.t == &"stun").map(func(e): return e.id)
 	assert_eq(stunned, [far.id], "next to the landing, not to where she took off")
-	assert_eq(w.tails, 3, "both talismans spent")
+	assert_eq(w.tails, 1, "all four talismans spent")
 
 
 func test_landing_on_the_stairs_climbs_and_casts_nothing_more() -> void:
 	var w := _world()
 	w.stairs = Vector2i(7, 8)
-	var events := w.act(_leap([LEAP, Cards.EARTH]))
+	var events := w.act(_leap(LEAP + [Cards.EARTH]))
 	assert_eq(w.depth, 14)
 	assert_false(events.any(func(e): return e.t == &"spray"), "no quake on the new storey")
 
@@ -226,24 +268,36 @@ func test_the_forecast_lands_where_the_leap_does() -> void:
 	var w := _world()
 	_gap(w, 5, 2)
 	_foe(w, Vector2i(9, 8))
-	var f := Forecast.of(w, _leap([LEAP, LEAP]))
+	var f := Forecast.of(w, _leap(LEAP + [WOOD]))
 	assert_eq(f.leaps, [[ME, Vector2i(8, 8)]])
-	w.act(_leap([LEAP, LEAP]))
+	w.act(_leap(LEAP + [WOOD]))
 	assert_eq(w.player().pos, Vector2i(8, 8))
 
 
 func test_the_log_tells_the_leap() -> void:
 	var w := _world()
 	var before := w.clone()
-	var lines := Messages.of(before, w, w.act(_leap([LEAP]))).map(Messages.plain)
+	var lines := Messages.of(before, w, w.act(_leap(LEAP))).map(Messages.plain)
 	assert_has(lines, "멀리 뛰었다")
 
 
 func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
-	var text := " ".join(SpellInfo.spell(Spell.make([LEAP, Cards.EARTH])).map(Messages.plain))
-	for part in ["멀리뛰기 3칸", "곧게 3칸", "하늘", "소리: 내릴 때 %d칸" % Leap.LOUD, "내린 자리에서:", "기절"]:
+	var text := " ".join(SpellInfo.spell(Spell.make(LEAP + [Cards.EARTH])).map(Messages.plain))
+	var parts := [
+		"멀리뛰기 3칸",
+		" · 꼬리: %d · " % Spell.make(LEAP + [Cards.EARTH]).cost(),
+		"모양: 곧게 3칸",
+		"거리: 나무 한 장마다 +1칸",
+		"넘어감: 하늘",
+		"소리: 내릴 때 %d칸" % Leap.LOUD,
+		"내린 자리에서: 흙",
+		"기절",
+	]
+	for part in parts:
 		assert_string_contains(text, part)
-	assert_false(text.contains(Leap.WORD + " "), text)
+	assert_false(text.contains(Leap.WORD), "no sound word in the hover")
+	var slot := " ".join(SpellInfo.slot(Spell.make(LEAP), 0).map(Messages.plain))
+	assert_string_contains(slot, "도약 · 꼬리: 3 · 물+나무+불")
 
 
 func _main() -> Node:
@@ -267,10 +321,22 @@ func _press(m: Node, key: String) -> void:
 	m._key(e)
 
 
+func _typed(cards: Array) -> Array[StringName]:
+	var out: Array[StringName] = []
+	out.assign(cards)
+	return out
+
+
+## Picks 수, 목 and 화 (keys 4, 5, 6 in _world's hand).
+func _pick_leap(m: Node) -> void:
+	for k in ["4", "5", "6"]:
+		_press(m, k)
+
+
 func test_the_aim_preview_shows_the_leap_and_miho_where_she_lands() -> void:
 	var m := _main()
-	_press(m, "3")
-	assert_eq(m.picked, [LEAP] as Array[StringName])
+	_pick_leap(m)
+	assert_eq(m.picked, _typed(LEAP))
 	assert_true(m.reach.has(Vector2i(7, 8)), "the landing east is tinted")
 	assert_false(m.reach.has(Vector2i(5, 8)), "not the sky it clears")
 	m.hover = Vector2i(9, 8)
@@ -286,23 +352,21 @@ func test_the_aim_preview_shows_the_leap_and_miho_where_she_lands() -> void:
 func test_a_leap_with_nowhere_to_land_says_so_and_keeps_the_turn() -> void:
 	var m := _main()
 	m.world.set_tile(ME + Vector2i.UP, World.WALL)
-	_press(m, "3")
+	_pick_leap(m)
 	var round_no: int = m.world.round_no
 	_press(m, "Up")
 	assert_eq(m.world.round_no, round_no)
 	assert_eq(m.messages.lines.back().text, "내려설 곳이 없다")
 
 
-func test_a_leap_talisman_behind_a_spray_is_refused() -> void:
+func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	var m := _main()
-	_press(m, "4")
-	_press(m, "3")
-	assert_eq(m.picked, [Cards.EARTH] as Array[StringName])
-	assert_eq(m.messages.lines.back().text, "도약은 맨 앞이나 여, 구 뒤 끝에 한 장만 넣는다")
-	_press(m, "Escape")
 	_press(m, "2")
+	_pick_leap(m)
+	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
 	_press(m, "3")
-	assert_eq(m.picked, [Cards.ORB, LEAP] as Array[StringName], "behind an orb it swaps")
+	assert_eq(m.picked, _typed([Cards.ORB] + LEAP))
+	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 끝")
 
 
 # --- 바꿔치기 -------------------------------------------------------------------
@@ -322,7 +386,7 @@ func test_an_orb_with_leap_trades_places_with_the_creature_it_strikes() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(7, 8))
 	foe.stunned = 9
-	var events := _until_still(w, [Cards.ORB, LEAP])
+	var events := _until_still(w, [Cards.ORB] + LEAP)
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	assert_eq(foe.pos, ME)
 	var heard := events.filter(func(e): return e.t == &"noise" and e.word == Leap.SWAP_WORD)
@@ -334,7 +398,7 @@ func test_an_orb_with_leap_that_kills_takes_miho_where_the_creature_stood() -> v
 	var w := _world()
 	var foe := _foe(w, Vector2i(8, 8))
 	foe.stunned = 9
-	_until_still(w, [Cards.ORB, LEAP])
+	_until_still(w, [Cards.ORB] + LEAP)
 	assert_false(foe.alive(), "a run-up hits for 2")
 	assert_eq(w.player().pos, Vector2i(8, 8))
 
@@ -342,13 +406,13 @@ func test_an_orb_with_leap_that_kills_takes_miho_where_the_creature_stood() -> v
 func test_an_orb_with_leap_that_bursts_on_a_wall_takes_miho_where_it_stopped() -> void:
 	var w := _world()
 	w.set_tile(Vector2i(10, 8), World.WALL)
-	_until_still(w, [Cards.ORB, LEAP])
+	_until_still(w, [Cards.ORB] + LEAP)
 	assert_eq(w.player().pos, Vector2i(9, 8))
 
 
 func test_a_hovering_wisp_takes_miho_once_and_flies_on_as_a_plain_wisp() -> void:
 	var w := _world()
-	_until_still(w, [Cards.FOX, LEAP])
+	_until_still(w, [Cards.FOX] + LEAP)
 	var to := ME + E * Spell.RANGE
 	assert_eq(w.player().pos, to)
 	assert_eq(w.shots.size(), 1)
@@ -359,7 +423,7 @@ func test_a_hovering_wisp_takes_miho_once_and_flies_on_as_a_plain_wisp() -> void
 func test_a_projectile_that_stops_over_the_sky_takes_miho_nowhere() -> void:
 	var w := _world()
 	_gap(w, 8, 6)
-	_until_still(w, [Cards.FOX, LEAP])
+	_until_still(w, [Cards.FOX] + LEAP)
 	assert_eq(w.player().pos, ME)
 
 
@@ -367,7 +431,7 @@ func test_a_wisp_that_swaps_with_a_creature_rides_it_to_miho_s_old_tile() -> voi
 	var w := _world()
 	var foe := _foe(w, Vector2i(6, 8))
 	foe.stunned = 9
-	_until_still(w, [Cards.FOX, LEAP])
+	_until_still(w, [Cards.FOX] + LEAP)
 	assert_eq(foe.pos, ME, "they traded places")
 	assert_eq(w.shots.map(func(s): return s.pos), [ME], "the wisp sits on the creature it rides")
 
@@ -377,14 +441,20 @@ func test_the_log_tells_the_swap() -> void:
 	var foe := _foe(w, Vector2i(6, 8))
 	foe.stunned = 9
 	var before := w.clone()
-	var lines := Messages.of(before, w, _until_still(w, [Cards.ORB, LEAP])).map(Messages.plain)
+	var lines := Messages.of(before, w, _until_still(w, [Cards.ORB] + LEAP)).map(Messages.plain)
 	assert_has(lines, "도깨비와 자리를 바꿨다")
 
 
 func test_the_info_tells_the_swap_and_its_sound() -> void:
-	var text := " ".join(SpellInfo.spell(Spell.make([Cards.ORB, LEAP])).map(Messages.plain))
-	for part in ["구슬 바꿔치기", "자리 바꿈", "소리: 두 자리에서 %d칸" % Leap.SWAP_LOUD]:
+	var text := " ".join(SpellInfo.spell(Spell.make([Cards.ORB] + LEAP)).map(Messages.plain))
+	var parts := [
+		"구슬 바꿔치기",
+		"바꿔치기: 멈춘 칸으로. 맞힌 적과는 자리 교환",
+		"바꿔치기 소리: 두 자리에서 %d칸" % Leap.SWAP_LOUD,
+	]
+	for part in parts:
 		assert_string_contains(text, part)
 	assert_false(text.contains(Leap.SWAP_WORD), text)
 	var leap := " ".join(SpellInfo.shape(Spell.LEAP).map(Messages.plain))
 	assert_string_contains(leap, "바꿔치기", "the 도감 tells both uses")
+	assert_string_contains(leap, "만드는 법: 물+나무+불")

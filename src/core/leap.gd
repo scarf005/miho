@@ -10,10 +10,10 @@ extends RefCounted
 ## scent there alone, so a hunter on her trail loses it. The rest of the spell
 ## is cast from the landing, unless she has left the storey or fallen.
 ##
-## 바꿔치기 (Spell.swaps): when a projectile with 도 behind it strikes a
+## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
 ## where it is, unless she cannot stand there (the sky). Each trade is a step
-## (World.move) and heard SWAP_LOUD tiles at both tiles. The 도 is spent on the
+## (World.move) and heard SWAP_LOUD tiles at both tiles. The 도약 is spent on the
 ## first stop or strike either way: the projectile goes on as the spell
 ## without it.
 

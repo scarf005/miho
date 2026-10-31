@@ -87,6 +87,8 @@ const WORDS := {
 	"퍽": &"clash",
 	"끽": &"hurt",
 	"쨍": &"clash",
+	"쨍그랑": &"clash",
+	"우지끈": &"fall",
 	"사각": &"step",
 	"삐걱": &"click",
 	"드르륵": &"door",
@@ -211,10 +213,11 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"move":
 			return &"step"
 		&"cast":
-			if e.cards.has(Cards.LEAP):
+			var spell := Spell.make(e.cards)
+			if spell != null and spell.shape == Spell.LEAP:
 				return &""
 			return &"orb" if e.cards.has(Cards.ORB) else &"foxfire"
-		&"hit", &"burst", &"splash":
+		&"hit", &"burst", &"splash", &"blast":
 			return &"" if e.get("spray", false) else &"blast"
 		&"drum":
 			return &"" if e.wet else &"blast"
@@ -246,7 +249,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"hurt"
 		&"die":
 			return &"fall"
-		&"charge", &"notice", &"feud", &"omen", &"arrive":
+		&"charge", &"notice", &"feud", &"omen", &"arrive", &"wake":
 			return &"charge"
 		&"ascend":
 			return &"ascend"

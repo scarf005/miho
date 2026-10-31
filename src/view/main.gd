@@ -176,7 +176,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		term.speed = 8.0 if skip else term.speed
 	elif walking:
 		halt = halt or press
-	elif busy or not event.is_pressed() or event.is_echo() and (overlay != &"" or state != &"play"):
+	elif busy or not event.is_pressed() or event.is_echo() and overlay == &"" and state != &"play":
 		pass
 	elif overlay != &"":
 		_panel_input(event)
@@ -366,7 +366,7 @@ func _local(screen: Vector2) -> Vector2:
 
 func _point(screen: Vector2) -> void:
 	var local := _local(screen)
-	if overlay != &"" and overlay != &"log":
+	if overlay != &"":
 		menu.point(term.panel_row_at(local))
 		term.panel = menu.panel()
 	var tile := term.tile_at(local)
@@ -439,7 +439,7 @@ func _add(card: StringName) -> void:
 	elif _held() + picked.size() >= world.tails:
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
-		why = "도약은 맨 앞이나 여, 구 뒤 끝에 한 장만 넣는다"
+		why = "도약: 맨 앞, 또는 여·구 뒤 끝"
 	if why != "":
 		_refuse(why)
 	else:
@@ -744,31 +744,28 @@ func _show_log() -> void:
 		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
 
 
-## Shows a full-screen panel: the message log, or a Menu page.
+## Shows a full-screen panel: a Menu page.
 func _open(kind: StringName) -> void:
 	overlay = kind
-	if kind == &"log":
-		var rows := messages.lines.map(Messages.shown)
-		term.panel = {title = "기록", rows = rows, selected = -1}
-		return
+	menu.log_rows = messages.lines.map(Messages.shown)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
 
 
-## Any press closes the log and help; the other Menu pages take keys, a left
-## click uses the row under the pointer, and a right click goes back.
+## The Menu page takes keys; the wheel scrolls, a left click acts on the row or
+## tab under the pointer, and a right click goes back.
 func _panel_input(event: InputEvent) -> void:
-	var done := overlay == &"log" or overlay == &"help" and event is InputEventMouseButton
-	var command := &"close" if done else &""
-	if done:
-		pass
-	elif event is InputEventKey:
+	var command := &""
+	var button: int = event.button_index if event is InputEventMouseButton else 0
+	var local := _local(event.position) if button != 0 else Vector2.ZERO
+	if event is InputEventKey:
 		command = menu.key(event)
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+	elif button == MOUSE_BUTTON_RIGHT:
 		command = menu.back()
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		var local := _local(event.position)
-		command = menu.use() if term.panel_row_at(local) >= 0 else &""
+	elif button in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, term.panel_aside_at(local))
+	elif button == MOUSE_BUTTON_LEFT:
+		command = menu.click(term.panel_row_at(local), term.panel_tab_at(local))
 	match command:
 		&"close":
 			_close()

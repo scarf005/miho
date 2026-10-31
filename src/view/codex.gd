@@ -20,6 +20,9 @@ static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
 var tab := 0
 var selected := 0
+## The first entry shown, and the entry the pointer is over (-1 for none).
+var top := 0
+var hover := -1
 ## Lines the detail is scrolled down.
 var scroll := 0
 ## The screen in cells: columns, rows.
@@ -71,7 +74,7 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 				var lines := func(): return SpellInfo.own(kind)
 				out.append(_entry(",", Palette.card(s.slots.back()), Guise.NAME[kind], lines))
 		2:
-			for c in Cards.PAIRS:
+			for c in Cards.PAIRS.keys() + Cards.TRIPLES.keys():
 				var lines := func(): return SpellInfo.combo(c)
 				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines))
 		3:
@@ -148,8 +151,8 @@ func panel() -> Dictionary:
 	var rows := []
 	for e in list:
 		rows.append([[e.glyph, e.color, 2.0], [e.name, Palette.TEXT, 4.0]])
-	var lines := flow(detail(list[selected]), room.x - SIDE_X - 1.0)
-	var fits := room.y - 4
+	var lines := _lines()
+	var fits := _fits()
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
 	var shown := lines.slice(scroll, scroll + fits).map(_legible)
 	return {
@@ -158,6 +161,8 @@ func panel() -> Dictionary:
 		tab = tab,
 		rows = rows,
 		selected = selected,
+		top = top,
+		hover = hover,
 		aside = shown,
 		aside_x = SIDE_X,
 		opaque = true,
@@ -171,35 +176,60 @@ static func _legible(line: Array) -> Array:
 	return line.map(func(run): return [run[0], Palette.TEXT if run[1] == Palette.DIM else run[1]])
 
 
-## Handles a key press that menu movement `nav` names: Left and Right (or 1 to
-## 5) change the tab, Up and Down the entry, Page Up and Down scroll the detail.
+## Handles a key press that menu movement `nav` names: Left and Right, Tab and
+## Shift+Tab (or 1 to 5) change the tab; Up, Down, Home and End the entry, which
+## wrap at the ends; Page Up and Down scroll the detail while it overflows, else
+## move the entry a page.
 func key(e: InputEventKey, nav: StringName) -> StringName:
 	var action := Keys.action_of(e)
 	if nav == &"back" or action == &"codex":
 		return &"close"
-	var last := entries(tab).size() - 1
-	if action.begins_with("pick_") and int(action.trim_prefix("pick_")) <= TABS.size():
-		_go(int(action.trim_prefix("pick_")) - 1)
-	elif nav in [&"left", &"right"]:
-		_go(posmod(tab + (1 if nav == &"right" else -1), TABS.size()))
-	elif nav in [&"up", &"down"]:
-		point(clampi(selected + (1 if nav == &"down" else -1), 0, last))
-	elif e.keycode in [KEY_PAGEUP, KEY_PAGEDOWN]:
-		scroll = maxi(0, scroll + (1 if e.keycode == KEY_PAGEDOWN else -1) * (room.y - 5))
+	var pick := int(action.trim_prefix("pick_")) if action.begins_with("pick_") else 0
+	if pick > 0 and pick <= TABS.size():
+		go(pick - 1)
+	elif nav in [&"left", &"right", &"tab_prev", &"tab_next"]:
+		go(posmod(tab + (1 if nav in [&"right", &"tab_next"] else -1), TABS.size()))
+	elif nav == &"page_down" and scroll < _lines().size() - _fits():
+		scroll = ListNav.scrolled(scroll, maxi(1, _fits() - 1), _lines().size(), _fits())
+	elif nav == &"page_up" and scroll > 0:
+		scroll = ListNav.scrolled(scroll, -maxi(1, _fits() - 1), _lines().size(), _fits())
+	else:
+		select(ListNav.step(nav, selected, entries(tab).size(), _fits()))
 	return &""
 
 
-## The pointer is over row k, or the selection moves to it.
-func point(k: int) -> void:
+## The selection moves to entry k, kept in view.
+func select(k: int) -> void:
 	if k != selected:
 		selected = k
 		scroll = 0
+	top = ListNav.reveal(top, selected, entries(tab).size(), _fits())
 
 
-func _go(t: int) -> void:
+## Scrolls `dir` notches of the wheel: the detail when the pointer is over it,
+## else the list.
+func wheel(dir: int, aside: bool) -> void:
+	if aside:
+		scroll = ListNav.scrolled(scroll, dir * ListNav.WHEEL, _lines().size(), _fits())
+	else:
+		top = ListNav.scrolled(top, dir * ListNav.WHEEL, entries(tab).size(), _fits())
+
+
+func go(t: int) -> void:
 	tab = t
 	selected = 0
+	top = 0
 	scroll = 0
+
+
+## The detail of the selected entry, cut to the room.
+func _lines() -> Array:
+	return flow(detail(entries(tab)[selected]), room.x - SIDE_X - 1.0)
+
+
+## Lines of the detail, and rows of the list, that fit.
+func _fits() -> int:
+	return Term.list_fits(room.y, 0)
 
 
 static func _entry(glyph: String, color: Color, name: String, lines: Callable) -> Dictionary:

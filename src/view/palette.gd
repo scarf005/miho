@@ -54,6 +54,13 @@ const TILES := {
 	World.TALISMAN: ["◊", Color(0.5, 0.95, 0.9), Color(0.08, 0.22, 0.2)],
 	World.SHELF: ["▒", Color(0.95, 0.8, 0.45), Color(0.24, 0.16, 0.07)],
 	World.SHELF_READ: ["▒", Color(0.55, 0.5, 0.42), Color(0.13, 0.11, 0.09)],
+	World.SCREEN: ["║", Color(0.85, 0.62, 0.3), Color(0.25, 0.14, 0.06)],
+	World.JAR: ["0", Color(0.78, 0.52, 0.32), Color(0.2, 0.12, 0.07)],
+	World.WATER_JAR: ["0", Color(0.45, 0.7, 1.0), Color(0.06, 0.14, 0.28)],
+	World.CENSER: ["&", Color(0.9, 0.75, 0.35), Color(0.24, 0.17, 0.06)],
+	World.COURTYARD: ["▫", Color(0.7, 0.82, 1.0), Color(0.12, 0.15, 0.24)],
+	World.STATUE: ["8", Color(0.78, 0.74, 0.66), Color(0.2, 0.18, 0.16)],
+	World.BOARD_ROTTEN: ["╪", Color(0.6, 0.45, 0.32), Color(0.16, 0.1, 0.06)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
@@ -68,6 +75,8 @@ const GAS := {
 	Gas.FOG: ["◦", Color(0.62, 0.7, 0.78)],
 	Gas.STEAM: ["°", Color(0.88, 0.9, 0.96)],
 	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
+	Gas.INCENSE: ["•", Color(0.82, 0.7, 0.52)],
+	Gas.MARSH: ["¦", Color(0.62, 0.72, 0.3)],
 }
 ## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it.
 const STATUS := {
@@ -101,7 +110,6 @@ const KIND := {
 const CARD := {
 	Cards.FOX: Color(0.6, 0.82, 1.0),
 	Cards.ORB: Color(0.82, 0.68, 1.0),
-	Cards.LEAP: Color(0.6, 1.0, 0.72),
 	Cards.WOOD: Color(0.3, 0.55, 1.0),
 	Cards.FIRE: Color(1.0, 0.32, 0.25),
 	Cards.EARTH: Color(1.0, 0.82, 0.3),
@@ -137,11 +145,13 @@ static func gas_alpha(amount: int) -> float:
 	return 0.1 + 0.06 * amount if amount < Gas.OPAQUE else 0.35 + 0.04 * amount
 
 
-## A talisman slot's colour; a compound's is halfway between its two elements'.
+## A talisman slot's colour; a compound's is the mean of its elements'.
 static func card(slot: StringName) -> Color:
-	if Cards.PAIRS.has(slot):
-		return CARD[Cards.PAIRS[slot][0]].lerp(CARD[Cards.PAIRS[slot][1]], 0.5)
-	return CARD[slot]
+	var parts := Cards.made_of(slot)
+	var sum := Color(0, 0, 0, 0)
+	for e: StringName in parts:
+		sum += CARD[e]
+	return sum / parts.size()
 
 
 ## How a spell shows: a leap as Miho where she lands.

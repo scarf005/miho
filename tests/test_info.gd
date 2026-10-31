@@ -38,9 +38,9 @@ func test_walls_show_their_health_but_the_outer_edge_shows_none() -> void:
 func test_spells_of_the_same_talismans_but_another_form_read_differently() -> void:
 	var fire_orb := Info.plain(SpellInfo.spell(Spell.make([Cards.ORB, Cards.FIRE])))
 	var homing := Info.plain(SpellInfo.spell(Spell.make([Cards.FOX, Cards.ORB, Cards.FIRE])))
-	assert_string_contains(fire_orb, "꼬리 2개")
+	assert_string_contains(fire_orb, "꼬리: 2")
 	assert_string_contains(fire_orb, "주위 8칸에 2")
-	assert_string_contains(homing, "꼬리 3개")
+	assert_string_contains(homing, "꼬리: 3")
 	assert_string_contains(homing, "모양: 유도 구슬, 가장 가까운 적")
 	assert_string_contains(homing, "꺾임: 한 칸에 45°")
 	assert_false(fire_orb.contains("가장 가까운 적"))
@@ -51,7 +51,7 @@ func test_a_spell_tells_every_number() -> void:
 		SpellInfo.spell(Spell.make([Cards.FOX, Cards.FOX, Cards.WOOD, Cards.WOOD]))
 	)
 	for part in [
-		"꼬리 4개",
+		"꼬리: 4",
 		"모양: 여우불 2발",
 		"피해: 발마다 1",
 		"7칸 날아가 8초",
@@ -69,16 +69,16 @@ func test_a_spell_tells_every_number() -> void:
 
 func test_a_talisman_tells_what_it_does_and_what_the_queue_becomes() -> void:
 	var text := Info.plain(SpellInfo.card(Cards.ORB, Spell.make([Cards.FOX, Cards.ORB])))
-	assert_true(text.begins_with("구슬 부적 · 꼬리 1개"), text)
+	assert_true(text.begins_with("구슬 부적 · 꼬리: 1"), text)
 	assert_string_contains(text, "피해: 1, 4칸 이상 날면 2")
-	assert_string_contains(text, "넣으면: 유도 구슬 · 꼬리 2개")
+	assert_string_contains(text, "넣으면: 유도 구슬 · 꼬리: 2")
 
 
 func test_a_queue_slot_tells_its_talisman_and_the_whole_spell() -> void:
 	var s := Spell.make([Cards.FOX, Cards.FIRE, Cards.WATER])
 	var text := Info.plain(SpellInfo.slot(s, 1))
-	assert_true(text.begins_with("증기 · 꼬리 2개 (물+불)"), text)
-	assert_string_contains(text, "꼬리 3개")
+	assert_true(text.begins_with("증기 · 꼬리: 2 · 물+불"), text)
+	assert_string_contains(text, "꼬리: 3")
 
 
 func test_a_homing_shot_in_flight_tells_whom_it_chases_and_how_it_turns() -> void:
