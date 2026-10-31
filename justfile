@@ -57,6 +57,18 @@ artifact: web
     gzip -9 -c build/web/index.wasm > build/artifact/wasm-gz.wasm
     gzip -9 -c build/web/index.side.wasm > build/artifact/side-gz.wasm
 
+# Save a scripted run's screenshot (see src/view/capture.gd), muted, in headless
+# gamescope: just shot .screenshots/x.png --seed=3 --keys=1,Right
+shot path *args: rust
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ godot }} --headless --path . --import >/dev/null
+    mkdir -p "$(dirname '{{ path }}')"
+    sink=$(pactl load-module module-null-sink sink_name=miho_shot)
+    trap 'pactl unload-module "$sink"' EXIT
+    PULSE_SINK=miho_shot gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- \
+        {{ godot }} --path . -- --shot="$(realpath -m '{{ path }}')" {{ args }}
+
 # Time storey generation, a round, forecasts and a Continue replay.
 bench: rust
     {{ godot }} --headless --path . --import
