@@ -26,7 +26,6 @@ const WALKABLE := [
 	World.TRAP_COLLAPSE,
 	World.TRAP_FIRE,
 	World.TRAP_VINE,
-	World.VERANDA,
 	World.TALISMAN,
 	World.SHELF,
 	World.SHELF_READ,
@@ -42,7 +41,6 @@ const FLAMMABLE := [
 	World.LEAVES,
 	World.WOOD_WALL,
 	World.THORNS,
-	World.VERANDA,
 	World.SHELF,
 	World.SHELF_READ,
 ]
@@ -53,7 +51,6 @@ const TREAD := {
 	World.REEDS: [2, "바스락"],
 	World.LEAVES: [2, "바스락"],
 	World.SHALLOW: [2, "철벅"],
-	World.VERANDA: [3, "삐걱"],
 }
 const BREAKS := {
 	World.WALL: World.WALL_CRACKED,

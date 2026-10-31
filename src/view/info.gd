@@ -536,8 +536,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.POND, World.SKY:
 			out.append("걸어서 건널 수 없다")
 			out.append("주문과 멀리뛰기는 넘어간다")
-		World.VERANDA:
-			out.append("맞은편 쪽마루는 멀리뛰기로 건넌다")
 		World.WINDOW:
 			out.append("보이지만 지나갈 수 없다")
 		World.BRIDGE:
