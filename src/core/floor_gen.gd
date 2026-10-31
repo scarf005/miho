@@ -542,7 +542,10 @@ static func nearest_free(w: World, from: Vector2i) -> Vector2i:
 	return Grid.at(best) if best >= 0 else Vector2i(-1, -1)
 
 
+## A creature spawned in a doorway stands in an open door.
 static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
+	if w.tile(at) == World.DOOR:
+		w.set_tile(at, World.DOOR_OPEN)
 	var a := Actor.new()
 	a.id = w.new_id()
 	a.kind = kind

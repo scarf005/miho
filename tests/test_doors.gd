@@ -58,6 +58,14 @@ func test_walking_into_a_closed_door_slides_it_open_and_costs_the_move() -> void
 	assert_eq(w.player().pos, DOOR_AT, "the next step goes through")
 
 
+func test_a_creature_spawned_in_a_doorway_stands_in_an_open_door() -> void:
+	var w := _world()
+	var a := _foe(w, &"jangseung", DOOR_AT)
+	assert_eq(w.tile(DOOR_AT), World.DOOR_OPEN)
+	assert_false(w.opaque(DOOR_AT))
+	assert_eq(w.actor_at(DOOR_AT), a)
+
+
 func test_a_closed_door_blocks_sight_but_light_passes() -> void:
 	var w := _world()
 	_put(w, Vector2i(13, 8), World.LANTERN)
