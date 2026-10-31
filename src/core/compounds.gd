@@ -18,7 +18,8 @@ extends RefCounted
 ## 유탄 hurts every creature it reaches for SHRAPNEL.
 ## 서리 freezes each creature it reaches for FROST rounds, so it cannot move
 ## (rooted: frozen creatures, with their double harm, come with the statuses),
-## and freezes ponds to ice (World.ICE) that can be walked.
+## and freezes ponds, and the veil of dokkaebi fire (Veil), to ice (World.ICE)
+## that can be walked.
 ## 단비 roots each creature it reaches RAIN rounds, and douses fire and
 ## lanterns and wets drums (Terrain.wash).
 ## 상극, the two react:
@@ -72,7 +73,9 @@ static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
 		&"molten":
 			_heat(w, tiles, MOLTEN)
 		&"frost":
-			_become(w, tiles.filter(func(p): return w.tile(p) == World.POND), World.ICE)
+			_become(
+				w, tiles.filter(func(p): return w.tile(p) in [World.POND, World.VEIL]), World.ICE
+			)
 		&"rain":
 			for p in tiles:
 				Terrain.wash(w, p)

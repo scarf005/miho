@@ -583,7 +583,7 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				features[t] += 1
 		assert_eq(w.tile(w.start), World.FLOOR)
 		assert_eq(w.tile(w.stairs), World.FLOOR)
-		var open := Masks.floor_of(w, w.seals.keys(), func(_p): return true)
+		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist
 		for i in w.tiles.size():
 			if w.open_floor(Grid.at(i)):

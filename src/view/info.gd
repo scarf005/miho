@@ -249,6 +249,11 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	if (
+		Veil.scorches(w, a.pos)
+		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+	):
+		out.append(_amount("도깨비불 장막 곁. 매 초 피해 ", World.FIRE_DAMAGE))
 	for s in w.shots:
 		if s.host == a.id and not s.gone:
 			var title := s.spell.title()
@@ -443,6 +448,11 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.ALTAR_LIT:
 			out.append("길과 주문을 막는다")
 			out.append("주위 %d칸을 밝힌다" % Light.SOUL_RADIUS)
+		World.VEIL:
+			out.append("길과 주문을 막는다. 시야는 막지 않는다")
+			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
+			out.append("곁에 선 채 초가 끝나면 매 초 피해 %d. 불을 먹는 적은 입지 않는다" % World.FIRE_DAMAGE)
+			out.append("물 주문이 닿으면 재가 되고, 서리가 닿으면 얼음이 되어 건널 수 있다")
 		World.DOOR:
 			out.append("닫혀 있다. 시야는 막고 빛은 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)

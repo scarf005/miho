@@ -30,7 +30,7 @@ const LEGEND := (
 	+ "░sky ═skybridge ◎drum ◌torn-drum ;broken-lantern "
 	+ '¤lantern "bamboo =floorboards ~pond(also shallow-water, mud: see look) ,ash '
 	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ßpillar "
-	+ "◇ice ‡thorns †altar(lit or not: see look) "
+	+ "◇ice ‡thorns †altar(lit or not: see look) ╫veil(fire) "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir "
 	+ "%peach or fallen-creature(see look) ●○*projectile @Miho"

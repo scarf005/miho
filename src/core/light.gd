@@ -22,7 +22,10 @@ const DARK := Vector3(-1.4, -1.4, -1.4)
 const SOUL := Vector3(0.4, 0.62, 1.0)
 const SOUL_RADIUS := 4
 ## Tiles that always shine: tile kind -> {radius, color}.
-const GLOW := {World.ALTAR_LIT: {radius = SOUL_RADIUS, color = SOUL}}
+const GLOW := {
+	World.ALTAR_LIT: {radius = SOUL_RADIUS, color = SOUL},
+	World.VEIL: {radius = LANTERN_RADIUS, color = FIRE},
+}
 
 
 ## Strength (0 to 1) a source gives each tile it reaches; `opaque` as for Sight.field.

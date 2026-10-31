@@ -136,12 +136,15 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 			wash(w, p)
 
 
-## Water on p: Miho's scent washes away, a drum gets wet, a lit lantern or a
-## fire goes out.
+## Water on p: Miho's scent washes away, a drum gets wet, a lit lantern, a
+## fire or a veil of dokkaebi fire goes out.
 static func wash(w: World, p: Vector2i) -> void:
 	Scent.clear(w, p)
 	if w.tile(p) == World.DRUM:
 		Drums.soak(w, p)
+	if w.tile(p) == World.VEIL:
+		w.emit({t = &"douse", at = p})
+		w.set_tile(p, World.ASH)
 	if w.tile(p) == World.LANTERN or w.burning.has(p):
 		w.burning.erase(p)
 		if w.tile(p) == World.LANTERN:

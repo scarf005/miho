@@ -199,8 +199,8 @@ static func fan(w: World, from: Vector2i, dir: Vector2i, r: int) -> Array[Vector
 
 
 ## Up to n tiles along `dir` from `from`, stopping before anything a projectile
-## cannot fly into and, unless `through`, at the first creature. It passes
-## `walls` wall tiles first.
+## cannot fly into (a veil of fire is the last tile it reaches) and, unless
+## `through`, at the first creature. It passes `walls` wall tiles first.
 static func line(
 	w: World, from: Vector2i, dir: Vector2i, n: int, through: bool, walls: int
 ) -> Array[Vector2i]:
@@ -214,6 +214,8 @@ static func line(
 		if Terrain.wall(w.tile(p)) and left > 0:
 			left -= 1
 		elif not _open(w, p):
+			if w.tile(p) == World.VEIL:
+				out.append(p)
 			break
 		out.append(p)
 		if not through and w.actor_at(p) != null:

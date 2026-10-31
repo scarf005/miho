@@ -497,10 +497,9 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 
 
 ## Whether every open tile is reachable from the first room, walking round the
-## tiles in `blocked` and through the seals, which open.
+## tiles in `blocked` and through whatever opens in time (Tiles.opens).
 static func connected(w: World, blocked: Array = []) -> bool:
-	var through := func(p): return w.seals.has(p) and not blocked.has(p)
-	var open := Masks.floor_of(w, blocked + w.seals.keys(), through)
+	var open := Masks.opened(w, blocked)
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
 	for i in open.size():
 		if open[i] == 1 and dist[i] < 0:

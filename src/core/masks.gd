@@ -38,6 +38,12 @@ static func floor_of(w: World, extra: Array = [], test := Callable()) -> PackedB
 	return Grid.mask(w.tiles, Tiles.walk, extra, test)
 
 
+## World.open_floor for every tile once every seal has opened and every veil
+## gone out (Tiles.opens), but the tiles in `blocked`.
+static func opened(w: World, blocked: Array = []) -> PackedByteArray:
+	return Grid.mask(w.tiles, Tiles.reachable, blocked, func(_p): return false)
+
+
 ## A creature's `test` of the tiles it may step on (its own among them) for every tile.
 static func walk(w: World, a: Actor, test: Callable) -> PackedByteArray:
 	return floor_of(w, odd(w) + [a.pos], test)

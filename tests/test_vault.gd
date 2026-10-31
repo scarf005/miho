@@ -25,7 +25,7 @@ func _label(w: World) -> String:
 
 ## Every walkable tile reachable from the start: with the seals shut, or open.
 func _reach(w: World, open: bool) -> PackedInt32Array:
-	var mask := Masks.floor_of(w, w.seals.keys(), func(_p): return open)
+	var mask := Masks.opened(w) if open else Masks.floor_of(w)
 	return Grid.search(w.start, mask).dist
 
 

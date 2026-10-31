@@ -133,6 +133,7 @@ const VERANDA := 33
 const SEAL := 34
 const ALTAR := 35
 const ALTAR_LIT := 36
+const VEIL := 37
 
 var depth := 1
 var tiles := PackedByteArray()

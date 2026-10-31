@@ -16,7 +16,7 @@ static func walkable(w: World, p: Vector2i) -> bool:
 	if w.seen[i] == 0:
 		return true
 	var a := w.actor_at(p)
-	var harms := w.burning.has(p) or w.hot.has(p) or Gas.harms(w, p)
+	var harms := w.burning.has(p) or w.hot.has(p) or Gas.harms(w, p) or Veil.scorches(w, p)
 	return (a == null or a.faction == Actor.FOX) and not harms
 
 
