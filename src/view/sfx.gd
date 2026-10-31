@@ -30,6 +30,7 @@ const NAMES := [
 	&"win",
 	&"lose",
 	&"click",
+	&"deny",
 ]
 const WORDS := {
 	"탁": &"step",

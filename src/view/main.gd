@@ -52,6 +52,9 @@ var hover_slot := -1
 var looking := false
 ## Several open doors are next to Miho: the next direction key shuts that one.
 var shutting := false
+## A talisman or saved spell was just refused: the next direction or tile is
+## eaten, so the press meant to hurl it does not walk Miho instead.
+var refused := false
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
 var skip := false
@@ -247,6 +250,7 @@ func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
 	if event.is_echo() and not Keys.MOVES.has(action):
 		return
+	var eat := _eats_move()
 	if shutting:
 		shutting = false
 		if Keys.MOVES.has(action):
@@ -255,7 +259,8 @@ func _key(event: InputEventKey) -> void:
 	if looking and _look_key(action, event.shift_pressed):
 		return
 	if Keys.MOVES.has(action):
-		_direction(Keys.MOVES[action], event.shift_pressed)
+		if not eat:
+			_direction(Keys.MOVES[action], event.shift_pressed)
 	elif action.begins_with("pick_"):
 		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
@@ -297,6 +302,7 @@ func _key(event: InputEventKey) -> void:
 func _click(event: InputEventMouseButton) -> void:
 	looking = false
 	shutting = false
+	var eat := _eats_move()
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_clear()
 		return
@@ -307,8 +313,16 @@ func _click(event: InputEventMouseButton) -> void:
 	if card != &"":
 		_add(card)
 		return
-	if Grid.inside(hover):
+	if Grid.inside(hover) and not eat:
 		_use_tile(hover, event.shift_pressed)
+
+
+## Whether this press is the one after a refusal with nothing to hurl, which
+## must not walk; any press ends the refusal.
+func _eats_move() -> bool:
+	var eat := refused and picked.is_empty() and staged.is_empty()
+	refused = false
+	return eat
 
 
 ## What a left click on `tile` does: nothing on Miho's own (a stray click must not
@@ -408,10 +422,10 @@ func _add(card: StringName) -> void:
 	elif _held() + picked.size() >= world.tails:
 		why = "꼬리가 모자라다"
 	if why != "":
-		_say(why)
+		_refuse(why)
 	else:
 		picked.append(card)
-	sfx.play(&"click")
+		sfx.play(&"click")
 	_forecast()
 
 
@@ -426,12 +440,18 @@ func _recall(key: String) -> void:
 	elif spell.cost() + _held() > world.tails:
 		why = "꼬리가 모자라다"
 	if why != "":
-		_say(why)
-		sfx.play(&"click")
+		_refuse(why)
 		return
 	picked.assign(spell.cards)
 	sfx.play(&"click")
 	_forecast()
+
+
+## Says why a talisman or saved spell cannot be picked, with the warning sound.
+func _refuse(why: String) -> void:
+	_say(why)
+	sfx.play(&"deny")
+	refused = true
 
 
 func _held() -> int:

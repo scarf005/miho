@@ -151,3 +151,44 @@ func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> v
 	assert_eq(m.term.marks.get(foe.pos), [str(foe.hp), Palette.HURT], "dies, still marked")
 	var gaps: Array = m.term.lines.map(func(l): return l[3])
 	assert_eq(gaps, [0, 1], "two wisps, two lines side by side")
+
+
+func test_a_refused_talisman_makes_the_next_direction_key_do_nothing() -> void:
+	var m := _main()
+	m.world.tails = 0
+	var start: Vector2i = m.world.player().pos
+	_press(m, "1")
+	assert_true(m.picked.is_empty(), "no tail is left for the talisman")
+	_press(m, "Right")
+	assert_eq(m.world.player().pos, start, "the key meant to aim does not walk")
+	m.busy = false
+	_press(m, "Right")
+	assert_eq(m.world.player().pos, start + Vector2i.RIGHT, "the next one walks")
+
+
+func test_a_refused_saved_spell_makes_the_next_tile_click_do_nothing() -> void:
+	var m := _main()
+	m.world.tails = 0
+	m.settings.spells = {&"slot_1": "fox"}
+	var start: Vector2i = m.world.player().pos
+	_press(m, "Q")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	m.hover = start + Vector2i.RIGHT
+	m._click(click)
+	assert_eq(m.world.player().pos, start, "the click meant to aim does not walk")
+	m.hover = start + Vector2i.RIGHT
+	m._click(click)
+	assert_eq(m.world.player().pos, start + Vector2i.RIGHT, "the next one walks")
+
+
+func test_another_key_after_a_refused_talisman_lets_the_direction_walk() -> void:
+	var m := _main()
+	m.world.tails = 0
+	var start: Vector2i = m.world.player().pos
+	_press(m, "1")
+	_press(m, "Escape")
+	m._close()
+	_press(m, "Right")
+	assert_eq(m.world.player().pos, start + Vector2i.RIGHT)
