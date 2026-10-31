@@ -77,7 +77,6 @@ const BURN_ROUNDS := 3
 const FIRE_DAMAGE := 2
 const HEAL := 1
 const CRACKLE := 3
-const SPREAD := 0.5
 
 const FLOOR := 0
 const WALL := 1
@@ -816,7 +815,11 @@ func _burn() -> void:
 			else:
 				hurt(a, FIRE_DAMAGE)
 		for d in Grid.DIRS:
-			if Tiles.burns[tile(p + d)] == 1 and not burning.has(p + d) and rng.randf() < SPREAD:
+			if (
+				Tiles.burns[tile(p + d)] == 1
+				and not burning.has(p + d)
+				and rng.randf() < Tiles.of(tile(p + d), "spread")
+			):
 				caught.append(p + d)
 		burning[p] -= 1
 		if burning[p] <= 0:

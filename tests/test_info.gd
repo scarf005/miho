@@ -159,7 +159,7 @@ func _seen_tile(w: World, t: int) -> Vector2i:
 	return p
 
 
-func test_a_burning_tile_tells_time_left_harm_spread_light_and_noise() -> void:
+func test_a_burning_tile_tells_time_left_harm_light_and_noise() -> void:
 	var w := _hall()
 	var p := _seen_tile(w, World.BOARD)
 	w.burning[p] = 2
@@ -167,7 +167,6 @@ func test_a_burning_tile_tells_time_left_harm_spread_light_and_noise() -> void:
 	var text := Info.plain(Info.terrain(w, p))
 	assert_string_contains(text, "불타는 중. 2초 뒤 재가 된다")
 	assert_string_contains(text, "서 있으면 매 초 피해 %d" % World.FIRE_DAMAGE)
-	assert_string_contains(text, "초당 %d%% 번진다" % roundi(World.SPREAD * 100))
 	assert_string_contains(text, "주위 %d칸을 밝힌다. 타닥 소리 %d칸" % [Light.FIRE_RADIUS, World.CRACKLE])
 
 
@@ -186,9 +185,17 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var told := {
 		World.LANTERN: ["주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS, "쨍 소리 %d칸" % World.KNOCK],
 		World.BAMBOO:
-		["사각 소리 %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "%d초 타고" % World.BURN_ROUNDS],
+		[
+			"사각 소리 %d칸" % Tiles.of(World.BAMBOO, "tread")[0],
+			"%d초 타고" % World.BURN_ROUNDS,
+			"냄새가 남지 않는다",
+		],
 		World.BOARD:
-		["삐걱 소리 %d칸" % Tiles.of(World.BOARD, "tread")[0], "%d초 타고" % World.BURN_ROUNDS],
+		[
+			"삐걱 소리 %d칸" % Tiles.of(World.BOARD, "tread")[0],
+			"%d초 타고" % World.BURN_ROUNDS,
+			"초당 %d%% 로 옮겨" % roundi(Tiles.of(World.BOARD, "spread") * 100),
+		],
 		World.DOOR: ["%d초 타고" % World.BURN_ROUNDS],
 		World.BRIDGE: ["삐걱 소리 %d칸" % Tiles.of(World.BRIDGE, "tread")[0], "불에 타지 않는다"],
 		World.WINDOW: ["쨍 소리 %d칸" % World.KNOCK],

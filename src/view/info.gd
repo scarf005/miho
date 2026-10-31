@@ -340,18 +340,19 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
 		out.append("밟으면 %s 소리 %d칸" % [tread[1], tread[0]])
+	if Tiles.of(t, "scentless"):
+		out.append("냄새가 남지 않는다")
 	if Tiles.burns[t] == 1 and not burns:
 		out.append("불이 붙으면 %d초 타고 재가 된다" % World.BURN_ROUNDS)
+		out.append("이웃이 타면 초당 %d%% 로 옮겨 붙는다" % roundi(Tiles.of(t, "spread") * 100))
 	return out
 
 
-## A burning tile: time left, harm, spread, light and noise.
+## A burning tile: time left, harm, light and noise.
 static func _burning(left: int) -> Array:
-	var spread := roundi(World.SPREAD * 100)
 	return [
 		[["불타는 중. %d초 뒤 재가 된다" % left, Palette.HURT]],
 		_amount("서 있으면 매 초 피해 ", World.FIRE_DAMAGE),
-		[["불에 타는 주위 칸에 초당 %d%% 번진다" % spread, Palette.DIM]],
 		[["주위 %d칸을 밝힌다. 타닥 소리 %d칸" % [Light.FIRE_RADIUS, World.CRACKLE], Palette.DIM]],
 	]
 

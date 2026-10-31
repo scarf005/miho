@@ -11,6 +11,8 @@ extends RefCounted
 ## breaks_to: what a hit leaves of it (the outermost ring of the map never
 ## breaks). tread: [how far a step onto it is heard, the word for it].
 ## knock: Miho knocks it by walking into it. wall: a wall, cracked or not.
+## spread: the chance each second that fire next to it takes it. scentless: a
+## trail laid on it is lost.
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -35,6 +37,7 @@ const ROWS := {
 		light = false,
 		burns = true,
 		tread = [2, "사각"],
+		scentless = true,
 	},
 	World.BOARD: {name = "마루", walk = true, burns = true, tread = [3, "삐걱"]},
 	World.POND: {name = "연못"},
@@ -69,6 +72,8 @@ const DEFAULT := {
 	tread = [0, "탁"],
 	knock = false,
 	wall = false,
+	spread = 0.5,
+	scentless = false,
 }
 
 ## One byte per tile kind, 1 where the column holds: the tables Masks feeds to Rust.

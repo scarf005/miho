@@ -66,3 +66,13 @@ func test_worlds_of_several_seeds_follow_the_old_tables_at_every_tile() -> void:
 			assert_eq(w.open_floor(p), WALKABLE.has(t), "seed %d %s" % [s, p])
 			assert_eq(floor_mask[i] == 1, WALKABLE.has(t), "seed %d %s" % [s, p])
 			assert_eq(Terrain.breakable(w, p), BREAKS.has(t) and (inner or not wall), str(p))
+
+
+func test_every_kind_that_burns_takes_fire_at_half_a_chance_each_second() -> void:
+	for t in 256:
+		assert_eq(Tiles.of(t, "spread"), 0.5, "spread %d" % t)
+
+
+func test_only_bamboo_holds_no_scent() -> void:
+	for t in 256:
+		assert_eq(Tiles.of(t, "scentless"), t == World.BAMBOO, "scentless %d" % t)
