@@ -548,6 +548,10 @@ func move(a: Actor, to: Vector2i) -> void:
 	var from := a.pos
 	emit({t = &"move", id = a.id, from = from, to = to})
 	a.pos = to
+	for s in shots:
+		if s.host == a.id and not s.gone:
+			s.pos = to
+			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
 	var tread: Array = Tiles.of(tile(to), "tread")
 	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
@@ -679,8 +683,9 @@ func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 
 func _shots_phase() -> void:
 	for sub in Spell.BULLET_SPEED:
-		for s in shots.duplicate():
-			if not s.gone and sub < s.spell.speed() and (s.dir != Vector2i.ZERO or s.turn > 0):
+		for s: Shot in shots.duplicate():
+			var moves := s.dir != Vector2i.ZERO or s.turn > 0
+			if not s.gone and sub < s.spell.speed() and moves and not rides(s):
 				_step(s)
 	_prune()
 
@@ -786,6 +791,35 @@ func _strike(s: Shot, a: Actor) -> void:
 	if spell.orb and spell.has(Cards.FIRE):
 		_splash(s, at, a)
 	_effects(s, at)
+	if not spell.orb and not spell.gun():
+		_stick(s, a)
+
+
+## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
+## lighting it as it moves (move). It stays a shot, so it hovers where `a`
+## fell when `a` dies.
+func _stick(s: Shot, a: Actor) -> void:
+	s.gone = false
+	s.dir = Vector2i.ZERO
+	s.host = a.id
+	s.life = Spell.WISP_LIFE
+	_changed()
+	emit(
+		{
+			t = &"stick",
+			shot = s.id,
+			id = a.id,
+			at = a.pos,
+			faction = s.faction,
+			cards = s.spell.cards
+		}
+	)
+
+
+## Whether `s` rides a living creature, and so neither flies nor strikes again.
+func rides(s: Shot) -> bool:
+	var a := actor(s.host)
+	return a != null and a.alive()
 
 
 func hurt(a: Actor, n: int, weak := false) -> void:

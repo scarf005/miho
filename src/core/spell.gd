@@ -12,7 +12,9 @@ extends RefCounted
 ## iood_damage); 여 alone a wisp for every 여, each hitting for 1 (a lone 여
 ## for none), turning like a homing orb. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
-## tiles, then hovers and lights its surroundings. Elements alone spray: they
+## tiles, then hovers and lights its surroundings. A wisp that strikes a
+## creature that does not eat it sticks to it for WISP_LIFE rounds and lights
+## it wherever it goes (World._stick); a bullet does not stick. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
@@ -178,7 +180,7 @@ func gun() -> bool:
 
 
 ## Rounds a projectile lasts in flight; 0 means until it hits something. A
-## wisp lasts WISP_LIFE rounds once it hovers.
+## wisp lasts WISP_LIFE rounds once it hovers or sticks.
 func life() -> int:
 	return HOMING_LIFE if homing() else 0
 
