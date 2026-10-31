@@ -39,9 +39,15 @@ const NAMES := [
 	&"stun",
 	&"absorb",
 	&"hiss",
+	&"rustle",
+	&"splash",
+	&"creak",
+	&"warn",
 ]
-## Events heard the same wherever they happen.
+## Events heard the same wherever they happen. `spot` is the view's own event:
+## Miho sees something useful for the first time.
 const GLOBAL := [
+	&"spot",
 	&"card",
 	&"heal",
 	&"altar",
@@ -55,6 +61,9 @@ const GLOBAL := [
 	&"arrive"
 ]
 ## How loud an event sounds from its place, in dB; those left out play at full.
+## A step is -6 dB on bare ground and louder by STEP_DB for each tile its tread is heard.
+const STEP_DB := 1.5
+const STEP_TILES := 4
 const LEVEL := {
 	&"move": -6.0,
 	&"charge": -4.0,
@@ -89,8 +98,10 @@ const WORDS := {
 	"쨍": &"clash",
 	"쨍그랑": &"clash",
 	"우지끈": &"fall",
-	"사각": &"step",
-	"삐걱": &"click",
+	"사각": &"rustle",
+	"바스락": &"rustle",
+	"철벅": &"splash",
+	"삐걱": &"creak",
 	"드르륵": &"door",
 	"둥": &"blast",
 	"댕": &"gong",
@@ -203,15 +214,26 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 	if e.t in GLOBAL:
 		play(n)
 	else:
-		play_at(n, at, LEVEL.get(e.t, 0.0))
+		play_at(n, at, level_of(e))
+
+
+## How loud an event sounds from its place, in dB.
+static func level_of(e: Dictionary) -> float:
+	var db: float = LEVEL.get(e.t, 0.0)
+	return db + STEP_DB * mini(e.loud, STEP_TILES) if e.t == &"move" else db
 
 
 ## The sound an event makes, or &"" for none. A noise Miho sees is never told
-## as a noise, so what she sees sounds from the event that made it.
+## as a noise, so what she sees sounds from the event that made it; a step
+## sounds by the word of the tile stepped onto.
 static func sound_of(e: Dictionary) -> StringName:
 	match e.t:
 		&"move":
-			return &"step"
+			return WORDS.get(e.word, &"step")
+		&"leap", &"swap":
+			return &"foxfire"
+		&"crumble":
+			return &"fall"
 		&"cast":
 			var spell := Spell.make(e.cards)
 			if spell != null and spell.shape == Spell.LEAP:
@@ -230,6 +252,8 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"trap":
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
 		&"find":
+			return &"find" if e.kind == World.DOOR else &"warn"
+		&"spot":
 			return &"find"
 		&"open", &"close", &"unseal":
 			return &"door"

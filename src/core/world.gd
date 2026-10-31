@@ -597,20 +597,22 @@ func _changed() -> void:
 
 
 ## A step; into a closed door it slides the door open instead and stays put.
+## The step event carries the tread: the word of the tile stepped onto and how
+## far it is heard, which sound the step.
 func move(a: Actor, to: Vector2i) -> void:
 	if tile(to) == DOOR:
 		Terrain.open_door(self, a, to)
 		return
 	var from := a.pos
-	emit({t = &"move", id = a.id, from = from, to = to})
+	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
+	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
+	emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
 	a.pos = to
 	for s in shots:
 		if s.host == a.id and not s.gone:
 			s.pos = to
 			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
-	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
-	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.crumble(self, a, from)
 	Terrain.trample(self, to)
