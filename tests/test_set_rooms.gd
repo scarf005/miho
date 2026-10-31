@@ -16,6 +16,7 @@ const MADE_OF := {
 	&"corridor": [[], [World.FLOOR]],
 	&"statues": [[World.STATUE], [World.FLOOR]],
 	&"rotten": [[World.BOARD_ROTTEN], [World.FLOOR]],
+	&"swamp": [[World.MUD], [World.FLOOR]],
 }
 
 
@@ -369,6 +370,54 @@ func test_a_room_too_small_for_six_boards_is_left_as_it_was() -> void:
 	var before := w.tiles.duplicate()
 	assert_false(_rotten(w, small))
 	assert_eq(w.tiles, before)
+
+
+# --- 늪지 -------------------------------------------------------------------------------
+
+
+func _swamp(w: World, r := MID) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	return SetRooms.make(w, &"swamp", r, rng)
+
+
+func test_a_swamp_is_mud_from_the_middle_with_marsh_gas_rising_from_three_tiles_of_it() -> void:
+	var w := _plan(7)
+	assert_true(_swamp(w))
+	var mud := _count(w, MID, World.MUD)
+	assert_gte(mud, SetRooms.MUD_LEAST)
+	assert_eq(w.tile(MID.position + MID.size / 2), World.MUD, "it grows from the middle")
+	assert_eq(w.vents.size(), SetRooms.MARSH_VENTS + 1, "a room of %d tiles" % MID.get_area())
+	for p in w.vents:
+		assert_eq(w.tile(p), World.MUD, str(p))
+		assert_eq(w.vents[p], Gas.MARSH)
+		assert_eq(w.gas[p].x, Gas.MARSH)
+	assert_true(FloorGen.connected(w))
+
+
+func test_a_small_swamp_has_two_vents() -> void:
+	var small := Rect2i(10, 3, 7, 5)
+	var w := _plan(7, small)
+	assert_true(_swamp(w, small))
+	assert_eq(w.vents.size(), SetRooms.MARSH_VENTS)
+
+
+func test_mud_that_stays_under_six_tiles_leaves_the_room_as_it_was() -> void:
+	var small := Rect2i(10, 4, 2, 2)
+	var w := _plan(7, small)
+	var before := w.tiles.duplicate()
+	assert_false(_swamp(w, small))
+	assert_eq(w.tiles, before)
+	assert_true(w.vents.is_empty() and w.gas.is_empty())
+
+
+func test_a_spark_in_a_swamp_sets_off_its_marsh_gas() -> void:
+	var w := _plan(7)
+	_swamp(w)
+	var vent: Vector2i = w.vents.keys()[0]
+	w.ignite(vent)
+	assert_eq(w.events.filter(func(e): return e.t == &"blast").size(), 1)
+	assert_false(w.gas.has(vent))
 
 
 # --- the storeys ---------------------------------------------------------------------

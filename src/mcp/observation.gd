@@ -34,7 +34,7 @@ const LEGEND := (
 	+ "▒shelf(unread or read: see look) ║screen 0jar(also water-jar: see look) &censer "
 	+ "▫courtyard 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
-	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense <stairs !elixir "
+	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas<stairs !elixir "
 	+ "%peach or fallen-creature(see look) ●○*projectile @Miho"
 )
 

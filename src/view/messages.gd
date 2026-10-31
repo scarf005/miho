@@ -242,6 +242,9 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [[saja, Palette.KIND[&"saja"]], [_particle(saja, "이", "가") + " 오고 있다", TEXT]]
 		&"arrive":
 			return _who(before, after, id, "이", "가") + [[" 나타났다", TEXT]]
+		&"blast":
+			var name: String = Gas.of(e.kind, "name")
+			return [[name, Palette.GAS[e.kind][1]], [_particle(name, "이", "가") + " 폭발했다", TEXT]]
 		&"crumble":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 꺼졌다", TEXT]]
 		&"wake":

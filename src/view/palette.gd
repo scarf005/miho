@@ -76,6 +76,7 @@ const GAS := {
 	Gas.STEAM: ["°", Color(0.88, 0.9, 0.96)],
 	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
 	Gas.INCENSE: ["•", Color(0.82, 0.7, 0.52)],
+	Gas.MARSH: ["¦", Color(0.62, 0.72, 0.3)],
 }
 ## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it.
 const STATUS := {

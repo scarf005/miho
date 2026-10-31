@@ -909,6 +909,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 ## Sets p alight if it is flammable, or whatever it is when `force`d; a
 ## `wildfire` always spreads. Water never burns.
 func ignite(p: Vector2i, force := false, wildfire := false) -> void:
+	Gas.light(self, p)
 	if (
 		(force or Tiles.burns[tile(p)] == 1)
 		and not burning.has(p)

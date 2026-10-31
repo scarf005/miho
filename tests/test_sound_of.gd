@@ -11,6 +11,7 @@ const SOUNDS := [
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
 	[{t = &"hit"}, &"blast"],
 	[{t = &"burst"}, &"blast"],
+	[{t = &"blast"}, &"blast"],
 	[{t = &"splash"}, &"blast"],
 	[{t = &"drum", wet = false}, &"blast"],
 	[{t = &"clash"}, &"clash"],

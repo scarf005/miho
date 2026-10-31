@@ -647,6 +647,9 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append(_amount("서 있으면 매 초 피해 ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
 		out.append([["북을 적셔 %d초 동안 소리를 없앤다" % Drums.WET_ROUNDS, Palette.DIM]])
+	if Gas.of(g.x, "explodes"):
+		out.append(_amount("폭발: 피해 ", Gas.BLAST))
+		out.append([["폭발 범위: 이어진 구름 전체", Palette.DIM]])
 	if Gas.of(g.x, "erases"):
 		out.append([["냄새: 지움", Palette.DIM]])
 	return out

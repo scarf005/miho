@@ -17,6 +17,7 @@ extends RefCounted
 ## 깨어나는 석상 (statues): statues stand inside the room and wake as 장승 (Statues).
 ## 무너지는 마루 (rotten): rotten boards fill the room but its edge, each a hole once
 ## a creature steps off it.
+## 늪지 (swamp): mud with marsh gas rising from it, which fire sets off.
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
@@ -25,7 +26,15 @@ const ROWS := [
 	{kind = &"corridor", tier = 4},
 	{kind = &"statues", tier = 5},
 	{kind = &"rotten", tier = 6},
+	{kind = &"swamp", tier = 7},
 ]
+## A swamp is mud grown from the middle of the room like a patch (Placement), of
+## at least MUD_LEAST tiles, with marsh gas breathed from MARSH_VENTS of them (one
+## more in a room of LARGE_AREA tiles).
+const MUD := {what = World.MUD, on = World.FLOOR, grow = [100, 15]}
+const MARSH := {gas = Gas.MARSH, amount = Gas.VENT_LEVEL, on = World.MUD, grow = [0, 0]}
+const MUD_LEAST := 6
+const MARSH_VENTS := 2
 ## A rotten floor holds at least ROTTEN_LEAST boards.
 const ROTTEN_LEAST := 6
 ## A corridor is at most CORRIDOR.x tiles across and at least CORRIDOR.y long.
@@ -102,6 +111,8 @@ static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerat
 			made = _statues(w, r, rng)
 		&"rotten":
 			made = _rotten(w, r)
+		&"swamp":
+			made = _swamp(w, r, rng)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -184,6 +195,23 @@ static func _mist(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	if pond.size() < POND_LEAST:
 		return false
 	Placement.lay(w, FOG, pond[0], rng)
+	return true
+
+
+## Mud from the bare tile nearest the middle with marsh gas rising from some of it
+## (the gas goes up in fire, Gas.light); none when the mud stays small or would cut
+## the storey apart.
+static func _swamp(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+	var spots := _bare(w, r)
+	if spots.is_empty():
+		return false
+	spots.sort_custom(func(a, b): return Grid.cheb(a, _centre(r)) < Grid.cheb(b, _centre(r)))
+	var mud := Placement.lay(w, MUD, spots[0], rng)
+	if mud.size() < MUD_LEAST:
+		return false
+	FloorGen.shuffle(rng, mud)
+	for p in mud.slice(0, MARSH_VENTS + (1 if r.get_area() >= LARGE_AREA else 0)):
+		Placement.lay(w, MARSH, p, rng)
 	return true
 
 

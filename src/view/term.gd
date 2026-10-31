@@ -52,6 +52,7 @@ const DELAY := {
 	&"hit": 0.1,
 	&"burst": 0.1,
 	&"splash": 0.22,
+	&"blast": 0.25,
 	&"spray": 0.25,
 	&"clash": 0.1,
 	&"claw": 0.16,
@@ -342,6 +343,9 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"sprout":
 			for p: Vector2i in e.tiles:
 				_flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))
+		&"blast":
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(Palette.BURNING[1], 0.9), 0.03 * Grid.cheb(p, e.at))
 		&"become", &"heat":
 			var color: Color = Palette.HOT[1] if e.t == &"heat" else Palette.TILES[e.tile][1]
 			for p: Vector2i in e.tiles:
