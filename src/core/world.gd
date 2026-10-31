@@ -58,7 +58,7 @@ extends RefCounted
 ## crosses one is seen from afar.
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## a new storey one below.
+## a new storey one below. Miho leaps across the sky with 도 (Leap).
 ##
 ## Each storey climbed gives back one health.
 ##
@@ -149,7 +149,7 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
-var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
+var cards: Array[StringName] = [Cards.FOX, Cards.ORB, Cards.LEAP]
 var round_no := 0
 var outcome := &""
 var rng := RandomNumberGenerator.new()
@@ -436,8 +436,8 @@ func _can_close(dir: Vector2i) -> bool:
 	)
 
 
-## Every spell is valid and known, takes its own open direction, and the cards
-## together cost no more than the unspent tails.
+## Every spell is valid and known, takes its own open direction (a leap one
+## it lands along), and the cards together cost no more than the unspent tails.
 func _can_cast(spells: Array) -> bool:
 	var me := player()
 	if me.stunned > 0 or spells.is_empty():
@@ -450,7 +450,12 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not Terrain.throwable(self, spell, me.pos + d) or aims.has(d):
+		var open := (
+			Leap.can(self, me, spell, d)
+			if spell.shape == Spell.LEAP
+			else Terrain.throwable(self, spell, me.pos + d)
+		)
+		if not Grid.DIRS.has(d) or not open or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -564,7 +569,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
-	Traps.step(self, a, to - from)
+	Traps.step(self, a, Grid.line_dir(from, to))
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
@@ -656,6 +661,9 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
+	if spell.shape == Spell.LEAP:
+		Leap.cast(self, caster, spell, dir)
+		return
 	if spell.shape == Spell.SPRAY:
 		Spray.cast(self, caster, spell, dir)
 		return

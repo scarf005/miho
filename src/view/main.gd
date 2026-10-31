@@ -1,10 +1,10 @@
 extends Node
 ## Game flow and input, through the actions in Keys. Arrows, numpad or
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
-## with claws. 1-7 put talismans in the queue (Spell); with a queue a direction
-## hurls the spell, and Shift with a direction holds it so several spells leave
-## in one turn. Space, Enter or . waits, or with a queue hurls it at the cursor
-## (or casts what is held). Picking from the keyboard puts the cursor on the
+## with claws. 1-8 put talismans in the queue (Spell); with a queue a direction
+## hurls the spell (or leaps that way), and Shift with a direction holds it so
+## several spells leave in one turn. Space, Enter or . waits, or with a queue
+## hurls it at the cursor (or casts what is held). Picking from the keyboard puts the cursor on the
 ## nearest creature in sight, and Tab moves it to the next. QWEASD fill the
 ## queue with a saved spell, F with the last spell hurled. Esc clears the queue
 ## and what is held and, with nothing to clear, opens the options.
@@ -435,6 +435,8 @@ func _add(card: StringName) -> void:
 		why = "줄이 가득 찼다"
 	elif _held() + picked.size() >= world.tails:
 		why = "꼬리가 모자라다"
+	elif Spell.make(picked + [card]) == null:
+		why = "도약은 줄 맨 앞에만 넣는다"
 	if why != "":
 		_refuse(why)
 	else:
@@ -531,6 +533,8 @@ func _direction(d: Vector2i, hold: bool) -> void:
 	var spells := staged.duplicate()
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not world.can({t = &"cast", spells = spells}):
+		if Spell.make(picked).shape == Spell.LEAP:
+			_say("내려설 곳이 없다")
 		sfx.play(&"click")
 		return
 	if hold:
@@ -859,7 +863,12 @@ func _forecast() -> void:
 	ahead = {}
 	aims = {}
 	reach = {}
-	if not picked.is_empty() and Spell.make(picked) != null:
+	var spell := Spell.make(picked)
+	if spell != null and spell.shape == Spell.LEAP:
+		for d in Grid.DIRS:
+			if Leap.can(known, known.player(), spell, d):
+				reach[Leap.landing(known, me, d, spell.leap())] = Color(Palette.SIDE[0], 0.3)
+	elif spell != null:
 		for d in Grid.DIRS:
 			for p in Forecast.ray(world, me, d).slice(0, Spell.RANGE):
 				reach[p] = Color(Palette.SIDE[0], 0.12)
@@ -900,7 +909,7 @@ func _refresh() -> void:
 			var spells := staged.duplicate()
 			spells.append({cards = picked.duplicate(), dir = aim})
 			aims[aim] = Forecast.of(world, {t = &"cast", spells = spells})
-		_paint(aims[aim], tints, marks)
+		AimView.paint(aims[aim], world, known, term, tints, marks)
 	elif (
 		picked.is_empty() and staged.is_empty() and Grid.inside(hover) and Grid.cheb(hover, me) > 1
 	):
@@ -949,42 +958,6 @@ func _zone_lines(p: Vector2i) -> Array:
 	var radius: Variant = excluded.zones.get(p)
 	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
 	return [[[text, Palette.ZONE]]]
-
-
-## The forecast cast: the tiles each projectile crosses or each spray covers,
-## a line from Miho to the creature each homing one chases, the harm each
-## creature takes, the wooden walls that grow and the ground compounds change.
-func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
-	var aimed := {}
-	for id in f.paths:
-		var path: Dictionary = f.paths[id]
-		for p in path.tiles:
-			tints[p] = Color(Palette.SIDE[path.faction], 0.35)
-		var target := known.actor(path.target)
-		var cast_now := not world.shots.any(func(s): return s.id == id)
-		if target != null and path.faction == Actor.FOX and cast_now:
-			var k: int = aimed.get(target.id, 0)
-			aimed[target.id] = k + 1
-			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7), k])
-	for e in f.sprays:
-		var color := Palette.card(Spell.make(e.cards).slots[0])
-		for p: Vector2i in e.tiles:
-			tints[p] = Color(color, 0.22)
-	for p in f.sprouts:
-		tints[p] = Color(Palette.TILES[World.WOOD_WALL][1], 0.5)
-	for p in f.grounds:
-		tints[p] = Color(Palette.TILES[f.grounds[p]][1], 0.5)
-	for p in f.heated:
-		tints[p] = Color(Palette.HOT[1], 0.5)
-	for id in f.harm:
-		# A creature the round kills is gone from `after`: mark where it stood.
-		var a := f.after.actor(id) if f.after.actor(id) != null else known.actor(id)
-		if a != null:
-			marks[a.pos] = [str(f.harm[id]), Palette.HURT]
-	for id in f.falls:
-		var a := world.actor(id)
-		if a != null:
-			marks[a.pos] = ["▼", Palette.HURT]
 
 
 ## A creature next to Miho that her claws would catch unawares (World._claw).

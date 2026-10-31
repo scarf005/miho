@@ -194,6 +194,8 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"move":
 			return &"step"
 		&"cast":
+			if e.cards.has(Cards.LEAP):
+				return &""
 			return &"orb" if e.cards.has(Cards.ORB) else &"foxfire"
 		&"hit", &"burst", &"splash":
 			return &"" if e.get("spray", false) else &"blast"

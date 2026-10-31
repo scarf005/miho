@@ -6,10 +6,12 @@ extends RefCounted
 ## compound (Cards.PAIRS), one slot worth two cards. Every card costs one tail.
 ## Every spell is hurled along one of eight lines, and grows with the tails it
 ## costs: one card is power 1.
-## The shape is read top down: 여 and 구 make a homing orb that turns 45° more
-## each tile for every 여 (freely with four); 구 alone a loud straight orb, 1
-## damage for every 구 and 1 more after a run-up (DCSS mon-project.cc
-## iood_damage); 여 alone a wisp for every 여, each hitting for 1 (a lone 여
+## The shape is read top down: 도 leading the queue leaps Miho LEAP_BASE tiles
+## and one more for every 도, and casts the rest of the spell where she lands
+## (Leap); 도 after any other talisman makes no spell. 여 and 구 make a homing
+## orb that turns 45° more each tile for every 여 (freely with four); 구 alone
+## a loud straight orb, 1 damage for every 구 and 1 more after a run-up (DCSS
+## mon-project.cc iood_damage); 여 alone a wisp for every 여, each hitting for 1 (a lone 여
 ## for none), turning like a homing orb. Homing
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. A wisp that strikes a
@@ -31,12 +33,15 @@ const RANGE := 7
 const WISP_LIFE := 8
 const HOMING_LIFE := 6
 const TURN_FREE := 4
+## Tiles a leap reaches past one for every 도.
+const LEAP_BASE := 2
 
+const LEAP := &"leap"
 const HOMING := &"homing"
 const ORB := &"orb"
 const WISP := &"wisp"
 const SPRAY := &"spray"
-const SHAPE_NAME := {HOMING: "유도 구슬", ORB: "구슬", WISP: "여우불"}
+const SHAPE_NAME := {LEAP: "멀리뛰기", HOMING: "유도 구슬", ORB: "구슬", WISP: "여우불"}
 ## Copies past which an element's spray grows no more.
 const MAX_LEVEL := 3
 
@@ -53,6 +58,8 @@ var called := ""
 ## The spell `picked` queues, or null when it is no spell.
 static func make(picked: Array) -> Spell:
 	if not picked.all(func(c): return Cards.ALL.has(c)):
+		return null
+	if picked.slice(0, picked.count(Cards.LEAP)).any(func(c): return c != Cards.LEAP):
 		return null
 	var slots := fill(picked)
 	var spell := Spell.new()
@@ -86,8 +93,11 @@ static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	return out
 
 
-## The shape the slots make, read top down: a homing orb, an orb, foxfire, a spray.
+## The shape the slots make, read top down: a leap, a homing orb, an orb,
+## foxfire, a spray.
 static func _shape(s: Spell) -> StringName:
+	if s.count(Cards.LEAP) > 0:
+		return LEAP
 	if s.count(Cards.FOX) > 0 and s.count(Cards.ORB) > 0:
 		return HOMING
 	if s.count(Cards.ORB) > 0:
@@ -95,6 +105,16 @@ static func _shape(s: Spell) -> StringName:
 	if s.count(Cards.FOX) > 0:
 		return WISP
 	return SPRAY if not s.slots.is_empty() else &""
+
+
+## Tiles a leap reaches: LEAP_BASE and one for every 도.
+func leap() -> int:
+	return LEAP_BASE + count(Cards.LEAP)
+
+
+## What a leap casts where it lands: the talismans after its 도, or null.
+func rest() -> Spell:
+	return make(cards.slice(count(Cards.LEAP)))
 
 
 ## How strong the spray of a lone element is: its copies, up to MAX_LEVEL; 0
@@ -152,6 +172,9 @@ static func from_key(k: String) -> Spell:
 func title() -> String:
 	if called != "":
 		return called
+	if shape == LEAP:
+		var then := rest()
+		return "%s %d칸" % [SHAPE_NAME[LEAP], leap()] + (", " + then.title() if then != null else "")
 	var parts: Array[String] = []
 	var told := {}
 	for slot in elements():
@@ -180,7 +203,7 @@ func speed() -> int:
 func gun() -> bool:
 	if shape == SPRAY:
 		return level() > 0 and slots[0] == Cards.METAL
-	return has(Cards.METAL)
+	return shape != LEAP and has(Cards.METAL)
 
 
 ## Rounds a projectile lasts in flight; 0 means until it hits something. A

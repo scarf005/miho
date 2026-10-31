@@ -83,6 +83,7 @@ const KIND := {
 const CARD := {
 	Cards.FOX: Color(0.6, 0.82, 1.0),
 	Cards.ORB: Color(0.82, 0.68, 1.0),
+	Cards.LEAP: Color(0.6, 1.0, 0.72),
 	Cards.WOOD: Color(0.3, 0.55, 1.0),
 	Cards.FIRE: Color(1.0, 0.32, 0.25),
 	Cards.EARTH: Color(1.0, 0.82, 0.3),
@@ -123,7 +124,10 @@ static func card(slot: StringName) -> Color:
 	return CARD[slot]
 
 
+## How a spell shows: a leap as Miho where she lands.
 static func shot_glyph(spell: Spell) -> String:
+	if spell.shape == Spell.LEAP:
+		return Bestiary.info(&"miho").glyph
 	if spell.orb:
 		return "●"
 	return "○" if spell.has(Cards.WATER) else "*"

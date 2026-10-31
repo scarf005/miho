@@ -1,9 +1,9 @@
 class_name Forecast
 extends RefCounted
 ## Reads one previewed round into drawable facts: the tiles each projectile
-## crosses or each spray covers, what it strikes, how much harm every creature
-## takes, who notices Miho, where wooden walls grow and what ground a compound
-## changes. The preview runs on what Miho knows (World.known_clone), so
+## crosses or each spray covers, where a leap lands, what it strikes, how much
+## harm every creature takes, who notices Miho, where wooden walls grow and
+## what ground a compound changes. The preview runs on what Miho knows (World.known_clone), so
 ## creatures she cannot see take no part in it.
 
 var after: World
@@ -14,6 +14,8 @@ var events: Array[Dictionary] = []
 var paths := {}
 ## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
 var sprays: Array[Dictionary] = []
+## Each leap of the round: [from, to] (Leap).
+var leaps: Array = []
 ## actor id -> total damage this round
 var harm := {}
 ## actor id -> true when it dies this round
@@ -62,6 +64,8 @@ func read(round_events: Array[Dictionary]) -> void:
 				}
 			&"spray":
 				sprays.append(e)
+			&"leap":
+				leaps.append([e.from, e.to])
 			&"fly":
 				if paths.has(e.shot):
 					paths[e.shot].tiles.append(e.to)

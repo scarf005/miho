@@ -74,6 +74,8 @@ const SILENT := [
 	{t = &"trample"},
 	{t = &"soak"},
 	{t = &"ride"},
+	{t = &"leap"},
+	{t = &"cast", cards = [Cards.LEAP, Cards.EARTH]},
 ]
 
 

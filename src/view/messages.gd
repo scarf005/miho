@@ -111,6 +111,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["기절했다", TEXT]]
 		&"push":
 			return _subject(before, after, id) + [["밀려났다", TEXT]]
+		&"leap":
+			return _subject(before, after, id) + [["멀리 뛰었다", TEXT]]
 		&"sprout":
 			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
 		&"freeze":
