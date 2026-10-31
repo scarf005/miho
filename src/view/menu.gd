@@ -5,8 +5,10 @@ extends RefCounted
 ## options change the settings; key settings bind keys to actions; the
 ## spellbook lists the queued spell and the saved ones, with what the selected
 ## one does, and a slot key saves it to that slot; the 도감 (Codex) lists every
-## creature, spell, compound, item and terrain feature.
-## `key`, `use` and `back` return what the game should do: &"close",
+## creature, spell, compound, item and terrain feature; the log lists the past
+## messages. Every page moves as ListNav says, scrolls with the wheel, lights
+## the row under the pointer, and a click selects it.
+## `key`, `use`, `click` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
 ## game), &"cast" (pick `chosen`), or nothing.
 
@@ -25,6 +27,7 @@ const OPTIONS := [
 	&"zoom",
 	&"speed",
 	&"replay",
+	&"codex",
 	&"keys",
 	&"restart",
 	&"quit",
@@ -37,6 +40,7 @@ const OPTION_NAMES := {
 	&"zoom": "화면 크기",
 	&"speed": "움직임 속도",
 	&"replay": "명장면 다시보기",
+	&"codex": "도감",
 	&"keys": "키 설정",
 	&"restart": "처음부터",
 	&"quit": "저장하고 끝내기",
@@ -47,49 +51,93 @@ const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
 var settings := Settings.new()
 var page := &""
 var selected := 0
+## The first row shown, and the row the pointer is over (-1 for none).
+var top := 0
+var hovered := -1
 ## On the key page: the selected action waits for the key to bind.
 var waiting := false
 ## The spell queued when the spellbook opened (or null), and the spell Enter chose there.
 var queued: Spell
 var chosen: Spell
-## The 도감 page's tab, entry and scroll.
+## The messages the log page lists, as rows.
+var log_rows: Array = []
+## The 도감 page's tab, entry and scroll; it keeps them when closed.
 var codex := Codex.new()
+## The screen in cells, for the pages to fit their lists.
+var room := Vector2i(40, 18)
+## The page this one was opened from and the row it was opened on; Esc goes back
+## there. Empty when the game opened it.
+var origin := &""
+var origin_row := 0
 
 
-## `room` is the screen in cells, for the 도감 page to fit its detail.
-func open(p: StringName, room := Vector2i(40, 18)) -> void:
+## Opens a page, `size` the screen in cells when it changes.
+func open(p: StringName, size := Vector2i.ZERO) -> void:
 	page = p
 	selected = 0
+	top = 0
+	hovered = -1
 	waiting = false
-	if p == &"codex":
-		codex = Codex.new()
-		codex.room = room
+	origin = &""
+	if size != Vector2i.ZERO:
+		room = size
+	codex.room = room
+	codex.hover = -1
+	codex.select(codex.selected)
+	if p == &"log":
+		selected = maxi(0, log_rows.size() - 1)
+		top = ListNav.reveal(0, selected, log_rows.size(), _fits())
+
+
+## Opens a page from the current one, which Esc then returns to.
+func _enter(p: StringName) -> void:
+	var from := page
+	var row := selected
+	open(p)
+	origin = from
+	origin_row = row
 
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
+	var out := {title = "도움말", rows = _help()}
 	match page:
 		&"options":
-			return {title = "설정", rows = _options(), selected = selected}
+			out = {title = "설정", rows = _options()}
 		&"keys":
-			return {title = "키 설정", rows = _keys(), selected = selected}
+			out = {title = "키 설정", rows = _keys()}
 		&"spells":
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
-			return {title = "주문서", rows = _spells(list), selected = selected, detail = detail}
+			out = {title = "주문서", rows = _spells(list), detail = detail}
+		&"log":
+			out = {title = "기록", rows = log_rows}
 		&"codex":
 			return codex.panel()
-	return {title = "도움말", rows = _help(), selected = selected}
+	out.merge({selected = selected, top = top, hover = hovered})
+	return out
+
+
+## Rows of the page's list that fit.
+func _fits() -> int:
+	return Term.list_fits(room.y, panel().get("detail", []).size())
 
 
 ## Handles a key press.
 func key(e: InputEventKey) -> StringName:
+	var nav := _nav(e)
+	if e.is_echo() and not nav in ListNav.REPEATS:
+		return &""
 	if waiting:
 		return _bind(e)
 	if page == &"codex":
-		return codex.key(e, _nav(e))
+		var out := codex.key(e, nav)
+		return back() if out == &"close" else out
 	var slot := Keys.action_of(e)
-	if page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
+	var out := &"changed"
+	if page in [&"help", &"log"] and slot == page:
+		out = &"close"
+	elif page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
 		var k := spells()[selected].key()
 		var had: bool = settings.spells.get(slot, "") == k
 		for s in settings.spells.keys():
@@ -97,27 +145,31 @@ func key(e: InputEventKey) -> StringName:
 				settings.spells.erase(s)
 		if not had:
 			settings.spells[slot] = k
-		return &"changed"
-	if (
+	elif (
 		page == &"keys"
 		and e.keycode in [KEY_DELETE, KEY_BACKSPACE]
 		and selected < _actions().size()
 	):
 		Keys.bind(_actions()[selected], [])
-		return &"changed"
-	var nav := _nav(e)
+	else:
+		out = _move(nav)
+	return out
+
+
+## Menu movement `nav` on the page's list; what the game should do.
+func _move(nav: StringName) -> StringName:
 	var out := &""
 	match nav:
-		&"up", &"down":
-			selected = clampi(selected + (1 if nav == &"down" else -1), 0, panel().rows.size() - 1)
+		&"up", &"down", &"page_up", &"page_down", &"home", &"end":
+			var count: int = panel().rows.size()
+			selected = ListNav.step(nav, selected, count, _fits())
+			top = ListNav.reveal(top, selected, count, _fits())
 		&"left", &"right":
 			out = _change(1 if nav == &"right" else -1)
 		&"enter":
 			out = use()
 		&"back":
 			out = back()
-		_:
-			out = &"close" if page == &"help" else &""
 	return out
 
 
@@ -163,18 +215,41 @@ func _spells(list: Array[Spell]) -> Array:
 	return rows
 
 
-## The pointer is over row k.
+## The pointer is over row k (-1 for none): it lights.
 func point(k: int) -> void:
-	if k >= 0 and page == &"codex":
-		codex.point(k)
-	elif k >= 0 and not waiting:
-		selected = k
+	hovered = k
+	codex.hover = k
+
+
+## A left click over row `row` and tab `tab` (-1 for none): a tab shows, a row is
+## selected and, on the pages that act, used.
+func click(row: int, tab: int) -> StringName:
+	if waiting:
+		return &""
+	if tab >= 0 and page == &"codex":
+		codex.go(tab)
+	elif row >= 0:
+		if page == &"codex":
+			codex.select(row)
+			return &""
+		selected = row
+		top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
+		return use() if page in [&"options", &"keys", &"spells"] else &""
+	return &""
+
+
+## The wheel turns `dir` notches (1 down) over the detail (`aside`) or the list.
+func wheel(dir: int, aside: bool) -> void:
+	if page == &"codex":
+		codex.wheel(dir, aside)
+	else:
+		top = ListNav.scrolled(top, dir * ListNav.WHEEL, panel().rows.size(), _fits())
 
 
 ## Enter on the selected row.
 func use() -> StringName:
 	match page:
-		&"help":
+		&"help", &"log":
 			return &"close"
 		&"spells":
 			return _choose()
@@ -188,8 +263,8 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = OPTIONS[selected]
 	match row:
-		&"keys":
-			open(&"keys")
+		&"keys", &"codex":
+			_enter(row)
 			return &""
 		&"restart", &"quit", &"close":
 			return row
@@ -204,13 +279,17 @@ func _use_key_row() -> StringName:
 	return &""
 
 
-## Esc: the key page goes back to the options, others close.
+## Esc: a page opened from another goes back to it, on the row it was opened
+## from; others close.
 func back() -> StringName:
-	if page == &"keys":
-		open(&"options")
-		selected = OPTIONS.find(&"keys")
-		return &""
-	return &"close"
+	if origin == &"":
+		return &"close"
+	var from := origin
+	var row := origin_row
+	open(from)
+	selected = row
+	top = ListNav.reveal(0, row, panel().rows.size(), _fits())
+	return &""
 
 
 ## Steps the selected option's value; wraps around.
@@ -265,7 +344,8 @@ static func _actions() -> Array:
 	return Keys.ACTIONS.keys()
 
 
-## A key as menu movement: up, down, left, right, enter, back, or empty.
+## A key as menu movement: up, down, left, right, page_up, page_down, home, end,
+## tab_prev, tab_next, enter, back, or empty.
 ## Arrows, Enter and Esc always work, whatever the bindings.
 static func _nav(e: InputEventKey) -> StringName:
 	var raw := {
@@ -273,12 +353,18 @@ static func _nav(e: InputEventKey) -> StringName:
 		KEY_DOWN: &"down",
 		KEY_LEFT: &"left",
 		KEY_RIGHT: &"right",
+		KEY_PAGEUP: &"page_up",
+		KEY_PAGEDOWN: &"page_down",
+		KEY_HOME: &"home",
+		KEY_END: &"end",
 		KEY_ENTER: &"enter",
 		KEY_KP_ENTER: &"enter",
 		KEY_ESCAPE: &"back",
 	}
 	if raw.has(e.keycode):
 		return raw[e.keycode]
+	if e.keycode == KEY_TAB:
+		return &"tab_prev" if e.shift_pressed else &"tab_next"
 	var bound := {
 		&"move_n": &"up",
 		&"move_s": &"down",

@@ -246,19 +246,12 @@ func test_left_and_right_change_the_tab_and_wrap() -> void:
 	assert_eq(menu.panel().tab, 2, "a number past the last tab does nothing")
 
 
-func test_up_and_down_stop_at_the_ends_and_the_detail_follows() -> void:
+func test_the_detail_follows_the_selected_entry() -> void:
 	var menu := _open()
-	menu.key(_press("Up"))
-	assert_eq(menu.panel().selected, 0)
 	var first: Array = menu.panel().aside
 	menu.key(_press("Down"))
 	assert_eq(menu.panel().selected, 1)
 	assert_ne(menu.panel().aside, first)
-	for i in 30:
-		menu.key(_press("Down"))
-	assert_eq(menu.panel().selected, Codex.foes().size() - 1)
-	menu.point(2)
-	assert_eq(menu.panel().selected, 2, "the pointer picks a row")
 
 
 func test_the_rows_show_a_glyph_and_a_name_and_the_detail_sits_to_the_right() -> void:
@@ -297,10 +290,10 @@ func test_the_detail_wraps_to_the_room_and_scrolls() -> void:
 	assert_true(menu.panel().aside_up)
 	menu.key(_press("PageUp"))
 	assert_false(menu.panel().aside_up)
-	for i in 20:
+	while menu.panel().aside_down:
 		menu.key(_press("PageDown"))
-	assert_false(menu.panel().aside_down, "the scroll stops at the last line")
-	assert_eq(menu.panel().aside.size(), 6)
+	assert_eq(menu.panel().aside.size(), 6, "the scroll stops at the last line")
+	assert_eq(menu.codex.selected, Codex.foes().find(&"cheonnyeon"), "and the entry stays")
 
 
 func test_flow_breaks_after_a_space_and_inside_a_long_word() -> void:
@@ -315,9 +308,191 @@ func test_flow_breaks_after_a_space_and_inside_a_long_word() -> void:
 	assert_eq(Codex.flow([[]], 5.0), [[]], "an empty line stays a blank row")
 
 
-func test_a_new_page_opens_at_the_first_tab() -> void:
+## --- list conventions, by sending the events a player would ---
+
+
+func _tap(key: String, echo := false) -> InputEventKey:
+	var e := _press(key)
+	e.echo = echo
+	return e
+
+
+## The page on a screen 30 cells wide and 10 high: 6 rows and 6 detail lines.
+func _small() -> Menu:
+	var menu := Menu.new()
+	menu.open(&"codex", Vector2i(30, 10))
+	return menu
+
+
+func test_a_held_up_or_down_repeats() -> void:
 	var menu := _open()
-	menu.key(_press("Right"))
-	menu.open(&"codex")
+	for i in 3:
+		menu.key(_tap("Down", i > 0))
+	assert_eq(menu.panel().selected, 3, "echo events move like presses")
+	menu.key(_tap("Up", true))
+	assert_eq(menu.panel().selected, 2)
+
+
+func test_echo_of_keys_that_must_not_repeat_does_nothing() -> void:
+	var menu := _open()
+	assert_eq(menu.key(_tap("Escape", true)), &"", "a held Esc does not close")
+	assert_eq(menu.key(_tap("Slash", true)), &"")
+	menu.key(_tap("3", true))
 	assert_eq(menu.panel().tab, 0)
+	menu.key(_tap("End", true))
 	assert_eq(menu.panel().selected, 0)
+
+
+func test_up_on_the_first_entry_goes_to_the_last_and_down_on_the_last_to_the_first() -> void:
+	var menu := _small()
+	var last := Codex.foes().size() - 1
+	menu.key(_tap("Up"))
+	assert_eq(menu.panel().selected, last)
+	assert_eq(menu.panel().top, last - 5, "and the last entry is in view")
+	menu.key(_tap("Down"))
+	assert_eq(menu.panel().selected, 0)
+	assert_eq(menu.panel().top, 0)
+
+
+func test_page_down_and_page_up_move_a_page_stop_at_the_ends_and_repeat() -> void:
+	var menu := Menu.new()
+	menu.open(&"codex", Vector2i(80, 12))
+	menu.key(_tap("5"))
+	var fits := 8
+	var last := Codex.entries(4).size() - 1
+	assert_gt(last, 3 * fits, "a long list")
+	assert_lte(menu.panel().aside.size(), fits)
+	assert_false(menu.panel().aside_down, "the detail fits, so the page keys move the entry")
+	menu.key(_tap("PageDown"))
+	assert_eq(menu.panel().selected, fits)
+	assert_eq(menu.panel().top, 1, "the page ends at the foot of the view")
+	menu.key(_tap("PageUp", true))
+	assert_eq(menu.panel().selected, 0)
+	for i in 4 * last:
+		menu.key(_tap("PageDown", true))
+	assert_eq(menu.panel().selected, last, "stops at the last entry")
+	for i in 4 * last:
+		menu.key(_tap("PageUp", true))
+	assert_eq(menu.panel().selected, 0, "stops at the first entry")
+
+
+func test_home_and_end_go_to_the_first_and_last_entry() -> void:
+	var menu := _small()
+	var last := Codex.foes().size() - 1
+	menu.key(_tap("End"))
+	assert_eq(menu.panel().selected, last)
+	assert_eq(menu.panel().top, last - 5)
+	menu.key(_tap("Home"))
+	assert_eq(menu.panel().selected, 0)
+	assert_eq(menu.panel().top, 0)
+
+
+func test_the_wheel_scrolls_the_list_without_moving_the_selection() -> void:
+	var menu := _small()
+	menu.wheel(1, false)
+	assert_eq(menu.panel().top, ListNav.WHEEL)
+	assert_eq(menu.panel().selected, 0, "the selection stays where it was")
+	menu.wheel(-1, false)
+	menu.wheel(-1, false)
+	assert_eq(menu.panel().top, 0, "stops at the top")
+	for i in Codex.foes().size():
+		menu.wheel(1, false)
+	assert_eq(menu.panel().top, Codex.foes().size() - 6, "stops with the last entry at the foot")
+
+
+func test_the_wheel_over_the_detail_scrolls_the_detail() -> void:
+	var menu := _small()
+	menu.codex.selected = Codex.foes().find(&"cheonnyeon")
+	menu.wheel(1, true)
+	assert_true(menu.panel().aside_up)
+	assert_eq(menu.panel().top, 0, "the list stays")
+	menu.wheel(-1, true)
+	assert_false(menu.panel().aside_up)
+	for i in 40:
+		menu.wheel(1, true)
+	assert_false(menu.panel().aside_down, "stops at the last line")
+
+
+func test_hovering_an_entry_lights_it_and_a_click_selects_it() -> void:
+	var menu := _open()
+	menu.point(4)
+	assert_eq(menu.panel().hover, 4)
+	assert_eq(menu.panel().selected, 0, "hovering does not select")
+	assert_eq(menu.click(4, -1), &"", "a click on an entry only selects")
+	assert_eq(menu.panel().selected, 4)
+	menu.point(-1)
+	assert_eq(menu.panel().hover, -1, "the light leaves with the pointer")
+
+
+func test_tab_and_shift_tab_switch_the_tab_and_wrap() -> void:
+	var menu := _open()
+	menu.key(_tap("Tab"))
+	assert_eq(menu.panel().tab, 1)
+	menu.key(_tap("Shift+Tab"))
+	menu.key(_tap("Shift+Tab"))
+	assert_eq(menu.panel().tab, Codex.TABS.size() - 1)
+	menu.key(_tap("Tab", true))
+	assert_eq(menu.panel().tab, 0, "a held Tab repeats")
+
+
+func test_a_click_on_a_tab_selects_it() -> void:
+	var menu := _open()
+	menu.key(_tap("Down"))
+	menu.click(-1, 3)
+	assert_eq(menu.panel().tab, 3)
+	assert_eq(menu.panel().selected, 0)
+
+
+func test_the_selected_entry_stays_in_view_as_it_moves_both_ways() -> void:
+	var menu := _small()
+	for nav in ["Down", "Up"]:
+		for i in 20:
+			menu.key(_tap(nav))
+			var panel := menu.panel()
+			assert_true(panel.selected >= panel.top and panel.selected < panel.top + 6, nav)
+
+
+func test_the_selected_entry_is_in_view_after_the_wheel_moved_the_list_away() -> void:
+	var menu := _small()
+	for i in 3:
+		menu.wheel(1, false)
+	menu.key(_tap("Down"))
+	assert_eq(menu.panel().selected, 1)
+	assert_eq(menu.panel().top, 1, "the list scrolls back just enough")
+
+
+func test_reopening_keeps_the_tab_and_the_entry() -> void:
+	var menu := _open()
+	menu.key(_tap("Right"))
+	menu.key(_tap("Down"))
+	menu.key(_tap("Down"))
+	assert_eq(menu.key(_tap("Escape")), &"close")
+	menu.open(&"codex")
+	assert_eq(menu.panel().tab, 1)
+	assert_eq(menu.panel().selected, 2)
+
+
+func test_the_codex_opened_from_the_options_goes_back_to_them() -> void:
+	var menu := Menu.new()
+	menu.open(&"options")
+	menu.selected = Menu.OPTIONS.find(&"codex")
+	assert_eq(menu.use(), &"")
+	assert_eq(menu.page, &"codex")
+	assert_eq(menu.key(_tap("Escape")), &"", "Esc does not close the game menu")
+	assert_eq(menu.page, &"options")
+	assert_eq(menu.selected, Menu.OPTIONS.find(&"codex"))
+	menu.use()
+	assert_eq(menu.key(_tap("Slash")), &"")
+	assert_eq(menu.page, &"options", "the codex key goes back too")
+	menu.use()
+	assert_eq(menu.back(), &"")
+	assert_eq(menu.page, &"options")
+
+
+func test_the_options_list_the_codex_between_the_replay_and_the_keys() -> void:
+	var at := Menu.OPTIONS.find(&"codex")
+	assert_eq(Menu.OPTIONS[at - 1], &"replay")
+	assert_eq(Menu.OPTIONS[at + 1], &"keys")
+	var menu := Menu.new()
+	menu.open(&"options")
+	assert_eq(menu.panel().rows[at][0][0], "도감")
