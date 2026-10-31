@@ -28,18 +28,6 @@ extends RefCounted
 ## How far a sliding door is heard.
 const SLIDE := 3
 
-## What a hit leaves of a tile: a lit lantern goes out, a dark one breaks into
-## rubble, a closed door or a window becomes floor, a wall cracks and then falls to rubble.
-const BREAKS := {
-	World.WALL: World.WALL_CRACKED,
-	World.WALL_CRACKED: World.RUBBLE,
-	World.LANTERN: World.LANTERN_OUT,
-	World.LANTERN_OUT: World.LANTERN_BROKEN,
-	World.DOOR: World.FLOOR,
-	World.WINDOW: World.FLOOR,
-	World.DRUM: World.DRUM_TORN,
-}
-
 
 ## A lantern that is not broken: it blocks walking and a hit moves it one step on.
 static func lantern(t: int) -> bool:
@@ -48,18 +36,18 @@ static func lantern(t: int) -> bool:
 
 ## A tile Miho knocks by walking into it: a lantern, a window or a drum.
 static func knockable(t: int) -> bool:
-	return lantern(t) or t == World.WINDOW or t == World.DRUM
+	return Tiles.knock[t] == 1
 
 
 ## A wall, cracked or not: it blocks walking, sight and light.
 static func wall(t: int) -> bool:
-	return t == World.WALL or t == World.WALL_CRACKED
+	return Tiles.wall[t] == 1
 
 
 ## A tile a hit changes. The outermost ring of the map, and beyond it, never breaks.
 static func breakable(w: World, at: Vector2i) -> bool:
 	var inner := at.x > 0 and at.y > 0 and at.x < Grid.W - 1 and at.y < Grid.H - 1
-	return BREAKS.has(w.tile(at)) and (inner or not wall(w.tile(at)))
+	return Tiles.of(w.tile(at), "breaks_to") >= 0 and (inner or not wall(w.tile(at)))
 
 
 ## An orb can be hurled at any open tile and at a breakable lantern or wall
@@ -102,11 +90,11 @@ static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 			w.noise(at, World.KNOCK, "쨍", true, s.caster)
 
 
-## Moves the tile one step along BREAKS; `was` is the tile it was.
+## Moves the tile one step along `breaks_to`; `was` is the tile it was.
 static func hit(w: World, at: Vector2i) -> void:
 	var was := w.tile(at)
 	w.burning.erase(at)
-	w.set_tile(at, BREAKS[was])
+	w.set_tile(at, Tiles.of(was, "breaks_to"))
 	Notice.smashed(w, was, at)
 	w.emit({t = &"smash", at = at, was = was})
 

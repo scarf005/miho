@@ -5,17 +5,13 @@ extends RefCounted
 ## World's own test at the tiles where creatures, projectiles or fire change
 ## what the tile kind alone says.
 
-static var _opaque := Grid.table(
-	func(t): return Terrain.wall(t) or t == World.BAMBOO or t == World.DOOR
-)
-static var _shade := Grid.table(func(t): return Terrain.wall(t) or t == World.BAMBOO)
-static var _floor := Grid.table(func(t): return World.WALKABLE.has(t))
-static var _heard := Grid.table(func(t): return not Terrain.wall(t))
+static var _shade := Grid.table(func(t): return Tiles.light[t] == 0)
+static var _heard := Grid.table(func(t): return Tiles.wall[t] == 0)
 
 
 ## World.opaque for every tile: only fire changes what the tile kind says.
 static func opaque(w: World) -> PackedByteArray:
-	return Grid.mask(w.tiles, _opaque, w.burning.keys(), w.opaque)
+	return Grid.mask(w.tiles, Tiles.sight, w.burning.keys(), w.opaque)
 
 
 ## World.blocks_light for every tile.
@@ -25,7 +21,7 @@ static func shade(w: World) -> PackedByteArray:
 
 ## World.open_floor for every tile, but `test` decides at the `extra` tiles.
 static func floor_of(w: World, extra: Array = [], test := Callable()) -> PackedByteArray:
-	return Grid.mask(w.tiles, _floor, extra, test)
+	return Grid.mask(w.tiles, Tiles.walk, extra, test)
 
 
 ## A creature's `test` of the tiles it may step on (its own among them) for every tile.

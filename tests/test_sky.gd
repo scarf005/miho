@@ -187,7 +187,7 @@ func test_a_bridge_can_be_walked_creaks_three_tiles_and_never_burns() -> void:
 	var events := w.act({t = &"move", dir = E})
 	var creak: Dictionary = _noises(events)[0]
 	assert_eq([creak.word, creak.loud], ["삐걱", 3])
-	assert_false(World.FLAMMABLE.has(World.BRIDGE))
+	assert_eq(Tiles.burns[World.BRIDGE], 0)
 	w.cards.append(Cards.FIRE)
 	w.act(_cast([Cards.FOX, Cards.FIRE], E))
 	w.act(WAIT)
