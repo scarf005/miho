@@ -30,8 +30,9 @@ extends RefCounted
 ## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
 ## crackles (an alarm), hides nothing, burns whoever stands in it each round
-## and may spread to each flammable neighbour; after BURN_ROUNDS it is ash.
-## Heaven walks around fire; water douses it.
+## for FIRE_DAMAGE and may spread to each flammable neighbour; after BURN_ROUNDS
+## it is ash. A fire orb's burst hurts every creature around it for FIRE_DAMAGE
+## too (twice that to one weak to fire). Heaven walks around fire; water douses it.
 ##
 ## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
 ## cannot be walked, but sight, light, sound and spells cross it. A bridge is
@@ -62,6 +63,7 @@ const THUD := 9
 const FLASH := 2
 const KNOCK := 4
 const BURN_ROUNDS := 3
+const FIRE_DAMAGE := 2
 const CRACKLE := 3
 const SPREAD := 0.5
 
@@ -709,7 +711,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 				emit({t = &"absorb", id = b.id, at = p})
 			else:
 				var weak := Bestiary.weak(b.kind, s.spell)
-				hurt(b, 2 if weak else 1, weak)
+				hurt(b, FIRE_DAMAGE * (2 if weak else 1), weak)
 				if Bestiary.burns(b.kind):
 					_ignite(p, true)
 		var o := shot_at(p, s)
@@ -743,7 +745,7 @@ func _burn() -> void:
 			if Bestiary.absorbs(a.kind, flame):
 				emit({t = &"absorb", id = a.id, at = p})
 			else:
-				hurt(a, 1)
+				hurt(a, FIRE_DAMAGE)
 		for d in Grid.DIRS:
 			if FLAMMABLE.has(tile(p + d)) and not burning.has(p + d) and rng.randf() < SPREAD:
 				caught.append(p + d)

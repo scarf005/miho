@@ -391,21 +391,52 @@ func test_a_fire_wisp_sets_bamboo_alight_which_lights_burns_and_leaves_ash() -> 
 	for x in range(6, 13):
 		_put(w, Vector2i(x, 8), World.BAMBOO)
 	var foe := _foe(w, &"jangseung", Vector2i(8, 8))
+	foe.hp = 8
 	assert_false(w.lit(Vector2i(8, 6)))
 	var events := w.act(_cast([FOX, Cards.FIRE], E))
 	assert_true(w.burning.has(Vector2i(6, 8)), "caught where the wisp flew")
 	assert_true(w.lit(Vector2i(8, 6)), "fire lights its surroundings")
-	assert_eq(foe.hp, 1, "struck for 1, then burnt for 1")
+	assert_eq(foe.hp, 8 - 1 - World.FIRE_DAMAGE, "struck for 1, then burnt for FIRE_DAMAGE")
 	assert_eq(events.filter(func(e): return e.t == &"burn")[0].id, foe.id)
 	assert_has(w.heard.map(func(h): return h.word), "타닥")
 	assert_eq(w.seen[Grid.index(foe.pos)], 1, "burning bamboo hides nothing")
 	w.act(WAIT)
-	assert_false(foe.alive())
+	assert_eq(foe.hp, 8 - 1 - 2 * World.FIRE_DAMAGE, "burnt again the next second")
 	events = w.act(WAIT)
 	assert_eq(w.tile(Vector2i(6, 8)), World.ASH)
 	assert_false(w.burning.has(Vector2i(6, 8)))
 	assert_has(_types(events), &"burnout")
 	assert_true(w.open_floor(Vector2i(6, 8)))
+
+
+func test_a_burning_tile_burns_whoever_stands_in_it_for_fire_damage() -> void:
+	assert_eq(World.FIRE_DAMAGE, 2)
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.BOARD)
+	w.burning[Vector2i(5, 8)] = World.BURN_ROUNDS
+	var foe := _foe(w, &"jangseung", Vector2i(5, 8))
+	w.act(WAIT)
+	assert_eq(foe.hp, 3 - World.FIRE_DAMAGE)
+	var me := w.player()
+	me.pos = Vector2i(6, 8)
+	_put(w, me.pos, World.BOARD)
+	w.burning[me.pos] = World.BURN_ROUNDS
+	w.act(WAIT)
+	assert_eq(me.hp, 3 - World.FIRE_DAMAGE, "Miho burns for as much")
+
+
+func test_a_fire_orbs_splash_hurts_for_fire_damage_and_twice_that_to_the_weak() -> void:
+	var w := _world()
+	w.cards.append(Cards.FIRE)
+	var mid := _foe(w, &"jangseung", Vector2i(7, 8))
+	var near := _foe(w, &"imugi", Vector2i(7, 9))
+	var weak := _foe(w, &"jiha", Vector2i(8, 7))
+	for a in [mid, near, weak]:
+		a.hp = 12
+	w.act(_cast([ORB, Cards.FIRE], E))
+	assert_eq(mid.hp, 12 - 1, "the struck creature takes the orb's own harm")
+	assert_eq(near.hp, 12 - World.FIRE_DAMAGE)
+	assert_eq(weak.hp, 12 - 2 * World.FIRE_DAMAGE, "weak to fire")
 
 
 func test_fire_spreads_through_bamboo_the_same_way_for_a_seed() -> void:
