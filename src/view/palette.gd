@@ -44,6 +44,13 @@ const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]
+## gas kind -> [glyph, colour]: the map tints a tile in sight by the colour, thicker
+## with the amount; the glyph is for the text view of the map.
+const GAS := {
+	Gas.FOG: ["◦", Color(0.62, 0.7, 0.78)],
+	Gas.STEAM: ["°", Color(0.88, 0.9, 0.96)],
+	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
+}
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["†", Color(0.66, 0.4, 0.4)]
 ## Dark tiles Miho makes out by shape only.
@@ -91,6 +98,12 @@ const BOLT := {
 	Vector2i(1, 1): "\\",
 	Vector2i(-1, -1): "\\",
 }
+
+
+## How strongly gas of `amount` tints its tile: thin gas lightly, and gas thick
+## enough to block sight (Gas.OPAQUE) heavily.
+static func gas_alpha(amount: int) -> float:
+	return 0.1 + 0.06 * amount if amount < Gas.OPAQUE else 0.35 + 0.04 * amount
 
 
 ## A talisman slot's colour; a compound's is halfway between its two elements'.

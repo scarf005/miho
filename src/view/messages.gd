@@ -138,6 +138,9 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return who + [[" 북을 쳤다", TEXT]]
 		&"soak":
 			return [["북이 젖었다", TEXT]]
+		&"gas":
+			var name: String = Gas.of(e.kind, "name")
+			return [[name, Palette.GAS[e.kind][1]], [_particle(name, "이", "가") + " 피어올랐다", TEXT]]
 		&"trample":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"ascend":
@@ -186,6 +189,9 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 		return []
 	if last.get("t") == &"burn" and last.id == id:
 		return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
+	if last.get("t") == &"scald" and last.id == id:
+		var gas := [[Gas.of(last.kind, "name"), Palette.GAS[last.kind][1]], ["에 데어 ", TEXT]]
+		return _subject(before, after, id) + gas + _took(e.n)
 	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
 	if mine and id != after.player().id:
 		return _harm_to(before, after, id, e.n)
