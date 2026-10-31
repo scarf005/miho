@@ -239,5 +239,5 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"lost":
 			return &"lose"
 		&"noise":
-			return WORDS.get(e.word, &"step")
+			return WORDS.get(e.word, &"charge" if Bestiary.shouted(e.word) else &"step")
 	return &""

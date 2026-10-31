@@ -268,7 +268,7 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 			}
 		&"heal":
 			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
-		&"noise":
+		&"noise", &"shout":
 			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
 		&"find":
 			var plate: Array = Palette.TILES[fact.kind]

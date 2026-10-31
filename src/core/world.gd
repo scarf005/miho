@@ -15,7 +15,8 @@ extends RefCounted
 ## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
 ## range, heaven creatures go to search where they heard an alarm or saw one of
 ## Miho's projectiles, and hunt her once they see her (Mind; how they read a
-## projectile depends on their wits). Claws strike three times as hard at a
+## projectile depends on their wits), shouting to those in earshot. Claws
+## strike three times as hard at a
 ## creature that is not hunting and does not see Miho (Brogue CE Combat.c
 ## sneak attack; caught_unawares). A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
@@ -591,8 +592,10 @@ func push(a: Actor, dir: Vector2i, n: int) -> void:
 
 
 ## Spreads a noise around walls. Miho hears every noise in range but her own;
-## heaven creatures that hear an alarm go to search its spot.
-func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
+## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
+func noise(
+	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
+) -> void:
 	if loud <= 0:
 		return
 	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
@@ -615,7 +618,7 @@ func noise(at: Vector2i, loud: int, word: String, alarm: bool, by: int) -> void:
 			var da := dist[Grid.index(a.pos)]
 			if da >= 0 and da <= loud:
 				a.alert = Actor.SEARCH
-				a.target = at
+				a.target = at if spot.x < 0 else spot
 				a.lost = 0
 
 
@@ -643,13 +646,17 @@ func _claw(me: Actor, foe: Actor) -> void:
 		hunt_from(foe, me.pos)
 
 
+## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
 func hunt_from(a: Actor, at: Vector2i) -> void:
-	if a.alert != Actor.HUNT:
+	var fresh := a.alert != Actor.HUNT
+	if fresh:
 		emit({t = &"notice", id = a.id, at = a.pos})
 		Drums.plan(self, a)
 	a.alert = Actor.HUNT
 	a.target = at
 	a.lost = 0
+	if fresh:
+		Mind.shout(self, a)
 
 
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:

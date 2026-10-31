@@ -79,6 +79,18 @@ static func hurt(a: Actor) -> void:
 		_look(a, a.pos)
 
 
+## `a` has just started to hunt Miho: it shouts its word (Bestiary shout, DCSS
+## handle_monster_shouts), a noise that sends every creature of heaven that
+## hears it, is not hunting and is not deaf to search where `a` saw her. A
+## creature without a shout is silent.
+static func shout(w: World, a: Actor) -> void:
+	var cry: Dictionary = a.info().get("shout", {})
+	if cry.is_empty():
+		return
+	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word})
+	w.noise(a.pos, cry.loud, cry.word, true, a.id, a.target)
+
+
 ## `a` was struck by `by`: by Miho, it stops fighting; by a living creature
 ## of heaven of another group, it fights that one for GRUDGE_ROUNDS.
 static func provoke(w: World, a: Actor, by: Actor) -> void:

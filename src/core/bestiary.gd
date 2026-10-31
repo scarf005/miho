@@ -15,6 +15,8 @@ extends RefCounted
 ## eats: the element whose spells feed it when it absorbs them: max HP and HP
 ## grow by GROWTH.
 ## group: the group of heaven it belongs to (GROUPS).
+## shout: what it shouts when it starts to hunt Miho, its word and how many
+## tiles it is heard (Mind.shout); a creature without one is silent.
 ## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
 ## dull creature looks at the spot, a sharp one at where the projectile came
 ## from, a cunning one hunts from there.
@@ -44,6 +46,7 @@ const KINDS := {
 		name = "도깨비",
 		glyph = "도",
 		group = &"dokkaebi",
+		shout = {word = "낄낄", loud = 6},
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
@@ -71,6 +74,7 @@ const KINDS := {
 		name = "이무기",
 		glyph = "이",
 		group = &"dragon",
+		shout = {word = "쉭", loud = 3},
 		hp = 2,
 		casts = [[ORB]],
 		cd = 3,
@@ -82,6 +86,7 @@ const KINDS := {
 		name = "불개",
 		glyph = "불",
 		group = &"beast",
+		shout = {word = "컹컹", loud = 8},
 		hp = 4,
 		melee = {name = "이빨", hit = "물려", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
@@ -98,6 +103,7 @@ const KINDS := {
 		name = "해태",
 		glyph = "해",
 		group = &"beast",
+		shout = {word = "으르렁", loud = 5},
 		hp = 4,
 		casts = [[ORB, Cards.WATER]],
 		cd = 3,
@@ -112,6 +118,7 @@ const KINDS := {
 		name = "천하대장군",
 		glyph = "천",
 		group = &"jangseung",
+		shout = {word = "이놈", loud = 9},
 		hp = 4,
 		casts = [[ORB, Cards.WOOD]],
 		cd = 2,
@@ -125,6 +132,7 @@ const KINDS := {
 		name = "지하여장군",
 		glyph = "지",
 		group = &"jangseung",
+		shout = {word = "이놈", loud = 9},
 		hp = 4,
 		casts = [[FOX, Cards.METAL]],
 		cd = 3,
@@ -138,6 +146,7 @@ const KINDS := {
 		name = "불가사리",
 		glyph = "가",
 		group = &"beast",
+		shout = {word = "끼긱", loud = 6},
 		hp = 3,
 		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
@@ -154,6 +163,7 @@ const KINDS := {
 		name = "천년 이무기",
 		glyph = "용",
 		group = &"dragon",
+		shout = {word = "크아앙", loud = 12},
 		hp = 8,
 		casts = [[FOX, ORB, Cards.WATER], [ORB, Cards.FIRE, Cards.METAL]],
 		cd = 2,
@@ -192,6 +202,11 @@ static func spell(kind: StringName, cards: Array) -> Spell:
 ## Whether creatures of two kinds are of one group.
 static func allied(a: StringName, b: StringName) -> bool:
 	return info(a).get("group", &"") == info(b).get("group", &"")
+
+
+## Whether `word` is what some creature shouts.
+static func shouted(word: String) -> bool:
+	return KINDS.values().any(func(k): return k.get("shout", {}).get("word", "") == word)
 
 
 static func wits(kind: StringName) -> int:
