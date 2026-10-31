@@ -101,6 +101,8 @@ const ROWS := {
 	World.TRAP_VINE: {name = "덩굴 함정", walk = true, trap = true},
 	World.VERANDA: {name = "쪽마루", walk = true, burns = true, tread = [3, "삐걱"]},
 	World.SEAL: {name = "봉인문", sight = true, light = false, gas = false},
+	World.ALTAR: {name = "혼불 제단"},
+	World.ALTAR_LIT: {name = "타오르는 제단"},
 }
 const DEFAULT := {
 	name = "",

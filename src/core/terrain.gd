@@ -160,6 +160,39 @@ static func relight_beside(w: World, a: Actor) -> bool:
 	return false
 
 
+## Each burning tile crackles, burns whoever stands in it (unless it eats
+## fire) if it was already alight when the round began (`alight`), may set each
+## flammable neighbour alight (a wild one always does), and burns down to ash.
+static func burn(w: World, alight: Array) -> void:
+	if w.outcome != &"":
+		return
+	var flame := Spell.make([Cards.FOX, Cards.FIRE])
+	var caught: Array[Vector2i] = []
+	for p: Vector2i in w.burning.keys():
+		w.noise(p, World.CRACKLE, "타닥", true, 0)
+		var a := w.actor_at(p)
+		if a != null and alight.has(p):
+			w.emit({t = &"burn", at = p, id = a.id})
+			if Bestiary.absorbs(a.kind, flame):
+				w.emit({t = &"absorb", id = a.id, at = p})
+			else:
+				w.hurt(a, World.FIRE_DAMAGE)
+		for d in Grid.DIRS:
+			var q := p + d
+			if Tiles.burns[w.tile(q)] == 1 and not w.burning.has(q):
+				if w.wild.has(p) or w.rng.randf() < Tiles.of(w.tile(q), "spread"):
+					caught.append(q)
+		w.burning[p] -= 1
+		if w.burning[p] <= 0:
+			w.burning.erase(p)
+			w.wild.erase(p)
+			w.set_tile(p, Tiles.of(w.tile(p), "burns_to"))
+			Notice.record(w, &"ash", p)
+			w.emit({t = &"burnout", at = p})
+	for p in caught:
+		w.ignite(p)
+
+
 ## Every seal whose lanterns are all lit opens: an open door, heard by heaven.
 static func unseal(w: World) -> void:
 	for at: Vector2i in w.seals.keys():

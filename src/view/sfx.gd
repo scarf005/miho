@@ -41,7 +41,9 @@ const NAMES := [
 	&"hiss",
 ]
 ## Events heard the same wherever they happen.
-const GLOBAL := [&"card", &"heal", &"ascend", &"fall", &"won", &"lost", &"omen", &"arrive"]
+const GLOBAL := [
+	&"card", &"heal", &"altar", &"ascend", &"fall", &"won", &"lost", &"omen", &"arrive"
+]
 ## How loud an event sounds from its place, in dB; those left out play at full.
 const LEVEL := {
 	&"move": -6.0,
@@ -204,7 +206,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"clash"
 		&"absorb":
 			return &"absorb"
-		&"grow", &"card", &"heal":
+		&"grow", &"card", &"heal", &"altar":
 			return &"card"
 		&"trap":
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"

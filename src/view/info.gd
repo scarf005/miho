@@ -363,10 +363,10 @@ static func terrain_facts(w: World, p: Vector2i) -> Array:
 			% [lanterns.filter(func(q): return w.tile(q) == World.LANTERN).size(), lanterns.size()]
 		)
 		if seal == p:
-			notes.append("꺼진 등불 셋이 모두 켜지면 열린다 " + lit)
-			notes.append("등불이 하나라도 부서지면 영영 닫힌다")
+			notes.append("켜진 등불 " + lit)
 		elif lanterns.has(p):
 			notes.append("봉인문의 등불 " + lit)
+	notes.append_array(_sites(w, p))
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
@@ -418,10 +418,31 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 	return [["물에 젖으면 %d초 동안 소리가 없다" % Drums.WET_ROUNDS, Palette.DIM]]
 
 
+## How the event room whose tile p is stands now (EventRooms).
+static func _sites(w: World, p: Vector2i) -> Array[String]:
+	var out: Array[String] = []
+	for site: Dictionary in w.sites:
+		if site.at == p and site.kind == &"altar":
+			out.append("쓰러진 생물 (%d/%d)" % [site.fallen, Altar.NEED])
+	return out
+
+
 ## What a kind of tile does, one short sentence each; numbers from the rules.
 static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	var out: Array[String] = []
 	match t:
+		World.SEAL:
+			out.append("길과 시야와 빛을 막는다. 부술 수 없다")
+			out.append("앞방의 꺼진 등불 셋이 모두 켜지면 열린다")
+			out.append("등불이 하나라도 부서지면 영영 닫힌다")
+		World.ALTAR:
+			out.append("길과 주문을 막는다")
+			out.append("주위 %d칸 안에서 하늘의 생물이 %d번 쓰러지면 타오른다" % [Altar.REACH, Altar.NEED])
+			out.append("하늘로 밀려 떨어져도 센다")
+			out.append("타오르면 꼬리가 모두 돌아오고 이 층에서 하나 더 돋는다")
+		World.ALTAR_LIT:
+			out.append("길과 주문을 막는다")
+			out.append("주위 %d칸을 밝힌다" % Light.SOUL_RADIUS)
 		World.DOOR:
 			out.append("닫혀 있다. 시야는 막고 빛은 지나간다")
 			out.append("드르륵 소리 %d칸" % Terrain.SLIDE)
