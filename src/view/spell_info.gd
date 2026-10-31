@@ -76,8 +76,6 @@ static func spell(s: Spell) -> Array:
 	for c in s.slots:
 		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
-	if Guise.kind(s) != &"":
-		lines.append_array(ward(s))
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -89,7 +87,7 @@ static func spell(s: Spell) -> Array:
 		lines.append_array(_spray(s))
 		lines.append(_line("빛", MUZZLE if s.gun() else "없음"))
 		lines.append(_line("소리", _sound(s)))
-		return lines
+		return lines + ward(s)
 	lines.append_array(_shape(s))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
@@ -103,7 +101,7 @@ static func spell(s: Spell) -> Array:
 	var light := _light(s.light(Actor.FOX))
 	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
-	return lines
+	return lines + ward(s)
 
 
 ## A spell that goes on Miho herself (Guise): its name and talismans, then
@@ -111,7 +109,7 @@ static func spell(s: Spell) -> Array:
 static func own(kind: StringName) -> Array:
 	var s := Spell.make(Guise.RECIPE[kind])
 	var made := [["만드는 법 ", LABEL]]
-	for c in s.slots:
+	for c in s.cards:
 		made.append([Cards.GLYPH[c] + " ", Palette.card(c)])
 	return (
 		[[[Guise.NAME[kind], Palette.card(s.slots.back())], [" " + _cost(s), LABEL]], made]
@@ -119,14 +117,27 @@ static func own(kind: StringName) -> Array:
 	)
 
 
-## What `s` does cast on Miho herself, with , or a click on her.
+## What `s` does cast on Miho herself, with , or a click on her; nothing for a
+## spell that does not go on her.
 static func ward(s: Spell) -> Array:
 	var on := "자신에게 (,)"
+	var kind := Guise.kind(s)
+	if kind == &"":
+		return []
+	var name: String = Guise.NAME[kind]
+	if kind == Guise.GUISE:
+		return [
+			_line(on, "둔갑. 마지막으로 처치한 적의 모습이 %d초 동안 된다" % Guise.rounds(s)),
+			_line(name, "%s 한 장마다 %d초 더. 소리가 없다" % [Cards.NAME[Cards.WOOD], Guise.PER_WOOD]),
+			_line(name, "추격 중이 아닌 적은 당신을 알아보지 못한다. 발톱은 기습이 된다"),
+			_line(name, "적 옆에 %d초 있거나 주문을 쓰거나 맞으면 풀린다" % Guise.BESIDE),
+		]
 	var dark: int = s.light(Actor.FOX).radius
 	return [
 		_line(on, "그림자. %d초 동안 당신 둘레 %d칸이 어두워진다" % [Spell.WISP_LIFE, dark]),
-		_line(Guise.NAME[Guise.SHADOW], "소리가 없다. 바로 옆 칸에서는 보인다"),
-		_line(Guise.NAME[Guise.SHADOW], "둘레에 불이 붙거나 등불이 켜지면 걷힌다"),
+		_line(name, "%s 한 장마다 1칸 더. 소리가 없다" % Cards.NAME[Cards.WATER]),
+		_line(name, "바로 옆 칸에서는 보인다"),
+		_line(name, "둘레에 불이 붙거나 등불이 켜지면 걷힌다"),
 	]
 
 

@@ -51,6 +51,13 @@ var rival_at := Vector2i.ZERO
 ## The id of the leader of its band (FloorGen.bands), 0 for none; it is gone
 ## when the leader falls (Mind.forget).
 var leader := 0
+## 둔갑 (Guise): the kind of the last creature of heaven that fell, the kind
+## it looks like and the rounds left of its guise, and the rounds in a row it
+## has stood next to a creature of heaven in guise.
+var prey := &""
+var form := &""
+var guise := 0
+var beside := 0
 
 
 func alive() -> bool:
@@ -131,6 +138,10 @@ func clone() -> Actor:
 		"grudge",
 		"rival_at",
 		"leader",
+		"prey",
+		"form",
+		"guise",
+		"beside",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate()

@@ -24,9 +24,9 @@ static func shown(w: World, a: Actor) -> bool:
 	return w.seen[Grid.index(a.pos)] == 1 and not hidden(w, a, w.player().pos)
 
 
-## Whether `by` sees creature `a`.
+## Whether `by` sees creature `a`, and knows it through any guise (Guise).
 static func sees(w: World, by: Actor, a: Actor) -> bool:
-	return w.sees(by, a.pos) and not hidden(w, a, by.pos)
+	return w.sees(by, a.pos) and not hidden(w, a, by.pos) and not Guise.fools(by, a)
 
 
 ## The ids of the hat wearers Miho does not see now.

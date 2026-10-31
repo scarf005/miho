@@ -48,6 +48,8 @@ static func text(world: World) -> String:
 		"talismans: " + ", ".join(_cards(k)),
 		"Miho at (%d,%d)" % [me.pos.x, me.pos.y],
 	]
+	if me.guise > 0:
+		out.append("in guise as %s for %d rounds" % [Bestiary.info(me.form).name, me.guise])
 	if k.outcome != &"":
 		out.append("game over: " + ("won, Miho became human" if k.outcome == &"won" else "lost"))
 	out.append_array(_map(k))
@@ -137,8 +139,10 @@ static func _creature(k: World, a: Actor) -> String:
 	)
 	if a.fleeing():
 		line += ", fleeing"
-	if k.sees(a, k.player().pos):
+	if Guise.knows(k, a):
 		line += ", sees Miho"
+	elif k.sees(a, k.player().pos):
+		line += ", sees Miho but not through her guise"
 	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
 	for c in [[a.blind, "blind"], [a.rooted, "rooted"], [a.stunned, "stunned"]]:

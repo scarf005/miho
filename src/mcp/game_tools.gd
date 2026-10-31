@@ -50,7 +50,9 @@ const SPELLS := {
 		+ "shape and effect, which a projectile carries to the 3x3 where it ends). Metal makes "
 		+ "fox a bullet and orb a cannonball; wood on an orb grows a "
 		+ "wooden wall. dir self casts it on Miho: only fox with water (그림자, a dark wisp "
-		+ "on her). The forecast lists every number. Every card costs one tail, and all cards "
+		+ "on her) or wood with earth (둔갑, the form of the last creature felled, which "
+		+ "creatures not hunting her do not know). The forecast lists every number. "
+		+ "Every card costs one tail, and all cards "
 		+ "together cost at most the unspent tails."
 	),
 	items =
@@ -375,7 +377,8 @@ func _refusal(action: Dictionary) -> String:
 		"That cast is not allowed: each spell needs talismans Miho holds, "
 		+ "filling at most 5 slots, "
 		+ (
-			"its own open direction (self only for fox with water), "
+			"its own open direction (self only for fox with water, or wood with earth "
+			+ "once a creature has fallen), "
 			+ "and all cards together cost at most the %d unspent tails." % world.tails
 		)
 	)

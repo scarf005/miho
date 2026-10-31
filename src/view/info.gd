@@ -110,8 +110,10 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[_rival(w, a) + "싸우는 중 (%d초)" % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
 		lines.append([["북을 치러 간다", Palette.SOUND]])
-	if w.sees(a, w.player().pos):
+	if Guise.knows(w, a):
 		lines.append([["당신을 보고 있다", Palette.HURT]])
+	elif w.sees(a, w.player().pos):
+		lines.append([["둔갑한 당신을 알아보지 못한다", Palette.SIDE[0]]])
 	else:
 		lines.append([["당신을 볼 수 없다", Palette.SIDE[0]]])
 	var sneak := w.caught_unawares(a)
@@ -191,6 +193,13 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head, _tails(w), _claws(), [[_dark_sight(a), Palette.DIM]]]
 	lines.append([["발소리: " + ", ".join(steps), Palette.DIM]])
 	lines.append_array(_conditions(w, a))
+	if a.guise > 0:
+		var form: String = Bestiary.info(a.form).name
+		lines.append([["둔갑: %s의 모습 (%d초)" % [form, a.guise], Palette.SIDE[0]]])
+		var ends := "적 옆 %d/%d초. 주문을 쓰거나 맞으면 풀린다" % [a.beside, Guise.BESIDE]
+		lines.append([[ends, Palette.DIM]])
+	elif a.prey != &"":
+		lines.append([["둔갑할 모습: " + Bestiary.info(a.prey).name, Palette.DIM]])
 	lines.append(_hidden(w, a.pos))
 	return lines
 

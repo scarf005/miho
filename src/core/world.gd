@@ -649,9 +649,10 @@ func set_tile(p: Vector2i, t: int) -> void:
 
 
 ## Whether a claw at `a` is a sneak attack: it is off guard (not hunting) and
-## does not see Miho; a sleeping or blind creature sees nothing, but a blind hunter is on guard.
+## does not see Miho, or does not know her in guise (Guise); a sleeping or
+## blind creature sees nothing, but a blind hunter is on guard.
 func caught_unawares(a: Actor) -> bool:
-	return a.alert != Actor.HUNT and not sees(a, player().pos)
+	return a.alert != Actor.HUNT and not Guise.knows(self, a)
 
 
 func _claw(me: Actor, foe: Actor) -> void:
@@ -846,6 +847,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		return
 	a.hp -= n
 	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak})
+	Guise.hurt(self, a)
 	if a.alive():
 		if a.faction == Actor.HEAVEN:
 			noise(a.pos, CRY, "끽", true, a.id)

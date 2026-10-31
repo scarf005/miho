@@ -48,11 +48,12 @@ static func heaven_phase(w: World) -> void:
 				rest(w, a)
 
 
-## Sight first: seeing Miho starts a hunt; seeing one of her projectiles starts
-## a search or, for a cunning creature, a hunt (see `Bestiary` wits).
+## Sight first: seeing Miho, and knowing her through any guise (Guise), starts
+## a hunt; seeing one of her projectiles starts a search or, for a cunning
+## creature, a hunt (see `Bestiary` wits).
 static func perceive(w: World, a: Actor) -> void:
 	var me := w.player()
-	a.sees_me = w.sees(a, me.pos)
+	a.sees_me = Guise.knows(w, a)
 	if a.sees_me or a.info().get("hunts", false):
 		w.hunt_from(a, me.pos)
 		return

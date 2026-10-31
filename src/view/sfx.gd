@@ -214,13 +214,13 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"find"
 		&"open", &"close", &"unseal":
 			return &"door"
-		&"root", &"freeze", &"sprout":
+		&"root", &"freeze", &"sprout", &"guise":
 			return &"root"
 		&"stun":
 			return &"stun"
 		&"gas":
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
-		&"scald", &"cool", &"douse":
+		&"scald", &"cool", &"douse", &"unmask":
 			return &"hiss"
 		&"stick":
 			return &"foxfire"

@@ -178,6 +178,11 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ host
 				+ [[" 붙었다", TEXT]]
 			)
+		&"guise":
+			var form: String = Bestiary.info(e.kind).name
+			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", TEXT]]
+		&"unmask":
+			return [[Guise.ENDS[e.why] + "둔갑이 풀렸다", TEXT]]
 		&"fade":
 			if not e.get("lit", false):
 				return []

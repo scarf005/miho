@@ -32,6 +32,8 @@ const SOUNDS := [
 	[{t = &"root"}, &"root"],
 	[{t = &"freeze"}, &"root"],
 	[{t = &"sprout"}, &"root"],
+	[{t = &"guise"}, &"root"],
+	[{t = &"unmask"}, &"hiss"],
 	[{t = &"stun"}, &"stun"],
 	[{t = &"gas", kind = Gas.STEAM}, &"hiss"],
 	[{t = &"scald"}, &"hiss"],
