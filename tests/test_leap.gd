@@ -449,7 +449,7 @@ func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var text := " ".join(SpellInfo.spell(Spell.make([Cards.ORB] + LEAP)).map(Messages.plain))
 	var parts := [
 		"구슬 바꿔치기",
-		"바꿔치기: 멈춘 칸으로. 맞힌 적과는 자리 교환",
+		"바꿔치기: 멈춘 칸으로 맞힌 적: 자리 교환",
 		"바꿔치기 소리: 두 자리에서 %d칸" % Leap.SWAP_LOUD,
 	]
 	for part in parts:

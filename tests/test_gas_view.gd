@@ -198,4 +198,4 @@ func test_a_vent_pond_tells_what_it_breathes_and_up_to_what_amount() -> void:
 	assert_false(Info.plain(Info.terrain(w, at)).contains("뿜는 기체"))
 	w.vents[at] = Gas.FOG
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "뿜는 기체: 안개, 매 초 양 %d까지" % Gas.VENT_LEVEL)
+	assert_string_contains(text, "뿜는 기체: 안개\n  양: 매 초 %d까지" % Gas.VENT_LEVEL)

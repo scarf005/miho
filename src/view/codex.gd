@@ -93,7 +93,8 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 			var terms := Info.glossary()
 			for term: String in terms:
 				var lines := func():
-					return [[[term + ": ", Palette.TEXT], [terms[term], Palette.TEXT]]]
+					var rules: Array = terms[term].map(func(r): return [[r, Palette.DIM]])
+					return [[[term + ".", Palette.TEXT]]] + rules
 				out.append(_entry("·", Palette.TEXT, term, lines))
 	return out
 

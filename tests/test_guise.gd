@@ -196,7 +196,7 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 	assert_false(Info.plain(Info.creature(no_wood, no_wood.player())).contains("둔갑할"))
 	w.act(_self([WOOD, EARTH]))
 	var mine := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(mine, "둔갑: 도깨비, %d초" % (Guise.ROUNDS - 1))
+	assert_string_contains(mine, "둔갑: 도깨비\n  남은 시간: %d초" % (Guise.ROUNDS - 1))
 	assert_string_contains(mine, "적 옆: 0/%d초" % Guise.BESIDE)
 	var its := Info.plain(Info.creature(w, searcher))
 	assert_string_contains(its, "둔갑한 미호를 못 알아본다.")

@@ -194,7 +194,7 @@ func test_the_hover_and_the_log_tell_of_wet() -> void:
 	var before := w.clone()
 	var events := w.act(_cast([FOX, WATER]))
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "젖음: %d초. 소리: %d칸" % [Status.WET - 1, Status.SPLASH])
+	assert_string_contains(text, "젖음: %d초\n  소리: %d칸" % [Status.WET - 1, Status.SPLASH])
 	assert_false(text.contains(Status.SPLASH_WORD), text)
 	var log := Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "장승이 젖었다")
@@ -325,7 +325,7 @@ func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
 	var log := Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "도깨비에게 불이 붙었다")
 	var text := Info.plain(Info.creature(w, foe))
-	var tags := "불붙음: %d초. 피해: 매 초 %d. 빛: %d칸"
+	var tags := "불붙음: %d초\n  피해: 매 초 %d\n  빛: %d칸"
 	assert_string_contains(text, tags % [Status.ALIGHT - 1, World.FIRE_DAMAGE, Light.FIRE_RADIUS])
 	before = w.clone()
 	events = w.act(WAIT)
@@ -425,7 +425,7 @@ func test_the_hover_and_the_log_tell_of_ice() -> void:
 	var events := w.act(_cast(FROST))
 	assert_has(Messages.of(before, w, events).map(Messages.plain), "장승이 얼어붙었다")
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "얼어붙음: %d초. 다음 피해: ×2" % (Compounds.FROST - 1))
+	assert_string_contains(text, "얼어붙음: %d초\n  다음 피해: ×2" % (Compounds.FROST - 1))
 	before = w.clone()
 	events = w.act(_cast([ORB]))
 	assert_has(Messages.of(before, w, events).map(Messages.plain), "장승에게 피해를 2 주었다")

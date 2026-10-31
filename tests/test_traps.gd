@@ -243,11 +243,11 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	assert_string_contains(text[World.TRAP_ALARM], "밟으면: 층 전체에 소리")
 	assert_string_contains(text[World.TRAP_COLLAPSE], "밟으면: 하늘로 추락")
 	assert_string_contains(text[World.TRAP_FIRE], "앞 %d칸에 불" % Traps.FLAME_REACH)
-	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 %d초" % Traps.ROOT_ROUNDS)
+	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 묶음\n묶음: %d초" % Traps.ROOT_ROUNDS)
 	for kind in KINDS:
 		assert_true(text[kind].split("\n").has("함정."), text[kind])
-	assert_string_contains(Info.glossary()["함정"], "밝은 칸이나 %d칸 안에서 드러남" % Traps.REACH)
-	assert_string_contains(Info.glossary()["함정"], "적은 피해 감")
+	assert_has(Info.glossary()["함정"], "드러남: 밝은 칸이나 %d칸 안" % Traps.REACH)
+	assert_has(Info.glossary()["함정"], "적: 피해 감")
 
 
 func _hover(w: World, kind: int) -> Array:

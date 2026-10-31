@@ -379,7 +379,7 @@ func test_hover_tells_the_new_ground_from_the_rules() -> void:
 	assert_string_contains(hot, "피해: 매 초 %d" % spec.harm)
 	w.player().pos = ME + Vector2i(0, 1)
 	var me := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(me, "%s 위: 2초. 피해: 매 초 %d" % [spec.name, spec.harm])
+	assert_string_contains(me, "%s 위: 2초\n  피해: 매 초 %d" % [spec.name, spec.harm])
 
 
 func test_the_map_text_draws_hot_ground() -> void:
