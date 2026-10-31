@@ -10,6 +10,8 @@ extends RefCounted
 static func at(w: World, a: Actor, foe: Actor) -> Dictionary:
 	var cast := a.next_cast()
 	var spell := Spell.make(cast)
+	if spell == null:
+		return {}
 	if spell.turn() > 0:
 		return _homing(w, a, cast, Spell.RANGE if spell.shape == Spell.WISP else 6, foe)
 	var d := Grid.line_dir(a.pos, foe.pos)

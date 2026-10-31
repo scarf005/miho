@@ -31,7 +31,7 @@ static func heaven_phase(w: World) -> void:
 			a.cooldown = a.info().cd
 			w.cast(a, spell, a.aim)
 			continue
-		if a.blind > 0 or _fight(w, a):
+		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
 		match a.alert:
 			Actor.HUNT:
@@ -224,10 +224,26 @@ static func hunt(w: World, a: Actor) -> void:
 	search(w, a)
 
 
+## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it.
+static func _stoke(w: World, a: Actor) -> bool:
+	return a.info().get("stokes", false) and Terrain.relight_beside(w, a)
+
+
+## A tracker (Bestiary tracks) on Miho's trail sweeps along it, searching.
+static func _track(w: World, a: Actor) -> bool:
+	if not a.info().get("tracks", false) or a.rooted > 0:
+		return false
+	var to := Scent.next(w, a)
+	if to == a.pos or not _step_to(w, a, to):
+		return false
+	_look(a, a.pos)
+	return true
+
+
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark.
 ## Next to a lantern that went out, it lights it again first.
 static func search(w: World, a: Actor) -> void:
-	if Terrain.relight_beside(w, a):
+	if Terrain.relight_beside(w, a) or _track(w, a):
 		return
 	if a.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
 		return
@@ -245,7 +261,7 @@ static func search(w: World, a: Actor) -> void:
 
 
 static func rest(w: World, a: Actor) -> void:
-	if a.rooted > 0:
+	if a.rooted > 0 or _track(w, a):
 		return
 	if not a.info().get("patrol", false):
 		if a.pos != a.home:
@@ -255,12 +271,15 @@ static func rest(w: World, a: Actor) -> void:
 		a.post = FloorGen.patrol_point(w)
 
 
-## `a` strikes `target` beside it with its `melee` (Bestiary).
+## `a` strikes `target` beside it with its `melee` (Bestiary), throwing it
+## back when the blow throws.
 static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void:
 	w.emit({t = &"melee", id = a.id, target = target.id, at = target.pos, n = melee.damage})
 	w.noise(target.pos, 3, "퍽", true, a.id)
 	w.hurt(target, melee.damage)
 	provoke(w, target, a)
+	if melee.get("throw", 0) > 0 and target.alive():
+		w.push(target, target.pos - a.pos, melee.throw)
 
 
 static func _charge(w: World, a: Actor, plan: Dictionary) -> bool:

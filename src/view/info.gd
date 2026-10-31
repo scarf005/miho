@@ -113,7 +113,11 @@ static func _arms(a: Actor, held: Array) -> Array:
 	var lines := []
 	var elements := Bestiary.elements(a.kind)
 	if spec.has("melee"):
-		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, ")"))
+		var throw: int = spec.melee.get("throw", 0)
+		var after := ", %d칸 던진다)" % throw if throw > 0 else ")"
+		lines.append(_amount("근접: %s (피해 " % spec.melee.name, spec.melee.damage, after))
+		if throw > 0:
+			lines.append([["  하늘로 던져지면 한 층 아래로 떨어진다", Palette.DIM]])
 	lines.append_array(_casts(a))
 	lines.append([[" · ".join(_traits(a, elements)), Palette.DIM]])
 	var cry: Dictionary = spec.get("shout", {})
@@ -292,6 +296,10 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append("불에 탐")
 	if spec.get("hunts", false):
 		out.append("당신 위치를 앎")
+	if spec.get("tracks", false):
+		out.append("당신의 냄새를 따라감")
+	if spec.get("stokes", false):
+		out.append("꺼진 등불을 켬")
 	out.append(_dark_sight(a))
 	return out
 

@@ -6,7 +6,10 @@ extends RefCounted
 ## spell_name: what the log and hover call the spell it casts, in place of the
 ## name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
-## to her: its name, the verb the log ends in ("맞아", "물려") and the damage.
+## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
+## and `throw`, how many tiles the blow pushes her back (into the sky she falls).
+## stokes: lights a dark lantern beside it before anything else (Mind).
+## tracks: follows Miho's scent while it rests or searches (Mind).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
@@ -56,6 +59,47 @@ const KINDS := {
 		step = 4,
 		wits = 1,
 		patrol = true,
+	},
+	&"oedari":
+	{
+		name = "외다리 도깨비",
+		glyph = "외",
+		group = &"dokkaebi",
+		shout = {word = "으라차", loud = 8},
+		hp = 3,
+		melee = {name = "씨름", hit = "져", damage = 1, throw = 2},
+		move = &"approach",
+		step = 6,
+		wits = 1,
+		patrol = true,
+	},
+	&"bujigaengi":
+	{
+		name = "부지깽이 도깨비",
+		glyph = "부",
+		group = &"dokkaebi",
+		shout = {word = "낄낄", loud = 6},
+		hp = 2,
+		melee = {name = "부지깽이", hit = "맞아", damage = 1},
+		move = &"approach",
+		step = 4,
+		wits = 1,
+		patrol = true,
+		absorb = &"fire",
+		stokes = true,
+	},
+	&"bitjaru":
+	{
+		name = "빗자루 도깨비",
+		glyph = "빗",
+		group = &"dokkaebi",
+		hp = 2,
+		melee = {name = "빗자루", hit = "맞아", damage = 1},
+		move = &"approach",
+		step = 2,
+		wits = 1,
+		patrol = true,
+		tracks = true,
 	},
 	&"jangseung":
 	{
