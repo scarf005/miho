@@ -67,6 +67,7 @@ const SILENT := [
 	{t = &"heed"},
 	{t = &"calm"},
 	{t = &"truce"},
+	{t = &"scatter"},
 	{t = &"shout"},
 	{t = &"spawn"},
 	{t = &"spray"},
@@ -82,6 +83,9 @@ const SILENT := [
 	{t = &"trample"},
 	{t = &"soak"},
 	{t = &"ride"},
+	{t = &"leap"},
+	{t = &"swap"},
+	{t = &"cast", cards = [Cards.LEAP, Cards.EARTH]},
 ]
 
 

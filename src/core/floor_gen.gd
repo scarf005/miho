@@ -18,7 +18,8 @@ extends RefCounted
 ## From tier 2 a lit room may hold a war drum. Galleries stay plain and dark.
 ## Miho starts in the westmost room; the stairs (the elixir on the top storey)
 ## sit in the room farthest from her, which is always lit. Watchers that never
-## move stand by lanterns.
+## move stand by lanterns. The creatures that walk come in bands (`bands`): those
+## of one group stand together in one room, and follow the strongest of them.
 
 ## The creatures of each tier of three storeys; a boss only comes to the last storey.
 const PLAN := {
@@ -67,7 +68,7 @@ const PLAN := {
 		&"oedari",
 		&"bitjaru",
 		&"dokkaebi",
-		&"dokkaebi",
+		&"gamtu",
 		&"jangseung",
 		&"jangseung",
 	],
@@ -78,7 +79,7 @@ const PLAN := {
 		&"bujigaengi",
 		&"bitjaru",
 		&"dokkaebi",
-		&"dokkaebi",
+		&"gamtu",
 		&"imugi",
 		&"imugi",
 		&"jangseung",
@@ -91,7 +92,7 @@ const PLAN := {
 		&"bujigaengi",
 		&"bitjaru",
 		&"dokkaebi",
-		&"dokkaebi",
+		&"gamtu",
 		&"imugi",
 		&"imugi",
 		&"imugi",
@@ -106,7 +107,7 @@ const PLAN := {
 		&"oedari",
 		&"bitjaru",
 		&"dokkaebi",
-		&"dokkaebi",
+		&"gamtu",
 		&"imugi",
 		&"imugi",
 		&"jangseung",
@@ -144,6 +145,10 @@ const DOORS := 0.6
 const SHORTCUT := 10
 const LIT_ROOMS := 0.45
 const FOE_DISTANCE := 12
+## The most creatures in a band, and how far from its leader a follower stands
+## and keeps.
+const BAND := 3
+const BAND_SPREAD := 2
 ## The lanterns of a three-lantern treasure room; the peaches in it.
 const VAULT_LANTERNS := 3
 const PRIZE := 2
@@ -497,14 +502,24 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 
 
 ## Whether every open tile is reachable from the first room, walking round the
-## tiles in `blocked` and through whatever opens in time (Tiles.opens).
+## tiles in `blocked` and through whatever opens in time (Tiles.opens); and every
+## lantern of a seal can be stood beside while the seals are shut.
 static func connected(w: World, blocked: Array = []) -> bool:
 	var open := Masks.opened(w, blocked)
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
 	for i in open.size():
 		if open[i] == 1 and dist[i] < 0:
 			return false
-	return true
+	if w.seals.is_empty():
+		return true
+	var shut := Masks.floor_of(w, blocked + w.seals.keys(), func(_p): return false)
+	var reach: PackedInt32Array = Grid.search(_centre(w.rooms[0]), shut).dist
+	return w.seals.values().all(
+		func(ls):
+			return ls.all(
+				func(l): return Grid.DIRS.any(func(d): return reach[Grid.index(l + d)] >= 0)
+			)
+	)
 
 
 static func _farthest(w: World, from: Vector2i) -> Rect2i:
@@ -589,9 +604,9 @@ static func seal(w: World, r: Rect2i) -> bool:
 			if w.seals[seal].size() >= VAULT_LANTERNS:
 				break
 			w.tiles[Grid.index(p)] = World.LANTERN_OUT
-			if connected(w):
-				w.seals[seal].append(p)
-			else:
+			w.seals[seal].append(p)
+			if not connected(w):
+				w.seals[seal].pop_back()
 				w.tiles[Grid.index(p)] = World.FLOOR
 	if w.seals[seal].size() < VAULT_LANTERNS:
 		w.tiles = before
@@ -689,21 +704,73 @@ static func _bare(w: World, p: Vector2i) -> bool:
 	)
 
 
+## The bands of `kinds`: for each group, its creatures that walk (Bestiary.bands)
+## strongest first, dealt round and round into as few bands as keep each within
+## BAND. A band's first kind leads it.
+static func bands(kinds: Array) -> Array:
+	var groups := {}
+	for kind in kinds:
+		if Bestiary.bands(kind):
+			var group: StringName = Bestiary.info(kind).group
+			groups[group] = groups.get(group, []) + [kind]
+	var out := []
+	for members: Array in groups.values():
+		var order := range(members.size())
+		order.sort_custom(
+			func(i, j):
+				return [-Bestiary.info(members[i]).hp, i] < [-Bestiary.info(members[j]).hp, j]
+		)
+		var count := ceili(float(members.size()) / BAND)
+		var split := []
+		split.resize(count)
+		for k in count:
+			split[k] = []
+		for k in order.size():
+			split[k % count].append(members[order[k]])
+		out.append_array(split)
+	return out
+
+
+## Standing watchers and bosses where they belong, then each band: its leader
+## anywhere, its followers round it in the same room (alone where none fits).
 static func _creatures(w: World) -> void:
 	for kind in PLAN[w.tier()]:
-		var info := Bestiary.info(kind)
-		if info.get("boss", false) and w.depth < World.FLOORS:
-			continue
-		var spot := Vector2i(-1, -1)
-		if info.get("boss", false):
-			spot = nearest_free(w, w.elixir + Vector2i(0, 1))
-		elif info.get("move", &"static") == &"static":
-			spot = _by_lantern(w)
-		if spot.x < 0:
-			spot = _random_spot(w, FOE_DISTANCE)
-		if spot.x >= 0:
-			var a := spawn(w, kind, spot)
-			a.cooldown = w.rng.randi_range(1, info.get("cd", 1))
+		if not Bestiary.bands(kind):
+			_place(w, kind)
+	for band in bands(PLAN[w.tier()]):
+		var lead := _place(w, band[0])
+		for kind in band.slice(1):
+			var spot := Vector2i(-1, -1)
+			if lead != null:
+				spot = _random_spot(w, FOE_DISTANCE - BAND_SPREAD, lead.pos)
+			if spot.x < 0:
+				_place(w, kind)
+			else:
+				var a := _arrive(w, kind, spot)
+				a.leader = lead.id
+
+
+## A creature of `kind` where it belongs, or null when there is no room (or a boss
+## before the last storey).
+static func _place(w: World, kind: StringName) -> Actor:
+	var info := Bestiary.info(kind)
+	if info.get("boss", false) and w.depth < World.FLOORS:
+		return null
+	var spot := Vector2i(-1, -1)
+	if info.get("boss", false):
+		spot = nearest_free(w, w.elixir + Vector2i(0, 1))
+	elif info.get("move", &"static") == &"static":
+		spot = _by_lantern(w)
+	if spot.x < 0:
+		spot = _random_spot(w, FOE_DISTANCE)
+	return _arrive(w, kind, spot) if spot.x >= 0 else null
+
+
+## A creature of `kind` at `at`, charging for a random while.
+static func _arrive(w: World, kind: StringName, at: Vector2i) -> Actor:
+	var a := spawn(w, kind, at)
+	a.cooldown = w.rng.randi_range(1, Bestiary.info(kind).get("cd", 1))
+	return a
 
 
 static func _by_lantern(w: World) -> Vector2i:
@@ -729,16 +796,20 @@ static func _by_lantern(w: World) -> Vector2i:
 
 
 ## A free room tile at least `min_dist` steps from the start and more than
-## START_CLEAR tiles from it.
-static func _random_spot(w: World, min_dist: int) -> Vector2i:
+## START_CLEAR tiles from it; within BAND_SPREAD of `near` and in its room when
+## that is given.
+static func _random_spot(w: World, min_dist: int, near := Vector2i(-1, -1)) -> Vector2i:
 	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var spots: Array[Vector2i] = []
 	for r in w.rooms:
+		if near.x >= 0 and not r.has_point(near):
+			continue
 		for y in range(r.position.y, r.end.y):
 			for x in range(r.position.x, r.end.x):
 				var p := Vector2i(x, y)
 				if (
-					w.vacant(p)
+					(near.x < 0 or Grid.cheb(p, near) <= BAND_SPREAD)
+					and w.vacant(p)
 					and dist[Grid.index(p)] >= min_dist
 					and Grid.cheb(p, w.start) > START_CLEAR
 					and p != w.stairs

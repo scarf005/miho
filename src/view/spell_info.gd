@@ -7,12 +7,18 @@ extends RefCounted
 const LABEL := Palette.DIM
 const TURN_NAME := ["곧게만 간다", "45°", "90°", "135°", "마음대로"]
 const MUZZLE := "발사 시 당신 칸을 밝힌다"
-## The talismans that make each projectile shape.
+## The talismans that make each shape but a spray.
 const RECIPE := {
+	Spell.LEAP: [Cards.LEAP],
 	Spell.WISP: [Cards.FOX],
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
 }
+## What 도 behind a projectile does (Leap.swap).
+const SWAP := (
+	"바꿔치기. 멈춘 자리로 간다. 맞힌 적과는 자리를 바꾼다. 하늘 위로는 가지 않는다. %s %d칸, 두 자리에서"
+	% [Leap.SWAP_WORD, Leap.SWAP_LOUD]
+)
 const SPRAY_NAME := "뿌리기"
 const SPRAY_NOTE := "오행 부적만 쓰면 투사체 없이 닿는 칸을 덮는다"
 
@@ -70,6 +76,13 @@ static func spell(s: Spell) -> Array:
 	for c in s.slots:
 		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
+	if s.shape == Spell.LEAP:
+		lines.append_array(_shape(s))
+		var then := s.rest()
+		if then != null:
+			lines.append([["내린 자리에서 ", LABEL], [then.title(), Palette.card(then.slots.back())]])
+			lines.append_array(spell(then).slice(1))
+		return lines
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
 		lines.append(_line("빛", MUZZLE if s.gun() else "없음"))
@@ -83,6 +96,8 @@ static func spell(s: Spell) -> Array:
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
 		for part in compound(c):
 			lines.append(_line(Cards.NAME[c], part, Palette.card(c)))
+	if s.swaps():
+		lines.append(_line(Cards.NAME[Cards.LEAP], SWAP, Palette.CARD[Cards.LEAP]))
 	var light := _light(s.light(Actor.FOX))
 	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
@@ -259,6 +274,8 @@ static func shot(w: World, s: Shot) -> Array:
 	lines.append(_line("빠르기", "초당 %d칸" % spell.speed() if s.dir != Vector2i.ZERO else "떠 있음"))
 	if s.life > 0:
 		lines.append(_line("남은 시간", "%d초" % s.life))
+	if spell.swaps():
+		lines.append(_line(Cards.NAME[Cards.LEAP], SWAP, Palette.CARD[Cards.LEAP]))
 	lines.append(_line("빛", _light(spell.light(s.faction))))
 	if spell.burst_noise() > 0:
 		lines.append(_line("소리", "터질 때 %d칸" % spell.burst_noise()))
@@ -273,8 +290,19 @@ static func _line(label: String, value: String, color := Palette.TEXT) -> Array:
 	return [[label + " ", LABEL], [value, color]]
 
 
-## Shape, damage, speed, turn and reach of a projectile spell.
+## Shape, damage, speed, turn and reach of a projectile spell; where a leap
+## goes and what it is heard as.
 static func _shape(s: Spell) -> Array:
+	if s.shape == Spell.LEAP:
+		return [
+			_line("모양", "곧게 %d칸 안 가장 먼 설 곳에 내린다" % s.leap()),
+			_line("도약", "한 장마다 1칸 더"),
+			_line("넘는 것", "하늘, 연못, 생물"),
+			_line("막는 것", "벽, 닫힌 문, 등불"),
+			_line("소리", "내릴 때 %s %d칸. 진흙에서는 없다" % [Leap.WORD, Leap.LOUD]),
+			_line("냄새", "뛰어넘은 칸에는 남지 않는다"),
+			_line("여, 구 뒤 끝에", SWAP),
+		]
 	var lines := []
 	match s.shape:
 		Spell.WISP:

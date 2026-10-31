@@ -64,7 +64,7 @@ extends RefCounted
 ## crosses one is seen from afar.
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## a new storey one below.
+## a new storey one below. 도 leaps her across it (Leap).
 ##
 ## Each storey climbed gives back one health.
 ##
@@ -176,7 +176,7 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
-var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
+var cards: Array[StringName] = [Cards.FOX, Cards.ORB, Cards.LEAP]
 var round_no := 0
 var outcome := &""
 var rng := RandomNumberGenerator.new()
@@ -264,9 +264,7 @@ func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
 	w.secrets = {}
-	w.actors.assign(
-		w.actors.filter(func(a): return a.faction == Actor.FOX or seen[Grid.index(a.pos)] == 1)
-	)
+	w.actors.assign(w.actors.filter(func(a): return a.faction == Actor.FOX or Hat.shown(self, a)))
 	w.shots.assign(w.shots.filter(func(s): return seen[Grid.index(s.pos)] == 1))
 	return w
 
@@ -468,8 +466,8 @@ func _can_close(dir: Vector2i) -> bool:
 	)
 
 
-## Every spell is valid and known, takes its own open direction, and the cards
-## together cost no more than the unspent tails.
+## Every spell is valid and known, takes its own open direction (a leap one
+## it lands along), and the cards together cost no more than the unspent tails.
 func _can_cast(spells: Array) -> bool:
 	var me := player()
 	if me.stunned > 0 or spells.is_empty():
@@ -482,7 +480,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not Terrain.throwable(self, spell, me.pos + d) or aims.has(d):
+		if not Grid.DIRS.has(d) or not Leap.open(self, me, spell, d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -599,7 +597,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
-	Traps.step(self, a, to - from)
+	Traps.step(self, a, Grid.line_dir(from, to))
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
@@ -699,8 +697,8 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
-	if spell.shape == Spell.SPRAY:
-		Spray.cast(self, caster, spell, dir)
+	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
+		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
 		return
 	if spell.gun():
 		flares.append(caster.pos)
@@ -824,7 +822,7 @@ func _burst(s: Shot) -> void:
 ## A thud happens wherever the spell ends; fire sets that tile alight and
 ## relights the lanterns next to it, except the one an orb just struck, water
 ## douses lanterns and flames, a wood orb grows a wall (Elements), and each
-## compound acts round where it ends (Compounds).
+## compound acts round where it ends (Compounds); 도 brings Miho (Leap.swap).
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)
@@ -834,6 +832,7 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.orb and s.spell.has(Cards.WOOD):
 		Elements.sprout(self, s, at)
 	Compounds.land(self, s, at)
+	Leap.swap(self, s, actor_at(at))
 
 
 func _strike(s: Shot, a: Actor) -> void:

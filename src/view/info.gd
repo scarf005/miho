@@ -30,7 +30,7 @@ static func at(w: World, p: Vector2i) -> Array:
 	var i := Grid.index(p)
 	if w.seen[i] == 1:
 		var a := w.actor_at(p)
-		if a != null:
+		if a != null and Hat.shown(w, a):
 			return creature(w, a)
 		var s := w.shot_at(p)
 		if s != null:
@@ -72,18 +72,24 @@ static func _profile(a: Actor) -> Array:
 	lines.append_array(_immunities(a))
 	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
 	lines.append([["다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
+	if Bestiary.bands(a.kind):
+		lines.append([["최대 %d마리 무리, 우두머리는 가장 센 적" % FloorGen.BAND, Palette.DIM]])
 	return lines
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting.
+## shut), on patrol, walking back home, or just resting. One hunting at 1 health runs.
 static func state(a: Actor) -> String:
+	if a.fleeing():
+		return "도망치는 중"
 	if a.alert != Actor.REST:
 		return STATE[a.alert]
 	if a.asleep():
 		return "자는 중"
 	if a.guard and a.pos == a.home:
 		return "지키는 중"
+	if a.following():
+		return "따라가는 중"
 	if a.info().get("patrol", false):
 		return "순찰 중"
 	return "돌아가는 중" if a.pos != a.home else STATE[Actor.REST]
@@ -98,6 +104,10 @@ static func _situation(w: World, a: Actor) -> Array:
 		doing.append([_search_left(a), Palette.TEXT])
 	lines.append(doing)
 	lines.append_array(_conditions(w, a))
+	if a.leader != 0:
+		lines.append([["우두머리: " + _name_of(w, w.actor(a.leader)), Palette.TEXT]])
+	elif w.actors.any(func(b): return b.leader == a.id):
+		lines.append([["무리의 우두머리", Palette.TEXT]])
 	if a.fighting():
 		lines.append([[_rival(w, a) + "싸우는 중 (%d초)" % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
@@ -115,10 +125,13 @@ static func _situation(w: World, a: Actor) -> Array:
 
 ## The rival `a` fights, with 와/과, named only when Miho sees it.
 static func _rival(w: World, a: Actor) -> String:
-	var rival := w.actor(a.rival)
-	var seen := rival != null and w.seen[Grid.index(rival.pos)] == 1
-	var name: String = rival.info().name if seen else "무언가"
+	var name := _name_of(w, w.actor(a.rival))
 	return name + Messages._particle(name, "과", "와") + " "
+
+
+## The name of creature `b` when Miho sees it, else "무언가".
+static func _name_of(w: World, b: Actor) -> String:
+	return b.info().name if b != null and Hat.shown(w, b) else "무언가"
 
 
 ## What it strikes and casts with, what it eats and what it leaves.
@@ -141,6 +154,12 @@ static func _arms(a: Actor, held: Array) -> Array:
 		var said := [[cry.word, Palette.SOUND], [" %d칸" % cry.loud, Palette.TEXT]]
 		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
 		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
+	if spec.get("hat", false):
+		lines.append([["감투: %d칸 안이나 도깨비불이 붙으면 보임" % Hat.REACH, Palette.DIM]])
+	if Bestiary.flees(a.kind):
+		lines.append([["체력 1이면 도망친다", Palette.DIM]])
+	elif spec.get("brave", false):
+		lines.append([["용감해서 도망치지 않는다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		var line := [[Cards.NAME[eats], Palette.CARD[eats]], [" 주문을 먹으면 최대 체력 ", Palette.TEXT]]
@@ -334,7 +353,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if spec.get("tracks", false):
 		out.append("당신의 냄새를 따라감")
 	if spec.get("stokes", false):
-		out.append("꺼진 등불을 켬")
+		out.append("깨어 있으면 꺼진 등불을 켬")
 	out.append(_dark_sight(a))
 	return out
 
@@ -506,7 +525,10 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("길과 시야와 빛을 막는다")
 			out.append("구슬에 맞으면 부서진다")
 		World.POND, World.SKY:
-			out.append("건널 수 없다. 주문은 넘어간다")
+			out.append("걸어서 건널 수 없다")
+			out.append("주문과 멀리뛰기는 넘어간다")
+		World.VERANDA:
+			out.append("맞은편 쪽마루는 멀리뛰기로 건넌다")
 		World.WINDOW:
 			out.append("보이지만 지나갈 수 없다")
 		World.BRIDGE:

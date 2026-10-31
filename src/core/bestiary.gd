@@ -8,7 +8,7 @@ extends RefCounted
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
 ## and `throw`, how many tiles the blow pushes her back (into the sky she falls).
-## stokes: lights a dark lantern beside it before anything else (Mind).
+## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
 ## tracks: follows Miho's scent while it rests or searches (Mind).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
@@ -23,6 +23,10 @@ extends RefCounted
 ## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
 ## dull creature looks at the spot, a sharp one at where the projectile came
 ## from, a cunning one hunts from there.
+## hat: wears the invisibility hat, seen only from the next tile or with a wisp
+## clinging to it (Hat).
+## brave: never flees (Bestiary.flees). Any other creature that is sharp or
+## cunning and can walk runs from Miho at 1 health (Mind.flee).
 ## A creature's elements are those of the spells it casts. A spell that holds
 ## an element beating one of them hits it twice as hard (Cards.BEATS).
 
@@ -101,6 +105,19 @@ const KINDS := {
 		patrol = true,
 		tracks = true,
 	},
+	&"gamtu":
+	{
+		name = "감투 도깨비",
+		glyph = "감",
+		group = &"dokkaebi",
+		hp = 2,
+		melee = {name = "방망이", hit = "맞아", damage = 1},
+		move = &"approach",
+		step = 2,
+		wits = 1,
+		patrol = true,
+		hat = true,
+	},
 	&"jangseung":
 	{
 		name = "장승",
@@ -156,6 +173,7 @@ const KINDS := {
 		wits = 1,
 		drop = Cards.WATER,
 		absorb = &"fire",
+		brave = true,
 	},
 	&"cheonha":
 	{
@@ -228,6 +246,7 @@ const KINDS := {
 		step = 3,
 		hunts = true,
 		wits = 2,
+		brave = true,
 	},
 }
 
@@ -255,6 +274,28 @@ static func shouted(word: String) -> bool:
 
 static func wits(kind: StringName) -> int:
 	return info(kind).get("wits", DULL)
+
+
+## Whether creatures of `kind` come in bands (FloorGen.bands): those that walk
+## and are no boss.
+static func bands(kind: StringName) -> bool:
+	var spec := info(kind)
+	return (
+		spec.has("group")
+		and spec.get("move", &"static") != &"static"
+		and not spec.get("boss", false)
+	)
+
+
+## Whether a creature of `kind` runs from Miho at 1 health: sharp or cunning,
+## not brave, and able to walk.
+static func flees(kind: StringName) -> bool:
+	var spec := info(kind)
+	return (
+		wits(kind) >= SHARP
+		and not spec.get("brave", false)
+		and spec.get("move", &"static") != &"static"
+	)
 
 
 static func absorbs(kind: StringName, spell: Spell) -> bool:

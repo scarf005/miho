@@ -148,3 +148,51 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")
 	assert_string_contains(text[&"bitjaru"], "당신의 냄새를 따라감")
 	assert_string_contains(text[&"bitjaru"], "외치지 않는다")
+
+
+## A 부지깽이 도깨비 that sleeps whatever it does, to see what sleep takes from it.
+class Sleeper:
+	extends Actor
+
+	func asleep() -> bool:
+		return true
+
+
+func _lamp_world() -> World:
+	var w := _world()
+	w.tiles[Grid.index(Vector2i(11, 8))] = World.LANTERN_OUT
+	return w
+
+
+func test_a_sleeping_poker_leaves_the_dark_lantern_beside_it() -> void:
+	var w := _lamp_world()
+	var a := Sleeper.new()
+	a.id = w.new_id()
+	a.kind = &"bujigaengi"
+	a.pos = Vector2i(10, 8)
+	a.home = a.pos
+	a.hp = 2
+	w.actors.append(a)
+	w.act(WAIT)
+	assert_eq(w.tile(Vector2i(11, 8)), World.LANTERN_OUT)
+
+
+func test_an_awake_poker_lights_it_on_patrol_searching_hunting_and_walking_home() -> void:
+	for alert in [Actor.REST, Actor.SEARCH, Actor.HUNT]:
+		var w := _lamp_world()
+		var a := FloorGen.spawn(w, &"bujigaengi", Vector2i(10, 8))
+		a.alert = alert
+		a.target = Vector2i(10, 8)
+		w.act(WAIT)
+		assert_false(a.asleep(), "a patrol never sleeps")
+		assert_eq(w.tile(Vector2i(11, 8)), World.LANTERN, "alert %d" % alert)
+	var home := _lamp_world()
+	var walker := FloorGen.spawn(home, &"bujigaengi", Vector2i(10, 8))
+	walker.home = Vector2i(20, 8)
+	home.act(WAIT)
+	assert_eq(home.tile(Vector2i(11, 8)), World.LANTERN)
+
+
+func test_the_hover_and_the_doc_say_the_poker_lights_lanterns_when_awake() -> void:
+	var text := Info.plain(Info.creature_facts(Codex.foe(&"bujigaengi"), []))
+	assert_string_contains(text, "깨어 있으면 꺼진 등불을 켬")

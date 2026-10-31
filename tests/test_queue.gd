@@ -135,8 +135,37 @@ func test_the_spell_name_never_covers_the_queue() -> void:
 		_press(m, k)
 	var t: Term = m.term
 	t.cols = 30
-	var name := Spell.make(m.picked).title()
-	assert_true(StatusBar.title_x(t, name) >= StatusBar.queue_x(t) + Spell.MAX_SLOTS)
+	var at := StatusBar.title_at(t, Spell.make(m.picked).title())
+	assert_true(at.y < t.rows - 1 or at.x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS)
+
+
+func test_the_longest_spell_name_fits_the_screen_at_every_zoom_of_a_1280x720_window() -> void:
+	var m := _main()
+	var t: Term = m.term
+	var longest := ""
+	var seqs := [[]]
+	for n in Spell.MAX_SLOTS:
+		var next := []
+		for s in seqs:
+			for c in Cards.ALL:
+				next.append(s + [c])
+		seqs = next
+		for s in seqs:
+			var spell := Spell.make(s)
+			if spell != null and Term._cells(spell.title()) > Term._cells(longest):
+				longest = spell.title()
+	var name := "+9 " + longest
+	for zoom in Settings.ZOOMS:
+		t.fit(Vector2(1280, 720), zoom)
+		for count in range(Cards.FORMS.size(), Cards.ALL.size() + 1):
+			m.world.cards.assign(Cards.ALL.slice(0, count))
+			var at := StatusBar.title_at(t, name)
+			var ctx := "%s at zoom %s with %d talismans" % [name, zoom, count]
+			assert_true(at.x >= 0.0 and at.x + Term._cells(name) <= t.cols, "on screen: " + ctx)
+			assert_true(
+				at.y < t.rows - 1 or at.x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS,
+				"clear of the queue: " + ctx
+			)
 
 
 func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> void:

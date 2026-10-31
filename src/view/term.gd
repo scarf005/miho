@@ -99,6 +99,8 @@ var cam := Vector2i.ZERO
 
 var _font: FontFile
 var _vis := PackedByteArray()
+## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
+var _veiled := {}
 var _actors := {}
 var _shots := {}
 var _animating := false
@@ -185,6 +187,7 @@ func _process(delta: float) -> void:
 func show_world(w: World) -> void:
 	world = w
 	_vis = w.seen
+	_veiled = Hat.unseen(w)
 	follow(w.player().pos)
 	_actors.clear()
 	_shots.clear()
@@ -223,6 +226,7 @@ func play(events: Array, before: World, after: World) -> void:
 	world = after
 	var perceived := Perceived.of(before, after, events)
 	_vis = perceived.vis
+	_veiled = perceived.veiled
 	_told.clear()
 	for f in perceived.facts:
 		if f.i >= 0:
@@ -245,6 +249,11 @@ func play(events: Array, before: World, after: World) -> void:
 ## Whether Miho sees tile p: what the log and the popups are told from.
 func _visible(p: Vector2i) -> bool:
 	return Perceived.sees(_vis, p)
+
+
+## Whether `a` wears a hat that hides it now; the debug view sees through it.
+func _hatted(a: Actor) -> bool:
+	return debug.is_empty() and _veiled.has(a.id)
 
 
 ## Whether tile p is drawn: seen, or any tile with the debug view on.
@@ -638,7 +647,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos):
+		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos) or _hatted(a):
 			continue
 		var cell := _cell(a.pos)
 		var l := light[Grid.index(a.pos)]
@@ -671,7 +680,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	var list: Array = actors.values().filter(
-		func(a): return a.faction != Actor.FOX and _revealed(a.pos)
+		func(a): return a.faction != Actor.FOX and _revealed(a.pos) and not _hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
 	return list.slice(0, (rows - 2) / SIDE_ROWS)
@@ -714,25 +723,38 @@ func _draw_info() -> void:
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if info.is_empty():
 		return
-	var width := 0.0
-	for line: Array in info:
-		width = maxf(width, line.reduce(func(n, run): return n + _cells(run[0]), 0.0))
-	width = ceilf(width) + 1.0
-	var height := info.size()
-	var v := map_view()
-	var from := Vector2(MAP.x, rows - 2 - height)
-	if shown:
-		var at := cursor - cam
-		from.x = MAP.x + v.x - width if at.x < v.x / 2 else MAP.x
-		from.y = v.y - height if at.y < v.y / 2 else 0
-	var box := Rect2(from * CELL, Vector2(width, height) * CELL)
+	var fit := _info_fit(cursor if shown else null)
+	draw_set_transform(fit.at * CELL, 0.0, Vector2(fit.scale, fit.scale))
+	var box := Rect2(Vector2.ZERO, fit.cells * CELL)
 	draw_rect(box, Color(Palette.VOID, 0.92))
 	draw_rect(box.grow(-1), Palette.DIM, false, 2.0)
-	for k in info.size():
-		var x := from.x + 0.5
-		for run: Array in info[k]:
-			_text(Vector2(x, from.y + k), run[0], run[1])
-			x += _cells(run[0])
+	for column: Array in fit.columns:
+		for k in column[1].size():
+			var x: float = column[0]
+			for run: Array in column[1][k]:
+				_text(Vector2(x, k), run[0], run[1])
+				x += _cells(run[0])
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The layout of `info` (InfoBox) and `at`, the cell of its top-left corner. It
+## lies in the map area, or in the whole width when that would make the text
+## too small to read, on the far side from the map tile `p` (null for none).
+func _info_fit(p: Variant = null) -> Dictionary:
+	var v := map_view()
+	var room := Rect2(Vector2(MAP), Vector2(v))
+	var least := minf(1.0, InfoBox.READABLE / scale.x)
+	var fit := InfoBox.layout(info, room.size, least)
+	if fit.scale < least:
+		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
+		fit = InfoBox.layout(info, room.size, least)
+	var wide: Vector2 = fit.cells * fit.scale
+	var at := Vector2(room.position.x, room.end.y - wide.y)
+	if p != null:
+		var c: Vector2i = p - cam
+		at.x = room.end.x - wide.x if c.x < v.x / 2 else room.position.x
+		at.y = room.end.y - wide.y if c.y < v.y / 2 else 0
+	return fit.merged({at = at})
 
 
 func _draw_log() -> void:

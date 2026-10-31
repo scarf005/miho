@@ -324,7 +324,7 @@ func _keys() -> Array:
 	return rows
 
 
-## Every action with its keys; the seven talismans share a row.
+## Every action with its keys; the eight talismans share a row.
 static func _help() -> Array:
 	var rows := []
 	for action in Keys.ACTIONS:
@@ -337,7 +337,7 @@ static func _help() -> Array:
 			sep = " "
 			name = "부적 고르기"
 			keys = []
-			for i in range(1, 8):
+			for i in range(1, 9):
 				keys.append("/".join(Keys.keys_of(StringName("pick_%d" % i)).map(Keys.label)))
 		rows.append([[name, Palette.TEXT], [sep.join(keys), Palette.SIDE[0], VALUE_COL]])
 	rows.append([[LOOK[0], Palette.TEXT], [LOOK[1], Palette.DIM, VALUE_COL]])

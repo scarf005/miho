@@ -370,3 +370,20 @@ func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void
 	foe.wary = 0
 	Mind.search(w, foe)
 	assert_eq(foe.alert, Actor.REST, "rests at the first look once no longer wary")
+
+
+func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
+	var w := World.create(7)
+	var p := Vector2i(5, 5)
+	for t in [World.SKY, World.POND]:
+		w.tiles[Grid.index(p)] = t
+		var text := Info.plain(Info.terrain_facts(w, p))
+		assert_string_contains(text, "걸어서 건널 수 없다")
+		assert_string_contains(text, "멀리뛰기")
+
+
+func test_a_veranda_tells_that_a_leap_crosses_to_the_one_facing_it() -> void:
+	var w := World.create(7)
+	var p := Vector2i(5, 5)
+	w.tiles[Grid.index(p)] = World.VERANDA
+	assert_string_contains(Info.plain(Info.terrain_facts(w, p)), "맞은편 쪽마루는 멀리뛰기로 건넌다")

@@ -38,9 +38,13 @@ const SPELLS := {
 	description =
 	(
 		"Spells hurled this round, each along its own direction. cards is the queue in order: "
-		+ "talisman names (fox, orb, fire, water, wood, metal, earth) or their Korean names, "
-		+ "repeats allowed. A repeat stacks; an element joins the first different element "
-		+ "queued as one compound slot. A spell fills at most 5 slots. With fox or orb it "
+		+ "talisman names (fox, orb, leap, fire, water, wood, metal, earth) or their Korean "
+		+ "names, repeats allowed. A repeat stacks; an element joins the first different element "
+		+ "queued as one compound slot. A spell fills at most 5 slots. Leap only leads a "
+		+ "spell: Miho leaps over sky, ponds and creatures onto the farthest free tile within 2 "
+		+ "tiles plus 1 per leap card, then casts the rest there. One leap last behind fox or "
+		+ "orb swaps: Miho goes where the projectile ends, trading places with a creature it "
+		+ "strikes. With fox or orb it "
 		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
 		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
 		+ "shape and effect, which a projectile carries to the 3x3 where it ends). Metal makes "

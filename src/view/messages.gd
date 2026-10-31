@@ -10,7 +10,12 @@ extends RefCounted
 const KEEP := 40
 const TEXT := Palette.TEXT
 ## What a creature's map mark says, for one that comes into sight marked.
-const STATE := {"!": "당신을 쫓고 있다", "?": "수색하고 있다", "x": "눈이 멀어 있다"}
+const STATE := {
+	"!": "당신을 쫓고 있다",
+	"?": "수색하고 있다",
+	"x": "눈이 멀어 있다",
+	Palette.FLEE_MARK: "도망치고 있다",
+}
 
 ## {runs, text, round, n}
 var lines: Array[Dictionary] = []
@@ -88,6 +93,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [e.word, Palette.SOUND], [" 소리쳤다", TEXT]]
 			)
+		&"scatter":
+			return _who(before, after, id, "의", "의") + [[" 무리가 흩어졌다", TEXT]]
 		&"truce":
 			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
 		&"grow":
@@ -127,6 +134,12 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["기절했다", TEXT]]
 		&"push":
 			return _subject(before, after, id) + [["밀려났다", TEXT]]
+		&"leap":
+			return _subject(before, after, id) + [["멀리 뛰었다", TEXT]]
+		&"swap":
+			if e.other == 0:
+				return _subject(before, after, id) + [["주문이 멈춘 자리로 옮겨 갔다", TEXT]]
+			return _who(before, after, e.other, "과", "와") + [[" 자리를 바꿨다", TEXT]]
 		&"sprout":
 			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
 		&"freeze":

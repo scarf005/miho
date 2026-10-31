@@ -10,6 +10,12 @@ extends RefCounted
 ## where it saw it last when it does not; there, still not seeing it, it stops
 ## and searches. The fight also ends when the rival falls or Miho harms it.
 ## One of its own group only hurts it.
+##
+## Fleeing (DCSS mon-behv): a sharp or cunning creature that is not brave and
+## hunts Miho at 1 health runs from her, towards its own group (`flee`).
+##
+## Bands (DCSS mon-place band): creatures of a group come in bands that follow
+## their leader while they rest on patrol (`rest`); when it falls they scatter.
 
 const GRUDGE_ROUNDS := 10
 
@@ -109,12 +115,19 @@ static func provoke(w: World, a: Actor, by: Actor) -> void:
 	a.rival_at = by.pos
 
 
-## `gone` has fallen: whoever fought it stops.
+## `gone` has fallen: whoever fought it stops, and the band it led scatters:
+## each follower goes back to its own ways.
 static func forget(w: World, gone: Actor) -> void:
+	var led := false
 	for a in w.actors:
 		if a.rival == gone.id:
 			a.rival = 0
 			a.grudge = 0
+		if a.leader == gone.id:
+			a.leader = 0
+			led = true
+	if led:
+		w.emit({t = &"scatter", id = gone.id, at = gone.pos})
 
 
 ## Its turn spent on its rival, while it fights one; false when it does not
@@ -126,7 +139,7 @@ static func _fight(w: World, a: Actor) -> bool:
 		_truce(w, a)
 		return false
 	var rival := w.actor(a.rival)
-	if rival != null and w.sees(a, rival.pos):
+	if rival != null and Hat.sees(w, a, rival):
 		a.rival_at = rival.pos
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1:
@@ -194,7 +207,7 @@ static func _look(a: Actor, at: Vector2i) -> void:
 
 
 static func hunt(w: World, a: Actor) -> void:
-	if Drums.go(w, a):
+	if flee(w, a) or Drums.go(w, a):
 		return
 	var me := w.player()
 	if a.sees_me:
@@ -224,9 +237,47 @@ static func hunt(w: World, a: Actor) -> void:
 	search(w, a)
 
 
-## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it.
+## A fleeing creature (Actor.fleeing) that sees Miho steps to the neighbouring
+## tile that is farther from her by foot, the one nearest its own group among
+## them (DCSS mon-behv: a weak, not brave monster runs). With no such tile, or
+## rooted, or with no way to her, it fights as before. Once she is out of sight
+## it stops and searches where it stands. True when it spent its turn.
+static func flee(w: World, a: Actor) -> bool:
+	if not a.fleeing() or a.rooted > 0:
+		return false
+	if not a.sees_me:
+		_look(a, a.pos)
+		return true
+	var walk := _walkable(w, a)
+	var dist: PackedInt32Array = Grid.search(w.player().pos, Masks.walk(w, a, walk)).dist
+	var here := dist[Grid.index(a.pos)]
+	var kin := w.actors.filter(
+		func(k): return k != a and k.alive() and Bestiary.allied(k.kind, a.kind)
+	)
+	var best := a.pos
+	var best_cost := [INF, 0]
+	for d in Grid.DIRS:
+		var p := a.pos + d
+		if not Grid.inside(p) or here < 0 or dist[Grid.index(p)] <= here or not walk.call(p):
+			continue
+		var near: int = (
+			kin.map(func(k): return Grid.cheb(p, k.pos)).min() if not kin.is_empty() else 0
+		)
+		var cost := [near, -dist[Grid.index(p)]]
+		if cost < best_cost:
+			best = p
+			best_cost = cost
+	if best == a.pos:
+		return false
+	w.move(a, best)
+	return true
+
+
+## A stoker (Bestiary stokes) spends its turn lighting a dark lantern beside it,
+## unless it is asleep: only one awake (on patrol, searching, hunting, walking
+## home) does.
 static func _stoke(w: World, a: Actor) -> bool:
-	return a.info().get("stokes", false) and Terrain.relight_beside(w, a)
+	return a.info().get("stokes", false) and not a.asleep() and Terrain.relight_beside(w, a)
 
 
 ## A tracker (Bestiary tracks) on Miho's trail sweeps along it, searching.
@@ -260,8 +311,19 @@ static func search(w: World, a: Actor) -> void:
 	_drift(w, a)
 
 
+## A follower on patrol (Actor.following) keeps within FloorGen.BAND_SPREAD of its
+## leader, who sets the way. True while it does, whether it stepped or stood.
+static func _follow(w: World, a: Actor) -> bool:
+	var lead := w.actor(a.leader)
+	if not a.following() or lead == null:
+		return false
+	if Grid.cheb(a.pos, lead.pos) > FloorGen.BAND_SPREAD:
+		_step_to(w, a, lead.pos, FloorGen.BAND_SPREAD)
+	return true
+
+
 static func rest(w: World, a: Actor) -> void:
-	if a.rooted > 0 or _track(w, a):
+	if a.rooted > 0 or _track(w, a) or _follow(w, a):
 		return
 	if not a.info().get("patrol", false):
 		if a.pos != a.home:

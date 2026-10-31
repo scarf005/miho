@@ -12,6 +12,9 @@ extends Node
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
 ## `trap:x:y:n` (a hidden plate of tile kind n lies there, to be found or stepped on),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
+## `hp:n:dx:dy` (the creature that far from Miho is left with n health),
+## `lamp:dx:dy` (a lantern that far from Miho), `chase:dx:dy` (it notices her),
+## `follow:ldx:ldy:dx:dy` (it follows the creature at ldx:ldy),
 ## `card:name` (Miho holds that talisman, such as fire),
 ## `gas:x:y:kind:amount` (lay that much gas, a Gas constant, on a tile),
 ## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
@@ -124,6 +127,22 @@ func _send(k: String) -> void:
 			main._forecast()
 		"tile", "trap", "at", "foe", "hunt", "card", "gas":
 			_stage(parts)
+		"hp", "chase", "follow", "lamp":
+			var w: World = main.world
+			var at := w.player().pos + Vector2i(int(parts[-2]), int(parts[-1]))
+			match parts[0]:
+				"lamp":
+					w.set_tile(at, World.LANTERN)
+				"hp":
+					w.actor_at(at).hp = int(parts[1])
+				"chase":
+					w.hunt_from(w.actor_at(at), w.player().pos)
+				"follow":
+					w.actor_at(at).leader = (
+						w.actor_at(w.player().pos + Vector2i(int(parts[1]), int(parts[2]))).id
+					)
+			main.term.show_world(main.world)
+			main._forecast()
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
 			FloorGen.spawn(main.world, StringName(parts[1]), at)

@@ -1,20 +1,22 @@
 class_name Cards
 extends RefCounted
-## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction);
-## the five elements (오행) are taken from strong enemies. Each card in a
-## spell costs one tail. Two different elements in one spell make one of ten
-## compounds (상생 and 상극 pairs), which takes one slot and costs two tails.
+## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction), and
+## 도약 leaps Miho herself (Leap); the five elements (오행) are taken from
+## strong enemies. Each card in a spell costs one tail. Two different elements
+## in one spell make one of ten compounds (상생 and 상극 pairs), which takes one
+## slot and costs two tails.
 
 const FOX := &"fox"
 const ORB := &"orb"
+const LEAP := &"leap"
 const FIRE := &"fire"
 const WATER := &"water"
 const WOOD := &"wood"
 const METAL := &"metal"
 const EARTH := &"earth"
 
-const ALL: Array[StringName] = [FOX, ORB, FIRE, WATER, WOOD, METAL, EARTH]
-const FORMS: Array[StringName] = [FOX, ORB]
+const ALL: Array[StringName] = [FOX, ORB, LEAP, FIRE, WATER, WOOD, METAL, EARTH]
+const FORMS: Array[StringName] = [FOX, ORB, LEAP]
 const ELEMENTS: Array[StringName] = [FIRE, WATER, WOOD, METAL, EARTH]
 
 ## 상극: each element beats the one it maps to (wood beats earth, ...).
@@ -37,6 +39,7 @@ const PAIRS := {
 const NAME := {
 	FOX: "여우불",
 	ORB: "구슬",
+	LEAP: "도약",
 	FIRE: "불",
 	WATER: "물",
 	WOOD: "나무",
@@ -56,6 +59,7 @@ const NAME := {
 const GLYPH := {
 	FOX: "여",
 	ORB: "구",
+	LEAP: "도",
 	FIRE: "화",
 	WATER: "수",
 	WOOD: "목",
