@@ -1,28 +1,51 @@
 class_name Elements
 extends RefCounted
-## What the elements a spell carries do to a creature it strikes and where it
-## ends, one step stronger for every copy past the first (Spell.extra): 불
-## hurts 1 more, 나무 roots and 쇠 blinds a round longer, 흙 stuns a round longer.
+## What the elements a projectile carries do, by its form, one step stronger
+## for every copy past the first (Spell.extra):
+## 불: a wisp sets the creature it strikes alight; an orb bursts, hurting the
+## eight tiles round it for World.FIRE_DAMAGE and setting what burns there
+## alight (World._splash), and a wood creature it strikes burns. 1 more harm
+## a copy. Both set alight what burns where they fly and end.
+## 물: silent. Where it ends it douses lanterns and fire in the 3x3 round it,
+## the struck creature's tile among them (Terrain.touch). A wisp of it carries
+## darkness.
+## 쇠: a gun. A wisp is a bullet: BULLET harm, Spell.BULLET_SPEED, no light,
+## heard Spray.GUN_LOUD. An orb is a cannonball: CANNON more harm, it pushes
+## the creature it strikes CANNON_PUSH tiles (World.push) and fells the wall
+## it strikes, heard CANNON_LOUD. Either lights the caster's tile for the
+## round (World.flares). 1 more harm a copy.
+## 흙: thuds World.THUD where it ends. A wisp stuns STUN rounds, a round more a
+## copy; an orb fells the wall it strikes in one blow.
+## 나무: a wisp roots ROOT rounds, a round more a copy; an orb grows a wooden
+## wall of WALL tiles across its line where it ends, a tile more a copy.
+## A spray carries each element's wisp effect on the creatures it covers
+## (Spray._plain), but fire there sets only wood creatures alight.
 
 const ROOT := 2
 const STUN := 1
-const BLIND := 2
+const BULLET := 2
+const CANNON := 2
+const CANNON_PUSH := 2
+const CANNON_LOUD := 13
+const WALL := 3
 
 
 ## `s` strikes `a` for `n` before weakness: unless `a` eats the spell, it is
-## hurt (twice over when weak), a wood creature catches fire, and the elements
-## afflict it. False when it ate the spell.
+## hurt (twice over when weak), catches fire, and the elements afflict it.
+## False when it ate the spell.
 static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	var spell := s.spell
 	if absorbed(w, s, a):
 		return false
 	harm(w, s, a, n)
-	if spell.has(Cards.FIRE) and Bestiary.burns(a.kind):
+	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
 		w.ignite(a.pos, true)
 	if a.alive():
-		if spell.has(Cards.WOOD):
+		if spell.orb and spell.has(Cards.METAL):
+			w.push(a, s.dir, CANNON_PUSH)
+		if not spell.orb and spell.has(Cards.WOOD):
 			root(w, a, ROOT + spell.extra(Cards.WOOD))
-		if spell.has(Cards.EARTH):
+		if not spell.orb and spell.has(Cards.EARTH):
 			stun(w, a, STUN + spell.extra(Cards.EARTH))
 		Mind.struck(w, a, s)
 	return true
@@ -58,25 +81,38 @@ static func stun(w: World, a: Actor, rounds: int) -> void:
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
 
 
-static func blind(w: World, a: Actor, rounds: int, at: Vector2i) -> void:
-	a.blind = maxi(a.blind, rounds)
-	a.intent.clear()
-	w.emit({t = &"blind", id = a.id, rounds = rounds})
-	if a.faction == Actor.HEAVEN:
-		a.alert = Actor.SEARCH
-		a.target = at
-		a.lost = 0
+## An orb of 흙 or 쇠 brings the wall it strikes down in one blow.
+static func fells(spell: Spell) -> bool:
+	return spell.orb and (spell.has(Cards.EARTH) or spell.has(Cards.METAL))
 
 
-## 쇠 flashes where `s` ends: every foe within FLASH tiles that sees the spot is blinded.
-static func flash(w: World, s: Shot, at: Vector2i) -> void:
-	w.emit({t = &"flash", at = at, faction = s.faction})
-	var view := w.fov(at)
-	for a in w.actors:
+## Tiles a wooden wall grows across: `spell` hurled along `dir` ending at
+## `at`, WALL of them and one more for every 나무 past the first, centred on
+## `at` and then alternately to either side.
+static func wall_tiles(spell: Spell, at: Vector2i, dir: Vector2i) -> Array[Vector2i]:
+	var across := Vector2i(-dir.y, dir.x)
+	var out: Array[Vector2i] = []
+	for k in WALL + spell.extra(Cards.WOOD):
+		out.append(at + across * ((k + 1) / 2) * (1 if k % 2 == 1 else -1))
+	return out
+
+
+## An orb of 나무 ends at `at`: the wooden wall grows on each of its tiles that
+## is open ground with nothing on it, not burning, not a door, the stairs, the
+## elixir or a peach.
+static func sprout(w: World, s: Shot, at: Vector2i) -> void:
+	var grown: Array[Vector2i] = []
+	for p in wall_tiles(s.spell, at, s.dir):
+		var special := p == w.stairs or p == w.elixir or w.peaches.has(p)
 		if (
-			a.alive()
-			and a.faction != s.faction
-			and Grid.cheb(a.pos, at) <= World.FLASH
-			and view[Grid.index(a.pos)] == 1
+			w.open_floor(p)
+			and w.tile(p) not in [World.DOOR, World.DOOR_OPEN]
+			and not special
+			and not w.burning.has(p)
+			and w.actor_at(p) == null
+			and w.shot_at(p) == null
 		):
-			blind(w, a, BLIND + s.spell.extra(Cards.METAL), at)
+			w.set_tile(p, World.WOOD_WALL)
+			grown.append(p)
+	if not grown.is_empty():
+		w.emit({t = &"sprout", at = at, tiles = grown})

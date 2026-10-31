@@ -29,6 +29,7 @@ const FLAMMABLE := [
 	World.GRASS,
 	World.STRAW,
 	World.LEAVES,
+	World.WOOD_WALL,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -46,12 +47,13 @@ const BREAKS := {
 	World.DOOR: World.FLOOR,
 	World.WINDOW: World.FLOOR,
 	World.DRUM: World.DRUM_TORN,
+	World.WOOD_WALL: World.FLOOR,
 }
 const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.PILLAR + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.WOOD_WALL + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -66,7 +68,9 @@ func test_each_kind_has_the_walk_burn_tread_and_break_it_always_had() -> void:
 
 
 func test_the_masks_for_rust_keep_their_old_tests() -> void:
-	var blocks_light := [World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR]
+	var blocks_light := [
+		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL
+	]
 	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS]
 	for t in 256:
 		assert_eq(Tiles.sight[t] == 1, blocks_sight.has(t), "sight %d" % t)

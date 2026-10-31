@@ -300,6 +300,9 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.PILLAR:
 			out.append("길과 시야와 빛을 막는다. 뒤에 숨을 수 있다")
 			out.append("부술 수 없다")
+		World.WOOD_WALL:
+			out.append("길과 시야와 빛을 막는다")
+			out.append("구슬에 맞으면 부서진다")
 		World.POND, World.SKY:
 			out.append("건널 수 없다. 주문은 넘어간다")
 		World.WINDOW:
@@ -310,6 +313,10 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("다시 타지 않는다")
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
+		if Tiles.of(t, "breaks_to") != World.RUBBLE:
+			out.append(
+				"%s이나 %s 구슬은 한 번에 무너뜨린다" % [Cards.NAME[Cards.EARTH], Cards.NAME[Cards.METAL]]
+			)
 	elif Terrain.wall(t):
 		out.append("부술 수 없다")
 	if Terrain.knockable(t) and t != World.DRUM:

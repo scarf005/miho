@@ -284,14 +284,13 @@ func test_a_hunter_telegraphs_its_orb_and_a_side_step_dodges_it() -> void:
 		assert_eq(w.player().hp, 1 if stay else 3, "an orb from five tiles hits for 2")
 
 
-func test_a_flash_blinds_so_claws_strike_thrice_even_at_a_hunter() -> void:
+func test_claws_strike_a_blind_hunter_thrice_and_it_cannot_strike_back() -> void:
 	var w := _world()
-	w.cards.append(Cards.METAL)
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
 	foe.hp = 3
 	foe.alert = Actor.HUNT
-	w.act(_cast([FOX, Cards.METAL], E))
-	assert_eq(foe.blind, 1, "the wisp stops before it and flashes")
+	foe.blind = 2
+	w.act(WAIT)
 	assert_eq(w.player().hp, 3, "blind, it cannot strike")
 	w.act({t = &"move", dir = E})
 	assert_false(foe.alive())

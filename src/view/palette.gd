@@ -38,6 +38,7 @@ const TILES := {
 	World.LEAVES: ["◆", Color(0.86, 0.46, 0.2), Color(0.16, 0.08, 0.04)],
 	World.SHALLOW: ["▧", Color(0.5, 0.76, 1.0), Color(0.06, 0.15, 0.3)],
 	World.PILLAR: ["■", Color(0.82, 0.76, 0.66), Color(0.2, 0.18, 0.16)],
+	World.WOOD_WALL: ["▥", Color(0.78, 0.56, 0.32), Color(0.26, 0.15, 0.07)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]

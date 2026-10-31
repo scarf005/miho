@@ -109,6 +109,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["덩굴에 묶였다", TEXT]]
 		&"stun":
 			return _subject(before, after, id) + [["기절했다", TEXT]]
+		&"push":
+			return _subject(before, after, id) + [["밀려났다", TEXT]]
+		&"sprout":
+			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
 		&"absorb":
 			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
 		&"heed":

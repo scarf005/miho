@@ -58,7 +58,7 @@ const DELAY := {
 	&"claw": 0.16,
 	&"melee": 0.16,
 	&"die": 0.14,
-	&"flash": 0.16,
+	&"sprout": 0.16,
 	&"charge": 0.08,
 	&"drum": 0.3,
 }
@@ -282,6 +282,9 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"move":
 			if _actors.has(e.id):
 				_actors[e.id].pos = e.to
+		&"cast":
+			if Spell.make(e.cards).gun():
+				_flash(at, Color(Palette.BURNING[1], 0.9))
 		&"spawn":
 			_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
 		&"fly":
@@ -312,9 +315,9 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			var color := Palette.card(Spell.make(e.cards).slots[0])
 			for p: Vector2i in e.tiles:
 				_flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
-		&"flash":
-			for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
-				_flash(at + d * 1, Color(1, 1, 1, 0.9))
+		&"sprout":
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))
 	if fact.is_empty():
 		return 0.0
 	var popup := popup_of(fact)

@@ -7,7 +7,8 @@ extends RefCounted
 ## fresh storey with her health and tails (her tails kept up to what that
 ## storey allows). On the first storey she has nowhere to fall to, and stops
 ## at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
-## Miho takes them as if she had stepped there (World.arrive).
+## Miho takes them as if she had stepped there (World.arrive). A creature that
+## slides at all gives one `push` event first, at the tile it slides from.
 
 
 static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
@@ -23,6 +24,8 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 			return
 		if not w.vacant(to):
 			return
+		if i == 0:
+			w.emit({t = &"push", id = a.id, at = a.pos})
 		w.move(a, to)
 		if a.faction == Actor.FOX and w.arrive(a):
 			return

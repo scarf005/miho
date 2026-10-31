@@ -211,6 +211,22 @@ func test_forecast_names_who_would_be_hurt() -> void:
 	assert_string_contains(_call(tools, "observe").text, "e(claw 도깨비)")
 
 
+func test_forecast_lists_where_a_wooden_wall_grows() -> void:
+	var tools := _game()
+	var w := tools.world
+	var me := w.player().pos
+	for dy in [-1, 0, 1]:
+		w.set_tile(me + Vector2i(1, dy), World.FLOOR)
+	w.set_tile(me + Vector2i(2, 0), World.WALL)
+	w.cards.append(Cards.WOOD)
+	w.tails = 2
+	w.sense()
+	var spells := [{cards = ["orb", "wood"], dir = "e"}]
+	var r := _call(tools, "forecast", {action = "cast", spells = spells})
+	var at := me + Vector2i(1, 0)
+	assert_string_contains(r.text, "wooden wall grows at: (%d,%d)" % [at.x, at.y])
+
+
 func test_no_creature_out_of_sight_is_in_the_observation() -> void:
 	var hidden := 0
 	for seed_value in range(1, 9):

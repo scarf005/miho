@@ -13,14 +13,15 @@ extends RefCounted
 ## projectiles chase a creature (Homing); a wisp with none flies up to RANGE
 ## tiles, then hovers and lights its surroundings. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
-## Each element has one meaning on any form, one step stronger for every copy:
-## 불 burns (a wisp hits for 1, an orb splashes), 물 is darkness and silence,
-## 나무 roots, 쇠 flashes and blinds, 흙 thuds loudly and stuns.
+## Each element shows its nature by the form it rides, one step stronger for
+## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
 
 const MAX_SLOTS := 5
 const MOMENTUM := 4
 const WISP_SPEED := 3
 const ORB_SPEED := 2
+## A bullet: a wisp with 쇠. The fastest projectile.
+const BULLET_SPEED := 5
 const RANGE := 7
 const WISP_LIFE := 8
 const HOMING_LIFE := 6
@@ -150,7 +151,17 @@ func cost() -> int:
 
 
 func speed() -> int:
-	return ORB_SPEED if orb else WISP_SPEED
+	if orb:
+		return ORB_SPEED
+	return BULLET_SPEED if gun() else WISP_SPEED
+
+
+## A gun: a lone 쇠's spray, a bullet or a cannonball. Its muzzle flash lights
+## the caster's tile for the round it fires (World.flares).
+func gun() -> bool:
+	if shape == SPRAY:
+		return level() > 0 and slots[0] == Cards.METAL
+	return has(Cards.METAL)
 
 
 ## Rounds a projectile lasts in flight; 0 means until it hits something. A
@@ -178,32 +189,47 @@ func extra(element: StringName) -> int:
 
 
 ## Damage on a direct hit by a projectile that has come `distance` tiles from
-## its caster: 1 a wisp, an orb 1 for every 구 and 1 more after a run-up, and
-## 1 more for every 불 past the first.
+## its caster: 1 a wisp, Elements.BULLET a bullet, an orb 1 for every 구 and
+## 1 more after a run-up, Elements.CANNON more a cannonball, and 1 more for
+## every 불 or 쇠 past the first.
 func damage(distance: int) -> int:
-	var n := 1
+	var n := Elements.BULLET if has(Cards.METAL) else 1
 	if orb:
 		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)
-	return n + extra(Cards.FIRE)
+		n += Elements.CANNON if has(Cards.METAL) else 0
+	return n + extra(Cards.FIRE) + extra(Cards.METAL)
 
 
-## The light this projectile carries: {radius, color}, or empty for none.
+## The light this projectile carries: {radius, color}, or empty for none. A
+## bullet carries none.
 func light(faction: int) -> Dictionary:
 	if has(Cards.WATER):
 		return {} if orb else {radius = 3, color = Light.DARK}
+	if gun() and not orb:
+		return {}
 	var color: Vector3 = Light.FIRE if has(Cards.FIRE) else Light.SIDE[faction]
 	if orb:
 		return {radius = 2, color = color * 1.3}
 	return {radius = 3, color = color}
 
 
-## How far the cast is heard, and how far the orb's burst against a wall is heard.
+## How far the cast is heard, and how far the orb's burst against a wall is
+## heard. A bullet is heard Spray.GUN_LOUD, a cannonball Elements.CANNON_LOUD.
 func cast_noise() -> int:
 	if shape == SPRAY:
 		return Spray.noise(self)
 	if has(Cards.WATER):
 		return 0
+	if gun():
+		return Elements.CANNON_LOUD if orb else Spray.GUN_LOUD
 	return 5 if orb else 2
+
+
+## The word a projectile's cast is heard as.
+func cast_word() -> String:
+	if gun():
+		return "쾅" if orb else "탕"
+	return "웅" if orb else "휙"
 
 
 func burst_noise() -> int:

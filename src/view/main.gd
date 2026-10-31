@@ -893,8 +893,8 @@ func _ahead_lines(p: Vector2i) -> Array:
 
 
 ## The forecast cast: the tiles each projectile crosses or each spray covers,
-## a line from Miho to the creature each homing one chases, and the harm each
-## creature takes.
+## a line from Miho to the creature each homing one chases, the harm each
+## creature takes, and the wooden walls that grow.
 func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 	var aimed := {}
 	for id in f.paths:
@@ -911,6 +911,8 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 		var color := Palette.card(Spell.make(e.cards).slots[0])
 		for p: Vector2i in e.tiles:
 			tints[p] = Color(color, 0.22)
+	for p in f.sprouts:
+		tints[p] = Color(Palette.TILES[World.WOOD_WALL][1], 0.5)
 	for id in f.harm:
 		# A creature the round kills is gone from `after`: mark where it stood.
 		var a := f.after.actor(id) if f.after.actor(id) != null else known.actor(id)

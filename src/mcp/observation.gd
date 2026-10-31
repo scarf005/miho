@@ -25,7 +25,7 @@ const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +closed-door 'open-door "
 	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
 	+ '¤lantern "bamboo =floorboards ~pond ,ash '
-	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar "
+	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar ▥wooden-wall "
 	+ "^fire <stairs !elixir %peach †fallen-creature "
 	+ "●○*projectile @Miho"
 )

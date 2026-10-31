@@ -63,21 +63,19 @@ func test_homing_orbs_turn_45_degrees_more_for_every_fox_and_freely_with_four() 
 	assert_eq(Spell.make([FOX]).turn(), Spell.TURN_FREE, "a wisp turns freely")
 
 
-func test_extra_copies_of_an_element_root_stun_and_blind_a_round_longer() -> void:
+func test_extra_copies_of_an_element_root_and_stun_a_round_longer() -> void:
 	var cases := [
 		[[FOX, Cards.WOOD], &"rooted", 2],
 		[[FOX, Cards.WOOD, Cards.WOOD], &"rooted", 3],
 		[[FOX, Cards.EARTH], &"stunned", 1],
 		[[FOX, Cards.EARTH, Cards.EARTH], &"stunned", 2],
-		[[FOX, Cards.METAL], &"blind", 2],
-		[[FOX, Cards.METAL, Cards.METAL, Cards.METAL], &"blind", 4],
 	]
 	for c in cases:
 		var w := _world()
 		var foe := _foe(w, &"saja", Vector2i(6, 8))
 		foe.hp = 20
 		var events := w.act(_cast(c[0]))
-		var e: Dictionary = events.filter(func(x): return x.t in [&"root", &"stun", &"blind"])[0]
+		var e: Dictionary = events.filter(func(x): return x.t in [&"root", &"stun"])[0]
 		assert_eq(e.rounds, c[2], str(c[0]))
 
 
