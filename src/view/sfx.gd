@@ -243,7 +243,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.get("spray", false) else &"blast"
 		&"drum":
 			return &"" if e.wet else &"blast"
-		&"clash", &"snuff", &"claw", &"melee", &"push", &"smash":
+		&"clash", &"snuff", &"claw", &"melee", &"push", &"smash", &"collapse":
 			return &"clash"
 		&"absorb":
 			return &"absorb"
@@ -255,7 +255,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"find" if e.kind == World.DOOR else &"warn"
 		&"spot":
 			return &"find"
-		&"open", &"close", &"unseal":
+		&"open", &"close":
 			return &"door"
 		&"root", &"freeze", &"sprout", &"guise":
 			return &"root"

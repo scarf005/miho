@@ -27,7 +27,7 @@ func test_a_vault_comes_up_in_about_two_storeys_in_five() -> void:
 
 ## Storey 1 of these seeds put ponds round a lantern of the vault.
 func test_a_pond_never_cuts_a_vault_lantern_off() -> void:
-	for seed_value in [57, 69, 91]:
+	for seed_value in [29, 117, 156]:
 		var w := World.create(seed_value)
 		w.depth = 1
 		FloorGen.build(w)
@@ -36,7 +36,7 @@ func test_a_pond_never_cuts_a_vault_lantern_off() -> void:
 			assert_true(EventRooms._vault_opens(w, seal), "seed %d" % seed_value)
 
 
-func test_a_vault_with_a_broken_lantern_is_not_opened() -> void:
+func test_a_vault_with_a_broken_lantern_is_not_opened_by_its_lanterns() -> void:
 	for seed_value in SEEDS:
 		var w := World.create(seed_value)
 		w.depth = 1

@@ -45,7 +45,7 @@ const SOUNDS := [
 	[{t = &"noise", word = "철벅"}, &"splash"],
 	[{t = &"open"}, &"door"],
 	[{t = &"close"}, &"door"],
-	[{t = &"unseal"}, &"door"],
+	[{t = &"collapse"}, &"clash"],
 	[{t = &"root"}, &"root"],
 	[{t = &"freeze"}, &"root"],
 	[{t = &"sprout"}, &"root"],

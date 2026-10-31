@@ -266,7 +266,9 @@ static func lay(
 			for p in laid:
 				w.traps.erase(p)
 			laid.clear()
-	elif row.has("what") and Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
+	elif (
+		row.has("what") and Tiles.walk[row.what] == 0 and not FloorGen.connected(w, w.traps.keys())
+	):
 		for p in laid:
 			w.tiles[Grid.index(p)] = row.on
 			w.vents.erase(p)

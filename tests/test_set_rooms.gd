@@ -428,7 +428,7 @@ func _storeys() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
+			var w := World.create(seed_value * World.FLOORS + depth)
 			w.depth = depth
 			out.append({w = w, set = FloorGen.build(w)})
 	return out

@@ -31,14 +31,9 @@ extends RefCounted
 ##
 ## Reeds block sight until a creature steps onto them: they lie flat. A pillar
 ## blocks walking, sight and light, and never breaks.
-##
-## A seal (봉인문) shuts a treasure room. It blocks walking, sight and light and
-## never breaks; at the end of the round in which every dark lantern it
-## belongs to is lit (World.seals), it slides open with a grinding sound.
 
-## How far a sliding door is heard; a seal that opens.
+## How far a sliding door is heard.
 const SLIDE := 3
-const GRIND := World.KNOCK
 ## How far a rotten board that gives way is heard.
 const CRACK := 4
 
@@ -214,13 +209,3 @@ static func burn(w: World, alight: Array) -> void:
 			w.emit({t = &"burnout", at = p})
 	for p in caught:
 		w.ignite(p)
-
-
-## Every seal whose lanterns are all lit opens: an open door, heard by heaven.
-static func unseal(w: World) -> void:
-	for at: Vector2i in w.seals.keys():
-		if w.seals[at].all(func(p): return w.tile(p) == World.LANTERN):
-			w.seals.erase(at)
-			w.set_tile(at, World.DOOR_OPEN)
-			w.emit({t = &"unseal", at = at})
-			w.noise(at, GRIND, "그르릉", true, 0)

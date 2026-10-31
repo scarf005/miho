@@ -9,8 +9,8 @@ extends RefCounted
 ## Doorways in those walls join every room, with a few extra loops (so a hunted
 ## fox has somewhere to slip away); some hold sliding doors (some start open).
 ## A few walls between rooms far apart are hidden doors (Traps). On some
-## storeys one room is an event room, such as a treasure room behind a seal
-## that three dark lanterns in front of it open (EventRooms). Lanterns
+## storeys one room is an event room, such as a treasure room behind a wall
+## that three dark lanterns in front of it bring down (EventRooms). Lanterns
 ## light some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
 ## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
@@ -150,9 +150,6 @@ const FOE_DISTANCE := 12
 ## and keeps.
 const BAND := 3
 const BAND_SPREAD := 2
-## The lanterns of a three-lantern treasure room; the peaches in it.
-const VAULT_LANTERNS := 3
-const PRIZE := 2
 ## Nothing is placed within this many tiles of the start, even through a wall.
 const START_CLEAR := 3
 const BAMBOO_ROOMS := 0.25
@@ -506,8 +503,9 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 
 
 ## Whether every open tile is reachable from the first room, walking round the
-## tiles in `blocked` and through whatever opens in time (Tiles.opens); and every
-## lantern of a seal can be stood beside while the seals are shut.
+## tiles in `blocked`, through whatever opens in time (Tiles.opens) and through
+## the sealing walls of treasure rooms (World.seals); and every lantern of a
+## sealing wall can be stood beside while the wall stands.
 static func connected(w: World, blocked: Array = []) -> bool:
 	var open := Masks.opened(w, blocked)
 	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
@@ -516,7 +514,7 @@ static func connected(w: World, blocked: Array = []) -> bool:
 			return false
 	if w.seals.is_empty():
 		return true
-	var shut := Masks.floor_of(w, blocked + w.seals.keys(), func(_p): return false)
+	var shut := Masks.floor_of(w, blocked, func(_p): return false)
 	var reach: PackedInt32Array = Grid.search(_centre(w.rooms[0]), shut).dist
 	return w.seals.values().all(
 		func(ls):
@@ -561,68 +559,6 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
 			if connected(w) and not w.lit(w.start):
 				break
 			w.set_tile(c, World.FLOOR)
-
-
-## Makes room r a treasure room (세 등불 보물방): every doorway in its walls is
-## walled up (a window that looked along one becomes wall) but one into
-## another room, which becomes a seal; VAULT_LANTERNS
-## dark lanterns stand in that room, away from its middle and the seal, and
-## PRIZE peaches lie in r. False, with nothing changed, when r has a hidden
-## door, can be reached another way, or the storey would not be whole once the
-## seal opens.
-static func seal(w: World, r: Rect2i) -> bool:
-	var ways := []
-	for x in range(r.position.x, r.end.x):
-		ways.append([Vector2i(x, r.position.y - 1), Vector2i.UP])
-		ways.append([Vector2i(x, r.end.y), Vector2i.DOWN])
-	for y in range(r.position.y, r.end.y):
-		ways.append([Vector2i(r.position.x - 1, y), Vector2i.LEFT])
-		ways.append([Vector2i(r.end.x, y), Vector2i.RIGHT])
-	if ways.any(func(s): return w.secrets.has(s[0])):
-		return false
-	ways = ways.filter(func(s): return w.open_floor(s[0]))
-	var fronts := ways.filter(func(s): return room_at(w, s[0] + s[1]).has_area())
-	if fronts.is_empty():
-		return false
-	var before := w.tiles.duplicate()
-	for s in ways:
-		w.tiles[Grid.index(s[0])] = World.WALL
-		for d in Placement.SIDES:
-			if w.tile(s[0] + d) == World.WINDOW:
-				w.tiles[Grid.index(s[0] + d)] = World.WALL
-	var front: Array = fronts[w.rng.randi_range(0, fronts.size() - 1)]
-	var seal: Vector2i = front[0]
-	w.tiles[Grid.index(seal)] = World.SEAL
-	w.seals[seal] = []
-	var shut: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
-	if shut[Grid.index(_centre(r))] < 0 and connected(w):
-		var hall := room_at(w, seal + front[1])
-		var spots: Array[Vector2i] = []
-		for y in range(hall.position.y, hall.end.y):
-			for x in range(hall.position.x, hall.end.x):
-				var p := Vector2i(x, y)
-				if p != _centre(hall) and Grid.cheb(p, seal) > 2 and w.tile(p) == World.FLOOR:
-					spots.append(p)
-		shuffle(w.rng, spots)
-		for p in spots:
-			if w.seals[seal].size() >= VAULT_LANTERNS:
-				break
-			w.tiles[Grid.index(p)] = World.LANTERN_OUT
-			w.seals[seal].append(p)
-			if not connected(w):
-				w.seals[seal].pop_back()
-				w.tiles[Grid.index(p)] = World.FLOOR
-	if w.seals[seal].size() < VAULT_LANTERNS:
-		w.tiles = before
-		w.seals.erase(seal)
-		return false
-	var inside: Array[Vector2i] = []
-	for y in range(r.position.y, r.end.y):
-		for x in range(r.position.x, r.end.x):
-			inside.append(Vector2i(x, y))
-	shuffle(w.rng, inside)
-	w.peaches.append_array(inside.slice(0, PRIZE))
-	return true
 
 
 ## The room that holds p, or an empty rect.

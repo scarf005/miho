@@ -134,21 +134,20 @@ const TRAP_ALARM := 29
 const TRAP_COLLAPSE := 30
 const TRAP_FIRE := 31
 const TRAP_VINE := 32
-const SEAL := 33
-const ALTAR := 34
-const ALTAR_LIT := 35
-const VEIL := 36
-const LAMP := 37
-const TALISMAN := 38
-const SHELF := 39
-const SHELF_READ := 40
-const SCREEN := 41
-const JAR := 42
-const WATER_JAR := 43
-const CENSER := 44
-const COURTYARD := 45
-const STATUE := 46
-const BOARD_ROTTEN := 47
+const ALTAR := 33
+const ALTAR_LIT := 34
+const VEIL := 35
+const LAMP := 36
+const TALISMAN := 37
+const SHELF := 38
+const SHELF_READ := 39
+const SCREEN := 40
+const JAR := 41
+const WATER_JAR := 42
+const CENSER := 43
+const COURTYARD := 44
+const STATUE := 45
+const BOARD_ROTTEN := 46
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -176,7 +175,8 @@ var traps := {}
 ## Hidden doors Miho has not found: position -> true. Each is a wall until she
 ## finds it, and then a door (Traps).
 var secrets := {}
-## Seals: position -> the dark lanterns that open it once all are lit (Terrain).
+## The sealing wall of a treasure room, a plain wall: position -> the dark
+## lanterns that bring it down once all are lit (Vault).
 var seals := {}
 ## The event rooms' state on this storey (EventRooms): {kind, at, ...} each.
 var sites: Array[Dictionary] = []
@@ -549,7 +549,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Compounds.tick(self)
 	Gas.tick(self)
 	Status.tick(self)
-	Terrain.unseal(self)
+	Vault.tick(self)
 	EventRooms.tick(self)
 	Statues.tick(self)
 	Guise.tick(self)

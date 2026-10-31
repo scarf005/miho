@@ -1,7 +1,7 @@
 extends SceneTree
 ## How often each event room appears and how often it can be opened, over many
-## seeds and every storey. A room is solvable when the key to its seal is within
-## reach of the start with the seal shut and the rules open the seal.
+## seeds and every storey. A room is solvable when the key to its gate is within
+## reach of the start with the gate shut and the rules open the gate.
 ## godot --headless --path . -s tools/event_rooms.gd -- 200
 
 const SEEDS := 200
@@ -29,19 +29,19 @@ static func _sites(w: World, kind: StringName) -> Array:
 	return w.sites.filter(func(s): return s.kind == kind).map(func(s): return s.at)
 
 
-## Whether Miho walks from the start to `p`, the seals shut.
+## Whether Miho walks from the start to `p`, the gates shut.
 static func _reached(w: World, p: Vector2i) -> bool:
 	return _reach(w)[Grid.index(p)] >= 0
 
 
-## Whether Miho walks from the start to a tile beside `p`, the seals shut.
+## Whether Miho walks from the start to a tile beside `p`, the gates shut.
 static func _beside_reached(w: World, p: Vector2i) -> bool:
 	var reach := _reach(w)
 	return Grid.DIRS.any(func(d): return Grid.inside(p + d) and reach[Grid.index(p + d)] >= 0)
 
 
 static func _reach(w: World) -> PackedInt32Array:
-	return Grid.search(w.start, Masks.floor_of(w, w.seals.keys(), func(_p): return false)).dist
+	return Grid.search(w.start, Masks.floor_of(w)).dist
 
 
 ## One tile of the veil, when the storey has one.
@@ -65,16 +65,14 @@ static func _veil_opens(w: World, veil: Vector2i) -> bool:
 	return false
 
 
-## Miho walks to a tile beside each lantern with the seal shut and casts fire
-## there; the seal must then open by the rule that opens seals.
-static func _vault_opens(w: World, seal: Vector2i) -> bool:
+## Miho walks to a tile beside each lantern with the wall standing and casts fire
+## there; the wall must then collapse by the rule of the lanterns (Vault.tick).
+static func _vault_opens(w: World, gate: Vector2i) -> bool:
 	var open := w.clone()
-	var reach: PackedInt32Array = (
-		Grid.search(w.start, Masks.floor_of(w, w.seals.keys(), func(_p): return false)).dist
-	)
+	var reach := _reach(w)
 	var shot := Shot.new()
 	shot.spell = Spell.make([Cards.ORB, Cards.FIRE])
-	for lantern: Vector2i in w.seals[seal]:
+	for lantern: Vector2i in w.seals[gate]:
 		var at := lantern
 		for d in Grid.DIRS:
 			if Grid.inside(lantern + d) and reach[Grid.index(lantern + d)] >= 0:
@@ -83,8 +81,8 @@ static func _vault_opens(w: World, seal: Vector2i) -> bool:
 		if at == lantern:
 			return false
 		Terrain.touch(open, shot, at, Vector2i(-1, -1))
-	Terrain.unseal(open)
-	return open.tile(seal) == World.DOOR_OPEN
+	Vault.tick(open)
+	return open.tile(gate) == World.RUBBLE
 
 
 ## For every kind: the storeys looked at, those with the room, those where it
