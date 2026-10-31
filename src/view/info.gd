@@ -100,6 +100,20 @@ static func creature(w: World, a: Actor) -> Array:
 	var traits := _traits(a, elements)
 	if not traits.is_empty():
 		lines.append([[" · ".join(traits), Palette.DIM]])
+	var eats: StringName = spec.get("eats", &"")
+	if eats != &"":
+		(
+			lines
+			. append(
+				[
+					[Cards.NAME[eats], Palette.CARD[eats]],
+					[" 주문을 먹으면 최대 체력 ", Palette.TEXT],
+					["+%d" % Bestiary.GROWTH, Palette.HURT],
+					[", 체력 ", Palette.TEXT],
+					["+%d" % Bestiary.GROWTH, Palette.HURT],
+				]
+			)
+		)
 	var drop: StringName = spec.get("drop", &"")
 	if drop != &"" and not w.cards.has(drop):
 		(

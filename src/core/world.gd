@@ -654,6 +654,10 @@ func _strike(s: Shot, a: Actor) -> void:
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if Bestiary.absorbs(a.kind, spell):
 		emit({t = &"absorb", id = a.id, at = at})
+		if Bestiary.eats(a.kind, spell):
+			a.max_hp += Bestiary.GROWTH
+			a.hp += Bestiary.GROWTH
+			emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
 		return
 	var weak := Bestiary.weak(a.kind, spell)
 	var n := spell.damage(Grid.cheb(s.origin, at)) * (2 if weak else 1)

@@ -204,3 +204,11 @@ func test_a_melee_blow_names_the_weapon_of_the_creature() -> void:
 		var blow := {t = &"melee", id = foe.id, target = w.player().id, at = w.player().pos, n = 1}
 		assert_eq(_lines(w, [blow]), [told[kind]] as Array[String], str(kind))
 		w.actors.erase(foe)
+
+
+func test_a_starfish_that_grows_says_what_it_ate() -> void:
+	var w := _world()
+	var foe := FloorGen.spawn(w, &"bulgasari", SEEN)
+	w.sense()
+	var grow := {t = &"grow", id = foe.id, hp = 4, max_hp = 4}
+	assert_eq(_lines(w, [grow]), ["불가사리가 쇠를 먹고 커졌다"] as Array[String])

@@ -99,6 +99,12 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ [[" %s에 %s " % [melee.name, melee.hit], TEXT]]
 				+ _took(e.n)
 			)
+		&"grow":
+			var eaten: String = Cards.NAME[_actor(before, after, id).info().eats]
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" %s%s 먹고 커졌다" % [eaten, _particle(eaten, "을", "를")], TEXT]]
+			)
 		&"hurt":
 			var line := _hurt_line(before, after, e, last)
 			if e.get("weak", false) and not line.is_empty():

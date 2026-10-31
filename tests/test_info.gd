@@ -105,3 +105,12 @@ func test_a_creature_tells_what_it_strikes_with() -> void:
 		)
 	var none := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
 	assert_false(none.contains("근접"), "a caster that cannot strike has no melee line")
+
+
+func test_the_starfish_tells_it_grows_on_metal() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"bulgasari", w.player().pos + Vector2i(1, 0))
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "쇠 주문을 먹으면 최대 체력 +%d, 체력 +%d" % [Bestiary.GROWTH, Bestiary.GROWTH])
+	var other := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", foe.pos)))
+	assert_false(other.contains("먹으면"))
