@@ -28,6 +28,8 @@ const WALKABLE := [
 	World.TRAP_VINE,
 	World.VERANDA,
 	World.TALISMAN,
+	World.SHELF,
+	World.SHELF_READ,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -41,6 +43,8 @@ const FLAMMABLE := [
 	World.WOOD_WALL,
 	World.THORNS,
 	World.VERANDA,
+	World.SHELF,
+	World.SHELF_READ,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -65,7 +69,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.TALISMAN + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.SHELF_READ + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 

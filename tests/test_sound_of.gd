@@ -25,6 +25,7 @@ const SOUNDS := [
 	[{t = &"heal"}, &"card"],
 	[{t = &"altar"}, &"card"],
 	[{t = &"creak"}, &"card"],
+	[{t = &"read"}, &"card"],
 	[{t = &"trap", kind = World.TRAP_ALARM}, &"gong"],
 	[{t = &"trap", kind = World.TRAP_FIRE}, &"trap"],
 	[{t = &"find"}, &"find"],

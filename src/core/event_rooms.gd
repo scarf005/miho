@@ -16,6 +16,7 @@ extends RefCounted
 ## 도깨비불 장막 (Veil): a line of fire splits a room; water or frost puts it out.
 ## 장승 마당 (Yard): a lit yard with a guard that never sleeps and a talisman.
 ## 삐걱 마루 (Creak): a room of creaking boards and a sleeping 해태.
+## 서고 (Library): a dark room behind closed doors; its scrolls show the map.
 
 ## The chance of a treasure room.
 const VAULTS := 0.4
@@ -25,6 +26,7 @@ const ROWS := [
 	{kind = &"veil", tier = 1, chance = 0.12},
 	{kind = &"yard", tier = 1, chance = 0.12},
 	{kind = &"creak", tier = 3, chance = 0.12},
+	{kind = &"library", tier = 2, chance = 0.12},
 ]
 
 
@@ -65,6 +67,8 @@ static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenera
 			return Yard.make(w, r, rng)
 		&"creak":
 			return Creak.make(w, r)
+		&"library":
+			return Library.make(w, r, rng)
 	return false
 
 
@@ -79,6 +83,12 @@ static func doorways(w: World, r: Rect2i) -> Array[Vector2i]:
 		out.append(Vector2i(r.position.x - 1, y))
 		out.append(Vector2i(r.end.x, y))
 	return out.filter(func(p): return w.open_floor(p) or w.secrets.has(p))
+
+
+## Miho has come onto her tile (World.arrive).
+static func arrive(w: World, me: Actor) -> void:
+	Yard.arrive(w, me)
+	Library.arrive(w, me)
 
 
 ## The end of a round: every room checks what happened in it.

@@ -470,6 +470,11 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.TALISMAN:
 			out.append("밟으면 아직 없는 원소 부적 하나를 얻는다")
 			out.append("한 번뿐이다. 지키는 장승은 잠들지 않는다")
+		World.SHELF:
+			out.append("밟으면 두루마리를 읽어 이 층의 지도가 드러난다")
+			out.append("한 번뿐이다. 서고의 서가가 모두 읽은 서가가 된다")
+		World.SHELF_READ:
+			out.append("이미 읽었다")
 		World.VEIL:
 			out.append("길과 주문을 막는다. 시야는 막지 않는다")
 			out.append("주위 %d칸을 밝힌다" % Light.LANTERN_RADIUS)
