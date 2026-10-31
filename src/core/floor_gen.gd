@@ -501,7 +501,8 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 
 
 ## Whether every open tile is reachable from the first room, walking round the
-## tiles in `blocked` and through the seals, which open.
+## tiles in `blocked` and through the seals, which open; and every lantern of a
+## seal can be stood beside while the seals are shut.
 static func connected(w: World, blocked: Array = []) -> bool:
 	var through := func(p): return w.seals.has(p) and not blocked.has(p)
 	var open := Masks.floor_of(w, blocked + w.seals.keys(), through)
@@ -509,7 +510,16 @@ static func connected(w: World, blocked: Array = []) -> bool:
 	for i in open.size():
 		if open[i] == 1 and dist[i] < 0:
 			return false
-	return true
+	if w.seals.is_empty():
+		return true
+	var shut := Masks.floor_of(w, blocked + w.seals.keys(), func(_p): return false)
+	var reach: PackedInt32Array = Grid.search(_centre(w.rooms[0]), shut).dist
+	return w.seals.values().all(
+		func(ls):
+			return ls.all(
+				func(l): return Grid.DIRS.any(func(d): return reach[Grid.index(l + d)] >= 0)
+			)
+	)
 
 
 static func _farthest(w: World, from: Vector2i) -> Rect2i:
@@ -603,9 +613,9 @@ static func _seal(w: World, r: Rect2i) -> bool:
 			if w.seals[seal].size() >= VAULT_LANTERNS:
 				break
 			w.tiles[Grid.index(p)] = World.LANTERN_OUT
-			if connected(w):
-				w.seals[seal].append(p)
-			else:
+			w.seals[seal].append(p)
+			if not connected(w):
+				w.seals[seal].pop_back()
 				w.tiles[Grid.index(p)] = World.FLOOR
 	if w.seals[seal].size() < VAULT_LANTERNS:
 		w.tiles = before
