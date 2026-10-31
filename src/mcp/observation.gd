@@ -5,10 +5,11 @@ extends RefCounted
 ## sight is not in it. x grows right and y grows down from the top-left tile.
 ##
 ## Map glyphs are Palette's. Tiles in sight are drawn as on the screen;
-## remembered tiles keep their glyph except floor, which is `.`, so `·` marks
+## remembered tiles keep their glyph except floor, which is `·`, so `.` marks
 ## the tiles whose occupants Miho can see. Tiles she has never made out are a
-## space. A creature is drawn as its Bestiary glyph and Miho as `@`.
-
+## space. A creature is drawn as its Bestiary glyph and Miho as `@`. As in
+## DCSS, one glyph may cover several kinds of tile (every wall is `#`); the
+## colour tells them apart on the screen, and `look` tells them here.
 const NAMES := {
 	Vector2i(0, -1): "n",
 	Vector2i(1, -1): "ne",
@@ -19,17 +20,20 @@ const NAMES := {
 	Vector2i(-1, 0): "w",
 	Vector2i(-1, -1): "nw",
 }
+## Remembered floor, so that `.` is only floor in sight.
+const REMEMBERED_FLOOR := "·"
 const ALERTS := ["resting", "searching", "hunting"]
 const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
-	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +closed-door 'open-door "
-	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
-	+ '¤lantern "bamboo =floorboards ~pond ,ash '
-	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar ▥wooden-wall "
-	+ "◇ice ‡thorns ☷mud "
+	"legend: #wall(also cracked-wall, wooden-wall, window: the tile name tells which, see look) "
+	+ ":rubble .floor(in sight) ·floor(remembered) +closed-door 'open-door "
+	+ "░sky ═skybridge ◎drum ◌torn-drum ;broken-lantern "
+	+ '¤lantern "bamboo =floorboards ~pond(also shallow-water, mud: see look) ,ash '
+	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ßpillar "
+	+ "◇ice ‡thorns "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
-	+ "§fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir %peach †fallen-creature "
-	+ "●○*projectile @Miho"
+	+ "§fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir "
+	+ "%peach or fallen-creature(see look) ●○*projectile @Miho"
 )
 
 
@@ -123,7 +127,7 @@ static func _glyph(k: World, p: Vector2i) -> String:
 	if p == k.elixir:
 		return Palette.ELIXIR[0]
 	var t := k.tile(p)
-	return "." if t == World.FLOOR and not in_sight else Palette.TILES[t][0]
+	return REMEMBERED_FLOOR if t == World.FLOOR and not in_sight else Palette.TILES[t][0]
 
 
 static func _creature(k: World, a: Actor) -> String:

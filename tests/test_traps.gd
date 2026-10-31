@@ -143,7 +143,7 @@ func test_a_hidden_plate_is_not_on_the_map_the_observation_or_the_hover() -> voi
 		w.sense()
 		var glyph: String = Palette.TILES[kind][0]
 		assert_false(_row(w, 8).contains(glyph), "%s in the observation" % glyph)
-		assert_eq(_row(w, 8)[PLATE.x], "·", "drawn as floor")
+		assert_eq(_row(w, 8)[PLATE.x], Palette.TILES[World.FLOOR][0], "drawn as floor")
 		var lines := Info.plain(Info.at(w.known_clone(), PLATE))
 		assert_false(lines.contains("발판"), lines)
 		assert_false(lines.contains(Tiles.of(kind, "name")), lines)

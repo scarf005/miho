@@ -67,5 +67,5 @@ func test_the_map_text_marks_a_seen_body() -> void:
 	var rows := Array(Observation.text(w).split("\n"))
 	var top := rows.find(rows.filter(func(r): return r.begins_with("map,"))[0])
 	var row: String = rows[top + 2 + AT.y]
-	assert_eq(row.unicode_at(3 + AT.x), "†".unicode_at(0), row)
-	assert_string_contains(Observation.LEGEND, "†fallen-creature")
+	assert_eq(row.unicode_at(3 + AT.x), Palette.BODY[0].unicode_at(0), row)
+	assert_string_contains(Observation.LEGEND, "%peach or fallen-creature")

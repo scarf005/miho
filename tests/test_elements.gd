@@ -367,14 +367,6 @@ func test_one_orb_breaks_a_wooden_wall_to_floor() -> void:
 	assert_has(Messages.of(before, w, events).map(Messages.plain), "나무벽이 부서졌다")
 
 
-func test_a_wooden_wall_has_its_own_glyph_and_the_mcp_legend_lists_it() -> void:
-	var glyph: String = Palette.TILES[World.WOOD_WALL][0]
-	assert_string_contains(Observation.LEGEND, glyph + "wooden-wall")
-	for t in Palette.TILES:
-		if t != World.WOOD_WALL:
-			assert_ne(Palette.TILES[t][0], glyph, "tile %d" % t)
-
-
 func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 	var w := _world()
 	var at := ME + E

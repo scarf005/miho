@@ -272,16 +272,3 @@ func test_miho_walking_into_reeds_is_told_in_the_log() -> void:
 	assert_has(_types(after.events), &"trample")
 	var lines := Messages.of(w, after, after.events).map(Messages.plain)
 	assert_has(lines, "갈대가 쓰러졌다")
-
-
-func test_every_new_kind_has_its_own_glyph_and_the_mcp_legend_lists_it() -> void:
-	var glyphs := {}
-	for kind in range(World.GRASS, World.PILLAR + 1):
-		var glyph: String = Palette.TILES[kind][0]
-		assert_true(Observation.LEGEND.contains(glyph), "legend lists %s" % glyph)
-		assert_false(glyphs.has(glyph), "%s is used twice" % glyph)
-		glyphs[glyph] = true
-	for kind in range(World.GRASS):
-		assert_false(
-			glyphs.has(Palette.TILES[kind][0]), "an older kind uses %s" % Palette.TILES[kind][0]
-		)
