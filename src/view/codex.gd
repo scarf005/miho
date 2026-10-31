@@ -1,7 +1,8 @@
 class_name Codex
 extends RefCounted
 ## The 도감: every creature, spell, compound, item and terrain feature, whether
-## or not Miho has met it. The list is on the left; on the right the selected
+## or not Miho has met it, and the rules many of them share (Info.glossary),
+## by the tag their hovers show. The list is on the left; on the right the selected
 ## entry reads as its hover does, from the same Info and SpellInfo functions,
 ## less the lines about how it stands now (state, sight, light): a creature
 ## from `foe`, a feature of the floor on the tile AT of a stand-in world
@@ -9,7 +10,7 @@ extends RefCounted
 ## tables, so a new kind appears with no change here.
 ## `key` returns &"close" or nothing.
 
-const TABS := ["적", "주문", "조합", "아이템", "지형지물"]
+const TABS := ["적", "주문", "조합", "아이템", "지형지물", "용어"]
 ## The cell where the detail starts.
 const SIDE_X := 13.0
 const ME := Vector2i(4, 8)
@@ -85,6 +86,12 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 					var glyph: Array = Palette.TILES[t]
 					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile))
 			out.append_array(_extras())
+		5:
+			var terms := Info.glossary()
+			for term: String in terms:
+				var lines := func():
+					return [[[term + ": ", Palette.TEXT], [terms[term], Palette.TEXT]]]
+				out.append(_entry("·", Palette.TEXT, term, lines))
 	return out
 
 

@@ -196,6 +196,22 @@ func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
 		assert_false(body.contains(Bestiary.info(kind).name), "a body names no creature")
 
 
+func test_the_glossary_tells_each_shared_rule_once_by_its_tag() -> void:
+	var tab := Codex.TABS.find("용어")
+	var terms := Info.glossary()
+	assert_eq(_names(tab), terms.keys())
+	for term: String in terms:
+		assert_eq(_text(Codex.detail(_entry(tab, term))), term + ": " + terms[term])
+	var w := Codex.stage()
+	w.set_tile(Codex.AT, World.BOARD)
+	assert_true(_text(Info.terrain_facts(w, Codex.AT)).split("\n").has("가연성."))
+	assert_false(
+		_text(Info.terrain_facts(w, Codex.AT)).contains("재"), "the burn rule is not repeated"
+	)
+	w.set_tile(Codex.AT, World.TRAP_FIRE)
+	assert_true(_text(Info.terrain_facts(w, Codex.AT)).split("\n").has("함정."))
+
+
 func test_the_codex_key_is_slash_and_help_keeps_shift_slash() -> void:
 	assert_eq(Keys.action_of(_press("Slash")), &"codex")
 	assert_eq(Keys.action_of(_press("Shift+Slash")), &"help")
