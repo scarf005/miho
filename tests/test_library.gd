@@ -178,10 +178,11 @@ func test_the_preview_of_the_reading_equals_the_round() -> void:
 # --- the fire ----------------------------------------------------------------
 
 
-func test_boards_straw_and_shelves_burn_and_the_shelves_catch_fire_most_readily() -> void:
+func test_boards_straw_and_shelves_burn_and_catch_fire_more_readily_than_grass() -> void:
 	for t in [World.BOARD, World.STRAW, World.SHELF, World.SHELF_READ]:
 		assert_eq(Tiles.burns[t], 1, str(t))
-	assert_gt(Tiles.of(World.SHELF, "spread"), Tiles.of(World.STRAW, "spread"))
+	for t in [World.BOARD, World.STRAW, World.SHELF]:
+		assert_gt(Tiles.of(t, "spread"), Tiles.of(World.GRASS, "spread"), str(t))
 	var w := _library()
 	var rng_state := w.rng.state
 	w.ignite(Vector2i(SHELVES[0], ROOM.position.y + 1))
