@@ -64,7 +64,7 @@ extends RefCounted
 ## crosses one is seen from afar.
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## a new storey one below. 도 leaps her across it (Leap).
+## a new storey one below. 도약 leaps her across it (Leap).
 ##
 ## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
 ## hovering wisp of 여 alone yelps, an alarm (Lure).
@@ -179,7 +179,7 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
-var cards: Array[StringName] = [Cards.FOX, Cards.ORB, Cards.LEAP]
+var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
 var round_no := 0
 var outcome := &""
 var rng := RandomNumberGenerator.new()
@@ -831,7 +831,7 @@ func _burst(s: Shot) -> void:
 ## A thud happens wherever the spell ends; fire sets that tile alight and
 ## relights the lanterns next to it, except the one an orb just struck, water
 ## douses lanterns and flames, a wood orb grows a wall (Elements), and each
-## compound acts round where it ends (Compounds); 도 brings Miho (Leap.swap).
+## compound acts round where it ends (Compounds); 도약 brings Miho (Leap.swap).
 func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
 		noise(at, THUD, "쿵", true, s.caster)

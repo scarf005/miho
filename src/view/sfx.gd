@@ -208,7 +208,8 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"move":
 			return &"step"
 		&"cast":
-			if e.cards.has(Cards.LEAP):
+			var spell := Spell.make(e.cards)
+			if spell != null and spell.shape == Spell.LEAP:
 				return &""
 			return &"orb" if e.cards.has(Cards.ORB) else &"foxfire"
 		&"hit", &"burst", &"splash":

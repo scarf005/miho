@@ -122,8 +122,8 @@ func test_two_different_elements_merge_into_the_first_ones_compound() -> void:
 	assert_eq(queue.slots, [ORB, &"steam", Cards.FIRE] as Array[StringName])
 	assert_eq(queue.count(Cards.FIRE), 1, "a compound is its own element")
 	assert_true(queue.holds(Cards.FIRE))
-	queue = Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.WOOD, Cards.FIRE])
-	assert_eq(queue.slots, [ORB, &"steam", &"wildfire"] as Array[StringName], "never a compound")
+	queue = Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.EARTH, Cards.METAL])
+	assert_eq(queue.slots, [ORB, &"steam", &"shrapnel"] as Array[StringName], "never a compound")
 	assert_true(queue.holds(Cards.WATER))
 	assert_false(queue.has(Cards.WATER))
 

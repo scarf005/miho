@@ -96,7 +96,6 @@ const KIND := {
 const CARD := {
 	Cards.FOX: Color(0.6, 0.82, 1.0),
 	Cards.ORB: Color(0.82, 0.68, 1.0),
-	Cards.LEAP: Color(0.6, 1.0, 0.72),
 	Cards.WOOD: Color(0.3, 0.55, 1.0),
 	Cards.FIRE: Color(1.0, 0.32, 0.25),
 	Cards.EARTH: Color(1.0, 0.82, 0.3),
@@ -132,11 +131,13 @@ static func gas_alpha(amount: int) -> float:
 	return 0.1 + 0.06 * amount if amount < Gas.OPAQUE else 0.35 + 0.04 * amount
 
 
-## A talisman slot's colour; a compound's is halfway between its two elements'.
+## A talisman slot's colour; a compound's is the mean of its elements'.
 static func card(slot: StringName) -> Color:
-	if Cards.PAIRS.has(slot):
-		return CARD[Cards.PAIRS[slot][0]].lerp(CARD[Cards.PAIRS[slot][1]], 0.5)
-	return CARD[slot]
+	var parts := Cards.made_of(slot)
+	var sum := Color(0, 0, 0, 0)
+	for e: StringName in parts:
+		sum += CARD[e]
+	return sum / parts.size()
 
 
 ## How a spell shows: a leap as Miho where she lands.

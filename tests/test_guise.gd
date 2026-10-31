@@ -235,8 +235,8 @@ func _press(m: Node, key: String) -> void:
 
 func test_comma_with_no_creature_felled_says_so_and_keeps_the_turn() -> void:
 	var m := _main()
-	_press(m, "6")
-	_press(m, "8")
+	_press(m, "5")
+	_press(m, "7")
 	var round_no: int = m.world.round_no
 	_press(m, "Comma")
 	assert_eq(m.world.round_no, round_no)

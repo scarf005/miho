@@ -1,22 +1,24 @@
 class_name Cards
 extends RefCounted
-## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction), and
-## 도약 leaps Miho herself (Leap); the five elements (오행) are taken from
-## strong enemies. Each card in a spell costs one tail. Two different elements
-## in one spell make one of ten compounds (상생 and 상극 pairs), which takes one
-## slot and costs two tails.
+## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction); the
+## five elements (오행) are taken from strong enemies. Each card in a spell
+## costs one tail. Two different elements in one spell make one of ten
+## compounds (상생 and 상극 pairs), which takes one slot and costs two tails.
+## Three elements in a 상생 chain (목, 화, 토, 금, 수, 목) make a 3단 compound
+## (TRIPLES), one slot worth three tails: 수+목+화 make 도약, which leaps Miho
+## herself (Leap).
 
 const FOX := &"fox"
 const ORB := &"orb"
-const LEAP := &"leap"
 const FIRE := &"fire"
 const WATER := &"water"
 const WOOD := &"wood"
 const METAL := &"metal"
 const EARTH := &"earth"
+const VAULT := &"vault"
 
-const ALL: Array[StringName] = [FOX, ORB, LEAP, FIRE, WATER, WOOD, METAL, EARTH]
-const FORMS: Array[StringName] = [FOX, ORB, LEAP]
+const ALL: Array[StringName] = [FOX, ORB, FIRE, WATER, WOOD, METAL, EARTH]
+const FORMS: Array[StringName] = [FOX, ORB]
 const ELEMENTS: Array[StringName] = [FIRE, WATER, WOOD, METAL, EARTH]
 
 ## 상극: each element beats the one it maps to (wood beats earth, ...).
@@ -35,11 +37,12 @@ const PAIRS := {
 	&"split": [WOOD, EARTH],
 	&"mud": [EARTH, WATER],
 }
+## 3단 compound -> its three elements, in 상생 order (수생목, 목생화).
+const TRIPLES := {VAULT: [WATER, WOOD, FIRE]}
 
 const NAME := {
 	FOX: "여우불",
 	ORB: "구슬",
-	LEAP: "도약",
 	FIRE: "불",
 	WATER: "물",
 	WOOD: "나무",
@@ -55,11 +58,11 @@ const NAME := {
 	&"thorn": "가시",
 	&"split": "벽 가르기",
 	&"mud": "진흙",
+	VAULT: "도약",
 }
 const GLYPH := {
 	FOX: "여",
 	ORB: "구",
-	LEAP: "도",
 	FIRE: "화",
 	WATER: "수",
 	WOOD: "목",
@@ -75,6 +78,7 @@ const GLYPH := {
 	&"thorn": "가",
 	&"split": "벽",
 	&"mud": "진",
+	VAULT: "약",
 }
 
 
@@ -84,6 +88,24 @@ static func pair(a: StringName, b: StringName) -> StringName:
 		if PAIRS[c].has(a) and PAIRS[c].has(b):
 			return c
 	return &""
+
+
+## The compound element `c` makes with `slot`: their pair when the slot is a
+## different element, the 3단 compound when the slot is a compound of two
+## other elements of its chain; else empty.
+static func join(slot: StringName, c: StringName) -> StringName:
+	if ELEMENTS.has(slot):
+		return pair(slot, c) if slot != c else &""
+	for t in TRIPLES:
+		var rest: Array = TRIPLES[t].filter(func(e): return e != c)
+		if rest.size() == 2 and pair(rest[0], rest[1]) == slot:
+			return t
+	return &""
+
+
+## The cards a slot is worth: a compound's elements, else the slot itself.
+static func made_of(slot: StringName) -> Array:
+	return PAIRS.get(slot, TRIPLES.get(slot, [slot]))
 
 
 ## The elements a slot holds: itself, a compound's two, or none for a form.

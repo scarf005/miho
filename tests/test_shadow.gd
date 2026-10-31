@@ -58,7 +58,9 @@ func test_only_the_shadow_and_the_guise_go_on_miho() -> void:
 	var w := _world()
 	assert_true(w.can(_self([FOX, WATER])))
 	assert_true(w.can(_self([WATER, FOX, WATER])), "more water, any order")
-	for cards in [[FOX], [Cards.ORB], [FOX, FOX, WATER], [FOX, WATER, Cards.LEAP], [WATER]]:
+	for cards in [
+		[FOX], [Cards.ORB], [FOX, FOX, WATER], [FOX, WATER, Cards.WOOD, Cards.FIRE], [WATER]
+	]:
 		assert_false(w.can(_self(cards)), str(cards))
 		assert_eq(Guise.why(w.player(), Spell.make(cards)), Guise.ONLY)
 	var two := {
@@ -196,7 +198,7 @@ func _press(m: Node, key: String) -> void:
 func test_comma_casts_the_queue_on_miho() -> void:
 	var m := _main()
 	_press(m, "1")
-	_press(m, "5")
+	_press(m, "4")
 	_press(m, "Comma")
 	while m.busy:
 		await get_tree().process_frame
@@ -207,7 +209,7 @@ func test_comma_casts_the_queue_on_miho() -> void:
 func test_a_click_on_miho_with_a_queue_casts_it_on_her() -> void:
 	var m := _main()
 	_press(m, "1")
-	_press(m, "5")
+	_press(m, "4")
 	m.hover = ME
 	m._use_tile(ME, false)
 	while m.busy:

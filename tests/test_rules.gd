@@ -80,7 +80,7 @@ func test_spell_names_and_costs() -> void:
 	assert_eq(Spell.make([ORB, FOX]).title(), "유도 구슬")
 	assert_eq(Spell.make([ORB, Cards.WATER, Cards.WATER]).title(), "물×2 구슬")
 	assert_eq(Spell.make([Cards.METAL, ORB, Cards.FIRE]).title(), "쇳물 구슬")
-	assert_eq(Spell.make([ORB, Cards.WATER, Cards.FIRE, Cards.WOOD]).title(), "증기·나무 구슬")
+	assert_eq(Spell.make([ORB, Cards.WATER, Cards.FIRE, Cards.EARTH]).title(), "증기·흙 구슬")
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.FIRE]).title(), "증기·불 구슬")
 	assert_eq(Spell.make([FOX]).cost(), 1)
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.METAL]).cost(), 3)

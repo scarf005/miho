@@ -9,6 +9,7 @@ const SOUNDS := [
 	[{t = &"move"}, &"step"],
 	[{t = &"cast", cards = [Cards.FOX, Cards.FIRE]}, &"foxfire"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
+	[{t = &"cast", cards = [Cards.ORB, Cards.WATER, Cards.WOOD, Cards.FIRE]}, &"orb"],
 	[{t = &"hit"}, &"blast"],
 	[{t = &"burst"}, &"blast"],
 	[{t = &"splash"}, &"blast"],
@@ -89,7 +90,7 @@ const SILENT := [
 	{t = &"ride"},
 	{t = &"leap"},
 	{t = &"swap"},
-	{t = &"cast", cards = [Cards.LEAP, Cards.EARTH]},
+	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE, Cards.EARTH]},
 ]
 
 
