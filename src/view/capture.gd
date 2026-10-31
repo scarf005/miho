@@ -6,6 +6,7 @@ extends Node
 ## `cell:x:y` (point at a screen cell, such as a talisman, the sidebar or a
 ## menu row), `tap:x:y` (click a screen cell),
 ## `fire:x:y` (set a tile burning, to see how fire looks),
+## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
@@ -96,6 +97,12 @@ func _send(k: String) -> void:
 				await get_tree().process_frame
 		"fire":
 			main.world.burning[Vector2i(int(parts[1]), int(parts[2]))] = World.BURN_ROUNDS
+			main.term.show_world(main.world)
+			main._forecast()
+		"kill":
+			var foe: Actor = main.world.actor_at(Vector2i(int(parts[1]), int(parts[2])))
+			main.world.hurt(foe, foe.hp)
+			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
 		"walk":

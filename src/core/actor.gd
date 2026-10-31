@@ -35,6 +35,8 @@ var lost := 0
 var wary := 0
 ## The id of the hostile projectile it saw and reacted to last.
 var noted := 0
+## The ids of the changes (Notice) it has seen and reacted to.
+var marked: Array[int] = []
 var sees_me := false
 ## Where it rests, and where a patrol is heading.
 var home := Vector2i.ZERO
@@ -86,4 +88,5 @@ func clone() -> Actor:
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate()
+	a.marked.assign(marked)
 	return a

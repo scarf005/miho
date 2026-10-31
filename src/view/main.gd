@@ -508,7 +508,13 @@ func _journey(next: Callable, why := "") -> void:
 			break
 		var to: Vector2i = world.player().pos + action.get("dir", Vector2i.ZERO)
 		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
-		if f == null or f.hurt_me() > 0 or not f.noticed.is_empty() or not world.can(action):
+		if (
+			f == null
+			or f.hurt_me() > 0
+			or f.drops_me()
+			or not f.noticed.is_empty()
+			or not world.can(action)
+		):
 			break
 		if action.t == &"move" and Travel.near_fire(world, to):
 			break
@@ -763,7 +769,9 @@ func _refresh() -> void:
 	var me := world.player().pos
 	for d: Vector2i in ahead:
 		var f: Forecast = ahead[d]
-		if f.hurt_me() > 0:
+		if f.drops_me():
+			marks[me + d] = ["▼", Palette.HURT]
+		elif f.hurt_me() > 0:
 			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
 		elif not f.noticed.is_empty():
 			tints[me + d] = Color(Palette.ALERT[2], 0.3)
@@ -833,6 +841,8 @@ func _ahead_lines(p: Vector2i) -> Array:
 	var lines := []
 	if f.hurt_me() > 0:
 		lines.append([[how + " 피해를 %d 입는다" % f.hurt_me(), Palette.HURT]])
+	if f.drops_me():
+		lines.append([[how + " 하늘로 떨어져 %d층으로 내려간다" % f.after.depth, Palette.HURT]])
 	if not f.noticed.is_empty():
 		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
 		lines.append([[how + " " + ", ".join(names) + "에게 들킨다", Palette.ALERT[2]]])
@@ -848,6 +858,10 @@ func _paint(f: Forecast, tints: Dictionary, marks: Dictionary) -> void:
 		var a := f.after.actor(id)
 		if a != null:
 			marks[a.pos] = [str(f.harm[id]), Palette.HURT]
+	for id in f.falls:
+		var a := world.actor(id)
+		if a != null:
+			marks[a.pos] = ["▼", Palette.HURT]
 
 
 ## A creature next to Miho that her claws would catch unawares (World._claw).

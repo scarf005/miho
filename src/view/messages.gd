@@ -100,7 +100,16 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["약점! ", Palette.ALERT[1]]] + line
 			return line
 		&"die":
+			if last.get("t") == &"fall":
+				return []
 			return _subject(before, after, id) + [["쓰러졌다", TEXT]]
+		&"fall":
+			if e.has("depth"):
+				return (
+					[["하늘로 떨어져 ", TEXT], ["%d층" % e.depth, Palette.KIND[&"miho"]]]
+					+ [["으로 내려왔다", TEXT]]
+				)
+			return _who(before, after, id, "이", "가") + [[" 하늘로 떨어졌다", TEXT]]
 		&"card":
 			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
 		&"heal":
@@ -116,6 +125,12 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _subject(before, after, id) + [["기절했다", TEXT]]
 		&"absorb":
 			return _who(before, after, id, "에게는", "에게는") + [[" 통하지 않았다", TEXT]]
+		&"heed":
+			var what: String = Notice.LABEL[e.kind]
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" " + what + _particle(what, "을", "를") + " 보고 살피러 간다", TEXT]]
+			)
 		&"calm":
 			return _who(before, after, id, "이", "가") + [[" 수색을 멈췄다", TEXT]]
 		&"charge":
@@ -174,6 +189,19 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
 	if mine and id != after.player().id:
 		return _harm_to(before, after, id, e.n)
+	var friendly: bool = (
+		last.get("faction", -1) == Actor.HEAVEN
+		and last.t in [&"hit", &"splash"]
+		and last.get("by", id) != id
+		and id != after.player().id
+	)
+	if friendly:
+		return (
+			_who(before, after, last.by, "의", "의")
+			+ [[" " + last.title + "에 ", TEXT]]
+			+ _subject(before, after, id)
+			+ _took(e.n)
+		)
 	return _subject(before, after, id) + _took(e.n)
 
 

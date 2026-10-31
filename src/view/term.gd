@@ -274,6 +274,8 @@ func _apply(e: Dictionary) -> float:
 			_actors.erase(e.id)
 		&"notice":
 			_popup(at, "!", Palette.ALERT[2])
+		&"heed":
+			_popup(at, "?", Palette.ALERT[1])
 		&"flash":
 			for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
 				_flash(at + d * 1, Color(1, 1, 1, 0.9))
@@ -507,6 +509,9 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var bg: Color = spec[2]
 		if t == World.DOOR and not world.opaque(p):
 			glyph = Palette.OPEN_DOOR
+		if world.bodies.has(p) and world.bodies[p].met:
+			glyph = Palette.BODY[0]
+			fg = Palette.BODY[1]
 		for item in [[world.stairs, Palette.STAIRS], [world.elixir, Palette.ELIXIR]]:
 			if p == item[0]:
 				glyph = item[1][0]

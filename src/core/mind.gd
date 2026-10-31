@@ -8,7 +8,7 @@ static func heaven_phase(w: World) -> void:
 	for a in w.actors.duplicate():
 		if w.outcome != &"":
 			return
-		if not a.alive() or a.faction == Actor.FOX:
+		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
 			continue
 		a.acted += 1
 		if a.stunned > 0:
@@ -47,6 +47,7 @@ static func perceive(w: World, a: Actor) -> void:
 			a.noted = s.id
 			_heed(w, a, s, s.pos)
 			return
+	Notice.react(w, a)
 
 
 ## A projectile of Miho's seen at `at`: a dull creature searches that spot, a
@@ -72,9 +73,9 @@ static func hurt(a: Actor) -> void:
 ## `perceive` again. From one it did not see, a dull creature only looks around,
 ## a sharp one searches the farthest tile it sees back along the flight line, and
 ## a cunning one searches where the projectile came from (and hunts as soon as
-## `perceive` sees Miho).
+## `perceive` sees Miho). A projectile of heaven only hurts it, and makes it wary.
 static func struck(w: World, a: Actor, s: Shot) -> void:
-	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT:
+	if a.faction != Actor.HEAVEN or a.alert == Actor.HUNT or s.faction == a.faction:
 		return
 	if a.noted == s.id:
 		_heed(w, a, s, a.pos)

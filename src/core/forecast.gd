@@ -15,6 +15,8 @@ var harm := {}
 var deaths := {}
 ## actor id -> true when it starts hunting Miho this round
 var noticed := {}
+## actor id -> true when it falls out of the sky this round (Miho: to a lower storey)
+var falls := {}
 
 
 static func of(world: World, action: Dictionary) -> Forecast:
@@ -24,11 +26,17 @@ static func of(world: World, action: Dictionary) -> Forecast:
 		f.paths[s.id] = {
 			faction = s.faction, spell = s.spell, tiles = [s.pos], dir = s.dir, live = true
 		}
-	f.events = f.after.act(action)
-	for e in f.events:
+	f.read(f.after.act(action))
+	return f
+
+
+## Reads the events of the round that was run on `after`.
+func read(round_events: Array[Dictionary]) -> void:
+	events = round_events
+	for e in events:
 		match e.t:
 			&"spawn":
-				f.paths[e.shot] = {
+				paths[e.shot] = {
 					faction = e.faction,
 					spell = Spell.make(e.cards),
 					tiles = [e.at],
@@ -36,20 +44,21 @@ static func of(world: World, action: Dictionary) -> Forecast:
 					live = true
 				}
 			&"fly":
-				if f.paths.has(e.shot):
-					f.paths[e.shot].tiles.append(e.to)
+				if paths.has(e.shot):
+					paths[e.shot].tiles.append(e.to)
 			&"hurt":
-				f.harm[e.id] = f.harm.get(e.id, 0) + e.n
+				harm[e.id] = harm.get(e.id, 0) + e.n
 			&"die":
-				f.deaths[e.id] = true
+				deaths[e.id] = true
 			&"notice":
-				f.noticed[e.id] = true
-	for id in f.paths:
-		var s := f.after_shot(id)
-		f.paths[id].live = s != null
+				noticed[e.id] = true
+			&"fall":
+				falls[e.id] = true
+	for id in paths:
+		var s := after_shot(id)
+		paths[id].live = s != null
 		if s != null:
-			f.paths[id].dir = s.dir
-	return f
+			paths[id].dir = s.dir
 
 
 func after_shot(id: int) -> Shot:
@@ -62,6 +71,11 @@ func after_shot(id: int) -> Shot:
 ## Harm Miho takes this round.
 func hurt_me() -> int:
 	return harm.get(after.player().id, 0)
+
+
+## Whether Miho falls to a lower storey this round.
+func drops_me() -> bool:
+	return falls.has(after.player().id)
 
 
 ## Tiles a projectile would cross from `from` heading `dir` until something it cannot fly over.

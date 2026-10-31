@@ -162,6 +162,9 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 			play(&"card")
 		&"ascend":
 			play(&"ascend")
+		&"fall":
+			if e.has("depth"):
+				play(&"fall")
 		&"won":
 			play(&"win")
 		&"lost":

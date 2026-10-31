@@ -77,6 +77,7 @@ static func hit(w: World, at: Vector2i) -> void:
 	var was := w.tile(at)
 	w.burning.erase(at)
 	w.set_tile(at, BREAKS[was])
+	Notice.smashed(w, was, at)
 	w.emit({t = &"smash", at = at, was = was})
 
 
@@ -92,6 +93,8 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 			Scent.clear(w, p)
 		if s.spell.has(Cards.WATER) and (w.tile(p) == World.LANTERN or w.burning.has(p)):
 			w.burning.erase(p)
+			if w.tile(p) == World.LANTERN:
+				Notice.smashed(w, World.LANTERN, p)
 			w.set_tile(p, World.LANTERN_OUT if w.tile(p) == World.LANTERN else w.tile(p))
 			w.emit({t = &"douse", at = p})
 
