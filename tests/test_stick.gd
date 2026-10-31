@@ -189,3 +189,58 @@ func test_a_wisp_tells_it_sticks_and_a_bullet_does_not() -> void:
 	assert_string_contains(wisp, "붙어서 %d초 빛난다" % Spell.WISP_LIFE)
 	var bullet := Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.METAL])))
 	assert_false(bullet.contains("붙어서"))
+
+
+func test_the_log_tells_a_wisp_that_sticks_once_in_sight() -> void:
+	var w := _world()
+	_foe(w, &"jangseung", Vector2i(6, 8))
+	w.sense()
+	var before := w.clone()
+	var lines := Messages.of(before, w, w.act(_cast([FOX]))).map(Messages.plain)
+	assert_eq(lines.filter(func(l): return l.contains("붙었다")), ["여우불이 장승에게 붙었다"])
+
+
+func test_the_log_names_the_spell_a_creature_gives_its_wisp_and_speaks_to_miho() -> void:
+	var w := _world(Vector2i(8, 8))
+	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
+	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	w.sense()
+	var before := w.clone()
+	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
+	assert_has(lines, "도깨비불이 당신에게 붙었다")
+
+
+func test_the_log_is_silent_about_a_wisp_that_sticks_out_of_sight() -> void:
+	var w := _world()
+	var far := Vector2i(30, 8)
+	var foe := _foe(w, &"jangseung", far)
+	w.sense()
+	var stick := {
+		t = &"stick",
+		shot = 9,
+		id = foe.id,
+		at = far,
+		faction = Actor.FOX,
+		cards = [FOX],
+		title = "여우불"
+	}
+	assert_eq(Messages.of(w, w, [stick]).size(), 0)
+
+
+func test_a_creature_tells_the_wisps_riding_it_and_the_rounds_they_have_left() -> void:
+	var s := _stuck()
+	var w: World = s[0]
+	var foe: Actor = s[1]
+	var left: int = w.shots[0].life
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불이 붙어 있다 (%d초)" % left)
+	w.act(WAIT)
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "여우불이 붙어 있다 (%d초)" % (left - 1))
+
+
+func test_miho_tells_a_wisp_riding_her_and_a_creature_without_one_tells_none() -> void:
+	var w := _world(Vector2i(8, 8))
+	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
+	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	w.act(WAIT)
+	assert_string_contains(Info.plain(Info.creature(w, w.player())), "도깨비불이 붙어 있다 (")
+	assert_false(Info.plain(Info.creature(w, foe)).contains("붙어 있다"))

@@ -102,7 +102,7 @@ static func _spray(s: Spell) -> Array:
 			var out := [_line("모양", _fan(Spray.FAN[i])), _line("불", "타는 칸에 불을 붙인다", color)]
 			if level >= 2:
 				out.append(_line("불", "안의 적이 선 칸도 탄다", color))
-				out.append(_line("피해", "불 위에서 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
+				out.append(_line("피해", "불이 붙은 다음 초부터 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
 			if level >= 3:
 				out.append(_line("불", "늘 번진다", color))
 			return out
@@ -194,7 +194,7 @@ static func compound(c: StringName) -> Array[String]:
 	var out: Array[String] = []
 	match c:
 		&"wildfire":
-			out.assign(["타는 칸과 닿은 적에 불을 붙인다", "불이 늘 번진다", harm % World.FIRE_DAMAGE])
+			out.assign(["타는 칸과 닿은 적에 불을 붙인다", "불이 늘 번진다", "붙은 다음 초부터 " + harm % World.FIRE_DAMAGE])
 		&"lava":
 			out.assign(hot.call(Compounds.LAVA))
 		&"molten":
@@ -313,7 +313,7 @@ static func _effect(s: Spell, e: StringName) -> String:
 			if s.orb:
 				var splash := " 터지면 주위 8칸에 %d." % (World.FIRE_DAMAGE + s.extra(e))
 				return "지나간 자리에 불을 붙인다." + splash + more + " 나무 적은 불탄다"
-			return "맞은 적과 지나간 자리에 불을 붙인다." + more + " 매 초 피해 %d" % World.FIRE_DAMAGE
+			return "맞은 적과 지나간 자리에 불을 붙인다." + more + " 다음 초부터 매 초 피해 %d" % World.FIRE_DAMAGE
 		Cards.WATER:
 			var what := "소리를" if s.orb else "빛과 소리를"
 			return what + " 지운다. 멈춘 곳 3×3의 등불과 불을 끈다"

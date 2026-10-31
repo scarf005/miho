@@ -182,6 +182,8 @@ func test_the_fire_burns_a_creature_in_its_way() -> void:
 	_plate(w, PLATE, World.TRAP_FIRE)
 	var foe := _foe(w, PLATE + E * 2, &"jangseung")
 	w.act({t = &"move", dir = E})
+	assert_eq(foe.hp, Bestiary.info(&"jangseung").hp, "it burns from the next round")
+	w.act(WAIT)
 	assert_eq(foe.hp, Bestiary.info(&"jangseung").hp - World.FIRE_DAMAGE)
 
 

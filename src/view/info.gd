@@ -226,6 +226,21 @@ static func _conditions(w: World, a: Actor) -> Array:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
+	for s in w.shots:
+		if s.host == a.id and not s.gone:
+			var title := s.spell.title()
+			var runs := [[title, Palette.card(s.spell.slots.back())]]
+			out.append(
+				(
+					runs
+					+ [
+						[
+							Messages._particle(title, "이", "가") + " 붙어 있다 (%d초)" % s.life,
+							Palette.TEXT
+						]
+					]
+				)
+			)
 	if w.hot.has(a.pos):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
@@ -415,7 +430,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("적은 사라지고 당신은 한 층 아래로 간다")
 		World.TRAP_FIRE:
 			out.append("밟은 방향 앞 %d칸에 불을 뿜는다" % Traps.FLAME_REACH)
-			out.append("불타는 칸 위에서는 매 초 피해 %d" % World.FIRE_DAMAGE)
+			out.append("불이 붙은 다음 초부터 서 있으면 매 초 피해 %d" % World.FIRE_DAMAGE)
 		World.TRAP_VINE:
 			var side := 2 * Traps.VINE_REACH + 1
 			out.append("밟으면 주위 %d×%d의 모두를 %d초 묶는다" % [side, side, Traps.ROOT_ROUNDS])
