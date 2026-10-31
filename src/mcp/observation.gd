@@ -24,7 +24,9 @@ const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
 	"legend: #wall ▒cracked-wall :rubble ·floor(in sight) .floor(remembered) +closed-door 'open-door "
 	+ "░sky □window ═skybridge ◎drum ◌torn-drum "
-	+ '¤lantern "bamboo =floorboards ~pond ,ash ^fire <stairs !elixir %peach †fallen-creature '
+	+ '¤lantern "bamboo =floorboards ~pond ,ash '
+	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar "
+	+ "^fire <stairs !elixir %peach †fallen-creature "
 	+ "●○*projectile @Miho"
 )
 

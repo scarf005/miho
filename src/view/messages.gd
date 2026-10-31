@@ -138,6 +138,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return who + [[" 북을 쳤다", TEXT]]
 		&"soak":
 			return [["북이 젖었다", TEXT]]
+		&"trample":
+			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"ascend":
 			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 올라갔다", TEXT]]
 		&"omen":

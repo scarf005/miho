@@ -3,8 +3,8 @@ extends RefCounted
 ## The trail Miho leaves. World.scent holds, for each tile, the round (plus one)
 ## in which she last stood there; 0 is never. A hunter that has lost sight of
 ## her steps to the neighbouring tile with the freshest scent, as long as it is
-## fresher than its own tile and at most TRAIL_AGE rounds old. Bamboo and flames
-## hold no scent, and a water spell washes it away. Only Miho lays scent.
+## fresher than its own tile and at most TRAIL_AGE rounds old. Scentless tiles (bamboo)
+## and flames hold no scent, and a water spell washes it away. Only Miho lays scent.
 
 const TRAIL_AGE := 12
 
@@ -17,7 +17,7 @@ static func _ready(w: World) -> void:
 ## Miho stands on `p`.
 static func lay(w: World, p: Vector2i) -> void:
 	_ready(w)
-	if w.tile(p) != World.BAMBOO and not w.burning.has(p):
+	if not Tiles.of(w.tile(p), "scentless") and not w.burning.has(p):
 		w.scent[Grid.index(p)] = w.round_no + 1
 
 

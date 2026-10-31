@@ -3,7 +3,7 @@ extends GutTest
 
 const SEEN := Vector2i(6, 8)
 const HIDDEN := Vector2i(20, 8)
-const SEEDS := [1, 2, 3, 4, 5, 6]
+const SEEDS := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 const ROUNDS := 120
 const POPUP_LINE := {
 	&"notice": "들켰다",
