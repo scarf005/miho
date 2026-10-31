@@ -34,7 +34,7 @@ static func next(w: World, a: Actor) -> Vector2i:
 	var best_stamp := w.scent[Grid.index(a.pos)]
 	for d in Grid.DIRS:
 		var p := a.pos + d
-		if not Grid.inside(p) or not w.vacant(p) or w.burning.has(p):
+		if not Grid.inside(p) or not w.vacant(p) or w.burning.has(p) or w.traps.has(p):
 			continue
 		var stamp := w.scent[Grid.index(p)]
 		if stamp > best_stamp and w.round_no + 1 - stamp <= TRAIL_AGE:

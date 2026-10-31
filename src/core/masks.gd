@@ -48,8 +48,11 @@ static func heard(w: World) -> PackedByteArray:
 	return Grid.mask(w.tiles, _heard)
 
 
-## Tiles where creatures, projectiles or fire stand.
+## Tiles where creatures, projectiles or fire stand, and plates (Traps).
 static func odd(w: World) -> Array:
 	return (
-		w.burning.keys() + w.actors.map(func(a): return a.pos) + w.shots.map(func(s): return s.pos)
+		w.burning.keys()
+		+ w.actors.map(func(a): return a.pos)
+		+ w.shots.map(func(s): return s.pos)
+		+ w.traps.keys()
 	)

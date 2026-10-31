@@ -42,9 +42,13 @@ const TILES := {
 	World.ICE: ["◇", Color(0.78, 0.92, 1.0), Color(0.16, 0.25, 0.36)],
 	World.THORNS: ["‡", Color(0.6, 0.74, 0.36), Color(0.1, 0.13, 0.06)],
 	World.MUD: ["☷", Color(0.6, 0.46, 0.3), Color(0.17, 0.12, 0.07)],
+	World.TRAP_ALARM: ["^", Color(0.96, 0.82, 0.3), Color(0.2, 0.16, 0.04)],
+	World.TRAP_COLLAPSE: ["^", Color(0.82, 0.62, 0.4), Color(0.12, 0.07, 0.05)],
+	World.TRAP_FIRE: ["^", Color(1.0, 0.5, 0.2), Color(0.27, 0.09, 0.03)],
+	World.TRAP_VINE: ["^", Color(0.45, 0.86, 0.4), Color(0.06, 0.16, 0.06)],
 }
 ## A burning tile, drawn over its terrain.
-const BURNING := ["^", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
+const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
 ## Hot ground (Compounds), drawn over its terrain.
 const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]

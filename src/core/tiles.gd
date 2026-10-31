@@ -15,6 +15,9 @@ extends RefCounted
 ## never takes it, even a burning creature standing on it. trample: what it
 ## becomes when a creature steps onto it. scentless: a trail laid on it is lost.
 ## gas: gas can lie on it (Gas); walls, closed doors, windows, pillars and sky stop it.
+## trap: a plate in the floor that goes off when a creature steps onto it (Traps).
+## Heaven walks round it, and so does a walk Miho has planned. It is floor, not
+## this tile kind, until Miho finds it.
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -92,6 +95,10 @@ const ROWS := {
 	World.ICE: {name = "얼음", walk = true, douses = true},
 	World.THORNS: {name = "가시덤불", walk = true, burns = true},
 	World.MUD: {name = "진흙", walk = true, douses = true},
+	World.TRAP_ALARM: {name = "경보 발판", walk = true, trap = true},
+	World.TRAP_COLLAPSE: {name = "꺼지는 마루", walk = true, trap = true},
+	World.TRAP_FIRE: {name = "불 발판", walk = true, trap = true},
+	World.TRAP_VINE: {name = "덩굴 발판", walk = true, trap = true},
 }
 const DEFAULT := {
 	name = "",
@@ -110,6 +117,7 @@ const DEFAULT := {
 	trample = -1,
 	scentless = false,
 	gas = true,
+	trap = false,
 }
 
 ## One byte per tile kind, 1 where the column holds: the tables Masks feeds to Rust.

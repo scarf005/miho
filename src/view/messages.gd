@@ -153,6 +153,14 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"gas":
 			var name: String = Gas.of(e.kind, "name")
 			return [[name, Palette.GAS[e.kind][1]], [_particle(name, "이", "가") + " 피어올랐다", TEXT]]
+		&"find":
+			return _named(Tiles.of(e.kind, "name"), "을", "를") + [[" 찾았다", TEXT]]
+		&"trap":
+			var plate := _named(Tiles.of(e.kind, "name"), "을", "를")
+			var sprung := [[" 밟았다", TEXT]]
+			if e.kind == World.TRAP_ALARM:
+				sprung = [[" 밟았다. 징 소리가 층 전체에 울렸다", TEXT]]
+			return _subject(before, after, id) + plate + sprung
 		&"trample":
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 쓰러졌다", TEXT]]
 		&"ascend":

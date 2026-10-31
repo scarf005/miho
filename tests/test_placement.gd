@@ -120,11 +120,14 @@ func test_a_pillar_that_would_cut_the_storey_apart_is_taken_out_again() -> void:
 	assert_eq(w.tile(Vector2i(6, 2)), World.PILLAR)
 
 
-## The tiles a row has laid: its tile kind, or the gas of its kind.
+## The tiles a row has laid: its tile kind, the gas of its kind, or its plates.
 func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
 	if row.has("gas"):
-		var out: Array[Vector2i] = []
 		out.assign(w.gas.keys().filter(func(p): return w.gas[p].x == row.gas))
+		return out
+	if row.get("hidden", false):
+		out.assign(w.traps.keys().filter(func(p): return w.traps[p] == row.what))
 		return out
 	return _tiles_of(w, row.what)
 

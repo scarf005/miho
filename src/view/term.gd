@@ -61,6 +61,7 @@ const DELAY := {
 	&"sprout": 0.16,
 	&"charge": 0.08,
 	&"drum": 0.3,
+	&"trap": 0.2,
 }
 
 var world: World
@@ -269,6 +270,11 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
 		&"noise":
 			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
+		&"find":
+			var plate: Array = Palette.TILES[fact.kind]
+			return {at = at, text = plate[0], color = plate[1], life = 1.6}
+		&"trap":
+			return {at = at, text = Traps.CLICK, color = Palette.TILES[fact.kind][1], life = 1.2}
 	return {}
 
 
@@ -304,6 +310,8 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_flash(at, Palette.HURT)
 		&"drum":
 			_flash(at, Color(Palette.SOUND, 0.6))
+		&"trap":
+			_flash(at, Color(Palette.TILES[e.kind][1], 0.6))
 		&"splash":
 			_flash(at, Color(1.0, 0.95, 0.7, 0.95))
 			for d in Grid.DIRS:

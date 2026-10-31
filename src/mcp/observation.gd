@@ -27,7 +27,8 @@ const LEGEND := (
 	+ '¤lantern "bamboo =floorboards ~pond ,ash '
 	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ▧shallow-water ■pillar ▥wooden-wall "
 	+ "◇ice ‡thorns ☷mud "
-	+ "^fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir %peach †fallen-creature "
+	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
+	+ "§fire ☲hot-ground ◦fog °steam ▓smoke <stairs !elixir %peach †fallen-creature "
 	+ "●○*projectile @Miho"
 )
 
@@ -193,6 +194,8 @@ static func _moves(k: World) -> String:
 				note = "(open door)"
 			elif k.tile(to) == World.DRUM:
 				note = "(tear drum)"
+			elif Tiles.of(k.tile(to), "trap"):
+				note = "(known trap)"
 			out.append(NAMES[d] + note)
 	var doors := NAMES.keys().filter(func(d): return k.can({t = &"close", dir = d}))
 	var line := ", ".join(out) if not out.is_empty() else "none"

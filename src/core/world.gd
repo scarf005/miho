@@ -30,7 +30,8 @@ extends RefCounted
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
 ##
-## A war drum calls heaven: see Drums.
+## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
+## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
 ## slides: walking into a closed one opens it with a sound and costs the move, and
@@ -111,6 +112,10 @@ const WOOD_WALL := 25
 const ICE := 26
 const THORNS := 27
 const MUD := 28
+const TRAP_ALARM := 29
+const TRAP_COLLAPSE := 30
+const TRAP_FIRE := 31
+const TRAP_VINE := 32
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -132,6 +137,9 @@ var flares: Array[Vector2i] = []
 var wet := {}
 ## Hot ground: position -> Vector2i(kind, rounds left) (Compounds).
 var hot := {}
+## Every plate in the floor: position -> its tile kind (Traps). The tile itself
+## is the plate only once Miho has found it, and floor until then.
+var traps := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -193,6 +201,7 @@ func clone() -> World:
 	w.bodies = bodies.duplicate(true)
 	w.wet = wet.duplicate()
 	w.hot = hot.duplicate()
+	w.traps = traps.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -214,9 +223,11 @@ func clone() -> World:
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
-## sight are left out, so a preview never gives hidden things away.
+## sight and plates she has not found are left out, so a preview never gives
+## hidden things away.
 func known_clone() -> World:
 	var w := clone()
+	w.traps = Traps.found(self)
 	w.actors.assign(
 		w.actors.filter(func(a): return a.faction == Actor.FOX or seen[Grid.index(a.pos)] == 1)
 	)
@@ -469,10 +480,12 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			elif tile(to) == DOOR:
 				Terrain.open_door(self, me, to)
 			else:
+				var storey := depth
 				move(me, to)
-				Scent.lay(self, to)
-				if arrive(me):
-					return events
+				if depth == storey:
+					Scent.lay(self, to)
+					if arrive(me):
+						return events
 		&"close":
 			Terrain.close_door(self, me, me.pos + action.dir)
 		&"cast":
@@ -512,6 +525,7 @@ func sense() -> void:
 		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
 			dim[i] = 1
 			known[i] = 1
+	Traps.find(self)
 	Notice.remember(self)
 
 
@@ -531,7 +545,8 @@ func move(a: Actor, to: Vector2i) -> void:
 	if tile(to) == DOOR:
 		Terrain.open_door(self, a, to)
 		return
-	emit({t = &"move", id = a.id, from = a.pos, to = to})
+	var from := a.pos
+	emit({t = &"move", id = a.id, from = from, to = to})
 	a.pos = to
 	_changed()
 	var tread: Array = Tiles.of(tile(to), "tread")
@@ -539,6 +554,7 @@ func move(a: Actor, to: Vector2i) -> void:
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
+	Traps.step(self, a, to - from)
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
@@ -920,9 +936,9 @@ func _ascend() -> void:
 		s.gone = true
 	FloorGen.build(self)
 	_changed()
-	sense()
 	emit({t = &"ascend", depth = depth})
 	var me := player()
 	if me.hp < me.max_hp:
 		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp})
+	sense()

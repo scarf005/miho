@@ -348,6 +348,21 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("지나가면 피해 %d. 시야는 통한다" % Compounds.THORN)
 		World.MUD:
 			out.append("걷는 데 %d초 걸린다. 발소리가 나지 않는다" % Compounds.MUD)
+		World.TRAP_ALARM:
+			out.append("밟으면 층 전체에 징 소리가 퍼진다")
+			out.append("듣는 적은 추격 중이 아니면 이 칸을 수색한다")
+		World.TRAP_COLLAPSE:
+			out.append("밟으면 하늘로 떨어진다")
+			out.append("적은 사라지고 당신은 한 층 아래로 간다")
+		World.TRAP_FIRE:
+			out.append("밟은 방향 앞 %d칸에 불을 뿜는다" % Traps.FLAME_REACH)
+			out.append("불타는 칸 위에서는 매 초 피해 %d" % World.FIRE_DAMAGE)
+		World.TRAP_VINE:
+			var side := 2 * Traps.VINE_REACH + 1
+			out.append("밟으면 주위 %d×%d의 모두를 %d초 묶는다" % [side, side, Traps.ROOT_ROUNDS])
+	if Tiles.of(t, "trap"):
+		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
+		out.append("적은 알고 피해 다닌다")
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:
