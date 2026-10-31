@@ -31,6 +31,9 @@ extends RefCounted
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
 ##
+## Heaven falls into groups, and a creature struck by another group fights it
+## for a while (Mind).
+##
 ## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
 ## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
 ##
@@ -636,6 +639,7 @@ func _claw(me: Actor, foe: Actor) -> void:
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)
 	if foe.alive():
+		Mind.provoke(self, foe, me)
 		hunt_from(foe, me.pos)
 
 
@@ -847,6 +851,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		emit({t = &"lost"})
 		return
 	Notice.fallen(self, a)
+	Mind.forget(self, a)
 	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
@@ -869,6 +874,7 @@ func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
 				hurt(b, (FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak)
 				if Bestiary.burns(b.kind):
 					ignite(p, true)
+				Mind.provoke(self, b, actor(s.caster))
 		var o := shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true
@@ -940,6 +946,7 @@ func _end_round() -> void:
 			a.rooted = maxi(0, a.rooted - 1)
 			a.blind = maxi(0, a.blind - 1)
 			a.wary = maxi(0, a.wary - 1)
+			a.grudge = maxi(0, a.grudge - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1

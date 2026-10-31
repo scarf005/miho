@@ -691,6 +691,8 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 		_text(Vector2(1.5, row), a.info().name, Palette.KIND[a.kind])
 		_pips(Vector2(0, row + 1), a.hp, a.max_hp, Palette.HURT, MAP.x - 1)
 		var doing: String = SIDE_STATE[a.alert] if a.blind <= 0 else "눈멂"
+		if a.fighting() and a.blind <= 0:
+			doing = "싸우는 중"
 		_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
 		var x := _cells(doing) + 0.5
 		if a.intent.is_empty():

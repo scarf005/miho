@@ -71,9 +71,20 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var melee: Dictionary = _actor(before, after, id).info().melee
 			return (
 				_who(before, after, id, "의", "의")
-				+ [[" %s에 %s " % [melee.name, melee.hit], TEXT]]
+				+ [[" %s에 " % melee.name, TEXT]]
+				+ _subject(before, after, e.target)
+				+ [[melee.hit + " ", TEXT]]
 				+ _took(e.n)
 			)
+		&"feud":
+			return (
+				_who(before, after, id, "이", "가")
+				+ [[" ", TEXT]]
+				+ _who(before, after, e.rival, "에게", "에게")
+				+ [[" 덤벼든다", TEXT]]
+			)
+		&"truce":
+			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
 		&"grow":
 			var eaten: String = Cards.NAME[_actor(before, after, id).info().eats]
 			return (

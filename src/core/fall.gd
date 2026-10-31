@@ -45,6 +45,7 @@ static func drop(w: World, a: Actor, into: Vector2i) -> void:
 static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 	a.hp = 0
 	a.intent.clear()
+	Mind.forget(w, a)
 	w.emit({t = &"fall", id = a.id, from = a.pos, at = into})
 	w.emit({t = &"die", id = a.id, at = a.pos})
 	w.tails = mini(w.max_tails(), w.tails + 1)

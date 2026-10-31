@@ -1,7 +1,7 @@
 class_name Info
 extends RefCounted
 ## What the pointer is over, in a few short sentences: a creature's health,
-## state, conditions, immunities, whether it sees Miho, what her claws would do
+## state, conditions, immunities, group and rival, whether it sees Miho, what her claws would do
 ## to it and what it strikes and casts with; a projectile (SpellInfo); a
 ## tile's terrain, light and sound. Every number comes from the rule
 ## constants. Built only from what Miho knows. Each line is a list of
@@ -70,6 +70,8 @@ static func _profile(a: Actor) -> Array:
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
+	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
+	lines.append([["다른 무리에게 맞으면 %d초 동안 그쪽과 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
 	return lines
 
 
@@ -82,6 +84,8 @@ static func _situation(w: World, a: Actor) -> Array:
 		state.append([_search_left(a), Palette.TEXT])
 	lines.append(state)
 	lines.append_array(_conditions(w, a))
+	if a.fighting():
+		lines.append([[_rival(w, a) + "싸우는 중 (%d초)" % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
 		lines.append([["북을 치러 간다", Palette.SOUND]])
 	if w.sees(a, w.player().pos):
@@ -93,6 +97,14 @@ static func _situation(w: World, a: Actor) -> Array:
 		_amount("기습 시 피해 " if sneak else "공격 시 피해 ", World.CLAW * (World.SNEAK if sneak else 1))
 	)
 	return lines
+
+
+## The rival `a` fights, with 와/과, named only when Miho sees it.
+static func _rival(w: World, a: Actor) -> String:
+	var rival := w.actor(a.rival)
+	var seen := rival != null and w.seen[Grid.index(rival.pos)] == 1
+	var name: String = rival.info().name if seen else "무언가"
+	return name + Messages._particle(name, "과", "와") + " "
 
 
 ## What it strikes and casts with, what it eats and what it leaves.

@@ -43,10 +43,20 @@ var drum := Vector2i(-1, -1)
 ## Where it rests, and where a patrol is heading.
 var home := Vector2i.ZERO
 var post := Vector2i.ZERO
+## The creature of another group it fights (Mind.provoke), 0 for none; the
+## rounds left of the fight; where it last saw that creature.
+var rival := 0
+var grudge := 0
+var rival_at := Vector2i.ZERO
 
 
 func alive() -> bool:
 	return hp > 0
+
+
+## Fighting another creature of heaven in place of Miho.
+func fighting() -> bool:
+	return rival != 0 and grudge > 0
 
 
 ## Hunting Miho by way of a drum.
@@ -88,6 +98,9 @@ func clone() -> Actor:
 		"drum",
 		"home",
 		"post",
+		"rival",
+		"grudge",
+		"rival_at",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate()
