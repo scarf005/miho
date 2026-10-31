@@ -31,7 +31,7 @@ const TILES := {
 	World.BRIDGE: ["═", Color(0.82, 0.7, 0.5), Color(0.19, 0.13, 0.08)],
 	World.DRUM: ["◎", Color(0.95, 0.4, 0.28), Color(0.24, 0.07, 0.04)],
 	World.DRUM_TORN: ["◌", Color(0.5, 0.36, 0.3), Color(0.12, 0.08, 0.07)],
-	World.GRASS: ["¨", Color(0.38, 0.62, 0.28), Color(0.09, 0.12, 0.07)],
+	World.GRASS: ["¨", Color(0.5, 0.82, 0.32), Color(0.07, 0.16, 0.06)],
 	World.STRAW: ["▤", Color(0.88, 0.78, 0.38), Color(0.22, 0.18, 0.07)],
 	World.REEDS: ["‖", Color(0.62, 0.74, 0.34), Color(0.12, 0.17, 0.08)],
 	World.REEDS_FLAT: ["_", Color(0.5, 0.52, 0.3), Color(0.12, 0.11, 0.07)],
