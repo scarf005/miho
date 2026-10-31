@@ -318,6 +318,10 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"sprout":
 			for p: Vector2i in e.tiles:
 				_flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))
+		&"become", &"heat":
+			var color: Color = Palette.HOT[1] if e.t == &"heat" else Palette.TILES[e.tile][1]
+			for p: Vector2i in e.tiles:
+				_flash(p, Color(color, 0.8), 0.04 * Grid.cheb(p, e.at))
 	if fact.is_empty():
 		return 0.0
 	var popup := popup_of(fact)
@@ -491,12 +495,17 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			glyph = Palette.BURNING[0]
 			fg = Color(Palette.BURNING[1] * (0.7 + 0.4 * k), 1.0)
 			bg = Color(Palette.BURNING[2] * k, 1.0)
+		var hot := not fire and _vis[i] == 1 and world.hot.has(p)
+		if hot:
+			glyph = Palette.HOT[0]
+			fg = Palette.HOT[1]
+			bg = Palette.HOT[2]
 		if _vis[i] == 1:
 			var l := light[i]
 			var d := Grid.cheb(p, me_pos)
 			if d <= World.NIGHT[0]:
 				l += Palette.NIGHT * (1.0 - d / 3.0)
-			if t != World.LANTERN and t != World.SKY and not fire:
+			if t != World.LANTERN and t != World.SKY and not fire and not hot:
 				fg = _lit(fg, l, 0.18)
 				bg = _lit(bg, l, 0.0) + Color(l.x, l.y, l.z) * 0.06
 		elif world.dim[i] == 1:

@@ -157,15 +157,15 @@ static func wits(kind: StringName) -> int:
 static func absorbs(kind: StringName, spell: Spell) -> bool:
 	match info(kind).get("absorb", &""):
 		&"fire":
-			return spell.has(Cards.FIRE)
+			return spell.holds(Cards.FIRE)
 		&"nofire":
-			return not spell.has(Cards.FIRE)
+			return not spell.holds(Cards.FIRE)
 	return false
 
 
 ## Whether the creature eats the spell it absorbs and grows from it.
 static func eats(kind: StringName, spell: Spell) -> bool:
-	return absorbs(kind, spell) and spell.has(info(kind).get("eats", &""))
+	return absorbs(kind, spell) and spell.holds(info(kind).get("eats", &""))
 
 
 ## A creature's elements: those of the spells it casts, in 오행 order.
@@ -187,7 +187,7 @@ static func weak_to(kind: StringName) -> Array[StringName]:
 
 ## Whether the spell holds an element that beats one of the creature's.
 static func weak(kind: StringName, spell: Spell) -> bool:
-	return weak_to(kind).any(func(c): return spell.has(c))
+	return weak_to(kind).any(func(c): return spell.holds(c))
 
 
 ## Wood creatures catch fire when a fire spell hits them.

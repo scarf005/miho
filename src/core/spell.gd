@@ -16,6 +16,8 @@ extends RefCounted
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
+## A compound is an element of its own (Compounds): it does not count as its
+## two elements, but for what a creature is weak to or eats (`holds`).
 
 const MAX_SLOTS := 5
 const MOMENTUM := 4
@@ -99,17 +101,27 @@ func level() -> int:
 	return mini(count(slots[0]), MAX_LEVEL)
 
 
-## Copies of a talisman in the spell; a compound holds one of each of its elements.
+## Copies of a talisman or a compound in the spell.
 func count(card: StringName) -> int:
-	var n := 0
-	for slot in slots:
-		if slot == card or Cards.parts(slot).has(card):
-			n += 1
-	return n
+	return slots.count(card)
 
 
 func has(card: StringName) -> bool:
 	return count(card) > 0
+
+
+## Whether an element is in the spell, alone or in a compound.
+func holds(element: StringName) -> bool:
+	return slots.any(func(slot): return Cards.parts(slot).has(element))
+
+
+## The compound slots, each once, in queue order.
+func compounds() -> Array[StringName]:
+	var out: Array[StringName] = []
+	for slot in slots:
+		if Cards.PAIRS.has(slot) and not out.has(slot):
+			out.append(slot)
+	return out
 
 
 func homing() -> bool:
@@ -182,7 +194,8 @@ func turn() -> int:
 	return mini(count(Cards.FOX), TURN_FREE) if shape == WISP or homing() else 0
 
 
-## Copies of an element past the first: each makes its effect one step stronger.
+## Copies of an element or a compound past the first: each makes its effect
+## one step stronger.
 func extra(element: StringName) -> int:
 	return maxi(0, count(element) - 1)
 

@@ -19,6 +19,9 @@ const WALKABLE := [
 	World.REEDS_FLAT,
 	World.LEAVES,
 	World.SHALLOW,
+	World.ICE,
+	World.THORNS,
+	World.MUD,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -30,6 +33,7 @@ const FLAMMABLE := [
 	World.STRAW,
 	World.LEAVES,
 	World.WOOD_WALL,
+	World.THORNS,
 ]
 const TREAD := {
 	World.BAMBOO: [2, "사각"],
@@ -53,7 +57,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.WOOD_WALL + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.MUD + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -105,9 +109,11 @@ func test_only_bamboo_and_shallow_water_hold_no_scent() -> void:
 		assert_eq(Tiles.of(t, "scentless"), scentless.has(t), "scentless %d" % t)
 
 
-func test_only_shallow_water_is_never_taken_by_fire() -> void:
+func test_only_shallow_water_ice_and_mud_are_never_taken_by_fire() -> void:
 	for t in 256:
-		assert_eq(Tiles.of(t, "douses"), t == World.SHALLOW, "douses %d" % t)
+		assert_eq(
+			Tiles.of(t, "douses"), t in [World.SHALLOW, World.ICE, World.MUD], "douses %d" % t
+		)
 
 
 func test_only_reeds_lie_flat_when_stepped_on() -> void:

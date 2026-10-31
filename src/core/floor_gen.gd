@@ -146,6 +146,7 @@ static func build(w: World) -> void:
 	w.shots.clear()
 	w.peaches.clear()
 	w.burning.clear()
+	w.hot.clear()
 	w.gas.clear()
 	w.vents.clear()
 	w.changes.clear()

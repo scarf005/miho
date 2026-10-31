@@ -2,9 +2,9 @@ class_name Forecast
 extends RefCounted
 ## Reads one previewed round into drawable facts: the tiles each projectile
 ## crosses or each spray covers, what it strikes, how much harm every creature
-## takes, who notices Miho, and where wooden walls grow. The preview runs on
-## what Miho knows (World.known_clone), so creatures she cannot see take no
-## part in it.
+## takes, who notices Miho, where wooden walls grow and what ground a compound
+## changes. The preview runs on what Miho knows (World.known_clone), so
+## creatures she cannot see take no part in it.
 
 var after: World
 var events: Array[Dictionary] = []
@@ -23,6 +23,10 @@ var noticed := {}
 var falls := {}
 ## Tiles where a wooden wall grows this round (Elements.sprout).
 var sprouts: Array[Vector2i] = []
+## Tiles a compound turns to another kind this round: position -> tile kind,
+## and tiles it leaves hot (Compounds).
+var grounds := {}
+var heated: Array[Vector2i] = []
 
 
 static func of(world: World, action: Dictionary) -> Forecast:
@@ -70,6 +74,11 @@ func read(round_events: Array[Dictionary]) -> void:
 				falls[e.id] = true
 			&"sprout":
 				sprouts.append_array(e.tiles)
+			&"become":
+				for p: Vector2i in e.tiles:
+					grounds[p] = e.tile
+			&"heat":
+				heated.append_array(e.tiles)
 	for id in paths:
 		var s := after_shot(id)
 		paths[id].live = s != null
