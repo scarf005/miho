@@ -261,6 +261,17 @@ static func wits(kind: StringName) -> int:
 	return info(kind).get("wits", DULL)
 
 
+## Whether creatures of `kind` come in bands (FloorGen.bands): those that walk
+## and are no boss.
+static func bands(kind: StringName) -> bool:
+	var spec := info(kind)
+	return (
+		spec.has("group")
+		and spec.get("move", &"static") != &"static"
+		and not spec.get("boss", false)
+	)
+
+
 ## Whether a creature of `kind` runs from Miho at 1 health: sharp or cunning,
 ## not brave, and able to walk.
 static func flees(kind: StringName) -> bool:

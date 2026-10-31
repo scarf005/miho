@@ -153,6 +153,11 @@ static func _creature(k: World, a: Actor) -> String:
 	if a.fighting():
 		var rival := k.actor(a.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
+	if a.leader != 0:
+		var lead := k.actor(a.leader)
+		line += ", follows " + (lead.info().name if lead != null else "something unseen")
+	elif k.actors.any(func(b): return b.leader == a.id):
+		line += ", leads a band"
 	if a.drumming():
 		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
 	if not a.intent.is_empty():

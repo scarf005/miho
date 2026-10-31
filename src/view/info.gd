@@ -72,6 +72,9 @@ static func _profile(a: Actor) -> Array:
 	lines.append_array(_immunities(a))
 	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
 	lines.append([["다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
+	if Bestiary.bands(a.kind):
+		lines.append([["최대 %d마리 무리로 나온다" % FloorGen.BAND, Palette.DIM]])
+		lines.append([["가장 센 적이 우두머리, 쓰러지면 흩어진다", Palette.DIM]])
 	return lines
 
 
@@ -84,6 +87,8 @@ static func state(a: Actor) -> String:
 		return STATE[a.alert]
 	if a.asleep():
 		return "자는 중"
+	if a.following():
+		return "따라가는 중"
 	if a.info().get("patrol", false):
 		return "순찰 중"
 	return "돌아가는 중" if a.pos != a.home else STATE[Actor.REST]
@@ -98,6 +103,10 @@ static func _situation(w: World, a: Actor) -> Array:
 		doing.append([_search_left(a), Palette.TEXT])
 	lines.append(doing)
 	lines.append_array(_conditions(w, a))
+	if a.leader != 0:
+		lines.append([["우두머리: " + _name_of(w, w.actor(a.leader)), Palette.TEXT]])
+	elif w.actors.any(func(b): return b.leader == a.id):
+		lines.append([["무리의 우두머리", Palette.TEXT]])
 	if a.fighting():
 		lines.append([[_rival(w, a) + "싸우는 중 (%d초)" % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
@@ -115,10 +124,13 @@ static func _situation(w: World, a: Actor) -> Array:
 
 ## The rival `a` fights, with 와/과, named only when Miho sees it.
 static func _rival(w: World, a: Actor) -> String:
-	var rival := w.actor(a.rival)
-	var seen := rival != null and w.seen[Grid.index(rival.pos)] == 1
-	var name: String = rival.info().name if seen else "무언가"
+	var name := _name_of(w, w.actor(a.rival))
 	return name + Messages._particle(name, "과", "와") + " "
+
+
+## The name of creature `b` when Miho sees it, else "무언가".
+static func _name_of(w: World, b: Actor) -> String:
+	return b.info().name if b != null and w.seen[Grid.index(b.pos)] == 1 else "무언가"
 
 
 ## What it strikes and casts with, what it eats and what it leaves.

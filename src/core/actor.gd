@@ -48,6 +48,9 @@ var post := Vector2i.ZERO
 var rival := 0
 var grudge := 0
 var rival_at := Vector2i.ZERO
+## The id of the leader of its band (FloorGen.bands), 0 for none; it is gone
+## when the leader falls (Mind.forget).
+var leader := 0
 
 
 func alive() -> bool:
@@ -71,6 +74,12 @@ func asleep() -> bool:
 ## Fighting another creature of heaven in place of Miho.
 func fighting() -> bool:
 	return rival != 0 and grudge > 0
+
+
+## Resting on a patrol in the train of its leader (Mind.rest). One that does not
+## patrol sleeps at its own home, band or not.
+func following() -> bool:
+	return faction == HEAVEN and leader != 0 and info().get("patrol", false)
 
 
 ## Hunting Miho at 1 health, and not one to stand and fight (Bestiary.flees):
@@ -121,6 +130,7 @@ func clone() -> Actor:
 		"rival",
 		"grudge",
 		"rival_at",
+		"leader",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate()

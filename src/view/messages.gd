@@ -93,6 +93,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [e.word, Palette.SOUND], [" 소리쳤다", TEXT]]
 			)
+		&"scatter":
+			return _who(before, after, id, "의", "의") + [[" 무리가 흩어졌다", TEXT]]
 		&"truce":
 			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
 		&"grow":

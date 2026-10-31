@@ -13,6 +13,9 @@ extends RefCounted
 ##
 ## Fleeing (DCSS mon-behv): a sharp or cunning creature that is not brave and
 ## hunts Miho at 1 health runs from her, towards its own group (`flee`).
+##
+## Bands (DCSS mon-place band): creatures of a group come in bands that follow
+## their leader while they rest on patrol (`rest`); when it falls they scatter.
 
 const GRUDGE_ROUNDS := 10
 
@@ -112,12 +115,19 @@ static func provoke(w: World, a: Actor, by: Actor) -> void:
 	a.rival_at = by.pos
 
 
-## `gone` has fallen: whoever fought it stops.
+## `gone` has fallen: whoever fought it stops, and the band it led scatters:
+## each follower goes back to its own ways.
 static func forget(w: World, gone: Actor) -> void:
+	var led := false
 	for a in w.actors:
 		if a.rival == gone.id:
 			a.rival = 0
 			a.grudge = 0
+		if a.leader == gone.id:
+			a.leader = 0
+			led = true
+	if led:
+		w.emit({t = &"scatter", id = gone.id, at = gone.pos})
 
 
 ## Its turn spent on its rival, while it fights one; false when it does not
@@ -299,8 +309,19 @@ static func search(w: World, a: Actor) -> void:
 	_drift(w, a)
 
 
+## A follower on patrol (Actor.following) keeps within FloorGen.BAND_SPREAD of its
+## leader, who sets the way. True while it does, whether it stepped or stood.
+static func _follow(w: World, a: Actor) -> bool:
+	var lead := w.actor(a.leader)
+	if not a.following() or lead == null:
+		return false
+	if Grid.cheb(a.pos, lead.pos) > FloorGen.BAND_SPREAD:
+		_step_to(w, a, lead.pos, FloorGen.BAND_SPREAD)
+	return true
+
+
 static func rest(w: World, a: Actor) -> void:
-	if a.rooted > 0 or _track(w, a):
+	if a.rooted > 0 or _track(w, a) or _follow(w, a):
 		return
 	if not a.info().get("patrol", false):
 		if a.pos != a.home:
