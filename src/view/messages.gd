@@ -178,6 +178,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				+ host
 				+ [[" 붙었다", TEXT]]
 			)
+		&"fade":
+			if not e.get("lit", false):
+				return []
+			return [[e.title + _particle(e.title, "이", "가") + " 불빛에 걷혔다", TEXT]]
 		&"open", &"close":
 			var what := "열었다" if e.t == &"open" else "닫았다"
 			if id == after.player().id:

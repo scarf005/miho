@@ -265,10 +265,11 @@ func damage(distance: int) -> int:
 
 
 ## The light this projectile carries: {radius, color}, or empty for none. A
-## bullet carries none.
+## bullet carries none; a wisp of 수 darkness, a tile wider for every 수 past
+## the first.
 func light(faction: int) -> Dictionary:
 	if has(Cards.WATER):
-		return {} if orb else {radius = 3, color = Light.DARK}
+		return {} if orb else {radius = 3 + extra(Cards.WATER), color = Light.DARK}
 	if gun() and not orb:
 		return {}
 	var color: Vector3 = Light.FIRE if has(Cards.FIRE) else Light.SIDE[faction]

@@ -49,13 +49,23 @@ const SPELLS := {
 		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
 		+ "shape and effect, which a projectile carries to the 3x3 where it ends). Metal makes "
 		+ "fox a bullet and orb a cannonball; wood on an orb grows a "
-		+ "wooden wall. The forecast lists every number. Every card costs one tail, and all cards "
+		+ "wooden wall. dir self casts it on Miho: only fox with water (그림자, a dark wisp "
+		+ "on her). The forecast lists every number. Every card costs one tail, and all cards "
 		+ "together cost at most the unspent tails."
 	),
 	items =
 	{
 		type = "object",
-		properties = {cards = {type = "array", items = {type = "string"}}, dir = DIRS},
+		properties =
+		{
+			cards = {type = "array", items = {type = "string"}},
+			dir =
+			{
+				"type": "string",
+				"enum": ["n", "ne", "e", "se", "s", "sw", "w", "nw", "self"],
+				"description": "Direction, or self."
+			},
+		},
 		required = ["cards", "dir"],
 	},
 }
@@ -330,9 +340,10 @@ func _cast(spells: Variant) -> Dictionary:
 	var out := []
 	for one: Variant in spells:
 		var names: Variant = one.get("cards") if one is Dictionary else null
-		var dir := Observation.dir_of(one.get("dir")) if one is Dictionary else Vector2i.ZERO
-		if not names is Array or dir == Vector2i.ZERO:
-			return {error = "Each spell needs cards (a list of names) and a dir."}
+		var aim: Variant = one.get("dir") if one is Dictionary else null
+		var dir := Observation.dir_of(aim)
+		if not names is Array or (dir == Vector2i.ZERO and aim != "self"):
+			return {error = "Each spell needs cards (a list of names) and a dir, or self."}
 		var cards := []
 		for n in names:
 			var card := _card(n)
@@ -364,8 +375,8 @@ func _refusal(action: Dictionary) -> String:
 		"That cast is not allowed: each spell needs talismans Miho holds, "
 		+ "filling at most 5 slots, "
 		+ (
-			"its own open direction, and all cards together cost at most the %d unspent tails."
-			% world.tails
+			"its own open direction (self only for fox with water), "
+			+ "and all cards together cost at most the %d unspent tails." % world.tails
 		)
 	)
 

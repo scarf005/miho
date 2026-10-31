@@ -451,7 +451,8 @@ func _can_close(dir: Vector2i) -> bool:
 
 
 ## Every spell is valid and known, takes its own open direction (a leap one
-## it lands along), and the cards together cost no more than the unspent tails.
+## it lands along) or none, on Miho herself (Guise), and the cards together
+## cost no more than the unspent tails.
 func _can_cast(spells: Array) -> bool:
 	var me := player()
 	if me.stunned > 0 or spells.is_empty():
@@ -464,7 +465,7 @@ func _can_cast(spells: Array) -> bool:
 			return false
 		cost += spell.cost()
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
-		if not Grid.DIRS.has(d) or not Leap.open(self, me, spell, d) or aims.has(d):
+		if not Leap.open(self, me, spell, d) or aims.has(d):
 			return false
 		aims[d] = true
 	return cost <= tails
@@ -520,6 +521,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Compounds.tick(self)
 	Gas.tick(self)
 	Terrain.unseal(self)
+	Guise.tick(self)
 	_end_round()
 	sense()
 	return events
@@ -679,6 +681,8 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
+	if Guise.cast(self, caster, spell, dir):
+		return
 	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
 		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
 		return

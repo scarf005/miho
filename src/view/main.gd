@@ -3,7 +3,8 @@ extends Node
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
 ## with claws. 1-8 put talismans in the queue (Spell); with a queue a direction
 ## hurls the spell (or leaps that way), and Shift with a direction holds it so
-## several spells leave in one turn. Space, Enter or . waits, or with a queue
+## several spells leave in one turn; , casts it on Miho (Guise), as does a click
+## on her. Space, Enter or . waits, or with a queue
 ## hurls it at the cursor (or casts what is held). Picking from the keyboard puts the cursor on the
 ## nearest creature in sight, and Tab moves it to the next. QWEASD fill the
 ## queue with a saved spell, F with the last spell hurled. Esc clears the queue
@@ -273,6 +274,8 @@ func _key(event: InputEventKey) -> void:
 			_aim()
 	elif action in [&"wait", &"confirm"] and not picked.is_empty():
 		_hurl_at_cursor()
+	elif action == &"self" and not picked.is_empty():
+		_direction(Vector2i.ZERO, event.shift_pressed)
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
@@ -339,12 +342,12 @@ func _eats_move() -> bool:
 	return eat
 
 
-## What a left click on `tile` does: nothing on Miho's own (a stray click must not
-## pass the turn), hurl towards another with talismans picked, step to a
-## neighbour, or walk to a farther tile.
+## What a left click on `tile` does: on Miho's own, cast the talismans picked on
+## her, or nothing (a stray click must not pass the turn); hurl towards another
+## with talismans picked, step to a neighbour, or walk to a farther tile.
 func _use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
-	if tile == me:
+	if tile == me and picked.is_empty():
 		return
 	if not picked.is_empty():
 		_direction(Grid.nearest_dir(tile - me), hold)
@@ -521,7 +524,8 @@ func _clear() -> void:
 	_forecast()
 
 
-## With talismans picked a direction hurls them (Shift holds them); otherwise it moves.
+## With talismans picked a direction hurls them (Shift holds them), and no
+## direction casts them on Miho; otherwise it moves.
 ## Space and the like hurl towards the cursor through here.
 func _direction(d: Vector2i, hold: bool) -> void:
 	if picked.is_empty():
@@ -529,6 +533,10 @@ func _direction(d: Vector2i, hold: bool) -> void:
 			_act({t = &"cast", spells = staged.duplicate()})
 		elif staged.is_empty():
 			_act({t = &"move", dir = d})
+		return
+	var why := Guise.why(world.player(), Spell.make(picked)) if d == Vector2i.ZERO else ""
+	if why != "":
+		_refuse(why)
 		return
 	var spells := staged.duplicate()
 	spells.append({cards = picked.duplicate(), dir = d})

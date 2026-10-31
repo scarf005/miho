@@ -65,6 +65,10 @@ static func entries(tab_index: int) -> Array[Dictionary]:
 					_entry(Palette.shot_glyph(s), color, Spell.SHAPE_NAME[kind], _shape(kind))
 				)
 			out.append(_entry(":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY)))
+			for kind in Guise.RECIPE:
+				var s := Spell.make(Guise.RECIPE[kind])
+				var lines := func(): return SpellInfo.own(kind)
+				out.append(_entry(",", Palette.card(s.slots.back()), Guise.NAME[kind], lines))
 		2:
 			for c in Cards.PAIRS:
 				var lines := func(): return SpellInfo.combo(c)

@@ -145,6 +145,17 @@ func test_a_cast_spends_tails_and_a_cast_the_tails_cannot_pay_is_refused() -> vo
 	assert_true(r.error, "no tail is left")
 
 
+func test_a_cast_on_self_lays_the_shadow_and_a_thrown_spell_is_refused_there() -> void:
+	var tools := _game()
+	tools.world.tails = 2
+	tools.world.cards.append(Cards.WATER)
+	var r := _call(tools, "act", {action = "cast", spells = [{cards = ["fox"], dir = "self"}]})
+	assert_true(r.error, "a lone wisp does not go on Miho")
+	r = _call(tools, "act", {action = "cast", spells = [{cards = ["fox", "water"], dir = "self"}]})
+	assert_false(r.error)
+	assert_true(tools.world.shots.any(func(s): return s.host == tools.world.player().id))
+
+
 func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:
 	var tools := _game(3)
 	var r := _call(tools, "act", {action = "explore"})

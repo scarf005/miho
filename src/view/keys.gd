@@ -28,6 +28,7 @@ const ACTIONS := {
 	&"move_nw": ["왼쪽 위로", ["Kp 7", "Y"]],
 	&"wait": ["기다리기", ["Period", "Kp 5", "Kp Period"]],
 	&"confirm": ["던지기", ["Enter", "Kp Enter", "Space"]],
+	&"self": ["자신에게 걸기", ["Comma"]],
 	&"pick_1": ["부적 1", ["1"]],
 	&"pick_2": ["부적 2", ["2"]],
 	&"pick_3": ["부적 3", ["3"]],

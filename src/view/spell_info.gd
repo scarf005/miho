@@ -76,6 +76,8 @@ static func spell(s: Spell) -> Array:
 	for c in s.slots:
 		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
+	if Guise.kind(s) != &"":
+		lines.append_array(ward(s))
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -102,6 +104,30 @@ static func spell(s: Spell) -> Array:
 	lines.append(_line("빛", light + (". " + MUZZLE if s.gun() else "")))
 	lines.append(_line("소리", _sound(s)))
 	return lines
+
+
+## A spell that goes on Miho herself (Guise): its name and talismans, then
+## what it does there.
+static func own(kind: StringName) -> Array:
+	var s := Spell.make(Guise.RECIPE[kind])
+	var made := [["만드는 법 ", LABEL]]
+	for c in s.slots:
+		made.append([Cards.GLYPH[c] + " ", Palette.card(c)])
+	return (
+		[[[Guise.NAME[kind], Palette.card(s.slots.back())], [" " + _cost(s), LABEL]], made]
+		+ ward(s)
+	)
+
+
+## What `s` does cast on Miho herself, with , or a click on her.
+static func ward(s: Spell) -> Array:
+	var on := "자신에게 (,)"
+	var dark: int = s.light(Actor.FOX).radius
+	return [
+		_line(on, "그림자. %d초 동안 당신 둘레 %d칸이 어두워진다" % [Spell.WISP_LIFE, dark]),
+		_line(Guise.NAME[Guise.SHADOW], "소리가 없다. 바로 옆 칸에서는 보인다"),
+		_line(Guise.NAME[Guise.SHADOW], "둘레에 불이 붙거나 등불이 켜지면 걷힌다"),
+	]
 
 
 ## Shape and effect of a spray, with every number, a short line each.
