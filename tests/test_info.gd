@@ -83,6 +83,11 @@ func test_a_queue_slot_tells_its_talisman_and_the_whole_spell() -> void:
 	assert_string_contains(text, "꼬리: 3")
 
 
+func test_a_lone_talisman_s_slot_heads_its_hover_once() -> void:
+	var lines := SpellInfo.slot(Spell.make([Cards.FOX]), 0).map(Messages.plain)
+	assert_eq(lines.filter(func(l): return l.contains("꼬리")).size(), 1, "\n".join(lines))
+
+
 func test_a_homing_shot_in_flight_tells_whom_it_chases_and_how_it_turns() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(3, 0))
