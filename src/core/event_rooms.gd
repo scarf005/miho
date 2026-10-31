@@ -15,6 +15,7 @@ extends RefCounted
 ## 혼불 제단 (Altar): three creatures of heaven fall around the altar.
 ## 도깨비불 장막 (Veil): a line of fire splits a room; water or frost puts it out.
 ## 장승 마당 (Yard): a lit yard with a guard that never sleeps and a talisman.
+## 삐걱 마루 (Creak): a room of creaking boards and a sleeping 해태.
 
 ## The chance of a treasure room.
 const VAULTS := 0.4
@@ -23,6 +24,7 @@ const ROWS := [
 	{kind = &"altar", tier = 1, chance = 0.12},
 	{kind = &"veil", tier = 1, chance = 0.12},
 	{kind = &"yard", tier = 1, chance = 0.12},
+	{kind = &"creak", tier = 3, chance = 0.12},
 ]
 
 
@@ -39,12 +41,12 @@ static func build(w: World, home: Rect2i) -> void:
 
 
 ## Builds a `kind` room in the first room but `home`, in a shuffled order, that
-## can hold one; it leaves w.rooms.
+## has no hidden door and can hold one; it leaves w.rooms.
 static func _try(w: World, home: Rect2i, rng: RandomNumberGenerator, kind: StringName) -> bool:
 	var rooms := w.rooms.filter(func(r): return r != home)
 	FloorGen.shuffle(rng, rooms)
 	for r: Rect2i in rooms:
-		if _make(w, kind, r, rng):
+		if not doorways(w, r).any(func(p): return w.secrets.has(p)) and _make(w, kind, r, rng):
 			w.rooms.erase(r)
 			w._changed()
 			return true
@@ -61,6 +63,8 @@ static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenera
 			return Veil.make(w, r, rng)
 		&"yard":
 			return Yard.make(w, r, rng)
+		&"creak":
+			return Creak.make(w, r)
 	return false
 
 
@@ -86,3 +90,5 @@ static func tick(w: World) -> void:
 		match site.kind:
 			&"altar":
 				Altar.tick(w, site)
+			&"creak":
+				Creak.tick(w, site)

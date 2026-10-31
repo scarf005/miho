@@ -122,7 +122,7 @@ func test_a_seed_builds_the_same_veil_every_time() -> void:
 		assert_eq(a.peaches, b.peaches)
 
 
-func test_make_splits_a_room_with_one_door_and_refuses_those_it_cannot() -> void:
+func test_make_splits_a_room_with_one_door_and_refuses_one_it_cannot() -> void:
 	var w := _world()
 	w.tiles.fill(World.WALL)
 	var room := Rect2i(10, 5, 10, 5)
@@ -150,17 +150,6 @@ func test_make_splits_a_room_with_one_door_and_refuses_those_it_cannot() -> void
 	assert_false(Veil.make(small, tiny, rng), "doors on both ends")
 	assert_true(_veils(small).is_empty())
 	assert_true(small.peaches.is_empty())
-	var hidden := _world()
-	hidden.tiles.fill(World.WALL)
-	for y in range(room.position.y, room.end.y):
-		for x in range(room.position.x, room.end.x):
-			_put(hidden, Vector2i(x, y), World.FLOOR)
-	hidden.secrets[Vector2i(9, 7)] = true
-	assert_false(Veil.make(hidden, room, rng), "no way in but a hidden door")
-	_put(hidden, Vector2i(11, 4), World.FLOOR)
-	hidden.secrets[Vector2i(9, 7)] = true
-	assert_false(Veil.make(hidden, room, rng), "a hidden door among the ways in")
-	assert_true(_veils(hidden).is_empty())
 
 
 # --- the fire ----------------------------------------------------------------

@@ -46,7 +46,7 @@ static func at(w: World, p: Vector2i) -> Array:
 static func creature(w: World, a: Actor) -> Array:
 	if a.faction == Actor.FOX:
 		return _miho(w, a, _head(a))
-	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
+	return _profile(a) + _situation(w, a) + _site_lines(w, a) + _arms(a, w.cards)
 
 
 ## What a creature is, whatever its state: the 도감's text. `held` are the
@@ -425,6 +425,15 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 	if w.wet.has(p):
 		return [["젖어서 소리가 나지 않는다 (%d초)" % w.wet[p], Palette.SIDE[0]]]
 	return [["물에 젖으면 %d초 동안 소리가 없다" % Drums.WET_ROUNDS, Palette.DIM]]
+
+
+## What the creature's fall would bring in an event room (Creak).
+static func _site_lines(w: World, a: Actor) -> Array:
+	var out := []
+	for site: Dictionary in w.sites:
+		if site.kind == &"creak" and site.id == a.id:
+			out.append([["마루의 해태. 쓰러지면 꼬리가 모두 돌아온다", Palette.TEXT]])
+	return out
 
 
 ## How the event room whose tile p is stands now (EventRooms).

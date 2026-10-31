@@ -16,11 +16,11 @@ const FAR := 3
 
 
 ## Splits room r with a veil of fire and lays a peach beyond it; false, with
-## nothing changed, when r is small, has a hidden door, or no line leaves all its
-## doorways on one side, two tiles or more from it.
+## nothing changed, when r is small or no line leaves all its doorways on one
+## side, two tiles or more from it.
 static func make(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	var doors := EventRooms.doorways(w, r)
-	if doors.is_empty() or doors.any(func(p): return w.secrets.has(p)):
+	if doors.is_empty():
 		return false
 	var plans := [[false, false], [false, true], [true, false], [true, true]]
 	FloorGen.shuffle(rng, plans)
