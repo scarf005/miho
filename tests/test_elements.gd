@@ -98,13 +98,13 @@ func test_a_fire_wisp_sets_any_creature_it_strikes_alight() -> void:
 	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "and each round after")
 
 
-## A dokkaebi two tiles east has hurled its wisp at Miho, who has 5 health; the
-## round is not yet run.
+## A 부지깽이 도깨비 two tiles east has hurled its fire wisp at Miho, who has 5
+## health; the round is not yet run.
 func _wisp_at_miho() -> World:
 	var w := _world()
 	w.player().hp = 5
 	w.player().max_hp = 5
-	var foe := _post(w, ME + Vector2i(2, 0), &"dokkaebi")
+	var foe := _post(w, ME + Vector2i(2, 0), &"bujigaengi")
 	foe.rooted = 99
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
 	w.sense()

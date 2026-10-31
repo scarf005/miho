@@ -223,7 +223,7 @@ func test_a_fire_wisp_sets_a_creature_alight_and_it_burns_from_the_next_round() 
 
 func test_fire_never_sets_miho_alight_only_her_tile_which_she_steps_off() -> void:
 	var w := _world()
-	var dog := _post(w, ME + E * 2, &"dokkaebi")
+	var dog := _post(w, ME + E * 2, &"bujigaengi")
 	dog.rooted = 99
 	w.cast(dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
 	w.sense()

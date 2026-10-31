@@ -86,7 +86,8 @@ func test_elements_that_do_not_beat_it_deal_the_plain_harm() -> void:
 func test_weakness_follows_the_beats_table_both_ways() -> void:
 	assert_eq(Bestiary.weak_to(&"cheonha"), [Cards.METAL] as Array[StringName])
 	assert_eq(Bestiary.weak_to(&"haetae"), [Cards.EARTH] as Array[StringName])
-	assert_eq(Bestiary.weak_to(&"dokkaebi"), [Cards.WATER] as Array[StringName])
+	assert_eq(Bestiary.weak_to(&"bujigaengi"), [Cards.WATER] as Array[StringName])
+	assert_eq(Bestiary.weak_to(&"dokkaebi"), [] as Array[StringName])
 	assert_eq(Bestiary.weak_to(&"miho"), [] as Array[StringName])
 	assert_eq(
 		Bestiary.weak_to(&"cheonnyeon"),
