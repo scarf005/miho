@@ -8,19 +8,24 @@ extends RefCounted
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
-## What a drum does, one sentence a line; %d is how far heaven runs to it.
+## What a door does when it slides, and burns.
+const DOOR_NOTE := "드르륵 소리 %d칸. 불에 탄다" % Terrain.SLIDE
+## What a drum does, a short sentence a line; %d is how far heaven runs to it.
 const DRUM_NOTE := (
-	"치면 둥 소리가 층 전체에 퍼진다\n"
-	+ "듣는 적은 친 적이 당신을 본 곳을 수색한다\n"
-	+ "영리한 적은 걸어서 %d칸 안에서 당신을 쫓으면 달려와 친다\n"
-	+ "구슬에 맞거나 부딪치면 찢어진다. 불에 탄다"
+	"치면 층 전체에 둥 소리가 난다\n"
+	+ "듣는 적은 친 적이 당신을\n"
+	+ "마지막으로 본 곳을 수색한다\n"
+	+ "영리한 적은 걸어서 %d칸 안에서\n"
+	+ "당신을 쫓으면 달려와 친다\n"
+	+ "구슬이나 몸으로 부딪치면 찢어진다\n"
+	+ "불에 탄다"
 )
 ## tile -> [name, what it does, health or 0 when it cannot break]
 const TERRAIN := {
 	World.FLOOR: ["바닥", "", 0],
 	World.WALL: ["벽", "", 2],
-	World.DOOR: ["문", "닫혀 있다. 시야를 막고 빛은 지나간다. 밀면 열린다 (드르륵 소리 %d칸). 불에 탄다" % Terrain.SLIDE, 1],
-	World.DOOR_OPEN: ["열린 문", "시야와 빛이 지나간다. C로 닫는다 (드르륵 소리 %d칸). 불에 탄다" % Terrain.SLIDE, 0],
+	World.DOOR: ["문", "닫혀 있다\n시야는 막고 빛은 지나간다\n" + DOOR_NOTE, 1],
+	World.DOOR_OPEN: ["열린 문", "시야와 빛이 지나간다\n문 닫기 키로 닫는다\n" + DOOR_NOTE, 0],
 	World.LANTERN: ["등불", "주위 6칸을 밝힌다", 1],
 	World.LANTERN_OUT: ["꺼진 등불", "불로 다시 켤 수 있다. 수색하는 적도 켠다", 1],
 	World.BAMBOO: ["대숲", "안이 보이지 않는다. 사각 소리 2칸. 불에 탄다", 0],
@@ -215,7 +220,7 @@ static func terrain(w: World, p: Vector2i) -> Array:
 static func _drum_line(w: World, p: Vector2i) -> Array:
 	if w.wet.has(p):
 		return [["젖어서 소리가 나지 않는다 (%d초)" % w.wet[p], Palette.SIDE[0]]]
-	return [["물에 젖으면 %d초 동안 소리가 나지 않는다" % Drums.WET_ROUNDS, Palette.DIM]]
+	return [["물에 젖으면 %d초 동안 소리가 없다" % Drums.WET_ROUNDS, Palette.DIM]]
 
 
 static func _light_line(w: World, p: Vector2i) -> Array:
