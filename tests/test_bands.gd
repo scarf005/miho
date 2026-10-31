@@ -222,11 +222,9 @@ func test_a_sleeping_follower_reads_asleep() -> void:
 
 func test_the_doc_tells_which_creatures_come_in_bands() -> void:
 	var band := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), []))
-	assert_string_contains(band, "최대 %d마리 무리로 나온다" % FloorGen.BAND)
-	assert_string_contains(band, "가장 센 적이 우두머리")
-	assert_string_contains(band, "쓰러지면 흩어진다")
+	assert_string_contains(band, "최대 %d마리 무리, 우두머리는 가장 센 적" % FloorGen.BAND)
 	for kind in [&"jangseung", &"cheonnyeon"]:
-		assert_false(Info.plain(Info.creature_facts(Codex.foe(kind), [])).contains("무리로 나온다"))
+		assert_false(Info.plain(Info.creature_facts(Codex.foe(kind), [])).contains("우두머리"))
 
 
 func test_the_log_and_the_agent_tell_the_scattering_and_the_band() -> void:

@@ -73,8 +73,7 @@ static func _profile(a: Actor) -> Array:
 	lines.append([["무리: ", Palette.DIM], [Bestiary.GROUPS[a.info().group], Palette.TEXT]])
 	lines.append([["다른 무리에게 맞으면 %d초 싸운다" % Mind.GRUDGE_ROUNDS, Palette.DIM]])
 	if Bestiary.bands(a.kind):
-		lines.append([["최대 %d마리 무리로 나온다" % FloorGen.BAND, Palette.DIM]])
-		lines.append([["가장 센 적이 우두머리, 쓰러지면 흩어진다", Palette.DIM]])
+		lines.append([["최대 %d마리 무리, 우두머리는 가장 센 적" % FloorGen.BAND, Palette.DIM]])
 	return lines
 
 
@@ -154,8 +153,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 		lines.append([["당신을 보면 외친다: ", Palette.TEXT]] + said)
 		lines.append([["들은 적은 그곳을 수색한다", Palette.DIM]])
 	if spec.get("hat", false):
-		lines.append([["감투: %d칸 안에서만 보인다" % Hat.REACH, Palette.DIM]])
-		lines.append([["도깨비불이 붙으면 보인다", Palette.DIM]])
+		lines.append([["감투: %d칸 안이나 도깨비불이 붙으면 보임" % Hat.REACH, Palette.DIM]])
 	if Bestiary.flees(a.kind):
 		lines.append([["체력 1이면 도망친다", Palette.DIM]])
 	elif spec.get("brave", false):
