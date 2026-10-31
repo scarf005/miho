@@ -64,6 +64,7 @@ const FLASH := 2
 const KNOCK := 4
 const BURN_ROUNDS := 3
 const FIRE_DAMAGE := 2
+const HEAL := 1
 const CRACKLE := 3
 const SPREAD := 0.5
 
@@ -406,8 +407,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				if peaches.has(me.pos):
 					peaches.erase(me.pos)
 					var grew := me.hp >= me.max_hp
-					me.max_hp += 1 if grew else 0
-					me.hp += 1
+					me.max_hp += HEAL if grew else 0
+					me.hp += HEAL
 					emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
 		&"cast":
 			for one: Dictionary in action.spells:
@@ -812,5 +813,5 @@ func _ascend() -> void:
 	emit({t = &"ascend", depth = depth})
 	var me := player()
 	if me.hp < me.max_hp:
-		me.hp += 1
+		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp})
