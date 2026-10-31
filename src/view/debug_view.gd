@@ -32,6 +32,32 @@ static func view(w: World) -> Dictionary:
 	return {goals = goals, scent = scent, sounds = sounds}
 
 
+## Draws the overlay on `t` from t.debug: Miho's scent trail (fresher is
+## brighter), the tiles each sound of this round reached with its edge and
+## word marked, and for each creature on the hunt or search a line to the tile
+## it is bound for. It adds no popup or mark: those are Perceived's.
+static func draw(t: Term) -> void:
+	for p: Vector2i in t.debug.get("scent", {}):
+		if t._shown(p):
+			var tint := Color(Palette.SIDE[0], 0.06 + 0.3 * t.debug.scent[p])
+			t.draw_rect(Rect2(t._cell(p) * Term.CELL, Term.CELL), tint)
+	for s: Dictionary in t.debug.get("sounds", []):
+		for p: Vector2i in s.reach:
+			if t._shown(p):
+				var edge: bool = s.reach[p] == s.loud
+				var c := Color(Palette.SOUND, 0.22 if edge else 0.05)
+				t.draw_rect(Rect2(t._cell(p) * Term.CELL, Term.CELL), c)
+		if t._shown(s.at):
+			t._small(t._cell(s.at), s.word, Palette.SOUND)
+	for g: Dictionary in t.debug.get("goals", []):
+		var c: Color = Palette.ALERT[g.alert]
+		if t._shown(g.from) and t._shown(g.to):
+			t.draw_line(t.cell_centre(g.from), t.cell_centre(g.to), Color(c, 0.4), 2.0)
+		if t._shown(g.to):
+			var box := Rect2(t._cell(g.to) * Term.CELL, Term.CELL).grow(-6)
+			t.draw_rect(box, Color(c, 0.9), false, 2.0)
+
+
 ## What hovering tile p tells with the overlay on: every tile, creatures
 ## wherever they are, with their hidden state.
 static func at(w: World, p: Vector2i) -> Array:

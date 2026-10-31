@@ -96,6 +96,8 @@ var _actors := {}
 var _shots := {}
 var _animating := false
 var _popups: Array[Dictionary] = []
+## event index -> the Perceived fact of the round being played.
+var _told := {}
 var _flashes: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
@@ -209,10 +211,11 @@ func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> D
 ## Animates one round from `before` to `after`, then shows `after`.
 func play(events: Array, before: World, after: World) -> void:
 	world = after
-	_vis = before.seen.duplicate()
-	for i in after.seen.size():
-		if after.seen[i] == 1:
-			_vis[i] = 1
+	var perceived := Perceived.of(before, after, events)
+	_vis = perceived.vis
+	_told.clear()
+	for f in perceived.facts:
+		_told[f.i] = f
 	_actors.clear()
 	for a in before.actors:
 		if a.alive():
@@ -221,27 +224,48 @@ func play(events: Array, before: World, after: World) -> void:
 	for s in before.shots:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
-	for e in events:
-		var wait := _apply(e)
+	for i in events.size():
+		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0:
 			await get_tree().create_timer(wait / speed).timeout
 	show_world(after)
 
 
+## Whether Miho sees tile p: what the log and the popups are told from.
 func _visible(p: Vector2i) -> bool:
+	return Perceived.sees(_vis, p)
+
+
+## Whether tile p is drawn: seen, or any tile with the debug view on.
+func _revealed(p: Vector2i) -> bool:
 	return Grid.inside(p) and (not debug.is_empty() or _vis[Grid.index(p)] == 1)
 
 
-## Applies one event to what is drawn; returns how long to hold it.
-func _apply(e: Dictionary) -> float:
+## The popup a fact shows over its tile, or empty: {at, text, color, life}.
+static func popup_of(fact: Dictionary) -> Dictionary:
+	var at: Vector2i = fact.where
+	match fact.t:
+		&"hurt":
+			return {at = at, text = str(fact.n), color = Palette.HURT, life = 0.9}
+		&"notice":
+			return {at = at, text = "!", color = Palette.ALERT[2], life = 0.9}
+		&"card":
+			return {
+				at = at, text = Cards.GLYPH[fact.card], color = Palette.CARD[fact.card], life = 1.6
+			}
+		&"heal":
+			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
+		&"noise":
+			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
+	return {}
+
+
+## Applies one event to what is drawn; `fact` is what Miho is told of it, or
+## empty. Returns how long to hold it.
+func _apply(e: Dictionary, fact: Dictionary) -> float:
 	var at: Vector2i = e.get("to", e.get("at", Vector2i(-1, -1)))
 	if not Grid.inside(at) and _actors.has(e.get("id", -1)):
 		at = _actors[e.id].pos
-	var seen := (
-		not Grid.inside(at) and not e.has("id")
-		or _visible(at)
-		or (e.has("from") and _visible(e.from))
-	)
 	match e.t:
 		&"move":
 			if _actors.has(e.id):
@@ -268,32 +292,18 @@ func _apply(e: Dictionary) -> float:
 			for d in Grid.DIRS:
 				_flash(at + d, Color(Palette.BURNING[1], 0.85), 0.07)
 			_flash(at, Color(Palette.BURNING[1], 0.9), 0.14)
-		&"hurt":
-			_popup(at, str(e.n), Palette.HURT)
 		&"die":
 			_actors.erase(e.id)
-		&"notice":
-			_popup(at, "!", Palette.ALERT[2])
 		&"flash":
 			for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
 				_flash(at + d * 1, Color(1, 1, 1, 0.9))
-		&"card":
-			_popup(at, Cards.GLYPH[e.card], Palette.CARD[e.card], 1.6)
-		&"heal":
-			_popup(at, "+1", Palette.PEACH[1])
-		&"noise":
-			if e.heard and not _visible(e.at):
-				_popup(e.at, e.word, Palette.SOUND, 1.4)
-				shown.emit(e, cell_centre(e.at))
-			return 0.0
-	if not seen:
+	if fact.is_empty():
 		return 0.0
-	shown.emit(e, cell_centre(at))
+	var popup := popup_of(fact)
+	if not popup.is_empty():
+		_popups.append(popup.merged({born = _time}))
+	shown.emit(e, cell_centre(fact.where))
 	return DELAY.get(e.t, 0.0)
-
-
-func _popup(at: Vector2i, text: String, color: Color, life := 0.9) -> void:
-	_popups.append({at = at, text = text, color = color, born = _time, life = life})
 
 
 ## A tile lit up for a moment, starting `after` seconds from now.
@@ -457,7 +467,7 @@ func _draw() -> void:
 	_draw_telegraphs(actors)
 	if not _animating:
 		_draw_paths()
-		_draw_debug()
+		DebugView.draw(self)
 	_draw_things(light, actors)
 	for f in _flashes:
 		if not _shown(f.at) or _time < f.born:
@@ -574,7 +584,7 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 func _draw_telegraphs(actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction == Actor.FOX or a.intent.is_empty() or not _visible(a.pos):
+		if a.faction == Actor.FOX or a.intent.is_empty() or not _revealed(a.pos):
 			continue
 		var spell := Spell.make(a.intent)
 		var ray := Forecast.ray(world, a.pos, a.aim)
@@ -594,7 +604,7 @@ func _draw_telegraphs(actors: Dictionary) -> void:
 ## to the wall, a wisp to the end of its range, a homing orb one tile ahead.
 func _draw_paths() -> void:
 	for s in world.shots:
-		if s.dir == Vector2i.ZERO or not _visible(s.pos):
+		if s.dir == Vector2i.ZERO or not _revealed(s.pos):
 			continue
 		var ray := Forecast.ray(world, s.pos, s.dir)
 		if s.spell.homing():
@@ -612,31 +622,6 @@ func _draw_paths() -> void:
 					_glyph(_cell(p), Palette.BOLT[s.dir], Color(c, 0.8))
 
 
-## The debug view: Miho's scent trail (fresher is brighter), the tiles each
-## sound of this round reached with its edge and word marked, and for each
-## creature on the hunt or search a line to the tile it is bound for.
-func _draw_debug() -> void:
-	for p: Vector2i in debug.get("scent", {}):
-		if _shown(p):
-			var tint := Color(Palette.SIDE[0], 0.06 + 0.3 * debug.scent[p])
-			draw_rect(Rect2(_cell(p) * CELL, CELL), tint)
-	for s: Dictionary in debug.get("sounds", []):
-		for p: Vector2i in s.reach:
-			if _shown(p):
-				var edge: bool = s.reach[p] == s.loud
-				draw_rect(
-					Rect2(_cell(p) * CELL, CELL), Color(Palette.SOUND, 0.22 if edge else 0.05)
-				)
-		if _shown(s.at):
-			_small(_cell(s.at), s.word, Palette.SOUND)
-	for g: Dictionary in debug.get("goals", []):
-		var c: Color = Palette.ALERT[g.alert]
-		if _shown(g.from) and _shown(g.to):
-			draw_line(cell_centre(g.from), cell_centre(g.to), Color(c, 0.4), 2.0)
-		if _shown(g.to):
-			draw_rect(Rect2(_cell(g.to) * CELL, CELL).grow(-6), Color(c, 0.9), false, 2.0)
-
-
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 	var shots := _shots if _animating else _world_shots()
 	for id in shots:
@@ -645,7 +630,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		var c := Palette.shot_color(s.spell, s.faction)
 		for k in tail.size():
 			var p: Vector2i = tail[k]
-			if p == s.pos or not _visible(p) or not _shown(p):
+			if p == s.pos or not _revealed(p) or not _shown(p):
 				continue
 			var fade := float(k + 1) / tail.size()
 			var r := Rect2(_cell(p) * CELL, CELL)
@@ -654,13 +639,13 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			_glyph(_cell(p), "•" if k >= tail.size() - 2 else "·", Color(c, 0.35 + 0.65 * fade))
 	for id in shots:
 		var s: Dictionary = shots[id]
-		if _visible(s.pos) and _shown(s.pos):
+		if _revealed(s.pos) and _shown(s.pos):
 			_glyph(
 				_cell(s.pos), Palette.shot_glyph(s.spell), Palette.shot_color(s.spell, s.faction)
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and not _visible(a.pos) or not _shown(a.pos):
+		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos):
 			continue
 		var cell := _cell(a.pos)
 		var l := light[Grid.index(a.pos)]
@@ -674,10 +659,8 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		if tints.has(a.pos):
 			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
 		_glyph(cell, a.info().glyph, c)
-		if a.faction != Actor.FOX:
-			var mark: String = Palette.ALERT_MARK[a.alert]
-			if a.blind > 0:
-				mark = "x"
+		if a.faction != Actor.FOX and _visible(a.pos):
+			var mark := Perceived.mark_of(a)
 			if mark != "":
 				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.alert, 1)])
 	for p in marks:
@@ -688,7 +671,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 
 func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	var list: Array = actors.values().filter(
-		func(a): return a.faction != Actor.FOX and _visible(a.pos)
+		func(a): return a.faction != Actor.FOX and _revealed(a.pos)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
 	return list.slice(0, (rows - 2) / SIDE_ROWS)
