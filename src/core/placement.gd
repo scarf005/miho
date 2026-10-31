@@ -6,7 +6,9 @@ extends RefCounted
 ##
 ## what, on: the tile kind laid, and the one it replaces (bare floor). A row
 ## lays `gas` of `amount` (Gas) in place of `what`, over the tiles of kind `on`,
-## and each of those tiles keeps breathing that gas (World.vents).
+## and each of those tiles keeps breathing that gas (World.vents). A row with
+## `hidden` lays a plate (Traps) that is `what`, but the tile stays `on` until
+## Miho finds it.
 ## tiers: the first and last tier (World.tier, 1 to 9) it appears on.
 ## chance: the percent chance that each patch is laid.
 ## count: [intercept, slope, most]. A storey has (intercept + tier * slope) / 100
@@ -16,7 +18,9 @@ extends RefCounted
 ## `start - step` percent, and so on (Brogue CE spawnDungeonFeature); [0, 0] is a
 ## single tile.
 ##
-## A patch that cuts the storey apart is taken out again.
+## A patch that cuts the storey apart is taken out again; for plates, the storey
+## must stay whole with every plate counted as a wall, since heaven walks round
+## them.
 
 const ROWS := [
 	{
@@ -76,21 +80,62 @@ const ROWS := [
 		count = [50, 25, 2],
 		grow = [100, 30],
 	},
+	{
+		what = World.TRAP_ALARM,
+		hidden = true,
+		on = World.FLOOR,
+		tiers = [1, 9],
+		chance = 100,
+		count = [50, 25, 3],
+		grow = [0, 0],
+	},
+	{
+		what = World.TRAP_COLLAPSE,
+		hidden = true,
+		on = World.FLOOR,
+		tiers = [2, 9],
+		chance = 100,
+		count = [0, 30, 2],
+		grow = [0, 0],
+	},
+	{
+		what = World.TRAP_FIRE,
+		hidden = true,
+		on = World.FLOOR,
+		tiers = [3, 9],
+		chance = 100,
+		count = [0, 30, 2],
+		grow = [0, 0],
+	},
+	{
+		what = World.TRAP_VINE,
+		hidden = true,
+		on = World.FLOOR,
+		tiers = [2, 9],
+		chance = 100,
+		count = [0, 40, 2],
+		grow = [0, 0],
+	},
 ]
 const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 
 
 ## Lays every row's patches for this storey's tier in the rooms but `goal`.
+## Plates draw from a generator of their own, seeded from the world's, so they
+## leave the draws of everything laid after them as they were.
 static func scatter(w: World, goal: Rect2i) -> void:
+	var plates := RandomNumberGenerator.new()
+	plates.seed = w.rng.state
 	for row: Dictionary in ROWS:
 		if w.tier() < row.tiers[0] or w.tier() > row.tiers[1]:
 			continue
-		for i in count(row, w.tier(), w.rng):
+		var rng := plates if row.get("hidden", false) else w.rng
+		for i in count(row, w.tier(), rng):
 			var spots := _spots(w, row, goal)
 			if spots.is_empty():
 				break
-			if w.rng.randi_range(1, 100) <= row.chance:
-				lay(w, row, spots[w.rng.randi_range(0, spots.size() - 1)])
+			if rng.randi_range(1, 100) <= row.chance:
+				lay(w, row, spots[rng.randi_range(0, spots.size() - 1)])
 	w._changed()
 
 
@@ -117,6 +162,7 @@ static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
 	return (
 		w.tile(p) == row.on
 		and not w.gas.has(p)
+		and not w.traps.has(p)
 		and p != w.start
 		and p != w.stairs
 		and p != w.elixir
@@ -127,6 +173,8 @@ static func _put(w: World, row: Dictionary, p: Vector2i) -> void:
 	if row.has("gas"):
 		Gas.put(w, p, row.gas, row.amount)
 		w.vents[p] = row.gas
+	elif row.get("hidden", false):
+		w.traps[p] = row.what
 	else:
 		w.tiles[Grid.index(p)] = row.what
 
@@ -153,7 +201,12 @@ static func lay(w: World, row: Dictionary, at: Vector2i) -> Array[Vector2i]:
 		laid.append_array(next)
 		ring = next
 		chance -= row.grow[1]
-	if row.has("what") and Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
+	if row.get("hidden", false):
+		if not FloorGen.connected(w, w.traps.keys()):
+			for p in laid:
+				w.traps.erase(p)
+			laid.clear()
+	elif row.has("what") and Tiles.walk[row.what] == 0 and not FloorGen.connected(w):
 		for p in laid:
 			w.tiles[Grid.index(p)] = row.on
 		laid.clear()

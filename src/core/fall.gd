@@ -9,18 +9,17 @@ extends RefCounted
 ## at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
 ## Miho takes them as if she had stepped there (World.arrive). A creature that
 ## slides at all gives one `push` event first, at the tile it slides from.
+## A collapsing floor (Traps) drops a creature the same way, from where it stands.
 
 
 static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 	if not Grid.DIRS.has(dir):
 		return
+	var depth := w.depth
 	for i in n:
 		var to := a.pos + dir
 		if w.tile(to) == World.SKY:
-			if a.faction == Actor.HEAVEN:
-				_lose(w, a, to)
-			elif w.depth > 1:
-				_drop(w, a, to)
+			drop(w, a, to)
 			return
 		if not w.vacant(to):
 			return
@@ -29,6 +28,17 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 		w.move(a, to)
 		if a.faction == Actor.FOX and w.arrive(a):
 			return
+		if not a.alive() or w.depth != depth:
+			return
+
+
+## `a` falls from its tile into the sky at `into`: a creature of heaven is gone,
+## Miho drops a storey (nothing happens to her on the first).
+static func drop(w: World, a: Actor, into: Vector2i) -> void:
+	if a.faction == Actor.HEAVEN:
+		_lose(w, a, into)
+	elif w.depth > 1:
+		_drop(w, a, into)
 
 
 ## A creature of heaven falls from the edge at `into`.

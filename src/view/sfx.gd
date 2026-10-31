@@ -47,6 +47,7 @@ const WORDS := {
 	"삐걱": &"click",
 	"드르륵": &"click",
 	"둥": &"blast",
+	"댕": &"blast",
 	"찌익": &"clash",
 	"타닥": &"burn",
 }
@@ -162,6 +163,8 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 				play_at(&"blast", at)
 		&"clash", &"snuff", &"absorb", &"claw", &"melee":
 			play_at(&"clash", at)
+		&"trap":
+			play_at(&"click", at)
 		&"hurt":
 			play_at(&"hurt", at)
 		&"die":

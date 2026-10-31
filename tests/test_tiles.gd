@@ -22,6 +22,10 @@ const WALKABLE := [
 	World.ICE,
 	World.THORNS,
 	World.MUD,
+	World.TRAP_ALARM,
+	World.TRAP_COLLAPSE,
+	World.TRAP_FIRE,
+	World.TRAP_VINE,
 ]
 const FLAMMABLE := [
 	World.DOOR,
@@ -57,7 +61,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.MUD + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.TRAP_VINE + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 
@@ -119,3 +123,9 @@ func test_only_shallow_water_ice_and_mud_are_never_taken_by_fire() -> void:
 func test_only_reeds_lie_flat_when_stepped_on() -> void:
 	for t in 256:
 		assert_eq(Tiles.of(t, "trample"), World.REEDS_FLAT if t == World.REEDS else -1, str(t))
+
+
+func test_only_the_four_plates_are_traps() -> void:
+	var plates := [World.TRAP_ALARM, World.TRAP_COLLAPSE, World.TRAP_FIRE, World.TRAP_VINE]
+	for t in 256:
+		assert_eq(Tiles.of(t, "trap"), plates.has(t), "trap %d" % t)

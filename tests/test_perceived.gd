@@ -13,6 +13,8 @@ const POPUP_LINE := {
 	&"card": "부적",
 	&"heal": "회복",
 	&"noise": "소리를 들었다",
+	&"find": "찾았다",
+	&"trap": "밟았다",
 }
 
 

@@ -256,7 +256,8 @@ func _forecast(args: Dictionary) -> Dictionary:
 			var dies := " (dies)" if f.deaths.has(i) else ""
 			out.append("harm dealt: %s -%d%s" % [_whom(world, i), f.harm[i], dies])
 	if f.after.depth != world.depth:
-		out.append("Miho climbs to storey %d" % f.after.depth)
+		var way := "falls" if f.drops_me() else "climbs"
+		out.append("Miho %s to storey %d" % [way, f.after.depth])
 	return _ok("\n".join(out))
 
 

@@ -10,6 +10,7 @@ extends Node
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `peace` (every creature of heaven is gone, for long waits),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `at:x:y` (put Miho there),
+## `trap:x:y:n` (a hidden plate of tile kind n lies there, to be found or stepped on),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
 ## `card:name` (Miho holds that talisman, such as fire),
 ## `gas:x:y:kind:amount` (lay that much gas, a Gas constant, on a tile),
@@ -121,7 +122,7 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
-		"tile", "at", "foe", "hunt", "card", "gas":
+		"tile", "trap", "at", "foe", "hunt", "card", "gas":
 			_stage(parts)
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
@@ -157,13 +158,15 @@ func _send(k: String) -> void:
 				await get_tree().process_frame
 
 
-## Changes the world for a picture: tile, at, foe, hunt, card and gas.
+## Changes the world for a picture: tile, trap, at, foe, hunt, card and gas.
 func _stage(parts: PackedStringArray) -> void:
 	var w: World = main.world
 	var xy := Vector2i(int(parts[-2]), int(parts[-1]))
 	match parts[0]:
 		"tile":
 			w.set_tile(Vector2i(int(parts[1]), int(parts[2])), int(parts[3]))
+		"trap":
+			w.traps[Vector2i(int(parts[1]), int(parts[2]))] = int(parts[3])
 		"at":
 			w.player().pos = xy
 		"foe":

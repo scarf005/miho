@@ -5,11 +5,13 @@ extends RefCounted
 ## sight, the nearest edge of the unexplored, and the reasons a walk stops.
 
 
-## A known open tile that is no thorns, with no creature, fire, hot ground or
-## harmful gas Miho sees on it.
+## A known open tile that is no thorns and holds no plate she has found, with no
+## creature, fire, hot ground or harmful gas Miho sees on it.
 static func walkable(w: World, p: Vector2i) -> bool:
 	var i := Grid.index(p)
 	if w.known[i] == 0 or not w.open_floor(p) or w.tile(p) == World.THORNS:
+		return false
+	if Tiles.of(w.tile(p), "trap"):
 		return false
 	if w.seen[i] == 0:
 		return true
@@ -123,7 +125,8 @@ static func in_sight(w: World) -> Dictionary:
 ## Whether a walk must stop after a round from `before` to `after`: a creature
 ## of heaven came into sight that was not in sight when the walk began (ids in
 ## `sighted`), one Miho sees noticed her, she was hurt, heard a noise, picked
-## up a talisman, or the storey or the game ended.
+## up a talisman, found a plate in the floor, saw one go off, or the storey or
+## the game ended.
 static func interrupted(before: World, after: World, events: Array, sighted: Dictionary) -> bool:
 	if after.depth != before.depth or after.outcome != &"" or not after.heard.is_empty():
 		return true
@@ -133,9 +136,9 @@ static func interrupted(before: World, after: World, events: Array, sighted: Dic
 			&"hurt":
 				if e.id == me:
 					return true
-			&"card":
+			&"card", &"find":
 				return true
-			&"notice":
+			&"notice", &"trap":
 				var i := Grid.index(e.at)
 				if before.seen[i] == 1 or after.seen[i] == 1:
 					return true

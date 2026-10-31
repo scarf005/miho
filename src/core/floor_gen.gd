@@ -149,6 +149,7 @@ static func build(w: World) -> void:
 	w.hot.clear()
 	w.gas.clear()
 	w.vents.clear()
+	w.traps.clear()
 	w.changes.clear()
 	w.bodies.clear()
 	w.round_no = 0
@@ -367,10 +368,13 @@ static func _doors(w: World) -> void:
 					)
 
 
-static func connected(w: World) -> bool:
-	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), Masks.floor_of(w)).dist
-	for i in w.tiles.size():
-		if w.open_floor(Grid.at(i)) and dist[i] < 0:
+## Whether every open tile is reachable from the first room, walking round the
+## tiles in `blocked`.
+static func connected(w: World, blocked: Array = []) -> bool:
+	var open := Masks.floor_of(w, blocked, func(_p): return false)
+	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
+	for i in open.size():
+		if open[i] == 1 and dist[i] < 0:
 			return false
 	return true
 
@@ -476,7 +480,13 @@ static func _blob(w: World, r: Rect2i, t: int) -> Array[Vector2i]:
 
 ## Plain floor that is not the start, the stairs or the elixir.
 static func _bare(w: World, p: Vector2i) -> bool:
-	return w.tile(p) == World.FLOOR and p != w.start and p != w.stairs and p != w.elixir
+	return (
+		w.tile(p) == World.FLOOR
+		and p != w.start
+		and p != w.stairs
+		and p != w.elixir
+		and not w.traps.has(p)
+	)
 
 
 static func _creatures(w: World) -> void:
@@ -506,6 +516,7 @@ static func _by_lantern(w: World) -> Vector2i:
 			var p: Vector2i = Grid.at(i) + d
 			if (
 				w.vacant(p)
+				and not w.traps.has(p)
 				and p != w.stairs
 				and p != w.elixir
 				and dist[Grid.index(p)] >= FOE_DISTANCE
@@ -530,6 +541,7 @@ static func _random_spot(w: World, min_dist: int) -> Vector2i:
 					and p != w.stairs
 					and p != w.elixir
 					and not w.peaches.has(p)
+					and not w.traps.has(p)
 				):
 					spots.append(p)
 	if spots.is_empty():
@@ -543,12 +555,13 @@ static func patrol_point(w: World) -> Vector2i:
 
 
 static func nearest_free(w: World, from: Vector2i) -> Vector2i:
-	if w.vacant(from):
+	if w.vacant(from) and not w.traps.has(from):
 		return from
 	var dist: PackedInt32Array = Grid.search(from, Masks.floor_of(w)).dist
 	var best := -1
 	for i in dist.size():
-		if dist[i] > 0 and w.vacant(Grid.at(i)) and (best < 0 or dist[i] < dist[best]):
+		var free := w.vacant(Grid.at(i)) and not w.traps.has(Grid.at(i))
+		if dist[i] > 0 and free and (best < 0 or dist[i] < dist[best]):
 			best = i
 	return Grid.at(best) if best >= 0 else Vector2i(-1, -1)
 
