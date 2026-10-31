@@ -760,7 +760,9 @@ func _detail_rows() -> int:
 
 
 func _draw_panel() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Palette.VOID, 0.92))
+	draw_rect(
+		Rect2(Vector2.ZERO, size), Color(Palette.VOID, 1.0 if panel.get("opaque", false) else 0.92)
+	)
 	var detail: Array = panel.get("detail", [])
 	for k in detail.size():
 		var y := rows - detail.size() + k
@@ -769,12 +771,27 @@ func _draw_panel() -> void:
 			_text(Vector2(x, y), run[0], run[1])
 			x += _cells(run[0])
 	_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
+	var tab_x := 6.0
+	for k in panel.get("tabs", []).size():
+		_text(Vector2(tab_x, 1), panel.tabs[k], Palette.TEXT if k == panel.tab else Palette.DIM)
+		tab_x += _cells(panel.tabs[k]) + 1.0
+	var aside_x: float = panel.get("aside_x", cols)
+	for k in panel.get("aside", []).size():
+		var x := aside_x
+		for run: Array in panel.aside[k]:
+			_text(Vector2(x, 3 + k), run[0], run[1])
+			x += _cells(run[0])
+	if panel.get("aside_up", false):
+		_glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
+	if panel.get("aside_down", false):
+		_glyph(Vector2(cols - 2, rows - 1), "▼", Palette.DIM)
 	var span := _panel_span()
 	for k in range(span.x, mini(span.x + span.y, panel.rows.size())):
 		var y := 3 + k - span.x
 		if k == panel.get("selected", -1):
 			draw_rect(
-				Rect2(Vector2(1, y) * CELL, Vector2(cols - 2, 1) * CELL), Color(Palette.TEXT, 0.15)
+				Rect2(Vector2(1, y) * CELL, Vector2(minf(aside_x, cols) - 2, 1) * CELL),
+				Color(Palette.TEXT, 0.15)
 			)
 		var x := 2.0
 		for run: Array in panel.rows[k]:
@@ -818,7 +835,7 @@ func _heart(at: Vector2, full: bool, color: Color) -> void:
 
 
 ## Cells a string takes: Hangul is two halves wide, ASCII one half.
-func _cells(s: String) -> float:
+static func _cells(s: String) -> float:
 	var n := 0.0
 	for c in s:
 		n += 1.0 if c.unicode_at(0) > 0x7E else 0.5

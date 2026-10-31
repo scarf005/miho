@@ -54,6 +54,7 @@ const ACTIONS := {
 	&"exclude_clear": ["위험구역 모두 지우기", ["Shift+V"]],
 	&"debug": ["디버그 보기", ["F3"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
+	&"codex": ["도감", ["Slash"]],
 	&"log": ["지난 메시지", ["Ctrl+P", "P"]],
 	&"restart": ["재시작", ["R"]],
 }

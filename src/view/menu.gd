@@ -4,7 +4,8 @@ extends RefCounted
 ## Enter and Esc, or the pointer: help lists every action with its keys;
 ## options change the settings; key settings bind keys to actions; the
 ## spellbook lists the queued spell and the saved ones, with what the selected
-## one does, and a slot key saves it to that slot.
+## one does, and a slot key saves it to that slot; the 도감 (Codex) lists every
+## creature, spell, compound, item and terrain feature.
 ## `key`, `use` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
 ## game), &"cast" (pick `chosen`), or nothing.
@@ -51,12 +52,18 @@ var waiting := false
 ## The spell queued when the spellbook opened (or null), and the spell Enter chose there.
 var queued: Spell
 var chosen: Spell
+## The 도감 page's tab, entry and scroll.
+var codex := Codex.new()
 
 
-func open(p: StringName) -> void:
+## `room` is the screen in cells, for the 도감 page to fit its detail.
+func open(p: StringName, room := Vector2i(40, 18)) -> void:
 	page = p
 	selected = 0
 	waiting = false
+	if p == &"codex":
+		codex = Codex.new()
+		codex.room = room
 
 
 ## What the page shows, as a Term.panel.
@@ -70,6 +77,8 @@ func panel() -> Dictionary:
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
 			return {title = "주문서", rows = _spells(list), selected = selected, detail = detail}
+		&"codex":
+			return codex.panel()
 	return {title = "도움말", rows = _help(), selected = selected}
 
 
@@ -77,6 +86,8 @@ func panel() -> Dictionary:
 func key(e: InputEventKey) -> StringName:
 	if waiting:
 		return _bind(e)
+	if page == &"codex":
+		return codex.key(e, _nav(e))
 	var slot := Keys.action_of(e)
 	if page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
 		var k := spells()[selected].key()
@@ -154,7 +165,9 @@ func _spells(list: Array[Spell]) -> Array:
 
 ## The pointer is over row k.
 func point(k: int) -> void:
-	if k >= 0 and not waiting:
+	if k >= 0 and page == &"codex":
+		codex.point(k)
+	elif k >= 0 and not waiting:
 		selected = k
 
 
@@ -167,6 +180,12 @@ func use() -> StringName:
 			return _choose()
 		&"keys":
 			return _use_key_row()
+		&"options":
+			return _use_option()
+	return &""
+
+
+func _use_option() -> StringName:
 	var row: StringName = OPTIONS[selected]
 	match row:
 		&"keys":
