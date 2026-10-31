@@ -39,6 +39,7 @@ const SOUNDS := [
 	[{t = &"ignite"}, &"burn"],
 	[{t = &"heat"}, &"burn"],
 	[{t = &"relight"}, &"burn"],
+	[{t = &"stick"}, &"foxfire"],
 	[{t = &"hurt"}, &"hurt"],
 	[{t = &"die"}, &"fall"],
 	[{t = &"charge"}, &"charge"],
@@ -72,6 +73,7 @@ const SILENT := [
 	{t = &"become"},
 	{t = &"trample"},
 	{t = &"soak"},
+	{t = &"ride"},
 ]
 
 

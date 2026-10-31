@@ -219,6 +219,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse":
 			return &"hiss"
+		&"stick":
+			return &"foxfire"
 		&"ignite", &"heat", &"relight":
 			return &"burn"
 		&"hurt":
