@@ -797,7 +797,7 @@ func _burst(s: Shot) -> void:
 	_changed()
 	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.has(Cards.FIRE):
-		_splash(s, s.pos, null)
+		Elements.splash(self, s, s.pos, null)
 	_effects(s, s.pos, s.pos + s.dir)
 
 
@@ -825,7 +825,7 @@ func _strike(s: Shot, a: Actor) -> void:
 	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
 		return
 	if spell.orb and spell.has(Cards.FIRE):
-		_splash(s, at, a)
+		Elements.splash(self, s, at, a)
 	_effects(s, at)
 	if not spell.orb and not spell.gun():
 		Elements.stick(self, s, a)
@@ -862,28 +862,6 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 	if drop != &"" and not cards.has(drop):
 		cards.append(drop)
 		emit({t = &"card", card = drop, at = a.pos})
-
-
-func _splash(s: Shot, at: Vector2i, center: Actor) -> void:
-	emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
-	for d in Grid.DIRS:
-		var p := at + d
-		ignite(p)
-		var b := actor_at(p)
-		if b != null and b != center:
-			if Bestiary.absorbs(b.kind, s.spell):
-				emit({t = &"absorb", id = b.id, at = p})
-			else:
-				var weak := Bestiary.weak(b.kind, s.spell)
-				hurt(b, (FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak)
-				if Bestiary.burns(b.kind):
-					ignite(p, true)
-				Mind.provoke(self, b, actor(s.caster))
-		var o := shot_at(p, s)
-		if o != null and not o.spell.orb:
-			o.gone = true
-			_changed()
-			emit({t = &"snuff", shot = o.id, at = p})
 
 
 ## Sets p alight if it is flammable, or whatever it is when `force`d; a

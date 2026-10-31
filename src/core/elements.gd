@@ -5,7 +5,7 @@ extends RefCounted
 ## 불: a wisp sets the creature it strikes alight (the flames hurt it from the
 ## next round, so it can step off); an orb bursts, hurting the
 ## eight tiles round it for World.FIRE_DAMAGE and setting what burns there
-## alight (World._splash), and a wood creature it strikes burns. 1 more harm
+## alight (`splash`), and a wood creature it strikes burns. 1 more harm
 ## a copy. Both set alight what burns where they fly and end.
 ## 물: silent. Where it ends it douses lanterns and fire in the 3x3 round it,
 ## the struck creature's tile among them (Terrain.touch). A wisp of it carries
@@ -80,6 +80,34 @@ static func stun(w: World, a: Actor, rounds: int) -> void:
 	a.stunned = maxi(a.stunned, rounds)
 	a.intent.clear()
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
+
+
+## A fire orb bursts at `at`: each of the eight tiles round it catches fire,
+## each creature there but `center` that does not eat it is hurt for
+## World.FIRE_DAMAGE and a copy more (twice over when weak) and, if wooden,
+## burns, and each wisp there goes out.
+static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
+	w.emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
+	for d in Grid.DIRS:
+		var p := at + d
+		w.ignite(p)
+		var b := w.actor_at(p)
+		if b != null and b != center:
+			if Bestiary.absorbs(b.kind, s.spell):
+				w.emit({t = &"absorb", id = b.id, at = p})
+			else:
+				var weak := Bestiary.weak(b.kind, s.spell)
+				w.hurt(
+					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak
+				)
+				if Bestiary.burns(b.kind):
+					w.ignite(p, true)
+				Mind.provoke(w, b, w.actor(s.caster))
+		var o := w.shot_at(p, s)
+		if o != null and not o.spell.orb:
+			o.gone = true
+			w._changed()
+			w.emit({t = &"snuff", shot = o.id, at = p})
 
 
 ## An orb of 흙 or 쇠 brings the wall it strikes down in one blow.
