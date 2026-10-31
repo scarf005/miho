@@ -145,9 +145,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"freeze":
 			return _subject(before, after, id) + [["얼어붙었다", TEXT]]
 		&"wet":
-			return _subject(before, after, id) + [["물에 젖었다", TEXT]]
+			return _subject(before, after, id) + [["젖었다", TEXT]]
 		&"dry":
 			return _subject(before, after, id) + [["말랐다", TEXT]]
+		&"alight":
+			return _who(before, after, id, "에게", "에게") + [[" 불이 붙었다", Palette.BURNING[1]]]
+		&"quench":
+			return _who(before, after, id, "의", "의") + [[" 불이 꺼졌다", TEXT]]
 		&"become":
 			return _named(Tiles.of(e.tile, "name"), "이", "가") + [[" 생겼다", TEXT]]
 		&"heat":
@@ -237,11 +241,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
-			var a := before.actor_at(e.at)
-			var what := _tile(before, e.at, "에", "에")
-			if a != null and a.faction != Actor.FOX:
-				what = _who(before, after, a.id, "에게", "에게")
-			return what + [[" 불이 붙었다", Palette.BURNING[1]]]
+			return _tile(before, e.at, "에", "에") + [[" 불이 붙었다", Palette.BURNING[1]]]
 		&"burnout":
 			if Tiles.burns[before.tile(e.at)] == 0:
 				return []

@@ -71,7 +71,7 @@ const GAS := {
 	Gas.SMOKE: ["▓", Color(0.42, 0.38, 0.36)],
 }
 ## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it.
-const STATUS := {&"wet": ["~", Color(0.5, 0.76, 1.0)]}
+const STATUS := {&"wet": ["~", Color(0.5, 0.76, 1.0)], &"alight": ["§", Color(1.0, 0.55, 0.18)]}
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["%", Color(0.62, 0.36, 0.3)]
 ## Dark tiles Miho makes out by shape only.

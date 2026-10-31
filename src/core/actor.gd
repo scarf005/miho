@@ -26,6 +26,7 @@ var stunned := 0
 var blind := 0
 ## Rounds left of each status (Status).
 var wet := 0
+var alight := 0
 var casts := 0
 var acted := 0
 var alert := REST
@@ -94,10 +95,10 @@ func following() -> bool:
 	return faction == HEAVEN and leader != 0 and info().get("patrol", false)
 
 
-## Hunting Miho at 1 health, and not one to stand and fight (Bestiary.flees):
-## it runs from her (Mind.flee).
+## Hunting Miho at 1 health or alight (Status), and not one to stand and
+## fight (Bestiary.flees): it runs from her (Mind.flee).
 func fleeing() -> bool:
-	return faction == HEAVEN and alert == HUNT and hp == 1 and Bestiary.flees(kind)
+	return faction == HEAVEN and alert == HUNT and (hp == 1 or alight > 0) and Bestiary.flees(kind)
 
 
 ## Hunting Miho by way of a drum.
@@ -129,6 +130,7 @@ func clone() -> Actor:
 		"stunned",
 		"blind",
 		"wet",
+		"alight",
 		"casts",
 		"acted",
 		"alert",

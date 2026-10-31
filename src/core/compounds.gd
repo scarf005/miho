@@ -10,7 +10,7 @@ extends RefCounted
 ## reaches (Spray).
 ##
 ## 상생, one grows the other:
-## 들불 sets what burns alight, and the tiles of the creatures it reaches, and
+## 들불 sets what burns alight, and the creatures it reaches (Status), and
 ## that fire always spreads (World.wild).
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
 ## water: whoever stands on it as a round ends takes its harm, unless it eats

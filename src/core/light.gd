@@ -39,8 +39,8 @@ static func field(sources: Array[Dictionary], opaque: PackedByteArray) -> Packed
 	return Native.light(sources, opaque, Grid.W)
 
 
-## Every light on the storey: lanterns, glowing tiles, fires, muzzle flashes
-## and glowing projectiles.
+## Every light on the storey: lanterns, glowing tiles, fires, creatures
+## alight (Status), muzzle flashes and glowing projectiles.
 static func sources(w: World) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var i := w.tiles.find(World.LANTERN)
@@ -54,6 +54,9 @@ static func sources(w: World) -> Array[Dictionary]:
 			i = w.tiles.find(t, i + 1)
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
+	for a in w.actors:
+		if a.alive() and a.alight > 0:
+			out.append({at = a.pos, radius = FIRE_RADIUS, color = FIRE})
 	for p in w.flares:
 		out.append({at = p, radius = MUZZLE_RADIUS, color = FIRE})
 	for s in w.shots:

@@ -78,7 +78,8 @@ static func _profile(a: Actor) -> Array:
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting. One hunting at 1 health runs.
+## shut), on patrol, walking back home, or just resting. One hunting at 1
+## health or alight runs.
 static func state(a: Actor) -> String:
 	if a.fleeing():
 		return "도망치는 중"
@@ -160,6 +161,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 		lines.append([["감투: %d칸 안이나 도깨비불이 붙으면 보임" % Hat.REACH, Palette.DIM]])
 	if Bestiary.flees(a.kind):
 		lines.append([["체력 1이면 도망친다", Palette.DIM]])
+		lines.append([["불붙음: 도망.", Palette.DIM]])
 	elif spec.get("brave", false):
 		lines.append([["용감해서 도망치지 않는다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
@@ -278,7 +280,11 @@ static func _conditions(w: World, a: Actor) -> Array:
 		if c[0] > 0:
 			out.append([["%s (%d초)" % [c[1], c[0]], Palette.TEXT]])
 	out.append_array(_status(a))
-	if w.burning.has(a.pos) and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE])):
+	if (
+		w.burning.has(a.pos)
+		and a.alight <= 0
+		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+	):
 		out.append(_amount("불타는 칸 위 (%d초). 매 초 피해 " % w.burning[a.pos], World.FIRE_DAMAGE))
 	if (
 		Veil.scorches(w, a.pos)
@@ -313,10 +319,9 @@ static func _status(a: Actor) -> Array:
 	var key := Status.of(a)
 	if key == &"":
 		return []
-	var head := [[Status.NAME[key], Palette.STATUS[key][1]]]
-	head.append([" (%d초)" % Status.rounds(a), Palette.TEXT])
-	var does: String = {&"wet": SpellInfo.WET_DOES}[key]
-	return [head, [[does, Palette.DIM]]]
+	var line := [[Status.NAME[key], Palette.STATUS[key][1]]]
+	line.append([" %d초. %s" % [Status.rounds(a), SpellInfo.STATUS_DOES[key]], Palette.TEXT])
+	return [line]
 
 
 ## Each spell it casts, with its cooldown, harm and noise.

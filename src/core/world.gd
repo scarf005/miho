@@ -33,7 +33,7 @@ extends RefCounted
 ## thick enough it blocks sight: see Gas.
 ##
 ## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
-## Water leaves creatures wet: see Status.
+## Water wets creatures and fire sets them alight: see Status.
 ##
 ## Heaven falls into groups, and a creature struck by another group fights it
 ## for a while (Mind).

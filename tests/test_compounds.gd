@@ -81,8 +81,7 @@ func test_wildfire_sets_the_fan_and_its_creatures_alight_and_always_spreads() ->
 	w.act(_cast([WOOD, FIRE]))
 	assert_true(w.burning.has(ME + Vector2i(2, 1)), "grass in the fan burns")
 	assert_true(w.wild.has(ME + Vector2i(2, 1)), "and always spreads")
-	assert_true(w.burning.has(foe.pos), "the creature in it is alight")
-	assert_true(w.wild.has(foe.pos))
+	assert_gt(foe.alight, 0, "the creature in it is alight")
 	assert_false(w.burning.has(ME + Vector2i(1, 1)), "bare floor does not burn")
 
 
@@ -263,7 +262,7 @@ func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() ->
 		var at := foe.pos
 		match c:
 			&"wildfire":
-				assert_true(w.wild.has(at) and w.wild.has(side.pos), c)
+				assert_eq([foe.alight, side.alight], [Status.ALIGHT - 1, Status.ALIGHT - 1], c)
 			&"lava", &"molten":
 				assert_true(w.hot.has(at) and w.hot.has(at + Vector2i(1, -1)), c)
 			&"shrapnel":

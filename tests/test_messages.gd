@@ -41,7 +41,10 @@ func test_seen_events_are_told() -> void:
 	assert_eq(
 		_lines(w, [{t = &"card", card = Cards.FIRE, at = SEEN}]), ["불 부적을 얻었다"] as Array[String]
 	)
-	assert_eq(_lines(w, [{t = &"ignite", at = SEEN}]), ["도깨비에게 불이 붙었다"] as Array[String])
+	assert_eq(_lines(w, [{t = &"ignite", at = SEEN}]), ["바닥에 불이 붙었다"] as Array[String])
+	assert_eq(
+		_lines(w, [{t = &"alight", id = foe.id, at = SEEN}]), ["도깨비에게 불이 붙었다"] as Array[String]
+	)
 	assert_eq(
 		_lines(w, [{t = &"burnout", at = SEEN}]),
 		[] as Array[String],

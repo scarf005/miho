@@ -65,7 +65,8 @@ func _forecast_is_the_round(w: World, action: Dictionary) -> void:
 	w.act(action)
 	for a in w.actors:
 		var b := f.after.actor(a.id)
-		assert_eq([b.wet, b.hp], [a.wet, a.hp], "%s %s" % [action, a.kind])
+		assert_eq([b.wet, b.alight, b.hp], [a.wet, a.alight, a.hp], "%s %s" % [action, a.kind])
+	assert_eq(f.after.burning, w.burning, str(action))
 
 
 # --- 젖음 -------------------------------------------------------------------
@@ -188,9 +189,139 @@ func test_the_hover_and_the_log_tell_of_wet() -> void:
 	var before := w.clone()
 	var events := w.act(_cast([FOX, WATER]))
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "%s (%d초)" % [Status.NAME[&"wet"], Status.WET - 1])
-	assert_string_contains(text, SpellInfo.WET_DOES)
+	assert_string_contains(text, "젖음 %d초. 철벅 %d칸." % [Status.WET - 1, Status.SPLASH])
 	var log := Messages.of(before, w, events).map(Messages.plain)
-	assert_has(log, "장승이 물에 젖었다")
+	assert_has(log, "장승이 젖었다")
 	w.player().wet = 2
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), Status.NAME[&"wet"])
+
+
+# --- 불붙음 -----------------------------------------------------------------
+
+
+func test_a_fire_wisp_sets_a_creature_alight_and_it_burns_from_the_next_round() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	foe.hp = 9
+	var events := w.act(_cast([FOX, FIRE]))
+	assert_eq(_of(events, &"alight").size(), 1)
+	assert_false(w.burning.has(foe.pos), "the bare floor under it does not burn")
+	var hp := [foe.hp]
+	var quenched := []
+	for i in Status.ALIGHT:
+		quenched.append(_of(w.act(WAIT), &"quench").size())
+		hp.append(foe.hp)
+	assert_eq(hp, [9 - 1, 9 - 3, 9 - 5, 9 - 5], "the wisp's 1, then 2 a round for two rounds")
+	assert_eq(quenched, [0, 1, 0], "out at the end of its third round")
+	assert_eq(foe.alight, 0)
+
+
+func test_fire_never_sets_miho_alight_only_her_tile_which_she_steps_off() -> void:
+	var w := _world()
+	var dog := _post(w, ME + E * 2, &"dokkaebi")
+	dog.rooted = 99
+	w.cast(dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
+	w.sense()
+	w.act(WAIT)
+	assert_eq(w.player().alight, 0)
+	assert_true(w.burning.has(ME), "her tile burns instead")
+	assert_eq(w.player().hp, 3 - 1)
+	w.act({t = &"move", dir = W})
+	assert_eq(w.player().hp, 3 - 1, "off the fire before it burns her")
+
+
+func test_a_creature_alight_shines_like_fire() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 6)
+	assert_false(w.lit(foe.pos + E * 2))
+	Status.ignite(w, foe)
+	assert_true(w.lit(foe.pos + E * 2), "within the fire's reach")
+	assert_false(w.lit(foe.pos + E * (Light.FIRE_RADIUS + 1)), "and no farther")
+
+
+func test_a_hunter_alight_flees_if_it_would_flee_at_one_health() -> void:
+	var dog := Actor.new()
+	dog.kind = &"dokkaebi"
+	dog.hp = 2
+	dog.alert = Actor.HUNT
+	assert_false(dog.fleeing())
+	dog.alight = 1
+	assert_true(dog.fleeing())
+	assert_eq(Info.state(dog), "도망치는 중")
+	dog.alert = Actor.SEARCH
+	assert_false(dog.fleeing(), "only a hunter runs")
+	var post := Actor.new()
+	post.kind = &"jangseung"
+	post.alert = Actor.HUNT
+	post.alight = 1
+	assert_false(post.fleeing(), "one that cannot walk stands")
+	assert_string_contains(Info.plain(Info.creature_facts(dog, [])), "불붙음: 도망.")
+	assert_false(Info.plain(Info.creature_facts(post, [])).contains("불붙음"))
+
+
+func test_a_fleeing_creature_alight_steps_away_from_miho() -> void:
+	var w := _world()
+	_put(w, ME + Vector2i(0, -3), World.LANTERN)
+	var dog := _post(w, ME + E * 2, &"dokkaebi")
+	dog.alert = Actor.HUNT
+	Status.ignite(w, dog)
+	w.sense()
+	w.act(WAIT)
+	assert_gt(Grid.cheb(dog.pos, ME), 2, "it ran")
+
+
+func test_water_puts_a_creature_alight_out_and_wets_it() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.ignite(w, foe)
+	var events := w.act(_cast([FOX, WATER]))
+	assert_eq(_of(events, &"quench").size(), 1)
+	assert_eq([foe.alight, foe.wet], [0, Status.WET - 1])
+	assert_eq(foe.hp, 3 - 1, "the wisp's 1; put out before it burned")
+
+
+func test_a_burning_tile_adds_nothing_to_a_creature_alight() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 4)
+	foe.hp = 9
+	foe.alight = Status.ALIGHT
+	w.burning[foe.pos] = World.BURN_ROUNDS
+	w.act(WAIT)
+	assert_eq(foe.hp, 9 - World.FIRE_DAMAGE)
+
+
+func test_fire_that_does_not_harm_wood_still_sets_it_alight() -> void:
+	var w := _world()
+	var wood := _post(w, ME + E * 2, &"cheonha")
+	wood.hp = 9
+	w.act(_cast([ORB, FIRE]))
+	assert_gt(wood.alight, 0)
+	var metal := _post(w, ME + Vector2i(2, 3), &"jiha")
+	w.act(_cast([ORB, FIRE], Vector2i(2, 3).sign()))
+	assert_eq(metal.alight, 0, "an orb lights only wood")
+
+
+func test_the_preview_shows_who_catches_alight() -> void:
+	for q in [[FOX, FIRE], [FIRE, FIRE], [Cards.WOOD, FIRE], [ORB, FIRE]]:
+		var w := _world()
+		_post(w, ME + E * 2, &"cheonha")
+		_post(w, ME + Vector2i(2, 1))
+		_forecast_is_the_round(w, _cast(q))
+		_forecast_is_the_round(w, WAIT)
+
+
+func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2, &"dokkaebi")
+	foe.cooldown = 99
+	var before := w.clone()
+	var events := w.act(_cast([FOX, FIRE]))
+	var log := Messages.of(before, w, events).map(Messages.plain)
+	assert_has(log, "도깨비에게 불이 붙었다")
+	var text := Info.plain(Info.creature(w, foe))
+	var tags := "불붙음 %d초. 매 초 피해 %d. 빛 %d칸."
+	assert_string_contains(text, tags % [Status.ALIGHT - 1, World.FIRE_DAMAGE, Light.FIRE_RADIUS])
+	before = w.clone()
+	events = w.act(WAIT)
+	log = Messages.of(before, w, events).map(Messages.plain)
+	assert_has(log, "도깨비가 불에 타 피해를 %d 입었다" % World.FIRE_DAMAGE)

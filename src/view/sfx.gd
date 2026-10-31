@@ -70,6 +70,7 @@ const LEVEL := {
 	&"gas": -6.0,
 	&"cool": -8.0,
 	&"dry": -8.0,
+	&"quench": -8.0,
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
@@ -234,11 +235,11 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"stun"
 		&"gas":
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
-		&"scald", &"cool", &"douse", &"unmask", &"dry":
+		&"scald", &"cool", &"douse", &"unmask", &"dry", &"quench":
 			return &"hiss"
 		&"stick", &"yelp":
 			return &"foxfire"
-		&"ignite", &"heat", &"relight":
+		&"ignite", &"heat", &"relight", &"alight":
 			return &"burn"
 		&"hurt":
 			return &"hurt"

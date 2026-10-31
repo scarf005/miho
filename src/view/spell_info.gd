@@ -19,9 +19,14 @@ const SWAP := (
 	"바꿔치기. 멈춘 자리로 간다. 맞힌 적과는 자리를 바꾼다. 하늘 위로는 가지 않는다. %s %d칸, 두 자리에서"
 	% [Leap.SWAP_WORD, Leap.SWAP_LOUD]
 )
-## What being wet does (Status), and what a spell that wets says of it.
-const WET_DOES := "걸으면 %s %d칸. 불이 붙는 대신 마른다" % [Status.SPLASH_WORD, Status.SPLASH]
-const SOAK := "닿은 생물이 %d초 젖는다. " % Status.WET + WET_DOES
+## The numbers of each status (Status) past its name and time, by key, and
+## what a spell that causes it says.
+const STATUS_DOES := {
+	&"wet": "%s %d칸." % [Status.SPLASH_WORD, Status.SPLASH],
+	&"alight": "매 초 피해 %d. 빛 %d칸." % [World.FIRE_DAMAGE, Light.FIRE_RADIUS],
+}
+const SOAK := "젖음 %d초." % Status.WET
+const ALIGHT_ON := "맞은 적 불붙음 %d초." % Status.ALIGHT
 const SPRAY_NAME := "뿌리기"
 const SPRAY_NOTE := "오행 부적만 쓰면 투사체 없이 닿는 칸을 덮는다"
 
@@ -158,7 +163,7 @@ static func _spray(s: Spell) -> Array:
 		Cards.FIRE:
 			var out := [_line("모양", _fan(Spray.FAN[i])), _line("불", "타는 칸에 불을 붙인다", color)]
 			if level >= 2:
-				out.append(_line("불", "안의 적이 선 칸도 탄다", color))
+				out.append(_line("불", ALIGHT_ON, color))
 				out.append(_line("피해", "불이 붙은 다음 초부터 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
 			if level >= 3:
 				out.append(_line("불", "늘 번진다", color))
@@ -405,7 +410,7 @@ static func _effect(s: Spell, e: StringName) -> String:
 			if s.orb:
 				var splash := " 터지면 주위 8칸에 %d." % (World.FIRE_DAMAGE + s.extra(e))
 				return "지나간 자리에 불을 붙인다." + splash + more + " 나무 적은 불탄다"
-			return "맞은 적과 지나간 자리에 불을 붙인다." + more + " 다음 초부터 매 초 피해 %d" % World.FIRE_DAMAGE
+			return "지나간 자리에 불을 붙인다." + more + " " + ALIGHT_ON
 		Cards.WATER:
 			var what := "소리를" if s.orb else "빛과 소리를"
 			return what + " 지운다. 멈춘 곳 3×3의 등불과 불을 끈다"
