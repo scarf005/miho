@@ -202,12 +202,7 @@ static func _walkable(w: World, a: Actor) -> Callable:
 	return func(p):
 		return (
 			p == a.pos
-			or (
-				w.vacant(p)
-				and not w.burning.has(p)
-				and not w.hot.has(p)
-				and not w.traps.has(p)
-			)
+			or (w.vacant(p) and not w.burning.has(p) and not w.hot.has(p) and not w.traps.has(p))
 		)
 
 
