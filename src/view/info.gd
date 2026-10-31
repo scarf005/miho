@@ -198,7 +198,7 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 		lines.append([["둔갑: %s의 모습 (%d초)" % [form, a.guise], Palette.SIDE[0]]])
 		var ends := "적 옆 %d/%d초. 주문을 쓰거나 맞으면 풀린다" % [a.beside, Guise.BESIDE]
 		lines.append([[ends, Palette.DIM]])
-	elif a.prey != &"":
+	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
 		lines.append([["둔갑할 모습: " + Bestiary.info(a.prey).name, Palette.DIM]])
 	lines.append(_hidden(w, a.pos))
 	return lines

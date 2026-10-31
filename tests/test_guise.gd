@@ -189,7 +189,11 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 	var w := _world()
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
+	searcher.rooted = 99
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), "둔갑할 모습: 도깨비")
+	var no_wood := _world()
+	no_wood.cards.erase(WOOD)
+	assert_false(Info.plain(Info.creature(no_wood, no_wood.player())).contains("둔갑할"))
 	w.act(_self([WOOD, EARTH]))
 	var mine := Info.plain(Info.creature(w, w.player()))
 	assert_string_contains(mine, "둔갑: 도깨비의 모습 (%d초)" % (Guise.ROUNDS - 1))
