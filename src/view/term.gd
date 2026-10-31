@@ -215,7 +215,8 @@ func play(events: Array, before: World, after: World) -> void:
 	_vis = perceived.vis
 	_told.clear()
 	for f in perceived.facts:
-		_told[f.i] = f
+		if f.i >= 0:
+			_told[f.i] = f
 	_actors.clear()
 	for a in before.actors:
 		if a.alive():

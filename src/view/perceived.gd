@@ -6,6 +6,10 @@ extends RefCounted
 ## happened on a seen tile, one with no place, or a noise she heard out of
 ## sight, copied with `where` (the tile it happened on) and `i` (its index in
 ## the round's events). Anything else that happened gives no fact.
+## The map also marks a creature in sight by its state, so a creature that comes
+## into sight marked, or changes its mark in sight, gives a `state` fact (i is
+## -1) unless the round's facts already tell it: a seen notice or blinding.
+## It derives from `before` and `after` only, so a replay gives the same facts.
 
 ## Tiles seen at the start or end of the round (1 for seen).
 var vis := PackedByteArray()
@@ -44,7 +48,29 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 			told = e.heard and not sees(out.vis, e.at)
 		if told:
 			out.facts.append(e.merged({where = at, i = i}))
+	out._tell_marks(before, after)
 	return out
+
+
+## A `state` fact for each creature in sight at the end whose mark Miho was
+## not shown before: it was out of sight, or marked differently.
+func _tell_marks(before: World, after: World) -> void:
+	var covered := {}
+	for f in facts:
+		if f.t in [&"notice", &"blind"]:
+			covered[[f.t, f.id]] = true
+	for a in after.actors:
+		var mark := mark_of(a)
+		if a.faction == Actor.FOX or not a.alive() or mark == "" or not sees(after.seen, a.pos):
+			continue
+		var was := before.actor(a.id)
+		if was != null and was.alive() and sees(before.seen, was.pos) and mark_of(was) == mark:
+			continue
+		if covered.has([&"notice", a.id]) and mark == "!":
+			continue
+		if covered.has([&"blind", a.id]) and mark == "x":
+			continue
+		facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})
 
 
 ## Whether tile p is seen in `vis`.

@@ -1,0 +1,187 @@
+extends GutTest
+## What the map marks, the log tells: both read Perceived's facts.
+
+const SEEN := Vector2i(6, 8)
+const HIDDEN := Vector2i(20, 8)
+const SEEDS := [1, 2, 3, 4, 5, 6]
+const ROUNDS := 120
+const POPUP_LINE := {
+	&"notice": "들켰다", &"hurt": "피해", &"card": "부적", &"heal": "회복", &"noise": "소리를 들었다"
+}
+
+
+## An open hall, Miho at (4, 8), seeing only the tiles near her.
+func _world() -> World:
+	var w := World.new()
+	w.tiles.resize(Grid.W * Grid.H)
+	w.tiles.fill(World.WALL)
+	for y in range(1, Grid.H - 1):
+		for x in range(1, Grid.W - 1):
+			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
+	var me := Actor.new()
+	me.id = w.new_id()
+	me.kind = &"miho"
+	me.faction = Actor.FOX
+	me.hp = 3
+	me.max_hp = 3
+	me.pos = Vector2i(4, 8)
+	w.actors.append(me)
+	w.sense()
+	return w
+
+
+func _lines(before: World, after: World, events: Array) -> Array[String]:
+	var out: Array[String] = []
+	out.assign(Messages.of(before, after, events).map(Messages.plain))
+	return out
+
+
+## The round where a creature at `from` becomes `alert` and walks to `to`.
+func _round(from: Vector2i, to: Vector2i, alert: int, events: Array) -> Array:
+	var before := _world()
+	var foe := FloorGen.spawn(before, &"dokkaebi", from)
+	before.sense()
+	var after := before.clone()
+	var moved := after.actor(foe.id)
+	moved.pos = to
+	moved.alert = alert
+	after.sense()
+	return [before, after, foe.id, events]
+
+
+func test_a_creature_that_noticed_miho_in_the_dark_is_told_once_when_it_comes_into_view() -> void:
+	var r := _round(HIDDEN, SEEN, Actor.HUNT, [])
+	var events := [
+		{t = &"notice", id = r[2], at = HIDDEN},
+		{t = &"move", id = r[2], from = HIDDEN, to = SEEN},
+	]
+	assert_eq(_lines(r[0], r[1], events), ["도깨비가 당신을 쫓고 있다"] as Array[String])
+	assert_eq(_lines(r[1], r[1], []), [] as Array[String], "still in view and still hunting")
+
+
+func test_a_seen_notice_is_told_once() -> void:
+	var r := _round(SEEN, SEEN, Actor.HUNT, [])
+	var events := [{t = &"notice", id = r[2], at = SEEN}]
+	assert_eq(_lines(r[0], r[1], events), ["도깨비에게 들켰다"] as Array[String])
+	assert_eq(_lines(r[1], r[1], []), [] as Array[String])
+
+
+func test_a_creature_coming_into_view_searching_or_blind_is_told() -> void:
+	var r := _round(HIDDEN, SEEN, Actor.SEARCH, [])
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색하고 있다"] as Array[String])
+	r[1].actor(r[2]).blind = 2
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 눈이 멀어 있다"] as Array[String])
+	var seen := _round(SEEN, SEEN, Actor.SEARCH, [])
+	seen[1].actor(seen[2]).blind = 2
+	var blinded := [{t = &"blind", id = seen[2]}]
+	assert_eq(_lines(seen[0], seen[1], blinded), ["도깨비의 눈이 멀었다"] as Array[String])
+
+
+func test_a_mark_changing_in_sight_is_told() -> void:
+	var r := _round(SEEN, SEEN, Actor.SEARCH, [])
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색하고 있다"] as Array[String])
+	assert_eq(_lines(r[1], r[1], []), [] as Array[String])
+	r[0].actor(r[2]).alert = Actor.SEARCH
+	r[1].actor(r[2]).alert = Actor.HUNT
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 당신을 쫓고 있다"] as Array[String])
+
+
+func test_a_hidden_notice_gives_no_popup() -> void:
+	var r := _round(HIDDEN, HIDDEN, Actor.HUNT, [])
+	var events := [{t = &"notice", id = r[2], at = HIDDEN}]
+	assert_eq(Perceived.of(r[0], r[1], events).facts, [] as Array[Dictionary])
+	var seen := _round(SEEN, SEEN, Actor.HUNT, [])
+	var facts := Perceived.of(seen[0], seen[1], [{t = &"notice", id = seen[2], at = SEEN}]).facts
+	assert_eq(facts.map(Term.popup_of).map(func(p): return p.text), ["!"])
+
+
+## A scripted round: step towards the nearest creature most of the time.
+func _action(w: World, rng: RandomNumberGenerator) -> Dictionary:
+	var me := w.player()
+	var foes := w.actors.filter(func(a): return a.alive() and a.faction != Actor.FOX)
+	var dirs := Grid.DIRS.filter(func(d): return w.can({t = &"move", dir = d}))
+	if dirs.is_empty() or rng.randf() < 0.1:
+		return {t = &"wait"}
+	if not foes.is_empty() and rng.randf() < 0.6:
+		foes.sort_custom(func(a, b): return Grid.cheb(a.pos, me.pos) < Grid.cheb(b.pos, me.pos))
+		dirs.sort_custom(
+			func(a, b):
+				return Grid.cheb(me.pos + a, foes[0].pos) < Grid.cheb(me.pos + b, foes[0].pos)
+		)
+		return {t = &"move", dir = dirs[0]}
+	return {t = &"move", dir = dirs[rng.randi_range(0, dirs.size() - 1)]}
+
+
+func _in_sight(w: World, a: Actor) -> bool:
+	return a.alive() and Perceived.sees(w.seen, a.pos)
+
+
+func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
+	var told_marks := 0
+	var popups := 0
+	for seed_value in SEEDS:
+		var w := World.create(seed_value)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_value
+		## id -> the mark Miho was last told since the creature came into sight.
+		var told := {}
+		for round_no in ROUNDS:
+			if w.outcome != &"":
+				break
+			var before := w.clone()
+			var events := w.act(_action(w, rng))
+			var facts := Perceived.of(before, w, events).facts
+			var lines := _lines(before, w, events)
+			var ctx := "seed %d round %d" % [seed_value, round_no]
+			for a in w.actors:
+				if not _in_sight(before, a) or not _in_sight(w, a):
+					told.erase(a.id)
+			for f in facts:
+				match f.t:
+					&"notice":
+						told[f.id] = "!"
+					&"blind":
+						told[f.id] = "x"
+					&"state":
+						told[f.id] = f.mark
+						told_marks += 1
+						assert_true(
+							lines.any(func(l): return l.contains(Messages.STATE[f.mark])), ctx
+						)
+				var text: String = POPUP_LINE.get(f.t, "")
+				if not Term.popup_of(f).is_empty():
+					popups += 1
+					assert_true(lines.any(func(l): return l.contains(text)), "%s %s" % [ctx, f.t])
+			for a in w.actors:
+				var mark := Perceived.mark_of(a)
+				if a.faction != Actor.FOX and mark != "" and _in_sight(w, a):
+					assert_eq(told.get(a.id, ""), mark, "%s creature %d" % [ctx, a.id])
+	assert_gt(told_marks, 0, "the scripted rounds meet creatures in a state the map marks")
+	assert_gt(popups, 0, "the scripted rounds show popups")
+
+
+func _main() -> Node:
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	add_child_autofree(m)
+	Keys.reset()
+	m._new_run(3)
+	m.state = &"play"
+	m.term.speed = 1000.0
+	return m
+
+
+func test_the_debug_view_does_not_change_the_log() -> void:
+	var logs := []
+	for debugging in [false, true]:
+		var m := _main()
+		m.debugging = debugging
+		m._refresh()
+		assert_eq(not m.term.debug.is_empty(), debugging)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 3
+		for round_no in 40:
+			await m._act(_action(m.world, rng))
+		logs.append(m.messages.lines.map(func(l): return l.text))
+	assert_gt(logs[0].size(), 0, "the rounds tell something")
+	assert_eq(logs[0], logs[1])
