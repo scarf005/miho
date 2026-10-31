@@ -182,7 +182,7 @@ static func _casts(a: Actor) -> Array:
 	for cast: Array in a.info().get("casts", []):
 		var spell := Spell.make(cast)
 		var line: Array = [
-			["주술: ", Palette.TEXT], [spell.title(), Palette.CARD[spell.cards.back()]]
+			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]
 		line.append([" (%d초마다)" % a.info().cd, Palette.TEXT])
 		if not a.intent.is_empty() and Spell.make(a.intent).key() == spell.key():
@@ -403,9 +403,9 @@ static func card(c: StringName) -> Array:
 
 ## A spell: its name, cost, and what each of its talismans makes it do.
 static func spell(s: Spell) -> Array:
-	var head := [[s.title(), Palette.CARD[s.cards.back()]], [" 꼬리 %d개 " % s.cost(), Palette.DIM]]
-	for c in s.cards:
-		head.append([Cards.GLYPH[c], Palette.CARD[c]])
+	var head := [[s.title(), Palette.card(s.slots.back())], [" 꼬리 %d개 " % s.cost(), Palette.DIM]]
+	for c in s.slots:
+		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
 	if s.homing():
 		lines.append([["가장 가까운 적을 쫓아 초당 2칸씩 날아간다. 6초 뒤 사라진다", Palette.TEXT]])

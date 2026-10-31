@@ -3,7 +3,7 @@ extends RefCounted
 ## Full-screen pages over the game, moved through with the direction keys,
 ## Enter and Esc, or the pointer: help lists every action with its keys;
 ## options change the settings; key settings bind keys to actions; the
-## spellbook lists every spell Miho's talismans make, with what the selected
+## spellbook lists the queued spell and the saved ones, with what the selected
 ## one does, and a slot key saves it to that slot.
 ## `key`, `use` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
@@ -48,8 +48,8 @@ var page := &""
 var selected := 0
 ## On the key page: the selected action waits for the key to bind.
 var waiting := false
-## The spellbook's talismans, and the spell Enter chose there.
-var cards: Array[StringName] = []
+## The spell queued when the spellbook opened (or null), and the spell Enter chose there.
+var queued: Spell
 var chosen: Spell
 
 
@@ -67,7 +67,7 @@ func panel() -> Dictionary:
 		&"keys":
 			return {title = "키 설정", rows = _keys(), selected = selected}
 		&"spells":
-			var list := Spell.every(cards)
+			var list := spells()
 			var detail: Array = Info.spell(list[selected]) if not list.is_empty() else []
 			return {title = "주문서", rows = _spells(list), selected = selected, detail = detail}
 	return {title = "도움말", rows = _help(), selected = selected}
@@ -78,8 +78,8 @@ func key(e: InputEventKey) -> StringName:
 	if waiting:
 		return _bind(e)
 	var slot := Keys.action_of(e)
-	if page == &"spells" and Keys.SLOTS.has(slot) and not Spell.every(cards).is_empty():
-		var k := Spell.every(cards)[selected].key()
+	if page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
+		var k := spells()[selected].key()
 		var had: bool = settings.spells.get(slot, "") == k
 		for s in settings.spells.keys():
 			if settings.spells[s] == k:
@@ -120,23 +120,35 @@ static func slot_key(spells: Dictionary, key: String) -> String:
 
 ## Enter in the spellbook: cast the selected spell, or close when there is none.
 func _choose() -> StringName:
-	var list := Spell.every(cards)
+	var list := spells()
 	chosen = list[selected] if not list.is_empty() else null
 	return &"cast" if chosen != null else &"close"
 
 
-## Every spell as a row: its slot key if saved, talismans, name and cost.
+## The queued spell, then every saved one not the same, in slot order.
+func spells() -> Array[Spell]:
+	var out: Array[Spell] = []
+	if queued != null:
+		out.append(queued)
+	for slot in Keys.SLOTS:
+		var s := Spell.from_key(settings.spells.get(slot, ""))
+		if s != null and not out.any(func(o): return o.key() == s.key()):
+			out.append(s)
+	return out
+
+
+## Every spell as a row: its slot key if saved, slots, name and cost.
 func _spells(list: Array[Spell]) -> Array:
 	var rows := []
 	for s in list:
 		var row := [[slot_key(settings.spells, s.key()), Palette.SIDE[0]]]
-		for k in s.cards.size():
-			row.append([Cards.GLYPH[s.cards[k]], Palette.CARD[s.cards[k]], 2.0 + k])
-		row.append([s.title(), Palette.TEXT, 7.0])
-		row.append(["꼬리 %d" % s.cost(), Palette.DIM, VALUE_COL])
+		for k in s.slots.size():
+			row.append([Cards.GLYPH[s.slots[k]], Palette.card(s.slots[k]), 2.0 + k])
+		row.append([s.title(), Palette.TEXT, 8.0])
+		row.append(["꼬리 %d" % s.cost(), Palette.DIM, VALUE_COL + 4.0])
 		rows.append(row)
 	if rows.is_empty():
-		rows.append([["여우불이나 구슬 부적이 없다", Palette.DIM]])
+		rows.append([["줄에 든 부적도, 저장한 주문도 없다", Palette.DIM]])
 	return rows
 
 

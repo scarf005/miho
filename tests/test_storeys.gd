@@ -55,7 +55,7 @@ func test_the_status_row_fits_nine_tails_and_the_saved_spells() -> void:
 	t.world = _built(1, 25)
 	t.saved = {&"slot_1": "fox+fire", &"slot_2": "orb+water+wood"}
 	t.fit(Vector2(1280, 720), 0.0)
-	var slots := t._slots()
+	var slots := StatusBar.saved_slots(t)
 	assert_eq(t.world.max_tails(), 9)
 	assert_eq(slots.size(), 2)
 	assert_gt(slots[0].x, Term.MAP.x + 9.0, "saved spells start after the ninth tail")

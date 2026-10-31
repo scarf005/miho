@@ -42,7 +42,7 @@ static func _homing(w: World, a: Actor, cast: Array) -> Dictionary:
 static func searchlight(w: World, a: Actor) -> Dictionary:
 	var cast := a.next_cast()
 	var spell := Spell.make(cast)
-	if spell == null or not spell.wisp or spell.orb or w.lit(a.target):
+	if spell == null or spell.shape != Spell.WISP or w.lit(a.target):
 		return {}
 	var r := Grid.cheb(a.pos, a.target)
 	if r < 2 or r > Spell.RANGE:

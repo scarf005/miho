@@ -35,9 +35,11 @@ const SPELLS := {
 	type = "array",
 	description =
 	(
-		"Spells hurled this round, each along its own direction. cards are talisman names "
-		+ "(fox, orb, fire, water, wood, metal, earth) or their Korean names. A spell needs fox or orb; "
-		+ "all cards together cost at most the unspent tails."
+		"Spells hurled this round, each along its own direction. cards is the queue in order: "
+		+ "talisman names (fox, orb, fire, water, wood, metal, earth) or their Korean names, "
+		+ "repeats allowed. A repeat stacks; an element joins the first different element "
+		+ "queued as one compound slot. A spell needs fox or orb and fills at most 5 slots; "
+		+ "every card costs one tail, and all cards together cost at most the unspent tails."
 	),
 	items =
 	{
@@ -331,7 +333,8 @@ func _refusal(action: Dictionary) -> String:
 	if action.t == &"close":
 		return "There is no open door with nothing in it in that direction."
 	return (
-		"That cast is not allowed: each spell needs 1-4 different talismans Miho holds with fox or orb, "
+		"That cast is not allowed: each spell needs talismans Miho holds, fox or orb among them, "
+		+ "filling at most 5 slots, "
 		+ (
 			"its own open direction, and all cards together cost at most the %d unspent tails."
 			% world.tails

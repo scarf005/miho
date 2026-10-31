@@ -1,10 +1,11 @@
 extends Node
 ## Game flow and input, through the actions in Keys. Arrows, numpad or
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
-## with claws. 1-7 pick talismans; with talismans picked a direction hurls the
-## spell, and Shift with a direction holds it so several spells leave in one
-## turn. Space, Enter or . waits, or hurls what is held. Esc clears what is
-## picked and, with nothing to clear, opens the options.
+## with claws. 1-7 put talismans in the queue (Spell); with a queue a direction
+## hurls the spell, and Shift with a direction holds it so several spells leave
+## in one turn. Space, Enter or . waits, or hurls what is held. QWEASD fill the
+## queue with a saved spell. Esc clears the queue and what is held and, with
+## nothing to clear, opens the options.
 ## c shuts an open door next to Miho (a direction key picks one when several are
 ## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
@@ -15,8 +16,8 @@ extends Node
 ## that exploring and travel walk around; again it makes the zone one tile, and
 ## again removes it; 1-7 on a zone's centre set its radius.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
-## with talismans picked click anywhere to hurl that way; click a talisman to
-## pick it; right-click clears. Each storey left behind replays its best moment.
+## with a queue click anywhere to hurl that way; click a talisman to queue it;
+## right-click clears. Each storey left behind replays its best moment.
 ## The run is saved after every round (SaveGame) and the title continues it; a
 ## run that ends leaves no save.
 
@@ -43,8 +44,10 @@ var state := &"title"
 var hover := Vector2i(-1, -1)
 var hover_card := &""
 var hover_status := false
-## Key of the spell under the pointer on the status or talisman row, or empty.
+## Key of the spell under the pointer on the status or talisman row, or empty,
+## and the queue slot under it, or -1.
 var hover_spell := ""
+var hover_slot := -1
 ## Look mode: the direction keys move the cursor, which is `hover`.
 var looking := false
 ## Several open doors are next to Miho: the next direction key shuts that one.
@@ -256,7 +259,7 @@ func _key(event: InputEventKey) -> void:
 	elif action.begins_with("pick_"):
 		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
-			_toggle(world.cards[i])
+			_add(world.cards[i])
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
@@ -271,7 +274,7 @@ func _key(event: InputEventKey) -> void:
 		excluded.clear()
 		_zones_changed()
 	elif action == &"spellbook":
-		menu.cards = world.cards
+		menu.queued = Spell.make(picked)
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
 		_recall(settings.spells.get(action, ""))
@@ -300,9 +303,9 @@ func _click(event: InputEventMouseButton) -> void:
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
 	var local := _local(event.position)
-	var card := term.card_at(local)
+	var card := StatusBar.card_at(term, local)
 	if card != &"":
-		_toggle(card)
+		_add(card)
 		return
 	if Grid.inside(hover):
 		_use_tile(hover, event.shift_pressed)
@@ -338,14 +341,22 @@ func _point(screen: Vector2) -> void:
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
 		tile = term.side_at(local)
-	var card := term.card_at(local)
-	var status := term.status_at(local)
-	var spell := term.slot_at(local) + term.hand_at(local)
-	if tile != hover or card != hover_card or status != hover_status or spell != hover_spell:
+	var card := StatusBar.card_at(term, local)
+	var status := StatusBar.status_at(term, local)
+	var spell := StatusBar.slot_at(term, local) + StatusBar.hand_at(term, local)
+	var slot := StatusBar.queue_at(term, local)
+	if (
+		tile != hover
+		or card != hover_card
+		or status != hover_status
+		or spell != hover_spell
+		or slot != hover_slot
+	):
 		hover = tile
 		hover_card = card
 		hover_status = status
 		hover_spell = spell
+		hover_slot = slot
 		if state == &"play" and not busy:
 			_refresh()
 
@@ -389,10 +400,16 @@ func _stop_look() -> void:
 	_point(get_viewport().get_mouse_position())
 
 
-func _toggle(card: StringName) -> void:
-	if picked.has(card):
-		picked.erase(card)
-	elif picked.size() < Spell.MAX_CARDS and _held() + picked.size() < world.tails:
+## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
+func _add(card: StringName) -> void:
+	var why := ""
+	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
+		why = "줄이 가득 찼다"
+	elif _held() + picked.size() >= world.tails:
+		why = "꼬리가 모자라다"
+	if why != "":
+		_say(why)
+	else:
 		picked.append(card)
 	sfx.play(&"click")
 	_forecast()

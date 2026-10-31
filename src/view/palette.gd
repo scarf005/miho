@@ -93,6 +93,13 @@ const BOLT := {
 }
 
 
+## A talisman slot's colour; a compound's is halfway between its two elements'.
+static func card(slot: StringName) -> Color:
+	if Cards.PAIRS.has(slot):
+		return CARD[Cards.PAIRS[slot][0]].lerp(CARD[Cards.PAIRS[slot][1]], 0.5)
+	return CARD[slot]
+
+
 static func shot_glyph(spell: Spell) -> String:
 	if spell.orb:
 		return "●"
