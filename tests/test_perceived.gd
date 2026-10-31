@@ -6,7 +6,13 @@ const HIDDEN := Vector2i(20, 8)
 const SEEDS := [1, 2, 3, 4, 5, 6]
 const ROUNDS := 120
 const POPUP_LINE := {
-	&"notice": "들켰다", &"hurt": "피해", &"card": "부적", &"heal": "회복", &"noise": "소리를 들었다"
+	&"notice": "들켰다",
+	&"heed": "살피러 간다",
+	&"drum": "북을 쳤",
+	&"hurt": "피해",
+	&"card": "부적",
+	&"heal": "회복",
+	&"noise": "소리를 들었다",
 }
 
 
@@ -64,6 +70,12 @@ func test_a_seen_notice_is_told_once() -> void:
 	var events := [{t = &"notice", id = r[2], at = SEEN}]
 	assert_eq(_lines(r[0], r[1], events), ["도깨비에게 들켰다"] as Array[String])
 	assert_eq(_lines(r[1], r[1], []), [] as Array[String])
+
+
+func test_a_seen_heed_is_told_once() -> void:
+	var r := _round(SEEN, SEEN, Actor.SEARCH, [])
+	var events := [{t = &"heed", id = r[2], kind = &"ash", at = SEEN}]
+	assert_eq(_lines(r[0], r[1], events), ["도깨비가 재를 보고 살피러 간다"] as Array[String])
 
 
 func test_a_creature_coming_into_view_searching_or_blind_is_told() -> void:
@@ -140,6 +152,8 @@ func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
 				match f.t:
 					&"notice":
 						told[f.id] = "!"
+					&"heed":
+						told[f.id] = "?"
 					&"blind":
 						told[f.id] = "x"
 					&"state":

@@ -8,8 +8,11 @@ extends RefCounted
 ## the round's events). Anything else that happened gives no fact.
 ## The map also marks a creature in sight by its state, so a creature that comes
 ## into sight marked, or changes its mark in sight, gives a `state` fact (i is
-## -1) unless the round's facts already tell it: a seen notice or blinding.
+## -1) unless the round's facts already tell it: a seen notice, heed or blinding.
 ## It derives from `before` and `after` only, so a replay gives the same facts.
+
+## The mark a seen event already tells.
+const TELLS := {&"notice": "!", &"heed": "?", &"blind": "x"}
 
 ## Tiles seen at the start or end of the round (1 for seen).
 var vis := PackedByteArray()
@@ -57,8 +60,8 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 func _tell_marks(before: World, after: World) -> void:
 	var covered := {}
 	for f in facts:
-		if f.t in [&"notice", &"blind"]:
-			covered[[f.t, f.id]] = true
+		if TELLS.has(f.t):
+			covered[[TELLS[f.t], f.id]] = true
 	for a in after.actors:
 		var mark := mark_of(a)
 		if a.faction == Actor.FOX or not a.alive() or mark == "" or not sees(after.seen, a.pos):
@@ -66,11 +69,8 @@ func _tell_marks(before: World, after: World) -> void:
 		var was := before.actor(a.id)
 		if was != null and was.alive() and sees(before.seen, was.pos) and mark_of(was) == mark:
 			continue
-		if covered.has([&"notice", a.id]) and mark == "!":
-			continue
-		if covered.has([&"blind", a.id]) and mark == "x":
-			continue
-		facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})
+		if not covered.has([mark, a.id]):
+			facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})
 
 
 ## Whether tile p is seen in `vis`.
