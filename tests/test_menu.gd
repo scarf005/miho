@@ -31,6 +31,7 @@ func test_help_lists_every_action_with_its_current_keys() -> void:
 	assert_string_contains(text, "자동 탐험 Shift+X")
 	assert_string_contains(text, "계단으로 가기 Shift+.")
 	assert_string_contains(text, "부적 고르기 1 2 3 4 5 6 7")
+	assert_false(text.contains("1 2 3 4 5 6 7 8"), "one key per talisman Miho can hold")
 	assert_string_contains(text, "살펴보기 X")
 	assert_string_contains(text, "지난 메시지 Ctrl+P, P")
 	assert_string_contains(text, "살피는 중")
