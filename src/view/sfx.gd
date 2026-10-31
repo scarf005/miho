@@ -31,7 +31,35 @@ const NAMES := [
 	&"lose",
 	&"click",
 	&"deny",
+	&"gong",
+	&"trap",
+	&"find",
+	&"door",
+	&"root",
+	&"stun",
+	&"absorb",
+	&"hiss",
 ]
+## Events heard the same wherever they happen.
+const GLOBAL := [&"card", &"heal", &"ascend", &"fall", &"won", &"lost", &"omen", &"arrive"]
+## How loud an event sounds from its place, in dB; those left out play at full.
+const LEVEL := {
+	&"move": -6.0,
+	&"charge": -4.0,
+	&"notice": -4.0,
+	&"noise": -8.0,
+	&"push": -4.0,
+	&"smash": -4.0,
+	&"douse": -4.0,
+	&"scald": -4.0,
+	&"grow": -2.0,
+	&"sprout": -2.0,
+	&"gas": -6.0,
+	&"cool": -8.0,
+	&"heat": -8.0,
+	&"relight": -8.0,
+	&"ignite": -10.0,
+}
 const WORDS := {
 	"탁": &"step",
 	"휙": &"foxfire",
@@ -45,9 +73,9 @@ const WORDS := {
 	"쨍": &"clash",
 	"사각": &"step",
 	"삐걱": &"click",
-	"드르륵": &"click",
+	"드르륵": &"door",
 	"둥": &"blast",
-	"댕": &"blast",
+	"댕": &"gong",
 	"찌익": &"clash",
 	"타닥": &"burn",
 }
@@ -150,39 +178,63 @@ func play_at(n: StringName, at: Vector2, volume_db := 0.0) -> void:
 
 
 func on_event(e: Dictionary, at: Vector2) -> void:
+	var n := sound_of(e)
+	if n == &"":
+		return
+	if e.t in GLOBAL:
+		play(n)
+	else:
+		play_at(n, at, LEVEL.get(e.t, 0.0))
+
+
+## The sound an event makes, or &"" for none. A noise Miho sees is never told
+## as a noise, so what she sees sounds from the event that made it.
+static func sound_of(e: Dictionary) -> StringName:
 	match e.t:
 		&"move":
-			play_at(&"step", at, -6.0)
+			return &"step"
 		&"cast":
-			play_at(&"orb" if e.cards.has(Cards.ORB) else &"foxfire", at)
+			return &"orb" if e.cards.has(Cards.ORB) else &"foxfire"
 		&"hit", &"burst", &"splash":
-			if not e.get("spray", false):
-				play_at(&"blast", at)
+			return &"" if e.get("spray", false) else &"blast"
 		&"drum":
-			if not e.wet:
-				play_at(&"blast", at)
-		&"clash", &"snuff", &"absorb", &"claw", &"melee":
-			play_at(&"clash", at)
+			return &"" if e.wet else &"blast"
+		&"clash", &"snuff", &"claw", &"melee", &"push", &"smash":
+			return &"clash"
+		&"absorb":
+			return &"absorb"
+		&"grow", &"card", &"heal":
+			return &"card"
 		&"trap":
-			play_at(&"click", at)
+			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
+		&"find":
+			return &"find"
+		&"open", &"close":
+			return &"door"
+		&"root", &"freeze", &"sprout":
+			return &"root"
+		&"stun":
+			return &"stun"
+		&"gas":
+			return &"" if e.kind == Gas.SMOKE else &"hiss"
+		&"scald", &"cool", &"douse":
+			return &"hiss"
+		&"ignite", &"heat", &"relight":
+			return &"burn"
 		&"hurt":
-			play_at(&"hurt", at)
+			return &"hurt"
 		&"die":
-			play_at(&"fall", at)
-		&"charge", &"notice":
-			play_at(&"charge", at, -4.0)
-		&"card", &"heal":
-			play(&"card")
+			return &"fall"
+		&"charge", &"notice", &"omen", &"arrive":
+			return &"charge"
 		&"ascend":
-			play(&"ascend")
+			return &"ascend"
 		&"fall":
-			if e.has("depth"):
-				play(&"fall")
+			return &"fall" if e.has("depth") else &""
 		&"won":
-			play(&"win")
+			return &"win"
 		&"lost":
-			play(&"lose")
-		&"omen", &"arrive":
-			play(&"charge")
+			return &"lose"
 		&"noise":
-			play_at(WORDS.get(e.word, &"step"), at, -8.0)
+			return WORDS.get(e.word, &"step")
+	return &""
