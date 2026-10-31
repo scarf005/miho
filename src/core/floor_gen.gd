@@ -6,7 +6,8 @@ extends RefCounted
 ## of a wide pavilion may be a gallery, a hall one tile wide between two walls.
 ## Doorways in those walls join every room, with a few extra loops (so a hunted
 ## fox has somewhere to slip away); some hold sliding doors (some start open).
-## Lanterns light some rooms. Some other rooms get a bamboo patch, a pond, or
+## A few walls between rooms far apart are hidden doors (Traps). Lanterns
+## light some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
 ## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
 ## by tier (Placement).
@@ -135,6 +136,8 @@ const GALLERIES := 0.6
 ## that hold a sliding door.
 const LOOPS := 6
 const DOORS := 0.6
+## A hidden door joins two rooms at least this many steps apart without it.
+const SHORTCUT := 10
 const LIT_ROOMS := 0.45
 const FOE_DISTANCE := 12
 const BAMBOO_ROOMS := 0.25
@@ -205,6 +208,7 @@ static func _carve(w: World) -> void:
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.SKY)
 	w.rooms.clear()
+	w.secrets.clear()
 	var blocks := _pavilions(w)
 	var galleries: Array[Rect2i] = []
 	for b in blocks:
@@ -212,10 +216,11 @@ static func _carve(w: World) -> void:
 		_fill(w, b.grow(-1), World.FLOOR)
 		_split(w, b.grow(-1), galleries, w.rng.randf() < GALLERIES)
 	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
-	_doorways(w, galleries)
+	var spots := _doorways(w, galleries)
 	for i in range(1, blocks.size()):
 		for y in _bridge_rows(w, blocks[i - 1], blocks[i]):
 			_bridge(w, blocks[i - 1], blocks[i], y)
+	_hide_doors(w, spots)
 	_windows(w)
 
 
@@ -276,7 +281,9 @@ static func _split(w: World, r: Rect2i, galleries: Array[Rect2i], gallery := fal
 ## tile with two different parts on opposite sides and wall on the other two
 ## opens when it joins parts not yet joined, until all are one, and LOOPS more
 ## open anyway. DOORS of them hold a sliding door, OPEN_DOORS of those open.
-static func _doorways(w: World, galleries: Array[Rect2i]) -> void:
+## Returns the tiles left that could still have been doorways: [tile, across,
+## part, part], where parts below w.rooms.size() are rooms.
+static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 	var parts := w.rooms.duplicate()
 	parts.append_array(galleries)
 	var part := PackedInt32Array()
@@ -298,10 +305,12 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> void:
 	_shuffle(w, spots)
 	var joined := range(parts.size())
 	var loops := LOOPS
+	var left := []
 	for s: Array in spots:
 		var a := _root(joined, s[2])
 		var b := _root(joined, s[3])
 		if not _walled(w, s[0], s[1]) or (a == b and loops <= 0):
+			left.append(s)
 			continue
 		loops -= 1 if a == b else 0
 		joined[a] = b
@@ -309,6 +318,7 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> void:
 		if w.rng.randf() < DOORS:
 			t = World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
 		w.tiles[Grid.index(s[0])] = t
+	return left
 
 
 ## The part that stands for every part joined with `k`.
@@ -327,14 +337,31 @@ static func _shuffle(w: World, a: Array) -> void:
 		a[j] = t
 
 
-## p is a wall with wall on both sides across `across`.
+## p is a wall with wall on both sides across `across`, and no hidden door there.
 static func _walled(w: World, p: Vector2i, across: Vector2i) -> bool:
 	var side := Vector2i(across.y, across.x)
 	return (
 		w.tile(p) == World.WALL
 		and w.tile(p + side) == World.WALL
 		and w.tile(p - side) == World.WALL
+		and not w.secrets.has(p + side)
+		and not w.secrets.has(p - side)
 	)
+
+
+## 1 + (tier - 1) / 3 hidden doors, on tiles of `spots` (from _doorways)
+## between two rooms at least SHORTCUT steps apart.
+static func _hide_doors(w: World, spots: Array) -> void:
+	var open := Masks.floor_of(w)
+	for s: Array in spots:
+		if w.secrets.size() > (w.tier() - 1) / 3:
+			return
+		var p: Vector2i = s[0]
+		var d: Vector2i = s[1]
+		if s[2] < w.rooms.size() and s[3] < w.rooms.size() and _walled(w, p, d):
+			var dist: PackedInt32Array = Grid.search(p - d, open).dist
+			if dist[Grid.index(p + d)] >= SHORTCUT:
+				w.secrets[p] = true
 
 
 ## One or two rows, at least 3 apart, for the bridges between pavilions `west`

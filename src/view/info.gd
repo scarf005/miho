@@ -363,6 +363,8 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Tiles.of(t, "trap"):
 		out.append("밝은 칸이나 %d칸 안에서만 보인다. 한번 찾으면 기억한다" % Traps.REACH)
 		out.append("적은 알고 피해 다닌다")
+	if t == World.WALL and breakable:
+		out.append("방 사이 벽은 숨은 문일 수 있다. 밝거나 %d칸 안이면 찾는다" % Traps.REACH)
 	if Terrain.wall(t) and breakable:
 		out.append("구슬로만 부술 수 있다. 쿵 소리 %d칸" % World.THUD)
 		if Tiles.of(t, "breaks_to") != World.RUBBLE:
