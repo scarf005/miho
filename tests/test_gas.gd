@@ -56,7 +56,7 @@ func test_fog_thins_slowly_steam_and_smoke_quickly_and_all_of_them_block_sight()
 		assert_ne(Gas.of(kind, "name"), "")
 
 
-func test_only_walls_closed_doors_windows_pillars_wooden_walls_sky_and_seals_stop_gas() -> void:
+func test_only_walls_closed_doors_windows_pillars_wooden_walls_and_sky_stop_gas() -> void:
 	var stops := [
 		World.WALL,
 		World.WALL_CRACKED,
@@ -65,7 +65,6 @@ func test_only_walls_closed_doors_windows_pillars_wooden_walls_sky_and_seals_sto
 		World.PILLAR,
 		World.WOOD_WALL,
 		World.SKY,
-		World.SEAL,
 	]
 	for t in 256:
 		assert_eq(Tiles.gas[t] == 0, stops.has(t), "gas on %d" % t)

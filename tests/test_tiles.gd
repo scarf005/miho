@@ -91,7 +91,7 @@ func test_each_kind_has_the_walk_burn_tread_and_break_it_always_had() -> void:
 
 func test_the_masks_for_rust_keep_their_old_tests() -> void:
 	var blocks_light := [
-		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL, World.SEAL
+		World.WALL, World.WALL_CRACKED, World.BAMBOO, World.PILLAR, World.WOOD_WALL
 	]
 	var blocks_sight: Array = blocks_light + [World.DOOR, World.REEDS, World.SCREEN]
 	for t in 256:

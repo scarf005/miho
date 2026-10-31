@@ -7,8 +7,8 @@ extends RefCounted
 ## and the hover tells all three. A room that cannot be built leaves the storey
 ## as it was. A room's state lives in World.sites, and `tick` ends every round.
 ##
-## 세 등불 보물방 (FloorGen.seal): a room shut by a seal that three dark
-## lanterns in front of it open, with two peaches inside. It is tried first,
+## 세 등불 보물방 (Vault): a room shut by a plain wall that three dark
+## lanterns in a row in front of it bring down, with two peaches inside. It is tried first,
 ## with the world's generator; the other rooms (ROWS) draw from a generator of
 ## their own, seeded from the world's, so that they leave the draws of what is
 ## laid after them as they were on a storey they do not appear on.
@@ -58,7 +58,7 @@ static func _try(w: World, home: Rect2i, rng: RandomNumberGenerator, kind: Strin
 static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	match kind:
 		&"vault":
-			return FloorGen.seal(w, r)
+			return Vault.make(w, r)
 		&"altar":
 			return Altar.make(w, r)
 		&"veil":

@@ -20,8 +20,8 @@ extends RefCounted
 ## trap: a plate in the floor that goes off when a creature steps onto it (Traps).
 ## Heaven walks round it, and so does a walk Miho has planned. It is floor, not
 ## this tile kind, until Miho finds it.
-## opens: it shuts the way now and is gone in time (a seal opens, a veil goes
-## out), so the storey is whole without it (FloorGen.connected).
+## opens: it shuts the way now and is gone in time (a veil goes out), so the
+## storey is whole without it (FloorGen.connected).
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -111,7 +111,6 @@ const ROWS := {
 	World.TRAP_COLLAPSE: {name = "허방다리", walk = true, trap = true},
 	World.TRAP_FIRE: {name = "불씨 함정", walk = true, trap = true},
 	World.TRAP_VINE: {name = "덩굴 함정", walk = true, trap = true},
-	World.SEAL: {name = "봉인문", sight = true, light = false, gas = false, opens = true},
 	World.ALTAR: {name = "혼불 제단"},
 	World.ALTAR_LIT: {name = "타오르는 제단"},
 	World.VEIL: {name = "도깨비불 장막", opens = true},
