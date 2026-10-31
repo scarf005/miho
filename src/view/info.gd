@@ -552,6 +552,9 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("옆 가연물 점화.")
 		World.COURTYARD:
 			out.append("달빛 상시 조명.")
+		World.STATUE:
+			out.append("통과 불가.")
+			out.append("깨어남: %s. 접근 %d칸 이내." % [Bestiary.info(Statues.KIND).name, Statues.REACH])
 		World.POND, World.SKY:
 			out.append("걸어서 건널 수 없다")
 			out.append("주문과 멀리뛰기는 넘어간다")

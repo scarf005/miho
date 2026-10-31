@@ -14,6 +14,7 @@ const MADE_OF := {
 	&"granary": [[World.STRAW, World.CENSER], []],
 	&"mist": [[World.POND], [World.FLOOR]],
 	&"corridor": [[], [World.FLOOR]],
+	&"statues": [[World.STATUE], [World.FLOOR]],
 }
 
 
@@ -280,6 +281,56 @@ func test_a_wide_or_short_or_lit_room_is_no_corridor() -> void:
 	lit.tiles[Grid.index(HALL.position)] = World.LANTERN
 	assert_false(_corridor(lit), "a lantern lights it")
 	assert_true(lit.traps.is_empty())
+
+
+# --- 깨어나는 석상 ----------------------------------------------------------------------
+
+
+func _statues(w: World, r := MID) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	return SetRooms.make(w, &"statues", r, rng)
+
+
+func test_a_hall_of_statues_stands_three_in_a_large_room_clear_of_the_edge() -> void:
+	var w := _plan(5)
+	assert_true(_statues(w))
+	var at: Array[Vector2i] = []
+	for y in range(MID.position.y, MID.end.y):
+		for x in range(MID.position.x, MID.end.x):
+			if w.tile(Vector2i(x, y)) == World.STATUE:
+				at.append(Vector2i(x, y))
+	assert_eq(at.size(), 3, "a room of %d tiles" % MID.get_area())
+	for p in at:
+		assert_true(MID.grow(-1).has_point(p), str(p))
+	assert_true(FloorGen.connected(w))
+
+
+func test_a_small_hall_of_statues_stands_two() -> void:
+	var small := Rect2i(10, 3, 6, 6)
+	var w := _plan(5, small)
+	assert_true(_statues(w, small))
+	assert_eq(_count(w, small, World.STATUE), 2)
+
+
+func test_a_room_with_no_inner_floor_for_the_statues_is_left_as_it_was() -> void:
+	var thin := Rect2i(10, 4, 12, 2)
+	var w := _plan(5, thin)
+	var before := w.tiles.duplicate()
+	assert_false(_statues(w, thin))
+	assert_eq(w.tiles, before)
+
+
+func test_a_statue_hall_wakes_its_statues_as_miho_crosses_it() -> void:
+	var w := _plan(5)
+	_statues(w)
+	var woke := 0
+	for x in range(w.player().pos.x, GOAL.position.x):
+		w.player().pos = Vector2i(x, 5)
+		w.sense()
+		woke += w.act({t = &"wait"}).filter(func(e): return e.t == &"wake").size()
+	assert_gt(woke, 0, "crossing the room along its middle row")
+	assert_eq(_count(w, MID, World.STATUE) + woke, 3)
 
 
 # --- the storeys ---------------------------------------------------------------------

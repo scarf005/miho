@@ -75,7 +75,7 @@ const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
 func test_every_tile_kind_is_a_row() -> void:
-	assert_eq(Tiles.ROWS.keys(), range(World.COURTYARD + 1))
+	assert_eq(Tiles.ROWS.keys(), range(World.STATUE + 1))
 	for t: int in Tiles.ROWS:
 		assert_ne(Tiles.of(t, "name"), "", str(t))
 

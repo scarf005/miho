@@ -244,7 +244,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"hurt"
 		&"die":
 			return &"fall"
-		&"charge", &"notice", &"feud", &"omen", &"arrive":
+		&"charge", &"notice", &"feud", &"omen", &"arrive", &"wake":
 			return &"charge"
 		&"ascend":
 			return &"ascend"

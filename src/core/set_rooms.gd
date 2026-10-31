@@ -14,12 +14,14 @@ extends RefCounted
 ## 불타기 쉬운 곳간 (granary): straw covers the floor, and a censer stands in it.
 ## 안개 연못 (mist): a pond grown from the middle breathes fog from every tile.
 ## 경보 복도 (corridor): a dark, narrow room whose floor hides alarm plates (Traps).
+## 깨어나는 석상 (statues): statues stand inside the room and wake as 장승 (Statues).
 
 const ROWS := [
 	{kind = &"garden", tier = 1},
 	{kind = &"granary", tier = 2},
 	{kind = &"mist", tier = 3},
 	{kind = &"corridor", tier = 4},
+	{kind = &"statues", tier = 5},
 ]
 ## A corridor is at most CORRIDOR.x tiles across and at least CORRIDOR.y long.
 const CORRIDOR := Vector2i(4, 7)
@@ -33,8 +35,9 @@ const POND := {what = World.POND, on = World.FLOOR, grow = [100, 18]}
 const FOG := {gas = Gas.FOG, amount = Gas.MAX, on = World.POND, grow = [100, 0]}
 ## A pond of fewer tiles is no mist room.
 const POND_LEAST := 4
-## A granary of this many tiles holds two censers, else one.
-const CENSERS_AREA := 40
+## A room of this many tiles holds one more censer (a granary: two, else one) or
+## statue (a hall of statues: three, else two).
+const LARGE_AREA := 40
 ## A room must hold this many floor tiles to be made into one.
 const LEAST_AREA := 12
 ## What a room is cleared of: patches (Placement) and the pond and floorboards.
@@ -90,6 +93,8 @@ static func make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerat
 			made = _mist(w, r, rng)
 		&"corridor":
 			made = _corridor(w, r, rng)
+		&"statues":
+			made = _statues(w, r, rng)
 	if not made:
 		w.tiles = before[0]
 		w.traps = before[1]
@@ -139,14 +144,14 @@ static func _garden(w: World, r: Rect2i) -> bool:
 	return true
 
 
-## Straw all over, and censers (two in a room of CENSERS_AREA tiles, else one) on
+## Straw all over, and censers (two in a room of LARGE_AREA tiles, else one) on
 ## tiles of it that leave the storey whole.
 static func _granary(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 	var spots := _bare(w, r)
 	for p in spots:
 		w.tiles[Grid.index(p)] = World.STRAW
 	FloorGen.shuffle(rng, spots)
-	var most := 2 if r.get_area() >= CENSERS_AREA else 1
+	var most := 2 if r.get_area() >= LARGE_AREA else 1
 	var censers := 0
 	for p in spots:
 		if censers >= most:
@@ -173,6 +178,25 @@ static func _mist(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		return false
 	Placement.lay(w, FOG, pond[0], rng)
 	return true
+
+
+## Statues (two, three in a room of LARGE_AREA tiles) on bare tiles off the room's
+## edge, where the ways in stay clear, each one that leaves the storey whole.
+static func _statues(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+	var inner := r.grow(-1)
+	var spots := _bare(w, inner)
+	FloorGen.shuffle(rng, spots)
+	var most := 3 if r.get_area() >= LARGE_AREA else 2
+	var statues := 0
+	for p in spots:
+		if statues >= most:
+			break
+		w.tiles[Grid.index(p)] = World.STATUE
+		if FloorGen.connected(w):
+			statues += 1
+		else:
+			w.tiles[Grid.index(p)] = World.FLOOR
+	return statues == most
 
 
 ## Alarm plates on random bare tiles of a narrow room no light reaches, each one

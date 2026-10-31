@@ -147,6 +147,7 @@ const JAR := 43
 const WATER_JAR := 44
 const CENSER := 45
 const COURTYARD := 46
+const STATUE := 47
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -548,6 +549,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Gas.tick(self)
 	Terrain.unseal(self)
 	EventRooms.tick(self)
+	Statues.tick(self)
 	Guise.tick(self)
 	Lure.tick(self)
 	_end_round()

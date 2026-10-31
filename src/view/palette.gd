@@ -60,6 +60,7 @@ const TILES := {
 	World.WATER_JAR: ["0", Color(0.45, 0.7, 1.0), Color(0.06, 0.14, 0.28)],
 	World.CENSER: ["&", Color(0.9, 0.75, 0.35), Color(0.24, 0.17, 0.06)],
 	World.COURTYARD: ["▫", Color(0.7, 0.82, 1.0), Color(0.12, 0.15, 0.24)],
+	World.STATUE: ["8", Color(0.78, 0.74, 0.66), Color(0.2, 0.18, 0.16)],
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]

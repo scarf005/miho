@@ -56,6 +56,7 @@ const SOUNDS := [
 	[{t = &"noise", word = "낄낄"}, &"charge"],
 	[{t = &"omen"}, &"charge"],
 	[{t = &"arrive"}, &"charge"],
+	[{t = &"wake"}, &"charge"],
 	[{t = &"ascend"}, &"ascend"],
 	[{t = &"fall", depth = 2}, &"fall"],
 	[{t = &"won"}, &"win"],
