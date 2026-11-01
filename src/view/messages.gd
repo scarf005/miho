@@ -41,6 +41,7 @@ func add(runs: Array, round_no: int) -> void:
 		if lines[i].text == text:
 			lines[i].n += 1
 			lines[i].round = round_no
+			lines[i].erase("shown")
 			return
 		i -= 1
 	lines.append({runs = runs, text = text, round = round_no, n = 1})
@@ -48,11 +49,13 @@ func add(runs: Array, round_no: int) -> void:
 		lines = lines.slice(-KEEP)
 
 
-## The line as shown, with its count.
+## The line as shown, with its count, painted once: a long log is reopened often.
 static func shown(line: Dictionary) -> Array:
-	return Keywords.paint(
-		line.runs if line.n == 1 else line.runs + [[" ×%d" % line.n, Palette.DIM]]
-	)
+	if not line.has("shown"):
+		line.shown = Keywords.paint(
+			line.runs if line.n == 1 else line.runs + [[" ×%d" % line.n, Palette.DIM]]
+		)
+	return line.shown
 
 
 ## A line's text without its colours.

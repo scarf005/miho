@@ -147,7 +147,7 @@ func panel() -> Dictionary:
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
 			out = {title = "주문서", rows = _spells(list), detail = detail}
 		&"log":
-			out = {title = "기록", rows = log_rows}
+			out = {title = "기록", rows = log_rows, painted = true}
 		&"codex":
 			return codex.panel()
 		&"cheat":

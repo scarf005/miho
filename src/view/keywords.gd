@@ -70,10 +70,11 @@ static func lines(rows: Array) -> Array:
 
 
 ## A panel (Term.panel) with the words in its rows, detail and aside coloured.
+## Rows already `painted` stay as they are: a log is thousands long.
 static func panel(shown: Dictionary) -> Dictionary:
 	var out := shown.duplicate()
 	for key: String in ["rows", "detail", "aside"]:
-		if out.has(key):
+		if out.has(key) and not (key == "rows" and out.get("painted", false)):
 			out[key] = lines(out[key])
 	return out
 
