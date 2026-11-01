@@ -38,7 +38,7 @@ func _foe(w: World, kind: StringName) -> Actor:
 
 
 func test_the_plain_dokkaebi_casts_a_lone_wisp_with_no_element() -> void:
-	assert_eq(Bestiary.info(&"dokkaebi").casts, [[Cards.FOX]])
+	assert_eq(Bestiary.info(&"dokkaebi").casts, [[Cards.FOX], Bestiary.KINDLE])
 	assert_eq(Bestiary.elements(&"dokkaebi"), [] as Array[StringName])
 	assert_eq(Bestiary.weak_to(&"dokkaebi"), [] as Array[StringName])
 
@@ -54,7 +54,7 @@ func test_the_plain_dokkaebi_s_wisp_sticks_to_miho_and_does_no_harm() -> void:
 
 
 func test_the_poker_dokkaebi_casts_foxfire_with_fire_and_comes_deeper() -> void:
-	assert_eq(Bestiary.info(&"bujigaengi").casts, [[Cards.FOX, Cards.FIRE]])
+	assert_eq(Bestiary.info(&"bujigaengi").casts, [[Cards.FOX, Cards.FIRE], Bestiary.KINDLE])
 	assert_eq(Bestiary.elements(&"bujigaengi"), [Cards.FIRE] as Array[StringName])
 	assert_eq(Bestiary.weak_to(&"bujigaengi"), [Cards.WATER] as Array[StringName])
 	var first := {}
