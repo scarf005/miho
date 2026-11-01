@@ -89,9 +89,11 @@ var ahead := {}
 var reach := {}
 var aims := {}
 ## Shortest walks from Miho over what she knows, around the travel exclusions
-## (Travel.search), and the tiles those cover.
+## and where creatures were last seen (Travel.search, Sightings), and the tiles
+## the exclusions cover.
 var routes := {}
 var excluded := Exclusions.new()
+var sightings := Sightings.new()
 var zone := {}
 
 
@@ -695,7 +697,7 @@ func _step_on(path: Array[Vector2i]) -> Dictionary:
 ## The shortest walk to `tile`: around the exclusions, unless `tile` is in one,
 ## which Miho may walk into when told to.
 func _path_to(tile: Vector2i) -> Array[Vector2i]:
-	return Travel.route(Travel.search(world) if zone.has(tile) else routes, tile)
+	return Travel.route(Travel.search(world, sightings.at) if zone.has(tile) else routes, tile)
 
 
 ## What is said when the way to `goal` is shut only by the exclusions, else `otherwise`.
@@ -703,7 +705,7 @@ func _walled_in(goal: Vector2i, otherwise: String) -> String:
 	var shut := (
 		Grid.inside(goal)
 		and Travel.route(routes, goal).is_empty()
-		and not Travel.route(Travel.search(world), goal).is_empty()
+		and not Travel.route(Travel.search(world, sightings.at), goal).is_empty()
 	)
 	return "위험구역 너머로는 가지 않는다" if shut else otherwise
 
@@ -713,7 +715,7 @@ func _explore_walled() -> bool:
 	return (
 		not excluded.is_empty()
 		and Travel.explore_step(world, routes) == Vector2i.ZERO
-		and Travel.explore_step(world, Travel.search(world)) != Vector2i.ZERO
+		and Travel.explore_step(world, Travel.search(world, sightings.at)) != Vector2i.ZERO
 	)
 
 
@@ -881,7 +883,8 @@ func _forecast() -> void:
 	known = world.known_clone()
 	var me := world.player().pos
 	zone = excluded.tiles(world)
-	routes = Travel.search(world, excluded.tiles(world, me))
+	sightings.update(world)
+	routes = Travel.search(world, excluded.tiles(world, me).merged(sightings.at))
 	ahead = {}
 	aims = {}
 	reach = {}
