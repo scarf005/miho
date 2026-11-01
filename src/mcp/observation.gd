@@ -25,7 +25,7 @@ const REMEMBERED_FLOOR := "·"
 const ALERTS := ["resting", "searching", "hunting"]
 const WITS := ["dull", "sharp", "cunning"]
 const LEGEND := (
-	"legend: #wall(also cracked-wall, wooden-wall, window: the tile name tells which, see look) "
+	"legend: ╳cracked-wall #wall(also wooden-wall, window: the tile name tells which, see look) "
 	+ ":rubble .floor(in sight) ·floor(remembered) +closed-door 'open-door "
 	+ "░sky ═skybridge ◎drum ◌torn-drum ;broken-lantern "
 	+ '¤lantern "bamboo =floorboards ~pond(also shallow-water, mud: see look) ,ash '

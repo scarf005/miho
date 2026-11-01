@@ -68,7 +68,7 @@ func test_glyphs_follow_dcss() -> void:
 	assert_eq(Palette.TILES[World.FLOOR][0], ".")
 	assert_eq(Palette.BODY[0], "%")
 	assert_eq(Palette.PEACH[0], "%")
-	for wall in [World.WALL, World.WALL_CRACKED, World.WOOD_WALL, World.WINDOW]:
+	for wall in [World.WALL, World.WOOD_WALL, World.WINDOW]:
 		assert_eq(Palette.TILES[wall][0], "#", "tile %d" % wall)
 	for water in [World.POND, World.SHALLOW, World.MUD]:
 		assert_eq(Palette.TILES[water][0], "~", "tile %d" % water)
