@@ -16,6 +16,7 @@ extends RefCounted
 ## 부서진 층 (broken): BrokenFloor.
 ## 흩어진 정자 (scattered): Scattered.
 ## 연못 정원 (garden): PondGarden.
+## 겹누각 (keep): Keep. 겹누각 성채 (citadel): Keep.citadel.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -27,10 +28,12 @@ const TOWERS := &"towers"
 const BROKEN := &"broken"
 const SCATTERED := &"scattered"
 const GARDEN := &"garden"
+const KEEP := &"keep"
+const CITADEL := &"citadel"
 ## What a storey may be built on; `pick` draws from it.
 const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
 ## The skeletons with one way to the exit: no two routes are asked of them.
-const ONE_WAY: Array[StringName] = [PAVILIONS]
+const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
 ## How many rooms `far_ends` tries as the start.
@@ -86,6 +89,10 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return Scattered.draw(w)
 		GARDEN:
 			return PondGarden.draw(w)
+		KEEP:
+			return Keep.draw(w)
+		CITADEL:
+			return Keep.citadel(w)
 	return FloorGen.pavilions(w)
 
 
@@ -169,6 +176,29 @@ static func _ring(w: World) -> Dictionary:
 	var east := Grid.W - 1 - w.rng.randi_range(RING_X.x, RING_X.y)
 	var south := Grid.H - 1 - w.rng.randi_range(RING_Y.x, RING_Y.y)
 	var outer := Rect2i(west, north, east - west + 1, south - north + 1)
+	var ring := _ring_walls(w, outer)
+	var halls: Array[Rect2i] = ring.halls
+	var court: Rect2i = ring.court
+	_wing(w, Vector2i(1, north), Vector2i(Grid.W - 2, north), Vector2i.UP, RING_GAPS)
+	_wing(w, Vector2i(1, south), Vector2i(Grid.W - 2, south), Vector2i.DOWN, RING_GAPS)
+	_wing(w, outer.position, Vector2i(west, south), Vector2i.LEFT, RING_GAPS)
+	_wing(w, Vector2i(east, north), Vector2i(east, south), Vector2i.RIGHT, RING_GAPS)
+	var near := _rooms_by(w, halls)
+	var home: Rect2i = near[w.rng.randi_range(0, near.size() - 1)]
+	var goal := home
+	for r: Rect2i in near:
+		if _gap(r, home) > _gap(goal, home):
+			goal = r
+	for r in [home, goal]:
+		halls.any(func(h): return _door(w, r, h))
+	_first(w, home)
+	var plan := {spots = FloorGen._doorways(w, halls), links = [], goal = goal}
+	_cross(w, court, plan.links)
+	return plan
+
+
+## The hall RING_HALL wide inside wall `outer`, round a court of sky: {court, halls}.
+static func _ring_walls(w: World, outer: Rect2i) -> Dictionary:
 	var inside := outer.grow(-1)
 	var court := inside.grow(-RING_HALL - 1)
 	FloorGen._fill(w, outer, World.WALL)
@@ -181,24 +211,14 @@ static func _ring(w: World) -> Dictionary:
 		Rect2i(inside.position, Vector2i(RING_HALL, inside.size.y)),
 		Rect2i(inside.end.x - RING_HALL, inside.position.y, RING_HALL, inside.size.y),
 	]
-	_wing(w, Vector2i(1, north), Vector2i(Grid.W - 2, north), Vector2i.UP, RING_GAPS)
-	_wing(w, Vector2i(1, south), Vector2i(Grid.W - 2, south), Vector2i.DOWN, RING_GAPS)
-	_wing(w, outer.position, Vector2i(west, south), Vector2i.LEFT, RING_GAPS)
-	_wing(w, Vector2i(east, north), Vector2i(east, south), Vector2i.RIGHT, RING_GAPS)
-	var near := w.rooms.filter(
+	return {court = court, halls = halls}
+
+
+## The rooms a wall apart from one of `halls`.
+static func _rooms_by(w: World, halls: Array[Rect2i]) -> Array:
+	return w.rooms.filter(
 		func(r): return halls.any(func(h): return not _door_spots(w, r, h).is_empty())
 	)
-	var home: Rect2i = near[w.rng.randi_range(0, near.size() - 1)]
-	var goal := home
-	for r: Rect2i in near:
-		if _gap(r, home) > _gap(goal, home):
-			goal = r
-	for r in [home, goal]:
-		halls.any(func(h): return _door(w, r, h))
-	_first(w, home)
-	var plan := {spots = FloorGen._doorways(w, halls), links = [], goal = goal}
-	_cross(w, court, plan.links)
-	return plan
 
 
 ## How far apart the middles of two rooms are.
