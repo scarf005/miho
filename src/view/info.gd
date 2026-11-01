@@ -787,10 +787,7 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 	if w.seen[i] == 0:
 		if w.dim[i] == 1:
 			return [
-				[
-					"보이지 않음: %s" % (Tiles.of(World.BAMBOO, "name") if w.hides(p) else "어둠"),
-					Palette.DIM
-				]
+				["가림: %s" % (Tiles.of(World.BAMBOO, "name") if w.hides(p) else "어둠"), Palette.DIM]
 			]
 		return [["보이지 않음.", Palette.DIM]]
 	return _hidden(w, p)

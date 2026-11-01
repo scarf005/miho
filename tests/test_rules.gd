@@ -199,7 +199,7 @@ func test_hover_never_shows_a_creature_miho_cannot_see() -> void:
 	assert_eq(w.dim[Grid.index(foe.pos)], 1)
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_false(text.contains("도깨비"))
-	assert_string_contains(text, "보이지 않음: 어둠")
+	assert_string_contains(text, "가림: 어둠")
 	assert_eq(Info.at(w.known_clone(), Vector2i(30, 2)), [], "never seen")
 
 

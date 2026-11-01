@@ -5,7 +5,7 @@ extends RefCounted
 ## it costs, what each element does, its light and its sound.
 
 const LABEL := Palette.DIM
-const MUZZLE := ["발사 빛", "미호 칸"]
+const MUZZLE := ["발사 빛", "둘레 %d칸" % Light.MUZZLE_RADIUS]
 ## The talismans that make each shape but a spray.
 const RECIPE := {
 	Spell.LEAP: Cards.TRIPLES[Cards.VAULT],
@@ -241,7 +241,7 @@ static func _spray(s: Spell) -> Array:
 				_line("관통", "적") if level >= Spray.THROUGH_LEVEL else _line("멈춤", "첫 적"),
 				_line("밀침", "%d칸" % Spray.PUSH[i], color),
 				_line("꺼짐", "불, 등불", color),
-				_line("북", "젖음", color),
+				_line("맞은 북", "젖음", color),
 				_line(SOAK[0], SOAK[1], color),
 			]
 		Cards.METAL:
@@ -364,10 +364,10 @@ static func compound(c: StringName) -> Array:
 				[Tiles.of(World.POND, "name"), "%s이 됨" % Tiles.of(World.ICE, "name")]
 			]
 		&"rain":
-			return [["묶임", "%d초" % Compounds.RAIN], ["꺼짐", "불, 등불"], ["북", "젖음"], SOAK]
+			return [["묶임", "%d초" % Compounds.RAIN], ["꺼짐", "불, 등불"], ["맞은 북", "젖음"], SOAK]
 		&"steam":
 			var gas := [Gas.of(Gas.STEAM, "name") + " 양", "%d/%d" % [Compounds.STEAM, Gas.MAX]]
-			return [gas, harm.call(Gas.of(Gas.STEAM, "harm")), ["북", "젖음"], SOAK]
+			return [gas, harm.call(Gas.of(Gas.STEAM, "harm")), ["맞은 북", "젖음"], SOAK]
 		&"thorn":
 			var name: String = Tiles.of(World.THORNS, "name")
 			return [
@@ -575,7 +575,7 @@ static func _shape(s: Spell) -> Array:
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", "%s %d발" % [s.wisp(), s.shots()]))
-			lines.append(_line("대상", "보이는 적, 가까운 순으로 체력만큼 나눠 맞힘"))
+			lines.append(_line("대상", "보이는 적, 가까운 적부터 체력만큼"))
 			lines.append(
 				(
 					_line("발당 피해", str(s.damage(0)), Palette.HURT)
