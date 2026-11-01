@@ -126,3 +126,31 @@ static func mark_of(a: Actor) -> String:
 	if a.blind > 0:
 		return "x"
 	return Palette.ALERT_MARK[a.alert]
+
+
+## The popup a fact shows over its tile, or empty: {at, text, color, life}.
+static func popup_of(fact: Dictionary) -> Dictionary:
+	var at: Vector2i = fact.where
+	match fact.t:
+		&"hurt":
+			return {at = at, text = str(fact.n), color = Palette.HURT, life = 0.9}
+		&"notice":
+			return {at = at, text = "!", color = Palette.ALERT[2], life = 0.9}
+		&"heed":
+			return {at = at, text = "?", color = Palette.ALERT[1], life = 0.9}
+		&"drum":
+			return {at = at, text = "툭" if fact.wet else "둥", color = Palette.SOUND, life = 1.2}
+		&"card":
+			return {
+				at = at, text = Cards.GLYPH[fact.card], color = Palette.CARD[fact.card], life = 1.6
+			}
+		&"heal":
+			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
+		&"noise", &"shout":
+			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
+		&"find":
+			var plate: Array = Palette.TILES[fact.kind]
+			return {at = at, text = plate[0], color = plate[1], life = 1.6}
+		&"trap":
+			return {at = at, text = Traps.CLICK, color = Palette.TILES[fact.kind][1], life = 1.2}
+	return {}

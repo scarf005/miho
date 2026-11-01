@@ -107,7 +107,7 @@ func test_a_hidden_notice_gives_no_popup() -> void:
 	assert_eq(Perceived.of(r[0], r[1], events).facts, [] as Array[Dictionary])
 	var seen := _round(SEEN, SEEN, Actor.HUNT, [])
 	var facts := Perceived.of(seen[0], seen[1], [{t = &"notice", id = seen[2], at = SEEN}]).facts
-	assert_eq(facts.map(Term.popup_of).map(func(p): return p.text), ["!"])
+	assert_eq(facts.map(Perceived.popup_of).map(func(p): return p.text), ["!"])
 
 
 ## A scripted round: step towards the nearest creature most of the time.
@@ -167,7 +167,7 @@ func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
 							lines.any(func(l): return l.contains(Messages.STATE[f.mark])), ctx
 						)
 				var text: String = POPUP_LINE.get(f.t, "")
-				if not Term.popup_of(f).is_empty():
+				if not Perceived.popup_of(f).is_empty():
 					popups += 1
 					assert_true(lines.any(func(l): return l.contains(text)), "%s %s" % [ctx, f.t])
 			for a in w.actors:
@@ -216,7 +216,7 @@ func test_a_noise_out_of_sight_pops_its_bare_word() -> void:
 	var w := _world()
 	var noise := {t = &"noise", at = HIDDEN, word = "쾅", loud = 9, heard = true}
 	var p := Perceived.of(w, w, [noise])
-	assert_eq(p.facts.map(Term.popup_of).map(func(q): return q.text), ["쾅"])
+	assert_eq(p.facts.map(Perceived.popup_of).map(func(q): return q.text), ["쾅"])
 	var quiet := noise.merged({heard = false}, true)
 	assert_eq(Perceived.of(w, w, [quiet]).facts, [] as Array[Dictionary], "out of earshot")
 
@@ -226,4 +226,4 @@ func test_a_shout_pops_its_bare_word_once() -> void:
 	var shout := {t = &"shout", id = w.player().id, at = SEEN, word = "낄낄", loud = 6}
 	var noise := {t = &"noise", at = SEEN, word = "낄낄", loud = 6, heard = true}
 	var p := Perceived.of(w, w, [shout, noise])
-	assert_eq(p.facts.map(Term.popup_of).map(func(q): return q.text), ["낄낄"])
+	assert_eq(p.facts.map(Perceived.popup_of).map(func(q): return q.text), ["낄낄"])

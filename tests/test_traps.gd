@@ -340,13 +340,13 @@ func test_finding_a_plate_is_told_in_the_log_and_shown_as_a_popup() -> void:
 	w.sense()
 	var facts := Perceived.of(before, w, w.events).facts
 	assert_eq(_lines(before, w, w.events), ["불씨 함정을 찾았다"])
-	var popups := facts.map(Term.popup_of).filter(func(p): return not p.is_empty())
+	var popups := facts.map(Perceived.popup_of).filter(func(p): return not p.is_empty())
 	assert_eq(popups.map(func(p): return p.text), [Palette.TILES[World.TRAP_FIRE][0]])
 
 
 func test_a_plate_going_off_shows_a_popup_with_its_click() -> void:
 	var fact := {t = &"trap", id = 1, at = PLATE, kind = World.TRAP_ALARM, where = PLATE}
-	assert_eq(Term.popup_of(fact).text, Traps.CLICK)
+	assert_eq(Perceived.popup_of(fact).text, Traps.CLICK)
 
 
 func test_arriving_on_a_new_storey_tells_the_plates_found_there_after_the_climb() -> void:

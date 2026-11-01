@@ -119,7 +119,7 @@ func test_the_log_tells_a_shout_in_sight_and_one_heard_out_of_it() -> void:
 
 
 func test_a_shout_in_sight_pops_its_bare_word_over_the_shouter() -> void:
-	var popup := Term.popup_of({t = &"shout", word = "낄낄", where = ME})
+	var popup := Perceived.popup_of({t = &"shout", word = "낄낄", where = ME})
 	assert_eq(popup.text, "낄낄")
 	assert_eq(popup.at, ME)
 	assert_eq(popup.color, Palette.SOUND)

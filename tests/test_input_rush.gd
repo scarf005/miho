@@ -68,7 +68,7 @@ func test_a_held_key_repeats_through_animations() -> void:
 	_throw(m)
 	var rounds: int = m.world.round_no
 	for i in 3:
-		m._unhandled_input(_key("Period", true))
+		m._unhandled_input(_key("Left", true))
 	assert_eq(m.world.round_no, rounds + 3)
 
 

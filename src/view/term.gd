@@ -12,6 +12,8 @@ extends Control
 signal shown(e: Dictionary, at: Vector2)
 ## The world is on screen as it stands, after a round or a change.
 signal settled(w: World)
+## Ends a hold in `play`: its time ran out, or a key asked (`rush`).
+signal released
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
@@ -103,6 +105,10 @@ var cam := Vector2i.ZERO
 var noise := 0
 
 var _font: FontFile
+## What is left of the hold `play` waits on, in seconds.
+var _hold := 0.0
+## Set by `rush` until the next `play`: the round in progress holds no more.
+var _rushed := false
 var _vis := PackedByteArray()
 ## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
 var _veiled := {}
@@ -182,6 +188,10 @@ func _shown(p: Vector2i) -> bool:
 
 func _process(delta: float) -> void:
 	_time += delta
+	if _hold > 0.0:
+		_hold -= delta
+		if _hold <= 0.0:
+			released.emit()
 	var now := _time
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
@@ -229,6 +239,7 @@ func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> D
 ## Animates one round from `before` to `after`, then shows `after`.
 func play(events: Array, before: World, after: World) -> void:
 	world = after
+	_rushed = false
 	var perceived := Perceived.of(before, after, events)
 	_vis = perceived.vis
 	_veiled = perceived.veiled
@@ -246,13 +257,23 @@ func play(events: Array, before: World, after: World) -> void:
 	_animating = true
 	for i in events.size():
 		var wait := _apply(events[i], _told.get(i, {}))
-		if wait > 0.0:
-			await get_tree().create_timer(wait / speed).timeout
+		if wait > 0.0 and not _rushed:
+			_hold = wait / speed
+			await released
 	noise = NoiseMeter.level(_vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
 	show_world(after)
+
+
+## Finishes the round in progress at once: `play` returns before this does, so
+## the key that asked acts on the finished round. Popups and sounds still play.
+func rush() -> void:
+	_rushed = true
+	if _hold > 0.0:
+		_hold = 0.0
+		released.emit()
 
 
 ## Whether Miho sees tile p: what the log and the popups are told from.
@@ -268,34 +289,6 @@ func _hatted(a: Actor) -> bool:
 ## Whether tile p is drawn: seen, or any tile with the debug view on.
 func _revealed(p: Vector2i) -> bool:
 	return Grid.inside(p) and (not debug.is_empty() or _vis[Grid.index(p)] == 1)
-
-
-## The popup a fact shows over its tile, or empty: {at, text, color, life}.
-static func popup_of(fact: Dictionary) -> Dictionary:
-	var at: Vector2i = fact.where
-	match fact.t:
-		&"hurt":
-			return {at = at, text = str(fact.n), color = Palette.HURT, life = 0.9}
-		&"notice":
-			return {at = at, text = "!", color = Palette.ALERT[2], life = 0.9}
-		&"heed":
-			return {at = at, text = "?", color = Palette.ALERT[1], life = 0.9}
-		&"drum":
-			return {at = at, text = "툭" if fact.wet else "둥", color = Palette.SOUND, life = 1.2}
-		&"card":
-			return {
-				at = at, text = Cards.GLYPH[fact.card], color = Palette.CARD[fact.card], life = 1.6
-			}
-		&"heal":
-			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
-		&"noise", &"shout":
-			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
-		&"find":
-			var plate: Array = Palette.TILES[fact.kind]
-			return {at = at, text = plate[0], color = plate[1], life = 1.6}
-		&"trap":
-			return {at = at, text = Traps.CLICK, color = Palette.TILES[fact.kind][1], life = 1.2}
-	return {}
 
 
 ## Applies one event to what is drawn; `fact` is what Miho is told of it, or
@@ -360,7 +353,7 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 				_flash(p, Color(color, 0.8), 0.04 * Grid.cheb(p, e.at))
 	if fact.is_empty():
 		return 0.0
-	var popup := popup_of(fact)
+	var popup := Perceived.popup_of(fact)
 	if not popup.is_empty():
 		_popups.append(popup.merged({born = _time}))
 	shown.emit(e, cell_centre(fact.where))

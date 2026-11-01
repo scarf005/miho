@@ -171,13 +171,15 @@ func _new_run(seed_value := randi()) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	var press := event.is_pressed() and not event.is_echo()
+	var walked := walking or state == &"replay"
+	if event.is_pressed() and state in [&"play", &"replay"]:
+		halt = halt or walking and press
+		skip = skip or press
+		term.rush()
 	if event is InputEventMouseMotion:
 		_point(event.position)
-	elif state == &"replay":
-		skip = skip or press
-		term.speed = 8.0 if skip else term.speed
-	elif walking:
-		halt = halt or press
+	elif walked:
+		pass
 	elif busy or not event.is_pressed() or event.is_echo() and overlay == &"" and state != &"play":
 		pass
 	elif overlay != &"":
