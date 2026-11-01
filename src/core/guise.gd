@@ -27,7 +27,7 @@ const GUISE := &"guise"
 const NAME := {SHADOW: "그림자", GUISE: "둔갑"}
 ## The talismans that make each, at their weakest.
 const RECIPE := {SHADOW: [Cards.FOX, Cards.WATER], GUISE: [Cards.WOOD, Cards.EARTH]}
-const ONLY := "자신에게는 그림자(여+수)나 둔갑(목+토)만 건다"
+const ONLY := "스스로에겐 그림자(여+수)나 둔갑(목+토)만 걸 수 있다"
 const NO_PREY := "아직 처치한 적이 없다"
 const ROUNDS := 8
 const PER_WOOD := 2
