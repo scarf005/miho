@@ -243,6 +243,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == &"over":
 		if Keys.action_of(event) == &"restart":
 			_restart()
+		elif Keys.action_of(event) == &"log":
+			_open(&"log")
 		elif _left_click(event) and term.banner_at(_local(event.position)) == Banner.SEED:
 			_copy_seed()
 	elif event is InputEventKey:
@@ -720,7 +722,8 @@ func _act(action: Dictionary) -> Array:
 	if world.outcome != &"":
 		state = &"over"
 		term.banner_lines = Banner.over(world, kills, run_seed)
-		term.banner_lines[-1] = touch.say(term.banner_lines[-1], "")
+		for i in [-1, -2]:
+			term.banner_lines[i] = touch.say(term.banner_lines[i], "")
 	busy = false
 	_forecast()
 	return events

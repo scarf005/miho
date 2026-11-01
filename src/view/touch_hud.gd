@@ -37,7 +37,7 @@ const ALONE := {
 	&"menu": [[&"back", "뒤로"]],
 	&"title": [],
 	&"saved": [[&"continue", "이어하기"], [&"new", "새로 시작"]],
-	&"over": [[&"new", "재시작"]],
+	&"over": [[&"log", "기록"], [&"new", "재시작"]],
 }
 ## How long a pressed button stays lit, in seconds.
 const FLASH := 0.15
