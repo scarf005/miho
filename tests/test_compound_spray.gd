@@ -221,7 +221,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
 	assert_true(card.begins_with("불 부적 · 꼬리: 1"), card)
 	assert_string_contains(card, "반지름 1")
-	assert_string_contains(card, "넣으면: 불×2 불길 · 꼬리: 2")
+	assert_string_contains(card, "넣으면: 불길 · 꼬리: 2")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:
