@@ -19,7 +19,8 @@ const INSTRUCTIONS := (
 	)
 	+ "She grows a tail on every storey, up to nine. "
 	+ "Call new_game, then act. Every result shows the map and what Miho knows. "
-	+ "A spell is a queue of talismans, one tail each: fox or orb hurl projectiles, "
+	+ "A spell is a queue of talismans, 1 to 5 cards costing 1, 2, 3, 5, 7 tails: "
+	+ "fox or orb hurl projectiles, "
 	+ "elements alone spray at once; more copies make it stronger. "
 	+ "Game text is Korean. Use forecast to check a step or a spell before taking it, "
 	+ "and explore, rest, stairs and travel to walk many rounds safely."
@@ -58,8 +59,8 @@ const SPELLS := {
 		+ "round, an alarm heaven searches. dir self casts it on Miho: only fox with "
 		+ "water (그림자, a dark wisp on her) or wood with earth (둔갑, the form of the "
 		+ "last creature felled, which creatures not hunting her do not know). The "
-		+ "forecast lists every number. Every card costs one tail, and all cards "
-		+ "together cost at most the unspent tails."
+		+ "forecast lists every number. A spell of 1 to 5 cards costs 1, 2, 3, 5, 7 tails, "
+		+ "and each card past five two more; all spells together cost at most the unspent tails."
 	),
 	items =
 	{
@@ -385,7 +386,7 @@ func _refusal(action: Dictionary) -> String:
 		+ (
 			"its own open direction (self only for fox with water, or wood with earth "
 			+ "once a creature has fallen), "
-			+ "and all cards together cost at most the %d unspent tails." % world.tails
+			+ "and all spells together cost at most the %d unspent tails." % world.tails
 		)
 	)
 

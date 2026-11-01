@@ -216,6 +216,7 @@ func test_a_homing_orb_with_one_fox_loses_its_creature_round_a_sharp_corner() ->
 
 func test_a_homing_orb_with_four_foxes_follows_the_corner() -> void:
 	var w := _hairpin()
+	w.tails = 7
 	var foe := _foe(w, &"jangseung", Vector2i(12, 7))
 	var events := []
 	events += w.act(_cast([FOX, FOX, FOX, FOX, ORB]))
@@ -328,3 +329,15 @@ func test_a_wisp_off_the_aimed_line_never_turns_back_at_miho() -> void:
 	assert_eq(_starts(events), [me.pos + E, me.pos - E])
 	assert_false(events.any(func(e): return e.t == &"hit" and e.id == me.id))
 	assert_eq(me.hp, me.max_hp)
+
+
+func test_one_to_five_cards_cost_1_2_3_5_7_tails_and_each_card_past_five_two_more() -> void:
+	var costs: Array[int] = []
+	for n in range(1, 6):
+		var cards: Array[StringName] = []
+		cards.resize(n)
+		cards.fill(FOX)
+		costs.append(Spell.make(cards).cost())
+	assert_eq(costs, [1, 2, 3, 5, 7] as Array[int])
+	assert_eq(Spell.price(0), 0)
+	assert_eq([Spell.price(6), Spell.price(7), Spell.price(11)], [9, 11, 19])

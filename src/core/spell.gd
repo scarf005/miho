@@ -5,9 +5,10 @@ extends RefCounted
 ## slot it can join (Cards.join): a different element into their compound
 ## (Cards.PAIRS), one slot worth two cards, or a compound of two other
 ## elements of its 상생 chain into the 3단 compound (Cards.TRIPLES), one slot
-## worth three. Every card costs one tail.
-## Every spell is hurled along one of eight lines, and grows with the tails it
-## costs: one card is power 1.
+## worth three. A spell of 1 to 5 cards costs COST tails, and each card past
+## five two more.
+## Every spell is hurled along one of eight lines, and grows with the cards it
+## holds: one card is power 1.
 ## The shape is read top down: 도약 (Cards.VAULT) leading the queue leaps
 ## Miho LEAP_BASE tiles and one more for every 목 slot right behind it, and
 ## casts the rest of the spell where she lands (Leap). 도약 last behind 여 or
@@ -31,6 +32,8 @@ extends RefCounted
 ## two elements, but for what a creature is weak to or eats (`holds`).
 
 const MAX_SLOTS := 5
+## Tails a spell of 1 to 5 cards costs.
+const COST := [1, 2, 3, 5, 7]
 const MOMENTUM := 4
 const WISP_SPEED := 3
 ## A lone orb; each more in the spell adds one, up to a bullet's.
@@ -232,7 +235,12 @@ func title() -> String:
 
 
 func cost() -> int:
-	return cards.size()
+	return price(cards.size())
+
+
+## Tails `n` cards cost: COST for up to five, then two more for each card.
+static func price(n: int) -> int:
+	return 0 if n <= 0 else COST[mini(n, COST.size()) - 1] + 2 * maxi(0, n - COST.size())
 
 
 func speed() -> int:
@@ -281,7 +289,7 @@ func extra(element: StringName) -> int:
 ## bullet, an orb 1 for every 구 and 1 more after a run-up, Elements.CANNON
 ## more a cannonball, and 1 more for every 불 or 쇠 past the first.
 func damage(distance: int) -> int:
-	var lone := cost() - Cards.made_of(Cards.VAULT).size() * count(Cards.VAULT) == 1
+	var lone := cards.size() - Cards.made_of(Cards.VAULT).size() * count(Cards.VAULT) == 1
 	var n := Elements.BULLET if has(Cards.METAL) else (0 if lone else 1)
 	if orb:
 		n = count(Cards.ORB) + (1 if distance >= MOMENTUM else 0)

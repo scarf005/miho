@@ -13,7 +13,7 @@ static func draw(t: Term) -> void:
 	var row := t.rows - 2
 	t._glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
 	t._pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
-	var held := _held(t) + t.picked.size()
+	var held := _held(t)
 	for i in w.max_tails():
 		var c: Color = Palette.SIDE[0]
 		if i >= w.tails:
@@ -49,7 +49,6 @@ static func draw(t: Term) -> void:
 	var slots: Array[StringName] = []
 	if queued != null:
 		slots = queued.slots
-	var room := w.tails - held
 	for i in Spell.MAX_SLOTS:
 		var at := Vector2(queue_x(t) + i, row)
 		if i < slots.size():
@@ -57,7 +56,7 @@ static func draw(t: Term) -> void:
 			t.draw_rect(Rect2(at * Term.CELL, Term.CELL).grow(-2), c * 0.35)
 			t._glyph(at, Cards.GLYPH[slots[i]], c)
 		else:
-			t._glyph(at, "·", Palette.TEXT if i - slots.size() < room else Palette.DIM)
+			t._glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
 	var name := _name(t, queued)
 	var at := title_at(t, name)
 	if at.y < row:
@@ -68,9 +67,16 @@ static func draw(t: Term) -> void:
 	NoiseMeter.draw(t)
 
 
-## Tails the spells held with Shift spend.
+## Tails the spells held with Shift and the queue spend.
 static func _held(t: Term) -> int:
-	return t.staged.reduce(func(n, s): return n + s.cards.size(), 0)
+	var staged: int = t.staged.reduce(func(n, s): return n + Spell.price(s.cards.size()), 0)
+	return staged + Spell.price(t.picked.size())
+
+
+## Whether Miho has the tails for `n` more cards in the queue.
+static func fits(t: Term, n: int) -> bool:
+	var staged := _held(t) - Spell.price(t.picked.size())
+	return staged + Spell.price(t.picked.size() + n) <= t.world.tails
 
 
 ## Where the queue's first slot is drawn on the lower row.

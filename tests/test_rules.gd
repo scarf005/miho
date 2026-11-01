@@ -71,7 +71,7 @@ func test_the_queue_stacks_repeats_and_holds_five_slots_at_most() -> void:
 	assert_null(Spell.make([FOX, FOX, FOX, FOX, FOX, FOX]), "five slots at most")
 	var six_cards := Spell.make([FOX, ORB, ORB, Cards.FIRE, Cards.WATER, Cards.FIRE])
 	assert_eq(six_cards.slots.size(), 5, "a compound is one slot")
-	assert_eq(six_cards.cost(), 6, "and two tails")
+	assert_eq(six_cards.cost(), 9, "and nine tails: the sixth card is two more")
 
 
 func test_spell_names_and_costs() -> void:
@@ -84,7 +84,7 @@ func test_spell_names_and_costs() -> void:
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.FIRE]).title(), "증기·불 구슬")
 	assert_eq(Spell.make([FOX]).cost(), 1)
 	assert_eq(Spell.make([ORB, Cards.FIRE, Cards.METAL]).cost(), 3)
-	assert_eq(Spell.make([FOX, ORB, Cards.FIRE, Cards.METAL]).cost(), 4)
+	assert_eq(Spell.make([FOX, ORB, Cards.FIRE, Cards.METAL]).cost(), 5)
 
 
 func test_sight_is_symmetric_between_floor_tiles() -> void:
@@ -534,9 +534,11 @@ func test_one_turn_splits_the_tails_across_several_spells() -> void:
 	w.tails = 5
 	for c in Cards.ELEMENTS:
 		w.cards.append(c)
+	var one_three := _casts([[[FOX], N], [[ORB, Cards.FIRE, Cards.WOOD], E]])
 	var one_four := _casts([[[FOX], N], [[ORB, Cards.FIRE, Cards.WOOD, Cards.METAL], E]])
 	var ones := _casts([[[FOX], N], [[FOX], E], [[ORB], S], [[ORB], WEST]])
-	assert_true(w.can(one_four))
+	assert_true(w.can(one_three))
+	assert_false(w.can(one_four), "one and five tails are six")
 	assert_true(w.can(ones))
 	assert_false(w.can(_casts([[[FOX, Cards.FIRE], N], [[ORB, Cards.WOOD, Cards.METAL, FOX], E]])))
 	assert_false(w.can(_casts([[[FOX], E], [[ORB], E]])), "one spell per line")

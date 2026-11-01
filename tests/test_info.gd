@@ -51,7 +51,7 @@ func test_a_spell_tells_every_number() -> void:
 		SpellInfo.spell(Spell.make([Cards.FOX, Cards.FOX, Cards.WOOD, Cards.WOOD]))
 	)
 	for part in [
-		"꼬리: 4",
+		"꼬리: 5",
 		"모양: 여우불 2발",
 		"피해: 발마다 1",
 		"꺾임: 한 칸에 60°",

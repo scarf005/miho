@@ -289,6 +289,7 @@ func test_a_wisp_carries_steam_and_more_copies_reach_farther() -> void:
 	assert_eq(Spray.cover(w, w.player(), Spell.make([WATER, FIRE, WATER, FIRE]), E).size(), 25)
 	for copies in [1, 2]:
 		w = _world()
+		w.tails = 7
 		var struck := _post(w, ME + E * 3)
 		var corner := _post(w, ME + Vector2i(5, 2))
 		w.act(_cast([ORB] + [METAL, WATER, METAL, WATER].slice(0, 2 * copies)))

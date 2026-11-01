@@ -11,9 +11,9 @@ extends SceneTree
 
 ## Storeys built per depth to count the creatures FloorGen places.
 const SEEDS := 12
-## Most cards in a spell the search tries: max_tails at the last storey, 9, and
-## one more for an altar.
-const MAX_COST := 10
+## Most cards in a spell the search tries: those Spell.price puts within
+## max_tails at the last storey, 9, and one more for an altar.
+const MAX_COST := 6
 ## Tiles between Miho and the creature the casts are tried at.
 const DISTANCES := [1, 4]
 ## The health a target gets, so a cast is never capped by its death.
@@ -154,7 +154,7 @@ func _cast_at(cards: Array, kind: StringName, spots: Array[Vector2i], after := f
 	var ids := []
 	for p in spots:
 		ids.append(_foe(w, kind, p).id)
-	w.tails = cards.size()
+	w.tails = Spell.price(cards.size())
 	w.act({t = &"cast", spells = [{cards = cards, dir = EAST}]})
 	var first := _harm(w.events, ids)
 	var total := first
@@ -387,7 +387,7 @@ func _depth_table() -> void:
 	_say("- tails: max_tails, and in brackets with a lit altar (that storey only).")
 	_say("- hp bound: 3, and 1 more for each peach eaten at full hp (one grows on each odd storey")
 	_say("  from the third), counting only the storeys before.")
-	_say("- spells: distinct spells of at most max_tails cards from the talismans held.")
+	_say("- spells: distinct spells costing at most max_tails from the talismans held.")
 	_say("- creatures: mean number FloorGen placed over %d storeys per depth." % SEEDS)
 	_say("")
 	_say("| depth | tails | hp bound | talismans on arrival | spells | creatures |")
@@ -422,7 +422,7 @@ func _ladder(held: Array, kind: StringName, top: int) -> Array:
 	for n in range(0, top + 1):
 		best.append({one = 0, three = 0, after = 0, one_spell = "", after_spell = ""})
 	var keys := _spells.keys().filter(
-		func(k): return _spells[k].size() <= top and _owned(_spells[k], held)
+		func(k): return Spell.price(_spells[k].size()) <= top and _owned(_spells[k], held)
 	)
 	_fill(keys, kind)
 	if not _shard.is_empty():
@@ -430,7 +430,7 @@ func _ladder(held: Array, kind: StringName, top: int) -> Array:
 	for k in keys:
 		var cards: Array = _spells[k]
 		var h: Dictionary = _memo[k + "@" + _profile(kind)]
-		for n in range(cards.size(), top + 1):
+		for n in range(Spell.price(cards.size()), top + 1):
 			if h.one > best[n].one:
 				best[n].one = h.one
 				best[n].one_spell = Spell.make(cards).title()

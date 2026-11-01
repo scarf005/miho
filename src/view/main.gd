@@ -443,7 +443,7 @@ func _add(card: StringName) -> void:
 	var why := ""
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
 		why = "줄이 가득 찼다"
-	elif _held() + picked.size() >= world.tails:
+	elif _held() + Spell.price(picked.size() + 1) > world.tails:
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
 		why = "도약: 맨 앞, 또는 여·구 뒤 끝"
@@ -520,7 +520,7 @@ func _refuse(why: String) -> void:
 
 
 func _held() -> int:
-	return staged.reduce(func(n, s): return n + s.cards.size(), 0)
+	return staged.reduce(func(n, s): return n + Spell.price(s.cards.size()), 0)
 
 
 ## Takes back the last talisman picked, else the last spell held.

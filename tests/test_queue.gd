@@ -60,11 +60,81 @@ func test_number_keys_queue_talismans_with_repeats_until_the_tails_run_out() -> 
 		_press(m, k)
 	assert_eq(m.picked, [FOX, FOX, Cards.FIRE, Cards.WATER] as Array[StringName])
 	assert_eq(Spell.make(m.picked).slots, [FOX, FOX, &"steam"] as Array[StringName])
+	assert_eq(Spell.make(m.picked).cost(), 5, "four cards, five tails")
 	_press(m, "2")
-	_press(m, "2")
-	assert_eq(m.picked.size(), 5, "five tails, five cards")
+	assert_eq(m.picked.size(), 4, "a fifth card would cost seven")
 	_press(m, "Escape")
 	assert_true(m.picked.is_empty(), "Esc clears the queue")
+
+
+func test_three_tails_queue_three_cards_and_refuse_a_fourth_that_costs_five() -> void:
+	var m := _main()
+	m.world.tails = 3
+	for i in 4:
+		_press(m, "1")
+	assert_eq(m.picked.size(), 3)
+	assert_true(m.refused)
+
+
+func test_five_tails_queue_a_fourth_card_but_refuse_a_fifth_that_costs_seven() -> void:
+	var m := _main()
+	for i in 3:
+		_press(m, "1")
+	assert_false(m.refused)
+	_press(m, "1")
+	assert_eq(m.picked.size(), 4, "the fourth costs five")
+	assert_false(m.refused)
+	_press(m, "1")
+	assert_eq(m.picked.size(), 4, "the fifth costs seven")
+	assert_true(m.refused)
+
+
+func test_the_status_bar_holds_the_cost_of_the_queue_and_of_every_spell_held_with_shift() -> void:
+	var m := _main()
+	var t: Term = m.term
+	assert_eq(StatusBar._held(t), 0)
+	for i in 3:
+		_press(m, "1")
+	assert_eq(StatusBar._held(t), 3, "three cards")
+	m._direction(Vector2i.RIGHT, true)
+	assert_eq(m.staged.size(), 1)
+	assert_eq(StatusBar._held(t), 3, "held with Shift")
+	for i in 2:
+		_press(m, "1")
+	assert_eq(StatusBar._held(t), 3 + 2, "plus two cards")
+	m._direction(Vector2i.UP, true)
+	assert_eq(StatusBar._held(t), 5, "two spells add their costs")
+	assert_false(m.refused)
+	_press(m, "1")
+	assert_true(m.picked.is_empty(), "no tail is left")
+	assert_true(m.refused)
+
+
+func test_a_queue_dot_is_bright_only_while_one_more_card_is_paid() -> void:
+	var m := _main()
+	var t: Term = m.term
+	for i in 2:
+		_press(m, "1")
+	assert_eq(StatusBar._held(t), 2)
+	assert_true(StatusBar.fits(t, 1), "a third card costs three")
+	assert_true(StatusBar.fits(t, 2), "a fourth costs five")
+	assert_false(StatusBar.fits(t, 3), "a fifth costs seven")
+
+
+func test_a_cast_spends_exactly_its_cost_and_its_forecast_says_the_same() -> void:
+	var w := _hall()
+	var action := {t = &"cast", spells = [{cards = [FOX, FOX, FOX, FOX], dir = Vector2i.RIGHT}]}
+	var forecast := w.preview(action)
+	assert_eq(forecast.tails, 0)
+	w.act(action)
+	assert_eq(w.tails, 0, "four cards, five tails of five")
+	assert_eq(w.tails, forecast.tails)
+	var w2 := _hall()
+	w2.tails = 4
+	assert_false(w2.can(action), "five tails are more than four")
+	w2.tails = 6
+	w2.act({t = &"cast", spells = [{cards = [FOX, FOX, FOX], dir = Vector2i.RIGHT}]})
+	assert_eq(w2.tails, 3)
 
 
 func test_the_queue_holds_five_slots_even_with_tails_to_spare() -> void:
