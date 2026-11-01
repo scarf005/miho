@@ -94,7 +94,7 @@ static func shout(w: World, a: Actor) -> void:
 	var cry: Dictionary = a.info().get("shout", {})
 	if cry.is_empty():
 		return
-	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word, loud = cry.loud})
+	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word})
 	w.noise(a.pos, cry.loud, cry.word, true, a.id, a.target)
 
 

@@ -18,9 +18,6 @@ const TELLS := {&"notice": "!", &"heed": "?", &"blind": "x"}
 var vis := PackedByteArray()
 ## The facts, in the order of the events.
 var facts: Array[Dictionary] = []
-## The noises on seen tiles, copied like facts. They only show their reach on the map:
-## the log and the sound already tell them. A shout's noise is left out, the shout tells it.
-var sounds: Array[Dictionary] = []
 ## The ids of the creatures under a hat that she did not see in the round.
 var veiled := {}
 
@@ -55,8 +52,6 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 		)
 		if e.t == &"noise":
 			told = e.heard and not sees(out.vis, e.at)
-			if sees(out.vis, e.at) and not (i > 0 and events[i - 1].t == &"shout"):
-				out.sounds.append(e.merged({where = at, i = i}))
 		if ["id", "target", "rival"].any(func(k): return out.veiled.has(e.get(k, -1))):
 			told = false
 		if told:
