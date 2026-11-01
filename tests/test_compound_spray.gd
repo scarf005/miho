@@ -243,3 +243,8 @@ func test_a_compound_s_parts_show_in_their_own_colours() -> void:
 		colour[run[0]] = run[1]
 	assert_eq(colour["나무"], Palette.CARD[Cards.WOOD])
 	assert_eq(colour["+불"], Palette.CARD[Cards.FIRE])
+
+
+func test_a_lone_compound_slot_is_named_once() -> void:
+	var text := Info.plain(SpellInfo.slot(Spell.make([Cards.WOOD, Cards.FIRE]), 0))
+	assert_eq(text.count("들불 · 꼬리"), 1, text)
