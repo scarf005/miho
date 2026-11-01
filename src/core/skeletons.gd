@@ -13,6 +13,7 @@ extends RefCounted
 ## each row joined by doorways from end to end.
 ## 쌍탑 (towers): two stepped towers, floor on floor, joined by bridges at different
 ## heights; the start and the exit lie at opposite ends of opposite towers.
+## 부서진 층 (broken): BrokenFloor.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -21,12 +22,15 @@ const PAVILIONS := &"pavilions"
 const RING := &"ring"
 const AVENUE := &"avenue"
 const TOWERS := &"towers"
+const BROKEN := &"broken"
 ## What a storey may be built on; `pick` draws from it.
 const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
 ## The skeletons with one way to the exit: no two routes are asked of them.
 const ONE_WAY: Array[StringName] = [PAVILIONS]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
+## How many rooms `far_ends` tries as the start.
+const ENDS_TRIED := 8
 ## A row of rooms: a room's width with one wall (least, most), and how deep it goes.
 const LOT := Vector2i(6, 12)
 const DEEP := 7
@@ -72,6 +76,8 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return _avenue(w)
 		TOWERS:
 			return _towers(w)
+		BROKEN:
+			return BrokenFloor.draw(w)
 	return FloorGen.pavilions(w)
 
 
@@ -95,6 +101,19 @@ static func planks(w: World) -> Array:
 			out.append(Grid.at(at))
 		at = w.tiles.find(World.BOARD, at + 1)
 	return out
+
+
+## Makes a random room the start, the first of ENDS_TRIED with two routes to the room
+## farthest from it; returns that room, or an empty rect when none has.
+static func far_ends(w: World) -> Rect2i:
+	var homes := w.rooms.duplicate()
+	FloorGen.shuffle(w.rng, homes)
+	for home: Rect2i in homes.slice(0, ENDS_TRIED):
+		var goal := FloorGen._farthest(w, FloorGen._centre(home))
+		if goal != home and two_ways(w, home, goal):
+			_first(w, home)
+			return goal
+	return Rect2i()
 
 
 ## Whether the walk from the middle of `home` to the middle of `goal` has two routes
