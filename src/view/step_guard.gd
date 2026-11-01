@@ -27,7 +27,9 @@ static func danger(w: World, d: Vector2i, f: Forecast) -> bool:
 
 ## What is asked before stepping `d`; the keys answer it unless `touch`.
 static func question(w: World, d: Vector2i, touch: bool) -> String:
-	var text := toward(Tiles.of(w.tile(w.player().pos + d), "name")) + " 갈까?"
+	var to := w.player().pos + d
+	var name: String = "불타는 칸" if w.burning.has(to) else Tiles.of(w.tile(to), "name")
+	var text := toward(name) + " 갈까?"
 	return text if touch else text + " Y/N"
 
 
