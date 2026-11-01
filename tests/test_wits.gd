@@ -224,3 +224,24 @@ func test_the_observation_tells_the_wits_and_the_wariness() -> void:
 		assert_false(text.contains("wary"), text)
 		foe.wary = 12
 		assert_string_contains(Observation._creature(w, foe), ", wary 12")
+
+
+func test_a_bulgae_hit_by_a_fire_orb_from_the_dark_hunts_miho_and_closes_in() -> void:
+	var w := _world()
+	w.cards.assign([Cards.FIRE, Cards.ORB])
+	var foe := _foe(w, &"bulgae", ME + Vector2i(6, 0))
+	var struck := false
+	for i in 12:
+		foe.post = foe.pos
+		var events := w.act(WAIT if i > 0 else _cast([Cards.FIRE, Cards.ORB]))
+		struck = events.any(func(e): return e.t == &"absorb" and e.id == foe.id)
+		if struck:
+			break
+	assert_true(struck, "the orb reached it")
+	assert_false(foe.sees_me, "it cannot see her in the dark")
+	assert_eq(foe.alert, Actor.HUNT)
+	assert_eq(foe.target, ME)
+	foe.cooldown = 99
+	var gap := Grid.cheb(foe.pos, ME)
+	w.act(WAIT)
+	assert_lt(Grid.cheb(foe.pos, ME), gap, "it comes for her")
