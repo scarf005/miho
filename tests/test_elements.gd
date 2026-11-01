@@ -457,7 +457,7 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
 		[[FOX, FIRE], ["불: 지나간 자리", "불붙음: %d초" % Status.ALIGHT]],
-		[[ORB, FIRE, FIRE], ["폭발: 주위 8칸, 피해 %d" % (World.FIRE_DAMAGE + 1), "피해: +1"]],
+		[[ORB, FIRE, FIRE], ["폭발: 주위 8칸, 피해 %d" % (World.FIRE_DAMAGE + 1)]],
 		[[ORB, WATER], ["끔: 멈춘 곳 3×3 등불, 불", "소음: 없음"]],
 		[
 			[FOX, METAL, METAL],
@@ -471,7 +471,6 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 		[
 			[ORB, METAL],
 			[
-				"피해: +%d" % Elements.CANNON,
 				"밀침: %d칸" % Elements.CANNON_PUSH,
 				"소음: %d" % Elements.CANNON_LOUD,
 				"쏠 때 빛: 미호 칸",

@@ -176,7 +176,7 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 
 
 ## Water on p: Miho's scent washes away, the creature there and a drum get
-## wet, a lit lantern, a fire or a veil of dokkaebi fire goes out.
+## wet, a lit lantern, a fire, a veil of dokkaebi fire or a wisp goes out.
 static func wash(w: World, p: Vector2i) -> void:
 	Scent.clear(w, p)
 	var a := w.actor_at(p)
@@ -185,6 +185,15 @@ static func wash(w: World, p: Vector2i) -> void:
 	if w.tile(p) == World.DRUM:
 		Drums.soak(w, p)
 	douse(w, p)
+	var o := w.shot_at(p)
+	if (
+		o != null
+		and o.spell.shape == Spell.WISP
+		and not (o.spell.has(Cards.METAL) or o.spell.has(Cards.WATER))
+	):
+		o.gone = true
+		w._changed()
+		w.emit({t = &"snuff", shot = o.id, at = p})
 
 
 ## A lit lantern, a fire or a veil of dokkaebi fire on p goes out.

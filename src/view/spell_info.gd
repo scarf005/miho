@@ -410,7 +410,7 @@ static func _mortar(s: Spell) -> Array:
 	return [
 		["폭발 반지름", "%d" % (1 + s.grown(&"shrapnel"))],
 		["폭발 피해", "%d" % (Compounds.MORTAR + s.count(Cards.METAL))],
-		["폭발 벽", "금"],
+		["주위 벽", "금"],
 	]
 
 
@@ -557,8 +557,6 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			var out := [["불", "지나간 자리"]]
 			if s.orb:
 				out.append(["폭발", "주위 8칸, 피해 %d" % (World.FIRE_DAMAGE + s.extra(e))])
-			if s.extra(e) > 0:
-				out.append(["피해", "+%d" % s.extra(e)])
 			if s.orb:
 				out.append(["나무 적", "%s %d초" % [ALIGHT_ON[0], Status.ALIGHT]])
 			else:
@@ -574,9 +572,8 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			return [["묶음", "%d초" % (Elements.ROOT + s.extra(e))]]
 		Cards.METAL:
 			if s.orb:
-				var cannon := ["피해", "+%d" % (Elements.CANNON + s.extra(e))]
-				return [cannon, ["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부숨"]]
-			return [["발당 피해", "%d" % (Elements.BULLET + s.extra(e))]]
+				return [["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부숨"]]
+			return []
 	var thud := ["소음", "멈춘 곳에서 %d" % World.THUD]
 	if s.orb:
 		return [["벽", "한 번에 부숨"], thud]

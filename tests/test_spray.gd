@@ -170,6 +170,23 @@ func test_three_waters_go_through_and_push_every_creature_three() -> void:
 	assert_eq(near.pos, ME + Vector2i(5, 0))
 
 
+func test_water_puts_out_a_wisp_in_flight_and_leaves_a_bullet_and_an_orb() -> void:
+	var w := _world()
+	var shots := {}
+	for c: Array in [[Cards.FOX], [Cards.FOX, METAL], [Cards.ORB]]:
+		var s := Shot.new()
+		s.id = w.new_id()
+		s.spell = Spell.make(c)
+		s.pos = ME + E * (1 + shots.size())
+		w.shots.append(s)
+		shots[c] = s
+	for s: Shot in shots.values():
+		Terrain.wash(w, s.pos)
+	assert_true(shots[[Cards.FOX]].gone, "a wisp goes out")
+	assert_false(shots[[Cards.FOX, METAL]].gone, "a bullet flies on")
+	assert_false(shots[[Cards.ORB]].gone, "an orb flies on")
+
+
 func test_a_water_jet_douses_fire_and_the_lantern_it_runs_into() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(2, 0), World.BOARD)

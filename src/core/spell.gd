@@ -236,11 +236,10 @@ func title() -> String:
 		return "%s %d칸" % [SHAPE_NAME[LEAP], leap()] + (", " + then.title() if then != null else "")
 	var parts: Array[String] = []
 	var told := {}
-	var named := _named()
 	for slot in elements():
 		if not told.has(slot):
 			told[slot] = true
-			var n: int = elements().count(slot) - (named[1] if slot == named[0] else 0)
+			var n: int = elements().count(slot) - _named(slot)
 			if n > 0:
 				parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
@@ -255,12 +254,12 @@ func title() -> String:
 	return ("·".join(parts) + " " + form).strip_edges()
 
 
-## The slot and how many of it the name of the shape tells: 철갑탄 two 쇠,
-## 비격진 one 유탄; none for the rest.
-func _named() -> Array:
-	if pierces():
-		return [Cards.METAL, PIERCE_METALS]
-	return [&"shrapnel", 1] if mortar() else [&"", 0]
+## The slot and how many of it the name of the shape tells: 철갑탄 and 비격진 are
+## iron by name, every 쇠; 비격진 one 유탄; none for the rest.
+func _named(slot: StringName) -> int:
+	if slot == Cards.METAL and (pierces() or mortar()):
+		return count(slot)
+	return 1 if mortar() and slot == &"shrapnel" else 0
 
 
 ## What its wisps are called.
