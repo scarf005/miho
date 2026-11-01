@@ -31,7 +31,7 @@ const LEGEND := (
 	+ '¤lantern "bamboo =floorboards ~pond(also shallow-water, mud: see look) ,ash '
 	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ßpillar "
 	+ "◇ice ‡thorns †altar(lit or not: see look) ╫veil(fire) ¶stone-lamp ◊talisman-stand "
-	+ "▒shelf(unread or read: see look) ║screen 0jar(also water-jar: see look) &censer "
+	+ "▒shelf(unread or read: see look) ║screen 0jar &censer "
 	+ "▫courtyard 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs !elixir "
