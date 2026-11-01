@@ -37,7 +37,7 @@ static func _rows(t: Term) -> Array:
 	for k in detail.size():
 		out.append([t.rows - detail.size() + k, 2.0, detail[k]])
 	if aside.is_empty():
-		var span := t._panel_span()
+		var span := PanelView.span(t)
 		for k in range(span.x, mini(span.x + span.y, t.panel.rows.size())):
 			out.append([3 + k - span.x, 2.0, t.panel.rows[k]])
 	return out
