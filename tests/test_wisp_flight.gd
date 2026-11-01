@@ -46,8 +46,7 @@ func _light(w: World, p: Vector2i) -> void:
 ## A dokkaebi at `at` that casts its 도깨비불 east in the next round.
 func _caster(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.intent.assign(a.info().casts[0])
-	a.aim = E
+	a.intent.assign([{cards = a.info().casts[0], dir = E}])
 	w.sense()
 	return a
 

@@ -48,10 +48,13 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 	return {t = &"cast", spells = [{cards = cards, dir = dir}]}
 
 
-## A creature that neither moves nor casts: a 장승 (no element, 3 health).
+## A creature that neither moves nor casts: a 장승 (no element, 3 health), at its
+## listed health (Bestiary hp) whatever the storey's rank.
 func _post(w: World, at: Vector2i, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.cooldown = 99
+	a.hp = Bestiary.info(kind).hp
+	a.max_hp = a.hp
 	w.sense()
 	return a
 

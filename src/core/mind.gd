@@ -32,10 +32,12 @@ static func heaven_phase(w: World) -> void:
 			continue
 		perceive(w, a)
 		if not a.intent.is_empty():
-			var spell := Bestiary.spell(a.kind, a.intent)
+			var plans: Array[Dictionary] = a.intent.duplicate()
 			a.intent.clear()
 			a.cooldown = a.info().cd
-			w.cast(a, spell, a.aim)
+			for plan in plans:
+				if a.alive() and w.actors.has(a) and w.outcome == &"":
+					w.cast(a, Bestiary.spell(a.kind, plan.cards), plan.dir)
 			continue
 		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
@@ -345,12 +347,13 @@ static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void
 		w.push(target, target.pos - a.pos, melee.throw)
 
 
-static func _charge(w: World, a: Actor, plan: Dictionary) -> bool:
-	if plan.is_empty():
+## `a` charges the spells `plans` (Aim), one `charge` event each.
+static func _charge(w: World, a: Actor, plans: Array[Dictionary]) -> bool:
+	if plans.is_empty():
 		return false
-	a.intent.assign(plan.cards)
-	a.aim = plan.dir
-	w.emit({t = &"charge", id = a.id, cards = a.intent.duplicate(), dir = a.aim})
+	a.intent.assign(plans)
+	for plan in plans:
+		w.emit({t = &"charge", id = a.id, cards = plan.cards.duplicate(), dir = plan.dir})
 	return true
 
 

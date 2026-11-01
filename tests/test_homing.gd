@@ -38,9 +38,12 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 	return {t = &"cast", spells = [{cards = cards, dir = dir}]}
 
 
+## A creature at its listed health (Bestiary hp), whatever the storey's rank.
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.cooldown = 99
+	a.hp = Bestiary.info(kind).hp
+	a.max_hp = a.hp
 	return a
 
 

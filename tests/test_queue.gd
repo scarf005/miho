@@ -172,6 +172,8 @@ func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> v
 	var m := _main()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
 	foe.cooldown = 99
+	foe.hp = 2
+	foe.max_hp = 2
 	m._forecast()
 	for k in ["1", "1"]:
 		_press(m, k)

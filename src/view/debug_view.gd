@@ -84,7 +84,7 @@ static func creature(a: Actor) -> Array:
 	var lines := [[["디버그 ", Palette.DIM], [goal_text, color]]]
 	if not resting:
 		lines.append([["놓친 지 %d/%d초" % [a.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
-	if not a.info().get("casts", []).is_empty():
+	if not a.repertoire().is_empty():
 		lines.append(_clock(a))
 	return lines
 
@@ -94,5 +94,9 @@ static func _clock(a: Actor) -> Array:
 	if a.intent.is_empty():
 		var text := "%d초 뒤 주술" % a.cooldown if a.cooldown > 0 else "주술 가능"
 		return [[text, Palette.TEXT]]
-	var cards := "".join(a.intent.map(func(c): return Cards.GLYPH[c]))
-	return [["조준 %s %s" % [Palette.BOLT[a.aim], cards], Palette.HURT]]
+	var glyphs := func(cards: Array) -> String:
+		return "".join(cards.map(func(c): return Cards.GLYPH[c]))
+	var aimed := a.intent.map(
+		func(plan): return "%s %s" % [Palette.BOLT[plan.dir], glyphs.call(plan.cards)]
+	)
+	return [["조준 " + " ".join(aimed), Palette.HURT]]

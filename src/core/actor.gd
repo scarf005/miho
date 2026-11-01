@@ -18,9 +18,10 @@ var pos := Vector2i.ZERO
 var hp := 1
 var max_hp := 1
 var cooldown := 0
-## Cards of the spell being charged; empty when not charging.
-var intent: Array[StringName] = []
-var aim := Vector2i.ZERO
+## The spells being charged, each {cards, dir}; empty when not charging.
+var intent: Array[Dictionary] = []
+## The rank of the storey it came to (Bestiary.rank): what it casts and its health.
+var rank := 1
 var rooted := 0
 var stunned := 0
 var blind := 0
@@ -111,9 +112,9 @@ func info() -> Dictionary:
 	return Bestiary.info(kind)
 
 
-func next_cast() -> Array:
-	var list: Array = info().get("casts", [])
-	return list[casts % list.size()] if not list.is_empty() else []
+## Every spell it casts at its rank (Bestiary.casts).
+func repertoire() -> Array:
+	return Bestiary.casts(kind, rank)
 
 
 func clone() -> Actor:
@@ -126,7 +127,7 @@ func clone() -> Actor:
 		"hp",
 		"max_hp",
 		"cooldown",
-		"aim",
+		"rank",
 		"rooted",
 		"stunned",
 		"blind",
@@ -155,6 +156,6 @@ func clone() -> Actor:
 		"beside",
 	]:
 		a.set(p, get(p))
-	a.intent = intent.duplicate()
+	a.intent = intent.duplicate(true)
 	a.marked.assign(marked)
 	return a

@@ -136,7 +136,7 @@ func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 	var events := w.act(WAIT)
 	assert_eq(watcher.alert, Actor.HUNT)
 	assert_has(_types(events), &"notice")
-	assert_eq(watcher.intent, [ORB] as Array[StringName], "it sees her and charges")
+	assert_eq(watcher.intent.map(func(p): return p.cards), [[ORB]], "it sees her and charges")
 	var close := _world(Vector2i(7, 8))
 	var other := _lookout(close, &"jangseung", Vector2i(8, 8))
 	close.act(WAIT)
@@ -275,7 +275,7 @@ func test_a_searcher_throws_a_wisp_into_the_dark_before_going_in() -> void:
 	foe.target = Vector2i(14, 8)
 	var events := w.act(WAIT)
 	assert_has(_types(events), &"charge")
-	assert_eq(foe.aim, WEST)
+	assert_eq(foe.intent[0].dir, WEST)
 	w.act(WAIT)
 	assert_eq(w.shots.size(), 1, "the searchlight is out")
 

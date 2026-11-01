@@ -20,7 +20,6 @@ const DISTANCES := [1, 4]
 const BIG := 99
 const MIHO_AT := Vector2i(4, 13)
 const EAST := Vector2i(1, 0)
-const WEST := Vector2i(-1, 0)
 ## Rounds waited after a cast that leaves fire, hot ground or gas behind.
 const AFTER := 3
 const ALL_KINDS: Array[StringName] = [
@@ -239,27 +238,32 @@ func _load() -> void:
 			_memo[k] = {one = int(m.one), one_after = int(m.one_after), three = int(m.three)}
 
 
-## A creature of `kind` casting each of its spells at Miho from every distance
-## and striking her in melee: the most harm one action does her.
-func _blow(kind: StringName) -> Dictionary:
+## A creature of `kind` of rank `r` casting what it charges (Aim.at) at Miho
+## from every distance, its turn starting at each of its spells, and striking
+## her in melee: the most harm one action does her, and the spells cast.
+func _blow(kind: StringName, r: int) -> Dictionary:
 	var info := Bestiary.info(kind)
 	var out := {melee = info.get("melee", {}).get("damage", 0), cast = 0, cast_name = ""}
-	for cards: Array in info.get("casts", []):
-		var spell := Bestiary.spell(kind, cards)
+	for start in Bestiary.casts(kind, r).size():
 		for d in range(1, Spell.RANGE + 1):
 			var w := _arena.clone()
 			var foe := _foe(w, kind, MIHO_AT + EAST * d)
+			foe.rank = r
+			foe.casts = start
+			var plans := Aim.at(w, foe, w.player())
 			w.events = []
-			w.cast(foe, spell, WEST)
+			for plan in plans:
+				w.cast(foe, Bestiary.spell(kind, plan.cards), plan.dir)
 			for i in 12:
 				w._shots_phase()
 			var n := 0
 			for e in w.events:
 				if e.t == &"hurt" and e.id == w.player().id:
 					n += e.n
-			if n > out.cast or out.cast_name == "":
+			if not plans.is_empty() and (n > out.cast or out.cast_name == ""):
 				out.cast = n
-				out.cast_name = spell.title()
+				var titles := plans.map(func(p): return Bestiary.spell(kind, p.cards).title())
+				out.cast_name = " + ".join(titles)
 	return out
 
 
@@ -325,15 +329,20 @@ func _glyphs(held: Array) -> String:
 
 func _creature_table() -> void:
 	_say("## Creatures\n")
-	_say("- melee: harm of a blow from the next tile. cast: the most harm one of its spells does")
-	_say("  Miho over distances 1 to %d. hits: blows to kill Miho at 3 hp." % Spell.RANGE)
+	_say("- rank: of the storeys the kind is placed on (Bestiary.rank: storeys 1-6, 7-12, ...).")
+	_say("- melee: harm of a blow from the next tile. cast: the most harm one charged turn (the")
+	_say("  spells it picks, Aim.at) does Miho over distances 1 to %d." % Spell.RANGE)
+	_say("- hits: blows to kill Miho at 3 hp. spells: every spell it casts at that rank.")
 	_say("- cd: rounds between casts. weak to: elements that hit it twice.")
 	_say("")
-	_say("| kind | hp | melee | cast | hits | cd | weak to | other |")
-	_say("|---|---|---|---|---|---|---|---|")
-	for kind in ALL_KINDS:
+	_say("| kind | rank | hp | melee | cast | hits | cd | weak to | spells | other |")
+	_say("|---|---|---|---|---|---|---|---|---|---|")
+	for row in _ranked_kinds():
+		var kind: StringName = row[0]
+		var r: int = row[1]
 		var info := Bestiary.info(kind)
-		var blow := _blow(kind)
+		var blow := _blow(kind, r)
+		var spells := Bestiary.casts(kind, r).map(func(c): return Bestiary.spell(kind, c).title())
 		var worst := maxi(blow.melee, blow.cast)
 		var weak := ",".join(Bestiary.weak_to(kind).map(func(c): return Cards.NAME[c]))
 		var other := []
@@ -351,20 +360,36 @@ func _creature_table() -> void:
 		var cast := "%d (%s)" % [blow.cast, blow.cast_name] if blow.cast_name != "" else "-"
 		_say(
 			(
-				"| %s | %d | %d | %s | %s | %s | %s | %s |"
+				"| %s | %d | %d | %d | %s | %s | %s | %s | %s | %s |"
 				% [
 					info.name,
-					info.hp,
+					r,
+					Bestiary.hp(kind, r),
 					blow.melee,
 					cast,
 					str(ceili(3.0 / worst)) if worst > 0 else "never",
 					str(info.get("cd", "-")),
 					weak if weak != "" else "-",
+					", ".join(spells) if not spells.is_empty() else "-",
 					", ".join(other),
 				]
 			)
 		)
 	_say("")
+
+
+## [kind, rank] for every kind and each rank of the storeys it is placed on.
+func _ranked_kinds() -> Array:
+	var placed := {}
+	for depth in range(1, World.FLOORS + 1):
+		for kind in _kinds(depth):
+			placed["%s/%d" % [kind, Bestiary.rank(_tier(depth))]] = true
+	var out := []
+	for kind in ALL_KINDS:
+		for r in range(1, Bestiary.RANKS + 1):
+			if placed.has("%s/%d" % [kind, r]):
+				out.append([kind, r])
+	return out
 
 
 func _depth_table() -> void:
@@ -502,7 +527,7 @@ func _kill_tables() -> void:
 		var held := _held(depth)
 		var t := _max_tails(depth)
 		for kind in _kinds(depth):
-			var hp: int = Bestiary.info(kind).hp
+			var hp := Bestiary.hp(kind, Bestiary.rank(_tier(depth)))
 			var ladder := _ladder(held, kind, t)
 			var top: Dictionary = ladder[t]
 			var ratio := 0.0
