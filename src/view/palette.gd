@@ -81,12 +81,18 @@ const GAS := {
 	Gas.INCENSE: ["•", Color(0.82, 0.7, 0.52)],
 	Gas.MARSH: ["¦", Color(0.62, 0.72, 0.3)],
 }
-## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it.
-const STATUS := {
-	&"wet": ["~", Color(0.5, 0.76, 1.0)],
-	&"alight": ["§", Color(1.0, 0.55, 0.18)],
-	&"frozen": ["◇", Color(0.78, 0.92, 1.0)],
-}
+## What harms its holder, what helps it, and the plainer red of harm done to a
+## creature, which Miho is glad of.
+const BAD := Color(1.0, 0.4, 0.34)
+const GOOD := Color(0.45, 0.9, 0.5)
+const BAD_FOE := Color(0.86, 0.62, 0.58)
+## The word 가연성 and the word 인화성 (red on yellow), wherever they are written.
+const FLAMMABLE := Color(1.0, 0.6, 0.15)
+const FIERCE_TEXT := Color(0.85, 0.05, 0.05)
+const FIERCE_BACK := Color(1.0, 0.86, 0.2)
+## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it,
+## in the colour of harm to its holder.
+const STATUS := {&"wet": ["~", BAD], &"alight": ["§", BAD], &"frozen": ["◇", BAD]}
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["%", Color(0.62, 0.36, 0.3)]
 ## Dark tiles Miho makes out by shape only.

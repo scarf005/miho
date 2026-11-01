@@ -203,7 +203,7 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	lines.append_array(_conditions(w, a))
 	if a.guise > 0:
 		var form: String = Bestiary.info(a.form).name
-		lines.append(["둔갑: " + form, Palette.SIDE[0]])
+		lines.append([["둔갑", Palette.TEXT], [": " + form, Palette.SIDE[0]]])
 		lines.append([["  남은 시간: %d초" % a.guise, Palette.SIDE[0]]])
 		lines.append([["적 옆: %d/%d초" % [a.beside, Guise.BESIDE], Palette.DIM]])
 	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
