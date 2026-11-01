@@ -18,6 +18,9 @@ const MOVES := {
 const SLOTS: Array[StringName] = [&"slot_1", &"slot_2", &"slot_3", &"slot_4", &"slot_5", &"slot_6"]
 ## Key names as the player reads them; the font has no arrow glyphs.
 const SHOWN := {
+	"Period": "마침표(.)",
+	"Kp Period": "키패드 .",
+	"Comma": "쉼표(,)",
 	"Up": "방향키 위",
 	"Down": "방향키 아래",
 	"Left": "방향키 왼쪽",
