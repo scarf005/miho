@@ -195,6 +195,41 @@ func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
 	assert_false(Travel.watched(w), "one out of sight")
 
 
+func test_exploring_takes_no_step_while_an_awake_creature_is_in_sight() -> void:
+	var w := _world()
+	_forget(w, Vector2i(0, 0), Vector2i(1, 12))
+	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(12, 8))
+	assert_false(foe.asleep())
+	assert_eq(Travel.explore_step(w, Travel.search(w)), Vector2i.ZERO)
+	w.seen[Grid.index(foe.pos)] = 0
+	assert_eq(Travel.explore_step(w, Travel.search(w)), Vector2i(-1, 0), "one out of sight")
+	w.seen[Grid.index(foe.pos)] = 1
+	foe.hp = 0
+	assert_eq(Travel.explore_step(w, Travel.search(w)), Vector2i(-1, 0), "a fallen one")
+
+
+## The storey's creatures walk in and out of sight, so the ground they block
+## changes every round; on these seeds Miho used to step back and forth between
+## two tiles.
+func test_exploring_a_storey_with_creatures_never_steps_back_and_forth() -> void:
+	for seed_value in [2, 6, 7, 12]:
+		var w := World.create(seed_value)
+		var memory := Sightings.new()
+		var trail: Array[Vector2i] = []
+		for r in 400:
+			memory.update(w)
+			var d := Travel.explore_step(w, Travel.search(w, memory.at))
+			if d == Vector2i.ZERO or w.depth != 1:
+				break
+			var action := {t = &"move", dir = d} if w.tails >= w.max_tails() else {t = &"wait"}
+			assert_true(w.can(action), "seed %d round %d" % [seed_value, w.round_no])
+			if action.t == &"move":
+				trail.append(w.player().pos)
+			var back := trail.size() >= 4 and trail[-1] == trail[-3] and trail[-2] == trail[-4]
+			assert_false(back, "seed %d round %d: %s" % [seed_value, w.round_no, trail.slice(-4)])
+			w.act(action)
+
+
 func test_a_statue_in_sight_blocks_exploring_only_while_it_hunts() -> void:
 	var w := _world()
 	var post := FloorGen.spawn(w, &"jangseung", Vector2i(12, 8))
