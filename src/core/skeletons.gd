@@ -14,6 +14,7 @@ extends RefCounted
 ## 쌍탑 (towers): two stepped towers, floor on floor, joined by bridges at different
 ## heights; the start and the exit lie at opposite ends of opposite towers.
 ## 부서진 층 (broken): BrokenFloor.
+## 흩어진 정자 (scattered): Scattered.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -23,6 +24,7 @@ const RING := &"ring"
 const AVENUE := &"avenue"
 const TOWERS := &"towers"
 const BROKEN := &"broken"
+const SCATTERED := &"scattered"
 ## What a storey may be built on; `pick` draws from it.
 const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
 ## The skeletons with one way to the exit: no two routes are asked of them.
@@ -78,6 +80,8 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return _towers(w)
 		BROKEN:
 			return BrokenFloor.draw(w)
+		SCATTERED:
+			return Scattered.draw(w)
 	return FloorGen.pavilions(w)
 
 
