@@ -192,16 +192,6 @@ func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
 	assert_eq(sleeper.target, centre)
 
 
-func test_ironrain_leaves_hot_iron_and_steam_over_a_5x5() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 4)
-	w.act(_cast(_made(&"ironrain")))
-	for p: Vector2i in Spray.square(w, foe.pos, 2).filter(func(p): return w.open_floor(p)):
-		assert_eq(w.hot.get(p, Vector2i(-1, 0)).x, Compounds.MOLTEN, str(p))
-		assert_eq(Gas.at(w, p).x, Gas.STEAM, str(p))
-	assert_false(w.hot.has(ME + E), "short of it")
-
-
 func test_bind_roots_and_hurts_the_foes_in_reach_and_leaves_the_far_ones() -> void:
 	var w := _world()
 	var near := _post(w, ME + E * 3)

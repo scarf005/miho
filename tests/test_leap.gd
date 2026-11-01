@@ -83,7 +83,7 @@ func test_water_wood_and_fire_merge_into_one_leap_slot_in_any_order() -> void:
 func test_other_three_element_picks_make_their_own_compound_and_no_leap() -> void:
 	var picks := {
 		[Cards.WATER, WOOD, Cards.EARTH]: [&"swamp"],
-		[WOOD, Cards.FIRE, Cards.METAL]: [&"charthorn"],
+		[WOOD, Cards.FIRE, Cards.METAL]: [&"talon"],
 		[Cards.METAL, Cards.WATER, WOOD]: [&"frostbloom"],
 		[Cards.FIRE, Cards.EARTH, Cards.WATER]: [&"geyser"],
 	}

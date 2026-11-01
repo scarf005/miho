@@ -17,7 +17,6 @@ const ME := Vector2i(20, 12)
 ## The 4단 and 5단 spells.
 const HIGH := [
 	&"beacon",
-	&"ironrain",
 	&"bind",
 	&"magpie",
 	&"mist",
@@ -30,7 +29,7 @@ const HIGH := [
 	Cards.CONQUEST,
 	Cards.DRAGON,
 ]
-## The nine 3단 spells that are no leap.
+## The eight 3단 spells that are no leap, and go on no one.
 const NEW := [
 	&"volcano",
 	&"furnace",
@@ -38,8 +37,7 @@ const NEW := [
 	&"frostbloom",
 	&"swamp",
 	&"geyser",
-	&"quench",
-	&"charthorn",
+	&"hypnosis",
 	&"palisade",
 ]
 
@@ -233,7 +231,7 @@ func test_a_doubled_3dan_grows_a_tile_and_costs_six_cards() -> void:
 	assert_eq(Spray.cover(w, w.player(), twice, E), Spray.square(w, ME + E * 3, 3))
 	var fence := Spell.make(_made(&"palisade") + _made(&"palisade"))
 	assert_eq(Spray.cover(w, w.player(), fence, E).size(), 4)
-	var line := Spell.make(_made(&"quench") + _made(&"quench"))
+	var line := Spell.make(_made(&"hypnosis") + _made(&"hypnosis"))
 	assert_eq(Spray.cover(w, w.player(), line, E).size(), 6)
 
 
@@ -247,9 +245,8 @@ func test_each_3dan_has_the_shape_of_the_plan() -> void:
 	assert_eq(cover.call(&"swamp"), Spray.square(w, ME + E * 3, 2, true))
 	assert_eq(cover.call(&"geyser"), Spray.square(w, ME + E * 2, 1))
 	assert_eq(cover.call(&"furnace"), Spray.line(w, ME, E, 6, false))
-	assert_eq(cover.call(&"quench"), Spray.line(w, ME, E, 5, false))
+	assert_eq(cover.call(&"hypnosis"), Spray.line(w, ME, E, 5, false))
 	assert_eq(cover.call(&"frostbloom"), Spray.fan(w, ME, E, 3))
-	assert_eq(cover.call(&"charthorn"), Spray.fan(w, ME, E, 3))
 	assert_eq(
 		cover.call(&"palisade"),
 		[ME + E * 2, ME + Vector2i(2, 1), ME + Vector2i(2, -1)] as Array[Vector2i]
@@ -371,37 +368,6 @@ func test_geyser_lays_steam_and_pushes_every_way_it_is_cast() -> void:
 		assert_eq(near.pos, ME + dir * 3, "then the one behind it, %s" % dir)
 
 
-func test_quench_hurts_more_when_wet_and_lays_steam_at_its_end() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 3)
-	var events := w.act(_cast(_made(&"quench")))
-	assert_eq(_first(events, foe.id), Compounds.QUENCH)
-	assert_eq(w.hot.get(ME + E).x, Compounds.MOLTEN)
-	assert_eq(_steam(events), [foe.pos] as Array[Vector2i], "the line ended on it")
-	w = _world()
-	var wet := _post(w, ME + E * 3)
-	wet.wet = Status.WET
-	events = w.act(_cast(_made(&"quench")))
-	assert_eq(_first(events, wet.id), Compounds.QUENCH_WET)
-	w = _world()
-	assert_eq(_steam(w.act(_cast(_made(&"quench")))), [ME + E * 5] as Array[Vector2i], "the fifth")
-	w = _world()
-	_put(w, ME + E, World.WALL)
-	var e2 := w.act(_cast(_made(&"quench")))
-	assert_true(_of(e2, &"gas").is_empty(), "no line, no steam")
-	assert_true(w.gas.is_empty())
-
-
-func test_charthorn_grows_burning_thorns_pricks_and_sets_alight() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 2)
-	var events := w.act(_cast(_made(&"charthorn")))
-	assert_eq(_harm(events, foe.id), Compounds.THORN)
-	assert_gt(foe.alight, 0)
-	assert_eq(w.tile(ME + E * 3), World.THORNS)
-	assert_true(w.burning.has(ME + E * 3), "the thorns catch")
-
-
 func test_palisade_grows_a_wooden_wall_across_the_line_on_open_ground() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 1))
@@ -451,13 +417,6 @@ func test_each_3dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends() -> v
 				&"geyser":
 					assert_eq(Gas.at(w, at + Vector2i(-1, 1)).x, Gas.STEAM, label)
 					assert_eq(side.pos, ME + Vector2i(6, 1), label)
-				&"quench":
-					assert_eq(w.hot.get(at + Vector2i(1, -1)).x, Compounds.MOLTEN, label)
-					assert_eq(_first(events, side.id), Compounds.QUENCH, label)
-					assert_eq(_steam(events), [at] as Array[Vector2i], label)
-				&"charthorn":
-					assert_eq(w.tile(side.pos), World.THORNS, label)
-					assert_gt(side.alight, 0, label)
 				&"palisade":
 					assert_eq(w.tile(at + Vector2i(-1, -1)), World.WOOD_WALL, label)
 					assert_eq(w.tile(at), World.FLOOR, "the struck creature's tile")
@@ -552,22 +511,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"밀침: %d칸" % Compounds.GEYSER,
 			"증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX]
 		],
-		&"quench":
-		[
-			"담금질 · 꼬리: 3",
-			"모양: 곧게 5칸",
-			"맞은 적 피해: %d" % Compounds.QUENCH,
-			"젖은 적 피해: %d" % Compounds.QUENCH_WET,
-			"끝 칸 증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX],
-		],
-		&"charthorn":
-		[
-			"숯가시 · 꼬리: 3",
-			"반지름 3",
-			"피해: %d" % Compounds.THORN,
-			"불타는 칸: 가연성·인화성 칸",
-			"불붙음: %d초" % Status.ALIGHT
-		],
+		&"hypnosis": ["최면 · 꼬리: 3", "모양: 곧게 5칸"],
 		&"palisade":
 		["목책 · 꼬리: 3", "모양: 2칸 앞에서 직각으로 3칸", "나무벽 체력: %d" % Tiles.of(World.WOOD_WALL, "health")],
 	}
@@ -584,10 +528,15 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 	assert_string_contains(carried, "피해: %d" % Compounds.HAIL)
 
 
-func test_a_self_cast_stays_with_a_lone_guise_and_shadow() -> void:
+func test_a_self_cast_goes_only_to_the_spells_that_change_her() -> void:
 	assert_eq(Guise.kind(Spell.make([WOOD, EARTH])), Guise.GUISE)
 	assert_eq(Guise.kind(Spell.make([WOOD, EARTH, WOOD])), Guise.GUISE, "목 adds time")
 	assert_eq(Guise.kind(Spell.make([FOX, WATER])), Guise.SHADOW)
+	assert_eq(Guise.kind(Spell.make(_made(Guise.TALON))), Guise.TALON)
+	assert_eq(Guise.kind(Spell.make(_made(Guise.CLOAK))), Guise.CLOAK)
+	assert_eq(
+		Guise.kind(Spell.make([FOX] + _made(Guise.TALON))), &"", "carried, it is no self-cast"
+	)
 	for c: StringName in NEW:
 		assert_eq(Guise.kind(Spell.make(_made(c))), &"", c)
 

@@ -52,6 +52,10 @@ static func text(world: World) -> String:
 	]
 	if me.guise > 0:
 		out.append("in guise as %s for %d rounds" % [Bestiary.info(me.form).name, me.guise])
+	if me.talon > 0:
+		out.append("claws harm %d more for %d rounds" % [Guise.TALON_HARM, me.talon])
+	if me.cloak > 0:
+		out.append("cloaked for %d rounds: seen only within %d tile" % [me.cloak, Hat.REACH])
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":
@@ -146,7 +150,10 @@ static func _creature(k: World, a: Actor) -> String:
 	if Guise.knows(k, a):
 		line += ", sees Miho"
 	elif k.sees(a, k.player().pos):
-		line += ", sees Miho but not through her guise"
+		line += (
+			", sees Miho but not through her "
+			+ ("guise" if Guise.fools(a, k.player()) else "cloak")
+		)
 	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
 	for c in [

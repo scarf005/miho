@@ -12,7 +12,7 @@ extends RefCounted
 
 ## Conditions besides Status.NAME that harm their holder, and those that help it.
 const HARM := ["묶임", "기절", "눈멂"]
-const BOON := ["둔갑"]
+const BOON := [Guise.NAME[Guise.GUISE], Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
 
 static var _words := _table()
 ## Finds the words of `terms`, made on first use.

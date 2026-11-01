@@ -12,6 +12,10 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
+## The state of a sleeper (Actor.asleep), and the tag of a creature that never
+## sleeps (Actor.sleeps).
+const ASLEEP := "자는 중"
+const NO_SLEEP := "잠들지 않음"
 ## The conditions a creature or Miho holds besides the statuses (Status), by the
 ## name `_conditions` shows, one `이름: 값` line each: the 도감's 상태이상.
 const CONDITIONS := {
@@ -25,6 +29,9 @@ const CONDITIONS := {
 		"풀림: 피해, 주문, 적 옆 %d초 연속" % Guise.BESIDE,
 		"속는 적: 추격 중이 아닌 적",
 	],
+	Guise.NAME[Guise.TALON]: ["시간: %d초" % Guise.TALON_ROUNDS, "발톱 피해: +%d" % Guise.TALON_HARM],
+	Guise.NAME[Guise.CLOAK]:
+	["시간: %d초" % Guise.CLOAK_ROUNDS, "%s: %s" % SpellInfo.HAT_SEEN, "속는 적: 모든 적"],
 }
 
 
@@ -56,10 +63,10 @@ static func glossary() -> Dictionary:
 			"북 치기: 추격 중 걸어서 %d칸 안" % Drums.REACH,
 			"여우불 소음: 던진 곳을 수색",
 		],
-		"순찰": ["쉴 때: 방 사이를 돌아다님", "잠들지 않음.", "무리: 대장을 따라다님"],
-		"고정": ["움직이지 않음.", "잠들지 않음."],
+		"순찰": ["쉴 때: 방 사이를 돌아다님", NO_SLEEP + ".", "무리: 대장을 따라다님"],
+		"고정": ["움직이지 않음.", NO_SLEEP + "."],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
-		"미호의 위치를 알고 있음": ["추격: 항상", "보지 못해도 미호를 쫓아감", "잠들지 않음."],
+		"미호의 위치를 알고 있음": ["추격: 항상", "보지 못해도 미호를 쫓아감", NO_SLEEP + "."],
 		"냄새를 따라감": ["쉬거나 수색 중: 미호의 냄새를 따라감", "남은 냄새: %d초 이내" % Scent.TRAIL_AGE],
 		"꺼진 등불을 켬": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
 		"밝음": ["적에게 보임: 시야 안 어디서나"],
@@ -84,7 +91,7 @@ static func glossary() -> Dictionary:
 			"놓치면: 마지막으로 본 곳, 냄새를 따라감",
 			"끝: 수색 중",
 		],
-		"자는 중": ["시야: 없음", "깨어남: 소음, 피해"],
+		ASLEEP: ["시야: 없음", "깨어남: 소음, 피해"],
 		"소음":
 		[
 			"범위: 소음 값만큼의 칸, 벽을 돌아서",
@@ -183,7 +190,7 @@ static func state(a: Actor) -> String:
 	if a.alert != Actor.REST:
 		return STATE[a.alert]
 	if a.asleep():
-		return "자는 중"
+		return ASLEEP
 	if a.guard and a.pos == a.home:
 		return "지키는 중"
 	if a.following():
@@ -210,11 +217,12 @@ static func _situation(w: World, a: Actor) -> Array:
 	if Guise.knows(w, a):
 		lines.append([["미호를 볼 수 있다", Palette.HURT]])
 	elif w.sees(a, w.player().pos):
-		lines.append([["둔갑한 미호를 알아볼 수 없다", Palette.SIDE[0]]])
+		var kind := Guise.GUISE if Guise.fools(a, w.player()) else Guise.CLOAK
+		lines.append([["%s한 미호를 알아볼 수 없다" % Guise.NAME[kind], Palette.SIDE[0]]])
 	else:
 		lines.append([["미호를 볼 수 없다", Palette.SIDE[0]]])
 	if w.caught_unawares(a):
-		lines.append(_amount("기습 피해: ", World.CLAW * World.SNEAK))
+		lines.append(_amount("기습 피해: ", w.claw_harm(w.player(), true)))
 	return lines
 
 
@@ -246,7 +254,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 	if not spec.get("shout", {}).is_empty():
 		lines.append([["말할 수 있다.", Palette.DIM]])
 	if spec.get("hat", false):
-		lines.append([["보임: %d칸 안, 도깨비불 붙음" % Hat.REACH, Palette.DIM]])
+		lines.append([["%s: %s" % SpellInfo.HAT_SEEN, Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		lines.append([["먹이: ", Palette.TEXT], [Cards.NAME[eats] + " 주문", Palette.CARD[eats]]])
@@ -261,7 +269,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 ## Miho herself: tails, claws, conditions and how visible she is. Her footsteps
 ## are each tile's own (`_notes`).
 static func _miho(w: World, a: Actor, head: Array) -> Array:
-	var lines := [head] + _tails(w) + _claws()
+	var lines := [head] + _tails(w) + _claws(w, a)
 	lines.append_array(_conditions(w, a))
 	if a.guise > 0:
 		var form: String = Bestiary.info(a.form).name
@@ -275,8 +283,8 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 
 
 ## What Miho's claws do: plain, and to a creature caught unawares; a line each.
-static func _claws() -> Array:
-	return [_amount("발톱 피해: ", World.CLAW), _amount("기습 피해: ", World.CLAW * World.SNEAK)]
+static func _claws(w: World, a: Actor) -> Array:
+	return [_amount("발톱 피해: ", w.claw_harm(a, false)), _amount("기습 피해: ", w.claw_harm(a, true))]
 
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.
@@ -330,7 +338,14 @@ static func _search_left(a: Actor) -> String:
 
 static func _conditions(w: World, a: Actor) -> Array:
 	var out := []
-	for c in [[a.blind, "눈멂"], [a.rooted, "묶임"], [a.stunned, "기절"], [a.wary, "경계"]]:
+	for c in [
+		[a.blind, "눈멂"],
+		[a.rooted, "묶임"],
+		[a.stunned, "기절"],
+		[a.wary, "경계"],
+		[a.talon, Guise.NAME[Guise.TALON]],
+		[a.cloak, Guise.NAME[Guise.CLOAK]],
+	]:
 		if c[0] > 0:
 			out.append([["%s: %d초" % [c[1], c[0]], Palette.TEXT]])
 	out.append_array(_status(a))

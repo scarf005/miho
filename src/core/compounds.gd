@@ -46,15 +46,13 @@ extends RefCounted
 ## 늪 fells every breakable wall it reaches, turns the ground to mud and roots
 ## each creature SWAMP rounds.
 ## 간헐천 lays steam and pushes each creature GEYSER tiles along its line.
-## 담금질 leaves hot iron, hurts the creature it reaches for QUENCH, QUENCH_WET
-## when wet, and lays steam where it ends.
-## 숯가시 grows thorns and sets what burns alight, pricks each creature for THORN
-## and sets it alight.
+## 최면 puts the first creature it reaches to sleep (Mind.sleep), hurting none.
+## 쇠발톱 is cast on Miho, not sprayed: her claws harm more (Guise).
 ## 목책 grows a wooden wall (Elements.grow).
 ## 4단, of four elements:
 ## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
 ## where it relights every dark lantern the caster sees.
-## 쇳비 leaves hot iron and lays steam.
+## 은신 is cast on Miho, not sprayed: she wears the hat of 감투 도깨비 (Guise).
 ## 속박 hurts each creature BIND_HARM and roots it BIND rounds.
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
@@ -93,8 +91,6 @@ const HAIL := 1
 const BLOOM := 2
 const SWAMP := 3
 const GEYSER := 2
-const QUENCH := 2
-const QUENCH_WET := 4
 const BOOM := 12
 const BEACON_WORD := "화르륵"
 const BIND := 4
@@ -107,7 +103,7 @@ const DRAGON_PUSH := 3
 const DRAGON_STUN := 2
 ## Compounds that do nothing to a creature but their own effect: it is not
 ## struck, so it does not hunt Miho or lose a feud for it.
-const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness"]
+const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness", &"hypnosis"]
 
 
 ## The radius compound `c` of `spell` reaches round where a projectile ends.
@@ -177,18 +173,10 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			ground(w, s, &"mud", tiles)
 		&"geyser":
 			ground(w, s, &"steam", tiles)
-		&"quench":
-			heat(w, tiles, MOLTEN)
-		&"charthorn":
-			ground(w, s, &"thorn", tiles)
-			_kindle(w, tiles)
 		&"palisade":
 			Elements.grow(w, tiles)
 		&"beacon":
 			ground(w, s, &"wildfire", tiles)
-		&"ironrain":
-			ground(w, s, &"molten", tiles)
-			ground(w, s, &"steam", tiles)
 		&"magpie":
 			var gaps := tiles.filter(func(p): return w.tile(p) in [World.SKY, World.POND])
 			_become(w, gaps, World.BRIDGE)
@@ -217,8 +205,6 @@ static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
 		&"shrapnel":
 			if s.spell.mortar():
 				_explode(w, s, at, reach(s.spell, c))
-		&"quench":
-			Gas.add(w, at, Gas.STEAM, STEAM)
 		&"beacon":
 			_signal(w, s, at)
 		Cards.SAMSARA:
@@ -254,12 +240,8 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			Elements.root(w, a, SWAMP)
 		&"geyser":
 			w.push(a, s.dir, GEYSER)
-		&"quench":
-			Elements.harm(w, s, a, QUENCH_WET if a.wet > 0 else QUENCH)
-		&"charthorn":
-			Elements.harm(w, s, a, THORN)
-			if a.alive():
-				Status.ignite(w, a)
+		&"hypnosis":
+			Mind.sleep(w, a)
 		&"beacon":
 			strike(w, s, &"wildfire", a, at)
 		&"bind":
