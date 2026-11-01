@@ -132,6 +132,7 @@ var _popups: Array[Dictionary] = []
 ## event index -> the Perceived fact of the round being played.
 var _told := {}
 var _flashes: Array[Dictionary] = []
+var _ghosts: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
 ## shot id -> the tiles it last flew through, newest last (TRAIL of them).
@@ -216,6 +217,7 @@ func _process(delta: float) -> void:
 	var now := _time
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
+	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
 	queue_redraw()
 
 
@@ -276,7 +278,10 @@ func play(events: Array, before: World, after: World) -> void:
 	for s in before.shots:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
+	var passes := Afterimage.plan(events)
 	for i in events.size():
+		var left := Afterimage.copies(passes.get(i, []), _actors, _time)
+		_ghosts.append_array(left.filter(func(g): return _visible(g.at)))
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0 and not _rushed:
 			_hold = get_tree().create_timer(wait / speed)
@@ -487,6 +492,7 @@ func _draw() -> void:
 				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
+	Afterimage.draw(self, _ghosts, _time)
 	for f in _flashes:
 		if not _shown(f.at) or _time < f.born:
 			continue
