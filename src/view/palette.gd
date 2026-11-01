@@ -24,7 +24,7 @@ const TILES := {
 	World.POND: ["~", Color(0.24, 0.4, 0.9), Color(0.04, 0.08, 0.2)],
 	World.ASH: [",", Color(0.45, 0.44, 0.42), Color(0.08, 0.08, 0.08)],
 	World.LANTERN_BROKEN: [";", Color(0.5, 0.4, 0.3), Color(0.12, 0.09, 0.07)],
-	World.WALL_CRACKED: ["#", Color(0.62, 0.5, 0.42), Color(0.27, 0.22, 0.2)],
+	World.WALL_CRACKED: ["╳", Color(0.9, 0.76, 0.62), Color(0.34, 0.29, 0.26)],
 	World.RUBBLE: [":", Color(0.55, 0.5, 0.45), Color(0.13, 0.11, 0.1)],
 	World.SKY: ["░", Color(0.08, 0.1, 0.22), Color(0.012, 0.016, 0.05)],
 	World.WINDOW: ["#", Color(0.7, 0.95, 1.0), Color(0.1, 0.16, 0.26)],
