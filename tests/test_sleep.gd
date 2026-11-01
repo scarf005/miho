@@ -105,6 +105,20 @@ func test_a_resting_patrol_is_never_asleep_and_sees_miho() -> void:
 	assert_false(_claw(w).sneak)
 
 
+func test_no_jangseung_sleeps_and_each_sees_miho_beside_it() -> void:
+	for kind in Bestiary.KINDS:
+		if Bestiary.info(kind).get("group", &"") != &"jangseung":
+			continue
+		var w := _hall()
+		var foe := _foe(w, kind, Vector2i(5, 8))
+		foe.hp = 9
+		assert_false(foe.asleep(), kind)
+		assert_true(w.sees(foe, w.player().pos), kind)
+		assert_false(w.caught_unawares(foe), kind)
+		assert_string_contains(Info.plain(Info.at(w.known_clone(), foe.pos)), "잠들지 않음")
+		assert_ne(Info.state(foe), "자는 중", kind)
+
+
 func test_a_creature_walking_back_to_its_post_is_awake() -> void:
 	var w := _hall()
 	var foe := _foe(w, SLEEPER, Vector2i(5, 8))

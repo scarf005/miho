@@ -325,7 +325,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	var out := [WITS[Bestiary.wits(a.kind)]]
 	if spec.get("patrol", false):
 		out.append("순찰")
-	if a.guard:
+	if spec.get("move", &"static") == &"static":
 		out.append("잠들지 않음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리: %d칸" % spec.step)

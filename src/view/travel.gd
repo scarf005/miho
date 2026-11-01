@@ -138,9 +138,15 @@ static func in_sight(w: World) -> Dictionary:
 
 
 ## Whether Miho sees an awake creature of heaven, so exploring does not start
-## (DCSS): one blocking the only way on would turn the walk back and forth.
+## (DCSS): one blocking the only way on would turn the walk back and forth. One
+## that cannot walk (a 장승) counts only while it hunts: it cannot come into her way.
 static func watched(w: World) -> bool:
-	return in_sight(w).keys().any(func(id): return not w.actor(id).asleep())
+	return in_sight(w).keys().any(func(id): return _watching(w.actor(id)))
+
+
+static func _watching(a: Actor) -> bool:
+	var stands: bool = a.info().get("move", &"static") == &"static"
+	return not a.asleep() and (a.alert == Actor.HUNT or not stands)
 
 
 ## Whether a walk must stop after a round from `before` to `after`: a creature
