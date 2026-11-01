@@ -900,8 +900,12 @@ func _small(cell: Vector2, s: String, color: Color) -> void:
 	draw_string(_font, at.round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL, color)
 
 
-## The mark of the status `a` holds (Status.of), small at `cell`.
+## The marks of what holds `a`, small at `cell`: its status (Status.of), then
+## rooted and stunned.
 func _status(cell: Vector2, a: Actor) -> void:
-	var mark: Array = Palette.STATUS.get(Status.of(a), [])
-	if not mark.is_empty():
-		_small(cell, mark[0], mark[1])
+	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.get(k) > 0)
+	var marks: Array = held.map(func(k): return Palette.CONDITION[k])
+	if Palette.STATUS.has(Status.of(a)):
+		marks.push_front(Palette.STATUS[Status.of(a)])
+	for i in marks.size():
+		_small(cell + Vector2(i * 0.33, 0), marks[i][0], marks[i][1])

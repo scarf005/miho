@@ -93,6 +93,9 @@ const FIERCE_BACK := Color(1.0, 0.86, 0.2)
 ## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it,
 ## in the colour of harm to its holder.
 const STATUS := {&"wet": ["~", BAD], &"alight": ["§", BAD], &"frozen": ["◇", BAD]}
+## Actor field -> [glyph, colour]: the mark of a condition
+## besides a status, drawn after it.
+const CONDITION := {&"rooted": ["=", BAD], &"stunned": ["*", BAD]}
 ## The mark a fallen creature leaves on its tile.
 const BODY := ["%", Color(0.62, 0.36, 0.3)]
 ## Dark tiles Miho makes out by shape only.

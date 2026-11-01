@@ -17,6 +17,14 @@ const TRACE := "흔적."
 const CONDITIONS := {
 	"묶임": ["이동: 못 함"],
 	"기절": ["이동, 주문: 못 함", "모으던 주문: 끊김"],
+	"눈멂": ["시야: 없음", "이동, 공격: 못 함", "미호 시야: 옆 칸"],
+	"둔갑":
+	[
+		"시간: %d초" % Guise.ROUNDS,
+		"%s마다: +%d초" % [Cards.NAME[Cards.WOOD], Guise.PER_WOOD],
+		"풀림: 피해, 주문, 적 옆 %d초 연속" % Guise.BESIDE,
+		"속는 적: 추격 중이 아닌 적",
+	],
 	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색: 경계 끝까지"],
 }
 
