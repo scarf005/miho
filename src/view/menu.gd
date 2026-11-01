@@ -31,6 +31,7 @@ const LOOK := [
 	),
 ]
 const OPTIONS := [
+	&"close",
 	&"volume",
 	&"music",
 	&"crt",
@@ -41,8 +42,7 @@ const OPTIONS := [
 	&"seed",
 	&"cheat",
 	&"restart",
-	&"quit",
-	&"close"
+	&"quit"
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
