@@ -16,8 +16,12 @@ const RECIPE := {
 ## The label of the harm a projectile does after it has flown MOMENTUM tiles.
 const FAR := "%d칸 이상 날아간 뒤 피해"
 const PIERCE := ["관통", "적 모두, 벽 한 칸"]
-## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
-const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
+## The guns that are named (Spell.bullet, Spell.pierces, Spell.mortar), by their talismans.
+const GUNS := [
+	[Cards.FOX, Cards.METAL],
+	[Cards.FOX, Cards.METAL, Cards.METAL],
+	[Cards.ORB, Cards.EARTH, Cards.METAL],
+]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
 const SWAP := [
 	[Leap.SWAP_NAME, "멈춘 칸으로"],
@@ -529,20 +533,28 @@ static func _swap() -> Array:
 	return _lines(SWAP, Palette.card(Cards.VAULT))
 
 
+## What a leap does, whoever casts it: its shape, what it crosses, what stops
+## it and the sound of the landing.
+static func leap(s: Spell) -> Array:
+	return [
+		_line("모양", "곧게 %d칸" % s.leap()),
+		_line("건너는 것", _names(CROSSED) + ", 생물"),
+		_line("막는 것", "벽, 닫힌 문, 등불"),
+		_line("착지 소음", "%d" % Leap.LOUD),
+		_line("진흙 착지 소음", "없음"),
+	]
+
+
 ## Shape, damage, speed, turn and reach of a projectile spell; where a leap
 ## goes and what it is heard as.
 static func _shape(s: Spell) -> Array:
 	if s.shape == Spell.LEAP:
-		return [
-			_line("모양", "곧게 %d칸" % s.leap()),
-			_line("거리", "%s 한 장마다 +%d칸" % [Cards.NAME[Cards.WOOD], Spell.LEAP_PER_WOOD]),
-			_line("건너는 것", _names(CROSSED) + ", 생물"),
-			_line("막는 것", "벽, 닫힌 문, 등불"),
-			_line("착지 소음", "%d" % Leap.LOUD),
-			_line("진흙 착지 소음", "없음"),
-			_line("냄새", "착지한 칸만"),
-			_line(behind(), Leap.SWAP_NAME),
-		]
+		var reach := leap(s)
+		return (
+			[reach[0], _line("거리", "%s 한 장마다 +%d칸" % [Cards.NAME[Cards.WOOD], Spell.LEAP_PER_WOOD])]
+			+ reach.slice(1)
+			+ [_line("냄새", "착지한 칸만"), _line(behind(), Leap.SWAP_NAME)]
+		)
 	var lines := []
 	match s.shape:
 		Spell.WISP:
@@ -552,7 +564,7 @@ static func _shape(s: Spell) -> Array:
 				(
 					_line("발당 피해", str(s.damage(0)), Palette.HURT)
 					if s.damage(0) > 0
-					else _line("피해", "없음", Palette.HURT)
+					else _line("피해", "0", Palette.HURT)
 				)
 			)
 			if s.pierces():

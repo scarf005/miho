@@ -14,7 +14,7 @@ var events: Array[Dictionary] = []
 var paths := {}
 ## The `spray` events of the round: {faction, cards, tiles, ...} (Spray).
 var sprays: Array[Dictionary] = []
-## Each leap of the round, and each swap: [from, to] (Leap).
+## Each leap of Miho's in the round, and each swap: [from, to] (Leap).
 var leaps: Array = []
 var swaps: Array = []
 ## actor id -> total damage this round
@@ -66,7 +66,8 @@ func read(round_events: Array[Dictionary]) -> void:
 			&"spray":
 				sprays.append(e)
 			&"leap":
-				leaps.append([e.from, e.to])
+				if e.id == after.player().id:
+					leaps.append([e.from, e.to])
 			&"swap":
 				swaps.append([e.from, e.to])
 			&"fly":

@@ -15,7 +15,8 @@ const CASTS := 2
 ## foe is weak to, else the first; from Bestiary.DOUBLES on also the next after
 ## it whose projectiles leave on tiles the first one's leave free (`_apart`).
 ## An orb needs a clear line; wisps and homing orbs only the foe in reach; a
-## spray must cover the foe. A creature with mana buys its spells (`_buy`).
+## spray must cover the foe; a leap (`_leap`) only a foe in line that it lands short
+## of, and it is cast alone. A creature with mana buys its spells (`_buy`).
 static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	if Bestiary.mana(a.kind) > 0:
 		return _buy(w, a, foe)
@@ -33,11 +34,12 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 			first = i
 			break
 	var out: Array[Dictionary] = [plans[first]]
-	if a.rank < Bestiary.DOUBLES:
+	if a.rank < Bestiary.DOUBLES or _leaps(plans[first]):
 		return out
 	var taken := _departs(w, a, plans[first])
 	for k in range(1, plans.size()):
-		var then := _apart(w, a, plans[(first + k) % plans.size()], taken)
+		var next: Dictionary = plans[(first + k) % plans.size()]
+		var then := {} if _leaps(next) else _apart(w, a, next, taken)
 		if not then.is_empty():
 			out.append(then)
 			if out.size() >= CASTS:
@@ -171,6 +173,8 @@ static func _reach(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 	var spell := Spell.make(cast)
 	if spell == null:
 		return {}
+	if spell.shape == Spell.LEAP:
+		return _leap(w, a, spell, foe)
 	if spell.shape == Spell.SPRAY:
 		return _spray(w, a, cast, foe)
 	if spell.turn() > 0:
@@ -179,6 +183,24 @@ static func _reach(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 	var r := Grid.cheb(a.pos, foe.pos)
 	if d != Vector2i.ZERO and r >= 2 and w.clear_line(a.pos, foe.pos):
 		return {cards = cast, dir = d}
+	return {}
+
+
+## Whether `plan` is a leap.
+static func _leaps(plan: Dictionary) -> bool:
+	return Spell.make(plan.cards).shape == Spell.LEAP
+
+
+## A leap towards `foe` in line with `a`, when it lands short of the foe, on a
+## tile free of fire, hot ground and traps.
+static func _leap(w: World, a: Actor, spell: Spell, foe: Actor) -> Dictionary:
+	var dir := Grid.line_dir(a.pos, foe.pos)
+	if dir == Vector2i.ZERO or a.rooted > 0:
+		return {}
+	var to := Leap.landing(w, a.pos, dir, spell.leap())
+	var safe := not (w.burning.has(to) or w.hot.has(to) or w.traps.has(to))
+	if to != a.pos and safe and Grid.cheb(a.pos, to) < Grid.cheb(a.pos, foe.pos):
+		return {cards = spell.cards, dir = dir}
 	return {}
 
 

@@ -51,9 +51,10 @@ func _of(events: Array, t: StringName, id: int) -> Array:
 	return events.filter(func(e): return e.t == t and e.id == id)
 
 
-## The elements the spells hold, in 오행 order.
+## The elements the spells hold, in 오행 order: a leap holds none.
 func _elements(casts: Array) -> Array:
-	return Cards.ELEMENTS.filter(func(c): return casts.any(func(cast): return cast.has(c)))
+	var spells := casts.filter(func(cast): return cast != Bestiary.LEAP)
+	return Cards.ELEMENTS.filter(func(c): return spells.any(func(cast): return cast.has(c)))
 
 
 func test_a_rank_spans_two_storeys() -> void:
@@ -65,19 +66,37 @@ func test_a_rank_spans_two_storeys() -> void:
 func test_the_first_rank_keeps_every_kind_as_it_was() -> void:
 	for kind in Codex.foes():
 		var a := FloorGen.spawn(_world(2), kind, Vector2i(20, 8))
-		var spec := Bestiary.info(kind)
 		assert_eq(a.rank, 1, kind)
-		assert_eq([a.hp, a.max_hp], [spec.hp, spec.hp], kind)
-		assert_eq(a.repertoire(), spec.get("casts", []), kind)
+		assert_eq(a.repertoire(), Bestiary.info(kind).get("casts", []), kind)
 
 
-func test_health_grows_with_the_rank() -> void:
-	var hp := []
-	for depth in FIRST:
-		hp.append(FloorGen.spawn(_world(depth), &"dokkaebi", Vector2i(20, 8)).max_hp)
-	assert_eq(hp, [2, 3, 5, 7, 8])
-	assert_eq(FloorGen.spawn(_world(9), &"cheonnyeon", Vector2i(20, 8)).hp, 14)
-	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 18)
+func _health(kind: StringName) -> Array:
+	return FIRST.map(
+		func(depth): return FloorGen.spawn(_world(depth), kind, Vector2i(20, 8)).max_hp
+	)
+
+
+func test_a_plain_dokkaebi_never_has_more_than_3_health() -> void:
+	for kind: StringName in [&"dokkaebi", &"bujigaengi", &"bitjaru", &"gamtu"]:
+		for hp: int in _health(kind):
+			assert_lte(hp, 3, kind)
+	assert_gt(_health(&"dokkaebi")[1], _health(&"dokkaebi")[0], "it still grows once")
+
+
+func test_a_creature_spawns_at_full_health() -> void:
+	for kind in Codex.foes():
+		for depth in FIRST:
+			var a := FloorGen.spawn(_world(depth), kind, Vector2i(20, 8))
+			assert_eq(a.hp, a.max_hp, kind)
+
+
+func test_a_heavy_fighter_keeps_growing_where_a_dokkaebi_stops() -> void:
+	for kind: StringName in [&"jangseung", &"dueoksini", &"haetae", &"cheonnyeon", &"saja"]:
+		var hp := _health(kind)
+		for i in range(1, hp.size()):
+			assert_gte(hp[i], hp[i - 1], kind)
+		assert_gt(hp.back(), hp[1] + 1, kind)
+		assert_gt(hp.back(), _health(&"dokkaebi").back(), kind)
 
 
 func test_no_rank_gives_a_kind_another_element() -> void:
