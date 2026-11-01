@@ -67,7 +67,7 @@ func test_options_step_and_wrap() -> void:
 		menu.key(_press("Left"))
 	assert_eq(menu.settings.volume, 0, "stops at 0")
 	var volume: Array = menu.panel().rows[Menu.OPTIONS.find(&"volume")]
-	assert_eq(volume[1][0], "끔", "silence is shown where the volume is set")
+	assert_eq(volume[1][0], "꺼짐", "silence is shown where the volume is set")
 	_select(menu, &"music")
 	assert_eq(menu.settings.music, 60, "music starts below the effects")
 	menu.key(_press("Right"))
@@ -81,7 +81,7 @@ func test_options_step_and_wrap() -> void:
 	assert_eq(menu.settings.music, 0, "stops at 0")
 	var music: Array = menu.panel().rows[Menu.OPTIONS.find(&"music")]
 	assert_eq(music[0][0], "음악 크기")
-	assert_eq(music[1][0], "끔", "silence is shown where the music is set")
+	assert_eq(music[1][0], "꺼짐", "silence is shown where the music is set")
 	_select(menu, &"zoom")
 	var seen := []
 	for i in Settings.ZOOMS.size():

@@ -231,19 +231,19 @@ func test_hovering_the_stand_keeps_what_it_gives_a_secret() -> void:
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, STAND))
-	assert_string_contains(text, "부적 단")
+	assert_string_contains(text, "부적 제단")
 	assert_false(text.contains("밟으면") or text.contains("얻는 부적"), text)
 
 
 func test_hovering_the_guard_says_it_does_not_sleep() -> void:
 	var w := _yard()
 	var text := Info.plain(Info.creature(w, _guard(w)))
-	assert_string_contains(text, "잠들지 않음")
+	assert_string_contains(text, "고정")
 	assert_string_contains(text, "지키는 중")
 
 
 func test_the_codex_lists_the_lamp_and_the_stand_by_what_they_are() -> void:
-	for name in ["석등", "부적 단"]:
+	for name in ["석등", "부적 제단"]:
 		var entry := Codex.entries(4).filter(func(e): return e.name == name)
 		assert_eq(entry.size(), 1, name)
 		assert_false(Info.plain(Codex.detail(entry[0])).contains("얻는 부적"), name)

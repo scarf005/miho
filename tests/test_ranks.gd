@@ -206,7 +206,7 @@ func test_hover_and_codex_tell_the_spells_and_health_of_its_rank() -> void:
 
 func test_hover_tells_its_homing_orbs_apart_by_their_turn() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"jangseung", 3), []))
-	assert_string_contains(text, "꺾임: 한 칸에 45°")
-	assert_string_contains(text, "꺾임: 한 칸에 90°")
+	assert_string_contains(text, "회전: 칸당 45°")
+	assert_string_contains(text, "회전: 칸당 90°")
 	var plain := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
 	assert_false(plain.contains("꺾임"), "a straight orb does not turn")

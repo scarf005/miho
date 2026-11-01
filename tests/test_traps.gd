@@ -240,14 +240,14 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	var text := {}
 	for kind in KINDS:
 		text[kind] = Info.plain(_hover(w, kind))
-	assert_string_contains(text[World.TRAP_ALARM], "밟으면: 층 전체에 소리")
+	assert_string_contains(text[World.TRAP_ALARM], "밟을 때 소음: 층 전체")
 	assert_string_contains(text[World.TRAP_COLLAPSE], "밟으면: 하늘로 추락")
 	assert_string_contains(text[World.TRAP_FIRE], "앞 %d칸에 불" % Traps.FLAME_REACH)
-	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 묶음\n묶음: %d초" % Traps.ROOT_ROUNDS)
+	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 묶임\n묶임: %d초" % Traps.ROOT_ROUNDS)
 	for kind in KINDS:
 		assert_true(text[kind].split("\n").has("함정."), text[kind])
-	assert_has(Info.glossary()["함정"], "드러남: 밝은 칸이나 %d칸 안" % Traps.REACH)
-	assert_has(Info.glossary()["함정"], "적: 돌아감")
+	assert_has(Info.glossary()["함정"], "발견: 밝은 칸이나 %d칸 안" % Traps.REACH)
+	assert_has(Info.glossary()["함정"], "적은 밟지 않음.")
 
 
 func _hover(w: World, kind: int) -> Array:
@@ -293,7 +293,7 @@ func test_a_creature_stepping_on_a_plate_in_sight_is_told_in_the_log() -> void:
 	w.sense()
 	var lines := _lines(before, w, w.events)
 	assert_has(lines, "도깨비가 덩굴 함정을 밟았다")
-	assert_has(lines, "도깨비가 덩굴에 묶였다")
+	assert_has(lines, "도깨비가 묶였다")
 	assert_eq(w.tile(PLATE), World.TRAP_VINE, "seen going off, it is found")
 
 

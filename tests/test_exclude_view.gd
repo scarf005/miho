@@ -148,7 +148,7 @@ func test_a_walk_shut_only_by_a_zone_says_so() -> void:
 	m.excluded.zones[Vector2i(8, 8)] = 0
 	m._forecast()
 	var goal := Vector2i(12, 8)
-	assert_eq(m._walled_in(goal, "x"), "위험구역 너머로는 가지 않는다")
+	assert_eq(m._walled_in(goal, "x"), "위험구역 너머로는 갈 수 없다")
 	assert_eq(m._walled_in(Vector2i(6, 8), "x"), "x", "reachable")
 	assert_eq(m._walled_in(Vector2i(-1, -1), "x"), "x", "no goal")
 	assert_true(m._path_to(goal).is_empty())
@@ -172,7 +172,7 @@ func test_exploring_that_only_a_zone_blocks_says_so() -> void:
 	m._forecast()
 	assert_true(m._explore_walled())
 	assert_eq(m._exploring(), {})
-	assert_eq(m.messages.lines.back().text, "위험구역 너머는 탐험하지 않는다")
+	assert_eq(m.messages.lines.back().text, "위험구역 너머는 탐험할 수 없다")
 
 
 func test_exploring_with_nothing_left_is_not_blamed_on_a_zone() -> void:

@@ -137,7 +137,7 @@ const ROWS := {
 	World.ALTAR_LIT: {name = "타오르는 제단"},
 	World.VEIL: {name = "도깨비불 장막", opens = true},
 	World.LAMP: {name = "석등"},
-	World.TALISMAN: {name = "부적 단", walk = true},
+	World.TALISMAN: {name = "부적 제단", walk = true},
 	World.SHELF: {name = "두루마리 서가", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.SHELF_READ: {name = "읽은 서가", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.SCREEN:
