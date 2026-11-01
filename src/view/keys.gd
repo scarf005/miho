@@ -45,7 +45,7 @@ const ACTIONS := {
 	&"slot_5": ["저장 주문 5", ["S"]],
 	&"slot_6": ["저장 주문 6", ["D"]],
 	&"unpick": ["주문 하나 빼기", ["Ctrl"]],
-	&"cancel": ["취소 / 설정", ["Escape"]],
+	&"cancel": ["취소 / 설정", ["Escape", "F10"]],
 	&"stairs": ["계단으로 가기", ["Shift+Period"]],
 	&"explore": ["자동 탐험", ["O"]],
 	&"fight": ["자동 공격", ["Tab"]],

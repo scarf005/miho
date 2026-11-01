@@ -53,6 +53,14 @@ func _codex(m: Node) -> void:
 	m._open(&"codex")
 
 
+func test_f10_opens_the_settings_and_closes_them_for_a_browser_that_keeps_esc() -> void:
+	var m := _main()
+	_key(m, "F10")
+	assert_eq(m.term.panel.title, "설정")
+	_key(m, "F10")
+	assert_true(m.term.panel.is_empty(), "back in the game")
+
+
 func test_the_game_menu_opens_the_codex_and_esc_returns_to_it() -> void:
 	var m := _main()
 	_key(m, "Escape")
