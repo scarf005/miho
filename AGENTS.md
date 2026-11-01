@@ -14,6 +14,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 
 - Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소음: 3`, `가연성.`, `면역: 불`.
 - A status a spell causes is one line with the status word coloured. The status has its entry in the 도감 상태이상 tab.
+- Never type a game value into a string: a spell name, a recipe, a list of spells, a count, a radius or a chance comes from its table or constant, so a change to the data changes the text. Use `"스스로에겐 %s만 걸 수 있다"` with the list filled from the table, never `그림자(여+수)나 둔갑(목+토)`.
 - A lone spray goes by its name alone: `불길`, never `불 불길`. Label words are plain Korean game words: `대상`, never `노림`.
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`), and do not write `당신`.
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
@@ -21,7 +22,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - No onomatopoeia in hover or 도감, because rules use only the radius: write `소음: N`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
-- A line that passes the rules above can still read wrong. Any string that is a sentence or a description must be what a Korean player would say aloud. Keep the subject and the particles. An ability or a permission ends in `-ㄹ 수 있다`, never a flat `-ㄴ다`. Do not translate an English comment or brief word by word. User corrections:
+- Follow the global `korean-humanizer` skill for every Korean string you add or change. A line that passes the rules above can still read wrong. Any string that is a sentence or a description must be what a Korean player would say aloud. Keep the subject and the particles. An ability or a permission ends in `-ㄹ 수 있다`, never a flat `-ㄴ다`. Do not translate an English comment or brief word by word. User corrections:
   - `자신에게는 그림자나 둔갑만 건다` -> `스스로에겐 그림자나 둔갑만 걸 수 있다`
   - `밟으면 위층으로 오른다` -> `위층으로 올라갈 수 있다`
   - `당신을 보면 외친다: 낄낄 6칸` -> `말할 수 있다.`
