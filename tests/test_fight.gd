@@ -187,3 +187,29 @@ func test_tab_when_badly_hurt_refuses_even_with_a_creature_next_to_her() -> void
 	await m._fight()
 	assert_true(m.run.actions.is_empty())
 	assert_eq(m.messages.lines.back().text, "너무 다쳐서 싸울 수 없다")
+
+
+func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
+	var m := _main()
+	var sleeper := _foe(m.world, Vector2i(8, 8))
+	sleeper.home = sleeper.pos
+	sleeper.alert = Actor.REST
+	m.world.sense()
+	m.world.seen[Grid.index(sleeper.pos)] = 1
+	assert_true(sleeper.asleep())
+	assert_true(m._sneakable(sleeper))
+	m.world.seen[Grid.index(sleeper.pos)] = 0
+	assert_false(m._sneakable(sleeper))
+
+
+func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
+	var m := _main()
+	var sleeper := _foe(m.world, Vector2i(8, 8))
+	sleeper.home = sleeper.pos
+	sleeper.alert = Actor.REST
+	m.world.sense()
+	m.world.seen[Grid.index(sleeper.pos)] = 1
+	assert_true(sleeper.asleep())
+	assert_true(m._sneakable(sleeper))
+	m.world.seen[Grid.index(sleeper.pos)] = 0
+	assert_false(m._sneakable(sleeper))
