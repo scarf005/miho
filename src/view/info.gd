@@ -657,7 +657,7 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if Gas.of(g.x, "wets"):
 		out.append([["북 젖음: %d초 소음 없음" % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
-		out.append([["냄새: 지움", Palette.DIM]])
+		out.append([["냄새: 지워짐", Palette.DIM]])
 	return out
 
 

@@ -129,7 +129,7 @@ func test_a_tile_in_sight_tells_its_gas_from_the_rules() -> void:
 	assert_false(text.contains("피해"), text)
 	Gas.put(w, at, Gas.FOG, 1)
 	w.sense()
-	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개: 3/%d\n시야 막음." % Gas.MAX)
+	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개: 3/%d\n시야를 막음." % Gas.MAX)
 
 
 func test_steam_tells_its_harm_decay_and_wetting() -> void:
