@@ -230,3 +230,18 @@ func test_hover_tells_its_homing_orbs_apart_by_their_turn() -> void:
 	assert_string_contains(text, "회전: 칸당 90°")
 	var plain := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
 	assert_false(plain.contains("꺾임"), "a straight orb does not turn")
+
+
+func test_a_creature_lists_a_spell_name_once_with_its_differing_values_on_one_line() -> void:
+	var foe := Actor.new()
+	foe.kind = &"dueoksini"
+	foe.rank = Bestiary.DOUBLES + 2
+	foe.hp = 3
+	foe.max_hp = 3
+	var titles := foe.repertoire().map(func(c): return Bestiary.spell(foe.kind, c).title())
+	var lines := Info._casts(foe).map(func(l): return "".join(l.map(func(r): return r[0])))
+	for title: String in titles:
+		assert_eq(lines.filter(func(l): return l.begins_with("주술: " + title)).size(), 1, title)
+	assert_eq(
+		lines.filter(func(l): return l.strip_edges().begins_with("모양: ")).size(), 1, str(lines)
+	)
