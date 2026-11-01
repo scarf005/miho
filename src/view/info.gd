@@ -12,6 +12,13 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
+## The conditions a creature or Miho holds besides the statuses (Status), by the
+## name `_conditions` shows, one `이름: 값` line each: the 도감's 상태이상.
+const CONDITIONS := {
+	"묶임": ["이동: 못 함"],
+	"기절": ["이동, 주문: 못 함", "모으던 주문: 끊김"],
+	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색: 경계 끝까지"],
+}
 
 
 ## The rules many things share, by the tag their hover shows instead, one
@@ -24,6 +31,25 @@ static func glossary() -> Dictionary:
 		"흔적": ["수색: 처음 본 적", "제외: 추격 중인 적"],
 		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
 	}
+
+
+## A status (Status), by its key, as the 도감 tells it: name, time, what it does.
+static func status_facts(key: StringName) -> Array:
+	var time := {&"wet": Status.WET, &"alight": Status.ALIGHT, &"frozen": Compounds.FROST}
+	var lines: Array = ["시간: %d초" % time[key]]
+	if key == &"frozen":
+		lines.append("젖은 적 시간: %d초" % (2 * Compounds.FROST))
+	lines.append_array(SpellInfo.STATUS_DOES[key])
+	return [[[Status.NAME[key], Palette.STATUS[key][1]]]] + _tags(lines)
+
+
+## A condition (`CONDITIONS`), by its name, as the 도감 tells it.
+static func condition_facts(name: String) -> Array:
+	return [[[name, Palette.TEXT]]] + _tags(CONDITIONS[name])
+
+
+static func _tags(lines: Array) -> Array:
+	return lines.map(func(l): return [[l, Palette.TEXT]])
 
 
 ## Lines for map tile p, or empty when Miho knows nothing there.
