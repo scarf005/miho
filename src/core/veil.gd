@@ -28,9 +28,13 @@ static func make(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		var line := _line(r, doors, plan[0], plan[1], rng)
 		if line.is_empty():
 			continue
+		var spots: Array = line.peaches.filter(w.open_floor)
+		if spots.is_empty():
+			continue
 		for p: Vector2i in line.tiles:
-			w.set_tile(p, World.VEIL)
-		w.peaches.append(line.peaches[rng.randi_range(0, line.peaches.size() - 1)])
+			if w.open_floor(p):
+				w.set_tile(p, World.VEIL)
+		w.peaches.append(spots[rng.randi_range(0, spots.size() - 1)])
 		return true
 	return false
 

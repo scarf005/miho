@@ -52,7 +52,8 @@ static func make(w: World, r: Rect2i) -> bool:
 	var inside: Array[Vector2i] = []
 	for y in range(r.position.y, r.end.y):
 		for x in range(r.position.x, r.end.x):
-			inside.append(Vector2i(x, y))
+			if w.open_floor(Vector2i(x, y)):
+				inside.append(Vector2i(x, y))
 	FloorGen.shuffle(w.rng, inside)
 	w.peaches.append_array(inside.slice(0, PRIZE))
 	return true

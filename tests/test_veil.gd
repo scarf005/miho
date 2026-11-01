@@ -152,6 +152,24 @@ func test_make_splits_a_room_with_one_door_and_refuses_one_it_cannot() -> void:
 	assert_true(small.peaches.is_empty())
 
 
+func test_a_hole_in_the_room_keeps_its_sky_and_holds_no_peach() -> void:
+	for seed_value in 8:
+		var w := _world()
+		w.tiles.fill(World.WALL)
+		var room := Rect2i(10, 5, 10, 5)
+		for y in range(room.position.y, room.end.y):
+			for x in range(room.position.x, room.end.x):
+				_put(w, Vector2i(x, y), World.SKY if y == 5 else World.FLOOR)
+		_put(w, Vector2i(9, 7), World.FLOOR)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_value
+		assert_true(Veil.make(w, room, rng))
+		assert_eq(_veils(w).size(), 4, "the rows that have a floor")
+		assert_true(w.open_floor(w.peaches[0]), "%s" % w.peaches[0])
+		for x in range(room.position.x, room.end.x):
+			assert_eq(w.tile(Vector2i(x, 5)), World.SKY)
+
+
 # --- the fire ----------------------------------------------------------------
 
 
