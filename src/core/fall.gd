@@ -2,8 +2,9 @@ class_name Fall
 extends RefCounted
 ## Pushing a creature. It slides up to n tiles and stops at anything it cannot
 ## walk onto: a wall, a pond, a lantern, a creature. Sky is not stopped by: a
-## creature of heaven that slides into it falls out of the game, drops no
-## talisman and counts as a kill; Miho falls to the storey below, as she left
+## creature of heaven that slides into it falls out of the game and counts as
+## a kill, its scroll (Scrolls) lying where it stood or the nearest tile that
+## can hold it; Miho falls to the storey below, as she left
 ## it (Storeys), and on down while that storey is sky there too. She lands on
 ## the tile she fell at, or the free tile nearest it across floor and sky, and
 ## loses DAMAGE health for each storey fallen; her tails are kept up to what
@@ -54,6 +55,7 @@ static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 	w.emit({t = &"die", id = a.id, at = a.pos})
 	w.tails = mini(w.max_tails(), w.tails + 1)
 	w.emit({t = &"soul", id = a.id, at = a.pos})
+	Scrolls.drop(w, a)
 	w._changed()
 
 

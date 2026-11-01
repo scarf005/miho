@@ -82,6 +82,7 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 		3:
 			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir))
 			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach))
+			out.append(_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll))
 			for c in Cards.ELEMENTS:
 				out.append(_talisman(c))
 		4:
@@ -295,3 +296,7 @@ static func _elixir(w: World) -> void:
 
 static func _peach(w: World) -> void:
 	w.peaches.append(AT)
+
+
+static func _scroll(w: World) -> void:
+	w.sites.append({kind = &"scroll", at = AT, card = Cards.FIRE})

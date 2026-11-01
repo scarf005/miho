@@ -370,6 +370,8 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력: +%d" % World.HEAL, "가득 찼을 때 최대 체력: +%d" % World.HEAL]
+	elif Scrolls.card_at(w, p) != &"":
+		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])

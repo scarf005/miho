@@ -625,7 +625,8 @@ func move(a: Actor, to: Vector2i) -> void:
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
-## the elixir wins, a peach heals. True when the storey or the run ends.
+## the elixir wins, a peach heals, a scroll gives its talisman. True when the
+## storey or the run ends.
 func arrive(me: Actor) -> bool:
 	if me.pos == stairs:
 		_ascend()
@@ -640,6 +641,7 @@ func arrive(me: Actor) -> bool:
 		me.max_hp += HEAL if grew else 0
 		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+	Scrolls.arrive(self, me)
 	EventRooms.arrive(self, me)
 	return false
 
@@ -905,12 +907,9 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		return
 	Notice.fallen(self, a)
 	Mind.forget(self, a)
-	var drop: StringName = a.info().get("drop", &"")
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
-	if drop != &"" and not cards.has(drop):
-		cards.append(drop)
-		emit({t = &"card", card = drop, at = a.pos})
+	Scrolls.drop(self, a)
 
 
 ## Sets p alight if it is flammable, or whatever it is when `force`d; a

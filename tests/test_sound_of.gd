@@ -40,6 +40,7 @@ const SOUNDS := [
 	[{t = &"absorb"}, &"absorb"],
 	[{t = &"grow"}, &"card"],
 	[{t = &"card"}, &"card"],
+	[{t = &"scroll"}, &"page"],
 	[{t = &"heal"}, &"card"],
 	[{t = &"altar"}, &"card"],
 	[{t = &"creak"}, &"card"],

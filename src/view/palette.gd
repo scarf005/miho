@@ -68,6 +68,8 @@ const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]
+## A scroll (Scrolls) is drawn in the colour of its card: CARD[card].
+const SCROLL := "?"
 ## gas kind -> [glyph, colour]: the map tints a tile in sight by the colour, thicker
 ## with the amount; the glyph is for the text view of the map.
 const GAS := {
@@ -174,3 +176,15 @@ static func shot_color(spell: Spell, faction: int) -> Color:
 	if spell.has(Cards.FIRE):
 		return CARD[Cards.FIRE]
 	return SIDE[faction]
+
+
+## The glyph and colour of what lies on tile p over its terrain, or empty.
+static func item(w: World, p: Vector2i) -> Array:
+	var scroll := Scrolls.card_at(w, p)
+	if scroll != &"":
+		return [SCROLL, CARD[scroll]]
+	if w.peaches.has(p):
+		return PEACH
+	if p == w.elixir:
+		return ELIXIR
+	return STAIRS if p == w.stairs else []

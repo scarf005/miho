@@ -148,7 +148,7 @@ func test_the_beast_falling_returns_every_tail_once() -> void:
 	_fall(w)
 	assert_eq(w.max_tails(), 3)
 	assert_eq(w.tails, 3, "every tail, though the fall gave one")
-	assert_true(w.sites.is_empty())
+	assert_true(w.sites.all(func(s): return s.kind == &"scroll"), "the room is done")
 	assert_has(w.events.map(func(e): return e.t), &"creak")
 	var lines := Messages.of(before, w, w.events).map(Messages.plain)
 	assert_has(lines, "꼬리가 모두 돌아왔다")

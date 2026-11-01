@@ -261,7 +261,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"absorb"
 		&"grow", &"card", &"heal", &"altar", &"creak":
 			return &"card"
-		&"read":
+		&"read", &"scroll":
 			return &"page"
 		&"trap":
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"

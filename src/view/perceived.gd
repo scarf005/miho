@@ -95,12 +95,13 @@ func _tell_marks(before: World, after: World) -> void:
 
 
 ## Where the useful things first come into Miho's sight in the round from
-## `before` to `after`: the stairs, the elixir, a peach, a talisman stand and a
+## `before` to `after`: the stairs, the elixir, a peach, a scroll, a talisman stand and a
 ## library. A tile she made out on this storey before, or knew by the scrolls, is
 ## not new; on a new storey every tile is.
 static func spotted(before: World, after: World) -> Array[Vector2i]:
 	var things: Array[Vector2i] = [after.stairs, after.elixir]
 	things.append_array(after.peaches)
+	things.append_array(Scrolls.spots(after))
 	for site: Dictionary in after.sites:
 		if site.kind in [&"yard", &"library"]:
 			things.append(site.at)

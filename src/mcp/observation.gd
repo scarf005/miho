@@ -35,7 +35,7 @@ const LEGEND := (
 	+ "▫courtyard 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs !elixir "
-	+ "%peach or fallen-creature(see look) ●○*projectile @Miho"
+	+ "%peach or fallen-creature(see look) ?scroll(see look) ●○*projectile @Miho"
 )
 
 
@@ -126,6 +126,8 @@ static func _glyph(k: World, p: Vector2i) -> String:
 			return Palette.GAS[k.gas[p].x][0]
 	if k.peaches.has(p):
 		return Palette.PEACH[0]
+	if Scrolls.card_at(k, p) != &"":
+		return Palette.SCROLL
 	if k.bodies.has(p) and k.bodies[p].met:
 		return Palette.BODY[0]
 	if p == k.stairs:

@@ -513,15 +513,19 @@ func test_heaven_walks_around_fire() -> void:
 	assert_has([Vector2i(9, 7), Vector2i(9, 9)], foe.pos)
 
 
-func test_strong_foe_gives_its_element_and_a_kill_gives_back_a_tail() -> void:
+func test_strong_foe_drops_its_element_and_a_kill_gives_back_a_tail() -> void:
 	var w := _world()
 	w.tails = 1
 	var foe := _foe(w, &"bulgae", Vector2i(6, 8))
 	foe.hp = 1
 	w.act(_cast([ORB], E))
 	assert_false(foe.alive())
-	assert_has(w.cards, Cards.FIRE)
+	assert_false(w.cards.has(Cards.FIRE), "the kill gives only the scroll")
+	assert_eq(Scrolls.card_at(w, Vector2i(6, 8)), Cards.FIRE)
 	assert_eq(w.tails, 1)
+	w.player().pos = Vector2i(5, 8)
+	w.act({t = &"move", dir = E})
+	assert_has(w.cards, Cards.FIRE)
 
 
 func test_one_turn_splits_the_tails_across_several_spells() -> void:
