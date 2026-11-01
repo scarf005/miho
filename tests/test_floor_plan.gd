@@ -92,7 +92,7 @@ func test_on_pavilions_miho_starts_in_the_westmost_room_and_the_exit_is_in_the_f
 		assert_eq(w.start, home.position + home.size / 2, _label(w))
 		for r in w.rooms:
 			assert_lte(home.get_center().x, r.get_center().x, _label(w))
-		var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+		var dist: PackedInt32Array = Grid.search(w.start, _plan(w)).dist
 		var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
 		for r in w.rooms:
 			var centre := r.position + r.size / 2

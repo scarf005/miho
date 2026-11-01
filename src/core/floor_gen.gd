@@ -189,8 +189,8 @@ static func build(w: World, skeleton := &"") -> Dictionary:
 
 
 ## Whether no plate shuts a tile in, the exit can be walked to with nothing to break
-## or put out on the way, the start is dark and the exit lit, and a skeleton that has
-## two routes still has them.
+## or put out on the way, the start is dark and the exit lit, and the skeleton's routes
+## still stand (Skeletons.routes_hold).
 static func _sound(w: World, skeleton: StringName) -> bool:
 	w._changed()
 	var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
@@ -200,7 +200,8 @@ static func _sound(w: World, skeleton: StringName) -> bool:
 		and Grid.search(w.start, open).dist[Grid.index(exit)] >= 0
 		and not w.lit(w.start)
 		and w.lit(exit)
-		and (skeleton == Skeletons.PAVILIONS or Skeletons.two_ways(w, w.rooms[0], room_at(w, exit)))
+		and w.rooms.size() >= MIN_ROOMS
+		and Skeletons.routes_hold(w, skeleton, w.rooms[0], room_at(w, exit))
 	)
 
 
@@ -230,7 +231,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 			w.rooms.size() >= MIN_ROOMS
 			and w.secrets.size() == hidden_doors(w.depth)
 			and connected(w)
-			and (not goal.has_area() or Skeletons.two_ways(w, w.rooms[0], goal))
+			and Skeletons.routes_hold(w, skeleton, w.rooms[0], goal)
 		):
 			break
 	w._changed()
@@ -279,7 +280,9 @@ static func _carve(w: World, skeleton: StringName) -> Dictionary:
 	w.sites.clear()
 	w.tail_bonus = 0
 	var plan := Skeletons.draw(w, skeleton)
-	_hide_doors(w, _loops(w, plan.spots, plan.links))
+	var hidden: Array = _loops(w, plan.spots, plan.links) + plan.get("sealed", [])
+	shuffle(w.rng, hidden)
+	_hide_doors(w, hidden)
 	_windows(w)
 	return plan
 
@@ -350,13 +353,15 @@ static func _pavilions(w: World) -> Array[Rect2i]:
 
 
 ## Cuts the floor `r` into rooms with walls one tile thick: across its longer
-## side (measured against ROOM_MOST) while each part keeps ROOM_LEAST, until a
-## part fits in ROOM_MOST and stays whole at the chance WHOLE. A `gallery` cut
+## side (measured against `most`) while each part keeps ROOM_LEAST, until a
+## part fits in `most` and stays whole at the chance WHOLE. A `gallery` cut
 ## is two walls with a hall one tile wide between them.
-static func _split(w: World, r: Rect2i, galleries: Array[Rect2i], gallery := false) -> void:
-	var wide := r.size.x * ROOM_MOST.y >= r.size.y * ROOM_MOST.x
+static func _split(
+	w: World, r: Rect2i, galleries: Array[Rect2i], gallery := false, most := ROOM_MOST
+) -> void:
+	var wide := r.size.x * most.y >= r.size.y * most.x
 	var span := r.size.x if wide else r.size.y
-	var fits := r.size.x <= ROOM_MOST.x and r.size.y <= ROOM_MOST.y
+	var fits := r.size.x <= most.x and r.size.y <= most.y
 	gallery = gallery and span >= 2 * ROOM_LEAST + 3
 	var cut := 3 if gallery else 1
 	if span < 2 * ROOM_LEAST + cut or (fits and w.rng.randf() < WHOLE):
@@ -371,12 +376,18 @@ static func _split(w: World, r: Rect2i, galleries: Array[Rect2i], gallery := fal
 		var hall := Rect2i(wall.position + axis, axis + across * r.size)
 		_fill(w, hall, World.FLOOR)
 		galleries.append(hall)
-	_split(w, Rect2i(r.position, r.size - axis * (span - at)), galleries)
-	_split(w, Rect2i(r.position + axis * (at + cut), r.size - axis * (at + cut)), galleries)
+	_split(w, Rect2i(r.position, r.size - axis * (span - at)), galleries, false, most)
+	_split(
+		w,
+		Rect2i(r.position + axis * (at + cut), r.size - axis * (at + cut)),
+		galleries,
+		false,
+		most
+	)
 
 
-## Doorways in the walls between rooms and galleries. Parts already joined, by a
-## doorway or by standing open to one another, count as one. In a random order, a
+## Doorways in the walls between rooms and galleries. Parts a walk already joins count
+## as one. In a random order, a
 ## wall tile with two different parts on opposite sides and wall on the other two
 ## opens when it joins parts not yet joined, until all are one. DOORS of them hold a
 ## sliding door, OPEN_DOORS of those open. Returns the tiles left that could still
@@ -400,12 +411,14 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 			if Grid.inside(p - d) and Grid.inside(p + d):
 				var a := part[Grid.index(p - d)]
 				var b := part[Grid.index(p + d)]
-				if a < 0 or b < 0 or a == b:
-					continue
-				if w.tiles[i] == World.WALL:
+				if a >= 0 and b >= 0 and a != b and w.tiles[i] == World.WALL:
 					spots.append([p, d, a, b])
-				else:
-					joined[_root(joined, a)] = _root(joined, b)
+	var open := Masks.floor_of(w)
+	for k in parts.size():
+		var dist: PackedInt32Array = Grid.search(parts[k].position, open).dist
+		for j in parts.size():
+			if dist[Grid.index(parts[j].position)] >= 0:
+				joined[_root(joined, j)] = _root(joined, k)
 	shuffle(w.rng, spots)
 	var left := []
 	for s: Array in spots:
@@ -419,10 +432,10 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 	return left
 
 
-## Up to LOOPS more doorways on `spots` (from _doorways), each only where the walk
+## Up to `most` more doorways on `spots` (from _doorways), each only where the walk
 ## between its two sides is at least APART steps, so that a hunted fox has somewhere
 ## to slip away. Each joins `links`. Returns the spots left.
-static func _loops(w: World, spots: Array, links: Array) -> Array:
+static func _loops(w: World, spots: Array, links: Array, most := LOOPS) -> Array:
 	var open := Masks.floor_of(w)
 	var cut := 0
 	var left := []
@@ -430,7 +443,7 @@ static func _loops(w: World, spots: Array, links: Array) -> Array:
 		var p: Vector2i = s[0]
 		var d: Vector2i = s[1]
 		if (
-			cut < LOOPS
+			cut < most
 			and _walled(w, p, d)
 			and Grid.search(p - d, open).dist[Grid.index(p + d)] >= APART
 		):
@@ -494,8 +507,10 @@ static func _hide_doors(w: World, spots: Array) -> void:
 			return
 		var p: Vector2i = s[0]
 		var d: Vector2i = s[1]
-		var rooms := [mini(s[2], s[3]), maxi(s[2], s[3])]
-		if rooms[0] > 0 and rooms[1] < w.rooms.size() and _walled(w, p, d):
+		var a := room_at(w, p - d)
+		var b := room_at(w, p + d)
+		var rooms := a.has_area() and b.has_area() and a != w.rooms[0] and b != w.rooms[0]
+		if rooms and _walled(w, p, d):
 			var dist: PackedInt32Array = Grid.search(p - d, open).dist
 			if dist[Grid.index(p + d)] >= SHORTCUT:
 				w.secrets[p] = true

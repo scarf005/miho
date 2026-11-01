@@ -13,6 +13,9 @@ extends RefCounted
 ## each row joined by doorways from end to end.
 ## 쌍탑 (towers): two stepped towers, floor on floor, joined by bridges at different
 ## heights; the start and the exit lie at opposite ends of opposite towers.
+##
+## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
+## be hidden doors.
 
 const PAVILIONS := &"pavilions"
 const RING := &"ring"
@@ -20,6 +23,8 @@ const AVENUE := &"avenue"
 const TOWERS := &"towers"
 ## What a storey may be built on; `pick` draws from it.
 const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
+## The skeletons with one way to the exit: no two routes are asked of them.
+const ONE_WAY: Array[StringName] = [PAVILIONS]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
 ## A row of rooms: a room's width with one wall (least, most), and how deep it goes.
@@ -68,6 +73,28 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 		TOWERS:
 			return _towers(w)
 	return FloorGen.pavilions(w)
+
+
+## Whether `skeleton`'s routes stand, but on a skeleton with one way (ONE_WAY): two lead
+## from `home` to `goal`, and one is left with every plank burnt and every plate shut.
+static func routes_hold(w: World, skeleton: StringName, home: Rect2i, goal: Rect2i) -> bool:
+	if ONE_WAY.has(skeleton):
+		return true
+	var left := Masks.floor_of(w, w.traps.keys() + planks(w), func(_p): return false)
+	var from := FloorGen._centre(home)
+	var to := Grid.index(FloorGen._centre(goal))
+	return two_ways(w, home, goal) and Grid.search(from, left).dist[to] >= 0
+
+
+## The tiles of the storey that burn away to sky (Terrain.plank).
+static func planks(w: World) -> Array:
+	var out := []
+	var at := w.tiles.find(World.BOARD)
+	while at >= 0:
+		if Terrain.plank(w, Grid.at(at)):
+			out.append(Grid.at(at))
+		at = w.tiles.find(World.BOARD, at + 1)
+	return out
 
 
 ## Whether the walk from the middle of `home` to the middle of `goal` has two routes
