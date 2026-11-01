@@ -29,7 +29,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	return w
@@ -204,7 +204,7 @@ func test_a_pushed_miho_takes_the_stairs() -> void:
 	var w := _world()
 	w.stairs = ME + E
 	w.push(w.player(), E, 2)
-	assert_eq(w.depth, 14)
+	assert_eq(w.depth, 6)
 
 
 func test_a_pistol_hits_the_first_creature_for_one_loudly_and_lights_miho() -> void:

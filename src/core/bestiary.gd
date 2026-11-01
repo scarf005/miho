@@ -4,7 +4,7 @@ extends RefCounted
 ## ones (`drop`) add an element and give it to Miho when they fall, and
 ## 부지깽이 도깨비 (도깨비불) and 불개 add fire to their foxfire. The plain
 ## dokkaebi's 도깨비불 is a lone wisp: no element, no harm.
-## Ranks: the storeys come in ranks of two tiers (`rank`), 1 to RANKS. A
+## Ranks: the storeys come in ranks of two storeys (`rank`), 1 to RANKS. A
 ## creature is of the rank of the storey it came to (Actor.rank): RANK_HP adds
 ## to its health, and `ranks` holds, by rank, every spell it casts from that
 ## rank on (`casts` before the first). Deeper spells keep the kind's elements
@@ -326,9 +326,9 @@ static func info(kind: StringName) -> Dictionary:
 	return KINDS[kind]
 
 
-## The rank of the storeys of a tier: two tiers each.
-static func rank(tier: int) -> int:
-	return mini((tier + 1) / 2, RANKS)
+## The rank of storey `depth`: two storeys each.
+static func rank(depth: int) -> int:
+	return mini((depth + 1) / 2, RANKS)
 
 
 ## Every spell a creature of `kind` casts at rank `r`.

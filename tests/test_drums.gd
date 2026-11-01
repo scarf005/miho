@@ -25,7 +25,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	return w
 
@@ -296,7 +296,7 @@ func test_a_preview_of_a_round_with_a_drummer_equals_the_real_round() -> void:
 func test_drums_stand_in_lit_rooms_from_tier_two_and_never_cut_the_storey() -> void:
 	var drums := 0
 	for s in 30:
-		for depth in [1, 4]:
+		for depth in [1, 2]:
 			var w := World.new()
 			w.rng.seed = s
 			w.depth = depth
@@ -308,7 +308,7 @@ func test_drums_stand_in_lit_rooms_from_tier_two_and_never_cut_the_storey() -> v
 			w.actors.append(me)
 			FloorGen.build(w)
 			var at := w.tiles.find(World.DRUM)
-			assert_true(at < 0 or depth >= 4, "no drum on tier 1")
+			assert_true(at < 0 or depth >= 2, "no drum on storey 1")
 			if at < 0:
 				continue
 			drums += 1
@@ -318,7 +318,7 @@ func test_drums_stand_in_lit_rooms_from_tier_two_and_never_cut_the_storey() -> v
 			assert_eq(w.tiles.count(World.DRUM), 1, "one a storey")
 			var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 			assert_gte(dist[Grid.index(w.stairs)], 0)
-	assert_gt(drums, 3, "some storeys of tier 2 have one")
+	assert_gt(drums, 3, "some storeys from the second have one")
 	assert_lt(drums, 30, "not all")
 
 

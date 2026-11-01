@@ -31,7 +31,7 @@ func _world() -> World:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	w.dim.resize(w.tiles.size())
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	return w

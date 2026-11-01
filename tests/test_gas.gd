@@ -423,7 +423,7 @@ func test_the_same_seed_and_actions_leave_the_same_gas_and_events() -> void:
 	var runs := []
 	for i in 2:
 		var w := World.create(11)
-		w.depth = 5
+		w.depth = 2
 		FloorGen.build(w)
 		w.sense()
 		var at := w.player().pos
@@ -454,7 +454,7 @@ func test_a_new_storey_starts_with_none_but_its_own_fog() -> void:
 ## A storey of tier 2 or more with fog ponds, built at `seed_value`.
 func _fog_storey(seed_value: int) -> World:
 	var w := World.create(seed_value)
-	w.depth = 4
+	w.depth = 2
 	FloorGen.build(w)
 	w.sense()
 	return w
@@ -504,9 +504,10 @@ func test_fog_ponds_of_built_storeys_keep_their_bank_for_300_rounds() -> void:
 
 func test_vents_are_ponds_and_gas_stops_with_no_vent() -> void:
 	var w := _fog_storey(1)
-	for p: Vector2i in w.vents:
+	var fog := w.vents.keys().filter(func(p): return w.vents[p] == Gas.FOG)
+	assert_false(fog.is_empty())
+	for p: Vector2i in fog:
 		assert_eq(w.tile(p), World.POND)
-		assert_eq(w.vents[p], Gas.FOG)
 	w.vents.clear()
 	for r in 100:
 		Gas.tick(w)

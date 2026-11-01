@@ -90,7 +90,7 @@ explore-check save="~/.local/share/godot/app_userdata/미호/save.cfg" rounds="4
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/explore_check.gd -- {{ save }} {{ rounds }} {{ back }}
 
-# Print how often each event room appears and can be opened over N seeds x 27 storeys.
+# Print how often each event room appears and can be opened over N seeds x 9 storeys.
 event-rooms seeds="200": rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/event_rooms.gd -- {{ seeds }}

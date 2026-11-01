@@ -13,8 +13,11 @@ extends RefCounted
 const PROTOCOL := "2025-06-18"
 const MAX_ROUNDS := 200
 const INSTRUCTIONS := (
-	"Play Miho, a fox climbing a pavilion of 27 storeys to drink the elixir on the top one. "
-	+ "She grows a tail every third storey, up to nine. "
+	(
+		"Play Miho, a fox climbing a pavilion of %d storeys to drink the elixir on the top one. "
+		% World.FLOORS
+	)
+	+ "She grows a tail on every storey, up to nine. "
 	+ "Call new_game, then act. Every result shows the map and what Miho knows. "
 	+ "A spell is a queue of talismans, one tail each: fox or orb hurl projectiles, "
 	+ "elements alone spray at once; more copies make it stronger. "

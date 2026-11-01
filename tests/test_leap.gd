@@ -32,7 +32,7 @@ func _world() -> World:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	w.dim.resize(w.tiles.size())
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.append_array([Cards.EARTH, Cards.WATER, WOOD, Cards.FIRE])
 	return w
@@ -131,14 +131,14 @@ func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	_gap(w, 5, 2)
 	w.act(_leap(LEAP))
 	assert_eq(w.player().pos, Vector2i(7, 8))
-	assert_eq(w.depth, 13, "no fall")
+	assert_eq(w.depth, 5, "no fall")
 	assert_eq(w.tails, 2, "three tails")
 
 
 func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_across() -> void:
 	var crossed := 0
 	for seed_value in 4:
-		for depth in [2, 9, 18, 26]:
+		for depth in [1, 3, 6, 9]:
 			var w := World.create(seed_value)
 			w.depth = depth
 			FloorGen.build(w)
@@ -263,7 +263,7 @@ func test_landing_on_the_stairs_climbs_and_casts_nothing_more() -> void:
 	var w := _world()
 	w.stairs = Vector2i(7, 8)
 	var events := w.act(_leap(LEAP + [Cards.EARTH]))
-	assert_eq(w.depth, 14)
+	assert_eq(w.depth, 6)
 	assert_false(events.any(func(e): return e.t == &"spray"), "no quake on the new storey")
 
 

@@ -31,7 +31,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	return w
@@ -302,7 +302,7 @@ func test_a_cannonball_that_pushes_miho_upstairs_leaves_the_other_projectiles_be
 	_heaven_shot(w, caster, [ORB, METAL], ME + Vector2i(2, 0), Vector2i(-1, 0))
 	_heaven_shot(w, caster, [FOX], ME + Vector2i(0, 6), Vector2i(0, -1))
 	var events := w.act(WAIT)
-	assert_eq(w.depth, 14, "pushed onto the stairs")
+	assert_eq(w.depth, 6, "pushed onto the stairs")
 	var up := events.find(events.filter(func(e): return e.t == &"ascend")[0])
 	var later := events.slice(up).filter(func(e): return e.has("shot"))
 	assert_eq(later, [], "nothing of the storey below flies on")

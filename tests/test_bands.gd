@@ -28,7 +28,7 @@ func _hall() -> World:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	w.dim.resize(w.tiles.size())
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	return w
 
@@ -86,7 +86,7 @@ func test_standing_creatures_and_bosses_come_alone() -> void:
 func test_each_follower_stands_beside_its_leader_in_one_room() -> void:
 	var bands := 0
 	for seed_value in SEEDS:
-		for depth in [1, 4, 7, 13, 22]:
+		for depth in [1, 2, 3, 5, 8]:
 			var w := _storey(seed_value, depth)
 			for lead in _leaders(w):
 				bands += 1
@@ -103,16 +103,17 @@ func test_each_follower_stands_beside_its_leader_in_one_room() -> void:
 
 
 func test_every_creature_of_the_plan_still_spawns_and_is_deterministic() -> void:
-	for depth in [1, 4, 7, 13, 22]:
+	for depth in [1, 2, 3, 5, 8]:
 		var a := _storey(3, depth)
 		var b := _storey(3, depth)
 		var want: int = (
 			FloorGen
-			. PLAN[a.tier()]
+			. PLAN[a.depth]
 			. filter(func(k): return not Bestiary.info(k).get("boss", false))
 			. size()
 		)
-		assert_eq(a.actors.size() - 1, want, "depth %d" % depth)
+		var guards := a.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
+		assert_eq(a.actors.size() - 1, want + guards, "depth %d" % depth)
 		assert_eq(
 			a.actors.map(func(x): return [x.kind, x.pos, x.leader]),
 			b.actors.map(func(x): return [x.kind, x.pos, x.leader])

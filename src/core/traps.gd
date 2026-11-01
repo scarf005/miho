@@ -1,6 +1,6 @@
 class_name Traps
 extends RefCounted
-## Plates in the floor (Brogue CE hidden traps). Placement lays them by tier in
+## Plates in the floor (Brogue CE hidden traps). Placement lays them by storey in
 ## World.traps, each as the tile kind it becomes once found, while the tile
 ## itself stays floor, so nothing that reads the board gives one away. Miho
 ## finds a plate when she sees its tile and the tile is lit or within REACH of

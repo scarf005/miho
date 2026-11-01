@@ -222,7 +222,7 @@ func _fill(keys: Array, kind: StringName) -> void:
 func _measure_all() -> void:
 	for depth in range(1, World.FLOORS + 1):
 		for kind in _kinds(depth):
-			_ladder(_held(depth), kind, _max_tails(depth))
+			_ladder(_held(depth), kind, depth)
 	var file := FileAccess.open("%s/%d.json" % [_dir, _shard.index], FileAccess.WRITE)
 	file.store_string(JSON.stringify(_memo))
 
@@ -270,22 +270,12 @@ func _blow(kind: StringName, r: int) -> Dictionary:
 # --- the world by depth ------------------------------------------------------
 
 
-func _tier(depth: int) -> int:
-	return (depth + World.TAIL_EVERY - 1) / World.TAIL_EVERY
-
-
-func _max_tails(depth: int) -> int:
-	return 1 + (depth - 1) / World.TAIL_EVERY
-
-
 ## The talismans Miho can hold on arriving at `depth`: the two she starts with
-## and the drop of every creature the plan places on a storey before it (a tier's
-## first storey counts for the other two).
+## and the drop of every creature the plan places on a storey before it.
 func _held(depth: int) -> Array:
 	var out := [Cards.FOX, Cards.ORB]
-	var done := (depth + 1) / World.TAIL_EVERY
-	for tier in range(1, done + 1):
-		for kind in FloorGen.PLAN[tier]:
+	for storey in range(1, depth):
+		for kind in FloorGen.PLAN[storey]:
 			var drop: StringName = Bestiary.info(kind).get("drop", &"")
 			if drop != &"" and not out.has(drop):
 				out.append(drop)
@@ -296,7 +286,7 @@ func _held(depth: int) -> Array:
 ## who arrives on every storey but the last after World.REAPER_ARRIVES rounds.
 func _kinds(depth: int) -> Array[StringName]:
 	var out: Array[StringName] = []
-	for kind: StringName in FloorGen.PLAN[_tier(depth)]:
+	for kind: StringName in FloorGen.PLAN[depth]:
 		var boss: bool = Bestiary.info(kind).get("boss", false)
 		if not out.has(kind) and (depth >= World.FLOORS or not boss):
 			out.append(kind)
@@ -383,7 +373,7 @@ func _ranked_kinds() -> Array:
 	var placed := {}
 	for depth in range(1, World.FLOORS + 1):
 		for kind in _kinds(depth):
-			placed["%s/%d" % [kind, Bestiary.rank(_tier(depth))]] = true
+			placed["%s/%d" % [kind, Bestiary.rank(depth)]] = true
 	var out := []
 	for kind in ALL_KINDS:
 		for r in range(1, Bestiary.RANKS + 1):
@@ -400,11 +390,11 @@ func _depth_table() -> void:
 	_say("- spells: distinct spells of at most max_tails cards from the talismans held.")
 	_say("- creatures: mean number FloorGen placed over %d storeys per depth." % SEEDS)
 	_say("")
-	_say("| depth | tier | tails | hp bound | talismans on arrival | spells | creatures |")
-	_say("|---|---|---|---|---|---|---|")
+	_say("| depth | tails | hp bound | talismans on arrival | spells | creatures |")
+	_say("|---|---|---|---|---|---|")
 	for depth in range(1, World.FLOORS + 1):
 		var held := _held(depth)
-		var t := _max_tails(depth)
+		var t := depth
 		var peaches := maxi(0, (depth - 2) / 2)
 		var count := (
 			_spells
@@ -418,17 +408,8 @@ func _depth_table() -> void:
 			names.append("%s %.1f" % [Bestiary.info(k).name, counts[k]])
 		_say(
 			(
-				"| %d | %d | %d (%d) | 3..%d | %s | %d | %s |"
-				% [
-					depth,
-					_tier(depth),
-					t,
-					t + 1,
-					3 + peaches,
-					_glyphs(held),
-					count,
-					", ".join(names)
-				]
+				"| %d | %d (%d) | 3..%d | %s | %d | %s |"
+				% [depth, t, t + 1, 3 + peaches, _glyphs(held), count, ", ".join(names)]
 			)
 		)
 	_say("")
@@ -525,9 +506,9 @@ func _kill_tables() -> void:
 	_say("|---|---|---|---|---|---|---|---|---|---|")
 	for depth in range(1, World.FLOORS + 1):
 		var held := _held(depth)
-		var t := _max_tails(depth)
+		var t := depth
 		for kind in _kinds(depth):
-			var hp := Bestiary.hp(kind, Bestiary.rank(_tier(depth)))
+			var hp := Bestiary.hp(kind, Bestiary.rank(depth))
 			var ladder := _ladder(held, kind, t)
 			var top: Dictionary = ladder[t]
 			var ratio := 0.0

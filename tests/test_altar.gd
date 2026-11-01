@@ -6,7 +6,7 @@ const WAIT := {t = &"wait"}
 const E := Vector2i(1, 0)
 const ALTAR := Vector2i(20, 8)
 const SEEDS := 16
-const DEPTHS := [1, 7, 13, 25]
+const DEPTHS := [1, 3, 5, 9]
 
 var _storeys: Array[World] = []
 
@@ -44,7 +44,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 1
 	w.sense()
 	return w
@@ -80,7 +80,7 @@ func test_some_storeys_have_an_altar_in_a_room_of_its_own() -> void:
 		assert_lte(altars.size(), 1, _label(w))
 		assert_lte(w.seals.size() + w.sites.size(), 1, "one event room at most: " + _label(w))
 		for at: Vector2i in altars:
-			tiers[w.tier()] = true
+			tiers[w.depth] = true
 			assert_eq(w.sites, [{kind = &"altar", at = at, fallen = 0}], _label(w))
 			assert_true(w.rooms.all(func(r): return not r.has_point(at)), "off the room list")
 			assert_false(w.open_floor(at) or w.opaque(at), "it blocks walking only")
@@ -180,10 +180,10 @@ func test_the_extra_tail_ends_with_the_storey() -> void:
 	w.stairs = w.player().pos + E
 	w.tails = 3
 	w.act({t = &"move", dir = E})
-	assert_eq(w.depth, 5)
+	assert_eq(w.depth, 3)
 	assert_eq(w.tail_bonus, 0)
-	assert_eq(w.max_tails(), 2)
-	assert_eq(w.tails, 2, "the new storey's own count")
+	assert_eq(w.max_tails(), 3)
+	assert_eq(w.tails, 3, "the new storey's own count")
 
 
 func test_a_clone_keeps_the_altars_count_and_the_bonus() -> void:

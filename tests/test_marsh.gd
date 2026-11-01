@@ -22,7 +22,7 @@ func _world(n := 4) -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 7
+	w.depth = 3
 	w.rng.seed = 5
 	for i in n:
 		Gas.put(w, AT + Vector2i(i, 0), Gas.MARSH, 3)

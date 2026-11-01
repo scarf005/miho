@@ -1,6 +1,6 @@
 class_name Drums
 extends RefCounted
-## War drums (북). From storey 4 (tier 2) one stands in a lit room, at a chance.
+## War drums (북). From storey 2 one stands in a lit room, at a chance.
 ## A drum blocks walking. A creature of heaven that is at least sharp (wits 1)
 ## and can move, starting to hunt Miho while a drum stands within REACH steps
 ## of walking, runs to the drum instead of attacking and strikes it from a tile
@@ -14,8 +14,8 @@ extends RefCounted
 ## makes no sound for good. A drum burns like other wooden tiles. The creature
 ## does not know a drum is wet.
 
-const FIRST_TIER := 2
-const CHANCE := 0.5
+const FIRST_STOREY := 2
+const CHANCE := 0.9
 const REACH := 8
 const WET_ROUNDS := 20
 ## How far the boom is heard: everywhere.

@@ -30,7 +30,7 @@ func _hall() -> World:
 	w.actors.append(me)
 	w.known.resize(w.tiles.size())
 	w.dim.resize(w.tiles.size())
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	w.tiles[Grid.index(Vector2i(7, 6))] = World.LANTERN

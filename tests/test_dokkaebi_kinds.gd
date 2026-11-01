@@ -25,7 +25,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	return w
 
 
@@ -65,7 +65,7 @@ func test_a_throw_into_the_sky_drops_miho_a_storey() -> void:
 	w.tiles[Grid.index(ME - Vector2i(1, 0))] = World.SKY
 	_hunter(w, &"oedari", ME + Vector2i(1, 0))
 	w.act(WAIT)
-	assert_eq(w.depth, 3)
+	assert_eq(w.depth, 1)
 
 
 func test_a_creature_without_spells_never_charges() -> void:

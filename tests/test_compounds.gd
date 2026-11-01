@@ -35,7 +35,7 @@ func _world() -> World:
 	me.max_hp = 9
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	w.sense()

@@ -8,8 +8,8 @@ const PLATE := Vector2i(7, 8)
 const KINDS := [World.TRAP_ALARM, World.TRAP_COLLAPSE, World.TRAP_FIRE, World.TRAP_VINE]
 
 
-## An open hall walled at the edges with no light, Miho at (4, 8) on storey 4.
-func _world(depth := 4) -> World:
+## An open hall walled at the edges with no light, Miho at (4, 8) on storey 2.
+func _world(depth := 2) -> World:
 	var w := World.new()
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.WALL)
@@ -192,8 +192,8 @@ func test_a_forecast_of_stepping_onto_a_found_collapsing_floor_shows_the_fall() 
 	assert_eq(w.tile(PLATE), World.TRAP_COLLAPSE)
 	var f := Forecast.of(w, {t = &"move", dir = E})
 	assert_true(f.drops_me())
-	assert_eq(f.after.depth, 3)
-	assert_eq(w.depth, 4, "the preview does not move the world")
+	assert_eq(f.after.depth, 1)
+	assert_eq(w.depth, 2, "the preview does not move the world")
 
 
 func test_a_walk_goes_round_a_found_plate_and_over_a_hidden_one() -> void:

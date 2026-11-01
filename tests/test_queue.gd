@@ -28,7 +28,7 @@ func _hall() -> World:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	w.dim.resize(w.tiles.size())
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign([FOX, ORB, Cards.FIRE, Cards.WATER])
 	return w
@@ -70,7 +70,7 @@ func test_number_keys_queue_talismans_with_repeats_until_the_tails_run_out() -> 
 func test_the_queue_holds_five_slots_even_with_tails_to_spare() -> void:
 	var m := _main()
 	m.world.tails = 9
-	m.world.depth = 25
+	m.world.depth = 9
 	for i in 6:
 		_press(m, "1")
 	assert_eq(m.picked.size(), 5)
