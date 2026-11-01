@@ -14,6 +14,8 @@ extends RefCounted
 ## The least size of a button or a talisman, in CSS pixels.
 const TARGET := 44.0
 const CARD_H := 52.0
+## Buttons across: the longest label, three cells, fits in a quarter of 300 CSS pixels.
+const COLS := 4
 ## Creatures the portrait strip shows at once.
 const STRIP_CARDS := 2
 const BUTTONS := [
@@ -57,22 +59,18 @@ var _dragged := {}
 
 ## The CSS pixels the HUD needs, below the map in portrait (a height) or beside
 ## it in landscape (a width), for cells `ch` CSS pixels tall.
-static func extent(wide_screen: bool, play: bool, ch: float) -> float:
+static func extent(wide_screen: bool, play: bool, ch: float, saved := true) -> float:
 	if wide_screen:
 		return 300.0 if play else 120.0
 	if not play:
 		return TARGET + 12.0
 	var cards := ceili(float(Cards.ALL.size()) / cards_per_row(false))
-	var buttons := ceili(BUTTONS.size() / float(columns(false)))
-	return ch * (2.0 + Term.SIDE_ROWS) + CARD_H * cards + TARGET * (2.0 + buttons)
+	var buttons := ceili(BUTTONS.size() / float(COLS))
+	return ch * (2.0 + Term.SIDE_ROWS) + CARD_H * cards + TARGET * (1.0 + int(saved) + buttons)
 
 
 static func cards_per_row(wide_screen: bool) -> int:
 	return 4 if wide_screen else Cards.ALL.size()
-
-
-static func columns(wide_screen: bool) -> int:
-	return 6 if wide_screen else 4
 
 
 ## The buttons of a mode as [id, label]: the spellbook has Enter (cast the selected
@@ -97,7 +95,13 @@ static func slot_label(slot: StringName, place: int) -> String:
 ## card (n the talisman's place), saved (the saved spells), queue (n the slot, -1
 ## the name) or button (with its label).
 static func layout(
-	mode_name: StringName, field: Rect2, px: float, wide_screen: bool, cards: int, page_name := &""
+	mode_name: StringName,
+	field: Rect2,
+	px: float,
+	wide_screen: bool,
+	cards: int,
+	page_name := &"",
+	with_saved := true
 ) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var h := TARGET * px
@@ -130,25 +134,26 @@ static func layout(
 		var at := Vector2(x + card.x * (i % per), y + card.y * (i / per))
 		out.append({id = &"card", kind = &"card", rect = Rect2(at, card), n = i})
 	y += card.y * maxi(1, ceili(float(cards) / per))
-	out.append({id = &"saved", kind = &"saved", rect = Rect2(x, y, w, h), n = 0})
-	y += h
+	if with_saved:
+		out.append({id = &"saved", kind = &"saved", rect = Rect2(x, y, w, h), n = 0})
+		y += h
 	for j in Spell.MAX_SLOTS:
 		out.append({id = &"queue", kind = &"queue", rect = Rect2(x + h * j, y, h, h), n = j})
 	var name_at := h * Spell.MAX_SLOTS
 	var name_rect := Rect2(x + name_at, y, w - name_at, h)
 	out.append({id = &"queue", kind = &"queue", rect = name_rect, n = -1})
 	y += h
-	var cols := columns(wide_screen)
-	var cell := Vector2(w / cols, h)
+	var cell := Vector2(w / COLS, h)
 	for i in BUTTONS.size():
-		var at := Vector2(x + cell.x * (i % cols), y + h * (i / cols))
+		var at := Vector2(x + cell.x * (i % COLS), y + h * (i / COLS))
 		var rect := Rect2(at, cell)
 		out.append({id = BUTTONS[i][0], kind = &"button", rect = rect, label = BUTTONS[i][1]})
 	return out
 
 
 func _items(t: Term) -> Array[Dictionary]:
-	return layout(mode, area, unit, wide, t.world.cards.size() if t.world != null else 0, page)
+	var cards := t.world.cards.size() if t.world != null else 0
+	return layout(mode, area, unit, wide, cards, page, not t.saved.is_empty())
 
 
 func _find(t: Term, local: Vector2, kind: StringName) -> Dictionary:
@@ -208,8 +213,9 @@ func _count(t: Term, kind: StringName) -> int:
 
 
 ## The finger drags `dx` (the term's pixels) along the strip or the saved row at
-## `local`: the row moves on by a whole entry for each entry's width.
-func scroll(t: Term, local: Vector2, dx: float) -> void:
+## `local`: the row moves on by a whole entry for each entry's width. Whether the
+## point is on one of the rows.
+func scroll(t: Term, local: Vector2, dx: float) -> bool:
 	for kind: StringName in [&"strip", &"saved"]:
 		var rect := _rect(t, kind)
 		if not rect.has_point(local):
@@ -220,6 +226,8 @@ func scroll(t: Term, local: Vector2, dx: float) -> void:
 		_dragged[kind] -= steps * pitch
 		var last := _count(t, kind) - (STRIP_CARDS if kind == &"strip" else 1)
 		first[kind] = clampi(first[kind] + steps, 0, maxi(0, last))
+		return true
+	return false
 
 
 ## A finger is lifted: the drag along a row starts over.

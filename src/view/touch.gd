@@ -22,6 +22,8 @@ const PAGE_COLS_TALL := 27
 const PAGE_COLS_WIDE := 42
 ## The smallest cell an info box may shrink to, in CSS pixels.
 const LEAST_CELL := 14.0
+## Seconds a finger may take for a swipe; a slower move over the map drags it.
+const FLICK := 0.3
 
 var main: Node
 var enabled := false
@@ -35,6 +37,14 @@ var probing := true
 ## A long press is showing info: the next tap only closes it.
 var frozen := false
 var _scrolled := 0.0
+## The drag over the map that has not yet made a whole tile, whether it is a pan and
+## not a swipe, when the finger went down and the time of the last input.
+var _pan := Vector2.ZERO
+var _panning := false
+var _since := 0.0
+var _clock := 0.0
+## What the layout was made for: the mode and whether there are saved spells.
+var _laid: Array = []
 
 
 ## Reads the page: {dpr, insets, coarse} from "dpr,top,right,bottom,left,coarse",
@@ -50,7 +60,9 @@ static func parse(text: String) -> Dictionary:
 ## wider than tall, the map area, the HUD area and the rows between page entries.
 ## Cells are as wide as the screen's size asks, then rounded down to whole pixels
 ## of the font's grid at this pixel ratio, so they stay sharp.
-static func plan(css: Vector2, inset: Vector4, ratio: float, page: bool) -> Dictionary:
+static func plan(
+	css: Vector2, inset: Vector4, ratio: float, page: bool, saved := true
+) -> Dictionary:
 	var safe := Rect2(inset.w, inset.x, css.x - inset.w - inset.y, css.y - inset.x - inset.z)
 	var wide := safe.size.x > safe.size.y
 	var ask := safe.size.x / (PAGE_COLS_WIDE if wide else PAGE_COLS_TALL)
@@ -63,7 +75,7 @@ static func plan(css: Vector2, inset: Vector4, ratio: float, page: bool) -> Dict
 	var step := 16.0 if ratio >= 2.0 else 8.0
 	var cw := maxf(step, floorf(ask * ratio / step) * step) / ratio
 	var ch := cw * Term.CELL.y / Term.CELL.x
-	var extent := TouchHud.extent(wide, not page, ch)
+	var extent := TouchHud.extent(wide, not page, ch, saved)
 	var map := safe
 	var bar := safe
 	if wide:
@@ -130,12 +142,15 @@ func fit() -> void:
 		_probe()
 	gesture.scale = dpr
 	hud.mode = _mode()
-	hud.page = main.overlay
+	hud.page = _page()
+	_laid = _shape()
 	var page: bool = main.overlay != &""
-	var p := plan(main.get_viewport().get_visible_rect().size / dpr, insets, dpr, page)
+	var size: Vector2 = main.get_viewport().get_visible_rect().size / dpr
+	var p := plan(size, insets, dpr, page, not term.saved.is_empty())
 	var k: float = p.cw * dpr / Term.CELL.x
 	term.side = Vector2i(Term.MAP.x, 0) if p.wide and hud.mode == &"play" else Vector2i.ZERO
 	term.foot = 0
+	term.centred = true
 	term.bar = hud
 	term.readable = LEAST_CELL * dpr
 	PanelView.stride = p.stride
@@ -156,11 +171,24 @@ func _mode() -> StringName:
 	return &"play"
 
 
+## The page the HUD has buttons for: the spellbook only when it lists a spell.
+func _page() -> StringName:
+	var spells: bool = main.overlay == &"spells" and not main.menu.spells().is_empty()
+	return &"spells" if spells else &""
+
+
+## What the layout depends on besides the screen.
+func _shape() -> Array:
+	return [_mode(), main.term.saved.is_empty()]
+
+
 func _process(_delta: float) -> void:
 	if not enabled:
 		return
+	if _shape() != _laid and main.state != &"replay":
+		main._fit()
 	hud.mode = _mode()
-	hud.page = main.menu.page if main.overlay != &"" else &""
+	hud.page = _page()
 	tick(_now())
 
 
@@ -183,8 +211,13 @@ func input(event: InputEvent, now := _now()) -> void:
 		if main.state == &"title":
 			main._show_title()
 	var out := []
+	_clock = now
 	if event is InputEventScreenTouch:
 		_scrolled = 0.0
+		if event.pressed:
+			_since = now
+			_pan = Vector2.ZERO
+			_panning = false
 		hud.release()
 		out = (
 			gesture.down(event.index, event.position, now)
@@ -212,7 +245,7 @@ func _gesture(e: Dictionary) -> void:
 		&"swipe":
 			_swipe(e.dir, e.from)
 		&"drag":
-			_drag(e.delta, e.from)
+			_drag(e.delta, e.by, e.from)
 
 
 func _close_info() -> void:
@@ -312,7 +345,7 @@ func _hold(pos: Vector2) -> void:
 
 func _swipe(dir: Vector2i, from: Vector2) -> void:
 	var local: Vector2 = main._local(from)
-	if hud.area.has_point(local) or local.x < main.term.side.x * Term.CELL.x:
+	if _panning or hud.area.has_point(local) or local.x < main.term.side.x * Term.CELL.x:
 		return
 	if main.overlay != &"":
 		if dir.y == 0:
@@ -322,11 +355,23 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 		main._do(move_action(dir), false)
 
 
-## A drag over a page scrolls it by the rows it is drawn with.
-func _drag(delta: Vector2, from: Vector2) -> void:
+## A drag over a page scrolls it by the rows it is drawn with; over the HUD's rows it
+## scrolls them, and over the map, once it is slower than a swipe, it pans the map
+## by whole tiles.
+func _drag(delta: Vector2, by: Vector2, from: Vector2) -> void:
 	var term: Term = main.term
+	var local: Vector2 = main._local(from)
 	if main.overlay == &"":
-		hud.scroll(term, main._local(from), delta.x / term.scale.x)
+		if hud.scroll(term, local, delta.x / term.scale.x) or main.state != &"play":
+			return
+		if hud.area.has_point(local) or local.x < term.side.x * Term.CELL.x:
+			return
+		_pan += by
+		_panning = _panning or _clock - _since >= FLICK
+		if _panning:
+			var tiles := Vector2i(_pan / (term.scale.x * Term.CELL))
+			_pan -= Vector2(tiles) * term.scale.x * Term.CELL
+			term.pan(-tiles)
 		return
 	var aside := PanelView.aside_at(term, main._local(from))
 	var row := term.scale.y * Term.CELL.y * (1 if aside else PanelView.stride)

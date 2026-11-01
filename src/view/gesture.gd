@@ -3,7 +3,8 @@ extends RefCounted
 ## What one finger on the screen means: a tap, a long press (hold), a swipe in
 ## one of 8 directions, or a drag along one axis. A second finger cancels the
 ## gesture until all are up. Each call returns the events it ends or starts:
-## {t = &"tap" | &"hold", pos}, {t = &"swipe", dir, from} and {t = &"drag", delta, from}.
+## {t = &"tap" | &"hold", pos}, {t = &"swipe", dir, from} and {t = &"drag", delta, by, from}:
+## `delta` is the travel along the axis the drag locked to, `by` the whole of it.
 ## Distances are in CSS pixels times `scale`, the screen units per CSS pixel.
 
 ## How far a finger may wander and still be a tap or a hold.
@@ -68,8 +69,9 @@ func move(id: int, pos: Vector2, _now: float) -> Array:
 			return []
 		_axis = 0 if absf(v.x) > absf(v.y) else 1
 	var delta := Vector2(pos.x - _last.x, 0.0) if _axis == 0 else Vector2(0.0, pos.y - _last.y)
+	var by := pos - _last
 	_last = pos
-	return [{t = &"drag", delta = delta, from = _from}] if delta != Vector2.ZERO else []
+	return [{t = &"drag", delta = delta, by = by, from = _from}] if delta != Vector2.ZERO else []
 
 
 func up(id: int, pos: Vector2, _now: float) -> Array:

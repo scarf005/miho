@@ -67,10 +67,16 @@ func test_a_drag_reports_the_travel_along_its_axis_only() -> void:
 	var g := _g()
 	g.down(0, AT, 0.0)
 	var first := g.move(0, AT + Vector2(3, 30), 0.1)
-	assert_eq(first, [{t = &"drag", delta = Vector2(0, 30), from = AT}], "locks to the longer axis")
+	assert_eq(
+		first,
+		[{t = &"drag", delta = Vector2(0, 30), by = Vector2(3, 30), from = AT}],
+		"locks to the longer axis, and tells the whole of the move too"
+	)
 	var next := g.move(0, AT + Vector2(40, 50), 0.2)
 	assert_eq(
-		next, [{t = &"drag", delta = Vector2(0, 20), from = AT}], "sideways travel is dropped"
+		next,
+		[{t = &"drag", delta = Vector2(0, 20), by = Vector2(37, 20), from = AT}],
+		"sideways travel is dropped from the delta"
 	)
 
 

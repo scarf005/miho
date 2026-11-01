@@ -103,6 +103,9 @@ var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
 var cam := Vector2i.ZERO
+## Set by the touch screen: the camera keeps Miho in the middle of the map area as
+## far as the map's edges allow, instead of only keeping her off the area's edges.
+var centred := false
 ## How far the loudest noise Miho saw in the last round was heard, in tiles (NoiseMeter).
 var noise := 0
 ## The cells the sidebar takes, which is also where the map area starts, and the rows
@@ -173,8 +176,20 @@ func follow(p: Vector2i) -> void:
 			cam[axis] = -(v[axis] - grid[axis]) / 2
 			continue
 		var margin := mini(6, v[axis] / 4)
-		cam[axis] = clampi(cam[axis], p[axis] - v[axis] + 1 + margin, p[axis] - margin)
+		if centred:
+			cam[axis] = p[axis] - v[axis] / 2
+		else:
+			cam[axis] = clampi(cam[axis], p[axis] - v[axis] + 1 + margin, p[axis] - margin)
 		cam[axis] = clampi(cam[axis], 0, grid[axis] - v[axis])
+
+
+## Moves the camera by `by` tiles, never past the map (a drag on the touch screen).
+func pan(by: Vector2i) -> void:
+	var v := map_view()
+	var grid := Vector2i(Grid.W, Grid.H)
+	for axis in 2:
+		if grid[axis] > v[axis]:
+			cam[axis] = clampi(cam[axis] + by[axis], 0, grid[axis] - v[axis])
 
 
 ## The part of this node's space where map tiles are drawn.

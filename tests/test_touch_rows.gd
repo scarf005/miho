@@ -157,3 +157,120 @@ func test_a_tap_on_a_row_of_the_spellbook_selects_it_and_throw_casts_the_selecte
 	_finger(m, _hud(m, &"enter"))
 	assert_eq(m.overlay, &"", "the page is closed")
 	assert_eq(m.picked, [Cards.FIRE], "the selected spell is picked")
+
+
+# --- the layout -----------------------------------------------------------------
+
+
+func test_the_saved_row_takes_no_room_until_a_spell_is_saved() -> void:
+	for css in [Vector2(390, 844), Vector2(844, 390)]:
+		var with := Touch.plan(css, Vector4.ZERO, 3.0, false, true)
+		var without := Touch.plan(css, Vector4.ZERO, 3.0, false, false)
+		var gain: float = without.map.size.y - with.map.size.y
+		assert_almost_eq(gain, 0.0 if with.wide else TARGET, 0.01, "map gain at %s" % css)
+		var area := Rect2(Vector2.ZERO, without.hud.size)
+		var kinds := TouchHud.layout(&"play", area, 1.0, without.wide, 2, &"", false).map(
+			func(i): return i.kind
+		)
+		assert_false(kinds.has(&"saved"), "no saved row at %s" % css)
+
+
+func test_saving_the_first_spell_lays_the_screen_out_again_with_the_row() -> void:
+	var m := _phone(Vector2i(390, 844))
+	var rows: int = m.term.rows
+	_save(m, [Cards.ORB])
+	m.touch._process(0.0)
+	assert_lt(m.term.rows, rows, "the map gave the row its room")
+	assert_eq(m.touch.hud._chips(m.term).size(), 1)
+
+
+func test_the_sidebar_comes_when_the_title_gives_way_to_play() -> void:
+	var m := _phone(Vector2i(844, 390))
+	m.state = &"title"
+	m.touch._process(0.0)
+	assert_eq(m.term.side, Vector2i.ZERO)
+	m.state = &"play"
+	m.touch._process(0.0)
+	assert_eq(m.term.side, Term.MAP)
+
+
+func test_every_button_label_fits_inside_its_button_in_both_orientations() -> void:
+	for css in [Vector2(390, 844), Vector2(844, 390), Vector2(360, 640), Vector2(640, 360)]:
+		var p := Touch.plan(css, Vector4.ZERO, 3.0, false)
+		var unit: float = Term.CELL.x / p.cw
+		var area := Rect2(Vector2.ZERO, p.hud.size * unit)
+		for item in TouchHud.layout(&"play", area, unit, p.wide, 8):
+			if item.kind != &"button":
+				continue
+			var need: float = Term._cells(item.label) * p.cw + 4.0
+			assert_gte(item.rect.size.x / unit, need, "%s fits at %s" % [item.label, css])
+
+
+func test_the_spellbook_with_nothing_to_act_on_has_only_the_back_button() -> void:
+	var m := _main()
+	_finger(m, _hud(m, &"spellbook"))
+	assert_eq(m.overlay, &"spells")
+	var labels: Array = m.touch.hud._items(m.term).map(func(i): return i.label)
+	assert_eq(labels, ["뒤로"])
+
+
+# --- the camera -----------------------------------------------------------------
+
+
+func test_the_camera_keeps_miho_in_the_middle_as_far_as_the_map_allows() -> void:
+	var m := _phone(Vector2i(390, 844))
+	var view: Vector2i = m.term.map_view()
+	m.world.player().pos = Vector2i(30, 14)
+	m.term.show_world(m.world)
+	assert_eq(m.term.cam, Vector2i(30, 14) - view / 2, "in the middle")
+	m.world.player().pos = Vector2i(2, 14)
+	m.term.show_world(m.world)
+	assert_eq(m.term.cam.x, 0, "against the map's left edge")
+
+
+func test_a_mouse_game_keeps_the_camera_off_the_edges_only() -> void:
+	var m := _main(false)
+	assert_false(m.term.centred)
+
+
+## A finger down at `from` at `t0`, dragged to `to` at `t1`, up at `t2`.
+func _drag(m: Node, from: Vector2, to: Vector2, times: Vector3) -> void:
+	m.touch.input(_touch_event(true, from), times.x)
+	var d := InputEventScreenDrag.new()
+	d.position = to
+	d.relative = to - from
+	m.touch.input(d, times.y)
+	m.touch.input(_touch_event(false, to), times.z)
+
+
+func test_a_slow_drag_over_the_map_pans_it_and_takes_no_step() -> void:
+	var m := _phone(Vector2i(390, 844))
+	m.world.player().pos = Vector2i(30, 14)
+	m.term.show_world(m.world)
+	var before: Vector2i = m.term.cam
+	var tile: Vector2 = Term.CELL * m.term.scale.x
+	var from := _tile_at(m, Vector2i(30, 14))
+	_drag(m, from, from + Vector2(-3.2 * tile.x, 2.2 * tile.y), Vector3(0.0, 0.6, 0.7))
+	assert_eq(m.term.cam, before + Vector2i(3, -2), "the map follows the finger")
+	assert_eq(_me(m), Vector2i(30, 14))
+	assert_eq(m.world.round_no, 0)
+
+
+func test_a_quick_flick_over_the_map_is_a_step_and_pans_nothing() -> void:
+	var m := _phone(Vector2i(390, 844))
+	m.world.player().pos = Vector2i(30, 14)
+	m.term.show_world(m.world)
+	var tile: float = Term.CELL.x * m.term.scale.x
+	var from := _tile_at(m, Vector2i(30, 14))
+	_drag(m, from, from + Vector2(-2.0 * tile, 0.0), Vector3(0.0, 0.1, 0.15))
+	assert_eq(_me(m), Vector2i(29, 14), "a step west")
+
+
+func test_a_pan_stops_at_the_map_edge() -> void:
+	var m := _phone(Vector2i(390, 844))
+	m.world.player().pos = Vector2i(4, 14)
+	m.term.show_world(m.world)
+	var tile: float = Term.CELL.x * m.term.scale.x
+	var from := _tile_at(m, Vector2i(4, 14))
+	_drag(m, from, from + Vector2(6.0 * tile, 0.0), Vector3(0.0, 0.6, 0.7))
+	assert_eq(m.term.cam.x, 0, "there is no map left of it")
