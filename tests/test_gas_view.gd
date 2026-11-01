@@ -141,7 +141,7 @@ func test_steam_tells_its_harm_decay_and_wetting() -> void:
 	assert_string_contains(text, "증기: 4/%d" % Gas.MAX)
 	assert_string_contains(text, "감소: 초당 %d%%" % Gas.of(Gas.STEAM, "decay"))
 	assert_string_contains(text, "초당 피해: %d" % Gas.of(Gas.STEAM, "harm"))
-	assert_string_contains(text, "북 젖음: %d초 소음 없음" % Drums.WET_ROUNDS)
+	assert_string_contains(text, "북: %d초 동안 소음 없음" % Drums.WET_ROUNDS)
 
 
 func test_smoke_tells_its_decay() -> void:

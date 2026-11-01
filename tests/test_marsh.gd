@@ -100,4 +100,4 @@ func test_the_hover_of_the_gas_keeps_the_blast_a_secret() -> void:
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "늪 가스")
 	assert_false(text.contains("폭발"), text)
-	assert_string_contains(text, "시야 막음: 없음")
+	assert_string_contains(text, "시야를 막지 않음.")

@@ -15,7 +15,7 @@ const TRACE := "흔적."
 ## The conditions a creature or Miho holds besides the statuses (Status), by the
 ## name `_conditions` shows, one `이름: 값` line each: the 도감's 상태이상.
 const CONDITIONS := {
-	"묶임": ["움직일 수 없음."],
+	"묶임": ["움직일 수 없다."],
 	"기절": ["움직일 수도, 주문을 쓸 수도 없음.", "모으던 주문: 취소"],
 	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색 끝: 경계가 끝난 뒤", "어두운 곳 시야: +%d칸" % World.WARY_SIGHT],
 }
@@ -81,7 +81,7 @@ static func glossary() -> Dictionary:
 		"소음":
 		[
 			"범위: 소음 값만큼의 칸, 벽을 돌아서",
-			"미호는 범위 안의 소음을 모두 들을 수 있음.",
+			"미호는 범위 안의 소음을 모두 들을 수 있다.",
 			"적: 소음이 난 곳을 수색",
 			"추격 중인 적: 수색하지 않음",
 		],
@@ -201,11 +201,11 @@ static func _situation(w: World, a: Actor) -> Array:
 	if a.drumming():
 		lines.append([["북 치러 가는 중.", Palette.SOUND]])
 	if Guise.knows(w, a):
-		lines.append([["미호를 볼 수 있음", Palette.HURT]])
+		lines.append([["미호를 볼 수 있다", Palette.HURT]])
 	elif w.sees(a, w.player().pos):
-		lines.append([["둔갑한 미호를 알아볼 수 없음", Palette.SIDE[0]]])
+		lines.append([["둔갑한 미호를 알아볼 수 없다", Palette.SIDE[0]]])
 	else:
-		lines.append([["미호를 볼 수 없음", Palette.SIDE[0]]])
+		lines.append([["미호를 볼 수 없다", Palette.SIDE[0]]])
 	if w.caught_unawares(a):
 		lines.append(_amount("기습 피해: ", World.CLAW * World.SNEAK))
 	return lines
@@ -523,7 +523,7 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 static func _drum_line(w: World, p: Vector2i) -> Array:
 	if w.wet.has(p):
 		return [[["젖음: %d초" % w.wet[p], Palette.SIDE[0]]], [["소음: 없음", Palette.SIDE[0]]]]
-	return [[["젖으면: %d초 소음 없음" % Drums.WET_ROUNDS, Palette.DIM]]]
+	return [[["물: %d초 동안 소음 없음" % Drums.WET_ROUNDS, Palette.DIM]]]
 
 
 ## What a kind of tile does, an `이름: 값` line or a tag each; numbers from the
@@ -538,7 +538,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append("빛: %d칸" % Light.SOUL_RADIUS)
 		World.LAMP:
 			out.append("막음: 길, 주문")
-			out.append("부술 수 없음.")
+			out.append("부술 수 없다.")
 			out.append("꺼지지 않음.")
 			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
 		World.VEIL:
@@ -566,7 +566,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append("밟으면: 쓰러짐")
 		World.PILLAR:
 			out.append("막음: 길, 시야, 빛")
-			out.append("부술 수 없음.")
+			out.append("부술 수 없다.")
 		World.WOOD_WALL:
 			out.append("막음: 길, 시야, 빛")
 			out.append("부서짐: 구슬")
@@ -593,9 +593,9 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		World.STATUE:
 			out.append("막음: 길")
 		World.POND:
-			out.append("주문과 %s로만 건널 수 있음." % Spell.SHAPE_NAME[Spell.LEAP])
+			out.append("주문과 %s로만 건널 수 있다." % Spell.SHAPE_NAME[Spell.LEAP])
 		World.SKY:
-			out.append("주문과 %s로만 건널 수 있음." % Spell.SHAPE_NAME[Spell.LEAP])
+			out.append("주문과 %s로만 건널 수 있다." % Spell.SHAPE_NAME[Spell.LEAP])
 			out.append("추락한 적: 사라짐")
 			out.append("층당 추락 피해: %d" % Fall.DAMAGE)
 		World.WINDOW:
@@ -623,7 +623,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		out.append("부서짐: 구슬")
 		out.append("부서질 때 소음: %d" % World.THUD)
 	elif Terrain.wall(t):
-		out.append("부술 수 없음.")
+		out.append("부술 수 없다.")
 	if Terrain.knockable(t) and t != World.DRUM:
 		out.append("부딪칠 때 소음: %d" % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
@@ -656,7 +656,7 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		head.append([": %d/%d" % [g.y, Gas.MAX], Palette.DIM])
 	var out := [head]
 	if not Gas.of(g.x, "blocks"):
-		out.append([["시야 막음: 없음", Palette.DIM]])
+		out.append([["시야를 막지 않음.", Palette.DIM]])
 	elif not now:
 		out.append([["시야 막음: %d 이상" % Gas.OPAQUE, Palette.DIM]])
 	elif g.y >= Gas.OPAQUE:
@@ -665,7 +665,7 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if Gas.of(g.x, "harm") > 0:
 		out.append(_amount("초당 피해: ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
-		out.append([["북 젖음: %d초 소음 없음" % Drums.WET_ROUNDS, Palette.DIM]])
+		out.append([["북: %d초 동안 소음 없음" % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
 		out.append([["냄새: 지워짐", Palette.DIM]])
 	return out

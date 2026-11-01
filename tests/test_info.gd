@@ -32,7 +32,7 @@ func test_walls_show_their_health_but_the_outer_edge_shows_none() -> void:
 	w.tiles[Grid.index(inner)] = World.RUBBLE
 	assert_true(Info.plain(Info.terrain(w, inner)).begins_with("무너진 벽\n"))
 	w.tiles[0] = World.WALL
-	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽\n부술 수 없음.")
+	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽\n부술 수 없다.")
 
 
 func test_spells_of_the_same_talismans_but_another_form_read_differently() -> void:
@@ -382,7 +382,7 @@ func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
 	for t in [World.SKY, World.POND]:
 		w.tiles[Grid.index(p)] = t
 		var text := Info.plain(Info.terrain_facts(w, p))
-		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있음.")
+		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있다.")
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
 	assert_string_contains(sky, "추락한 적: 사라짐\n층당 추락 피해: 1")
