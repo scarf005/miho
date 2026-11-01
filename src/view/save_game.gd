@@ -7,7 +7,7 @@ extends RefCounted
 
 const PATH := "user://save.cfg"
 ## Bumped when a change to the rules would make old actions play differently.
-const VERSION := 62
+const VERSION := 63
 
 var path := PATH
 var seed_value := 0
@@ -118,7 +118,7 @@ static func _shaped(action: Dictionary) -> bool:
 	match action.get("t"):
 		&"wait":
 			return true
-		&"move":
+		&"move", &"close":
 			return action.get("dir") is Vector2i
 		&"cast":
 			var spells: Variant = action.get("spells")
