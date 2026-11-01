@@ -41,7 +41,7 @@ static func landing(w: World, from: Vector2i, dir: Vector2i, reach: int) -> Vect
 ## with none (Guise): a leap lands somewhere, while `a` is not rooted; anything
 ## else is thrown there (Terrain.throwable).
 static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
-	if spell.slots.size() > 1 and spell.slots.any(func(c): return Guise.ANYWHERE.has(c)):
+	if Guise.mixed(spell):
 		return false
 	if dir == Vector2i.ZERO or Guise.ANYWHERE.has(Guise.kind(spell)):
 		return Guise.why(a, spell) == ""

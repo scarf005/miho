@@ -639,14 +639,15 @@ func _direction(d: Vector2i, hold: bool) -> void:
 		elif staged.is_empty():
 			_move(d)
 		return
-	var why := Guise.why(world.player(), Spell.make(picked)) if d == Vector2i.ZERO else ""
+	var spell := Spell.make(picked)
+	var why := Guise.why(world.player(), spell) if d == Vector2i.ZERO or Guise.mixed(spell) else ""
 	if why != "":
 		_refuse(why)
 		return
 	var spells := staged.duplicate()
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not world.can({t = &"cast", spells = spells}):
-		if Spell.make(picked).shape == Spell.LEAP:
+		if spell.shape == Spell.LEAP:
 			_say("착지할 곳이 없다")
 		sfx.play(&"click")
 		return

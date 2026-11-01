@@ -170,7 +170,8 @@ static func saved_slots(t: Term) -> Array:
 ## Whether Miho has a spell's talismans and the tails for it beside `held`.
 static func _castable(t: Term, spell: Spell, held: int) -> bool:
 	return (
-		spell.cards.all(func(c): return t.world.cards.has(c))
+		not Guise.mixed(spell)
+		and spell.cards.all(func(c): return t.world.cards.has(c))
 		and spell.cost() + held <= Cheat.tails(t.world)
 	)
 

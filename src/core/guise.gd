@@ -50,6 +50,7 @@ const RECIPE := {
 ## The spells that go on her whatever the direction they are cast along.
 const ANYWHERE := [TALON, CLOAK]
 const NO_PREY := "아직 처치한 적이 없다"
+const MIXED := "다른 부적과 섞을 수 없는 주문이다"
 const ROUNDS := 8
 const PER_WOOD := 2
 const BESIDE := 2
@@ -86,8 +87,15 @@ static func kind(spell: Spell) -> StringName:
 	return &""
 
 
+## Whether `spell` holds a talisman that goes alone (ANYWHERE) beside another slot.
+static func mixed(spell: Spell) -> bool:
+	return spell.slots.size() > 1 and spell.slots.any(func(c): return ANYWHERE.has(c))
+
+
 ## Why `a` cannot cast `spell` on itself, or empty when it can.
 static func why(a: Actor, spell: Spell) -> String:
+	if mixed(spell):
+		return MIXED
 	match kind(spell):
 		&"":
 			return only()
