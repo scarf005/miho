@@ -342,3 +342,36 @@ func test_a_spray_goes_any_way_even_into_a_wall() -> void:
 	assert_true(w.can(_cast([EARTH])))
 	assert_true(w.can(_cast([FIRE])))
 	assert_false(w.can(_cast([Cards.FOX])), "a wisp still needs open air")
+
+
+func test_a_lone_fire_fan_covers_three_tiles_and_two_cover_what_one_did() -> void:
+	var w := _world()
+	assert_eq(_offsets(_cover(w, [FIRE])).size(), 3)
+	assert_eq(_offsets(_cover(w, [FIRE, FIRE])).size(), 8)
+	var foe := _post(w, ME + Vector2i(2, 0))
+	w.act(_cast([FIRE, FIRE]))
+	assert_eq(foe.alight, 0, "two fires light what burns, not creatures")
+	var three := _world()
+	var burnt := _post(three, ME + Vector2i(2, 0))
+	three.act(_cast([FIRE, FIRE, FIRE]))
+	assert_gt(burnt.alight, 0, "three do")
+
+
+func test_every_fire_spell_relights_a_dark_lantern_it_reaches() -> void:
+	var lamp := ME + Vector2i(2, 0)
+	for cards in [[FIRE], [FIRE, FIRE], [Cards.ORB, FIRE], [Cards.FOX, FIRE], [FIRE, Cards.EARTH]]:
+		var w := _world()
+		_put(w, lamp, World.LANTERN_OUT)
+		var events := w.act(_cast(cards))
+		for i in 4:
+			if w.tile(lamp) == World.LANTERN_OUT:
+				events = w.act(WAIT)
+		assert_eq(w.tile(lamp), World.LANTERN, str(cards))
+	var steam := _world()
+	_put(steam, lamp, World.LANTERN_OUT)
+	steam.act(_cast([FIRE, Cards.WATER]))
+	assert_eq(steam.tile(lamp), World.LANTERN_OUT, "steam does not")
+	var cold := _world()
+	_put(cold, lamp, World.LANTERN_OUT)
+	cold.act(_cast([Cards.ORB]))
+	assert_eq(cold.tile(lamp), World.LANTERN_BROKEN, "a plain orb breaks it")
