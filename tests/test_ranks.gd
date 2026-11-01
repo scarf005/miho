@@ -207,3 +207,24 @@ func test_hover_and_codex_tell_the_spells_and_health_of_its_rank() -> void:
 	assert_eq(entry.max_hp, 9)
 	assert_string_contains(Info.plain(Info.creature_facts(entry, [])), "물줄기")
 	assert_false(Info.plain(Info.creature_facts(Codex.foe(&"haetae"), [])).contains("물줄기"))
+
+
+func test_hover_tells_its_homing_orbs_apart_by_their_turn() -> void:
+	var text := Info.plain(Info.creature_facts(Codex.foe(&"jangseung", 3), []))
+	assert_string_contains(text, "꺾임: 한 칸에 45°")
+	assert_string_contains(text, "꺾임: 한 칸에 90°")
+	var plain := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
+	assert_false(plain.contains("꺾임"), "a straight orb does not turn")
+
+
+## Two spells a turn: each projectile spell of a creature that casts two hurts
+## for 2 at most, all its wisps together.
+func test_a_double_charge_hurts_miho_for_four_at_most() -> void:
+	for kind in Codex.foes().filter(func(k): return not Bestiary.info(k).get("boss", false)):
+		for r in range(Bestiary.DOUBLES, Bestiary.RANKS + 1):
+			var most := 0
+			for cast: Array in Bestiary.casts(kind, r):
+				var s := Spell.make(cast)
+				if s.shape != Spell.SPRAY:
+					most = maxi(most, s.damage(Spell.MOMENTUM) * s.shots())
+			assert_true(most <= 2, "%s rank %d" % [kind, r])
