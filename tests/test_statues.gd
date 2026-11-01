@@ -101,4 +101,4 @@ func test_the_hover_the_log_and_the_sound_of_a_statue() -> void:
 	var lines: Array[String] = []
 	lines.assign(Messages.of(w, w, _wakes(events)).map(Messages.plain))
 	assert_eq(lines, ["석상이 깨어났다"] as Array[String])
-	assert_eq(Sfx.sound_of(_wakes(events)[0]), &"charge")
+	assert_eq(Sfx.sound_of(_wakes(events)[0]), &"stone")

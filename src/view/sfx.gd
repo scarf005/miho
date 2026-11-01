@@ -45,6 +45,12 @@ const NAMES := [
 	&"warn",
 	&"shatter",
 	&"tear",
+	&"drum",
+	&"page",
+	&"stone",
+	&"omen",
+	&"die",
+	&"scream",
 ]
 ## Events heard the same wherever they happen. `spot` is the view's own event:
 ## Miho sees something useful for the first time.
@@ -105,7 +111,7 @@ const WORDS := {
 	"철벅": &"splash",
 	"삐걱": &"creak",
 	"드르륵": &"door",
-	"둥": &"blast",
+	"둥": &"drum",
 	"댕": &"gong",
 	"찌익": &"tear",
 	"타닥": &"burn",
@@ -244,7 +250,7 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"hit", &"burst", &"splash", &"blast":
 			return &"" if e.get("spray", false) else &"blast"
 		&"drum":
-			return &"" if e.wet else &"blast"
+			return &"" if e.wet else &"drum"
 		&"smash":
 			return &"blast" if Terrain.wall(e.was) else WORDS[Tiles.of(e.was, "hit")[1]]
 		&"collapse":
@@ -253,8 +259,10 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"clash"
 		&"absorb":
 			return &"absorb"
-		&"grow", &"card", &"heal", &"altar", &"creak", &"read":
+		&"grow", &"card", &"heal", &"altar", &"creak":
 			return &"card"
+		&"read":
+			return &"page"
 		&"trap":
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
 		&"find":
@@ -278,13 +286,17 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"hurt":
 			return &"hurt"
 		&"die":
-			return &"fall"
-		&"charge", &"notice", &"feud", &"omen", &"arrive", &"wake":
+			return &"die"
+		&"charge", &"notice", &"feud":
 			return &"charge"
+		&"omen", &"arrive":
+			return &"omen"
+		&"wake":
+			return &"stone"
 		&"ascend":
 			return &"ascend"
 		&"fall":
-			return &"fall" if e.has("depth") else &""
+			return &"scream" if e.has("depth") else &""
 		&"won":
 			return &"win"
 		&"lost":
