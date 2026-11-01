@@ -63,10 +63,16 @@ static func breakable(w: World, at: Vector2i) -> bool:
 
 
 ## An orb can be hurled at any open tile and at a breakable lantern or wall
-## right next to the caster, which it strikes where it stands; a spray goes
+## right next to the caster, which it strikes where it stands; a piercing wisp
+## at a wall with open air behind it along `dir` (Elements.bore); a spray goes
 ## any way.
-static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
-	return spell.shape == Spell.SPRAY or w.open_air(at) or (spell.orb and breakable(w, at))
+static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bool:
+	return (
+		spell.shape == Spell.SPRAY
+		or w.open_air(at)
+		or (spell.orb and breakable(w, at))
+		or (spell.pierces() and wall(w.tile(at)) and w.open_air(at + dir))
+	)
 
 
 ## Miho walks into a lantern, window, drum or piece of furniture: a hit, with the
