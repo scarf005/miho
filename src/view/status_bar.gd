@@ -80,7 +80,7 @@ static func _held(t: Term) -> int:
 ## Whether Miho has the tails for `n` more cards in the queue.
 static func fits(t: Term, n: int) -> bool:
 	var staged := _held(t) - Spell.price(t.picked.size())
-	return staged + Spell.price(t.picked.size() + n) <= t.world.tails
+	return staged + Spell.price(t.picked.size() + n) <= Cheat.tails(t.world)
 
 
 ## Where the queue's first slot is drawn on the lower row.
@@ -167,7 +167,7 @@ static func saved_slots(t: Term) -> Array:
 static func _castable(t: Term, spell: Spell, held: int) -> bool:
 	return (
 		spell.cards.all(func(c): return t.world.cards.has(c))
-		and spell.cost() + held <= t.world.tails
+		and spell.cost() + held <= Cheat.tails(t.world)
 	)
 
 

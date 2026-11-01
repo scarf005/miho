@@ -15,6 +15,7 @@ const SOUNDS := [
 	[{t = &"swap"}, &"foxfire"],
 	[{t = &"crumble"}, &"fall"],
 	[{t = &"spot"}, &"tick"],
+	[{t = &"cheat", cmd = &"god", on = true}, &"click"],
 	[{t = &"cast", cards = [Cards.FOX, Cards.FIRE]}, &"foxfire"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.WATER, Cards.WOOD, Cards.FIRE]}, &"orb"],

@@ -6,8 +6,9 @@ extends RefCounted
 ## spellbook lists the queued spell and the saved ones, with what the selected
 ## one does, and a slot key saves it to that slot; the 도감 (Codex) lists every
 ## creature, spell, compound, item and terrain feature; the log lists the past
-## messages. Every page moves as ListNav says, scrolls with the wheel, lights
-## the row under the pointer, and a click selects it.
+## messages; the debug commands (DebugMenu) list the Cheat commands. Every page
+## moves as ListNav says, scrolls with the wheel, lights the row under the
+## pointer, and a click selects it.
 ## `key`, `use`, `click` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
 ## game), &"seed" (copy the seed), &"cast" (pick `chosen`), or nothing.
@@ -29,6 +30,7 @@ const OPTIONS := [
 	&"codex",
 	&"keys",
 	&"seed",
+	&"cheat",
 	&"restart",
 	&"quit",
 	&"close"
@@ -43,6 +45,7 @@ const OPTION_NAMES := {
 	&"codex": "도감",
 	&"keys": "키 설정",
 	&"seed": "시드",
+	&"cheat": "디버그 명령",
 	&"restart": "처음부터",
 	&"quit": "저장하고 끝내기",
 	&"close": "계속",
@@ -68,6 +71,8 @@ var chosen: Spell
 var log_rows: Array = []
 ## The 도감 page's tab, entry and scroll; it keeps them when closed.
 var codex := Codex.new()
+## The debug commands page; it keeps its row when closed.
+var debug := DebugMenu.new()
 ## The screen in cells, for the pages to fit their lists.
 var room := Vector2i(40, 18)
 ## The page this one was opened from and the row it was opened on; Esc goes back
@@ -90,6 +95,8 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	codex.room = room
 	codex.hover = -1
 	codex.select(codex.selected)
+	if p == &"cheat":
+		debug.open(room)
 	if p == &"log":
 		selected = maxi(0, log_rows.size() - 1)
 		top = ListNav.reveal(0, selected, log_rows.size(), _fits())
@@ -120,6 +127,8 @@ func panel() -> Dictionary:
 			out = {title = "기록", rows = log_rows}
 		&"codex":
 			return codex.panel()
+		&"cheat":
+			return debug.panel()
 	out.merge({selected = selected, top = top, hover = hovered})
 	return out
 
@@ -139,6 +148,9 @@ func key(e: InputEventKey) -> StringName:
 	if page == &"codex":
 		var out := codex.key(e, nav)
 		return back() if out == &"close" else out
+	if page == &"cheat":
+		var out := debug.key(e, nav)
+		return back() if out == &"close" and debug.request.is_empty() else out
 	var slot := Keys.action_of(e)
 	var out := &"changed"
 	if page in [&"help", &"log"] and slot == page:
@@ -225,6 +237,7 @@ func _spells(list: Array[Spell]) -> Array:
 func point(k: int) -> void:
 	hovered = k
 	codex.hover = k
+	debug.point(k)
 
 
 ## A left click over row `row` and tab `tab` (-1 for none): a tab shows, a row is
@@ -238,6 +251,8 @@ func click(row: int, tab: int) -> StringName:
 		if page == &"codex":
 			codex.select(row)
 			return &""
+		if page == &"cheat":
+			return debug.click(row)
 		selected = row
 		top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
 		return use() if page in [&"options", &"keys", &"spells"] else &""
@@ -248,6 +263,8 @@ func click(row: int, tab: int) -> StringName:
 func wheel(dir: int, aside: bool) -> void:
 	if page == &"codex":
 		codex.wheel(dir, aside)
+	elif page == &"cheat":
+		debug.wheel(dir)
 	else:
 		top = ListNav.scrolled(top, dir * ListNav.WHEEL, panel().rows.size(), _fits())
 
@@ -269,7 +286,7 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = OPTIONS[selected]
 	match row:
-		&"keys", &"codex":
+		&"keys", &"codex", &"cheat":
 			_enter(row)
 			return &""
 		&"restart", &"quit", &"close":

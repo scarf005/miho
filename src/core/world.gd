@@ -72,12 +72,9 @@ extends RefCounted
 ## is kept as she left it (Storeys).
 ##
 ## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
-## hovering wisp of 여 alone yelps, an alarm (Lure).
-##
-## Each storey climbed gives back one health.
-##
-## A storey may hold one event room, built by hand, whose reward is used on the
-## spot: see EventRooms.
+## hovering wisp of 여 alone yelps, an alarm (Lure). Each storey climbed gives back
+## one health. A storey may hold one event room, built by hand, whose reward is
+## used on the spot: see EventRooms. The debug commands take no round: see Cheat.
 ##
 ## Miho grows one more tail on every storey (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
@@ -193,6 +190,7 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
+var cheats := {}
 var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
 var round_no := 0
 var outcome := &""
@@ -262,6 +260,7 @@ func clone() -> World:
 	w.next_id = next_id
 	w.tails = tails
 	w.regrow = regrow
+	w.cheats = cheats.duplicate()
 	w.cards = cards.duplicate()
 	w.round_no = round_no
 	w.outcome = outcome
@@ -451,7 +450,7 @@ func can(action: Dictionary) -> bool:
 			return Legal.cast(self, action.get("spells", []))
 		&"close":
 			return Legal.close(self, action.get("dir", Vector2i.ZERO))
-	return false
+	return action.get("t") == &"cheat" and Cheat.can(self, action)
 
 
 ## Runs `action` on a copy; the world itself does not change.
@@ -468,7 +467,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	events = []
 	heard = []
 	_changed()
-	if not can(action):
+	if not can(action) or Cheat.handled(self, action):
 		return events
 	var me := player()
 	_regrow()
@@ -497,7 +496,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
-				tails -= spell.cost()
+				tails -= Cheat.cost(self, spell)
 				cast(me, spell, one.dir)
 	_shots_phase()
 	Mind.heaven_phase(self)
@@ -539,6 +538,7 @@ func sense() -> void:
 			known[i] = 1
 	Traps.find(self)
 	Notice.remember(self)
+	Cheat.reveal(self)
 
 
 func emit(e: Dictionary) -> void:
@@ -844,7 +844,7 @@ func rides(s: Shot) -> bool:
 
 
 func hurt(a: Actor, n: int, weak := false) -> void:
-	if not a.alive():
+	if not a.alive() or Cheat.immune(self, a):
 		return
 	var shatter := Status.shatter(a)
 	n *= 2 if shatter else 1

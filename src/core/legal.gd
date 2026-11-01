@@ -42,7 +42,7 @@ static func cast(w: World, spells: Array) -> bool:
 		var spell := Spell.make(one.get("cards", []))
 		if spell == null or spell.cards.any(func(c): return not w.cards.has(c)):
 			return false
-		cost += spell.cost()
+		cost += Cheat.cost(w, spell)
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
 		if not Leap.open(w, me, spell, d) or aims.has(d):
 			return false

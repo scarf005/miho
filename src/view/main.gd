@@ -12,7 +12,8 @@ extends Node
 ## c shuts an open door next to Miho (a direction key picks one when several are
 ## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
-## F3 shows the debug view (DebugView), which changes nothing in the game. x looks
+## F3 shows the debug view (DebugView), which changes nothing in the game; F4 lists
+## the debug commands (DebugMenu), which play as actions. x looks
 ## around: a cursor starts on Miho and the directions move it (Shift five
 ## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
 ## In look mode the exclude key marks a danger zone (Exclusions) on the cursor
@@ -184,6 +185,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		pass
 	elif overlay != &"":
 		_panel_input(event)
+	elif menu.debug.asking():
+		menu.debug.pick(self, event)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
@@ -323,7 +326,7 @@ func _key(event: InputEventKey) -> void:
 	elif action == &"debug":
 		debugging = not debugging
 		_refresh()
-	elif action in [&"log", &"help", &"codex"]:
+	elif action in [&"log", &"help", &"codex", &"cheat"]:
 		_open(action)
 
 
@@ -447,7 +450,7 @@ func _add(card: StringName) -> void:
 	var why := ""
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
 		why = "줄이 가득 찼다"
-	elif _held() + Spell.price(picked.size() + 1) > world.tails:
+	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
 		why = "도약: 맨 앞, 또는 여·구 뒤 끝"
@@ -467,7 +470,7 @@ func _recall(key: String) -> void:
 		why = "저장한 주문이 없다. I로 주문서를 열고 칸 키를 눌러 저장"
 	elif not spell.cards.all(func(c): return world.cards.has(c)):
 		why = "부적이 모자라다"
-	elif spell.cost() + _held() > world.tails:
+	elif spell.cost() + _held() > Cheat.tails(world):
 		why = "꼬리가 모자라다"
 	if why != "":
 		_refuse(why)
@@ -612,7 +615,7 @@ func _act(action: Dictionary) -> Array:
 		_point(get_viewport().get_mouse_position())
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
-		if settings.replay:
+		if settings.replay and action.t != &"cheat":
 			await _replay()
 		reel.clear()
 	if world.outcome != &"":
@@ -772,6 +775,7 @@ func _open(kind: StringName) -> void:
 	overlay = kind
 	menu.log_rows = messages.lines.map(Messages.shown)
 	menu.seed_value = run_seed
+	menu.debug.world = world
 	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
@@ -794,6 +798,7 @@ func _panel_input(event: InputEvent) -> void:
 	match command:
 		&"close":
 			_close()
+			menu.debug.run(self)
 			return
 		&"changed":
 			settings.save()
@@ -981,4 +986,9 @@ func _inspect() -> void:
 		term.info = Info.creature(known, known.player())
 	else:
 		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
-		term.info = lines + excluded.lines(hover, zone) + Info.ahead(world, ahead, hover)
+		term.info = (
+			menu.debug.head()
+			+ lines
+			+ excluded.lines(hover, zone)
+			+ Info.ahead(world, ahead, hover)
+		)
