@@ -12,6 +12,8 @@ extends Control
 signal shown(e: Dictionary, at: Vector2)
 ## The world is on screen as it stands, after a round or a change.
 signal settled(w: World)
+## The full-screen list changed or closed (empty).
+signal panel_set(shown: Dictionary)
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
@@ -86,6 +88,7 @@ var panel := {}:
 	set(v):
 		panel = Keywords.panel(v)
 		hint = []
+		panel_set.emit(panel)
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
