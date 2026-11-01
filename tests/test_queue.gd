@@ -182,6 +182,18 @@ func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> v
 	assert_eq(gaps, [0, 1], "two wisps, two lines side by side")
 
 
+func test_each_wisps_aim_line_starts_on_the_tile_it_leaves_on() -> void:
+	var m := _main()
+	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8)).cooldown = 99
+	m._forecast()
+	for k in ["1", "1"]:
+		_press(m, k)
+	m.hover = Vector2i(7, 8)
+	m._refresh()
+	var froms: Array = m.term.lines.map(func(l): return l[0])
+	assert_eq(froms, [Vector2i(5, 8), Vector2i(5, 7)], "beside Miho, each on its own")
+
+
 func test_a_refused_talisman_makes_the_next_direction_key_do_nothing() -> void:
 	var m := _main()
 	m.world.tails = 0

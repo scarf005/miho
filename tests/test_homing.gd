@@ -245,3 +245,59 @@ func test_two_wisps_strike_the_creature_they_chase_for_one_each() -> void:
 	w.act(_cast([FOX, FOX], E))
 	assert_eq(foe.hp, foe.max_hp - 2)
 	assert_eq(w.shots.size(), 2, "both stick and strike no more")
+
+
+## The first tile each projectile flies to in `events`, in the order they were cast.
+func _starts(events: Array) -> Array:
+	var out := {}
+	for e in events:
+		if e.t == &"fly" and not out.has(e.shot):
+			out[e.shot] = e.to
+	return out.values()
+
+
+func test_wisps_of_one_cast_leave_on_their_own_tiles_fanned_round_the_aim() -> void:
+	var w := _world()
+	var me := w.player().pos
+	var ne := Vector2i(1, -1)
+	var se := Vector2i(1, 1)
+	var events := w.act(_cast([FOX, FOX, FOX]))
+	assert_eq(_starts(events), [me + E, me + ne, me + se])
+	assert_eq(w.shots.map(func(s): return s.dir), [E, ne, se], "no creature: each flies on")
+	assert_eq(
+		w.shots.map(func(s): return s.pos),
+		w.shots.map(func(s): return me + s.dir * s.flown),
+		"straight along its own heading"
+	)
+
+
+func test_a_wisp_passes_over_a_wall_beside_miho_for_the_next_open_tile() -> void:
+	var w := _world()
+	var me := w.player().pos
+	_put(w, me + Vector2i(1, -1), World.WALL)
+	var events := w.act(_cast([FOX, FOX, FOX]))
+	assert_eq(_starts(events), [me + E, me + Vector2i(1, 1), me + Vector2i(0, -1)])
+
+
+func test_wisps_with_no_open_tile_of_their_own_follow_the_aimed_one() -> void:
+	var w := _world()
+	var me := w.player().pos
+	for d in Grid.DIRS:
+		if d != E:
+			_put(w, me + d, World.WALL)
+	var events := w.act(_cast([FOX, FOX, FOX]))
+	assert_eq(_starts(events), [me + E, me + E, me + E])
+
+
+func test_the_forecast_shows_the_tile_each_wisp_of_a_cast_leaves_on() -> void:
+	var w := _world()
+	_foe(w, &"imugi", Vector2i(8, 5))
+	_put(w, Vector2i(8, 3), World.LANTERN)
+	w.sense()
+	var action := _cast([FOX, FOX, FOX, FOX])
+	var f := Forecast.of(w, action)
+	var events := w.act(action)
+	var me := w.player().pos
+	var starts := _starts(events)
+	assert_eq(starts, [me + E, me + Vector2i(1, -1), me + Vector2i(1, 1), me + Vector2i(0, -1)])
+	assert_eq(f.paths.values().map(func(p): return p.tiles[1]), starts)
