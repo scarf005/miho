@@ -1,5 +1,45 @@
 <title>미호</title>
 <style>
+html, body { position: fixed; inset: 0; overflow: hidden; overscroll-behavior: none; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+#miho-inset { position: fixed; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+</style>
+<script>
+(() => {
+	document.querySelectorAll('meta[name=viewport]').forEach((m) => m.remove());
+	const meta = document.createElement('meta');
+	meta.name = 'viewport';
+	meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+	document.head.append(meta);
+	const contexts = [];
+	const Native = window.AudioContext;
+	if (Native) {
+		window.AudioContext = class extends Native {
+			constructor(...args) {
+				super(...args);
+				contexts.push(this);
+			}
+		};
+	}
+	const unlock = () => contexts.forEach((c) => c.state !== 'running' && c.resume());
+	['touchend', 'pointerup', 'mouseup', 'keydown'].forEach((t) => addEventListener(t, unlock, true));
+	['gesturestart', 'contextmenu'].forEach((t) => addEventListener(t, (e) => e.preventDefault()));
+	window.miho = {
+		probe() {
+			let el = document.getElementById('miho-inset');
+			if (!el) {
+				el = document.createElement('div');
+				el.id = 'miho-inset';
+				document.body.append(el);
+			}
+			const s = getComputedStyle(el);
+			const px = (v) => parseFloat(v) || 0;
+			const coarse = matchMedia('(pointer: coarse)').matches ? 1 : 0;
+			return [window.devicePixelRatio, px(s.paddingTop), px(s.paddingRight), px(s.paddingBottom), px(s.paddingLeft), coarse].join(',');
+		},
+	};
+})();
+</script>
+<style>
 :root { --bg: #000; --fg: #e0e0e0; --panel: #120e0a; --line: #5b3943; color-scheme: dark }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; touch-action: none; }
