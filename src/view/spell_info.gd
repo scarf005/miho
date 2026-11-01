@@ -40,6 +40,8 @@ const STATUS_DOES := {
 	&"frozen": ["다음 피해: ×%d" % Status.SHATTER],
 }
 const SOAK := ["젖음", "%d초" % Status.WET]
+## What the hat of 감투 도깨비 and 은신 do to sight (Hat).
+const HAT_SEEN := ["보임", "%d칸 안, 도깨비불 붙음" % Hat.REACH]
 const ALIGHT_ON := ["불붙음", "%d초" % Status.ALIGHT]
 const SPRAY_NAME := "뿌리기"
 const FAN_NAME := "부채꼴 %d°" % Spray.FAN_ANGLE
@@ -122,6 +124,8 @@ static func spell(s: Spell) -> Array:
 	for c in s.slots:
 		head.append([Cards.GLYPH[c], Palette.card(c)])
 	var lines := [head]
+	if Guise.ANYWHERE.has(Guise.kind(s)):
+		return lines + ward(s)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -145,6 +149,8 @@ static func spell(s: Spell) -> Array:
 	for c in s.compounds():
 		if s.mortar() and c == &"shrapnel":
 			lines.append_array(_lines(_mortar(s), Palette.card(c)))
+			continue
+		if Guise.ANYWHERE.has(c):
 			continue
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
 		lines.append_array(_lines(compound(c), Palette.card(c)))
@@ -183,6 +189,21 @@ static func ward(s: Spell) -> Array:
 			_line("속는 적", "추격 중이 아닌 적"),
 			_line("발톱", "기습"),
 			_line("해제", "적 옆에서 %d초, 주문 사용, 피해" % Guise.BESIDE),
+			_line(name + " 소음", "없음"),
+		]
+	if kind == Guise.TALON:
+		return [
+			_line(on, name),
+			_line("시간", "%d초" % Guise.TALON_ROUNDS),
+			_line("발톱 피해", "+%d" % Guise.TALON_HARM),
+			_line(name + " 소음", "없음"),
+		]
+	if kind == Guise.CLOAK:
+		return [
+			_line(on, name),
+			_line("시간", "%d초" % Guise.CLOAK_ROUNDS),
+			_line(HAT_SEEN[0], HAT_SEEN[1]),
+			_line("속는 적", "모든 적"),
 			_line(name + " 소음", "없음"),
 		]
 	var dark: int = s.light(Actor.FOX).radius
@@ -237,7 +258,7 @@ static func _spray(s: Spell) -> Array:
 			return out
 	var who := "모두" if Spray.ROOT_COUNT[i] == 0 else "%d명" % Spray.ROOT_COUNT[i]
 	return [
-		_line("모양", "땅속 뿌리"),
+		_line("모양", "땅속 덩굴"),
 		_line("거리", "%d걸음" % Spray.ROOT_REACH[i]),
 		_line("대상", "보이는 가까운 적 " + who),
 		_line("묶임", "%d초" % Spray.ROOT_ROUNDS[i], color),
@@ -306,7 +327,7 @@ static func _form(s: Spell) -> Array:
 		Spray.ROOTS:
 			var deepest := Spray.ROOTS_LEVEL - 1
 			return [
-				["모양", "땅속 뿌리"],
+				["모양", "땅속 덩굴"],
 				["거리", "%d걸음" % Spray.ROOT_REACH[deepest]],
 				["대상", "보이는 적 모두"],
 			]
@@ -352,7 +373,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				[name, "생김"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
-		&"split":
+		&"rift":
 			return [["벽", "소음 없이 무너짐"]]
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
@@ -378,32 +399,19 @@ static func compound(c: StringName) -> Array:
 				["묶임", "%d초" % Compounds.BLOOM],
 			]
 		&"swamp":
-			return compound(&"split") + compound(&"mud") + [["묶임", "%d초" % Compounds.SWAMP]]
+			return compound(&"rift") + compound(&"mud") + [["묶임", "%d초" % Compounds.SWAMP]]
 		&"geyser":
 			return [["밀침", "%d칸" % Compounds.GEYSER]] + compound(&"steam")
-		&"quench":
-			var gas: String = Gas.of(Gas.STEAM, "name") + " 양"
-			return (
-				hot.call(Compounds.MOLTEN)
-				+ [
-					["맞은 적 피해", "%d" % Compounds.QUENCH],
-					["젖은 적 피해", "%d" % Compounds.QUENCH_WET],
-					["끝 칸 " + gas, "%d/%d" % [Compounds.STEAM, Gas.MAX]],
-				]
-			)
-		&"charthorn":
-			return compound(&"thorn") + [["불타는 칸", "가연성·인화성 칸"], ALIGHT_ON]
+		&"hypnosis":
+			return [["잠듦", "첫 적"], ["면역", Info.NO_SLEEP]]
 		&"palisade":
 			return [[_wall() + " 체력", "%d" % Tiles.of(World.WOOD_WALL, "health")]]
 		&"beacon":
 			return (
 				compound(&"wildfire") + [["다시 켜짐", "보이는 꺼진 등불"], ["끝 칸 소음", "%d" % Compounds.BOOM]]
 			)
-		&"ironrain":
-			var steam: Array = compound(&"steam")
-			return hot.call(Compounds.MOLTEN) + [steam[0], ["증기 초당 피해", steam[1][1]], SOAK]
-		&"ironroot":
-			return [["묶임", "%d초" % Compounds.IRONROOT], ["피해", "%d" % Compounds.IRONROOT_HARM]]
+		&"bind":
+			return [["묶임", "%d초" % Compounds.BIND], ["피해", "%d" % Compounds.BIND_HARM]]
 		&"magpie":
 			return [[_names(CROSSED), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
@@ -454,7 +462,7 @@ static func _mortar(s: Spell) -> Array:
 ## Where a compound carried on a projectile reaches.
 static func _carried(s: Spell, c: StringName) -> String:
 	var r := Compounds.reach(s, c)
-	if c == &"split":
+	if c == &"rift":
 		return "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆" % r
 	return "멈춘 곳 " + _square(r)
 

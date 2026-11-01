@@ -2,7 +2,7 @@ class_name Compounds
 extends RefCounted
 ## What each compound (Cards.compounds) does where it reaches. A spray
 ## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
-## on the 3x3 round where the projectile ends (Spray.carried; 벽 가르기 on the
+## on the 3x3 round where the projectile ends (Spray.carried; 균열 on the
 ## first wall ahead of it and that wall's neighbours across its line), the
 ## creature it struck there among them. Each copy past the first, and each lone
 ## element that feeds a 상생 pair (Spell.grown), reaches one tile farther: a
@@ -35,7 +35,7 @@ extends RefCounted
 ## 가시 grows thorns (World.THORNS) on open ground and pricks each creature it
 ## reaches for THORN. Whoever steps onto thorns takes THORN; they let sight
 ## through and burn.
-## 벽 가르기 brings every breakable wall it reaches down to rubble, silently.
+## 균열 brings every breakable wall it reaches down to rubble, silently.
 ## 진흙 douses, then turns open ground to mud (World.MUD): a step onto it takes
 ## MUD rounds (the creature is rooted till then) and makes no sound.
 ## 3단, of three elements:
@@ -46,16 +46,14 @@ extends RefCounted
 ## 늪 fells every breakable wall it reaches, turns the ground to mud and roots
 ## each creature SWAMP rounds.
 ## 간헐천 lays steam and pushes each creature GEYSER tiles along its line.
-## 담금질 leaves hot iron, hurts the creature it reaches for QUENCH, QUENCH_WET
-## when wet, and lays steam where it ends.
-## 숯가시 grows thorns and sets what burns alight, pricks each creature for THORN
-## and sets it alight.
+## 최면 puts the first creature it reaches to sleep (Mind.sleep), hurting none.
+## 쇠발톱 is cast on Miho, not sprayed: her claws harm more (Guise).
 ## 목책 grows a wooden wall (Elements.grow).
 ## 4단, of four elements:
 ## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
 ## where it relights every dark lantern the caster sees.
-## 쇳비 leaves hot iron and lays steam.
-## 철뿌리 hurts each creature IRONROOT_HARM and roots it IRONROOT rounds.
+## 은신 is cast on Miho, not sprayed: she wears the hat of 감투 도깨비 (Guise).
+## 속박 hurts each creature BIND_HARM and roots it BIND rounds.
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
 ## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs
@@ -93,12 +91,10 @@ const HAIL := 1
 const BLOOM := 2
 const SWAMP := 3
 const GEYSER := 2
-const QUENCH := 2
-const QUENCH_WET := 4
 const BOOM := 12
 const BEACON_WORD := "화르륵"
-const IRONROOT := 4
-const IRONROOT_HARM := 1
+const BIND := 4
+const BIND_HARM := 1
 const THUNDER := 3
 const THUNDER_STUN := 2
 const SAMSARA_STUN := 2
@@ -107,7 +103,7 @@ const DRAGON_PUSH := 3
 const DRAGON_STUN := 2
 ## Compounds that do nothing to a creature but their own effect: it is not
 ## struck, so it does not hunt Miho or lose a feud for it.
-const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness"]
+const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness", &"hypnosis"]
 
 
 ## The radius compound `c` of `spell` reaches round where a projectile ends.
@@ -157,7 +153,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 				Gas.add(w, p, Gas.STEAM, STEAM)
 		&"thorn":
 			_become(w, tiles.filter(func(p): return _open(w, p)), World.THORNS)
-		&"split":
+		&"rift":
 			_split(w, tiles)
 		&"mud":
 			for p in tiles:
@@ -177,18 +173,10 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			ground(w, s, &"mud", tiles)
 		&"geyser":
 			ground(w, s, &"steam", tiles)
-		&"quench":
-			heat(w, tiles, MOLTEN)
-		&"charthorn":
-			ground(w, s, &"thorn", tiles)
-			_kindle(w, tiles)
 		&"palisade":
 			Elements.grow(w, tiles)
 		&"beacon":
 			ground(w, s, &"wildfire", tiles)
-		&"ironrain":
-			ground(w, s, &"molten", tiles)
-			ground(w, s, &"steam", tiles)
 		&"magpie":
 			var gaps := tiles.filter(func(p): return w.tile(p) in [World.SKY, World.POND])
 			_become(w, gaps, World.BRIDGE)
@@ -217,8 +205,6 @@ static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
 		&"shrapnel":
 			if s.spell.mortar():
 				_explode(w, s, at, reach(s.spell, c))
-		&"quench":
-			Gas.add(w, at, Gas.STEAM, STEAM)
 		&"beacon":
 			_signal(w, s, at)
 		Cards.SAMSARA:
@@ -254,18 +240,14 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			Elements.root(w, a, SWAMP)
 		&"geyser":
 			w.push(a, s.dir, GEYSER)
-		&"quench":
-			Elements.harm(w, s, a, QUENCH_WET if a.wet > 0 else QUENCH)
-		&"charthorn":
-			Elements.harm(w, s, a, THORN)
-			if a.alive():
-				Status.ignite(w, a)
+		&"hypnosis":
+			Mind.sleep(w, a)
 		&"beacon":
 			strike(w, s, &"wildfire", a, at)
-		&"ironroot":
-			Elements.harm(w, s, a, IRONROOT_HARM)
+		&"bind":
+			Elements.harm(w, s, a, BIND_HARM)
 			if a.alive():
-				Elements.root(w, a, IRONROOT)
+				Elements.root(w, a, BIND)
 		&"sinkhole":
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)

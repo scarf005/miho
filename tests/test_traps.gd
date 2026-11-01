@@ -246,7 +246,7 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 묶임\n묶임: %d초" % Traps.ROOT_ROUNDS)
 	for kind in KINDS:
 		assert_true(text[kind].split("\n").has("함정."), text[kind])
-	assert_has(Info.glossary()["함정"], "발견: 밝은 칸이나 %d칸 안" % Traps.REACH)
+	assert_has(Info.glossary()["함정"], "발견: 밝은 칸 또는 %d칸 안" % Traps.REACH)
 	assert_has(Info.glossary()["함정"], "적은 밟지 않음.")
 
 

@@ -253,7 +253,7 @@ func test_split_on_an_orb_fells_the_wall_it_strikes_and_its_neighbours() -> void
 
 func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() -> void:
 	for c: StringName in Cards.PAIRS:
-		if c == &"split":
+		if c == &"rift":
 			continue
 		var w := _world()
 		var foe := _post(w, ME + E * 3)

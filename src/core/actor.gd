@@ -67,6 +67,9 @@ var prey := &""
 var form := &""
 var guise := 0
 var beside := 0
+## Rounds left of 쇠발톱 (her claws harm more) and of 은신 (the hat's rule, Hat).
+var talon := 0
+var cloak := 0
 
 
 func alive() -> bool:
@@ -78,10 +81,14 @@ func alive() -> bool:
 ## patrol, or one on its way home) is awake, and one that always knows where
 ## Miho is (`hunts`) or cannot walk (a 장승, `move` static) never sleeps.
 func asleep() -> bool:
+	return alert == REST and pos == home and sleeps()
+
+
+## Whether it can sleep at all: a creature of heaven that does not patrol, always
+## hunt or stand fixed (the tags 순찰, 미호의 위치를 알고 있음 and 고정).
+func sleeps() -> bool:
 	return (
 		faction == HEAVEN
-		and alert == REST
-		and pos == home
 		and not info().get("patrol", false)
 		and not info().get("hunts", false)
 		and info().get("move", &"static") != &"static"
@@ -151,6 +158,8 @@ func clone() -> Actor:
 		"form",
 		"guise",
 		"beside",
+		"talon",
+		"cloak",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate(true)

@@ -71,7 +71,7 @@ extends RefCounted
 ## the storey below. 도약 leaps her across it (Leap). Every storey she has left
 ## is kept as she left it (Storeys).
 ##
-## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
+## A spell cast with no direction goes on Miho: 그림자, 둔갑, 쇠발톱 or 은신 (Guise). A
 ## hovering wisp of 여 alone yelps, an alarm (Lure). Each storey climbed gives back
 ## one health. A storey may hold one event room, built by hand, whose reward is
 ## used on the spot: see EventRooms. The debug commands take no round: see Cheat.
@@ -652,9 +652,15 @@ func caught_unawares(a: Actor) -> bool:
 	return a.alert != Actor.HUNT and not Guise.knows(self, a)
 
 
+## The harm a claw of `me` does: CLAW, SNEAK times that on a sneak attack, and
+## Guise.TALON_HARM more under 쇠발톱.
+func claw_harm(me: Actor, sneak: bool) -> int:
+	return CLAW * (SNEAK if sneak else 1) + (Guise.TALON_HARM if me.talon > 0 else 0)
+
+
 func _claw(me: Actor, foe: Actor) -> void:
 	var sneak := caught_unawares(foe)
-	var n := CLAW * (SNEAK if sneak else 1)
+	var n := claw_harm(me, sneak)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)

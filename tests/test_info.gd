@@ -150,7 +150,7 @@ func test_a_creature_tells_what_it_strikes_with() -> void:
 	var told := {
 		&"dokkaebi": "근접: 방망이\n  피해: 1",
 		&"bulgae": "근접: 이빨\n  피해: 1",
-		&"bulgasari": "근접: 쇠톱 같은 이빨\n  피해: 1",
+		&"bulgasari": "근접: 이빨\n  피해: 1",
 		&"saja": "근접: 오랏줄\n  피해: 1",
 	}
 	for kind: StringName in told:

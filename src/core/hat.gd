@@ -1,19 +1,25 @@
 class_name Hat
 extends RefCounted
 ## 감투, the invisibility hat of the dokkaebi tales. A creature that wears one
-## (Bestiary hat) is made out only from REACH tile away, or while a wisp clings
-## to it (Elements.stick), the red cloth of the tale. Seeing its tile is not
-## seeing it, so whoever asks whether a creature is seen asks here: Miho's map,
-## hover, log, sidebar, travel and fight, the agent's observation, and the
-## creatures that look for a foe (homing wisps, roots, a feud).
+## (Bestiary hat), and Miho while her 은신 lasts (Actor.cloak), is made out only
+## from REACH tile away, or while a wisp clings to it (Elements.stick), the red
+## cloth of the tale. Seeing its tile is not seeing it, so whoever asks whether a
+## creature is seen asks here: Miho's map, hover, log, sidebar, travel and fight,
+## the agent's observation, and the creatures that look for a foe (homing wisps,
+## roots, a feud, and a hunt for Miho herself).
 
 const REACH := 1
+
+
+## Whether `a` wears the hat: its kind does, or Miho's 은신 does.
+static func wears(a: Actor) -> bool:
+	return a.info().get("hat", false) or a.cloak > 0
 
 
 ## Whether the hat of `a` hides it from someone standing at `from`.
 static func hidden(w: World, a: Actor, from: Vector2i) -> bool:
 	return (
-		a.info().get("hat", false)
+		wears(a)
 		and Grid.cheb(a.pos, from) > REACH
 		and not w.shots.any(func(s): return s.host == a.id and not s.gone)
 	)
@@ -33,6 +39,6 @@ static func sees(w: World, by: Actor, a: Actor) -> bool:
 static func unseen(w: World) -> Dictionary:
 	var out := {}
 	for a in w.actors:
-		if a.alive() and a.info().get("hat", false) and not shown(w, a):
+		if a.alive() and wears(a) and not shown(w, a):
 			out[a.id] = true
 	return out

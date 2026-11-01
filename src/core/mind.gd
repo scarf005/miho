@@ -139,6 +139,23 @@ static func lose(a: Actor) -> void:
 	_look(a, a.pos)
 
 
+## `a` falls asleep where it stands (Actor.asleep): it rests there from now on
+## with its charged spells and fights dropped. One that does not sleep
+## (Actor.sleeps) or sleeps already is left alone.
+static func sleep(w: World, a: Actor) -> void:
+	if not a.alive() or not a.sleeps() or a.asleep():
+		return
+	a.alert = Actor.REST
+	a.home = a.pos
+	a.lost = 0
+	a.rival = 0
+	a.grudge = 0
+	a.sees_me = false
+	a.intent.clear()
+	w._changed()
+	w.emit({t = &"sleep", id = a.id, at = a.pos})
+
+
 ## `gone` has fallen: whoever fought it stops, and the band it led scatters:
 ## each follower goes back to its own ways.
 static func forget(w: World, gone: Actor) -> void:

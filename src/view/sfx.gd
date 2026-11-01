@@ -87,7 +87,7 @@ const SLOT := {
 	&"steam": &"hiss",
 	&"molten": &"flame",
 	&"thorn": &"thorn",
-	&"split": &"rumble",
+	&"rift": &"rumble",
 	&"mud": &"splash",
 	&"volcano": &"flame",
 	&"furnace": &"flame",
@@ -95,12 +95,12 @@ const SLOT := {
 	&"frostbloom": &"ice",
 	&"swamp": &"splash",
 	&"geyser": &"jet",
-	&"quench": &"hiss",
-	&"charthorn": &"thorn",
+	&"hypnosis": &"hiss",
+	&"talon": &"thorn",
 	&"palisade": &"thorn",
 	&"beacon": &"flame",
-	&"ironrain": &"grenade",
-	&"ironroot": &"thorn",
+	&"cloak": &"hiss",
+	&"bind": &"thorn",
 	&"magpie": &"creak",
 	&"mist": &"jet",
 	&"sinkhole": &"rumble",
@@ -162,6 +162,8 @@ const LEVEL := {
 	&"unroot": -8.0,
 	&"unstun": -8.0,
 	&"unblind": -8.0,
+	&"untalon": -8.0,
+	&"sleep": -8.0,
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
@@ -418,19 +420,19 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"click"
 		&"open", &"close":
 			return &"door"
-		&"root", &"freeze", &"sprout", &"guise":
+		&"root", &"freeze", &"sprout", &"guise", &"talon":
 			return &"root"
 		&"stun":
 			return &"stun"
-		&"unroot":
+		&"unroot", &"cloak":
 			return &"rustle"
-		&"unstun", &"unblind":
+		&"unstun", &"unblind", &"untalon":
 			return &"tick"
 		&"become":
 			return BECOME.get(e.get("tile", -1), &"")
 		&"gas":
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
-		&"scald", &"cool", &"douse", &"unmask", &"dry", &"quench", &"thaw":
+		&"scald", &"cool", &"douse", &"unmask", &"uncloak", &"dry", &"quench", &"thaw", &"sleep":
 			return &"hiss"
 		&"stick", &"yelp":
 			return &"foxfire"

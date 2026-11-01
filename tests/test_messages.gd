@@ -201,7 +201,7 @@ func test_a_melee_blow_names_the_weapon_of_the_creature() -> void:
 	var told := {
 		&"dokkaebi": "도깨비의 방망이에 맞아 피해를 1 입었다",
 		&"bulgae": "불개의 이빨에 물려 피해를 1 입었다",
-		&"bulgasari": "불가사리의 쇠톱 같은 이빨에 물려 피해를 1 입었다",
+		&"bulgasari": "불가사리의 이빨에 물려 피해를 1 입었다",
 		&"saja": "저승사자의 오랏줄에 맞아 피해를 1 입었다",
 	}
 	for kind: StringName in told:

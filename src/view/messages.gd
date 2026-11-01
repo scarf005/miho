@@ -223,6 +223,16 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", Palette.GOOD]]
 		&"unmask":
 			return [["둔갑이 풀렸다", TEXT]]
+		&"talon":
+			return _word(Guise.NAME[Guise.TALON], "이", "가", " 돋았다")
+		&"untalon":
+			return _word(Guise.NAME[Guise.TALON], "이", "가", " 사라졌다")
+		&"cloak":
+			return [[Guise.NAME[Guise.CLOAK], TEXT], ["했다", TEXT]]
+		&"uncloak":
+			return _word(Guise.NAME[Guise.CLOAK], "이", "가", " 풀렸다")
+		&"sleep":
+			return _who(before, after, id, "이", "가") + [[" 잠들었다", TEXT]]
 		&"fade":
 			if not e.get("lit", false):
 				return []
@@ -423,6 +433,12 @@ static func _actor(before: World, after: World, id: int) -> Actor:
 
 static func _tile(w: World, p: Vector2i, closed: String, open: String) -> Array:
 	return _named(Tiles.of(w.tile(p), "name"), closed, open)
+
+
+## A word the 도감 tells (Keywords) as a run of its own, then the particle that
+## fits it and `rest`.
+static func _word(name: String, closed: String, open: String, rest: String) -> Array:
+	return [[name, TEXT], [_particle(name, closed, open) + rest, TEXT]]
 
 
 static func _named(name: String, closed: String, open: String) -> Array:

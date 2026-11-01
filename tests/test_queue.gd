@@ -182,7 +182,7 @@ func test_two_different_elements_merge_into_the_first_ones_compound() -> void:
 		&"steam": [Cards.WATER, Cards.FIRE],
 		&"molten": [Cards.FIRE, Cards.METAL],
 		&"thorn": [Cards.METAL, Cards.WOOD],
-		&"split": [Cards.WOOD, Cards.EARTH],
+		&"rift": [Cards.WOOD, Cards.EARTH],
 		&"mud": [Cards.EARTH, Cards.WATER],
 	}
 	for c in pairs:

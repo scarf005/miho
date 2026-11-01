@@ -67,7 +67,7 @@ const SPELLS := {
 		+ "behind fox or orb swaps: Miho goes where the projectile ends, trading places with a "
 		+ "creature it strikes. With fox or orb it "
 		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
-		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
+		+ "(fire fan, water jet, metal gun, earth quake ring, wood vines; a compound its own "
 		+ (
 			"shape and effect, which a projectile carries to the %s where it ends). Metal makes "
 			% SQUARE
@@ -89,7 +89,12 @@ const SPELLS := {
 			"a dark wisp on her) or wood with earth (%s, the form of the last creature felled, "
 			% Guise.NAME[Guise.GUISE]
 		)
-		+ "which creatures not hunting her do not know). The forecast lists every number. "
+		+ "which creatures not hunting her do not know) or the 3 and 4 element compounds "
+		+ (
+			"%s (her claws harm more) and %s (a creature knows her only from beside her, hunters "
+			% [Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
+		)
+		+ "too), which go on her whatever dir. The forecast lists every number. "
 		+ (
 			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "
 			% [Spell.MAX_SLOTS, COSTS, Spell.MAX_SLOTS, Spell.COST_EXTRA]
