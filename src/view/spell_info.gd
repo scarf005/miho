@@ -403,7 +403,7 @@ static func compound(c: StringName) -> Array:
 		&"geyser":
 			return [["밀침", "%d칸" % Compounds.GEYSER]] + compound(&"steam")
 		&"hypnosis":
-			return [["잠듦", "첫 적"], ["면역", Info.NO_SLEEP]]
+			return [["잠듦", "맞은 적"], ["면역", Info.NO_SLEEP]]
 		&"palisade":
 			return [[_wall() + " 체력", "%d" % Tiles.of(World.WOOD_WALL, "health")]]
 		&"beacon":
