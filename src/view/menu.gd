@@ -81,6 +81,9 @@ var log_rows: Array = []
 var codex := Codex.new()
 ## The debug commands page; it keeps its row when closed.
 var debug := DebugMenu.new()
+## The title is showing: no run is being played, so the options leave out the
+## debug commands, which would write to the run on disk.
+var title := false
 ## The screen in cells, for the pages to fit their lists.
 var room := Vector2i(40, 18)
 ## The page this one was opened from and the row it was opened on; Esc goes back
@@ -308,7 +311,7 @@ func use() -> StringName:
 
 
 func _use_option() -> StringName:
-	var row: StringName = OPTIONS[selected]
+	var row: StringName = _listed()[selected]
 	match row:
 		&"keys", &"codex", &"cheat":
 			_enter(row)
@@ -352,7 +355,7 @@ func back() -> StringName:
 func _change(step: int) -> StringName:
 	if page != &"options":
 		return &""
-	match OPTIONS[selected]:
+	match _listed()[selected]:
 		&"volume":
 			settings.volume = clampi(settings.volume + step * 10, 0, 100)
 		&"music":
@@ -432,6 +435,11 @@ static func _nav(e: InputEventKey) -> StringName:
 	return bound.get(Keys.action_of(e), &"")
 
 
+## The options the page lists.
+func _listed() -> Array:
+	return OPTIONS.filter(func(o): return not (title and o == &"cheat"))
+
+
 func _options() -> Array:
 	var values := {
 		&"volume": str(settings.volume) if settings.volume > 0 else "꺼짐",
@@ -443,7 +451,7 @@ func _options() -> Array:
 		&"seed": "%d 복사했다" % seed_value if copied else str(seed_value),
 	}
 	var rows := []
-	for o in OPTIONS:
+	for o in _listed():
 		var row := [
 			[RESTART_SURE if o == &"restart" and confirming else OPTION_NAMES[o], Palette.TEXT]
 		]

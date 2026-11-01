@@ -15,12 +15,14 @@ func after_all() -> void:
 	Keys.reset()
 
 
-func _main() -> Node:
+## The game in play, or at the title when a save path is given.
+func _main(save_path := "") -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	m.save_path = save_path
 	add_child_autofree(m)
-	m._new_run(3)
-	m.state = &"play"
+	if save_path.is_empty():
+		m._new_run(3)
+		m.state = &"play"
 	m.glass.visible = false
 	return m
 
@@ -227,3 +229,19 @@ func test_a_summoned_kind_stands_where_the_tile_is_picked() -> void:
 	await _key(m, "Enter")
 	await _click_tile(m, to)
 	assert_eq(m.world.actor_at(to).kind, Codex.foes()[1])
+
+
+func test_the_title_does_not_offer_the_commands_and_the_saved_run_stays() -> void:
+	var path := "user://debug_title_save.cfg"
+	var saved := SaveGame.new(path, 7)
+	for i in 3:
+		saved.record({t = &"wait"}, 0, false)
+	var m := _main(path)
+	assert_eq(m.state, &"title")
+	await _key(m, "Escape")
+	assert_eq(m.overlay, &"options")
+	var names: Array = m.term.panel.rows.map(func(r): return r[0][0])
+	assert_false(names.has(Menu.OPTION_NAMES[&"cheat"]), "no run is being played")
+	var disk := SaveGame.load_from(path)
+	assert_eq([disk.seed_value, disk.actions.size()], [7, 3], "the saved run is as it was")
+	DirAccess.remove_absolute(path)

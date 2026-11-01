@@ -875,6 +875,7 @@ func _open(kind: StringName) -> void:
 	menu.log_rows = messages.lines.map(Messages.shown)
 	menu.seed_value = run_seed
 	menu.debug.world = world
+	menu.title = state == &"title"
 	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
