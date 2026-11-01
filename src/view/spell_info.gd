@@ -230,16 +230,8 @@ static func _gun(level: int) -> Array:
 ## A compound's shape, then what each compound in it does, then the plain
 ## effect of each lone element.
 static func _compound(s: Spell) -> Array:
-	var lead := s.slots[0]
-	var shape: Array = Spray.SHAPE[lead]
-	var n: int = shape[1] + s.extra(lead)
-	var form: Array = {
-		Spray.FAN_SHAPE: _fan(n),
-		Spray.LINE: [["모양", "곧게 %d칸" % n], ["멈춤", "첫 적"]],
-		Spray.BURST: [["모양", "%d칸 앞 %s" % [shape[1], _square(1 + s.extra(lead))]], ["막히면", "그 앞"]],
-		Spray.CLEAVE: [["모양", "%d칸 안 첫 벽과 그 양옆" % n]],
-	}[shape[0]]
-	var lines := _lines(form)
+	var shape: Array = Spray.SHAPE[s.slots[0]]
+	var lines := _lines(_form(s))
 	for c in s.compounds():
 		lines.append_array(_lines(compound(c), Palette.card(c)))
 	var plain := {
@@ -257,6 +249,25 @@ static func _compound(s: Spell) -> Array:
 	if s.has(Cards.WATER):
 		lines.append(_line(SOAK[0], SOAK[1], Palette.CARD[Cards.WATER]))
 	return lines
+
+
+## The shape of a spray led by a compound, as [label, value] lines.
+static func _form(s: Spell) -> Array:
+	var lead := s.slots[0]
+	var shape: Array = Spray.SHAPE[lead]
+	var n: int = shape[1] + s.extra(lead)
+	match shape[0]:
+		Spray.FAN_SHAPE:
+			return _fan(n)
+		Spray.LINE, Spray.BORE:
+			return [["모양", "곧게 %d칸" % n], ["멈춤", "첫 적"]]
+		Spray.BURST, Spray.BREACH:
+			var size := _square(shape[2] + s.extra(lead))
+			return [["모양", "%d칸 앞 %s" % [shape[1], size]], ["막히면", "그 앞"]]
+		Spray.ACROSS:
+			var wide: int = shape[2] + s.extra(lead)
+			return [["모양", "%d칸 앞 직각 %d칸" % [shape[1], wide]], ["막히면", "그 앞"]]
+	return [["모양", "%d칸 안 첫 벽과 그 양옆" % n]]
 
 
 ## What compound `c` does where it reaches, as [label, value] lines (Compounds).
@@ -298,6 +309,42 @@ static func compound(c: StringName) -> Array:
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
 			return [["끔", "불, 등불"], ["땅", name], ["걸음", "%d초" % Compounds.MUD], ["발소리", "없음"], SOAK]
+		&"volcano":
+			return hot.call(Compounds.LAVA) + [["불", "가연성 칸"], ALIGHT_ON]
+		&"furnace":
+			return hot.call(Compounds.MOLTEN) + [["끝 벽", "무너짐"]]
+		&"hail":
+			var frozen: String = Status.NAME[&"frozen"]
+			return [
+				["피해", "적마다 %d" % Compounds.HAIL],
+				[frozen, "%d초" % Compounds.FROST],
+				["젖은 적 " + frozen, "%d초" % (2 * Compounds.FROST)],
+			]
+		&"frostbloom":
+			return [
+				[Tiles.of(World.THORNS, "name"), "자람"],
+				["지날 때 피해", "%d" % Compounds.THORN],
+				["연못", "얼음이 됨"],
+				["묶음", "%d초" % Compounds.BLOOM],
+			]
+		&"swamp":
+			return compound(&"split") + compound(&"mud") + [["묶음", "%d초" % Compounds.SWAMP]]
+		&"geyser":
+			return [["밀침", "%d칸" % Compounds.GEYSER]] + compound(&"steam")
+		&"quench":
+			var gas: String = Gas.of(Gas.STEAM, "name") + " 양"
+			return (
+				hot.call(Compounds.MOLTEN)
+				+ [
+					["맞은 적 피해", "%d" % Compounds.QUENCH],
+					["젖은 적 피해", "%d" % Compounds.QUENCH_WET],
+					["끝 칸 " + gas, "%d/%d" % [Compounds.STEAM, Gas.MAX]],
+				]
+			)
+		&"charthorn":
+			return compound(&"thorn") + [["불", "가연성 칸"], ALIGHT_ON]
+		&"palisade":
+			return [["나무벽 체력", "%d" % Tiles.of(World.WOOD_WALL, "health")]]
 	return []
 
 

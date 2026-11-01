@@ -827,7 +827,6 @@ func _step(s: Shot) -> void:
 
 
 func _land(s: Shot) -> void:
-	s.dir = Vector2i.ZERO
 	s.life = Spell.WISP_LIFE
 	emit({t = &"land", shot = s.id, at = s.pos})
 	_effects(s, s.pos)
@@ -856,6 +855,7 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.orb and s.spell.has(Cards.WOOD):
 		Elements.sprout(self, s, at)
 	Compounds.land(self, s, at)
+	s.dir = Vector2i.ZERO
 	Leap.swap(self, s, actor_at(at))
 
 

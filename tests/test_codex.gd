@@ -103,18 +103,22 @@ func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
 	assert_string_contains(_text(Codex.detail(_entry(1, "뿌리기"))), "모양: 투사체 없이")
 
 
-func test_every_compound_is_listed_with_its_two_parts() -> void:
+func test_every_pair_and_3dan_is_listed_with_its_parts_and_no_4dan_is() -> void:
 	var names := _names(2)
 	assert_eq(names.size(), Cards.PAIRS.size() + Cards.TRIPLES.size())
-	for c in Cards.PAIRS:
+	for c in Cards.PAIRS.keys() + Cards.TRIPLES.keys():
 		var text := _text(Codex.detail(_entry(2, Cards.NAME[c])))
-		var parts: Array = Cards.PAIRS[c]
-		assert_string_contains(text, " · %s+%s\n" % [Cards.NAME[parts[0]], Cards.NAME[parts[1]]])
+		var parts: Array = Cards.made_of(c).map(func(e): return Cards.NAME[e])
+		assert_string_contains(text, " · %s\n" % "+".join(parts))
 		assert_eq(text, _text(SpellInfo.combo(c)), c)
-		assert_eq(text.count("꼬리: 2"), 1, "one head line: " + text)
+		var tails := "꼬리: %d" % Spell.price(parts.size())
+		assert_eq(text.count(tails), 1, "one head line: " + text)
 		assert_eq(
 			text.get_slice("\n", 1).split(" ")[0], "모양:", "the head line is followed by the shape"
 		)
+	for table: Dictionary in [Cards.QUADS, Cards.FIVES]:
+		for c: StringName in table:
+			assert_false(names.has(Cards.NAME[c]), c)
 
 
 func test_the_leap_compound_is_listed_with_its_three_parts() -> void:

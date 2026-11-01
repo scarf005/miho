@@ -79,12 +79,12 @@ func test_water_wood_and_fire_merge_into_one_leap_slot_in_any_order() -> void:
 	)
 
 
-func test_other_three_element_picks_still_make_a_compound_and_an_element() -> void:
+func test_other_three_element_picks_make_their_own_compound_and_no_leap() -> void:
 	var picks := {
-		[Cards.WATER, WOOD, Cards.EARTH]: [&"rain", Cards.EARTH],
-		[WOOD, Cards.FIRE, Cards.METAL]: [&"wildfire", Cards.METAL],
-		[Cards.METAL, Cards.WATER, WOOD]: [&"frost", WOOD],
-		[Cards.FIRE, Cards.EARTH, Cards.WATER]: [&"lava", Cards.WATER],
+		[Cards.WATER, WOOD, Cards.EARTH]: [&"swamp"],
+		[WOOD, Cards.FIRE, Cards.METAL]: [&"charthorn"],
+		[Cards.METAL, Cards.WATER, WOOD]: [&"frostbloom"],
+		[Cards.FIRE, Cards.EARTH, Cards.WATER]: [&"geyser"],
 	}
 	for cards in picks:
 		assert_eq(Spell.make(cards).slots, _typed(picks[cards]), str(cards))
@@ -112,7 +112,7 @@ func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_i
 func test_the_leap_slot_leads_a_spell_or_ends_one_projectile() -> void:
 	assert_not_null(Spell.make(LEAP + [Cards.EARTH]))
 	assert_eq(Spell.make(LEAP + [Cards.EARTH]).rest().slots, [Cards.EARTH] as Array[StringName])
-	assert_null(Spell.make([Cards.FIRE, Cards.METAL] + LEAP), "not behind a spray")
+	assert_null(Spell.make([Cards.FIRE, Cards.EARTH, Cards.METAL] + LEAP), "not behind a spray")
 	assert_null(Spell.make([Cards.ORB] + LEAP + [Cards.EARTH]), "last behind a projectile")
 	var swap := Spell.make([Cards.ORB] + LEAP)
 	assert_eq(swap.shape, Spell.ORB)

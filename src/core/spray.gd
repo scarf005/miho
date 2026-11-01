@@ -48,19 +48,35 @@ const FAN_SHAPE := &"fan"
 const LINE := &"line"
 const BURST := &"burst"
 const CLEAVE := &"cleave"
-## compound -> [shape, size]: a fan's radius, a line's length, how far ahead a
-## 3x3 burst lands, or how far ahead a cleave looks for a wall.
+## A line and the wall it runs into.
+const BORE := &"bore"
+## A burst that takes in the walls within its radius.
+const BREACH := &"breach"
+## Tiles across the line, where a wooden wall can grow.
+const ACROSS := &"across"
+## compound -> [shape, size, more]: a fan's radius, a line's length, how far
+## ahead a cleave looks for a wall; for a burst how far ahead it lands and its
+## radius, for tiles across the line how far ahead they lie and how many.
 const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
 	&"lava": [LINE, 4],
 	&"frost": [LINE, 4],
 	&"molten": [LINE, 4],
-	&"shrapnel": [BURST, 3],
-	&"rain": [BURST, 3],
-	&"steam": [BURST, 3],
-	&"mud": [BURST, 2],
+	&"shrapnel": [BURST, 3, 1],
+	&"rain": [BURST, 3, 1],
+	&"steam": [BURST, 3, 1],
+	&"mud": [BURST, 2, 1],
 	&"thorn": [FAN_SHAPE, 2],
 	&"split": [CLEAVE, 3],
+	&"volcano": [BURST, 3, 2],
+	&"furnace": [BORE, 6],
+	&"hail": [BURST, 3, 2],
+	&"frostbloom": [FAN_SHAPE, 3],
+	&"swamp": [BREACH, 3, 2],
+	&"geyser": [BURST, 2, 1],
+	&"quench": [LINE, 5],
+	&"charthorn": [FAN_SHAPE, 3],
+	&"palisade": [ACROSS, 2, 3],
 }
 ## What a lone element's spray is called, by level.
 const NAME := {
@@ -73,6 +89,8 @@ const NAME := {
 
 ## Tiles roots grow under: ground, not bridges.
 static var _roots := Grid.table(func(t): return Tiles.walk[t] == 1 and t != World.BRIDGE)
+## Tiles a burst spreads over: no walls.
+static var _air := Grid.table(func(t): return not Terrain.wall(t))
 
 
 ## What the spray is called; a compound goes by its own name alone.
@@ -185,9 +203,33 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return fan(w, from, dir, n)
 		LINE:
 			return line(w, from, dir, n, false, 0)
+		BORE:
+			return _bore(w, from, dir, n)
 		BURST:
-			return square(w, landing(w, from, dir, shape[1]), 1 + spell.extra(lead))
+			return square(w, landing(w, from, dir, shape[1]), shape[2] + spell.extra(lead))
+		BREACH:
+			return square(w, landing(w, from, dir, shape[1]), shape[2] + spell.extra(lead), true)
+		ACROSS:
+			var mid := landing(w, from, dir, shape[1])
+			return Elements.growable(w, Elements.across(mid, dir, shape[2] + spell.extra(lead)))
 	return cleave(w, from, dir, n)
+
+
+## The tiles compound `c` reaches carried to `at` along `dir`, `r` round it.
+static func carried(
+	w: World, c: StringName, at: Vector2i, dir: Vector2i, r: int
+) -> Array[Vector2i]:
+	match SHAPE[c][0]:
+		CLEAVE:
+			return cleave(w, at, dir, r)
+		BREACH:
+			return square(w, at, r, true)
+		ACROSS:
+			return Elements.growable(w, square(w, at, r))
+	var out := square(w, at, r)
+	if SHAPE[c][0] == BORE and Terrain.wall(w.tile(at + dir)):
+		out.append(at + dir)
+	return out
 
 
 ## Tiles within `r` (Chebyshev) of `from` and within 45° of `dir`, that `from`
@@ -245,6 +287,16 @@ static func _jet(w: World, from: Vector2i, dir: Vector2i, level: int) -> Array[V
 	return out
 
 
+## A line of `n` and the wall it runs into; a creature stops it short of any.
+static func _bore(w: World, from: Vector2i, dir: Vector2i, n: int) -> Array[Vector2i]:
+	var out := line(w, from, dir, n, false, 0)
+	var last: Vector2i = from if out.is_empty() else out.back()
+	var stopped: bool = out.size() < n and (out.is_empty() or w.actor_at(last) == null)
+	if stopped and Grid.inside(last + dir) and Terrain.wall(w.tile(last + dir)):
+		out.append(last + dir)
+	return out
+
+
 static func _open(w: World, p: Vector2i) -> bool:
 	return w.open_air(p) and not (w.tile(p) == World.DOOR and w.opaque(p))
 
@@ -262,13 +314,15 @@ static func landing(w: World, from: Vector2i, dir: Vector2i, n: int) -> Vector2i
 	return p
 
 
-## The tiles within `r` (Chebyshev) of `at`, 3x3 for 1, walls left out.
-static func square(w: World, at: Vector2i, r := 1) -> Array[Vector2i]:
+## The tiles within `r` (Chebyshev) of `at`, 3x3 for 1, that the air reaches
+## from `at`: walls and what lies behind them left out, unless `walls`.
+static func square(w: World, at: Vector2i, r := 1, walls := false) -> Array[Vector2i]:
+	var dist: PackedInt32Array = Grid.search(at, Grid.mask(w.tiles, _air), r).dist
 	var out: Array[Vector2i] = []
 	for y in range(-r, r + 1):
 		for x in range(-r, r + 1):
 			var p := at + Vector2i(x, y)
-			if Grid.inside(p) and not Terrain.wall(w.tile(p)):
+			if Grid.inside(p) and (walls or dist[Grid.index(p)] >= 0):
 				out.append(p)
 	return out
 
@@ -343,6 +397,13 @@ static func on(w: World, s: Shot, tiles: Array[Vector2i]) -> Array[Actor]:
 		if a != null and a.id != s.caster:
 			out.append(a)
 	return out
+
+
+## The creatures, the farthest along `dir` first, so those behind have room.
+static func farthest_first(foes: Array[Actor], dir: Vector2i) -> Array[Actor]:
+	var along := func(a: Actor) -> int: return a.pos.x * dir.x + a.pos.y * dir.y
+	foes.sort_custom(func(a, b): return [-along.call(a), a.id] < [-along.call(b), b.id])
+	return foes
 
 
 ## The spray reaches `a`: false when `a` takes nothing from it.
@@ -420,9 +481,12 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 ## A compound's spray: each compound's effect (Compounds), then each lone
 ## element's plain effect, on every tile and creature.
 static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
+	if tiles.is_empty():
+		return
 	var spell := s.spell
 	for c in spell.compounds():
 		Compounds.ground(w, c, tiles)
+		Compounds.tip(w, c, tiles.back())
 	for p in tiles:
 		if spell.has(Cards.FIRE):
 			w.ignite(p)
@@ -430,9 +494,7 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			Terrain.wash(w, p)
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
 			Terrain.hit(w, p)
-	var foes := on(w, s, tiles)
-	foes.reverse()
-	for a in foes:
+	for a in farthest_first(on(w, s, tiles), s.dir):
 		if not reaches(w, s, a):
 			continue
 		for c in spell.compounds():

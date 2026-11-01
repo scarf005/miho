@@ -121,28 +121,37 @@ static func fells(spell: Spell) -> bool:
 ## `at` and then alternately to either side. Across a diagonal cast it climbs
 ## like stairs, one row or column at a time, so no step slips between its tiles.
 static func wall_tiles(spell: Spell, at: Vector2i, dir: Vector2i) -> Array[Vector2i]:
-	var across := Vector2i(-dir.y, dir.x)
-	var steps := [[across], [-across]]
-	if across.x != 0 and across.y != 0:
+	return across(at, dir, WALL + spell.extra(Cards.WOOD))
+
+
+## `n` tiles across the line `dir` at `at`, as `wall_tiles` lays them.
+static func across(at: Vector2i, dir: Vector2i, n: int) -> Array[Vector2i]:
+	var cross := Vector2i(-dir.y, dir.x)
+	var steps := [[cross], [-cross]]
+	if cross.x != 0 and cross.y != 0:
 		steps = [
-			[Vector2i(across.x, 0), Vector2i(0, across.y)],
-			[Vector2i(0, -across.y), Vector2i(-across.x, 0)],
+			[Vector2i(cross.x, 0), Vector2i(0, cross.y)],
+			[Vector2i(0, -cross.y), Vector2i(-cross.x, 0)],
 		]
 	var ends: Array[Vector2i] = [at, at]
 	var out: Array[Vector2i] = [at]
-	for k in range(1, WALL + spell.extra(Cards.WOOD)):
+	for k in range(1, n):
 		var side := (k - 1) % 2
 		ends[side] += steps[side][((k - 1) / 2) % steps[side].size()]
 		out.append(ends[side])
 	return out
 
 
-## An orb of 나무 ends at `at`: the wooden wall grows on each of its tiles that
-## is open ground with nothing on it, not burning, not a door, the stairs, the
-## elixir or a peach.
+## An orb of 나무 ends at `at`: the wooden wall grows.
 static func sprout(w: World, s: Shot, at: Vector2i) -> void:
-	var grown: Array[Vector2i] = []
-	for p in wall_tiles(s.spell, at, s.dir):
+	grow(w, wall_tiles(s.spell, at, s.dir))
+
+
+## The tiles a wooden wall can grow on: open ground with nothing on it, not
+## burning, not a door, the stairs, the elixir or a peach.
+static func growable(w: World, tiles: Array[Vector2i]) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for p in tiles:
 		var special := p == w.stairs or p == w.elixir or w.peaches.has(p)
 		if (
 			w.open_floor(p)
@@ -152,10 +161,17 @@ static func sprout(w: World, s: Shot, at: Vector2i) -> void:
 			and w.actor_at(p) == null
 			and w.shot_at(p) == null
 		):
-			w.set_tile(p, World.WOOD_WALL)
-			grown.append(p)
+			out.append(p)
+	return out
+
+
+## A wooden wall grows on each of `tiles` it can.
+static func grow(w: World, tiles: Array[Vector2i]) -> void:
+	var grown := growable(w, tiles)
+	for p in grown:
+		w.set_tile(p, World.WOOD_WALL)
 	if not grown.is_empty():
-		w.emit({t = &"sprout", at = at, tiles = grown})
+		w.emit({t = &"sprout", at = grown[0], tiles = grown})
 
 
 ## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
