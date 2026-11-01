@@ -174,7 +174,7 @@ func panel() -> Dictionary:
 	for e in list:
 		rows.append([[e.glyph, e.color, 2.0], [e.name, Palette.TEXT, 4.0]])
 	var lines := _lines()
-	var fits := _fits()
+	var fits := _lines_fit()
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
 	var shown := lines.slice(scroll, scroll + fits).map(_legible)
 	return {
@@ -211,10 +211,10 @@ func key(e: InputEventKey, nav: StringName) -> StringName:
 		go(pick - 1)
 	elif nav in [&"left", &"right", &"tab_prev", &"tab_next"]:
 		go(posmod(tab + (1 if nav in [&"right", &"tab_next"] else -1), TABS.size()))
-	elif nav == &"page_down" and scroll < _lines().size() - _fits():
-		scroll = ListNav.scrolled(scroll, maxi(1, _fits() - 1), _lines().size(), _fits())
+	elif nav == &"page_down" and scroll < _lines().size() - _lines_fit():
+		scroll = ListNav.scrolled(scroll, maxi(1, _lines_fit() - 1), _lines().size(), _lines_fit())
 	elif nav == &"page_up" and scroll > 0:
-		scroll = ListNav.scrolled(scroll, -maxi(1, _fits() - 1), _lines().size(), _fits())
+		scroll = ListNav.scrolled(scroll, -maxi(1, _lines_fit() - 1), _lines().size(), _lines_fit())
 	else:
 		select(ListNav.step(nav, selected, entries(tab).size(), _fits()))
 	return &""
@@ -231,10 +231,15 @@ func select(k: int) -> void:
 ## Scrolls `dir` notches of the wheel: the detail when the pointer is over it,
 ## else the list.
 func wheel(dir: int, aside: bool) -> void:
+	scroll_by(dir * ListNav.WHEEL, aside)
+
+
+## Scrolls `lines` lines of the detail, or rows of the list.
+func scroll_by(lines: int, aside: bool) -> void:
 	if aside:
-		scroll = ListNav.scrolled(scroll, dir * ListNav.WHEEL, _lines().size(), _fits())
+		scroll = ListNav.scrolled(scroll, lines, _lines().size(), _lines_fit())
 	else:
-		top = ListNav.scrolled(top, dir * ListNav.WHEEL, entries(tab).size(), _fits())
+		top = ListNav.scrolled(top, lines, entries(tab).size(), _fits())
 
 
 func go(t: int) -> void:
@@ -249,9 +254,14 @@ func _lines() -> Array:
 	return flow(detail(entries(tab, rank)[selected]), room.x - SIDE_X - 1.0)
 
 
-## Lines of the detail, and rows of the list, that fit.
+## Rows of the list that fit.
 func _fits() -> int:
-	return Term.list_fits(room.y, 0)
+	return PanelView.fits(room.y, 0)
+
+
+## Lines of the detail that fit.
+func _lines_fit() -> int:
+	return PanelView.lines_fit(room.y, 0)
 
 
 static func _entry(glyph: String, color: Color, name: String, lines: Callable) -> Dictionary:

@@ -24,8 +24,6 @@ extends Node
 ## The run is saved after every round (SaveGame) and the title continues it; a
 ## run that ends leaves no save.
 
-const REPLAY_ZOOM := 1.5
-const REPLAY_SPEED := 0.7
 ## How much faster rounds play while walking many rounds.
 const WALK_SPEED := 3.0
 ## Message lines shown over the map, and for how many rounds.
@@ -39,6 +37,7 @@ const REPLAY_BUDGET_MS := 40
 var world: World
 var term: Term
 var sfx: Sfx
+var touch := Touch.new()
 var reel := Highlight.new()
 var picked: Array[StringName] = []
 var staged: Array[Dictionary] = []
@@ -102,6 +101,9 @@ func _ready() -> void:
 	settings = Settings.load_from()
 	term = Term.new()
 	add_child(term)
+	touch.main = self
+	add_child(touch)
+	touch.start()
 	sfx = Sfx.new()
 	term.add_child(sfx)
 	term.shown.connect(sfx.on_event)
@@ -130,7 +132,10 @@ func _show_title() -> void:
 	term.banner_lines = [
 		"미호",
 		"천상누각 꼭대기에 사람이 되는 영약이 있다",
-		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
+		touch.say(
+			"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
+			"화면을 눌러 시작" if pending == null else ""
+		),
 	]
 
 
@@ -140,14 +145,22 @@ func _apply() -> void:
 	settings.apply_sound()
 	sfx.set_music(settings.music)
 	term.saved = settings.spells
-	glass.visible = settings.crt
+	glass.visible = settings.crt and not touch.enabled
 	term.speed = settings.speed
 	_fit()
 
 
 func _fit() -> void:
-	if state != &"replay":
+	if state == &"replay":
+		return
+	if touch.enabled:
+		touch.fit()
+	else:
 		term.fit(get_viewport().get_visible_rect().size, settings.zoom)
+	if overlay != &"":
+		menu.room = Vector2i(term.cols, term.rows)
+		menu.codex.room = menu.room
+		term.panel = menu.panel()
 
 
 func _new_run(seed_value := randi()) -> void:
@@ -176,8 +189,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		halt = halt or walking and press
 		skip = skip or press
 		term.rush()
-	if event is InputEventMouseMotion:
-		_point(event.position)
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		touch.input(event)
+	elif event is InputEventMouseMotion:
+		if not touch.gesture.touching():
+			_point(event.position)
 	elif walked:
 		pass
 	elif busy or not event.is_pressed() or event.is_echo() and overlay == &"" and state != &"play":
@@ -192,9 +208,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif Keys.action_of(event) == &"confirm" or _left_click(event):
 			_continue()
 	elif state == &"title":
-		state = &"play"
-		term.banner_lines = []
-		sfx.play(&"card")
+		_begin()
 	elif state == &"over":
 		if Keys.action_of(event) == &"restart":
 			_restart()
@@ -202,6 +216,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_key(event)
 	elif event is InputEventMouseButton and press:
 		_click(event)
+
+
+func _begin() -> void:
+	state = &"play"
+	term.banner_lines = []
+	sfx.play(&"card")
 
 
 static func _left_click(event: InputEvent) -> bool:
@@ -258,19 +278,24 @@ func _restart() -> void:
 ## Repeats that arrive while a round plays are dropped, so none pile up.
 func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
-	if event.is_echo() and not Keys.MOVES.has(action):
-		return
+	if not event.is_echo() or Keys.MOVES.has(action):
+		_do(action, event.shift_pressed)
+
+
+## What a key means, or a button of the touch screen: `action` is a Keys action,
+## `shift` holds a spell with a direction.
+func _do(action: StringName, shift: bool) -> void:
 	var eat := _eats_move()
 	if shutting:
 		shutting = false
 		if Keys.MOVES.has(action):
 			_act({t = &"close", dir = Keys.MOVES[action]})
 		return
-	if looking and _look_key(action, event.shift_pressed):
+	if looking and _look_key(action, shift):
 		return
 	if Keys.MOVES.has(action):
 		if not eat:
-			_direction(Keys.MOVES[action], event.shift_pressed)
+			_direction(Keys.MOVES[action], shift)
 	elif action.begins_with("pick_"):
 		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
@@ -279,7 +304,7 @@ func _key(event: InputEventKey) -> void:
 	elif action in [&"wait", &"confirm"] and not picked.is_empty():
 		_hurl_at_cursor()
 	elif action == &"self" and not picked.is_empty():
-		_direction(Vector2i.ZERO, event.shift_pressed)
+		_direction(Vector2i.ZERO, shift)
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"unpick":
@@ -335,7 +360,7 @@ func _click(event: InputEventMouseButton) -> void:
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
 	var local := _local(event.position)
-	var card := StatusBar.card_at(term, local)
+	var card: StringName = term.bar.card_at(term, local)
 	if card != &"":
 		_add(card)
 		return
@@ -367,6 +392,10 @@ func _use_tile(tile: Vector2i, hold: bool) -> void:
 
 
 ## A screen point in the term's space, through the CRT curve when it is on.
+func _mouse() -> Vector2:
+	return Touch.OFF if touch.enabled else get_viewport().get_mouse_position()
+
+
 func _local(screen: Vector2) -> Vector2:
 	if glass.visible:
 		screen = Crt.flat(screen, get_viewport().get_visible_rect().size)
@@ -376,15 +405,15 @@ func _local(screen: Vector2) -> Vector2:
 func _point(screen: Vector2) -> void:
 	var local := _local(screen)
 	if overlay != &"":
-		menu.point(term.panel_row_at(local))
+		menu.point(PanelView.row_at(term, local))
 		term.panel = menu.panel()
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
 		tile = term.side_at(local)
-	var card := StatusBar.card_at(term, local)
-	var status := StatusBar.status_at(term, local)
-	var spell := StatusBar.slot_at(term, local) + StatusBar.hand_at(term, local)
-	var slot := StatusBar.queue_at(term, local)
+	var card: StringName = term.bar.card_at(term, local)
+	var status: bool = term.bar.status_at(term, local)
+	var spell: String = term.bar.slot_at(term, local) + term.bar.hand_at(term, local)
+	var slot: int = term.bar.queue_at(term, local)
 	if (
 		tile != hover
 		or card != hover_card
@@ -437,7 +466,7 @@ func _look_at(tile: Vector2i) -> void:
 ## Ends look mode; the cursor goes back to the pointer.
 func _stop_look() -> void:
 	looking = false
-	_point(get_viewport().get_mouse_position())
+	_point(_mouse())
 
 
 ## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
@@ -541,7 +570,7 @@ func _unpick() -> void:
 func _clear() -> void:
 	picked.clear()
 	staged.clear()
-	_point(get_viewport().get_mouse_position())
+	_point(_mouse())
 	_forecast()
 
 
@@ -607,11 +636,11 @@ func _act(action: Dictionary) -> Array:
 		last_spell = "+".join(action.spells.back().cards)
 		picked.clear()
 		staged.clear()
-		_point(get_viewport().get_mouse_position())
+		_point(_mouse())
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
 		if settings.replay:
-			await _replay()
+			await Replay.play(self)
 		reel.clear()
 	if world.outcome != &"":
 		state = &"over"
@@ -621,7 +650,7 @@ func _act(action: Dictionary) -> Array:
 			"%d층 · %d초" % [world.depth, world.round_no],
 			"처치 %d" % kills,
 			"시드 %d" % run_seed,
-			"%s키를 눌러 재시작" % again,
+			touch.say("%s키를 눌러 재시작" % again),
 		]
 	busy = false
 	_forecast()
@@ -768,6 +797,8 @@ func _show_log() -> void:
 ## Shows a full-screen panel: a Menu page.
 func _open(kind: StringName) -> void:
 	overlay = kind
+	if touch.enabled:
+		_fit()
 	menu.log_rows = messages.lines.map(Messages.shown)
 	menu.seed_value = run_seed
 	menu.codex.rank = Bestiary.rank(world.depth)
@@ -786,9 +817,9 @@ func _panel_input(event: InputEvent) -> void:
 	elif button == MOUSE_BUTTON_RIGHT:
 		command = menu.back()
 	elif button in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, term.panel_aside_at(local))
+		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, PanelView.aside_at(term, local))
 	elif button == MOUSE_BUTTON_LEFT:
-		command = menu.click(term.panel_row_at(local), term.panel_tab_at(local))
+		command = menu.click(PanelView.row_at(term, local), PanelView.tab_at(term, local))
 	match command:
 		&"close":
 			_close()
@@ -825,56 +856,8 @@ func _quit() -> void:
 func _close() -> void:
 	overlay = &""
 	term.panel = {}
-
-
-## The storey's best moment, zoomed in on Miho and slowed down; any key skips it.
-func _replay() -> void:
-	var window := reel.best()
-	if window.is_empty():
-		return
-	var clip := reel.clip(window)
-	var w: World = clip.world
-	state = &"replay"
-	skip = false
-	term.replay = true
-	term.speed = REPLAY_SPEED * settings.speed
-	term.fit(get_viewport().get_visible_rect().size, 0.0)
-	term.show_world(w)
-	_follow(w, 0.5)
-	await get_tree().create_timer(0.5).timeout
-	for action in clip.actions:
-		if skip:
-			break
-		var before := w.clone()
-		var events := w.act(action)
-		_follow(w, 0.6)
-		await term.play(events, before, w)
-		if not skip:
-			await get_tree().create_timer(0.3).timeout
-	pan.kill()
-	term.replay = false
-	term.speed = settings.speed
-	state = &"play"
-	_fit()
-	term.show_world(world)
-
-
-## Pans the zoomed, whole-map screen so Miho stays in the middle without
-## showing past the map; a map narrower than the screen stays centred.
-func _follow(w: World, time: float) -> void:
-	var view := get_viewport().get_visible_rect().size
-	var whole := Vector2(Term.MAP.x + Grid.W, Grid.H + 2) * Term.CELL
-	var k := minf(view.x / whole.x, view.y / whole.y) * REPLAY_ZOOM
-	var map := term.map_rect()
-	var at := view / 2.0 - term.cell_centre(w.player().pos) * k
-	for axis in 2:
-		var lo := view[axis] - map.end[axis] * k
-		var hi := -map.position[axis] * k
-		at[axis] = clampf(at[axis], lo, hi) if lo <= hi else (lo + hi) / 2.0
-	pan = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
-	pan.tween_property(term, "scale", Vector2(k, k), time)
-	pan.tween_property(term, "position", at.round(), time)
-	sfx.listener.position = term.cell_centre(w.player().pos)
+	if touch.enabled:
+		_fit()
 
 
 ## What each choice would do, from what Miho knows: the reach of the spell in

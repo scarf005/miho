@@ -101,6 +101,14 @@ var rows := 18
 var cam := Vector2i.ZERO
 ## How far the loudest noise Miho saw in the last round was heard, in tiles (NoiseMeter).
 var noise := 0
+## The cells the sidebar takes, which is also where the map area starts, and the rows
+## under the map for status (a touch screen has neither, TouchHud holds its status).
+var side := MAP
+var foot := 2
+## What draws and finds the status rows: StatusBar or a TouchHud.
+var bar: Variant = StatusBar
+## The smallest a cell may shrink to in the info box, in screen units.
+var readable := InfoBox.READABLE * CELL.x
 
 var _font: FontFile
 ## The hold `play` waits on.
@@ -132,23 +140,23 @@ func _ready() -> void:
 
 ## Fills `view` (in the parent's space) with cells at `zoom` times their size,
 ## or, at zoom 0, at the size that shows the whole map with sidebar and status rows.
-func fit(view: Vector2, zoom: float) -> void:
+func fit(view: Vector2, zoom: float, origin := Vector2.ZERO) -> void:
 	var k := zoom
 	if k <= 0.0:
 		var whole := Vector2(MAP.x + Grid.W, Grid.H + 2) * CELL
 		k = minf(view.x / whole.x, view.y / whole.y)
-	cols = maxi(MAP.x + 1, floori(view.x / (CELL.x * k)))
+	cols = maxi(side.x + 1, floori(view.x / (CELL.x * k)))
 	rows = maxi(4, floori(view.y / (CELL.y * k)))
 	size = Vector2(cols, rows) * CELL
 	scale = Vector2(k, k)
-	position = ((view - size * k) / 2.0).round()
+	position = origin + ((view - size * k) / 2.0).round()
 	if world != null:
 		follow(world.player().pos)
 
 
 ## Map tiles the map area holds across and down.
 func map_view() -> Vector2i:
-	return Vector2i(cols - MAP.x, rows - 2)
+	return Vector2i(cols - side.x, rows - foot)
 
 
 ## Moves the camera only as far as needed to keep p a few tiles from the map
@@ -167,15 +175,15 @@ func follow(p: Vector2i) -> void:
 
 ## The part of this node's space where map tiles are drawn.
 func map_rect() -> Rect2:
-	var from := Vector2(MAP) + Vector2(maxi(0, -cam.x), maxi(0, -cam.y))
+	var from := Vector2(side) + Vector2(maxi(0, -cam.x), maxi(0, -cam.y))
 	var v := map_view()
-	var to := Vector2(MAP) + Vector2(mini(v.x, Grid.W - cam.x), mini(v.y, Grid.H - cam.y))
+	var to := Vector2(side) + Vector2(mini(v.x, Grid.W - cam.x), mini(v.y, Grid.H - cam.y))
 	return Rect2(from * CELL, (to - from) * CELL)
 
 
 ## The screen cell of map tile p, and whether it is inside the map area.
 func _cell(p: Vector2i) -> Vector2:
-	return Vector2(MAP + p - cam)
+	return Vector2(side + p - cam)
 
 
 func _shown(p: Vector2i) -> bool:
@@ -367,14 +375,14 @@ func cell_centre(p: Vector2i) -> Vector2:
 
 ## The map tile under a point in this node's space, or (-1, -1).
 func tile_at(local: Vector2) -> Vector2i:
-	var c := Vector2i((local / CELL).floor()) - MAP + cam
+	var c := Vector2i((local / CELL).floor()) - side + cam
 	return c if Grid.inside(c) and _shown(c) else Vector2i(-1, -1)
 
 
 ## Where the creature listed in the sidebar under a point stands, or (-1, -1).
 func side_at(local: Vector2) -> Vector2i:
 	var c := Vector2i((local / CELL).floor())
-	if world == null or c.x < 0 or c.x >= MAP.x or c.y < 0 or c.y >= rows - 2:
+	if world == null or c.x < 0 or c.x >= side.x or c.y < 0 or c.y >= rows - foot:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
@@ -473,8 +481,9 @@ func _draw() -> void:
 		else:
 			_text(at, p.text, Color(c, 1.0 - k * k))
 	if not replay:
-		_draw_side(actors, me_pos)
-		StatusBar.draw(self)
+		if side.x > 0:
+			_draw_side(actors, me_pos)
+		bar.draw(self)
 		if banner_lines.is_empty():
 			_draw_log()
 		_draw_info()
@@ -482,14 +491,17 @@ func _draw() -> void:
 	if not banner_lines.is_empty():
 		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
 	var top := maxi(0, (v.y - banner_lines.size() * 2) / 2)
+	var y := top
 	for i in banner_lines.size():
-		var line := banner_lines[i]
 		var color: Color = Palette.KIND[&"miho"] if i == 0 else Palette.TEXT
-		var w := _cells(line)
-		var x := clampf(MAP.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
-		_text(Vector2(x, top + i * 2), line, color)
+		for row: Array in rows_of([[banner_lines[i], color]], cols):
+			var w: float = row.reduce(func(n, r): return n + _cells(r[0]), 0.0)
+			var x := clampf(side.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
+			_text(Vector2(x, y), "".join(row.map(func(r): return r[0])), color)
+			y += 1
+		y += 1
 	if not panel.is_empty():
-		_draw_panel()
+		PanelView.draw(self)
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
@@ -687,7 +699,7 @@ func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 		func(a): return a.faction != Actor.FOX and _revealed(a.pos) and not _hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	return list.slice(0, (rows - 2) / SIDE_ROWS)
+	return list.slice(0, (rows - foot) / SIDE_ROWS)
 
 
 ## Creatures in sight, nearest first, as Brogue lists them: glyph and name, hearts,
@@ -751,8 +763,8 @@ func _draw_info() -> void:
 ## too small to read, on the far side from the map tile `p` (null for none).
 func _info_fit(p: Variant = null) -> Dictionary:
 	var v := map_view()
-	var room := Rect2(Vector2(MAP), Vector2(v))
-	var least := minf(1.0, InfoBox.READABLE / scale.x)
+	var room := Rect2(Vector2(side), Vector2(v))
+	var least := minf(1.0, readable / (CELL.x * scale.x))
 	var fit := InfoBox.layout(info, room.size, least)
 	if fit.scale < least:
 		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
@@ -770,11 +782,11 @@ func _draw_log() -> void:
 	var k := 0
 	for line: Array in log_lines:
 		var alpha: float = line[1]
-		for runs: Array in rows_of(line[0], cols - MAP.x - 1.0):
+		for runs: Array in rows_of(line[0], cols - side.x - 1.0):
 			var width: float = runs.reduce(func(n, r): return n + _cells(r[0]), 0.0)
-			var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
+			var box := Rect2(Vector2(side.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
 			draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
-			var x := MAP.x + 0.5
+			var x := side.x + 0.5
 			for run: Array in runs:
 				_text(Vector2(x, k), run[0], Color(run[1], alpha))
 				x += _cells(run[0])
@@ -802,89 +814,6 @@ static func rows_of(runs: Array, width: float) -> Array:
 				out[-1].append([word, run[1]])
 				x += _cells(word)
 	return out
-
-
-## Rows of a panel list that fit on `screen_rows` rows under a detail of `detail` lines.
-static func list_fits(screen_rows: int, detail: int) -> int:
-	return maxi(1, screen_rows - 4 - (detail + 1 if detail > 0 else 0))
-
-
-## Rows of the panel that fit, and the first one shown (`top`).
-func _panel_span() -> Vector2i:
-	var fits := list_fits(rows, panel.get("detail", []).size())
-	var count: int = panel.rows.size()
-	return Vector2i(clampi(panel.get("top", 0), 0, maxi(0, count - fits)), fits)
-
-
-func _draw_panel() -> void:
-	draw_rect(
-		Rect2(Vector2.ZERO, size), Color(Palette.VOID, 1.0 if panel.get("opaque", false) else 0.92)
-	)
-	var detail: Array = panel.get("detail", [])
-	for k in detail.size():
-		var y := rows - detail.size() + k
-		var x := 2.0
-		for run: Array in detail[k]:
-			_text(Vector2(x, y), run[0], run[1])
-			x += _cells(run[0])
-	_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
-	var tab_x := 6.0
-	for k in panel.get("tabs", []).size():
-		_text(Vector2(tab_x, 1), panel.tabs[k], Palette.TEXT if k == panel.tab else Palette.DIM)
-		tab_x += _cells(panel.tabs[k]) + 1.0
-	var aside_x: float = panel.get("aside_x", cols)
-	for k in panel.get("aside", []).size():
-		var x := aside_x
-		for run: Array in panel.aside[k]:
-			_text(Vector2(x, 3 + k), run[0], run[1])
-			x += _cells(run[0])
-	if panel.get("aside_up", false):
-		_glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
-	if panel.get("aside_down", false):
-		_glyph(Vector2(cols - 2, rows - 1), "▼", Palette.DIM)
-	var span := _panel_span()
-	for k in range(span.x, mini(span.x + span.y, panel.rows.size())):
-		var y := 3 + k - span.x
-		if k == panel.get("selected", -1) or k == panel.get("hover", -1):
-			draw_rect(
-				Rect2(Vector2(1, y) * CELL, Vector2(minf(aside_x, cols) - 2, 1) * CELL),
-				Color(Palette.TEXT, 0.15 if k == panel.get("selected", -1) else 0.07)
-			)
-		var x := 2.0
-		for run: Array in panel.rows[k]:
-			x = run[2] if run.size() > 2 else x
-			_text(Vector2(x, y), run[0], run[1])
-			x += _cells(run[0])
-	if span.x > 0:
-		_glyph(Vector2(1, 2), "▲", Palette.DIM)
-	if span.x + span.y < panel.rows.size():
-		_glyph(Vector2(1, 3 + span.y), "▼", Palette.DIM)
-
-
-## The panel row under a point in this node's space, or -1 (the detail beside the
-## list holds no rows).
-func panel_row_at(local: Vector2) -> int:
-	if panel.is_empty() or panel_aside_at(local):
-		return -1
-	var span := _panel_span()
-	var k := floori(local.y / CELL.y) - 3 + span.x
-	return k if k >= span.x and k < mini(span.x + span.y, panel.rows.size()) else -1
-
-
-## The panel tab under a point in this node's space, or -1.
-func panel_tab_at(local: Vector2) -> int:
-	var x := 6.0
-	for k in panel.get("tabs", []).size():
-		var width := _cells(panel.tabs[k]) + 1.0
-		if floori(local.y / CELL.y) == 1 and local.x / CELL.x >= x and local.x / CELL.x < x + width:
-			return k
-		x += width
-	return -1
-
-
-## Whether a point in this node's space is over the panel's detail.
-func panel_aside_at(local: Vector2) -> bool:
-	return not panel.is_empty() and local.x / CELL.x >= panel.get("aside_x", cols)
 
 
 ## Health as hearts, at most `room` of them; more health is written as a number.

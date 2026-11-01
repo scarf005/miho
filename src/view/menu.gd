@@ -114,7 +114,7 @@ func panel() -> Dictionary:
 
 ## Rows of the page's list that fit.
 func _fits() -> int:
-	return Term.list_fits(room.y, panel().get("detail", []).size())
+	return PanelView.fits(room.y, panel().get("detail", []).size())
 
 
 ## Handles a key press.
@@ -234,10 +234,15 @@ func click(row: int, tab: int) -> StringName:
 
 ## The wheel turns `dir` notches (1 down) over the detail (`aside`) or the list.
 func wheel(dir: int, aside: bool) -> void:
+	scroll_by(dir * ListNav.WHEEL, aside)
+
+
+## Scrolls `lines` rows of the list, or lines of the 도감's detail.
+func scroll_by(lines: int, aside: bool) -> void:
 	if page == &"codex":
-		codex.wheel(dir, aside)
+		codex.scroll_by(lines, aside)
 	else:
-		top = ListNav.scrolled(top, dir * ListNav.WHEEL, panel().rows.size(), _fits())
+		top = ListNav.scrolled(top, lines, panel().rows.size(), _fits())
 
 
 ## Enter on the selected row.
