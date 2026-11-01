@@ -1,6 +1,7 @@
 godot := env_var_or_default("GODOT", "godot")
 web_port := env_var_or_default("WEB_PORT", "4180")
 # Emscripten 4.0.20, the version the Godot 4.7.2 web templates are built with.
+nightly := env_var_or_default("MIHO_NIGHTLY", "nightly")
 emsdk := env_var_or_default("MIHO_EMSDK", data_directory() / "emsdk-4.0.20")
 
 # List recipes.
@@ -17,7 +18,7 @@ rust-web:
     set -euo pipefail
     source "{{ emsdk }}/emsdk_env.sh" >/dev/null 2>&1
     cd rust  # for .cargo/config.toml
-    cargo +nightly build --release --quiet -Zbuild-std --target wasm32-unknown-emscripten
+    cargo +{{ nightly }} build --release --quiet -Zbuild-std --target wasm32-unknown-emscripten
 
 # Play on the desktop.
 run: rust
