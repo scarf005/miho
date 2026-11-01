@@ -1,6 +1,6 @@
 class_name Yard
 extends RefCounted
-## 장승 마당: a 장승 at one end of a room never sleeps, and stone lamps along
+## 장승 마당: a 장승 at one end of a room guards it, and stone lamps along
 ## its two long sides light the whole yard, so whoever walks in is seen. A grove
 ## of bamboo (hides whoever stands in it from all but the tiles next to it) and
 ## two pillars (shade the tiles behind them) are the safe tiles. On the stand

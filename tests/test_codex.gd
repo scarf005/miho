@@ -81,7 +81,7 @@ func test_no_entry_tells_how_it_stands_now() -> void:
 			var text := _text(Codex.detail(e))
 			for part in now + light:
 				assert_false(text.contains(part), "%s: %s" % [e.name, part])
-			for state in Info.STATE + ["자는 중", "순찰 중", "돌아가는 중", "도망치는 중"]:
+			for state in Info.STATE + ["자는 중", "순찰 중", "돌아가는 중"]:
 				assert_false(text.split("\n").has(state), "%s: %s" % [e.name, state])
 
 

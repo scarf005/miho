@@ -37,6 +37,7 @@ const WALL := 3
 static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	var spell := s.spell
 	if absorbed(w, s, a):
+		Mind.struck(w, a, s)
 		return false
 	harm(w, s, a, n)
 	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
@@ -102,7 +103,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 				)
 				if Bestiary.burns(b.kind):
 					Status.ignite(w, b)
-				Mind.provoke(w, b, w.actor(s.caster))
+			Mind.struck(w, b, s)
 		var o := w.shot_at(p, s)
 		if o != null and not o.spell.orb:
 			o.gone = true

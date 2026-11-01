@@ -77,11 +77,8 @@ static func _profile(a: Actor) -> Array:
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting. One hunting at 1
-## health or alight runs.
+## shut), on patrol, walking back home, or just resting.
 static func state(a: Actor) -> String:
-	if a.fleeing():
-		return "도망치는 중"
 	if a.alert != Actor.REST:
 		return STATE[a.alert]
 	if a.asleep():
@@ -328,7 +325,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	var out := [WITS[Bestiary.wits(a.kind)]]
 	if spec.get("patrol", false):
 		out.append("순찰")
-	if a.guard:
+	if spec.get("move", &"static") == &"static":
 		out.append("잠들지 않음")
 	if spec.get("step", 0) > 0:
 		out.append("발소리: %d칸" % spec.step)

@@ -185,7 +185,7 @@ func test_a_walk_stops_when_the_stairs_or_a_peach_first_come_into_sight() -> voi
 func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
 	var w := _world()
 	assert_false(Travel.watched(w))
-	var foe := FloorGen.spawn(w, &"jangseung", Vector2i(12, 8))
+	var foe := FloorGen.spawn(w, &"imugi", Vector2i(12, 8))
 	foe.home = foe.pos
 	assert_true(foe.asleep())
 	assert_false(Travel.watched(w), "one asleep")
@@ -193,6 +193,22 @@ func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
 	assert_true(Travel.watched(w))
 	w.seen[Grid.index(foe.pos)] = 0
 	assert_false(Travel.watched(w), "one out of sight")
+
+
+func test_a_statue_in_sight_blocks_exploring_only_while_it_hunts() -> void:
+	var w := _world()
+	var post := FloorGen.spawn(w, &"jangseung", Vector2i(12, 8))
+	assert_false(post.asleep(), "a 장승 never sleeps")
+	assert_true(Travel.in_sight(w).has(post.id))
+	assert_false(Travel.watched(w), "it has not noticed her and cannot walk into her way")
+	post.alert = Actor.SEARCH
+	assert_false(Travel.watched(w))
+	post.alert = Actor.HUNT
+	assert_true(Travel.watched(w))
+	var other := FloorGen.spawn(w, &"dokkaebi", Vector2i(13, 8))
+	post.alert = Actor.REST
+	other.home = other.pos + Vector2i(1, 0)
+	assert_true(Travel.watched(w), "one that walks still counts")
 
 
 func test_a_walk_stops_when_the_storey_changes() -> void:

@@ -70,22 +70,23 @@ func test_a_cunning_creature_that_sees_a_wisp_hunts_from_where_it_came() -> void
 	assert_true(events.any(func(e): return e.t == &"notice" and e.id == foe.id))
 
 
-func test_a_creature_that_saw_the_orb_coming_keeps_that_reaction_when_it_is_struck() -> void:
+func test_a_creature_that_saw_the_orb_coming_looks_to_where_it_came_from_until_it_is_struck(
+) -> void:
 	var w := _world()
 	var foe := _foe(w, SHARP, Vector2i(9, 8))
 	foe.hp = 5
 	w.act(_cast([Cards.ORB]))
 	assert_eq(foe.hp, 5, "the orb is still flying")
-	assert_eq(foe.target, ME, "it saw the lit orb and looked to where it came from")
+	assert_eq(foe.alert, Actor.SEARCH, "it saw the lit orb")
+	assert_eq(foe.target, ME)
 	w.act(WAIT)
 	assert_lt(foe.hp, 5, "the orb struck it")
-	assert_eq(foe.target, ME, "and not the strike's own tile or the view edge")
+	assert_eq(foe.alert, Actor.HUNT)
+	assert_eq(foe.target, ME)
 
 
-func _struck(kind: StringName, lit := false) -> Actor:
+func _struck(kind: StringName) -> Actor:
 	var w := _world()
-	if lit:
-		w.tiles[Grid.index(ME + Vector2i(0, 1))] = World.LANTERN
 	var foe := _foe(w, kind, Vector2i(7, 8))
 	foe.hp = 5
 	w.act(_cast([Cards.ORB]))
@@ -93,32 +94,21 @@ func _struck(kind: StringName, lit := false) -> Actor:
 	return foe
 
 
-func test_a_dull_creature_hit_by_an_unseen_orb_looks_around_its_own_tile() -> void:
+func test_a_creature_hit_by_an_unseen_orb_hunts_miho_whatever_its_wits() -> void:
+	for kind in [SHARP, CUNNING]:
+		var foe := _struck(kind)
+		assert_eq(foe.alert, Actor.HUNT, kind)
+		assert_eq(foe.target, ME, kind)
+		assert_false(foe.sees_me, "it cannot see her in the dark: " + kind)
+
+
+func test_a_dull_statue_hit_by_an_unseen_orb_cannot_walk_to_her_and_searches_her_tile() -> void:
 	var foe := _struck(DULL)
-	assert_eq(foe.alert, Actor.SEARCH)
-	assert_eq(foe.target, Vector2i(7, 8))
-
-
-func test_a_sharp_creature_hit_by_an_unseen_orb_searches_back_along_the_flight_to_its_view_edge(
-) -> void:
-	var foe := _struck(SHARP)
-	assert_eq(foe.alert, Actor.SEARCH)
-	assert_eq(foe.target, Vector2i(5, 8), "wary, it sees two tiles in the dark")
-
-
-func test_a_cunning_creature_hit_by_an_unseen_orb_searches_where_it_came_from() -> void:
-	var foe := _struck(CUNNING)
 	assert_eq(foe.alert, Actor.SEARCH)
 	assert_eq(foe.target, ME)
 
 
-func test_a_cunning_creature_hit_by_an_unseen_orb_hunts_if_it_then_sees_miho() -> void:
-	var foe := _struck(CUNNING, true)
-	assert_eq(foe.alert, Actor.HUNT)
-	assert_true(foe.sees_me)
-
-
-func test_a_hit_hunter_keeps_hunting() -> void:
+func test_a_hit_hunter_learns_where_miho_is() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(7, 8))
 	foe.hp = 5
@@ -126,7 +116,31 @@ func test_a_hit_hunter_keeps_hunting() -> void:
 	foe.target = Vector2i(20, 3)
 	w.act(_cast([Cards.ORB]))
 	assert_eq(foe.alert, Actor.HUNT)
-	assert_eq(foe.target, Vector2i(20, 3))
+	assert_eq(foe.target, ME)
+
+
+func test_a_wisp_that_strikes_a_creature_makes_it_hunt_but_one_that_lands_elsewhere_only_lures(
+) -> void:
+	var hit := _world()
+	var foe := _foe(hit, SHARP, Vector2i(7, 8))
+	hit.act(_cast([Cards.FOX]))
+	assert_eq(foe.alert, Actor.HUNT, "the wisp struck it")
+	assert_eq(foe.target, ME)
+	var miss := _world()
+	var far := _foe(miss, DULL, Vector2i(12, 4))
+	miss.act(_cast([Cards.FOX]))
+	assert_eq(far.alert, Actor.SEARCH, "it only saw the wisp hover")
+	assert_eq(far.target, Vector2i(8, 8))
+
+
+func test_a_forecast_of_a_hit_hunts_like_the_real_round() -> void:
+	var w := _world()
+	var foe := _foe(w, SHARP, Vector2i(7, 8))
+	var after := w.preview(_cast([Cards.ORB]))
+	w.act(_cast([Cards.ORB]))
+	assert_eq(after.actor(foe.id).alert, foe.alert)
+	assert_eq(after.actor(foe.id).target, foe.target)
+	assert_eq(after.rng.state, w.rng.state)
 
 
 func test_any_hurt_with_no_projectile_makes_a_resting_creature_look_around_whatever_its_wits(
@@ -224,3 +238,24 @@ func test_the_observation_tells_the_wits_and_the_wariness() -> void:
 		assert_false(text.contains("wary"), text)
 		foe.wary = 12
 		assert_string_contains(Observation._creature(w, foe), ", wary 12")
+
+
+func test_a_bulgae_hit_by_a_fire_orb_from_the_dark_hunts_miho_and_closes_in() -> void:
+	var w := _world()
+	w.cards.assign([Cards.FIRE, Cards.ORB])
+	var foe := _foe(w, &"bulgae", ME + Vector2i(6, 0))
+	var struck := false
+	for i in 12:
+		foe.post = foe.pos
+		var events := w.act(WAIT if i > 0 else _cast([Cards.FIRE, Cards.ORB]))
+		struck = events.any(func(e): return e.t == &"absorb" and e.id == foe.id)
+		if struck:
+			break
+	assert_true(struck, "the orb reached it")
+	assert_false(foe.sees_me, "it cannot see her in the dark")
+	assert_eq(foe.alert, Actor.HUNT)
+	assert_eq(foe.target, ME)
+	foe.cooldown = 99
+	var gap := Grid.cheb(foe.pos, ME)
+	w.act(WAIT)
+	assert_lt(Grid.cheb(foe.pos, ME), gap, "it comes for her")

@@ -143,8 +143,6 @@ static func _creature(k: World, a: Actor) -> String:
 		"%s %s (%d,%d) hp %d/%d, %s"
 		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.alert]]
 	)
-	if a.fleeing():
-		line += ", fleeing"
 	if Guise.knows(k, a):
 		line += ", sees Miho"
 	elif k.sees(a, k.player().pos):

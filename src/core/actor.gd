@@ -38,12 +38,10 @@ var lost := 0
 ## Rounds left of wariness after being hurt: it does not go back to rest, and
 ## notices Miho one tile farther in the dark.
 var wary := 0
-## The id of the hostile projectile it saw and reacted to last.
-var noted := 0
 ## The ids of the changes (Notice) it has seen and reacted to.
 var marked: Array[int] = []
 var sees_me := false
-## A guard (Yard) never sleeps: it keeps its eyes open at its post.
+## A guard (Yard) stands at its post: its state reads guarding.
 var guard := false
 ## The drum it runs to strike instead of attacking (Drums), or (-1, -1).
 var drum := Vector2i(-1, -1)
@@ -74,7 +72,7 @@ func alive() -> bool:
 ## Resting at its home with its eyes shut: it sees nothing, even the tiles next
 ## to it, until noise or a wound wakes it. One that walks while resting (a
 ## patrol, or one on its way home) is awake, and one that always knows where
-## Miho is (`hunts`), or guards a yard (`guard`), never sleeps.
+## Miho is (`hunts`) or cannot walk (a 장승, `move` static) never sleeps.
 func asleep() -> bool:
 	return (
 		faction == HEAVEN
@@ -82,7 +80,7 @@ func asleep() -> bool:
 		and pos == home
 		and not info().get("patrol", false)
 		and not info().get("hunts", false)
-		and not guard
+		and info().get("move", &"static") != &"static"
 	)
 
 
@@ -95,12 +93,6 @@ func fighting() -> bool:
 ## patrol sleeps at its own home, band or not.
 func following() -> bool:
 	return faction == HEAVEN and leader != 0 and info().get("patrol", false)
-
-
-## Hunting Miho at 1 health or alight (Status), and not one to stand and
-## fight (Bestiary.flees): it runs from her (Mind.flee).
-func fleeing() -> bool:
-	return faction == HEAVEN and alert == HUNT and (hp == 1 or alight > 0) and Bestiary.flees(kind)
 
 
 ## Hunting Miho by way of a drum.
@@ -140,7 +132,6 @@ func clone() -> Actor:
 		"target",
 		"lost",
 		"wary",
-		"noted",
 		"sees_me",
 		"guard",
 		"drum",

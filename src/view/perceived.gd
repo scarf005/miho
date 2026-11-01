@@ -121,8 +121,8 @@ static func sees(vis: PackedByteArray, p: Vector2i) -> bool:
 	return Grid.inside(p) and vis[Grid.index(p)] == 1
 
 
-## The mark the map draws by a creature: blind x, fleeing <, hunting !, searching ?, or none.
+## The mark the map draws by a creature: blind x, hunting !, searching ?, or none.
 static func mark_of(a: Actor) -> String:
 	if a.blind > 0:
 		return "x"
-	return Palette.FLEE_MARK if a.fleeing() else Palette.ALERT_MARK[a.alert]
+	return Palette.ALERT_MARK[a.alert]

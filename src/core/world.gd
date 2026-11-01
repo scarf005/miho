@@ -18,7 +18,7 @@ extends RefCounted
 ## projectile depends on their wits), shouting to those in earshot. A resting
 ## creature standing at its home is asleep (Actor.asleep): it sees nothing, even
 ## next to it, until noise or a wound wakes it; a patrol, which walks while it
-## rests, never sleeps. Claws strike three times as hard at a creature that is
+## rests, and a 장승, never sleep. Claws strike three times as hard at a creature that is
 ## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
 ## caught_unawares), so Miho can creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and

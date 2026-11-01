@@ -14,7 +14,7 @@ extends RefCounted
 ## laid after them as they were on a storey they do not appear on.
 ## 혼불 제단 (Altar): three creatures of heaven fall around the altar.
 ## 도깨비불 장막 (Veil): a line of fire splits a room; water or frost puts it out.
-## 장승 마당 (Yard): a lit yard with a guard that never sleeps and a talisman.
+## 장승 마당 (Yard): a lit yard with a guard and a talisman.
 ## 삐걱 마루 (Creak): a room of creaking boards and a sleeping 해태.
 ## 서고 (Library): a dark room behind closed doors; its scrolls show the map.
 
