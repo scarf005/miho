@@ -10,6 +10,8 @@ extends Node
 ## tap a talisman: queue it and aim at the nearest creature; tap the queue: hurl;
 ## tap a button: its key (Keys action); on a page: tap a row or tab, drag to
 ## scroll, swipe sideways to turn a tab or step a value.
+## While a debug pick waits (DebugMenu) a tap answers it at that tile, the menu
+## button gives up (as a right click does), and a swipe does nothing.
 ## Touch rests on `main` (main.gd) for what a key or click already does.
 
 ## A point off the screen: the pointer is nowhere.
@@ -307,6 +309,10 @@ func _press(id: StringName) -> void:
 			main.settings.save()
 			main._apply()
 			main.term.panel = main.menu.panel()
+		_ when main.menu.debug.asking():
+			var key: Array = Keys.keys_of(id)
+			if not key.is_empty():
+				main.menu.debug.pick(main, Keys.event(key[0]))
 		_:
 			main._do(id, false)
 
@@ -316,11 +322,16 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 	var card := hud.card_at(term, local)
 	var saved := hud.saved_at(term, local)
 	var tile := term.tile_at(local)
-	if Grid.inside(term.side_at(local)):
+	if main.menu.debug.asking():
+		if Grid.inside(tile) or Grid.inside(term.side_at(local)):
+			main._point(pos)
+			main.menu.debug.pick(main, _click(pos))
+	elif Grid.inside(term.side_at(local)):
 		main._point(pos)
 		frozen = not main.term.info.is_empty()
 	elif hud.cast_at(term, local):
-		main._do(&"confirm", false)
+		if not main.picked.is_empty() or not main.staged.is_empty():
+			main._do(&"confirm", false)
 	elif saved != &"":
 		main._do(saved, false)
 	elif card != &"":
@@ -347,7 +358,12 @@ func _hold(pos: Vector2) -> void:
 
 func _swipe(dir: Vector2i, from: Vector2) -> void:
 	var local: Vector2 = main._local(from)
-	if _panning or hud.area.has_point(local) or local.x < main.term.side.x * Term.CELL.x:
+	if (
+		main.menu.debug.asking()
+		or _panning
+		or hud.area.has_point(local)
+		or local.x < main.term.side.x * Term.CELL.x
+	):
 		return
 	if main.overlay != &"":
 		if dir.y == 0:
