@@ -29,7 +29,6 @@ func test_options_and_bindings_round_trip() -> void:
 	s.crt = false
 	s.zoom = 1.25
 	s.speed = 4.0
-	s.replay = false
 	Keys.bind(&"explore", ["Shift+X", "Kp Add"])
 	Keys.bind(&"rest", [])
 	var saved := {}
@@ -41,6 +40,16 @@ func test_options_and_bindings_round_trip() -> void:
 	for action in Keys.ACTIONS:
 		assert_eq(_events(action), saved[action], action)
 	assert_true(Keys.event("Shift+X").is_match(InputMap.action_get_events(&"explore")[0]))
+
+
+func test_the_highlight_replay_is_off_whatever_an_old_file_says_and_has_no_option() -> void:
+	var c := ConfigFile.new()
+	c.set_value("settings", "replay", true)
+	var s := Settings.new()
+	s.from_config(c)
+	assert_false(s.replay)
+	assert_false(s.to_config().has_section_key("settings", "replay"))
+	assert_false(Menu.OPTIONS.has(&"replay"))
 
 
 func test_missing_or_wrong_values_fall_back_to_defaults() -> void:

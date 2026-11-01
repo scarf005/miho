@@ -505,7 +505,7 @@ func test_the_codex_opened_from_the_options_goes_back_to_them() -> void:
 
 func test_the_options_list_the_codex_between_the_replay_and_the_keys() -> void:
 	var at := Menu.OPTIONS.find(&"codex")
-	assert_eq(Menu.OPTIONS[at - 1], &"replay")
+	assert_eq(Menu.OPTIONS[at - 1], &"speed")
 	assert_eq(Menu.OPTIONS[at + 1], &"keys")
 	var menu := Menu.new()
 	menu.open(&"options")

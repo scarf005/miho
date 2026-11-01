@@ -20,7 +20,7 @@ extends Node
 ## again removes it; 1-7 on a zone's centre set its radius.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
 ## with a queue click anywhere to hurl that way; click a talisman to queue it;
-## right-click clears. Each storey left behind replays its best moment.
+## right-click clears.
 ## The run is saved after every round (SaveGame) and the title continues it; a
 ## run that ends leaves no save.
 

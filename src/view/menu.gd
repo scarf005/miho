@@ -21,17 +21,7 @@ const MOUSE := [
 ]
 const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-7 반경), Esc 끝"]
 const OPTIONS := [
-	&"volume",
-	&"music",
-	&"crt",
-	&"zoom",
-	&"speed",
-	&"replay",
-	&"codex",
-	&"keys",
-	&"restart",
-	&"quit",
-	&"close"
+	&"volume", &"music", &"crt", &"zoom", &"speed", &"codex", &"keys", &"restart", &"quit", &"close"
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
