@@ -391,11 +391,14 @@ static func _casts(a: Actor) -> Array:
 ## The elements of a spell its title does not tell (SpellInfo.elements), harm,
 ## a homing orb's turn, the burst of a fire orb and noise of a spell, one short
 ## line each; a spray's
-## shape and effect (SpellInfo._spray) in place of the harm and burst.
+## shape and effect (SpellInfo._spray) and a leap's (SpellInfo.leap) in place of the harm and burst.
 static func _spell_details(s: Spell) -> Array[String]:
-	if s.shape == Spell.SPRAY:
+	if s.shape in [Spell.SPRAY, Spell.LEAP]:
 		var lines: Array[String] = []
-		for line: Array in SpellInfo._spray(s) + SpellInfo._lines(SpellInfo._sounds(s)):
+		var facts := SpellInfo.leap(s)
+		if s.shape == Spell.SPRAY:
+			facts = SpellInfo._spray(s) + SpellInfo._lines(SpellInfo._sounds(s))
+		for line: Array in facts:
 			lines.append("".join(line.map(func(run): return run[0])))
 		return lines
 	var near := s.damage(0)

@@ -15,6 +15,8 @@ static func telegraphs(t: Term, actors: Dictionary) -> void:
 			var ray := Forecast.ray(t.world, a.pos, plan.dir)
 			if spell.shape == Spell.SPRAY:
 				ray = Spray.cover(t.world, a, spell, plan.dir)
+			elif spell.shape == Spell.LEAP:
+				ray = ray.slice(0, spell.leap())
 			elif not spell.orb:
 				ray = ray.slice(0, Spell.RANGE)
 			for k in ray.size():

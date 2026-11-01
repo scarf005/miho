@@ -10,7 +10,8 @@ extends RefCounted
 ## for each kind, its health at each rank, and `ranks` holds, by rank, every
 ## spell it casts from that rank on (`casts` before the first). Deeper spells
 ## keep the kind's elements and change the board more than they hurt: more
-## wisps, homing orbs, sprays and compounds. From PICKS on it picks the spell that
+## wisps, homing orbs, sprays and compounds, and for a 도깨비 the LEAP, which
+## closes the gap in place of more health. From PICKS on it picks the spell that
 ## suits (Aim.at), and from DOUBLES on it charges two at once.
 ## spell_name: what the log and hover call its first spell (`casts`), in place
 ## of the name its cards give it (Bestiary.spell).
@@ -74,6 +75,8 @@ const DOUBLES := 4
 ## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
 ## its kind (Bestiary.elements).
 const KINDLE := [Cards.FIRE]
+## The leap a deep 도깨비 casts (Leap): Miho's, by its talismans.
+const LEAP := Cards.TRIPLES[Cards.VAULT]
 ## Every spell 저승사자 can buy with its mana, at any rank: all five elements,
 ## one to five cards.
 const REAPER := [
@@ -137,8 +140,8 @@ const KINDS := {
 		ranks =
 		{
 			2: [[FOX], [FOX, FOX], KINDLE],
-			3: [[FOX], [FOX, FOX], [FOX, ORB], KINDLE],
-			5: [[FOX], [FOX, FOX], [FOX, FOX, FOX, ORB], KINDLE],
+			3: [[FOX], [FOX, FOX], [FOX, ORB], LEAP, KINDLE],
+			5: [[FOX], [FOX, FOX], [FOX, FOX, FOX, ORB], LEAP, KINDLE],
 		},
 		spell_name = "도깨비불",
 		cd = 3,
@@ -172,12 +175,13 @@ const KINDS := {
 		ranks =
 		{
 			2: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
-			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
+			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], LEAP, KINDLE],
 			5:
 			[
 				[FOX, Cards.FIRE],
 				[ORB, Cards.FIRE],
 				[Cards.FIRE, Cards.FIRE, Cards.FIRE],
+				LEAP,
 				KINDLE,
 			],
 		},
@@ -522,7 +526,7 @@ static func elements(kind: StringName) -> Array[StringName]:
 		return out
 	var all := []
 	for r in range(1, RANKS + 1):
-		all.append_array(casts(kind, r).filter(func(c): return c != KINDLE))
+		all.append_array(casts(kind, r).filter(func(c): return c != KINDLE and c != LEAP))
 	for c in Cards.ELEMENTS:
 		if all.any(func(cast): return cast.has(c)):
 			out.append(c)

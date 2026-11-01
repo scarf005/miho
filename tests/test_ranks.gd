@@ -51,9 +51,10 @@ func _of(events: Array, t: StringName, id: int) -> Array:
 	return events.filter(func(e): return e.t == t and e.id == id)
 
 
-## The elements the spells hold, in 오행 order.
+## The elements the spells hold, in 오행 order: a leap holds none.
 func _elements(casts: Array) -> Array:
-	return Cards.ELEMENTS.filter(func(c): return casts.any(func(cast): return cast.has(c)))
+	var spells := casts.filter(func(cast): return cast != Bestiary.LEAP)
+	return Cards.ELEMENTS.filter(func(c): return spells.any(func(cast): return cast.has(c)))
 
 
 func test_a_rank_spans_two_storeys() -> void:

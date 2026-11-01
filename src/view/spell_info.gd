@@ -509,20 +509,28 @@ static func _swap() -> Array:
 	return _lines(SWAP, Palette.card(Cards.VAULT))
 
 
+## What a leap does, whoever casts it: its shape, what it crosses, what stops
+## it and the sound of the landing.
+static func leap(s: Spell) -> Array:
+	return [
+		_line("모양", "곧게 %d칸" % s.leap()),
+		_line("건너는 것", "하늘, 연못, 생물"),
+		_line("막는 것", "벽, 닫힌 문, 등불"),
+		_line("착지 소음", "%d" % Leap.LOUD),
+		_line("진흙 착지 소음", "없음"),
+	]
+
+
 ## Shape, damage, speed, turn and reach of a projectile spell; where a leap
 ## goes and what it is heard as.
 static func _shape(s: Spell) -> Array:
 	if s.shape == Spell.LEAP:
-		return [
-			_line("모양", "곧게 %d칸" % s.leap()),
-			_line("거리", "%s 한 장마다 +1칸" % Cards.NAME[Cards.WOOD]),
-			_line("건너는 것", "하늘, 연못, 생물"),
-			_line("막는 것", "벽, 닫힌 문, 등불"),
-			_line("착지 소음", "%d" % Leap.LOUD),
-			_line("진흙 착지 소음", "없음"),
-			_line("냄새", "착지한 칸만"),
-			_line("여·구 뒤 맨 끝", "바꿔치기"),
-		]
+		var reach := leap(s)
+		return (
+			[reach[0], _line("거리", "%s 한 장마다 +1칸" % Cards.NAME[Cards.WOOD])]
+			+ reach.slice(1)
+			+ [_line("냄새", "착지한 칸만"), _line("여·구 뒤 맨 끝", "바꿔치기")]
+		)
 	var lines := []
 	match s.shape:
 		Spell.WISP:

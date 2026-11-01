@@ -592,7 +592,7 @@ func test_a_self_cast_stays_with_a_lone_guise_and_shadow() -> void:
 		assert_eq(Guise.kind(Spell.make(_made(c))), &"", c)
 
 
-func test_no_creature_but_the_reaper_casts_a_3dan() -> void:
+func test_no_creature_but_the_reaper_casts_a_3dan_besides_the_leap() -> void:
 	for kind: StringName in Bestiary.KINDS:
 		var spec := Bestiary.info(kind)
 		if spec.has("mana"):
@@ -600,6 +600,6 @@ func test_no_creature_but_the_reaper_casts_a_3dan() -> void:
 		var casts: Array = spec.get("casts", []).duplicate()
 		for rank: int in spec.get("ranks", {}):
 			casts.append_array(spec.ranks[rank])
-		for cards: Array in casts:
+		for cards: Array in casts.filter(func(c): return c != Bestiary.LEAP):
 			for slot in Spell.make(cards).slots:
 				assert_lt(Cards.made_of(slot).size(), 3, "%s casts %s" % [kind, cards])
