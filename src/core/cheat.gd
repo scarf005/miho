@@ -124,10 +124,7 @@ static func handled(w: World, action: Dictionary) -> bool:
 	var e := {t = &"cheat", cmd = action.cmd}
 	match action.cmd:
 		&"teleport":
-			me.pos = action.at
-			for s in w.shots:
-				if s.host == me.id and not s.gone:
-					s.pos = action.at
+			_carry(w, me, action.at)
 			e.at = action.at
 		&"kill":
 			e.merge({kind = foe.kind, at = foe.pos})
@@ -138,7 +135,7 @@ static func handled(w: World, action: Dictionary) -> bool:
 		&"damage":
 			w.hurt(foe, action.n)
 		&"move_foe":
-			foe.pos = action.at
+			_carry(w, foe, action.at)
 			e.merge({kind = foe.kind, at = action.at})
 		&"floor":
 			Storeys.leave(w)
@@ -165,6 +162,14 @@ static func handled(w: World, action: Dictionary) -> bool:
 	w._changed()
 	w.sense()
 	return true
+
+
+## Puts `a` on `to`, and the wisps riding it with it, without a step.
+static func _carry(w: World, a: Actor, to: Vector2i) -> void:
+	a.pos = to
+	for s in w.shots:
+		if s.host == a.id and not s.gone:
+			s.pos = to
 
 
 ## A free tile a creature may stand on: no creature, no closed door.

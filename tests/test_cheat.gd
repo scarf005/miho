@@ -371,3 +371,17 @@ func test_a_save_whose_cheat_lacks_its_parts_is_not_loaded() -> void:
 		c.set_value("run", "actions", [bad])
 		c.save(PATH)
 		assert_null(SaveGame.load_from(PATH), str(bad))
+
+
+func test_a_creature_moved_takes_the_wisp_riding_it_along() -> void:
+	var w := _hall()
+	var a := _foe(w, Vector2i(10, 8))
+	var wisp := Shot.new()
+	wisp.id = w.new_id()
+	wisp.host = a.id
+	wisp.spell = Spell.make([Cards.FOX])
+	wisp.life = 5
+	wisp.pos = a.pos
+	w.shots.append(wisp)
+	_do(w, &"move_foe", {id = a.id, at = Vector2i(11, 12)})
+	assert_eq(wisp.pos, a.pos)
