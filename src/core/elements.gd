@@ -223,6 +223,17 @@ static func grow(w: World, tiles: Array[Vector2i]) -> void:
 		w.emit({t = &"sprout", at = grown[0], tiles = grown})
 
 
+## A shot that faded where it stopped: a mortar lands and a blast goes off there, as
+## loud as one that struck.
+static func fade(w: World, s: Shot) -> void:
+	if s.spell.mortar() or s.spell.blasts():
+		w.noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
+	if s.spell.mortar():
+		Compounds.land(w, s, s.pos)
+	elif s.spell.blasts():
+		splash(w, s, s.pos, null)
+
+
 ## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
 ## lighting it as it moves (World.move). It stays a shot, so it hovers where
 ## `a` fell when `a` dies.

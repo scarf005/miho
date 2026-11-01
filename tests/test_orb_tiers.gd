@@ -369,3 +369,11 @@ func test_an_orb_that_fades_blasts_where_it_ends() -> void:
 	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
 	assert_true(kinds.has(&"fade"))
 	assert_true(kinds.has(&"splash"))
+
+
+func test_an_orb_that_fades_is_heard_as_a_blast() -> void:
+	var w := _world()
+	w.cast(w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
+	w.shots[0].life = 1
+	var loud := w.act({t = &"wait"}).filter(func(e): return e.t == &"noise" and e.word == "쾅")
+	assert_eq(loud.size(), 1)

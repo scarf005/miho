@@ -959,11 +959,7 @@ func _end_round() -> void:
 			if s.life == 0:
 				s.gone = true
 				emit({t = &"fade", shot = s.id, at = s.pos})
-				if s.spell.mortar():
-					noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
-					Compounds.land(self, s, s.pos)
-				elif s.spell.blasts():
-					Elements.splash(self, s, s.pos, null)
+				Elements.fade(self, s)
 	_prune()
 	round_no += 1
 	if outcome != &"" or depth >= FLOORS:
