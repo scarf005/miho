@@ -43,6 +43,7 @@ const NAMES := [
 	&"splash",
 	&"creak",
 	&"warn",
+	&"shatter",
 ]
 ## Events heard the same wherever they happen. `spot` is the view's own event:
 ## Miho sees something useful for the first time.
@@ -96,7 +97,7 @@ const WORDS := {
 	"퍽": &"clash",
 	"끽": &"hurt",
 	"쨍": &"clash",
-	"쨍그랑": &"clash",
+	"쨍그랑": &"shatter",
 	"우지끈": &"fall",
 	"사각": &"rustle",
 	"바스락": &"rustle",
@@ -243,7 +244,11 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.get("spray", false) else &"blast"
 		&"drum":
 			return &"" if e.wet else &"blast"
-		&"clash", &"snuff", &"claw", &"melee", &"push", &"smash", &"collapse":
+		&"smash":
+			return &"blast" if Terrain.wall(e.was) else WORDS[Tiles.of(e.was, "hit")[1]]
+		&"collapse":
+			return &"blast"
+		&"clash", &"snuff", &"claw", &"melee", &"push":
 			return &"clash"
 		&"absorb":
 			return &"absorb"
