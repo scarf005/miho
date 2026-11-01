@@ -122,14 +122,25 @@ func test_the_charge_line_and_the_projectile_hover_name_it() -> void:
 		assert_string_contains(text, "피해: %d" % (1 if kind == &"bujigaengi" else 0))
 
 
-func test_mihos_own_fox_and_fire_keeps_its_title() -> void:
+func test_only_miho_s_wisps_are_called_foxfire() -> void:
 	var own := Spell.make([Cards.FOX, Cards.FIRE])
 	assert_eq(own.title(), "불 여우불")
 	var w := _world()
 	var foe := _foe(w, &"bulgae")
 	var charge := {t = &"charge", id = foe.id, cards = [Cards.FOX, Cards.FIRE], dir = WEST}
-	assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), ["불개가 불 여우불을 모으고 있다"])
+	assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), ["불개가 불 혼불을 모으고 있다"])
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
-	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 여우불")
+	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 혼불")
 	w.cast(w.player(), own, Vector2i(1, 0))
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "미호의 불 여우불")
+
+
+func test_no_creature_of_heaven_says_foxfire() -> void:
+	for kind in Codex.foes():
+		for r in range(1, Bestiary.RANKS + 1):
+			var text := Info.plain(Info.creature_facts(Codex.foe(kind, r), []))
+			assert_false(text.contains("여우"), "%s rank %d: %s" % [kind, r, text])
+			for cast: Array in Bestiary.casts(kind, r):
+				var s := Bestiary.spell(kind, cast)
+				assert_false(s.title().contains("여우"), "%s %s" % [kind, s.title()])
+				assert_false(Info.plain(SpellInfo.spell(s)).contains("여우"), s.title())

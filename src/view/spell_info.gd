@@ -440,7 +440,7 @@ static func _shape(s: Spell) -> Array:
 	var lines := []
 	match s.shape:
 		Spell.WISP:
-			lines.append(_line("모양", "여우불 %d발" % s.shots()))
+			lines.append(_line("모양", "%s %d발" % [s.wisp(), s.shots()]))
 			lines.append(_line("노림", "보이는 적, 체력만큼 나눠"))
 			var harm := "발마다 %d" % s.damage(0) if s.damage(0) > 0 else "없음"
 			lines.append(_line("피해", harm, Palette.HURT))

@@ -62,6 +62,9 @@ const GROUPS := {
 	&"underworld": "저승",
 }
 
+## What a group calls its wisps; &"" for the rest.
+const WISP_NAME := {&"dokkaebi": "도깨비불", &"underworld": "저승불", &"": "혼불"}
+
 const KINDS := {
 	&"miho": {name = "미호", glyph = "@", hp = 3},
 	&"dokkaebi":
@@ -350,10 +353,12 @@ static func hp(kind: StringName, r: int) -> int:
 	return info(kind).hp + RANK_HP[r - 1]
 
 
-## The spell a `kind` hurls from `cards`, its first spell called by its own
-## name if it has one.
+## The spell a `kind` hurls from `cards`, its wisps in the words of its group
+## (여우불 is Miho's), its first spell called by its own name if it has one.
 static func spell(kind: StringName, cards: Array) -> Spell:
 	var s := Spell.make(cards)
+	if info(kind).has("group"):
+		s.wisp_name = WISP_NAME.get(info(kind).group, WISP_NAME[&""])
 	var first: Array = info(kind).get("casts", [[]])[0]
 	if "+".join(first) == s.key():
 		s.called = info(kind).get("spell_name", "")

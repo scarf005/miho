@@ -67,6 +67,8 @@ var shape := &""
 var orb := false
 ## A name a creature gives its own spell (Bestiary.spell), in place of title().
 var called := ""
+## A creature's word for its wisps (Bestiary.spell), in place of SHAPE_NAME.
+var wisp_name := ""
 
 
 ## The spell `picked` queues, or null when it is no spell.
@@ -225,12 +227,17 @@ func title() -> String:
 			told[slot] = true
 			var n := elements().count(slot)
 			parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
-	var form: String = SHAPE_NAME.get(shape, Spray.called(self))
+	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
 	if shots() > 1:
 		form += " %d발" % shots()
 	if swaps():
 		form += " 바꿔치기"
 	return ("·".join(parts) + " " + form).strip_edges()
+
+
+## What its wisps are called.
+func wisp() -> String:
+	return wisp_name if wisp_name != "" else SHAPE_NAME[WISP]
 
 
 func cost() -> int:

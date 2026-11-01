@@ -18,6 +18,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - No onomatopoeia in hover or 도감, because rules use only the radius: write `소리: N칸`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
+- 꼬리 and 여우불 are Miho's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 
 ## UI conventions
 
