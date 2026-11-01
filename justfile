@@ -85,6 +85,11 @@ bench: rust
     {{ godot }} --headless --path . -s tools/bench.gd
     {{ godot }} --headless --path . -s tools/bench_round.gd
 
+# Replay a save (minus its last `back` actions) and explore from there; exits 1 on a back-and-forth loop.
+explore-check save="~/.local/share/godot/app_userdata/미호/save.cfg" rounds="400" back="0": rust
+    {{ godot }} --headless --path . --import
+    {{ godot }} --headless --path . -s tools/explore_check.gd -- {{ save }} {{ rounds }} {{ back }}
+
 # Print how often each event room appears and can be opened over N seeds x 27 storeys.
 event-rooms seeds="200": rust
     {{ godot }} --headless --path . --import
