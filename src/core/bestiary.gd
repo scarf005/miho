@@ -3,7 +3,8 @@ extends RefCounted
 ## Creatures of the pavilion. Every caster uses only foxfire and orbs; strong
 ## ones (`drop`) add an element and give it to Miho when they fall, and
 ## 부지깽이 도깨비 (도깨비불) and 불개 add fire to their foxfire. The plain
-## dokkaebi's 도깨비불 is a lone wisp: no element, no harm.
+## dokkaebi's 도깨비불 is a lone wisp: no element, no harm. Every dokkaebi also
+## casts the lone fire (KINDLE).
 ## Ranks: the storeys come in ranks of two storeys (`rank`), 1 to RANKS. A
 ## creature is of the rank of the storey it came to (Actor.rank): RANK_HP adds
 ## to its health, and `ranks` holds, by rank, every spell it casts from that
@@ -47,6 +48,9 @@ const RANKS := 5
 const RANK_HP := [0, 1, 3, 5, 6]
 const PICKS := 3
 const DOUBLES := 4
+## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
+## its kind (Bestiary.elements).
+const KINDLE := [Cards.FIRE]
 const DULL := 0
 const SHARP := 1
 const CUNNING := 2
@@ -70,12 +74,12 @@ const KINDS := {
 		shout = {word = "낄낄", loud = 6},
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
-		casts = [[FOX]],
+		casts = [[FOX], KINDLE],
 		ranks =
 		{
-			2: [[FOX], [FOX, FOX]],
-			3: [[FOX], [FOX, FOX], [FOX, ORB]],
-			5: [[FOX], [FOX, FOX], [FOX, FOX, FOX, ORB]],
+			2: [[FOX], [FOX, FOX], KINDLE],
+			3: [[FOX], [FOX, FOX], [FOX, ORB], KINDLE],
+			5: [[FOX], [FOX, FOX], [FOX, FOX, FOX, ORB], KINDLE],
 		},
 		spell_name = "도깨비불",
 		cd = 3,
@@ -92,6 +96,8 @@ const KINDS := {
 		shout = {word = "으라차", loud = 8},
 		hp = 3,
 		melee = {name = "씨름", hit = "져", damage = 1, throw = 2},
+		casts = [KINDLE],
+		cd = 3,
 		move = &"approach",
 		step = 6,
 		wits = 1,
@@ -105,12 +111,12 @@ const KINDS := {
 		shout = {word = "낄낄", loud = 6},
 		hp = 2,
 		melee = {name = "부지깽이", hit = "맞아", damage = 1},
-		casts = [[FOX, Cards.FIRE]],
+		casts = [[FOX, Cards.FIRE], KINDLE],
 		ranks =
 		{
-			2: [[FOX, Cards.FIRE], [ORB, Cards.FIRE]],
-			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE]],
-			5: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE, Cards.FIRE, Cards.FIRE]],
+			2: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
+			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
+			5: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE, Cards.FIRE, Cards.FIRE], KINDLE],
 		},
 		spell_name = "도깨비불",
 		cd = 3,
@@ -128,6 +134,8 @@ const KINDS := {
 		group = &"dokkaebi",
 		hp = 2,
 		melee = {name = "빗자루", hit = "맞아", damage = 1},
+		casts = [KINDLE],
+		cd = 3,
 		move = &"approach",
 		step = 2,
 		wits = 1,
@@ -141,6 +149,8 @@ const KINDS := {
 		group = &"dokkaebi",
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
+		casts = [KINDLE],
+		cd = 3,
 		move = &"approach",
 		step = 2,
 		wits = 1,
@@ -409,7 +419,7 @@ static func eats(kind: StringName, spell: Spell) -> bool:
 static func elements(kind: StringName) -> Array[StringName]:
 	var all := []
 	for r in range(1, RANKS + 1):
-		all.append_array(casts(kind, r))
+		all.append_array(casts(kind, r).filter(func(c): return c != KINDLE))
 	var out: Array[StringName] = []
 	for c in Cards.ELEMENTS:
 		if all.any(func(cast): return cast.has(c)):

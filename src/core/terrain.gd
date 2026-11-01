@@ -6,8 +6,8 @@ extends RefCounted
 ## over and never lit again). Each hit moves it one step on: Miho walking into
 ## it, with a clang, or an orb striking it. An orb also smashes the closed door
 ## it strikes. Water douses lit lanterns next to where it ends, silently, and
-## fire relights dark ones; a searching creature relights a dark lantern it
-## stands next to.
+## fire relights dark ones; a searching creature with a fire spell relights a
+## dark lantern it stands next to.
 ##
 ## Walls break only to orbs: two hits turn a wall into a cracked wall (which
 ## still blocks walking, sight and light) and then into rubble. Each hit thuds.
@@ -181,8 +181,11 @@ static func wash(w: World, p: Vector2i) -> void:
 		w.emit({t = &"douse", at = p})
 
 
-## A searching creature lights a lantern that went out next to it; true when it did.
+## A searching creature with a spell that `lights` lights a lantern that went out
+## next to it; true when it did.
 static func relight_beside(w: World, a: Actor) -> bool:
+	if not a.repertoire().any(func(cast): return lights(Spell.make(cast))):
+		return false
 	for d in Grid.DIRS:
 		if w.tile(a.pos + d) == World.LANTERN_OUT:
 			w.set_tile(a.pos + d, World.LANTERN)

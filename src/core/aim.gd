@@ -64,10 +64,23 @@ static func _apart(w: World, a: Actor, plan: Dictionary, taken: Array) -> Dictio
 	return {}
 
 
+## The lone fire (Bestiary.KINDLE) of `a` when `foe` stands beside it on a tile
+## that burns, or none.
+static func kindle(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if a.repertoire().has(Bestiary.KINDLE) and Tiles.burns[w.tile(foe.pos)] == 1:
+		var plan := _spray(w, a, Bestiary.KINDLE, foe)
+		if not plan.is_empty():
+			out.append(plan)
+	return out
+
+
 ## Its spells in the order it tries them, from the next in turn: that one
-## alone below Bestiary.PICKS.
+## alone below Bestiary.PICKS, the lone fire aside (`kindle`).
 static func _turn(a: Actor) -> Array:
 	var list := a.repertoire()
+	if a.rank < Bestiary.PICKS:
+		list = list.filter(func(c): return c != Bestiary.KINDLE)
 	if list.is_empty():
 		return []
 	var start := a.casts % list.size()

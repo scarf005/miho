@@ -68,7 +68,7 @@ func test_a_throw_into_the_sky_drops_miho_a_storey() -> void:
 	assert_eq(w.depth, 1)
 
 
-func test_a_creature_without_spells_never_charges() -> void:
+func test_a_lone_fire_out_of_reach_is_never_charged() -> void:
 	var w := _world()
 	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
 	var a := _hunter(w, &"oedari", ME + Vector2i(3, 0))
@@ -198,3 +198,47 @@ func test_an_awake_poker_lights_it_on_patrol_searching_hunting_and_walking_home(
 func test_the_hover_and_the_doc_say_the_poker_lights_lanterns_when_awake() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"bujigaengi"), []))
 	assert_string_contains(text, "꺼진 등불을 켬")
+
+
+func test_every_dokkaebi_can_cast_the_lone_fire_at_every_rank() -> void:
+	for kind in Codex.foes().filter(func(k): return Bestiary.info(k).group == &"dokkaebi"):
+		for r in range(1, Bestiary.RANKS + 1):
+			assert_has(Bestiary.casts(kind, r), [Cards.FIRE], "%s rank %d" % [kind, r])
+
+
+func test_the_lone_fire_gives_a_plain_dokkaebi_no_element() -> void:
+	assert_eq(Bestiary.elements(&"oedari"), [] as Array[StringName])
+	assert_eq(Bestiary.weak_to(&"dokkaebi"), [] as Array[StringName])
+
+
+func test_a_plain_dokkaebi_keeps_throwing_wisps_below_the_third_rank() -> void:
+	var w := _world()
+	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
+	var a := _hunter(w, &"dokkaebi", ME + Vector2i(4, 0))
+	w.sense()
+	for next in 2:
+		a.casts = next
+		var plans := Aim.at(w, a, w.player())
+		assert_eq(plans.size(), 1)
+		assert_eq(plans[0].cards, [Cards.FOX])
+
+
+func test_it_sets_the_grass_under_miho_alight_in_place_of_a_blow() -> void:
+	var w := _world()
+	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
+	w.tiles[Grid.index(ME)] = World.GRASS
+	var a := _hunter(w, &"oedari", ME + Vector2i(1, 0))
+	a.cooldown = 0
+	var events := w.act(WAIT)
+	assert_true(events.any(func(e): return e.t == &"charge" and e.cards == [Cards.FIRE]))
+	assert_eq(w.player().hp, 3, "the charge is its turn")
+	w.act(WAIT)
+	assert_true(w.burning.has(ME))
+
+
+func test_on_bare_floor_it_strikes_as_before() -> void:
+	var w := _world()
+	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
+	var a := _hunter(w, &"oedari", ME + Vector2i(1, 0))
+	a.cooldown = 0
+	assert_true(w.act(WAIT).any(func(e): return e.t == &"melee" and e.id == a.id))

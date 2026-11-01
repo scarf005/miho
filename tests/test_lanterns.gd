@@ -211,3 +211,22 @@ func test_a_searcher_relights_a_dark_lantern_but_not_rubble() -> void:
 		searcher.target = Vector2i(14, 9)
 		w.act(WAIT)
 		assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN if t == World.LANTERN_OUT else t)
+
+
+func test_a_searcher_without_a_fire_spell_leaves_a_dark_lantern_dark() -> void:
+	var w := _world()
+	_put(w, Vector2i(10, 8), World.LANTERN_OUT)
+	var searcher := _foe(w, &"jangseung", Vector2i(11, 9))
+	searcher.alert = Actor.SEARCH
+	searcher.target = Vector2i(14, 9)
+	w.act(WAIT)
+	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_OUT)
+
+
+func test_every_fire_caster_kind_and_no_other_lights_a_dark_lantern_beside_it() -> void:
+	for kind in Codex.foes():
+		var w := _world()
+		_put(w, Vector2i(10, 8), World.LANTERN_OUT)
+		var a := _foe(w, kind, Vector2i(11, 9))
+		var fire: bool = a.repertoire().any(func(c): return Terrain.lights(Spell.make(c)))
+		assert_eq(Terrain.relight_beside(w, a), fire, kind)

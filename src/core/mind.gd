@@ -216,7 +216,8 @@ static func hunt(w: World, a: Actor) -> void:
 	if a.sees_me:
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, me.pos) == 1:
-			_melee(w, a, me, melee)
+			if a.cooldown > 0 or not _charge(w, a, Aim.kindle(w, a, me)):
+				_melee(w, a, me, melee)
 			return
 		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, me)):
 			return
