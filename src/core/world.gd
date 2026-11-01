@@ -148,11 +148,10 @@ const SHELF := 38
 const SHELF_READ := 39
 const SCREEN := 40
 const JAR := 41
-const WATER_JAR := 42
-const CENSER := 43
-const COURTYARD := 44
-const STATUE := 45
-const BOARD_ROTTEN := 46
+const CENSER := 42
+const COURTYARD := 43
+const STATUE := 44
+const BOARD_ROTTEN := 45
 
 var depth := 1
 var tiles := PackedByteArray()
@@ -161,6 +160,11 @@ var start := Vector2i.ZERO
 var stairs := Vector2i(-1, -1)
 var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
+## What each jar on this storey holds, fixed when it was built: tile -> effect (Jars).
+var jars := {}
+## Rounds Miho's scent stays strong (Jars.eat), and the tiles it was laid strong on (Scent).
+var pungent := 0
+var strong := {}
 ## Burning tiles: position -> rounds left; the wild ones always spread.
 var burning := {}
 var wild := {}
@@ -243,6 +247,9 @@ func clone() -> World:
 	w.stairs = stairs
 	w.elixir = elixir
 	w.peaches = peaches.duplicate()
+	w.jars = jars.duplicate()
+	w.pungent = pungent
+	w.strong = strong.duplicate()
 	w.burning = burning.duplicate()
 	w.wild = wild.duplicate()
 	w.gas = gas.duplicate()
@@ -597,6 +604,7 @@ func arrive(me: Actor) -> bool:
 		me.hp += HEAL
 		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew, peach = true})
 	Scrolls.arrive(self, me)
+	Jars.arrive(self, me)
 	EventRooms.arrive(self, me)
 	return false
 
@@ -926,6 +934,7 @@ func _end_round() -> void:
 			Status.lapse(self, a, &"blind")
 			a.wary = maxi(0, a.wary - 1)
 			a.grudge = maxi(0, a.grudge - 1)
+	pungent = maxi(0, pungent - 1)
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1

@@ -210,6 +210,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.actors.assign([me])
 	w.shots.clear()
 	w.peaches.clear()
+	w.jars.clear()
 	w.burning.clear()
 	w.hot.clear()
 	w.gas.clear()
@@ -254,6 +255,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	_drum(w)
 	var set_room := SetRooms.build(w, home, goal)
 	_creatures(w)
+	Jars.fill(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
 		if spot.x >= 0:

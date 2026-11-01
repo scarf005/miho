@@ -2,9 +2,9 @@ class_name Notice
 extends RefCounted
 ## Changes a heaven creature can notice. The world records a change (a lantern
 ## that went out or broke, a door or wall that broke, a tile burnt to ash, a
-## creature that fell) with its tile and round. A creature that is not hunting
-## and sees the tile of a change it has not seen before goes to search there,
-## whatever its wits; each creature reacts to each change once. A fallen
+## creature that fell, a scarecrow from a jar) with its tile and round. A creature
+## that is not hunting and sees the tile of a change it has not seen before goes to
+## search there, whatever its wits; each creature reacts to each change once. A fallen
 ## creature also leaves a body mark that stays for the storey.
 
 const LABEL := {
@@ -14,6 +14,7 @@ const LABEL := {
 	&"wall": "부서진 벽",
 	&"ash": "재",
 	&"body": "시체",
+	&"scarecrow": "쓰러진 허수아비",
 }
 ## What a smash leaves: the change kind by the tile that was hit.
 const SMASHED := {

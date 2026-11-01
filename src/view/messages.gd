@@ -18,6 +18,14 @@ const STATE := {
 ## How a creature is told to be freed of what held it, by event.
 const FREED := {&"unroot": "풀려났다", &"unstun": "정신을 차렸다", &"unblind": "다시 볼 수 있게 되었다"}
 
+## What a jar's effect does, as the log ends the line (Jars).
+const JAR_DOES := {
+	&"water": "쏟아졌다",
+	Jars.KIMCHI: "나왔다",
+	&"effigy": "찢어졌다",
+	&"scarecrow": "쓰러졌다",
+}
+
 ## {runs, text, round, n}
 var lines: Array[Dictionary] = []
 
@@ -76,6 +84,8 @@ static func _spotted(w: World, p: Vector2i) -> Array:
 		name = "영약"
 	elif w.peaches.has(p):
 		name = "복숭아"
+	elif Jars.spots(w).has(p):
+		name = Jars.name_of(Jars.KIMCHI)
 	elif Scrolls.card_at(w, p) != &"":
 		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"
 	return [[name + _particle(name, "을", "를") + " 발견했다", TEXT]]
@@ -145,11 +155,16 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"scroll":
 			return [[Cards.NAME[e.card] + " 주문서", Palette.CARD[e.card]], ["가 떨어졌다", TEXT]]
 		&"heal":
+			if e.get("kimchi", false):
+				return _kimchi(e.n)
 			var healed := [["체력을 ", TEXT], ["1", Palette.HURT], [" 회복했다", TEXT]]
 			if e.get("grew", false):
 				healed = [["최대 체력이 ", TEXT], ["1", Palette.HURT], [" 늘었다", TEXT]]
 			var plain: bool = last.get("t") == &"ascend" or e.get("spell", false)
 			return healed if plain else [["복숭아를 먹었다. ", TEXT]] + healed
+		&"jar":
+			var what := Jars.name_of(e.what)
+			return _named(what, "이", "가") + [[" " + JAR_DOES[e.what], TEXT]]
 		&"blind":
 			return _subject(before, after, id, "의") + [_ill(after, id, "눈이 멀었다")]
 		&"root":
@@ -306,8 +321,6 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["병풍이 쓰러졌다", TEXT]]
 			if e.was == World.JAR:
 				return [["장독이 깨졌다", TEXT]]
-			if e.was == World.WATER_JAR:
-				return [["물독이 깨졌다", TEXT]]
 			if e.was == World.CENSER:
 				return [["향로가 쓰러졌다", TEXT]]
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 부서졌다", TEXT]]
@@ -368,6 +381,15 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 			+ _took(e.n)
 		)
 	return _subject(before, after, id) + _took(e.n)
+
+
+## Miho eats kimchi: the heal is told only when it healed.
+static func _kimchi(healed: int) -> Array:
+	var name := Jars.name_of(Jars.KIMCHI)
+	var eaten := [[name + _particle(name, "을", "를") + " 먹었다", TEXT]]
+	if healed <= 0:
+		return eaten
+	return eaten + [[". 체력을 ", TEXT], [str(healed), Palette.HURT], [" 회복했다", TEXT]]
 
 
 ## "<name>에게 피해를 <n> 주었다".

@@ -48,11 +48,11 @@ static func arrive(w: World, me: Actor) -> void:
 				w.emit({t = &"card", card = site.card, at = site.at})
 
 
-## `tiles` have just turned to sky: each scroll and peach on them moves to the
+## `tiles` have just turned to sky: each scroll, kimchi and peach on them moves to the
 ## tile a scroll would drop on (`_spot`), and is lost where there is none.
 static func displace(w: World, tiles: Array) -> void:
 	for site: Dictionary in w.sites.duplicate():
-		if site.kind == &"scroll" and tiles.has(site.at):
+		if site.kind in [&"scroll", Jars.KIMCHI] and tiles.has(site.at):
 			site.at = _spot(w, site.at)
 			if site.at.x < 0:
 				w.sites.erase(site)

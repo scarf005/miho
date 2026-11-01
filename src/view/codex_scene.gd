@@ -11,7 +11,8 @@ extends RefCounted
 ## @ Miho, d a creature hunting her that casts nothing, z one at rest, w one at rest
 ## with one health, k the creature the row is for, t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
-## 4 thick gas of that Gas kind, E the elixir, P a peach, S a scroll.
+## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
+## the row is for holds kimchi.
 ## `do` is a round for each letter: c casts the cards east, s casts them on Miho,
 ## > steps east, . waits, x shuts the door to the east.
 
@@ -111,6 +112,7 @@ const TABLE := {
 	"경계": ["  @    z", CASTS, [Cards.METAL]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
+	Jars.KIMCHI: ["  @ K", ">>."],
 	&"scroll": ["  @ S", ">>."],
 	World.WALL: ["  @ t", "c..", [Cards.ORB, Cards.EARTH]],
 	World.WALL_CRACKED: ["  @ t", "c..", [Cards.ORB, Cards.METAL]],
@@ -138,8 +140,7 @@ const TABLE := {
 	World.TRAP_FIRE: ["  @t", ">..."],
 	World.TRAP_VINE: ["  @t", ">.."],
 	World.SCREEN: [KNOCKS, ">."],
-	World.JAR: [KNOCKS, ">."],
-	World.WATER_JAR: [KNOCKS, ">.."],
+	World.JAR: [KNOCKS, ">.>."],
 	World.CENSER: [KNOCKS, ">.."],
 	World.STATUE: ["  @   t", ">>..."],
 	World.VEIL: ["  @ t", "c..", [Cards.METAL, Cards.WATER]],
@@ -239,6 +240,8 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			_foe(w, key, p, mark)
 		"t":
 			w.set_tile(p, key)
+			if key == World.JAR:
+				w.jars[p] = Jars.KIMCHI
 			if Tiles.of(key, "trap"):
 				w.traps[p] = key
 		"*", "^":
@@ -251,6 +254,8 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			w.elixir = p
 		"P":
 			w.peaches.append(p)
+		"K":
+			w.sites.append({kind = Jars.KIMCHI, at = p})
 		"S":
 			w.sites.append({kind = &"scroll", at = p, card = Cards.FIRE})
 			w.cards.erase(Cards.FIRE)

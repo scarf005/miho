@@ -158,14 +158,6 @@ const ROWS := {
 		breaks_to = World.FLOOR,
 		hit = [World.KNOCK, "쨍그랑"],
 	},
-	World.WATER_JAR:
-	{
-		name = "물독",
-		health = 1,
-		knock = true,
-		breaks_to = World.SHALLOW,
-		hit = [World.KNOCK, "쨍그랑"],
-	},
 	World.CENSER: {name = "향로", health = 1, knock = true, breaks_to = World.FLOOR},
 	World.COURTYARD: {name = "마당", walk = true},
 	World.STATUE: {name = "석상"},

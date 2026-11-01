@@ -1,12 +1,12 @@
 extends GutTest
-## Furniture: screens, jars, water jars, censers and courtyards. What each does
+## Furniture: screens, jars, censers and courtyards. What each does
 ## when hit, what the hover and the log tell of it, and where the storeys put it.
 
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
 const AT := Vector2i(5, 8)
 const SEEDS := 12
-const KINDS := [World.SCREEN, World.JAR, World.WATER_JAR, World.CENSER, World.COURTYARD]
+const KINDS := [World.SCREEN, World.JAR, World.CENSER, World.COURTYARD]
 
 
 ## An open hall walled at the edges, with no light, Miho at (4, 8).
@@ -72,7 +72,7 @@ func test_a_screen_blocks_walking_and_sight_but_not_light_until_knocked_flat() -
 
 
 func test_a_jar_clangs_and_breaks_to_walkable_pieces() -> void:
-	for jar in [World.JAR, World.WATER_JAR]:
+	for jar in [World.JAR]:
 		var w := _world()
 		_put(w, AT, jar)
 		assert_false(w.open_floor(AT))
@@ -103,24 +103,6 @@ func test_a_screen_burns_and_a_jar_does_not() -> void:
 	for i in World.BURN_ROUNDS:
 		w.act(WAIT)
 	assert_eq(w.tile(AT), World.ASH)
-
-
-func test_a_water_jar_floods_the_bare_floor_round_it_and_puts_out_fire() -> void:
-	var w := _world()
-	_put(w, AT, World.WATER_JAR)
-	_put(w, AT + Vector2i(0, 1), World.BOARD)
-	_put(w, AT + Vector2i(0, -1), World.LANTERN)
-	_put(w, AT + Vector2i(1, 1), World.FLOOR)
-	w.traps[AT + Vector2i(1, 0)] = World.TRAP_ALARM
-	w.ignite(AT + Vector2i(0, 1))
-	w.act({t = &"move", dir = E})
-	assert_eq(w.tile(AT), World.SHALLOW, "the jar's own tile")
-	assert_eq(w.tile(AT + Vector2i(1, 1)), World.SHALLOW)
-	assert_eq(w.tile(AT + Vector2i(1, 0)), World.FLOOR, "a plate's tile stays dry")
-	assert_eq(w.tile(AT + Vector2i(0, 1)), World.BOARD, "other kinds stay")
-	assert_false(w.burning.has(AT + Vector2i(0, 1)), "the fire is out")
-	assert_eq(w.tile(AT + Vector2i(0, -1)), World.LANTERN_OUT, "the lantern is out")
-	assert_eq(w.tile(AT + Vector2i(3, 0)), World.FLOOR, "three tiles away is dry")
 
 
 # --- censers -------------------------------------------------------------------
@@ -211,7 +193,6 @@ func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 		World.SCREEN:
 		["막음: 길, 시야", "타격: 쓰러짐", "부딪칠 때 소음: %d" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
 		World.JAR: ["막음: 길", "타격: 깨짐", "부딪칠 때 소음: %d" % Tiles.of(World.JAR, "hit")[0]],
-		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
 			"향 연기 최대 양: %d" % Gas.VENT_LEVEL,
@@ -246,7 +227,6 @@ func test_the_log_tells_each_piece_breaking_where_miho_sees_it() -> void:
 	var told := {
 		World.SCREEN: "병풍이 쓰러졌다",
 		World.JAR: "장독이 깨졌다",
-		World.WATER_JAR: "물독이 깨졌다",
 		World.CENSER: "향로가 쓰러졌다",
 	}
 	for kind: int in told:

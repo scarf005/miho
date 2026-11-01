@@ -70,7 +70,6 @@ const BREAKS := {
 	World.WOOD_WALL: World.FLOOR,
 	World.SCREEN: World.FLOOR,
 	World.JAR: World.FLOOR,
-	World.WATER_JAR: World.SHALLOW,
 	World.CENSER: World.FLOOR,
 }
 ## What burns readily: 인화성.
@@ -118,7 +117,6 @@ func test_the_masks_for_rust_keep_their_old_tests() -> void:
 				World.DRUM,
 				World.SCREEN,
 				World.JAR,
-				World.WATER_JAR,
 				World.CENSER
 			]
 		)

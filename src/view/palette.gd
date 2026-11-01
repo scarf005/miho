@@ -55,7 +55,6 @@ const TILES := {
 	World.SHELF_READ: ["▒", Color(0.55, 0.5, 0.42), Color(0.13, 0.11, 0.09)],
 	World.SCREEN: ["║", Color(0.85, 0.62, 0.3), Color(0.25, 0.14, 0.06)],
 	World.JAR: ["0", Color(0.78, 0.52, 0.32), Color(0.2, 0.12, 0.07)],
-	World.WATER_JAR: ["0", Color(0.45, 0.7, 1.0), Color(0.06, 0.14, 0.28)],
 	World.CENSER: ["&", Color(0.9, 0.75, 0.35), Color(0.24, 0.17, 0.06)],
 	World.COURTYARD: ["▫", Color(0.7, 0.82, 1.0), Color(0.12, 0.15, 0.24)],
 	World.STATUE: ["8", Color(0.78, 0.74, 0.66), Color(0.2, 0.18, 0.16)],
@@ -70,6 +69,7 @@ const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
 const PEACH := ["%", Color(1.0, 0.56, 0.62)]
+const KIMCHI := ["&", Color(0.95, 0.28, 0.16)]
 ## A scroll (Scrolls) is drawn in the colour of its card: CARD[card].
 const SCROLL := "?"
 ## gas kind -> [glyph, colour]: the map tints a tile in sight by the colour, thicker
@@ -197,6 +197,8 @@ static func item(w: World, p: Vector2i) -> Array:
 		return [SCROLL, CARD[scroll]]
 	if w.peaches.has(p):
 		return PEACH
+	if Jars.spots(w).has(p):
+		return KIMCHI
 	if p == w.elixir:
 		return ELIXIR
 	return STAIRS if p == w.stairs else []

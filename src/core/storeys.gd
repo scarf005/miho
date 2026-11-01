@@ -15,6 +15,7 @@ const FIELDS: Array[String] = [
 	"stairs",
 	"elixir",
 	"peaches",
+	"jars",
 	"burning",
 	"wild",
 	"gas",
@@ -47,6 +48,7 @@ static func leave(w: World) -> void:
 static func enter(w: World, depth: int) -> void:
 	w.depth = depth
 	w.scent.clear()
+	w.strong.clear()
 	for s in w.shots:
 		s.gone = true
 	if not w.storeys.has(depth):

@@ -91,15 +91,6 @@ const ROWS := [
 		grow = [60, 30],
 	},
 	{
-		what = World.WATER_JAR,
-		aside = true,
-		on = World.FLOOR,
-		tiers = [1, 9],
-		chance = 100,
-		count = [50, 10, 1],
-		grow = [0, 0],
-	},
-	{
 		what = World.CENSER,
 		vent = Gas.INCENSE,
 		aside = true,

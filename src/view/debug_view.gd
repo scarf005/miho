@@ -18,8 +18,9 @@ static func view(w: World) -> Dictionary:
 	if w.scent.size() == w.tiles.size():
 		for i in w.scent.size():
 			var age := w.round_no + 1 - w.scent[i]
-			if w.scent[i] > 0 and age <= Scent.TRAIL_AGE:
-				scent[Grid.at(i)] = 1.0 - float(age) / (Scent.TRAIL_AGE + 1)
+			var limit := Scent.reach(w, Grid.at(i))
+			if w.scent[i] > 0 and age <= limit:
+				scent[Grid.at(i)] = 1.0 - float(age) / (limit + 1)
 	var sounds := []
 	for e in w.events:
 		if e.t == &"noise":

@@ -126,6 +126,8 @@ static func _glyph(k: World, p: Vector2i) -> String:
 			return Palette.GAS[k.gas[p].x][0]
 	if k.peaches.has(p):
 		return Palette.PEACH[0]
+	if Jars.spots(k).has(p):
+		return Palette.KIMCHI[0]
 	if Scrolls.card_at(k, p) != &"":
 		return Palette.SCROLL
 	if k.bodies.has(p) and k.bodies[p].met:
