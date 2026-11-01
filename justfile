@@ -44,6 +44,10 @@ mcp: rust
     {{ godot }} --headless --path . --import >&2
     {{ godot }} --headless --no-header --path . -s src/mcp/server.gd
 
+# List every Korean string in the game, to read them all at once.
+strings:
+    rg -o --no-filename '"[^"]*[가-힣][^"]*"' src | sort -u
+
 # Format and lint GDScript.
 lint:
     gdformat --check src tests

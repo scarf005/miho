@@ -186,13 +186,12 @@ static func _spray(s: Spell) -> Array:
 	var color: Color = Palette.CARD[c]
 	match c:
 		Cards.FIRE:
-			var who := "대상은" if level >= 3 else "칸은"
 			return [
 				_line("간격", "%d" % Spray.FAN[i]),
 				_line("모양", "부채꼴 90°"),
 				_line("소음", _noise(s.cast_noise())),
 				_line("피해", "0", Palette.HURT),
-				[["닿은 %s " % who, Palette.TEXT], ["불", color], ["이 붙는다", Palette.TEXT]],
+				[["가연성.", Palette.TEXT]],
 			]
 		Cards.WATER:
 			return [

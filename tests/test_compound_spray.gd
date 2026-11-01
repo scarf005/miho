@@ -231,8 +231,7 @@ func test_a_flame_hover_tells_gap_shape_noise_harm_and_what_catches_fire() -> vo
 		assert_eq(rows[1], "간격: %d" % Spray.FAN[level - 1])
 		assert_eq(rows[3], "소음: %d" % s.cast_noise())
 		assert_eq(rows[4], "피해: 0")
-		assert_eq(rows[5].contains("대상"), level >= 3, "creatures catch fire from level 3")
-		assert_eq(rows[5].contains("칸은"), level < 3, "tiles only below it")
+		assert_eq(rows[5], "가연성.")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:
