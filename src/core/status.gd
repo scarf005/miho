@@ -28,6 +28,10 @@ const WET := 4
 const SPLASH := 2
 const SPLASH_WORD := "철벅"
 const ALIGHT := 3
+## Times as long frost holds a wet creature, and times the harm it takes while
+## frozen (`shatter`).
+const FROZEN_WET := 2
+const SHATTER := 2
 ## What each status is called, by its key (`of`).
 const NAME := {&"wet": "젖음", &"alight": "불붙음", &"frozen": "얼어붙음"}
 
@@ -90,7 +94,7 @@ static func ignite(w: World, a: Actor, wild := false) -> void:
 static func freeze(w: World, a: Actor, n: int) -> void:
 	if a.wet > 0:
 		a.wet = 0
-		n *= 2
+		n *= FROZEN_WET
 	if a.alight > 0:
 		_quench(w, a)
 	a.frozen = maxi(a.frozen, n)

@@ -4,6 +4,9 @@ extends RefCounted
 ## rival it fights) or at a dark spot it searches. Homing projectiles find their
 ## own way (Homing). Each plan is {cards, dir}.
 
+## The most spells a creature charges at once.
+const CASTS := 2
+
 
 ## The spells `a` charges at `foe`, when it sees it: a plan for each, or none.
 ## Below Bestiary.PICKS it tries only the next of its spells in turn
@@ -37,7 +40,8 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 		var then := _apart(w, a, plans[(first + k) % plans.size()], taken)
 		if not then.is_empty():
 			out.append(then)
-			break
+			if out.size() >= CASTS:
+				break
 	return out
 
 
@@ -62,7 +66,8 @@ static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 		var then := _apart(w, a, next, taken)
 		if not then.is_empty():
 			out.append(then)
-			break
+			if out.size() >= CASTS:
+				break
 	return out
 
 

@@ -39,6 +39,10 @@ extends RefCounted
 const SLIDE := 3
 ## How far a rotten board that gives way is heard.
 const CRACK := 4
+## Steps fire runs in a round: one through what burns, and through a fierce
+## tile (Tiles.fierce) it catches as many as FIERCE_STEPS.
+const SPREAD_STEPS := 1
+const FIERCE_STEPS := 2
 
 
 ## A lantern that is not broken: it blocks walking and a hit moves it one step on.
@@ -265,12 +269,16 @@ static func burn(w: World, alight: Array) -> void:
 			w.set_tile(p, Tiles.of(w.tile(p), "burns_to"))
 			Notice.record(w, &"ash", p)
 			w.emit({t = &"burnout", at = p})
-	var again: Array[Vector2i] = []
-	for q in caught:
-		if Tiles.fierce[w.tile(q)] == 1 and not again.has(q):
-			again.append(q)
-	for q in again:
-		caught.append_array(_catch(w, q))
+	var front := caught.duplicate()
+	for _step in FIERCE_STEPS - SPREAD_STEPS:
+		var again: Array[Vector2i] = []
+		for q in front:
+			if Tiles.fierce[w.tile(q)] == 1 and not again.has(q):
+				again.append(q)
+		front.clear()
+		for q in again:
+			front.append_array(_catch(w, q))
+		caught.append_array(front)
 	for p in caught:
 		if not gone.has(p):
 			w.ignite(p)

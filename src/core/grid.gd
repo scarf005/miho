@@ -4,6 +4,8 @@ extends RefCounted
 
 const W := 56
 const H := 28
+## The radius of the 3x3 square a tile makes with its eight DIRS.
+const NEAR := 1
 const DIRS: Array[Vector2i] = [
 	Vector2i(0, -1),
 	Vector2i(1, -1),

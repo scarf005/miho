@@ -486,7 +486,7 @@ func _add(card: StringName) -> void:
 	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
-		why = "도약: 맨 앞, 또는 여·구 뒤 맨 끝"
+		why = "%s: 맨 앞, 또는 %s" % [Cards.NAME[Cards.VAULT], SpellInfo.behind()]
 	if why != "":
 		_refuse(why)
 	else:

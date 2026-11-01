@@ -26,7 +26,7 @@ static func _regrow(a: Actor) -> void:
 	a.regrow += 1
 	if a.regrow >= World.TAIL_REGROW:
 		a.regrow = 0
-		a.mana += 1
+		a.mana += World.TAIL_REGROWN
 
 
 static func heaven_phase(w: World) -> void:

@@ -11,6 +11,8 @@ extends RefCounted
 
 const LOUD := 4
 const PER_FOX := 2
+## Rounds between two yelps.
+const EVERY := 2
 const WORD := "캥"
 
 
@@ -34,7 +36,7 @@ static func tick(w: World) -> void:
 			or s.dir != Vector2i.ZERO
 			or w.rides(s)
 			or s.life <= 0
-			or s.life % 2 != 0
+			or s.life % EVERY != 0
 			or not lures(s.spell)
 			or told.has(s.pos)
 			or (caster != null and caster.pos == s.pos)
