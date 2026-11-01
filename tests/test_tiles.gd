@@ -40,6 +40,8 @@ const FLAMMABLE := [
 	World.DRUM,
 	World.GRASS,
 	World.STRAW,
+	World.REEDS,
+	World.REEDS_FLAT,
 	World.LEAVES,
 	World.WOOD_WALL,
 	World.THORNS,
@@ -71,6 +73,15 @@ const BREAKS := {
 	World.WATER_JAR: World.SHALLOW,
 	World.CENSER: World.FLOOR,
 }
+## What burns readily: 인화성.
+const FIERCE := [
+	World.STRAW,
+	World.LEAVES,
+	World.REEDS,
+	World.REEDS_FLAT,
+	World.SHELF,
+	World.SHELF_READ,
+]
 const SEEDS := [1, 2, 3, 7, 11, 42]
 
 
@@ -128,9 +139,12 @@ func test_worlds_of_several_seeds_follow_the_old_tables_at_every_tile() -> void:
 			assert_eq(Terrain.breakable(w, p), BREAKS.has(t) and (inner or not wall), str(p))
 
 
-func test_grass_takes_fire_at_15_percent_and_every_other_kind_at_half() -> void:
+func test_grass_takes_fire_at_15_percent_fierce_kinds_always_and_every_other_kind_at_half() -> void:
 	for t in 256:
-		assert_eq(Tiles.of(t, "spread"), 0.15 if t == World.GRASS else 0.5, "spread %d" % t)
+		var chance := 0.15 if t == World.GRASS else 1.0 if FIERCE.has(t) else 0.5
+		assert_eq(Tiles.of(t, "spread"), chance, "spread %d" % t)
+		assert_eq(Tiles.fierce[t] == 1, FIERCE.has(t), "fierce %d" % t)
+		assert_true(Tiles.burns[t] == 1 or not FIERCE.has(t), "fierce burns %d" % t)
 
 
 func test_only_bamboo_and_shallow_water_hold_no_scent() -> void:

@@ -283,6 +283,10 @@ static func _extras() -> Array[Dictionary]:
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], "계단", _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
 	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire))
+	var fierce := func(w: World):
+		w.set_tile(AT, World.STRAW)
+		w.burning[AT] = World.BURN_ROUNDS
+	out.append(_mark(Palette.FIERCE_BURNING[0], Palette.FIERCE_BURNING[1], "맹렬한 불", fierce))
 	for kind in Compounds.HOT.size():
 		var heat := func(w: World): w.hot[AT] = Vector2i(kind, Compounds.HOT_ROUNDS)
 		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Compounds.HOT[kind].name, heat))

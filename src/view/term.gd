@@ -512,9 +512,10 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var fire := _vis[i] == 1 and world.burning.has(p)
 		if fire:
 			var k := _flicker(i * 1.7, true)
-			glyph = Palette.BURNING[0]
-			fg = Color(Palette.BURNING[1] * (0.7 + 0.4 * k), 1.0)
-			bg = Color(Palette.BURNING[2] * k, 1.0)
+			var flame: Array = Palette.FIERCE_BURNING if Tiles.fierce[t] == 1 else Palette.BURNING
+			glyph = flame[0]
+			fg = Color(flame[1] * (0.7 + 0.4 * k), 1.0)
+			bg = Color(flame[2] * k, 1.0)
 		var hot := not fire and _vis[i] == 1 and world.hot.has(p)
 		if hot:
 			glyph = Palette.HOT[0]

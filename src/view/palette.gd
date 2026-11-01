@@ -63,6 +63,8 @@ const TILES := {
 }
 ## A burning tile, drawn over its terrain.
 const BURNING := ["§", Color(1.0, 0.55, 0.18), Color(0.45, 0.12, 0.02)]
+## Fire on a fierce tile (Tiles.fierce), brighter than BURNING.
+const FIERCE_BURNING := ["§", Color(1.0, 0.95, 0.45), Color(0.8, 0.28, 0.03)]
 ## Hot ground (Compounds), drawn over its terrain.
 const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]

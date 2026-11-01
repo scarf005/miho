@@ -242,7 +242,7 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 		World.LANTERN: ["빛: %d칸" % Light.LANTERN_RADIUS, "부딪칠 때 소음: %d" % World.KNOCK],
 		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새 안 남음."],
 		World.BOARD: ["발소리: %d칸" % Tiles.of(World.BOARD, "tread")[0], "\n가연성."],
-		World.GRASS: ["가연성: 이웃으로 초당 %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
+		World.GRASS: ["가연성.\n번질 확률: %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
 		World.DOOR: ["\n가연성."],
 		World.BRIDGE: ["발소리: %d칸" % Tiles.of(World.BRIDGE, "tread")[0], "불에 타지 않음."],
 		World.WINDOW: ["부딪칠 때 소음: %d" % World.KNOCK],
@@ -260,7 +260,9 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	assert_false(wall.contains("한 번에"), "the spell tells what breaks a wall at once")
 	var glossary := "\n".join(Info.glossary()["가연성"])
 	assert_string_contains(glossary, "탐: %d초\n그 뒤: 재" % World.BURN_ROUNDS)
-	assert_string_contains(glossary, "초당 %d%%" % roundi(Tiles.DEFAULT.spread * 100))
+	assert_string_contains(glossary, "번짐: 초당 1칸\n번질 확률: %d%%" % roundi(Tiles.DEFAULT.spread * 100))
+	var fierce := "\n".join(Info.glossary()["인화성"])
+	assert_string_contains(fierce, "번짐: 초당 2칸\n초당 피해: %d" % World.FIERCE_DAMAGE)
 
 
 func test_stairs_and_peaches_tell_the_health_they_give() -> void:
@@ -302,6 +304,7 @@ func test_a_creature_tells_its_conditions_with_seconds_left() -> void:
 func test_a_creature_in_fire_tells_the_harm_unless_it_eats_fire() -> void:
 	var w := _hall()
 	var at := w.player().pos + Vector2i(1, 0)
+	w.set_tile(at, World.BOARD)
 	w.burning[at] = 3
 	var foe := FloorGen.spawn(w, &"dokkaebi", at)
 	assert_string_contains(

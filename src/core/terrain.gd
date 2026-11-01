@@ -201,8 +201,10 @@ static func relight_beside(w: World, a: Actor) -> bool:
 
 ## Each burning tile crackles, burns and dries whoever stands in it (unless it
 ## eats fire, or burns already: Status) if it was already alight when the
-## round began (`alight`), may set each
-## flammable neighbour alight (a wild one always does), and burns down to ash.
+## round began (`alight`): for World.FIERCE_DAMAGE on a fierce tile, else
+## World.FIRE_DAMAGE. It may set each flammable neighbour alight (a wild one
+## always does), and burns down to ash. A fierce tile caught this round spreads
+## once more in the same round, so fire runs two steps a round through them.
 static func burn(w: World, alight: Array) -> void:
 	if w.outcome != &"":
 		return
@@ -212,17 +214,14 @@ static func burn(w: World, alight: Array) -> void:
 		w.noise(p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
 		if a != null and alight.has(p) and a.alight <= 0:
-			w.emit({t = &"burn", at = p, id = a.id})
+			var fierce := Tiles.fierce[w.tile(p)] == 1
+			w.emit({t = &"burn", at = p, id = a.id, fierce = fierce})
 			if Bestiary.absorbs(a.kind, flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
-				w.hurt(a, World.FIRE_DAMAGE)
+				w.hurt(a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)
 				Status.dry(w, a)
-		for d in Grid.DIRS:
-			var q := p + d
-			if Tiles.burns[w.tile(q)] == 1 and not w.burning.has(q):
-				if w.wild.has(p) or w.rng.randf() < Tiles.of(w.tile(q), "spread"):
-					caught.append(q)
+		caught.append_array(_catch(w, p))
 		w.burning[p] -= 1
 		if w.burning[p] <= 0:
 			w.burning.erase(p)
@@ -230,5 +229,23 @@ static func burn(w: World, alight: Array) -> void:
 			w.set_tile(p, Tiles.of(w.tile(p), "burns_to"))
 			Notice.record(w, &"ash", p)
 			w.emit({t = &"burnout", at = p})
+	var again: Array[Vector2i] = []
+	for q in caught:
+		if Tiles.fierce[w.tile(q)] == 1 and not again.has(q):
+			again.append(q)
+	for q in again:
+		caught.append_array(_catch(w, q))
 	for p in caught:
 		w.ignite(p)
+
+
+## The flammable neighbours of the fire at `p` that it takes: a wild fire takes
+## all, other fire each by that tile's `spread`.
+static func _catch(w: World, p: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for d in Grid.DIRS:
+		var q := p + d
+		if Tiles.burns[w.tile(q)] == 1 and not w.burning.has(q):
+			if w.wild.has(p) or w.rng.randf() < Tiles.of(w.tile(q), "spread"):
+				out.append(q)
+	return out

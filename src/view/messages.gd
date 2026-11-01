@@ -265,7 +265,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
-			return _tile(before, e.at, "에", "에") + [[" 불이 붙었다", Palette.BURNING[1]]]
+			var fierce := Tiles.fierce[before.tile(e.at)] == 1
+			var flame: Array = Palette.FIERCE_BURNING if fierce else Palette.BURNING
+			var burn := " 맹렬한 불이 붙었다" if fierce else " 불이 붙었다"
+			return _tile(before, e.at, "에", "에") + [[burn, flame[1]]]
 		&"burnout":
 			if Tiles.burns[before.tile(e.at)] == 0:
 				return []
@@ -304,7 +307,8 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	if last.get("target", -1) == id:
 		return []
 	if last.get("t") == &"burn" and last.id == id:
-		return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
+		var fire := "맹렬한 불에 타 " if last.get("fierce", false) else "불에 타 "
+		return _subject(before, after, id) + [[fire, TEXT]] + _took(e.n)
 	if last.get("t") == &"scald" and last.id == id:
 		var gas := [[Gas.of(last.kind, "name"), Palette.GAS[last.kind][1]], ["에 데어 ", TEXT]]
 		return _subject(before, after, id) + gas + _took(e.n)
