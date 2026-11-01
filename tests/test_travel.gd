@@ -147,6 +147,21 @@ func test_a_walk_stops_on_harm_noise_notice_and_talismans() -> void:
 	assert_true(Travel.interrupted(w, after, [], {}))
 
 
+func test_a_walk_stops_when_the_stairs_or_a_peach_first_come_into_sight() -> void:
+	var w := _world()
+	w.stairs = Vector2i(12, 8)
+	w.known[Grid.index(w.stairs)] = 0
+	var after := w.clone()
+	after.seen[Grid.index(w.stairs)] = 0
+	assert_false(Travel.interrupted(w, after, [], {}), "stairs out of sight")
+	after.seen[Grid.index(w.stairs)] = 1
+	assert_true(Travel.interrupted(w, after, [], {}))
+	w.known[Grid.index(w.stairs)] = 1
+	assert_false(Travel.interrupted(w, after, [], {}), "stairs seen before")
+	after.peaches.append(Vector2i(14, 8))
+	assert_true(Travel.interrupted(w, after, [], {}))
+
+
 func test_a_walk_stops_when_the_storey_changes() -> void:
 	var w := _world()
 	var after := w.clone()
