@@ -47,7 +47,6 @@ func test_a_creature_that_notices_miho_shouts_its_word() -> void:
 	assert_eq(a.alert, Actor.HUNT)
 	var cry: Dictionary = Bestiary.info(&"dokkaebi").shout
 	assert_eq(_shouts(events).map(func(e): return [e.id, e.word]), [[a.id, cry.word]])
-	assert_eq(_shouts(events)[0].loud, cry.loud, "the shout tells its reach")
 	var noise := events.filter(func(e): return e.t == &"noise" and e.word == cry.word)
 	assert_eq(noise.map(func(e): return [e.at, e.loud]), [[a.pos, cry.loud]])
 
@@ -109,20 +108,18 @@ func test_the_log_tells_a_shout_in_sight_and_one_heard_out_of_it() -> void:
 	w.sense()
 	var before := w.clone()
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
-	var cry: Dictionary = Bestiary.info(&"dokkaebi").shout
-	assert_has(lines, "도깨비가 낄낄 소리쳤다 · 소리: %d칸" % cry.loud)
+	assert_has(lines, "도깨비가 낄낄 소리쳤다")
 	var far := _world()
 	var hunter := _creature(far, &"bulgae", Vector2i(12, 8))
 	far.sense()
 	before = far.clone()
 	far.hunt_from(hunter, ME)
 	var heard := Messages.of(before, far, far.events).map(Messages.plain)
-	var wail: Dictionary = Bestiary.info(&"bulgae").shout
-	assert_has(heard, "멀리서 %s 소리를 들었다 · 소리: %d칸" % [wail.word, wail.loud])
+	assert_has(heard, "멀리서 %s 소리를 들었다" % Bestiary.info(&"bulgae").shout.word)
 
 
-func test_a_shout_in_sight_pops_its_word_and_reach_over_the_shouter() -> void:
-	var popup := Term.popup_of({t = &"shout", word = "낄낄", loud = 6, where = ME})
-	assert_eq(popup.text, "낄낄: 6칸")
+func test_a_shout_in_sight_pops_its_bare_word_over_the_shouter() -> void:
+	var popup := Term.popup_of({t = &"shout", word = "낄낄", where = ME})
+	assert_eq(popup.text, "낄낄")
 	assert_eq(popup.at, ME)
 	assert_eq(popup.color, Palette.SOUND)

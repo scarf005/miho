@@ -97,6 +97,8 @@ var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
 var cam := Vector2i.ZERO
+## How far the loudest noise Miho saw in the last round was heard, in tiles (NoiseMeter).
+var noise := 0
 
 var _font: FontFile
 var _vis := PackedByteArray()
@@ -108,8 +110,6 @@ var _animating := false
 var _popups: Array[Dictionary] = []
 ## event index -> the Perceived fact of the round being played.
 var _told := {}
-## event index -> the noise on a seen tile (Perceived.sounds) of the round being played.
-var _sounded := {}
 var _flashes: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
@@ -234,9 +234,6 @@ func play(events: Array, before: World, after: World) -> void:
 	for f in perceived.facts:
 		if f.i >= 0:
 			_told[f.i] = f
-	_sounded.clear()
-	for f in perceived.sounds:
-		_sounded[f.i] = f
 	_actors.clear()
 	for a in before.actors:
 		if a.alive():
@@ -246,11 +243,10 @@ func play(events: Array, before: World, after: World) -> void:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
 	for i in events.size():
-		if _sounded.has(i):
-			_popups.append(popup_of(_sounded[i]).merged({born = _time}))
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0:
 			await get_tree().create_timer(wait / speed).timeout
+	noise = NoiseMeter.level(_vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
@@ -291,8 +287,7 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 		&"heal":
 			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
 		&"noise", &"shout":
-			var text := "%s: %d칸" % [fact.word, fact.loud]
-			return {at = at, text = text, color = Palette.SOUND, life = 1.4}
+			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
 		&"find":
 			var plate: Array = Palette.TILES[fact.kind]
 			return {at = at, text = plate[0], color = plate[1], life = 1.6}
