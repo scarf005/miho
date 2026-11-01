@@ -95,6 +95,7 @@ static func crumble(w: World, by: Actor, at: Vector2i) -> void:
 	var gone: int = Tiles.of(was, "crumbles")
 	if gone >= 0:
 		w.set_tile(at, gone)
+		Scrolls.displace(w, [at])
 		w.emit({t = &"crumble", at = at, was = was})
 		w.noise(at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
 
@@ -271,6 +272,7 @@ static func burn(w: World, alight: Array) -> void:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})
 		w.noise(p, CRACK, "우지끈", true, 0)
+	Scrolls.displace(w, gone.keys())
 	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))
 	falling.reverse()
 	for a: Actor in falling:
