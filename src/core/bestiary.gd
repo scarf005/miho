@@ -6,12 +6,12 @@ extends RefCounted
 ## dokkaebi's 도깨비불 is a lone wisp: no element, no harm. Every dokkaebi also
 ## casts the lone fire (KINDLE).
 ## Ranks: the storeys come in ranks of two storeys (`rank`), 1 to RANKS. A
-## creature is of the rank of the storey it came to (Actor.rank): RANK_HP adds
-## to its health, and `ranks` holds, by rank, every spell it casts from that
-## rank on (`casts` before the first). Deeper spells keep the kind's elements
-## and change the board more than they hurt: more wisps, homing orbs, sprays
-## and compounds. From PICKS on it picks the spell that suits (Aim.at), and from
-## DOUBLES on it charges two at once.
+## creature is of the rank of the storey it came to (Actor.rank): HEALTH holds,
+## for each kind, its health at each rank, and `ranks` holds, by rank, every
+## spell it casts from that rank on (`casts` before the first). Deeper spells
+## keep the kind's elements and change the board more than they hurt: more
+## wisps, homing orbs, sprays and compounds. From PICKS on it picks the spell that
+## suits (Aim.at), and from DOUBLES on it charges two at once.
 ## spell_name: what the log and hover call its first spell (`casts`), in place
 ## of the name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
@@ -47,9 +47,28 @@ const FOX := Cards.FOX
 const ORB := Cards.ORB
 const GROWTH := 1
 const RANKS := 5
-## Health added at each rank: from the second, three creatures that stand
-## together outlast Miho's best cast at the storey the rank starts on.
-const RANK_HP := [0, 1, 3, 5, 6]
+## Health of each kind at ranks 1 to RANKS, one row per kind. A heavy fighter
+## that stands its ground (장승, 두억시니, 해태, the bosses) grows to outlast
+## Miho's best cast; a 도깨비 and the fast or fragile kinds stay low.
+const HEALTH := {
+	&"dokkaebi": [2, 3, 3, 3, 3],
+	&"oedari": [3, 4, 4, 4, 4],
+	&"bujigaengi": [2, 3, 3, 3, 3],
+	&"bitjaru": [2, 3, 3, 3, 3],
+	&"gamtu": [2, 3, 3, 3, 3],
+	&"jangseung": [3, 4, 6, 8, 9],
+	&"imugi": [2, 3, 3, 3, 3],
+	&"bulgae": [4, 5, 5, 5, 5],
+	&"haetae": [4, 5, 7, 9, 10],
+	&"cheonha": [4, 5, 7, 9, 10],
+	&"jiha": [4, 5, 7, 9, 10],
+	&"bulgasari": [3, 4, 6, 8, 9],
+	&"cheonnyeon": [8, 9, 11, 13, 14],
+	&"saja": [12, 13, 15, 17, 18],
+	&"gangcheori": [5, 6, 8, 10, 11],
+	&"eodeopsini": [3, 4, 4, 4, 4],
+	&"dueoksini": [6, 7, 9, 11, 12],
+}
 const PICKS := 3
 const DOUBLES := 4
 ## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
@@ -113,7 +132,6 @@ const KINDS := {
 		glyph = "도",
 		group = &"dokkaebi",
 		shout = {word = "낄낄", loud = 6},
-		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [[FOX], KINDLE],
 		ranks =
@@ -135,7 +153,6 @@ const KINDS := {
 		glyph = "외",
 		group = &"dokkaebi",
 		shout = {word = "으라차", loud = 8},
-		hp = 3,
 		melee = {name = "씨름", hit = "져", damage = 1, throw = 2},
 		casts = [KINDLE],
 		cd = 3,
@@ -150,14 +167,19 @@ const KINDS := {
 		glyph = "부",
 		group = &"dokkaebi",
 		shout = {word = "낄낄", loud = 6},
-		hp = 2,
 		melee = {name = "부지깽이", hit = "맞아", damage = 1},
 		casts = [[FOX, Cards.FIRE], KINDLE],
 		ranks =
 		{
 			2: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
 			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], KINDLE],
-			5: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE, Cards.FIRE, Cards.FIRE], KINDLE],
+			5:
+			[
+				[FOX, Cards.FIRE],
+				[ORB, Cards.FIRE],
+				[Cards.FIRE, Cards.FIRE, Cards.FIRE],
+				KINDLE,
+			],
 		},
 		spell_name = "도깨비불",
 		cd = 3,
@@ -173,7 +195,6 @@ const KINDS := {
 		name = "빗자루 도깨비",
 		glyph = "빗",
 		group = &"dokkaebi",
-		hp = 2,
 		melee = {name = "빗자루", hit = "맞아", damage = 1},
 		casts = [KINDLE],
 		cd = 3,
@@ -188,7 +209,6 @@ const KINDS := {
 		name = "감투 도깨비",
 		glyph = "감",
 		group = &"dokkaebi",
-		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [KINDLE],
 		cd = 3,
@@ -203,7 +223,6 @@ const KINDS := {
 		name = "장승",
 		glyph = "장",
 		group = &"jangseung",
-		hp = 3,
 		melee = {name = "박치기", hit = "맞아", damage = 1},
 		casts = [[ORB]],
 		ranks =
@@ -223,7 +242,6 @@ const KINDS := {
 		glyph = "이",
 		group = &"dragon",
 		shout = {word = "쉭", loud = 3},
-		hp = 2,
 		casts = [[ORB]],
 		ranks =
 		{
@@ -241,7 +259,6 @@ const KINDS := {
 		glyph = "불",
 		group = &"beast",
 		shout = {word = "컹컹", loud = 8},
-		hp = 4,
 		melee = {name = "이빨", hit = "물려", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
 		cd = 3,
@@ -258,7 +275,6 @@ const KINDS := {
 		glyph = "해",
 		group = &"beast",
 		shout = {word = "으르렁", loud = 5},
-		hp = 4,
 		melee = {name = "앞발", hit = "맞아", damage = 3},
 		casts = [[ORB, Cards.WATER]],
 		ranks =
@@ -285,7 +301,6 @@ const KINDS := {
 		glyph = "천",
 		group = &"jangseung",
 		shout = {word = "이놈", loud = 9},
-		hp = 4,
 		casts = [[ORB, Cards.WOOD]],
 		ranks = {2: [[ORB, Cards.WOOD], [Cards.WOOD]]},
 		cd = 2,
@@ -300,7 +315,6 @@ const KINDS := {
 		glyph = "지",
 		group = &"jangseung",
 		shout = {word = "이놈", loud = 9},
-		hp = 4,
 		casts = [[FOX, Cards.METAL]],
 		ranks = {2: [[FOX, Cards.METAL], [FOX, Cards.METAL, Cards.METAL]]},
 		cd = 3,
@@ -315,7 +329,6 @@ const KINDS := {
 		glyph = "가",
 		group = &"beast",
 		shout = {word = "끼긱", loud = 6},
-		hp = 3,
 		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
 		ranks = {3: [[ORB, Cards.EARTH], [FOX, Cards.EARTH], [Cards.EARTH, Cards.EARTH]]},
@@ -333,7 +346,6 @@ const KINDS := {
 		glyph = "용",
 		group = &"dragon",
 		shout = {word = "크아앙", loud = 12},
-		hp = 8,
 		casts = [[FOX, ORB, Cards.WATER], [ORB, Cards.FIRE, Cards.METAL]],
 		ranks =
 		{
@@ -355,7 +367,6 @@ const KINDS := {
 		name = "저승사자",
 		glyph = "사",
 		group = &"underworld",
-		hp = 12,
 		melee = {name = "오랏줄", hit = "맞아", damage = 1, root = 2},
 		mana = 9,
 		casts = REAPER,
@@ -370,7 +381,6 @@ const KINDS := {
 		glyph = "강",
 		group = &"dragon",
 		shout = {word = "우르릉", loud = 8},
-		hp = 5,
 		casts = [[ORB, Cards.FIRE, Cards.METAL], [FOX, Cards.FIRE]],
 		ranks =
 		{
@@ -394,7 +404,6 @@ const KINDS := {
 		name = "어둑시니",
 		glyph = "어",
 		group = &"underworld",
-		hp = 3,
 		melee = {name = "손톱", hit = "긁혀", damage = 1},
 		casts = [[FOX, Cards.WATER]],
 		ranks =
@@ -415,7 +424,6 @@ const KINDS := {
 		glyph = "두",
 		group = &"underworld",
 		shout = {word = "우어어", loud = 9},
-		hp = 6,
 		melee = {name = "주먹", hit = "맞아", damage = 2, throw = 3},
 		casts = [[Cards.EARTH]],
 		ranks = {4: [[Cards.EARTH], [Cards.EARTH, Cards.EARTH]]},
@@ -447,7 +455,7 @@ static func casts(kind: StringName, r: int) -> Array:
 
 ## The health of a creature of `kind` at rank `r`.
 static func hp(kind: StringName, r: int) -> int:
-	return info(kind).hp + RANK_HP[r - 1]
+	return HEALTH[kind][r - 1]
 
 
 ## The spell a `kind` hurls from `cards`, its wisps in the words of its group

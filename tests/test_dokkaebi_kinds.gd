@@ -99,7 +99,7 @@ func test_the_poker_takes_no_harm_from_fire() -> void:
 	var a := FloorGen.spawn(w, &"bujigaengi", Vector2i(10, 8))
 	w.burning[a.pos] = World.BURN_ROUNDS
 	w.act(WAIT)
-	assert_eq(a.hp, Bestiary.info(&"bujigaengi").hp)
+	assert_eq(a.hp, Bestiary.hp(&"bujigaengi", 1))
 	assert_true(Bestiary.absorbs(&"bujigaengi", Spell.make([Cards.ORB, Cards.FIRE])))
 
 

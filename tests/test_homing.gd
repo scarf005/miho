@@ -42,7 +42,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.cooldown = 99
-	a.hp = Bestiary.info(kind).hp
+	a.hp = Bestiary.hp(kind, 1)
 	a.max_hp = a.hp
 	return a
 

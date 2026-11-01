@@ -774,8 +774,7 @@ static func bands(kinds: Array) -> Array:
 	for members: Array in groups.values():
 		var order := range(members.size())
 		order.sort_custom(
-			func(i, j):
-				return [-Bestiary.info(members[i]).hp, i] < [-Bestiary.info(members[j]).hp, j]
+			func(i, j): return [-Bestiary.hp(members[i], 1), i] < [-Bestiary.hp(members[j], 1), j]
 		)
 		var count := ceili(float(members.size()) / BAND)
 		var split := []

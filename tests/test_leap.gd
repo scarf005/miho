@@ -54,7 +54,7 @@ func _leap(cards: Array, dir := E) -> Dictionary:
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
 	a.cooldown = 99
-	a.hp = Bestiary.info(&"dokkaebi").hp
+	a.hp = Bestiary.hp(&"dokkaebi", 1)
 	a.max_hp = a.hp
 	return a
 
