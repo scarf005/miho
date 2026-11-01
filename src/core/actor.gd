@@ -85,7 +85,7 @@ func asleep() -> bool:
 
 
 ## Whether it can sleep at all: a creature of heaven that does not patrol, always
-## hunt or stand fixed (the tags 순찰, 미호의 위치를 알고 있음 and 고정).
+## hunt or stand fixed (the tags 순찰, 위치 감지 and 고정).
 func sleeps() -> bool:
 	return (
 		faction == HEAVEN

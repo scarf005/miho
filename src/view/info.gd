@@ -67,9 +67,9 @@ static func glossary() -> Dictionary:
 		"순찰": ["쉴 때: 방 사이를 돌아다님", NO_SLEEP + ".", "무리: 대장을 따라다님"],
 		"고정": ["움직이지 않음.", NO_SLEEP + "."],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
-		"미호의 위치를 알고 있음": ["추격: 항상", "보지 못해도 미호를 쫓아감", NO_SLEEP + "."],
-		"냄새를 따라감": ["쉬거나 수색 중: 미호의 냄새를 따라감", "남은 냄새: %d초 이내" % Scent.TRAIL_AGE],
-		"꺼진 등불을 켬": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
+		"위치 감지": ["추격: 항상", "보지 못해도 미호를 쫓아감", NO_SLEEP + "."],
+		"냄새 추적": ["쉬거나 수색 중: 미호의 냄새를 따라감", "남은 냄새: %d초 이내" % Scent.TRAIL_AGE],
+		"등불 켜기": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
 		"밝음": ["적에게 보임: 시야 안 어디서나"],
 		"어두움":
 		[
@@ -531,11 +531,11 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if elements.has(Cards.WOOD):
 		out.append("불에 탐")
 	if spec.get("hunts", false):
-		out.append("미호의 위치를 알고 있음")
+		out.append("위치 감지")
 	if spec.get("tracks", false):
-		out.append("냄새를 따라감")
+		out.append("냄새 추적")
 	if spec.get("stokes", false):
-		out.append("꺼진 등불을 켬")
+		out.append("등불 켜기")
 	return out
 
 

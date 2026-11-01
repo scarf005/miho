@@ -146,9 +146,9 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 	assert_string_contains(
 		text[&"oedari"], "근접: 씨름\n  피해: %d\n  던짐: %d칸" % [melee.damage, melee.throw]
 	)
-	assert_string_contains(text[&"bujigaengi"], "꺼진 등불을 켬")
+	assert_string_contains(text[&"bujigaengi"], "등불 켜기")
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")
-	assert_string_contains(text[&"bitjaru"], "냄새를 따라감")
+	assert_string_contains(text[&"bitjaru"], "냄새 추적")
 	assert_false(text[&"bitjaru"].contains("말할 수 있다"))
 
 
@@ -197,7 +197,7 @@ func test_an_awake_poker_lights_it_on_patrol_searching_hunting_and_walking_home(
 
 func test_the_hover_and_the_doc_say_the_poker_lights_lanterns_when_awake() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"bujigaengi"), []))
-	assert_string_contains(text, "꺼진 등불을 켬")
+	assert_string_contains(text, "등불 켜기")
 
 
 func test_the_lone_fire_gives_a_plain_dokkaebi_no_element() -> void:
