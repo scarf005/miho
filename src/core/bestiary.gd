@@ -33,8 +33,6 @@ extends RefCounted
 ## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
 ## hat: wears the invisibility hat, seen only from the next tile or with a wisp
 ## clinging to it (Hat).
-## brave: never flees (Bestiary.flees). Any other creature that is sharp or
-## cunning and can walk runs from Miho at 1 health (Mind.flee).
 ## A creature's elements are those of the spells it casts. A spell that holds
 ## an element beating one of them hits it twice as hard (Cards.BEATS).
 
@@ -225,7 +223,6 @@ const KINDS := {
 		wits = 1,
 		drop = Cards.WATER,
 		absorb = &"fire",
-		brave = true,
 	},
 	&"cheonha":
 	{
@@ -317,7 +314,6 @@ const KINDS := {
 		step = 3,
 		hunts = true,
 		wits = 2,
-		brave = true,
 	},
 }
 
@@ -376,17 +372,6 @@ static func bands(kind: StringName) -> bool:
 		spec.has("group")
 		and spec.get("move", &"static") != &"static"
 		and not spec.get("boss", false)
-	)
-
-
-## Whether a creature of `kind` runs from Miho at 1 health: sharp or cunning,
-## not brave, and able to walk.
-static func flees(kind: StringName) -> bool:
-	var spec := info(kind)
-	return (
-		wits(kind) >= SHARP
-		and not spec.get("brave", false)
-		and spec.get("move", &"static") != &"static"
 	)
 
 

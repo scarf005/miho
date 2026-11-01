@@ -95,12 +95,6 @@ func following() -> bool:
 	return faction == HEAVEN and leader != 0 and info().get("patrol", false)
 
 
-## Hunting Miho at 1 health or alight (Status), and not one to stand and
-## fight (Bestiary.flees): it runs from her (Mind.flee).
-func fleeing() -> bool:
-	return faction == HEAVEN and alert == HUNT and (hp == 1 or alight > 0) and Bestiary.flees(kind)
-
-
 ## Hunting Miho by way of a drum.
 func drumming() -> bool:
 	return alert == HUNT and drum != Vector2i(-1, -1)

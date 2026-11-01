@@ -14,8 +14,7 @@ extends RefCounted
 ## sets it alight (`ignite`: a fire wisp any creature, other fire a wood one).
 ## From the round after, it burns for World.FIRE_DAMAGE as each round ends (a
 ## burning tile under it adds nothing; Terrain.burn); it lights the tiles round
-## it like a burning tile (Light); hunting Miho, one that would flee at 1
-## health runs from her (Actor.fleeing). Water puts it out and wets it. Miho
+## it like a burning tile (Light). Water puts it out and wets it. Miho
 ## never catches alight: fire that would set her alight sets her tile alight,
 ## even where nothing burns, so she can step off it before it burns her.
 ##

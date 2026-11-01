@@ -77,11 +77,8 @@ static func _profile(a: Actor) -> Array:
 
 
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
-## shut), on patrol, walking back home, or just resting. One hunting at 1
-## health or alight runs.
+## shut), on patrol, walking back home, or just resting.
 static func state(a: Actor) -> String:
-	if a.fleeing():
-		return "도망치는 중"
 	if a.alert != Actor.REST:
 		return STATE[a.alert]
 	if a.asleep():

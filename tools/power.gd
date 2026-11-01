@@ -346,7 +346,7 @@ func _creature_table() -> void:
 		var worst := maxi(blow.melee, blow.cast)
 		var weak := ",".join(Bestiary.weak_to(kind).map(func(c): return Cards.NAME[c]))
 		var other := []
-		for flag in ["brave", "boss", "hunts", "patrol", "deaf", "hat"]:
+		for flag in ["boss", "hunts", "patrol", "deaf", "hat"]:
 			if info.get(flag, false):
 				other.append(flag)
 		if info.get("absorb", &"") != &"":

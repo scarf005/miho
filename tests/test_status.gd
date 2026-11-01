@@ -248,33 +248,22 @@ func test_a_creature_alight_shines_like_fire() -> void:
 	assert_false(w.lit(foe.pos + E * (Light.FIRE_RADIUS + 1)), "and no farther")
 
 
-func test_a_hunter_alight_flees_if_it_would_flee_at_one_health() -> void:
-	var dog := Actor.new()
-	dog.kind = &"dokkaebi"
-	dog.hp = 2
-	dog.alert = Actor.HUNT
-	assert_false(dog.fleeing())
-	dog.alight = 1
-	assert_true(dog.fleeing())
-	assert_eq(Info.state(dog), "도망치는 중")
-	dog.alert = Actor.SEARCH
-	assert_false(dog.fleeing(), "only a hunter runs")
-	var post := Actor.new()
-	post.kind = &"jangseung"
-	post.alert = Actor.HUNT
-	post.alight = 1
-	assert_false(post.fleeing(), "one that cannot walk stands")
-
-
-func test_a_fleeing_creature_alight_steps_away_from_miho() -> void:
+func test_a_hunter_at_one_health_and_one_alight_still_come_at_miho() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(0, -3), World.LANTERN)
-	var dog := _post(w, ME + E * 2, &"dokkaebi")
-	dog.alert = Actor.HUNT
-	Status.ignite(w, dog)
+	var weak := _post(w, ME + E * 4, &"dokkaebi")
+	weak.hp = 1
+	weak.alert = Actor.HUNT
+	var burning := _post(w, ME + W * 4, &"dokkaebi")
+	burning.hp = 9
+	burning.alert = Actor.HUNT
+	Status.ignite(w, burning)
 	w.sense()
 	w.act(WAIT)
-	assert_gt(Grid.cheb(dog.pos, ME), 2, "it ran")
+	assert_eq(Grid.cheb(weak.pos, ME), 3, "at 1 health it closed in")
+	assert_eq(Grid.cheb(burning.pos, ME), 3, "alight it closed in")
+	assert_eq(Info.state(weak), Info.STATE[Actor.HUNT])
+	assert_eq(Info.state(burning), Info.STATE[Actor.HUNT])
 
 
 func test_water_puts_a_creature_alight_out_and_wets_it() -> void:
