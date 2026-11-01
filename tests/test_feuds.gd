@@ -211,6 +211,7 @@ func test_the_log_tells_the_fight() -> void:
 	var shooter := _creature(w, &"imugi", ME + Vector2i(5, 0))
 	var victim := _creature(w, &"dokkaebi", ME + Vector2i(2, 0))
 	victim.hp = 5
+	w.set_tile(ME + Vector2i(5, 1), World.LANTERN)
 	w.sense()
 	w.cast(shooter, Spell.make([Cards.ORB]), W)
 	var lines := []

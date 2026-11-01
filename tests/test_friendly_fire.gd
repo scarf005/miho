@@ -162,6 +162,7 @@ func test_the_log_names_both_creatures() -> void:
 	var shooter := _creature(w, &"imugi", Vector2i(9, 8))
 	var victim := _creature(w, &"dokkaebi", Vector2i(6, 8))
 	victim.hp = 5
+	w.set_tile(Vector2i(9, 9), World.LANTERN)
 	w.sense()
 	w.cast(shooter, Spell.make([Cards.ORB]), W)
 	var lines := []
@@ -171,10 +172,25 @@ func test_the_log_names_both_creatures() -> void:
 	assert_has(lines, "이무기의 구슬에 도깨비가 피해를 1 입었다")
 
 
+func test_the_log_does_not_name_a_caster_out_of_sight() -> void:
+	var w := _world()
+	var shooter := _creature(w, &"imugi", Vector2i(9, 8))
+	var victim := _creature(w, &"dokkaebi", Vector2i(6, 8))
+	victim.hp = 5
+	w.sense()
+	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	var lines := []
+	for i in 4:
+		var before := w.clone()
+		lines.append_array(Messages.of(before, w, w.act(WAIT)).map(Messages.plain))
+	assert_has(lines, "무언가의 구슬에 도깨비가 피해를 1 입었다")
+
+
 func test_the_log_marks_the_weakness_of_an_ally_hit() -> void:
 	var w := _world()
 	var shooter := _creature(w, &"imugi", Vector2i(9, 8))
 	_creature(w, &"cheonha", Vector2i(6, 8))
+	w.set_tile(Vector2i(9, 9), World.LANTERN)
 	w.sense()
 	w.cast(shooter, Spell.make([Cards.ORB, Cards.METAL]), W)
 	var lines := []

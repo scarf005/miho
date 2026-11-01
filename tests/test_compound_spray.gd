@@ -165,9 +165,9 @@ func test_a_spray_preview_equals_the_round() -> void:
 
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
-		[FIRE]: ["불 불길 · 꼬리: 1", "반지름 2", "불: 가연성 칸\n", "소리: 쓸 때 2칸"],
-		[FIRE, FIRE]: ["반지름 3", "피해: 다음 초부터 매 초 %d" % World.FIRE_DAMAGE],
-		[FIRE, FIRE, FIRE]: ["반지름 4", "번짐: 늘"],
+		[FIRE]: ["불 불길 · 꼬리: 1", "반지름 1", "불: 가연성 칸\n", "켬: 꺼진 등불", "소리: 쓸 때 2칸"],
+		[FIRE, FIRE]: ["반지름 2", "켬: 꺼진 등불"],
+		[FIRE, FIRE, FIRE]: ["반지름 4", "피해: 다음 초부터 매 초 %d" % World.FIRE_DAMAGE, "번짐: 늘"],
 		[WATER]: ["모양: 곧게 4칸\n멈춤: 첫 적", "밀침: 1칸", "소리: 없음"],
 		[WATER, WATER]: ["곧게 6칸", "밀침: 2칸"],
 		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n꿰뚫음: 적", "밀침: 3칸"],
@@ -222,7 +222,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			assert_string_contains(text, part)
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
 	assert_true(card.begins_with("불 부적 · 꼬리: 1"), card)
-	assert_string_contains(card, "반지름 2")
+	assert_string_contains(card, "반지름 1")
 	assert_string_contains(card, "넣으면: 불×2 불길 · 꼬리: 2")
 
 
