@@ -120,3 +120,18 @@ power procs="7": rust
     done
     for pid in "${pids[@]}"; do wait "$pid"; done
     {{ godot }} --headless --path . -s tools/power.gd -- --memo="$dir" 2>/dev/null | rg -v '^(Initialize godot-rust|Godot Engine)'
+
+# Print how a plain bot fares from storey 1 over N seeds as Markdown: deaths, killers, one-blow deaths; on N processes.
+survive seeds="200" procs="7": rust
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ godot }} --headless --path . --import >/dev/null 2>&1
+    dir=$(mktemp -d -p "${XDG_CACHE_HOME:-$HOME/.cache}")
+    trap 'gio trash "$dir"' EXIT
+    pids=()
+    for i in $(seq 0 $(({{ procs }} - 1))); do
+        {{ godot }} --headless --path . -s tools/survive.gd -- --seeds={{ seeds }} --shard=$i/{{ procs }} --out="$dir" >/dev/null 2>&1 &
+        pids+=($!)
+    done
+    for pid in "${pids[@]}"; do wait "$pid"; done
+    {{ godot }} --headless --path . -s tools/survive.gd -- --merge="$dir" 2>/dev/null | rg -v '^(Initialize godot-rust|Godot Engine)'
