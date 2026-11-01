@@ -400,7 +400,7 @@ static func _spell_details(s: Spell) -> Array[String]:
 		return lines
 	var near := s.damage(0)
 	var far := s.damage(Spell.MOMENTUM)
-	var out: Array[String] = ["피해: %d" % near if near > 0 else "피해: 없음"]
+	var out: Array[String] = ["피해: %d" % near]
 	if far > near:
 		out.append(SpellInfo.FAR % Spell.MOMENTUM + ": %d" % far)
 	if s.pierces():

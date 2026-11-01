@@ -218,17 +218,17 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			assert_string_contains(text, part)
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
 	assert_true(card.begins_with("불 부적 · 꼬리: 1"), card)
-	assert_string_contains(card, "간격: 1")
+	assert_string_contains(card, "범위: 1칸")
 	assert_string_contains(card, "넣으면: 불길 · 꼬리: 2")
 
 
-func test_a_flame_hover_tells_gap_shape_noise_harm_and_what_catches_fire() -> void:
+func test_a_flame_hover_tells_range_shape_noise_harm_and_what_catches_fire() -> void:
 	for level in range(1, 4):
 		var s := Spell.make(range(level).map(func(_i): return FIRE))
 		var rows := Info.plain(SpellInfo.spell(s)).split("\n")
 		assert_eq(rows.size(), 6, "title and five lines")
 		assert_eq(rows[0].split(" · ")[0], "불길")
-		assert_eq(rows[1], "간격: %d" % Spray.FAN[level - 1])
+		assert_eq(rows[1], "범위: %d칸" % Spray.FAN[level - 1])
 		assert_eq(rows[3], "소음: %d" % s.cast_noise())
 		assert_eq(rows[4], "피해: 0")
 		assert_eq(rows[5], "가연성.")
