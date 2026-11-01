@@ -203,3 +203,33 @@ func test_the_observation_says_a_hunter_is_tracking_scent() -> void:
 	assert_false(Observation._creature(w, a).contains("tracking"))
 	var near := _hunter(w, Vector2i(11, 8))
 	assert_false(Observation._creature(w, near).contains("tracking"), "it sees her")
+
+
+## A water wisp at `at`, as when it lands there.
+func _water_lands(w: World, at: Vector2i) -> void:
+	var s := Shot.new()
+	s.spell = Spell.make([Cards.FOX, Cards.WATER])
+	Terrain.touch(w, s, at, Vector2i(-1, -1))
+
+
+func test_water_landing_on_the_bottom_row_washes_only_the_tiles_on_the_map() -> void:
+	var w := _world()
+	var at := Vector2i(10, Grid.H - 1)
+	w.set_tile(at + W, World.LANTERN)
+	_water_lands(w, at)
+	assert_eq(w.tile(at + W), World.LANTERN_OUT)
+
+
+func test_water_landing_on_a_side_of_the_map_leaves_the_scent_on_the_far_side() -> void:
+	var w := _world()
+	var row := 10
+	var east := Vector2i(Grid.W - 1, row)
+	var wrapped := Vector2i(0, row + 1)
+	Scent.lay(w, wrapped)
+	_water_lands(w, east)
+	assert_gt(w.scent[Grid.index(wrapped)], 0, "past the east edge is not the next row's west end")
+	var west := Vector2i(0, row)
+	var wrapped_west := Vector2i(Grid.W - 1, row - 1)
+	Scent.lay(w, wrapped_west)
+	_water_lands(w, west)
+	assert_gt(w.scent[Grid.index(wrapped_west)], 0, "past the west edge either")
