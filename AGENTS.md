@@ -12,11 +12,13 @@ These rules come from repeated user corrections. Every lane reads this file befo
 
 ## Player-facing text (hover, sidebar, 도감, log)
 
-- Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소리: 3칸`, `가연성.`, `면역: 불`.
+- Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소음: 3`, `가연성.`, `면역: 불`.
+- A status a spell causes is one line with the status word coloured: `닿은 대상은 불이 붙는다`. The status has its entry in the 도감 상태이상 tab.
+- A lone spray goes by its name alone: `불길`, never `불 불길`. Label words are plain Korean game words: `대상`, never `노림`.
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`), and do not write `당신`.
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".
-- No onomatopoeia in hover or 도감, because rules use only the radius: write `소리: N칸`. The map popup and the log keep the word.
+- No onomatopoeia in hover or 도감, because rules use only the radius: write `소음: N`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
 - 꼬리 and 여우불 are Miho's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).

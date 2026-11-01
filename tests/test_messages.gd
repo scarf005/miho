@@ -227,3 +227,13 @@ func test_a_new_tail_is_told_and_losing_one_is_not() -> void:
 	var grown := "꼬리가 %d개로 늘었다" % w.max_tails()
 	assert_eq(Messages.of(before, w, []).map(Messages.plain), [grown])
 	assert_eq(Messages.of(w, before, []), [])
+
+
+func test_a_peach_that_comes_into_sight_is_told_once() -> void:
+	var w := _world()
+	var after := w.clone()
+	w.known[Grid.index(SEEN)] = 0
+	after.peaches.append(SEEN)
+	after.known[Grid.index(SEEN)] = 1
+	assert_has(Messages.of(w, after, []).map(Messages.plain), "복숭아를 발견했다")
+	assert_does_not_have(Messages.of(after, after, []).map(Messages.plain), "복숭아를 발견했다")

@@ -19,7 +19,7 @@ const SWAP := [["바꿔치기", "멈춘 칸으로"], ["맞힌 적", "자리 교�
 ## `이름: 값` line each; and what a spell that causes it says, as [label, value].
 const STATUS_DOES := {
 	&"wet": ["소리: %d칸" % Status.SPLASH],
-	&"alight": ["피해: 매 초 %d" % World.FIRE_DAMAGE, "빛: %d칸" % Light.FIRE_RADIUS],
+	&"alight": ["초당 피해: %d" % World.FIRE_DAMAGE, "빛: %d칸" % Light.FIRE_RADIUS],
 	&"frozen": ["다음 피해: ×2"],
 }
 const SOAK := ["젖음", "%d초" % Status.WET]
@@ -146,7 +146,7 @@ static func ward(s: Spell) -> Array:
 			_line("%s 한 장마다" % Cards.NAME[Cards.WOOD], "+%d초" % Guise.PER_WOOD),
 			_line("못 알아봄", "추격 중이 아닌 적"),
 			_line("발톱", "기습"),
-			_line("풀림", "적 옆 %d초, 주문, 맞음" % Guise.BESIDE),
+			_line("풀림", "적 옆 %d초, 주문 시전, 맞음" % Guise.BESIDE),
 			_line(name + " 소리", "없음"),
 		]
 	var dark: int = s.light(Actor.FOX).radius
@@ -175,7 +175,7 @@ static func _spray(s: Spell) -> Array:
 			out.append(_line("켬", "꺼진 등불", color))
 			if level >= 3:
 				out.append(_line(ALIGHT_ON[0], ALIGHT_ON[1], color))
-				out.append(_line("피해", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
+				out.append(_line("초당 피해", "%d" % World.FIRE_DAMAGE, Palette.HURT))
 				out.append(_line("번짐", "늘", color))
 			return out
 		Cards.WATER:
@@ -203,7 +203,7 @@ static func _spray(s: Spell) -> Array:
 	return [
 		_line("모양", "땅속 뿌리"),
 		_line("거리", "%d걸음" % Spray.ROOT_REACH[i]),
-		_line("노림", "보이는 가까운 적 " + who),
+		_line("대상", "보이는 가까운 적 " + who),
 		_line("묶음", "%d초" % Spray.ROOT_ROUNDS[i], color),
 		_line("막힘", "하늘, 연못, 벽, 하늘다리"),
 	]
@@ -217,9 +217,7 @@ static func _fan(r: int, name := "") -> Array:
 static func _gun(level: int) -> Array:
 	if level >= 2:
 		var near := _line("바로 옆 적 피해", "2", Palette.HURT)
-		return (
-			_lines(_fan(Spray.shotgun(level), "산탄, ")) + [_line("피해", "적마다 1", Palette.HURT), near]
-		)
+		return _lines(_fan(Spray.shotgun(level), "산탄, ")) + [_line("피해", "1", Palette.HURT), near]
 	return [
 		_line("모양", "권총, 곧게 %d칸" % Spray.PISTOL), _line("멈춤", "첫 적"), _line("피해", "1", Palette.HURT)
 	]
@@ -268,13 +266,13 @@ static func _form(s: Spell) -> Array:
 		Spray.AROUND:
 			return [["모양", "둘레 %d칸" % n]]
 		Spray.SIGHT:
-			return [["노림", "보이는 적 모두" + (", 미호" if shape.size() > 2 else "")]]
+			return [["대상", "보이는 적 모두" + (", 미호" if shape.size() > 2 else "")]]
 		Spray.ROOTS:
 			var deepest := Spray.ROOTS_LEVEL - 1
 			return [
 				["모양", "땅속 뿌리"],
 				["거리", "%d걸음" % Spray.ROOT_REACH[deepest]],
-				["노림", "보이는 적 모두"],
+				["대상", "보이는 적 모두"],
 			]
 		Spray.STRIKE:
 			return [["모양", "곧게 %d칸" % n], ["꿰뚫음", "적"]]
@@ -283,19 +281,19 @@ static func _form(s: Spell) -> Array:
 
 ## What compound `c` does where it reaches, as [label, value] lines (Compounds).
 static func compound(c: StringName) -> Array:
-	var harm := func(n: int) -> Array: return ["피해", "위에서 매 초 %d" % n]
+	var harm := func(n: int) -> Array: return ["초당 피해", "%d" % n]
 	var hot := func(kind: int) -> Array:
 		var spec: Dictionary = Compounds.HOT[kind]
 		return [[spec.name, "%d초" % Compounds.HOT_ROUNDS], harm.call(spec.harm)]
 	match c:
 		&"wildfire":
-			return [["불", "가연성 칸, 닿은 적"], ["번짐", "늘"], ["피해", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE]]
+			return [["불", "가연성 칸, 닿은 적"], ["번짐", "늘"], ["초당 피해", "%d" % World.FIRE_DAMAGE]]
 		&"lava":
 			return hot.call(Compounds.LAVA)
 		&"molten":
 			return hot.call(Compounds.MOLTEN)
 		&"shrapnel":
-			return [["피해", "적마다 %d" % Compounds.SHRAPNEL]]
+			return [["피해", "%d" % Compounds.SHRAPNEL]]
 		&"frost":
 			var frozen: String = Status.NAME[&"frozen"]
 			return [
@@ -311,9 +309,7 @@ static func compound(c: StringName) -> Array:
 		&"thorn":
 			var name: String = Tiles.of(World.THORNS, "name")
 			return [
-				[name, "자람"],
-				["피해", "적마다 %d" % Compounds.THORN],
-				["지날 때 피해", "%d" % Compounds.THORN]
+				[name, "자람"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
 		&"split":
 			return [["벽", "소리 없이 무너짐"]]
@@ -327,7 +323,7 @@ static func compound(c: StringName) -> Array:
 		&"hail":
 			var frozen: String = Status.NAME[&"frozen"]
 			return [
-				["피해", "적마다 %d" % Compounds.HAIL],
+				["피해", "%d" % Compounds.HAIL],
 				[frozen, "%d초" % Compounds.FROST],
 				["젖은 적 " + frozen, "%d초" % (2 * Compounds.FROST)],
 			]
@@ -362,7 +358,7 @@ static func compound(c: StringName) -> Array:
 			var steam: Array = compound(&"steam")
 			return hot.call(Compounds.MOLTEN) + [steam[0], ["증기 피해", steam[1][1]], SOAK]
 		&"ironroot":
-			return [["묶음", "%d초" % Compounds.IRONROOT], ["피해", "적마다 %d" % Compounds.IRONROOT_HARM]]
+			return [["묶음", "%d초" % Compounds.IRONROOT], ["피해", "%d" % Compounds.IRONROOT_HARM]]
 		&"magpie":
 			return [["하늘, 연못", Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
@@ -372,7 +368,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				["땅", Tiles.of(World.SKY, "name")],
 				["선 적", "떨어짐"],
-				["남는 칸", "미호 칸, 계단 길을 끊는 칸"],
+				["남는 칸", "미호 칸, 계단으로 가는 길을 끊는 칸"],
 			]
 		&"newmoon":
 			return [["끔", "불, 등불"]]
@@ -380,7 +376,7 @@ static func compound(c: StringName) -> Array:
 			return [["싸움", "가까운 둘씩"], ["시간", "%d초" % Mind.GRUDGE_ROUNDS]]
 		&"thunder":
 			return [
-				["피해", "적마다 %d" % Compounds.THUNDER],
+				["피해", "%d" % Compounds.THUNDER],
 				["기절", "%d초" % Compounds.THUNDER_STUN],
 			]
 		&"stillness":
@@ -389,7 +385,7 @@ static func compound(c: StringName) -> Array:
 			return [["체력", "+%d" % World.HEAL], ["기절", "%d초" % Compounds.SAMSARA_STUN]]
 		Cards.CONQUEST:
 			return [
-				["피해", "적마다 %d" % Compounds.CONQUEST_HARM],
+				["피해", "%d" % Compounds.CONQUEST_HARM],
 				["약점인 적 피해", "%d" % (2 * Compounds.CONQUEST_HARM)],
 			]
 		Cards.DRAGON:
@@ -425,7 +421,7 @@ static func shot(w: World, s: Shot) -> Array:
 	lines.append(_line("피해", str(spell.damage(s.distance())), Palette.HURT))
 	if s.turn > 0:
 		var t := w.actor(s.target)
-		lines.append(_line("노림", "없음" if t == null else t.info().name))
+		lines.append(_line("대상", "없음" if t == null else t.info().name))
 		lines.append(_line("꺾임", _turn(s.turn)))
 	lines.append(_line("빠르기", "초당 %d칸" % spell.speed() if s.dir != Vector2i.ZERO else "떠 있음"))
 	if s.life > 0:
@@ -436,7 +432,7 @@ static func shot(w: World, s: Shot) -> Array:
 		lines.append_array(_lure(spell))
 	lines.append(_line("빛", _light(spell.light(s.faction))))
 	if spell.burst_noise() > 0:
-		lines.append(_line("소리", "터질 때 %d칸" % spell.burst_noise()))
+		lines.append(_line("터질 때 소리", "%d칸" % spell.burst_noise()))
 	return lines
 
 
@@ -483,7 +479,7 @@ static func _shape(s: Spell) -> Array:
 			_line("거리", "%s 한 장마다 +1칸" % Cards.NAME[Cards.WOOD]),
 			_line("넘어감", "하늘, 연못, 생물"),
 			_line("막힘", "벽, 닫힌 문, 등불"),
-			_line("소리", "내릴 때 %d칸" % Leap.LOUD),
+			_line("내릴 때 소리", "%d칸" % Leap.LOUD),
 			_line("진흙 위 소리", "없음"),
 			_line("냄새", "내린 칸만"),
 			_line("여·구 뒤 끝", "바꿔치기"),
@@ -492,9 +488,14 @@ static func _shape(s: Spell) -> Array:
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", "%s %d발" % [s.wisp(), s.shots()]))
-			lines.append(_line("노림", "보이는 적, 체력만큼 나눠"))
-			var harm := "발마다 %d" % s.damage(0) if s.damage(0) > 0 else "없음"
-			lines.append(_line("피해", harm, Palette.HURT))
+			lines.append(_line("대상", "보이는 적, 체력만큼 나눠"))
+			lines.append(
+				(
+					_line("발당 피해", str(s.damage(0)), Palette.HURT)
+					if s.damage(0) > 0
+					else _line("피해", "없음", Palette.HURT)
+				)
+			)
 			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초" % Spell.WISP_LIFE))
@@ -504,7 +505,7 @@ static func _shape(s: Spell) -> Array:
 				lines.append_array(_lure(s))
 		Spell.HOMING:
 			lines.append(_line("모양", "유도 구슬"))
-			lines.append(_line("노림", "가장 가까운 적"))
+			lines.append(_line("대상", "가장 가까운 적"))
 			lines.append_array(_orb_harm(s))
 			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			lines.append(_line("남은 시간", "%d초" % Spell.HOMING_LIFE))
@@ -556,7 +557,7 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			if s.orb:
 				var cannon := ["피해", "+%d" % (Elements.CANNON + s.extra(e))]
 				return [cannon, ["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부숨"]]
-			return [["피해", "발마다 %d" % (Elements.BULLET + s.extra(e))]]
+			return [["발당 피해", "%d" % (Elements.BULLET + s.extra(e))]]
 	var thud := ["소리", "멈춘 곳에서 %d칸" % World.THUD]
 	if s.orb:
 		return [["벽", "한 번에 부숨"], thud]
@@ -574,7 +575,7 @@ static func _light(l: Dictionary) -> String:
 static func _sounds(s: Spell) -> Array:
 	if s.cast_noise() == 0:
 		return [] if s.has(&"beacon") else [["소리", "없음"]]
-	var out := [["소리", "쓸 때 %d칸" % s.cast_noise()]]
+	var out := [["소리", "%d칸" % s.cast_noise()]]
 	if s.burst_noise() > 0:
 		out.append(["맞거나 터질 때 소리", "%d칸" % s.burst_noise()])
 	return out

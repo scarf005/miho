@@ -204,12 +204,13 @@ const KINDS := {
 		glyph = "장",
 		group = &"jangseung",
 		hp = 3,
+		melee = {name = "박치기", hit = "맞아", damage = 1},
 		casts = [[ORB]],
 		ranks =
 		{
-			2: [[ORB], [FOX, ORB]],
-			3: [[ORB], [FOX, ORB], [FOX, FOX, ORB]],
-			5: [[ORB], [FOX, ORB], [FOX, FOX, FOX, FOX, ORB]],
+			2: [[FOX, ORB]],
+			3: [[FOX, ORB], [FOX, FOX, ORB]],
+			5: [[FOX, ORB], [FOX, FOX, FOX, FOX, ORB]],
 		},
 		cd = 2,
 		move = &"static",

@@ -56,9 +56,25 @@ static func of(before: World, after: World, events: Array) -> Array:
 			last = f
 		if not line.is_empty():
 			out.append(line)
+	for p in Perceived.spotted(before, after):
+		out.append(_spotted(after, p))
 	if after.max_tails() > before.max_tails():
 		out.append([["꼬리가 %d개로 늘었다" % after.max_tails(), Palette.SIDE[0]]])
 	return out
+
+
+## The thing Miho has just come to see at `p` (Perceived.spotted), as a line.
+static func _spotted(w: World, p: Vector2i) -> Array:
+	var name: String = Tiles.of(w.tile(p), "name")
+	if p == w.stairs:
+		name = "계단"
+	elif p == w.elixir:
+		name = "영약"
+	elif w.peaches.has(p):
+		name = "복숭아"
+	elif Scrolls.card_at(w, p) != &"":
+		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"
+	return [[name + _particle(name, "을", "를") + " 발견했다", TEXT]]
 
 
 ## One seen event as a line, or empty. `last` is the seen event before it

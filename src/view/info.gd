@@ -20,7 +20,7 @@ static func glossary() -> Dictionary:
 	var spread := roundi(Tiles.DEFAULT.spread * 100)
 	return {
 		"가연성": ["탐: %d초" % World.BURN_ROUNDS, "그 뒤: 재", "번짐: 이웃으로 초당 %d%%" % spread],
-		"함정": ["드러남: 밝은 칸이나 %d칸 안" % Traps.REACH, "적: 피해 감"],
+		"함정": ["드러남: 밝은 칸이나 %d칸 안" % Traps.REACH, "적: 돌아감"],
 		"흔적": ["수색: 처음 본 적", "제외: 추격 중인 적"],
 		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
 	}
@@ -242,12 +242,12 @@ static func _conditions(w: World, a: Actor) -> Array:
 		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		out.append([["불타는 칸 위: %d초" % w.burning[a.pos], Palette.TEXT]])
-		out.append(_amount("  피해: 매 초 ", World.FIRE_DAMAGE))
+		out.append(_amount("  초당 피해: ", World.FIRE_DAMAGE))
 	if (
 		Veil.scorches(w, a.pos)
 		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
 	):
-		out.append(_amount("도깨비불 장막 곁 피해: 매 초 ", World.FIRE_DAMAGE))
+		out.append(_amount("도깨비불 장막 곁 초당 피해: ", World.FIRE_DAMAGE))
 	for s in w.shots:
 		if s.host == a.id and not s.gone:
 			var runs := [[s.spell.title(), Palette.card(s.spell.slots.back())]]
@@ -256,7 +256,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
 		out.append([["%s 위: %d초" % [spec.name, h.y], Palette.TEXT]])
-		out.append(_amount("  피해: 매 초 ", spec.harm))
+		out.append(_amount("  초당 피해: ", spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
 
@@ -393,14 +393,14 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 		var h: Vector2i = w.hot[p]
 		var spec: Dictionary = Compounds.HOT[h.x]
 		lines.append([["%s: %d초 남음" % [spec.name, h.y], Palette.HURT]])
-		lines.append(_amount("피해: 매 초 ", spec.harm))
+		lines.append(_amount("초당 피해: ", spec.harm))
 	lines.append_array(_gas(w, p, now))
 	if w.vents.has(p):
 		var vent := [
 			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
 		]
 		lines.append(vent)
-		lines.append([["  양: 매 초 %d까지" % Gas.VENT_LEVEL, Palette.DIM]])
+		lines.append([["  양: %d까지" % Gas.VENT_LEVEL, Palette.DIM]])
 	if t == World.DRUM:
 		lines.append_array(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))
@@ -449,14 +449,14 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.VEIL:
 			out.append("막음: 길, 주문")
 			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
-			out.append("곁 피해: 매 초 %d" % World.FIRE_DAMAGE)
+			out.append("곁 초당 피해: %d" % World.FIRE_DAMAGE)
 		World.DOOR:
 			out.append("막음: 시야")
-			out.append("소리: 여닫을 때 %d칸" % Terrain.SLIDE)
+			out.append("여닫을 때 소리: %d칸" % Terrain.SLIDE)
 		World.DOOR_OPEN:
-			out.append("소리: 여닫을 때 %d칸" % Terrain.SLIDE)
+			out.append("여닫을 때 소리: %d칸" % Terrain.SLIDE)
 		World.DRUM:
-			out.append("소리: 칠 때 층 전체")
+			out.append("칠 때 소리: 층 전체")
 			out.append("들은 적: 친 적이 미호를 마지막으로 본 곳을 수색")
 			out.append("치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안" % Drums.REACH)
 			out.append("찢어짐: 구슬, 부딪침")
@@ -492,7 +492,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("타격: %s, 이 칸과 옆 4칸" % coals.name)
 			out.append("타격: 옆 가연성 칸에 불")
 			out.append("%s: %d초" % [coals.name, Compounds.HOT_ROUNDS])
-			out.append("%s 피해: 매 초 %d" % [coals.name, coals.harm])
+			out.append("%s 초당 피해: %d" % [coals.name, coals.harm])
 		World.COURTYARD:
 			out.append("달빛에 드러남.")
 		World.BOARD_ROTTEN:
@@ -504,14 +504,14 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.SKY:
 			out.append("넘어감: 주문, 멀리뛰기만")
 			out.append("추락한 적: 사라짐")
-			out.append("추락 피해: 층마다 %d" % Fall.DAMAGE)
+			out.append("층당 추락 피해: %d" % Fall.DAMAGE)
 		World.WINDOW:
 			out.append("막음: 길")
 		World.BRIDGE:
 			out.append("달빛에 드러남.")
 			out.append("불에 타지 않음.")
 		World.THORNS:
-			out.append("피해: 지날 때 %d" % Compounds.THORN)
+			out.append("지날 때 피해: %d" % Compounds.THORN)
 		World.MUD:
 			out.append("걸음: %d초" % Compounds.MUD)
 			out.append("발소리: 없음")
@@ -533,7 +533,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	elif Terrain.wall(t):
 		out.append("부술 수 없음.")
 	if Terrain.knockable(t) and t != World.DRUM:
-		out.append("소리: 부딪칠 때 %d칸" % Tiles.of(t, "hit")[0])
+		out.append("부딪칠 때 소리: %d칸" % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
 		out.append("발소리: %d칸" % tread[0])
@@ -566,9 +566,9 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append([["시야 막음: %d 이상" % Gas.OPAQUE, Palette.DIM]])
 	elif g.y >= Gas.OPAQUE:
 		out.append([["시야 막음.", Palette.DIM]])
-	out.append([["줄어듦: 매 초 %d%% 확률로 1" % Gas.of(g.x, "decay"), Palette.DIM]])
+	out.append([["줄어듦: 초당 %d%%" % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:
-		out.append(_amount("피해: 매 초 ", Gas.of(g.x, "harm")))
+		out.append(_amount("초당 피해: ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
 		out.append([["북 적심: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
@@ -580,7 +580,7 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 static func _burning(left: int) -> Array:
 	return [
 		[["불타는 중: %d초 남음" % left, Palette.HURT]],
-		_amount("피해: 매 초 ", World.FIRE_DAMAGE),
+		_amount("초당 피해: ", World.FIRE_DAMAGE),
 		[["빛: %d칸" % Light.FIRE_RADIUS, Palette.DIM]],
 		[["소리: %d칸" % World.CRACKLE, Palette.DIM]],
 	]
@@ -630,7 +630,7 @@ static func ahead(w: World, forecasts: Dictionary, p: Vector2i) -> Array:
 	var f: Forecast = forecasts.get(d) if Grid.cheb(p, w.player().pos) <= 1 else null
 	if f == null:
 		return []
-	var how := "기다릴 시" if d == Vector2i.ZERO else "이 칸으로 갈 시"
+	var how := "대기 시" if d == Vector2i.ZERO else "이 칸 이동 시"
 	var lines := []
 	if f.hurt_me() > 0:
 		lines.append([[how + " 피해: %d" % f.hurt_me(), Palette.HURT]])

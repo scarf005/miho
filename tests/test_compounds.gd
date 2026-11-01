@@ -371,16 +371,16 @@ func test_hover_tells_the_new_ground_from_the_rules() -> void:
 	_put(w, ME + E * 2, World.MUD)
 	w.hot[ME + Vector2i(0, 1)] = Vector2i(Compounds.MOLTEN, 2)
 	w.sense()
-	assert_string_contains(Info.plain(Info.at(w, ME + E)), "피해: 지날 때 %d" % Compounds.THORN)
+	assert_string_contains(Info.plain(Info.at(w, ME + E)), "지날 때 피해: %d" % Compounds.THORN)
 	assert_string_contains(Info.plain(Info.at(w, ME + E)), "\n가연성.")
 	assert_string_contains(Info.plain(Info.at(w, ME + E * 2)), "걸음: %d초" % Compounds.MUD)
 	var hot := Info.plain(Info.at(w, ME + Vector2i(0, 1)))
 	var spec: Dictionary = Compounds.HOT[Compounds.MOLTEN]
 	assert_string_contains(hot, "%s: 2초 남음" % spec.name)
-	assert_string_contains(hot, "피해: 매 초 %d" % spec.harm)
+	assert_string_contains(hot, "초당 피해: %d" % spec.harm)
 	w.player().pos = ME + Vector2i(0, 1)
 	var me := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(me, "%s 위: 2초\n  피해: 매 초 %d" % [spec.name, spec.harm])
+	assert_string_contains(me, "%s 위: 2초\n  초당 피해: %d" % [spec.name, spec.harm])
 
 
 func test_the_map_text_draws_hot_ground() -> void:

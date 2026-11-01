@@ -318,7 +318,7 @@ func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 		"모양: 곧게 3칸",
 		"거리: 나무 한 장마다 +1칸",
 		"넘어감: 하늘",
-		"소리: 내릴 때 %d칸" % Leap.LOUD,
+		"내릴 때 소리: %d칸" % Leap.LOUD,
 		"내린 자리에서: 흙",
 		"기절",
 	]
