@@ -34,7 +34,22 @@ const FAN := [1, 2, 4, 5, 6]
 const JET := [4, 6, 8, 10, 12]
 const PUSH := [1, 2, 3, 4, 5]
 const GUN_LOUD := 9
+## Degrees a fan covers, across its line.
+const FAN_ANGLE := 90
+## What a gun spray hurts a creature for, and one next to the caster from two
+## copies (shotgun).
+const GUN_HARM := 1
+const GUN_NEAR_HARM := 2
+## Tiles a lone 물 pushes on a spray led by a compound, a tile more a copy.
+const PLAIN_PUSH := 1
 const PISTOL := 7
+## The copies of a lone element from which its spray changes: a shotgun in place
+## of the pistol, a jet that goes through, a quake that cracks walls and one that
+## fells cracked ones.
+const SHOTGUN_LEVEL := 2
+const THROUGH_LEVEL := 3
+const CRACK_LEVEL := 2
+const FELL_LEVEL := 3
 ## The shotgun's radius at two copies.
 const SHOTGUN := 3
 const QUAKE := [1, 2, 3, 4, 5]
@@ -219,7 +234,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 		Cards.WATER:
 			return _jet(w, from, dir, level)
 		Cards.METAL:
-			if level >= 2:
+			if level >= SHOTGUN_LEVEL:
 				return fan(w, from, dir, shotgun(level))
 			return line(w, from, dir, PISTOL, false)
 		Cards.EARTH:
@@ -275,7 +290,7 @@ static func carried(
 
 ## The radius of a shotgun of `level` (two or more copies of 쇠).
 static func shotgun(level: int) -> int:
-	return SHOTGUN + level - 2
+	return SHOTGUN + level - SHOTGUN_LEVEL
 
 
 ## Tiles within `r` (Chebyshev) of `from` and within 45° of `dir`, that `from`
@@ -292,7 +307,7 @@ static func fan(w: World, from: Vector2i, dir: Vector2i, r: int) -> Array[Vector
 				continue
 			if (
 				not Terrain.wall(w.tile(p))
-				and Vector2(v).normalized().dot(d) >= cos(PI / 4) - 0.001
+				and Vector2(v).normalized().dot(d) >= cos(deg_to_rad(FAN_ANGLE / 2.0)) - 0.001
 			):
 				out.append(p)
 	return out
@@ -320,9 +335,11 @@ static func line(w: World, from: Vector2i, dir: Vector2i, n: int, through: bool)
 
 ## A water jet's line, and the lantern it runs into, which it douses.
 static func _jet(w: World, from: Vector2i, dir: Vector2i, level: int) -> Array[Vector2i]:
-	var out := line(w, from, dir, JET[level - 1], level >= 3)
+	var out := line(w, from, dir, JET[level - 1], level >= THROUGH_LEVEL)
 	var last: Vector2i = from if out.is_empty() else out.back()
-	var stopped: bool = out.size() < JET[level - 1] and (level >= 3 or w.actor_at(last) == null)
+	var stopped: bool = (
+		out.size() < JET[level - 1] and (level >= THROUGH_LEVEL or w.actor_at(last) == null)
+	)
 	if stopped and Terrain.lantern(w.tile(last + dir)):
 		out.append(last + dir)
 	return out
@@ -516,7 +533,11 @@ static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	w.flares.append(s.origin)
 	w._changed()
 	for a in on(w, s, tiles):
-		var n := 2 if level >= 2 and Grid.cheb(s.origin, a.pos) <= 1 else 1
+		var n := (
+			GUN_NEAR_HARM
+			if level >= SHOTGUN_LEVEL and Grid.cheb(s.origin, a.pos) <= 1
+			else GUN_HARM
+		)
 		if reaches(w, s, a):
 			Elements.harm(w, s, a, n)
 			if a.alive():
@@ -530,8 +551,8 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 			Mind.struck(w, a, s)
 	for p in tiles:
 		var t := w.tile(p)
-		var falls := t == World.WALL_CRACKED and level >= 3
-		if level >= 2 and Terrain.breakable(w, p) and (t == World.WALL or falls):
+		var falls := t == World.WALL_CRACKED and level >= FELL_LEVEL
+		if level >= CRACK_LEVEL and Terrain.breakable(w, p) and (t == World.WALL or falls):
 			Terrain.hit(w, p)
 
 
@@ -581,4 +602,4 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			continue
 		if a.alive() and Elements.strike(w, s, a, spell.count(Cards.METAL)):
 			if spell.has(Cards.WATER) and a.alive():
-				w.push(a, s.dir, 1 + spell.extra(Cards.WATER))
+				w.push(a, s.dir, PLAIN_PUSH + spell.extra(Cards.WATER))

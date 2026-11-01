@@ -36,6 +36,8 @@ extends RefCounted
 const MAX_SLOTS := 5
 ## Tails a spell of 1 to 5 cards costs.
 const COST := [1, 2, 3, 5, 7]
+## Tails each card past MAX_SLOTS costs.
+const COST_EXTRA := 2
 const MOMENTUM := 4
 const WISP_SPEED := 3
 ## A lone orb; each more in the spell adds one, up to a bullet's.
@@ -52,6 +54,12 @@ const TURN_STEP := 45
 const WISP_TURN := 30
 ## Tiles a leap reaches past the 도약 slot's own and one for every 목 behind it.
 const LEAP_BASE := 2
+## Tiles one 목 slot behind a 도약 adds to a leap.
+const LEAP_PER_WOOD := 1
+## The radius of the darkness a wisp of 수 carries, and what each 수 past the
+## first adds.
+const DARK_RADIUS := 3
+const DARK_PER_WATER := 1
 
 const LEAP := &"leap"
 const HOMING := &"homing"
@@ -147,7 +155,7 @@ static func _shape(s: Spell) -> StringName:
 ## Tiles a leap reaches: LEAP_BASE, one for its 도약 and one for every 목
 ## slot right behind it.
 func leap() -> int:
-	return LEAP_BASE + 1 + _woods()
+	return LEAP_BASE + 1 + _woods() * LEAP_PER_WOOD
 
 
 ## The 목 slots right behind a leading 도약: they add reach, not roots.
@@ -250,7 +258,7 @@ func title() -> String:
 	if shots() > 1:
 		form += " %d발" % shots()
 	if swaps():
-		form += " 바꿔치기"
+		form += " " + Leap.SWAP_NAME
 	return ("·".join(parts) + " " + form).strip_edges()
 
 
@@ -273,7 +281,7 @@ func cost() -> int:
 
 ## Tails `n` cards cost: COST for up to five, then two more for each card.
 static func price(n: int) -> int:
-	return 0 if n <= 0 else COST[mini(n, COST.size()) - 1] + 2 * maxi(0, n - COST.size())
+	return 0 if n <= 0 else COST[mini(n, COST.size()) - 1] + COST_EXTRA * maxi(0, n - COST.size())
 
 
 func speed() -> int:
@@ -352,7 +360,11 @@ func damage(distance: int) -> int:
 ## the first.
 func light(faction: int) -> Dictionary:
 	if has(Cards.WATER):
-		return {} if orb else {radius = 3 + extra(Cards.WATER), color = Light.DARK}
+		return (
+			{}
+			if orb
+			else {radius = DARK_RADIUS + DARK_PER_WATER * extra(Cards.WATER), color = Light.DARK}
+		)
 	if gun() and not orb:
 		return {}
 	var color: Vector3 = Light.FIRE if has(Cards.FIRE) else Light.SIDE[faction]

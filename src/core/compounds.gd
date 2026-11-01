@@ -74,6 +74,9 @@ extends RefCounted
 ## Open ground is walkable, not a door, a skybridge or water, not the stairs,
 ## the elixir or a peach, and not burning.
 
+## The radius of the square round where a projectile carrying a compound ends,
+## before the copies and feeders that grow it (`reach`).
+const REACH := Grid.NEAR
 const LAVA := 0
 const MOLTEN := 1
 ## Hot ground by kind: what it is called and its harm each round.
@@ -107,11 +110,16 @@ const DRAGON_STUN := 2
 const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness"]
 
 
+## The radius compound `c` of `spell` reaches round where a projectile ends.
+static func reach(spell: Spell, c: StringName) -> int:
+	return REACH + spell.grown(c)
+
+
 ## `s` carries its compounds to `at`, where it ends.
 static func land(w: World, s: Shot, at: Vector2i) -> void:
 	var struck := w.actor_at(at)
 	for c in s.spell.compounds():
-		var tiles := Spray.carried(w, c, at, s.dir, 1 + s.spell.grown(c))
+		var tiles := Spray.carried(w, c, at, s.dir, reach(s.spell, c))
 		ground(w, s, c, tiles)
 		tip(w, s, c, at)
 		var line := Vector2i.ZERO if Spray.radial(c) else s.dir
@@ -208,7 +216,7 @@ static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
 	match c:
 		&"shrapnel":
 			if s.spell.mortar():
-				_explode(w, s, at, 1 + s.spell.grown(c))
+				_explode(w, s, at, reach(s.spell, c))
 		&"quench":
 			Gas.add(w, at, Gas.STEAM, STEAM)
 		&"beacon":

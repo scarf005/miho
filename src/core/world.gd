@@ -85,11 +85,15 @@ const FLOORS := 9
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
 const TAIL_REGROW := 3
+## Tails (or mana) one TAIL_REGROW gives back.
+const TAIL_REGROWN := 1
 const VIEW := 40
 const NIGHT := [2, 1]
 const DIM := 7
 const SEARCH_ROUNDS := 15
 const WARY_ROUNDS := 30
+## Tiles farther a wary creature sees Miho in the dark.
+const WARY_SIGHT := 1
 const CLAW := 1
 const SNEAK := 3
 const CRY := 5
@@ -435,7 +439,7 @@ func _reaches(a: Actor, p: Vector2i) -> bool:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
 		return false
-	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] + (1 if a.wary > 0 else 0) or lit(p)
+	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] + (WARY_SIGHT if a.wary > 0 else 0) or lit(p)
 
 
 func can(action: Dictionary) -> bool:
@@ -857,7 +861,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 	if not a.alive() or Cheat.immune(self, a):
 		return
 	var shatter := Status.shatter(a)
-	n *= 2 if shatter else 1
+	n *= Status.SHATTER if shatter else 1
 	a.hp -= n
 	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
 	Guise.hurt(self, a)
@@ -908,7 +912,7 @@ func _regrow() -> void:
 	regrow += 1
 	if regrow >= TAIL_REGROW:
 		regrow = 0
-		tails += 1
+		tails += TAIL_REGROWN
 
 
 func _end_round() -> void:

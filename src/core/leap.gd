@@ -20,6 +20,8 @@ extends RefCounted
 const LOUD := 3
 const WORD := "탁"
 const SWAP_LOUD := 5
+## What a 도약 behind a projectile is called.
+const SWAP_NAME := "바꿔치기"
 const SWAP_WORD := "펑"
 
 

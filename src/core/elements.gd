@@ -32,6 +32,8 @@ const CANNON := 2
 const CANNON_PUSH := 2
 const CANNON_LOUD := 13
 const WALL := 3
+## The harm a creature takes from a spell it is weak to (Bestiary.weak), times.
+const WEAK := 2
 
 
 ## `s` strikes `a` for `n` before weakness: unless `a` eats the spell, it is
@@ -72,7 +74,7 @@ static func absorbed(w: World, s: Shot, a: Actor) -> bool:
 static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 	var weak := Bestiary.weak(a.kind, s.spell)
 	if n > 0:
-		w.hurt(a, n * (2 if weak else 1), weak)
+		w.hurt(a, n * (WEAK if weak else 1), weak)
 
 
 static func root(w: World, a: Actor, rounds: int) -> void:
@@ -111,7 +113,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			else:
 				var weak := Bestiary.weak(b.kind, s.spell)
 				w.hurt(
-					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (2 if weak else 1), weak
+					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (WEAK if weak else 1), weak
 				)
 				if Bestiary.burns(b.kind):
 					Status.ignite(w, b)

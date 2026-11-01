@@ -33,6 +33,8 @@ const BEATS := {WOOD: EARTH, EARTH: WATER, WATER: FIRE, FIRE: METAL, METAL: WOOD
 
 ## The most elements a compound joins: the 5단 holds all five.
 const TIER := 5
+## The elements a 3단 compound (TRIPLES) joins.
+const TRIPLE := 3
 
 ## compound -> the two elements it is made of.
 const PAIRS := {
