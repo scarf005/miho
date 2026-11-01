@@ -164,3 +164,34 @@ func test_a_charging_dokkaebi_shows_the_leap_it_gathers() -> void:
 	w.act(WAIT)
 	var text := Info.plain(Info.creature(w, a))
 	assert_string_contains(text, "모으는 중.")
+
+
+## A dokkaebi that charged the leap at Miho in the round before.
+func _charged(w: World, at: Vector2i) -> Actor:
+	var a := _leaper(w, at)
+	w.act(WAIT)
+	assert_true(_is_leap(a.intent[0]))
+	return a
+
+
+func test_a_charged_leap_is_dropped_when_she_roots_it_first() -> void:
+	var w := _world(DEEP)
+	var a := _charged(w, ME + E * 7)
+	var from := a.pos
+	a.rooted = 3
+	var events := w.act(WAIT)
+	assert_eq(a.pos, from)
+	assert_false(events.any(func(e): return e.t == &"leap"))
+
+
+func test_a_charged_leap_walled_in_does_not_tread_its_own_tile() -> void:
+	var w := _world(DEEP)
+	var a := _charged(w, ME + E * 7)
+	var hp := a.hp
+	var from := a.pos
+	w.set_tile(from + W, World.WALL)
+	w.set_tile(from, World.THORNS)
+	var events := w.act(WAIT)
+	assert_eq(a.pos, from)
+	assert_false(events.any(func(e): return e.t in [&"leap", &"move", &"prick"] and e.id == a.id))
+	assert_eq(a.hp, hp)

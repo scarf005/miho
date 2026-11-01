@@ -93,28 +93,84 @@ func test_y_steps_onto_the_found_plate_and_drops_her_a_storey() -> void:
 	assert_lt(m.world.depth, depth)
 
 
-func test_another_direction_cancels_the_prompt_and_walks() -> void:
+func test_another_direction_only_cancels_the_prompt() -> void:
 	var m := _keyboard()
 	_blaze(m)
+	var round_no: int = m.world.round_no
 	_press(m, "Right")
 	_press(m, "Down")
 	await _settle(m)
-	assert_eq(m.world.player().pos, ME + Vector2i.DOWN)
+	assert_eq(m.world.player().pos, ME)
+	assert_eq(m.world.round_no, round_no)
 	assert_eq(m.guard.asking, Vector2i.ZERO)
-	assert_ne(_prompt(m), "")
 	assert_false(_prompt(m).ends_with("Y/N"))
 
 
-func test_another_action_cancels_the_prompt_and_is_handled_normally() -> void:
+func test_another_action_only_cancels_the_prompt() -> void:
 	var m := _keyboard()
 	_blaze(m)
 	var round_no: int = m.world.round_no
 	_press(m, "Right")
 	_press(m, "X")
-	assert_true(m.looking, "the look key still looks")
+	assert_false(m.looking, "the key that cancels does nothing else")
 	assert_eq(m.guard.asking, Vector2i.ZERO)
 	assert_false(_prompt(m).ends_with("Y/N"))
-	assert_eq(m.world.round_no, round_no)
+	_press(m, "Right")
+	_press(m, "Enter")
+	await _settle(m)
+	assert_eq(m.world.round_no, round_no, "Enter passes no round")
+
+
+func test_n_says_no_whichever_way_the_prompt_asks() -> void:
+	for d: Vector2i in [E, Vector2i(1, 1)]:
+		var m := _keyboard()
+		_blaze(m, d)
+		var round_no: int = m.world.round_no
+		m._move(d)
+		assert_eq(m.guard.asking, d)
+		_press(m, "N")
+		_press(m, "N", true)
+		await _settle(m)
+		assert_eq(m.world.player().pos, ME, "N at %s does not walk" % d)
+		assert_eq(m.world.round_no, round_no)
+		assert_eq(m.guard.asking, Vector2i.ZERO)
+
+
+func test_a_held_y_steps_once_and_does_not_walk_on_north_west() -> void:
+	var m := _keyboard()
+	_blaze(m)
+	_press(m, "Right")
+	_press(m, "Y")
+	await _settle(m)
+	_press(m, "Y", true)
+	await _settle(m)
+	assert_eq(m.world.player().pos, ME + E)
+	_press(m, "Y")
+	await _settle(m)
+	assert_eq(m.world.player().pos, ME + E + Vector2i(-1, -1), "a fresh Y is a move again")
+
+
+func test_a_bare_shift_leaves_the_prompt_up() -> void:
+	var m := _keyboard()
+	_blaze(m)
+	_press(m, "Right")
+	var shift := InputEventKey.new()
+	shift.keycode = KEY_SHIFT
+	shift.pressed = true
+	m._key(shift)
+	assert_eq(m.guard.asking, E)
+
+
+func test_a_creature_on_fire_or_a_plate_is_clawed_without_asking() -> void:
+	var m := _keyboard()
+	var foe := FloorGen.spawn(m.world, &"dokkaebi", ME + E)
+	foe.cooldown = 99
+	var hp := foe.hp
+	_blaze(m)
+	_press(m, "Right")
+	await _settle(m)
+	assert_eq(m.guard.asking, Vector2i.ZERO)
+	assert_lt(foe.hp, hp, "she clawed it")
 
 
 func test_after_a_cancel_the_next_press_asks_again() -> void:

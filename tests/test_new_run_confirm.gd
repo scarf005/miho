@@ -107,3 +107,14 @@ func test_the_options_row_erases_the_run_on_its_second_enter_only() -> void:
 	m._panel_input(_key_event(KEY_ENTER))
 	assert_eq(m.overlay, &"")
 	assert_ne(m.run_seed, seed_was)
+
+
+func test_a_map_tap_in_play_after_the_touch_erase_stays_in_play() -> void:
+	var m := _phone()
+	_title(m, true)
+	_finger(m, _hud(m, &"new"))
+	_finger(m, _hud(m, &"new"))
+	assert_eq(m.state, &"play")
+	assert_false(m.erasing)
+	_finger(m, Vector2(300, 300))
+	assert_eq(m.state, &"play")
