@@ -269,3 +269,12 @@ func test_miho_walking_into_reeds_is_told_in_the_log() -> void:
 	assert_has(_types(after.events), &"trample")
 	var lines := Messages.of(w, after, after.events).map(Messages.plain)
 	assert_has(lines, "갈대가 쓰러졌다")
+
+
+func test_leaves_are_gone_once_trodden_and_rustle_only_then() -> void:
+	var w := _world()
+	_put(w, Vector2i(5, 8), World.LEAVES)
+	assert_eq(_noises(w.act({t = &"move", dir = E})).size(), 1)
+	assert_eq(w.tile(Vector2i(5, 8)), World.FLOOR)
+	w.act({t = &"move", dir = WEST})
+	assert_eq(_noises(w.act({t = &"move", dir = E})), [])

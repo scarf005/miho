@@ -100,8 +100,8 @@ func test_the_map_tints_only_the_creatures_her_claws_catch_unawares() -> void:
 	var blind := _foe(m.world, Vector2i(4, 9))
 	blind.blind = 2
 	m.world.sense()
-	assert_false(m._sneakable(seeing))
-	assert_true(m._sneakable(blind))
+	assert_false(Fight.sneakable(m.world, seeing))
+	assert_true(Fight.sneakable(m.world, blind))
 
 
 func test_it_steps_towards_the_nearest_when_none_is_next_to_her() -> void:
@@ -187,3 +187,16 @@ func test_tab_when_badly_hurt_refuses_even_with_a_creature_next_to_her() -> void
 	await m._fight()
 	assert_true(m.run.actions.is_empty())
 	assert_eq(m.messages.lines.back().text, "너무 다쳐서 싸울 수 없다")
+
+
+func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
+	var m := _main()
+	var sleeper := FloorGen.spawn(m.world, &"haetae", Vector2i(8, 8))
+	sleeper.home = sleeper.pos
+	sleeper.alert = Actor.REST
+	m.world.sense()
+	m.world.seen[Grid.index(sleeper.pos)] = 1
+	assert_true(sleeper.asleep())
+	assert_true(Fight.sneakable(m.world, sleeper))
+	m.world.seen[Grid.index(sleeper.pos)] = 0
+	assert_false(Fight.sneakable(m.world, sleeper))

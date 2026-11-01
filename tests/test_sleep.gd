@@ -190,8 +190,8 @@ func test_the_map_shows_no_vision_of_a_sleeper_and_tints_it_as_catchable() -> vo
 	var patrol := _foe(m.world, PATROL, Vector2i(4, 10))
 	m.world.sense()
 	m._forecast()
-	assert_true(m._sneakable(sleeper))
-	assert_false(m._sneakable(patrol))
+	assert_true(Fight.sneakable(m.world, sleeper))
+	assert_false(Fight.sneakable(m.world, patrol))
 	m.hover = sleeper.pos
 	m._refresh()
 	assert_eq(m.known.view_of(sleeper).count(1), 0)

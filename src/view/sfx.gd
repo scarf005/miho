@@ -34,6 +34,8 @@ const NAMES := [
 	&"gong",
 	&"trap",
 	&"find",
+	&"tick",
+	&"bite",
 	&"door",
 	&"root",
 	&"stun",
@@ -218,19 +220,28 @@ func play_at(n: StringName, at: Vector2, volume_db := 0.0) -> void:
 
 
 func on_event(e: Dictionary, at: Vector2) -> void:
-	var n := sound_of(e)
-	if n == &"":
-		return
-	if e.t in GLOBAL:
-		play(n)
-	else:
-		play_at(n, at, level_of(e))
+	for n in sounds_of(e):
+		if e.t in GLOBAL:
+			play(n)
+		else:
+			play_at(n, at, level_of(e))
 
 
 ## How loud an event sounds from its place, in dB.
 static func level_of(e: Dictionary) -> float:
 	var db: float = LEVEL.get(e.t, 0.0)
 	return db + STEP_DB * mini(e.loud, STEP_TILES) if e.t == &"move" else db
+
+
+## Every sound an event makes: its own, and the bright chime when a peach
+## raises the most health.
+static func sounds_of(e: Dictionary) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if sound_of(e) != &"":
+		out.append(sound_of(e))
+	if e.t == &"heal" and e.get("grew", false):
+		out.append(&"find")
+	return out
 
 
 ## The sound an event makes, or &"" for none. A noise Miho sees is never told
@@ -261,16 +272,18 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"clash"
 		&"absorb":
 			return &"absorb"
-		&"grow", &"card", &"heal", &"altar", &"creak":
+		&"heal":
+			return &"bite" if e.get("peach", false) else &"card"
+		&"grow", &"card", &"altar", &"creak":
 			return &"card"
 		&"read", &"scroll":
 			return &"page"
 		&"trap":
 			return &"gong" if e.kind == World.TRAP_ALARM else &"trap"
 		&"find":
-			return &"find" if e.kind == World.DOOR else &"warn"
+			return &"tick" if e.kind == World.DOOR else &"warn"
 		&"spot":
-			return &"find"
+			return &"tick"
 		&"open", &"close":
 			return &"door"
 		&"root", &"freeze", &"sprout", &"guise":

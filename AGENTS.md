@@ -35,7 +35,7 @@ Every list, menu and scrolling pane follows standard conventions:
 
 Every player-visible event has a fitting sound:
 - Terrain footsteps sound by tile.
-- A good find chimes and a danger warns.
+- A find (a hidden door, a spotted thing) has a quiet neutral tick, a danger warns, and the bright chime is for a max health rise only.
 - Check `Sfx.sound_of` for every new event.
 
 ## Merge gate (parent)

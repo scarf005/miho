@@ -60,13 +60,13 @@ func test_a_spell_tells_every_number() -> void:
 		"빠르기: 초당 3칸",
 		"묶음: 3초",
 		"빛: 3칸",
-		"소리: 2칸",
+		"소음: 2",
 	]:
 		assert_string_contains(text, part)
 	text = Info.plain(SpellInfo.spell(Spell.make([Cards.ORB, Cards.ORB, Cards.WATER])))
 	assert_string_contains(text, "피해: 2\n4칸 이상 날면 피해: 3")
 	assert_string_contains(text, "빛: 없음")
-	assert_string_contains(text, "소리: 없음")
+	assert_string_contains(text, "소음: 없음")
 
 
 func test_a_talisman_tells_what_it_does_and_what_the_queue_becomes() -> void:
@@ -115,9 +115,9 @@ func test_a_creature_tells_its_element() -> void:
 func test_a_creature_tells_the_talisman_it_drops_until_miho_has_it() -> void:
 	var w := World.create(7)
 	var dog := FloorGen.spawn(w, &"bulgae", w.player().pos + Vector2i(2, 0))
-	assert_string_contains(Info.plain(Info.creature(w, dog)), "처치: 불 부적")
+	assert_string_contains(Info.plain(Info.creature(w, dog)), "소지품: 불 부적")
 	w.cards.append(Cards.FIRE)
-	assert_false(Info.plain(Info.creature(w, dog)).contains("처치:"))
+	assert_false(Info.plain(Info.creature(w, dog)).contains("소지품:"))
 
 
 func test_a_creature_tells_what_it_is_weak_to() -> void:
@@ -223,7 +223,7 @@ func test_a_burning_tile_tells_time_left_harm_light_and_noise() -> void:
 	var text := Info.plain(Info.terrain(w, p))
 	assert_string_contains(text, "불타는 중: 2초 남음")
 	assert_string_contains(text, "초당 피해: %d" % World.FIRE_DAMAGE)
-	assert_string_contains(text, "빛: %d칸\n소리: %d칸" % [Light.FIRE_RADIUS, World.CRACKLE])
+	assert_string_contains(text, "빛: %d칸\n소음: %d" % [Light.FIRE_RADIUS, World.CRACKLE])
 
 
 func test_a_remembered_tile_does_not_tell_whether_it_burns_now() -> void:
@@ -239,14 +239,14 @@ func test_a_remembered_tile_does_not_tell_whether_it_burns_now() -> void:
 func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var w := _hall()
 	var told := {
-		World.LANTERN: ["빛: %d칸" % Light.LANTERN_RADIUS, "부딪칠 때 소리: %d칸" % World.KNOCK],
+		World.LANTERN: ["빛: %d칸" % Light.LANTERN_RADIUS, "부딪칠 때 소음: %d" % World.KNOCK],
 		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새 안 남음."],
 		World.BOARD: ["발소리: %d칸" % Tiles.of(World.BOARD, "tread")[0], "\n가연성."],
 		World.GRASS: ["가연성: 이웃으로 초당 %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
 		World.DOOR: ["\n가연성."],
 		World.BRIDGE: ["발소리: %d칸" % Tiles.of(World.BRIDGE, "tread")[0], "불에 타지 않음."],
-		World.WINDOW: ["부딪칠 때 소리: %d칸" % World.KNOCK],
-		World.WALL: ["부서짐: 구슬\n부서질 때 소리: %d칸" % World.THUD],
+		World.WINDOW: ["부딪칠 때 소음: %d" % World.KNOCK],
+		World.WALL: ["부서짐: 구슬\n부서질 때 소음: %d" % World.THUD],
 	}
 	for t: int in told:
 		var p := _seen_tile(w, t)
@@ -318,12 +318,12 @@ func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
 	assert_string_contains(orb, "피해: 1\n  %d칸 이상 날면 피해: 2" % Spell.MOMENTUM)
 	var orb_spell := Spell.make([Cards.ORB])
 	var noise := [orb_spell.cast_noise(), orb_spell.burst_noise()]
-	assert_string_contains(orb, "소리: %d칸\n  맞거나 터질 때 소리: %d칸" % noise)
+	assert_string_contains(orb, "소음: %d\n  맞거나 터질 때 소음: %d" % noise)
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
 	var molten: Dictionary = Compounds.HOT[Compounds.MOLTEN]
 	assert_string_contains(boss, "  %s: %d초" % [molten.name, Compounds.HOT_ROUNDS])
 	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
-	assert_string_contains(water, "소리: 없음")
+	assert_string_contains(water, "소음: 없음")
 
 
 func test_miho_tells_her_claws_and_conditions() -> void:

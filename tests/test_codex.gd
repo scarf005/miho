@@ -63,7 +63,7 @@ func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 		assert_false(_text(facts).contains("발톱"), "Miho's claws are told on her, not on each foe")
 	var text := _text(Codex.detail(_entry(0, "불개")))
 	assert_string_contains(text, "불개 ♥♥♥♥")
-	assert_string_contains(text, "처치: 불 부적")
+	assert_string_contains(text, "소지품: 불 부적")
 
 
 func test_the_hover_of_a_creature_keeps_its_state_lines() -> void:
@@ -259,15 +259,34 @@ func test_left_and_right_change_the_tab_and_wrap() -> void:
 	menu.key(_press("3"))
 	assert_eq(menu.panel().tab, 2)
 	menu.key(_press("7"))
-	assert_eq(menu.panel().tab, 2, "a number past the last tab does nothing")
+	assert_eq(menu.panel().tab, Codex.TABS.size() - 1, "the last tab has a number key")
 
 
-func test_the_detail_follows_the_selected_entry() -> void:
+func test_the_detail_follows_the_selected_entry_and_the_status_tab_tells_each_status() -> void:
 	var menu := _open()
 	var first: Array = menu.panel().aside
 	menu.key(_press("Down"))
 	assert_eq(menu.panel().selected, 1)
 	assert_ne(menu.panel().aside, first)
+
+	var tab := Codex.TABS.find("상태이상")
+	assert_eq(Codex.TABS[tab + 1], "용어")
+	menu = _open()
+	for i in tab:
+		menu.key(_press("Right"))
+	var panel := menu.panel()
+	assert_eq(panel.tab, tab)
+	var names: Array = panel.rows.map(func(r): return r[1][0])
+	for key in Status.NAME:
+		assert_has(names, Status.NAME[key])
+		var text := _text(Codex.detail(_entry(tab, Status.NAME[key])))
+		for does in SpellInfo.STATUS_DOES[key]:
+			assert_string_contains(text, does)
+	assert_eq(panel.aside[0][0][0], names[0], "the detail opens on the first status")
+	menu.key(_press("Down"))
+	assert_eq(menu.panel().aside[0][0][0], names[1], "Down moves to the next status")
+	menu.key(_press("Right"))
+	assert_eq(menu.panel().tab, tab + 1)
 
 
 func test_the_rows_show_a_glyph_and_a_name_and_the_detail_sits_to_the_right() -> void:

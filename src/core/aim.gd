@@ -216,9 +216,12 @@ static func searchlight(w: World, a: Actor) -> Array[Dictionary]:
 
 
 ## The first step towards the nearest tile 3 to 6 tiles from Miho with a clear
-## line to her: its own tile when it stands on one, (-1, -1) when none is reachable.
+## line to her: its own tile when it stands on one, or when she stands in the dark,
+## where stepping back would lose sight of her; (-1, -1) when none is reachable.
 static func lineup(w: World, a: Actor, walk: PackedByteArray) -> Vector2i:
 	var me := w.player()
+	if not w.lit(me.pos):
+		return a.pos
 	var good := func(q: Vector2i) -> bool:
 		var r := Grid.cheb(q, me.pos)
 		return r >= 3 and r <= 6 and w.clear_line(q, me.pos)

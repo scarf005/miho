@@ -79,9 +79,9 @@ func test_elements_alone_spray_one_level_a_copy_up_to_five() -> void:
 	assert_eq(Spell.make(_n(FIRE, 5)).level(), 5)
 	assert_eq(Spell.make(_n(FIRE, 4)).cost(), 5)
 	assert_eq(Spell.make([WATER, FIRE]).level(), 0, "a compound has its own shape")
-	assert_eq(one.title(), "불 불길")
-	assert_eq(Spell.make([METAL, METAL]).title(), "쇠×2 산탄")
-	assert_eq(Spell.make([WATER, WATER, WATER]).title(), "물×3 물줄기")
+	assert_eq(one.title(), "불길")
+	assert_eq(Spell.make([METAL, METAL]).title(), "산탄")
+	assert_eq(Spell.make([WATER, WATER, WATER]).title(), "물줄기")
 	assert_eq(Spell.make([WATER, FIRE]).title(), "증기")
 	assert_eq(Spell.make([WATER, FIRE, FIRE]).title(), "증기·불")
 

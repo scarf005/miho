@@ -259,6 +259,7 @@ const KINDS := {
 		group = &"beast",
 		shout = {word = "으르렁", loud = 5},
 		hp = 4,
+		melee = {name = "앞발", hit = "맞아", damage = 3},
 		casts = [[ORB, Cards.WATER]],
 		ranks =
 		{
