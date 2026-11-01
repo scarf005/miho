@@ -31,29 +31,36 @@ static func _fallen(w: World) -> String:
 		var e: Dictionary = w.events[i]
 		if e.t == &"hurt" and e.id == me.id:
 			wounds += 1
-		elif wounds == 1:
-			var line := _blow(w, e)
-			if line != "":
-				return line
+		elif wounds == 1 and _blow(w, e) != "":
+			return _blow(w, e)
 		if wounds == 2:
 			break
 	return "쓰러졌다"
 
 
-## The line for event `e` when it is what wounded Miho, or empty.
+## The line for event `e` when it can be what wounded Miho, or empty. The nearest
+## such event before the wound decides.
 static func _blow(w: World, e: Dictionary) -> String:
 	var me := w.player()
 	match e.t:
 		&"melee" when e.target == me.id:
-			return "%s에게 쓰러졌다" % _name(w, e.id) if _name(w, e.id) != "" else ""
+			return "%s에게 쓰러졌다" % _name(w, e.id) if _name(w, e.id) != "" else "쓰러졌다"
 		&"burn" when e.id == me.id:
 			return "불에 타 쓰러졌다"
 		&"fall" when e.id == me.id:
 			return "떨어져 쓰러졌다"
 		&"hit" when e.id == me.id:
 			return _by(w, e)
-		&"splash":
+		&"splash" when Grid.cheb(e.at, me.pos) <= 1:
 			return _by(w, e)
+		&"scald" when e.id == me.id:
+			return "%s에 쓰러졌다" % Gas.of(e.kind, "name")
+		&"blast" when e.tiles.has(me.pos):
+			return "%s 폭발에 쓰러졌다" % Gas.of(e.kind, "name")
+		&"sear" when e.id == me.id:
+			return "%s에 쓰러졌다" % Compounds.HOT[e.kind].name
+		&"prick" when e.id == me.id:
+			return "%s에 쓰러졌다" % Tiles.of(World.THORNS, "name")
 	return ""
 
 

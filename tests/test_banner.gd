@@ -113,3 +113,28 @@ func test_the_log_opens_over_the_banner_and_closes_back_to_it() -> void:
 	m._unhandled_input(shut)
 	assert_eq(m.overlay, &"")
 	assert_eq(m.state, &"over")
+
+
+func test_a_wound_with_its_own_cause_is_not_blamed_on_an_older_event() -> void:
+	var w := _world()
+	w.emit({t = &"splash", at = ME, by = w.player().id, title = "여우불"})
+	w.emit({t = &"scald", id = w.player().id, at = ME, kind = Gas.STEAM})
+	w.hurt(w.player(), 1)
+	assert_eq(_head(w), Gas.of(Gas.STEAM, "name") + "에 쓰러졌다")
+
+
+func test_an_unseen_blow_is_not_blamed_on_an_older_event() -> void:
+	var w := _world()
+	var foe := _foe(w, ME + Vector2i.RIGHT)
+	w.seen[Grid.index(foe.pos)] = 0
+	w.emit({t = &"burn", at = ME, id = w.player().id})
+	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
+	w.hurt(w.player(), 1)
+	assert_eq(_head(w), "쓰러졌다")
+
+
+func test_a_blast_far_from_her_is_not_the_cause() -> void:
+	var w := _world()
+	w.emit({t = &"splash", at = ME + Vector2i(5, 0), by = w.player().id, title = "여우불"})
+	w.hurt(w.player(), 1)
+	assert_eq(_head(w), "쓰러졌다")
