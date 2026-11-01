@@ -10,7 +10,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 
 ## Player-facing text (hover, sidebar, 도감, log)
 
-- Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소리: 3칸`, `가연성.`, `용감함: 도망치지 않는다`.
+- Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소리: 3칸`, `가연성.`, `면역: 불`.
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`), and do not write `당신`.
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".

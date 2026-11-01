@@ -175,13 +175,10 @@ func test_the_log_tells_a_creature_in_sight_that_starts_to_flee() -> void:
 	assert_true(lines.has("도깨비가 도망치고 있다"), str(lines))
 
 
-func test_the_doc_and_the_hover_tell_who_flees_and_who_does_not() -> void:
-	var sharp := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi"), []))
-	assert_string_contains(sharp, "도망: 체력 1, 불붙음")
-	var brave := Info.plain(Info.creature_facts(Codex.foe(&"haetae"), []))
-	assert_string_contains(brave, "용감함: 도망치지 않는다")
-	var still := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
-	assert_false(still.contains("도망"))
+func test_the_doc_and_the_hover_do_not_tell_who_flees() -> void:
+	for kind in [&"dokkaebi", &"haetae", &"jangseung"]:
+		var text := Info.plain(Info.creature_facts(Codex.foe(kind), []))
+		assert_false(text.contains("도망") or text.contains("용감함"), kind)
 
 
 func test_the_agent_is_told_a_creature_flees() -> void:

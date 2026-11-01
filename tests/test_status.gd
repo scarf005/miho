@@ -264,8 +264,6 @@ func test_a_hunter_alight_flees_if_it_would_flee_at_one_health() -> void:
 	post.alert = Actor.HUNT
 	post.alight = 1
 	assert_false(post.fleeing(), "one that cannot walk stands")
-	assert_string_contains(Info.plain(Info.creature_facts(dog, [])), "도망: 체력 1, 불붙음")
-	assert_false(Info.plain(Info.creature_facts(post, [])).contains("불붙음"))
 
 
 func test_a_fleeing_creature_alight_steps_away_from_miho() -> void:

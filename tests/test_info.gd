@@ -296,11 +296,7 @@ func test_a_creature_tells_its_conditions_with_seconds_left() -> void:
 	var text := Info.plain(Info.creature(w, foe))
 	for part in ["눈멂: 2초", "묶임: 3초", "기절: 1초", "경계: 7초"]:
 		assert_string_contains(text, part)
-	assert_string_contains(text, "어둠 시야: %d칸" % (World.NIGHT[Actor.HEAVEN] + 1))
-	foe.wary = 0
-	assert_string_contains(
-		Info.plain(Info.creature(w, foe)), "어둠 시야: %d칸" % World.NIGHT[Actor.HEAVEN]
-	)
+	assert_false(text.contains("시야"), "the hover does not tell a creature's sight")
 
 
 func test_a_creature_in_fire_tells_the_harm_unless_it_eats_fire() -> void:
@@ -330,14 +326,14 @@ func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
 	assert_string_contains(water, "소리: 없음")
 
 
-func test_miho_tells_her_claws_sight_and_conditions() -> void:
+func test_miho_tells_her_claws_and_conditions() -> void:
 	var w := _hall()
 	var me := w.player()
 	me.blind = 2
 	me.rooted = 1
 	var text := Info.plain(Info.creature(w, me))
 	assert_string_contains(text, "발톱 피해: %d\n기습 피해: %d" % [World.CLAW, World.CLAW * World.SNEAK])
-	assert_string_contains(text, "어둠 시야: %d칸" % World.NIGHT[Actor.FOX])
+	assert_false(text.contains("시야"))
 	assert_false(text.contains("발소리"), "footsteps are told on each tile")
 	assert_string_contains(text, "눈멂: 2초")
 	assert_string_contains(text, "묶임: 1초")

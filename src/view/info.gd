@@ -146,10 +146,6 @@ static func _arms(a: Actor, held: Array) -> Array:
 		lines.append([["말할 수 있다.", Palette.DIM]])
 	if spec.get("hat", false):
 		lines.append([["보임: %d칸 안, 도깨비불 붙음" % Hat.REACH, Palette.DIM]])
-	if Bestiary.flees(a.kind):
-		lines.append([["도망: 체력 1, 불붙음", Palette.DIM]])
-	elif spec.get("brave", false):
-		lines.append([["용감함: 도망치지 않는다", Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		lines.append([["먹이: ", Palette.TEXT], [Cards.NAME[eats] + " 주문", Palette.CARD[eats]]])
@@ -161,10 +157,10 @@ static func _arms(a: Actor, held: Array) -> Array:
 	return lines
 
 
-## Miho herself: tails, claws, sight, conditions and how visible she is. Her
-## footsteps are each tile's own (`_notes`).
+## Miho herself: tails, claws, conditions and how visible she is. Her footsteps
+## are each tile's own (`_notes`).
 static func _miho(w: World, a: Actor, head: Array) -> Array:
-	var lines := [head] + _tails(w) + _claws() + [[[_dark_sight(a), Palette.DIM]]]
+	var lines := [head] + _tails(w) + _claws()
 	lines.append_array(_conditions(w, a))
 	if a.guise > 0:
 		var form: String = Bestiary.info(a.form).name
@@ -188,11 +184,6 @@ static func _amount(before: String, n: int, after := "") -> Array:
 	if after != "":
 		line.append([after, Palette.TEXT])
 	return line
-
-
-## How far a creature sees in the dark: heaven one tile, Miho two, one more when wary.
-static func _dark_sight(a: Actor) -> String:
-	return "어둠 시야: %d칸" % (World.NIGHT[a.faction] + (1 if a.wary > 0 else 0))
 
 
 ## The elements whose spells hurt a creature twice as much.
@@ -349,7 +340,6 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append("냄새를 따라감")
 	if spec.get("stokes", false):
 		out.append("꺼진 등불을 켬")
-	out.append(_dark_sight(a))
 	return out
 
 
