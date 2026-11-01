@@ -400,3 +400,23 @@ func test_esc_sends_the_cursor_back_to_the_pointer() -> void:
 	assert_eq(m.hover, foe.pos)
 	_press(m, "Escape")
 	assert_ne(m.hover, foe.pos)
+
+
+func test_a_tail_spent_from_full_comes_back_three_rounds_later_at_any_moment() -> void:
+	for waited in World.TAIL_REGROW * 2:
+		var w := World.create(5)
+		w.actors = w.actors.filter(func(a): return a.faction == Actor.FOX)
+		for i in waited:
+			w.act({t = &"wait"})
+		var dir := Vector2i.ZERO
+		for d in Grid.DIRS:
+			if w.can({t = &"cast", spells = [{cards = [Cards.FOX], dir = d}]}):
+				dir = d
+				break
+		w.act({t = &"cast", spells = [{cards = [Cards.FOX], dir = dir}]})
+		assert_eq(w.tails, 0, "spent at round %d" % waited)
+		for i in World.TAIL_REGROW - 1:
+			w.act({t = &"wait"})
+			assert_eq(w.tails, 0, "round %d after a cast at %d" % [i + 1, waited])
+		w.act({t = &"wait"})
+		assert_eq(w.tails, 1, "the third round after a cast at %d" % waited)
