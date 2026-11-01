@@ -24,26 +24,6 @@ const BIG := 48
 const SMALL := 16
 ## Pixels between the lines of wisps chasing one creature.
 const LINE_GAP := 5.0
-const HEART := [
-	".##...##.",
-	"####.####",
-	"#########",
-	"#########",
-	".#######.",
-	"..#####..",
-	"...###...",
-	"....#...."
-]
-const HEART_EMPTY := [
-	".##...##.",
-	"#..#.#..#",
-	"#...#...#",
-	"#.......#",
-	".#.....#.",
-	"..#...#..",
-	"...#.#...",
-	"....#...."
-]
 const DELAY := {
 	&"move": 0.05,
 	&"spawn": 0.04,
@@ -924,13 +904,7 @@ func _pips(at: Vector2, n: int, of: int, color: Color, room := 6) -> void:
 
 ## A pixel heart filling cell `at`, full or as an outline.
 func _heart(at: Vector2, full: bool, color: Color) -> void:
-	var rows: Array = HEART if full else HEART_EMPTY
-	var px := 3.0
-	var from := at * CELL + (CELL - Vector2(rows[0].length(), rows.size()) * px) / 2.0
-	for y in rows.size():
-		for x in rows[y].length():
-			if rows[y][x] == "#":
-				draw_rect(Rect2((from + Vector2(x, y) * px).round(), Vector2(px, px)), color)
+	Heart.draw(self, at, full, color)
 
 
 ## Cells a string takes as the font draws it, each character rounded up to a
