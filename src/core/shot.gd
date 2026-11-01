@@ -5,6 +5,7 @@ extends RefCounted
 ## (Spell.turn) in `bank` and spending them on its turns (Homing.steer).
 ## `flown` counts the tiles it has flown. A wisp that struck a creature rides
 ## it: `host` is its actor id, and `pos` follows it (World.move) while it lives.
+## A piercing wisp (Spell.pierces) has `pierced` the wall it went through.
 
 var id := 0
 var faction := Actor.FOX
@@ -20,6 +21,7 @@ var turn := 0
 var bank := 0
 var flown := 0
 var host := 0
+var pierced := false
 
 
 ## Tiles between the caster and this shot, which sets orb damage.
@@ -43,4 +45,5 @@ func clone() -> Shot:
 	s.bank = bank
 	s.flown = flown
 	s.host = host
+	s.pierced = pierced
 	return s

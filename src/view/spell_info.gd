@@ -215,15 +215,11 @@ static func _fan(r: int, name := "") -> Array:
 
 
 static func _gun(level: int) -> Array:
-	if level == 2:
+	if level >= 2:
 		var near := _line("바로 옆 적 피해", "2", Palette.HURT)
-		return _lines(_fan(Spray.SHOTGUN, "산탄, ")) + [_line("피해", "적마다 1", Palette.HURT), near]
-	if level >= 3:
-		return [
-			_line("모양", "철갑탄, 곧게 %d칸" % Spray.PIERCE),
-			_line("꿰뚫음", "모든 적, 벽 하나"),
-			_line("피해", "적마다 %d" % Spray.PIERCE_HARM, Palette.HURT),
-		]
+		return (
+			_lines(_fan(Spray.shotgun(level), "산탄, ")) + [_line("피해", "적마다 1", Palette.HURT), near]
+		)
 	return [
 		_line("모양", "권총, 곧게 %d칸" % Spray.PISTOL), _line("멈춤", "첫 적"), _line("피해", "1", Palette.HURT)
 	]
@@ -257,24 +253,24 @@ static func _compound(s: Spell) -> Array:
 static func _form(s: Spell) -> Array:
 	var lead := s.slots[0]
 	var shape: Array = Spray.SHAPE[lead]
-	var n: int = shape[1] + s.extra(lead)
+	var n: int = shape[1] + s.grown(lead)
 	match shape[0]:
 		Spray.FAN_SHAPE:
 			return _fan(n)
 		Spray.LINE, Spray.BORE:
 			return [["모양", "곧게 %d칸" % n], ["멈춤", "첫 적"]]
 		Spray.BURST, Spray.BREACH:
-			var size := _square(shape[2] + s.extra(lead))
+			var size := _square(shape[2] + s.grown(lead))
 			return [["모양", "%d칸 앞 %s" % [shape[1], size]], ["막히면", "그 앞"]]
 		Spray.ACROSS:
-			var wide: int = shape[2] + s.extra(lead)
+			var wide: int = shape[2] + s.grown(lead)
 			return [["모양", "%d칸 앞 직각 %d칸" % [shape[1], wide]], ["막히면", "그 앞"]]
 		Spray.AROUND:
 			return [["모양", "둘레 %d칸" % n]]
 		Spray.SIGHT:
 			return [["노림", "보이는 적 모두" + (", 미호" if shape.size() > 2 else "")]]
 		Spray.ROOTS:
-			var deepest := Spell.MAX_LEVEL - 1
+			var deepest := Spray.ROOTS_LEVEL - 1
 			return [
 				["모양", "땅속 뿌리"],
 				["거리", "%d걸음" % Spray.ROOT_REACH[deepest]],
@@ -407,7 +403,7 @@ static func compound(c: StringName) -> Array:
 
 ## Where a compound carried on a projectile reaches.
 static func _carried(s: Spell, c: StringName) -> String:
-	var r := 1 + s.extra(c)
+	var r := 1 + s.grown(c)
 	if c == &"split":
 		return "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆" % r
 	return "멈춘 곳 " + _square(r)

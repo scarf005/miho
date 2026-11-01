@@ -71,13 +71,13 @@ func _offsets(tiles: Array[Vector2i]) -> Array:
 	return tiles.map(func(p): return p - ME)
 
 
-func test_elements_alone_spray_one_level_a_copy_up_to_three() -> void:
+func test_elements_alone_spray_one_level_a_copy_up_to_five() -> void:
 	var one := Spell.make([FIRE])
 	assert_eq(one.shape, Spell.SPRAY)
 	assert_eq(one.level(), 1)
 	assert_eq(Spell.make([FIRE, FIRE]).level(), 2)
-	assert_eq(Spell.make([FIRE, FIRE, FIRE, FIRE]).level(), 3, "no level past 3")
-	assert_eq(Spell.make([FIRE, FIRE, FIRE, FIRE]).cost(), 5)
+	assert_eq(Spell.make(_n(FIRE, 5)).level(), 5)
+	assert_eq(Spell.make(_n(FIRE, 4)).cost(), 5)
 	assert_eq(Spell.make([WATER, FIRE]).level(), 0, "a compound has its own shape")
 	assert_eq(one.title(), "불 불길")
 	assert_eq(Spell.make([METAL, METAL]).title(), "쇠×2 산탄")
@@ -242,22 +242,6 @@ func test_a_shotgun_fans_out_and_hits_harder_up_close() -> void:
 	assert_eq(far.hp, far.max_hp - 1)
 	assert_eq(out.hp, out.max_hp, "radius 3")
 	assert_eq(_of(events, &"noise")[0].word, "쾅")
-
-
-func test_armour_piercing_goes_through_every_creature_and_one_wall() -> void:
-	var w := _world()
-	var a := _post(w, ME + Vector2i(2, 0))
-	var b := _post(w, ME + Vector2i(4, 0))
-	_put(w, ME + Vector2i(5, 0), World.WALL)
-	var c := _post(w, ME + Vector2i(6, 0))
-	_put(w, ME + Vector2i(7, 0), World.WALL)
-	var d := _post(w, ME + Vector2i(8, 0))
-	assert_eq(_cover(w, [METAL, METAL, METAL]).size(), 6, "the second wall stops it")
-	w.act(_cast([METAL, METAL, METAL]))
-	for x in [a, b, c]:
-		assert_eq(x.hp, x.max_hp - Spray.PIERCE_HARM)
-	assert_eq(d.hp, d.max_hp)
-	assert_eq(w.tile(ME + Vector2i(5, 0)), World.WALL, "it pierces, it does not break")
 
 
 ## The rounds each creature was stunned or rooted for this round, by id.

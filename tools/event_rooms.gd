@@ -58,7 +58,7 @@ static func _veil_opens(w: World, veil: Vector2i) -> bool:
 		if reach[i] < 0:
 			continue
 		for d: Vector2i in Grid.DIRS:
-			if Spray.line(w, Grid.at(i), d, Spray.JET[0], false, 0).has(veil):
+			if Spray.line(w, Grid.at(i), d, Spray.JET[0], false).has(veil):
 				var wet := w.clone()
 				Terrain.wash(wet, veil)
 				return wet.open_floor(veil)
