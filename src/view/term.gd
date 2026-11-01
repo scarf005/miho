@@ -519,13 +519,10 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		if world.bodies.has(p) and world.bodies[p].met:
 			glyph = Palette.BODY[0]
 			fg = Palette.BODY[1]
-		for item in [[world.stairs, Palette.STAIRS], [world.elixir, Palette.ELIXIR]]:
-			if p == item[0]:
-				glyph = item[1][0]
-				fg = item[1][1]
-		if world.peaches.has(p):
-			glyph = Palette.PEACH[0]
-			fg = Palette.PEACH[1]
+		var item := Palette.item(world, p)
+		if not item.is_empty():
+			glyph = item[0]
+			fg = item[1]
 		var fire := _vis[i] == 1 and world.burning.has(p)
 		if fire:
 			var k := _flicker(i * 1.7, true)

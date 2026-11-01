@@ -117,6 +117,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _who(before, after, id, "이", "가") + [[" 하늘로 떨어졌다", TEXT]]
 		&"card":
 			return [[Cards.NAME[e.card] + " 부적", Palette.CARD[e.card]], ["을 얻었다", TEXT]]
+		&"scroll":
+			return [[Cards.NAME[e.card] + " 주문서", Palette.CARD[e.card]], ["가 떨어졌다", TEXT]]
 		&"heal":
 			var healed := [["체력을 ", TEXT], ["1", Palette.HURT], [" 회복했다", TEXT]]
 			if e.get("grew", false):
