@@ -7,7 +7,8 @@ const EDGE := 25
 const ROW := 8
 
 
-## An open hall whose east part is sky from x = EDGE, Miho at (10, 8) on storey `depth`.
+## An open hall whose east part is sky from x = EDGE, Miho at (10, 8) on storey
+## `depth`; the storeys below are kept as the whole hall, with no sky.
 func _world(depth := 2) -> World:
 	var w := World.new()
 	w.rng.seed = 11
@@ -15,8 +16,14 @@ func _world(depth := 2) -> World:
 	w.tiles.fill(World.WALL)
 	for y in range(1, Grid.H - 1):
 		for x in range(1, Grid.W - 1):
-			w.tiles[Grid.index(Vector2i(x, y))] = World.SKY if x >= EDGE else World.FLOOR
+			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
 	w.rooms.assign([Rect2i(1, 1, EDGE - 2, Grid.H - 2)])
+	for below in range(1, depth):
+		w.depth = below
+		Storeys.leave(w)
+	for y in range(1, Grid.H - 1):
+		for x in range(EDGE, Grid.W - 1):
+			w.tiles[Grid.index(Vector2i(x, y))] = World.SKY
 	var me := Actor.new()
 	me.id = w.new_id()
 	me.kind = &"miho"
@@ -134,10 +141,10 @@ func test_miho_pushed_into_the_sky_lands_one_storey_down() -> void:
 	w.events = []
 	w.push(me, E, 4)
 	assert_eq(w.depth, 4)
-	assert_eq(me.hp, 2, "her health is kept")
-	assert_eq(w.tails, 2, "and her tails")
+	assert_eq(me.hp, 1, "a fall of one storey hurts 1")
+	assert_eq(w.tails, 2, "her tails are kept")
 	assert_eq(w.cards, cards)
-	assert_eq(me.pos, w.start, "she lands at the start of a fresh storey")
+	assert_eq(me.pos, Vector2i(EDGE, ROW), "she lands where she fell")
 	assert_eq(w.round_no, 0)
 	assert_true(w.changes.is_empty())
 	assert_eq(w.actors[0], me)
@@ -163,7 +170,7 @@ func test_the_log_tells_that_miho_fell() -> void:
 	w.events = []
 	w.push(w.player(), E, 1)
 	var lines := Messages.of(before, w, w.events).map(Messages.plain)
-	assert_eq(lines, ["하늘로 떨어져 2층으로 내려왔다"])
+	assert_eq(lines, ["하늘로 떨어져 2층으로 내려왔다", "피해를 1 입었다"])
 
 
 func test_miho_on_the_first_storey_stops_at_the_edge() -> void:
@@ -200,6 +207,168 @@ func test_the_preview_of_a_fall_equals_the_fall() -> void:
 	assert_eq(copy.start, w.start)
 	assert_eq(copy.actors.size(), w.actors.size())
 	assert_eq(copy.rng.state, w.rng.state)
+
+
+## Miho takes the stairs up.
+func _climb(w: World) -> void:
+	w.player().pos = w.stairs
+	w.arrive(w.player())
+
+
+## A free floor tile with no plate, away from the start and the stairs.
+func _spot(w: World) -> Vector2i:
+	for i in w.tiles.size():
+		var p := Grid.at(i)
+		var free := w.vacant(p) and w.vacant(p + E) and not w.traps.has(p)
+		if free and Grid.cheb(p, w.start) >= 3 and p != w.stairs and not w.peaches.has(p):
+			return p
+	return Vector2i(-1, -1)
+
+
+## Makes `p` sky with Miho on a bare floor tile west of it, one push from falling.
+func _edge(w: World, p: Vector2i) -> void:
+	var from := p - E
+	var other := w.actor_at(from)
+	if other != null and other != w.player():
+		w.actors.erase(other)
+	w.set_tile(p, World.SKY)
+	w.set_tile(from, World.FLOOR)
+	w.traps.erase(from)
+	w.player().pos = from
+
+
+func test_a_fall_lands_on_the_storey_below_as_miho_left_it() -> void:
+	var w := World.create(3)
+	for i in 3:
+		w.act(WAIT)
+	var p := _spot(w)
+	assert_gt(w.actors.size(), 1, "storey 1 holds creatures")
+	var foe: Actor = w.actors[1]
+	var foe_at := foe.pos
+	var tiles := w.tiles.duplicate()
+	var known := w.known.duplicate()
+	var rounds := w.round_no
+	_climb(w)
+	assert_eq(w.depth, 2)
+	_edge(w, p)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1)
+	assert_eq(w.tiles, tiles, "the storey she left")
+	var forgot := 0
+	for i in known.size():
+		forgot += 1 if known[i] == 1 and w.known[i] == 0 else 0
+	assert_eq(forgot, 0, "what she knew of it")
+	var still := w.actor(foe.id)
+	assert_eq(still.pos if still != null else null, foe_at, "its creatures")
+	assert_eq(w.round_no, rounds)
+	assert_eq(w.player().pos, p, "she lands where she fell")
+	assert_eq(w.player().hp, 2, "a fall of one storey hurts 1")
+
+
+func test_the_stairs_lead_back_up_to_the_storey_she_fell_from() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	_climb(w)
+	_edge(w, p)
+	var tiles := w.tiles.duplicate()
+	var ids := w.actors.map(func(a): return a.id)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1)
+	_climb(w)
+	assert_eq(w.depth, 2)
+	assert_eq(w.tiles, tiles)
+	assert_eq(w.actors.map(func(a): return a.id), ids)
+	assert_eq(w.player().pos, w.start)
+
+
+func test_a_fall_through_sky_on_the_storey_below_goes_on_down_and_hurts_more() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	_climb(w)
+	w.set_tile(p, World.SKY)
+	_climb(w)
+	assert_eq(w.depth, 3)
+	_edge(w, p)
+	w.events = []
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1, "two storeys down")
+	assert_eq(w.player().pos, p)
+	assert_eq(w.player().hp, 1, "a fall of two storeys hurts 2")
+	var fall: Dictionary = w.events.filter(func(e): return e.t == &"fall")[0]
+	assert_eq(fall.depth, 1)
+
+
+func test_a_fall_onto_a_wall_lands_on_the_nearest_free_tile() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	w.set_tile(p, World.WALL)
+	_climb(w)
+	_edge(w, p)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1)
+	assert_eq(Grid.cheb(w.player().pos, p), 1)
+	assert_true(w.open_floor(w.player().pos))
+
+
+func test_a_fall_onto_sky_on_the_first_storey_lands_on_the_nearest_free_tile() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	w.set_tile(p, World.SKY)
+	_climb(w)
+	_edge(w, p)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1)
+	assert_eq(Grid.cheb(w.player().pos, p), 1)
+	assert_eq(w.player().hp, 2)
+
+
+func test_a_fall_can_kill_miho() -> void:
+	var w := _world(3)
+	w.player().hp = 1
+	w.player().pos = Vector2i(EDGE - 1, ROW)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 2)
+	assert_false(w.player().alive())
+	assert_eq(w.outcome, &"lost")
+
+
+func test_a_copy_keeps_the_storeys_left_below() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	_climb(w)
+	_edge(w, p)
+	w.sense()
+	var known := w.known_clone()
+	var copy := w.clone()
+	copy.push(copy.player(), E, 1)
+	known.push(known.player(), E, 1)
+	w.push(w.player(), E, 1)
+	for c in [copy, known]:
+		assert_eq(c.depth, 1)
+		assert_eq(c.tiles, w.tiles)
+		assert_eq(c.player().pos, p)
+		assert_eq(c.actors.map(func(a): return a.pos), w.actors.map(func(a): return a.pos))
+
+
+func test_the_same_seed_and_moves_keep_the_same_storeys() -> void:
+	var runs: Array[World] = []
+	for n in 2:
+		var w := World.create(5)
+		var p := _spot(w)
+		w.act(WAIT)
+		_climb(w)
+		w.act(WAIT)
+		_edge(w, p)
+		w.push(w.player(), E, 1)
+		w.act(WAIT)
+		_climb(w)
+		w.act(WAIT)
+		runs.append(w)
+	assert_eq(runs[0].depth, runs[1].depth)
+	assert_eq(runs[0].tiles, runs[1].tiles)
+	assert_eq(runs[0].round_no, runs[1].round_no)
+	assert_eq(runs[0].rng.state, runs[1].rng.state)
+	assert_eq(runs[0].actors.map(func(a): return a.pos), runs[1].actors.map(func(a): return a.pos))
 
 
 func test_the_forecast_shows_a_fall() -> void:

@@ -91,8 +91,16 @@ func test_a_creature_pushed_onto_the_alarm_plate_rings_it_for_the_others() -> vo
 	assert_ne(pushed.alert, Actor.SEARCH, "not the one that rang it")
 
 
+## Keeps the hall as the storey below, as if Miho had climbed from it.
+func _keep_below(w: World) -> void:
+	w.depth -= 1
+	Storeys.leave(w)
+	w.depth += 1
+
+
 func test_miho_stepping_on_a_collapsing_floor_goes_one_storey_down() -> void:
 	var w := _world()
+	_keep_below(w)
 	w.player().pos = PLATE - E
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	var events := w.act({t = &"move", dir = E})
@@ -100,9 +108,9 @@ func test_miho_stepping_on_a_collapsing_floor_goes_one_storey_down() -> void:
 	var fall := events.filter(func(e): return e.t == &"fall")
 	assert_eq(fall.size(), 1)
 	assert_eq(fall[0].depth, 3)
-	assert_eq(w.player().pos, w.start, "she lands on the new storey's start")
-	assert_eq(w.scent.count(0), w.scent.size(), "no trail of hers on the new storey")
-	assert_eq(w.player().hp, 3)
+	assert_eq(w.player().pos, PLATE, "she lands under the plate")
+	assert_eq(w.scent.count(0), w.scent.size(), "no trail of hers on the storey below")
+	assert_eq(w.player().hp, 2)
 
 
 func test_a_creature_on_a_collapsing_floor_falls_out_of_the_game() -> void:
@@ -134,11 +142,12 @@ func test_a_collapsing_floor_on_the_first_storey_drops_nobody_but_heaven() -> vo
 
 func test_a_push_ends_when_the_creature_falls_through_a_plate_on_the_way() -> void:
 	var w := _world()
+	_keep_below(w)
 	w.player().pos = PLATE - E
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	w.push(w.player(), E, 4)
 	assert_eq(w.depth, 3, "dropped once, not pushed on")
-	assert_eq(w.player().pos, w.start)
+	assert_eq(w.player().pos, PLATE)
 
 
 func test_the_fire_plate_breathes_fire_the_way_the_creature_stepped() -> void:

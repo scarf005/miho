@@ -10,6 +10,12 @@ static var _heard := Grid.table(func(t): return Tiles.wall[t] == 0)
 static var _fly := Grid.table(
 	func(t): return t != World.DOOR and (Tiles.walk[t] == 1 or t == World.POND or t == World.SKY)
 )
+static var _air := Grid.table(func(t): return Tiles.walk[t] == 1 or t == World.SKY)
+
+
+## Floor and sky, which a falling Miho comes down across (Fall).
+static func air(w: World) -> PackedByteArray:
+	return Grid.mask(w.tiles, _air)
 
 
 ## The tiles a homing projectile may fly through: open air (World.open_air)

@@ -3,13 +3,17 @@ extends RefCounted
 ## Pushing a creature. It slides up to n tiles and stops at anything it cannot
 ## walk onto: a wall, a pond, a lantern, a creature. Sky is not stopped by: a
 ## creature of heaven that slides into it falls out of the game, drops no
-## talisman and counts as a kill; Miho falls one storey down and lands on a
-## fresh storey with her health and tails (her tails kept up to what that
-## storey allows). On the first storey she has nowhere to fall to, and stops
-## at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
+## talisman and counts as a kill; Miho falls to the storey below, as she left
+## it (Storeys), and on down while that storey is sky there too. She lands on
+## the tile she fell at, or the free tile nearest it across floor and sky, and
+## loses DAMAGE health for each storey fallen; her tails are kept up to what
+## that storey allows. On the first storey she has nowhere to fall to, and
+## stops at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
 ## Miho takes them as if she had stepped there (World.arrive). A creature that
 ## slides at all gives one `push` event first, at the tile it slides from.
 ## A collapsing floor (Traps) drops a creature the same way, from where it stands.
+
+const DAMAGE := 1
 
 
 static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
@@ -53,15 +57,21 @@ static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 	w._changed()
 
 
-## Miho falls to a new storey one below. Whatever flies or stands on the old
-## one is left behind.
+## Miho falls through the sky at `into` to the storeys below. Whatever flies
+## or stands on the ones above is left there.
 static func _drop(w: World, me: Actor, into: Vector2i) -> void:
-	w.emit({t = &"fall", id = me.id, from = me.pos, at = into, depth = w.depth - 1})
-	w.depth -= 1
-	w.scent.clear()
-	for s in w.shots:
-		s.gone = true
-	FloorGen.build(w)
+	var from := me.pos
+	var top := w.depth
+	Storeys.leave(w)
+	Storeys.enter(w, w.depth - 1)
+	while w.depth > 1 and w.tile(into) == World.SKY:
+		Storeys.leave(w)
+		Storeys.enter(w, w.depth - 1)
+	w.emit({t = &"fall", id = me.id, from = from, at = into, depth = w.depth})
+	me.pos = Vector2i(-1, -1)  # in the air, off the tile she may land on
+	var spot := FloorGen.nearest_free(w, into, Masks.air(w))
+	me.pos = spot if spot.x >= 0 else w.start
+	w.hurt(me, (top - w.depth) * DAMAGE)
 	w.tails = mini(w.tails, w.max_tails())
 	w._changed()
 	w.sense()

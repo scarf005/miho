@@ -491,7 +491,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.SKY:
 			out.append("넘어감: 주문, 멀리뛰기만")
 			out.append("추락한 적: 사라짐")
-			out.append("추락한 미호: 한 층 아래")
+			out.append("추락 피해: 층마다 %d" % Fall.DAMAGE)
 		World.WINDOW:
 			out.append("막음: 길")
 		World.BRIDGE:
