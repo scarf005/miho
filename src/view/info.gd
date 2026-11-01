@@ -45,7 +45,7 @@ static func glossary() -> Dictionary:
 			"번지는 속도: 초당 %d칸" % Terrain.FIERCE_STEPS,
 			"초당 피해: %d" % World.FIERCE_DAMAGE
 		],
-		"함정": ["발견: 밝은 칸이나 %d칸 안" % Traps.REACH, "적은 밟지 않음."],
+		"함정": ["발견: 밝은 칸 또는 %d칸 안" % Traps.REACH, "적은 밟지 않음."],
 		"흔적": ["수색하는 적: 추격 중이 아닌 적", "횟수: 적마다 한 번"],
 		"약점": ["피해: ×%d" % Elements.WEAK, "대상: 그 원소가 든 주문"],
 		"둔함": ["주문을 보면: 날아가는 칸을 수색"],

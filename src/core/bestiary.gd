@@ -335,7 +335,7 @@ const KINDS := {
 		glyph = "가",
 		group = &"beast",
 		shout = {word = "끼긱", loud = 6},
-		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
+		melee = {name = "이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
 		ranks = {3: [[ORB, Cards.EARTH], [FOX, Cards.EARTH], [Cards.EARTH, Cards.EARTH]]},
 		cd = 3,

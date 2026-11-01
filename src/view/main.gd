@@ -32,8 +32,6 @@ const WALK_SPEED := 3.0
 ## Message lines shown over the map, and for how many rounds.
 const LOG_ROWS := 3
 const LOG_FADE := 5
-## Tiles a cursor moves in look mode with Shift.
-const LOOK_FAR := 5
 ## What the title asks before it erases the run on disk.
 const ERASE := "이어하던 판을 지우고 새로 시작할까?"
 ## Why exploring or resting does not start.
@@ -485,7 +483,7 @@ func _point(screen: Vector2) -> void:
 ## (false).
 func _look_key(action: StringName, far: bool) -> bool:
 	if Keys.MOVES.has(action):
-		_look_at(Grid.nudge(hover, Keys.MOVES[action], LOOK_FAR if far else 1))
+		_look_at(Grid.nudge(hover, Keys.MOVES[action], Menu.LOOK_FAR if far else 1))
 	elif action == &"confirm":
 		var goal := hover
 		_stop_look()

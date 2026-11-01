@@ -21,7 +21,15 @@ const MOUSE := [
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
 ]
-const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-7 반경), Esc 끝"]
+## Tiles the look cursor moves with Shift held.
+const LOOK_FAR := 5
+const LOOK := [
+	"살피는 중",
+	(
+		"방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반경), Esc 끝"
+		% [LOOK_FAR, Exclusions.MAX_RADIUS]
+	),
+]
 const OPTIONS := [
 	&"volume",
 	&"music",
