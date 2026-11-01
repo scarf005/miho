@@ -1,11 +1,11 @@
 class_name Cards
 extends RefCounted
 ## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction); the
-## five elements (오행) are taken from strong enemies. Each card in a spell
-## costs one tail. Two different elements in one spell make one of ten
-## compounds (상생 and 상극 pairs), which takes one slot and costs two tails.
+## five elements (오행) are taken from strong enemies. A spell costs tails by its
+## cards (Spell.COST). Two different elements in one spell make one of ten
+## compounds (상생 and 상극 pairs), which takes one slot and counts two cards.
 ## Three elements in a 상생 chain (목, 화, 토, 금, 수, 목) make a 3단 compound
-## (TRIPLES), one slot worth three tails: 수+목+화 make 도약, which leaps Miho
+## (TRIPLES), one slot worth three cards: 수+목+화 make 도약, which leaps Miho
 ## herself (Leap).
 
 const FOX := &"fox"

@@ -99,7 +99,7 @@ func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_i
 	var two := Spell.make(LEAP + [WOOD])
 	assert_eq(two.slots, [VAULT, WOOD] as Array[StringName])
 	assert_eq(two.leap(), 4)
-	assert_eq(two.cost(), 4)
+	assert_eq(two.cost(), 5)
 	assert_eq(two.title(), "멀리뛰기 4칸")
 	assert_null(two.rest(), "the 목 is reach, not roots")
 	assert_eq(Spell.make(LEAP + [WOOD, WOOD]).leap(), 5)
@@ -142,7 +142,7 @@ func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_
 			var w := World.create(seed_value)
 			w.depth = depth
 			FloorGen.build(w)
-			w.tails = Spell.MAX_SLOTS
+			w.tails = Spell.price(Spell.MAX_SLOTS)
 			w.cards.assign(Cards.ALL)
 			for i in w.tiles.size():
 				var p := Grid.at(i)
@@ -175,7 +175,7 @@ func test_three_tiles_of_sky_take_the_leap_and_one_wood() -> void:
 	assert_true(w.can(_leap(LEAP + [WOOD])))
 	w.act(_leap(LEAP + [WOOD]))
 	assert_eq(w.player().pos, Vector2i(8, 8))
-	assert_eq(w.tails, 1, "four tails")
+	assert_eq(w.tails, 0, "four cards, five tails")
 
 
 func test_a_leap_lands_on_the_farthest_tile_in_reach() -> void:
@@ -256,7 +256,7 @@ func test_the_rest_of_the_spell_is_cast_where_miho_lands() -> void:
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	var stunned := events.filter(func(e): return e.t == &"stun").map(func(e): return e.id)
 	assert_eq(stunned, [far.id], "next to the landing, not to where she took off")
-	assert_eq(w.tails, 1, "all four talismans spent")
+	assert_eq(w.tails, 0, "all four talismans, five tails")
 
 
 func test_landing_on_the_stairs_climbs_and_casts_nothing_more() -> void:
@@ -364,6 +364,7 @@ func test_a_leap_with_nowhere_to_land_says_so_and_keeps_the_turn() -> void:
 
 func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	var m := _main()
+	m.world.tails = 9
 	_press(m, "2")
 	_pick_leap(m)
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
