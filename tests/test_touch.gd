@@ -104,6 +104,14 @@ func test_a_tap_outside_the_map_does_nothing() -> void:
 	assert_eq(m.world.round_no, rounds)
 
 
+func test_a_tap_on_the_empty_queue_does_nothing() -> void:
+	var m := _main()
+	for n in [0, Spell.MAX_SLOTS - 1, -1]:
+		_finger(m, _hud(m, &"queue", n))
+		await _settle(m)
+		assert_eq(m.world.round_no, 0, "slot %d" % n)
+
+
 # --- long presses ---------------------------------------------------------------
 
 
@@ -182,6 +190,60 @@ func test_a_swipe_with_talismans_queued_hurls_that_way() -> void:
 	assert_eq(_me(m), Vector2i(4, 8), "Miho did not walk")
 	await _settle(m)
 	assert_eq(m.picked, [])
+
+
+# --- debug picks ----------------------------------------------------------------
+
+
+func _ask(m: Node, cmd: StringName, needs: Array) -> void:
+	m.menu.debug.ask = {cmd = cmd, needs = needs, args = {}}
+
+
+func test_a_tap_answers_a_debug_pick_at_that_tile_without_a_round_or_a_walk() -> void:
+	var m := _main()
+	_ask(m, &"teleport", [&"tile"])
+	_finger(m, _tile_at(m, Vector2i(9, 8)))
+	await _settle(m)
+	assert_false(m.menu.debug.asking())
+	assert_eq(_me(m), Vector2i(9, 8), "teleported at once")
+	assert_eq(m.world.round_no, 0)
+
+
+func test_a_swipe_while_a_debug_pick_waits_does_nothing() -> void:
+	var m := _main()
+	_ask(m, &"teleport", [&"tile"])
+	var from := _tile_at(m, Vector2i(10, 8))
+	_finger(m, from, from + Vector2(80, 0))
+	assert_true(m.menu.debug.asking())
+	assert_eq(_me(m), Vector2i(4, 8))
+	assert_eq(m.world.round_no, 0)
+
+
+func test_the_menu_button_gives_up_a_debug_pick_as_a_right_click_does() -> void:
+	var m := _main()
+	_ask(m, &"teleport", [&"tile"])
+	_finger(m, _hud(m, &"cancel"))
+	await _settle(m)
+	assert_false(m.menu.debug.asking())
+	assert_eq(m.overlay, &"cheat", "the list opens again")
+	assert_eq(_me(m), Vector2i(4, 8))
+
+
+func test_the_debug_list_fits_the_screen_after_the_phone_is_turned() -> void:
+	var m := _main()
+	get_tree().root.size = Vector2i(390, 844)
+	m._fit()
+	m._open(&"cheat")
+	m.menu.debug.selected = DebugMenu.COMMANDS.size() - 1
+	get_tree().root.size = Vector2i(844, 390)
+	m._fit()
+	var e := Keys.event("Up")
+	e.pressed = true
+	m._unhandled_input(e)
+	var shown := PanelView.span(m.term)
+	var row: int = m.term.panel.selected
+	assert_true(row >= shown.x and row < shown.x + shown.y, "row %d in %s" % [row, shown])
+	get_tree().root.size = Vector2i(1280, 720)
 
 
 # --- aiming ---------------------------------------------------------------------

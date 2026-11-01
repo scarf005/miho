@@ -185,7 +185,6 @@ func _fit() -> void:
 		term.fit(get_viewport().get_visible_rect().size, settings.zoom)
 	if overlay != &"":
 		menu.room = Vector2i(term.cols, term.rows)
-		menu.codex.room = menu.room
 		term.panel = menu.panel()
 
 
@@ -866,6 +865,11 @@ func _show_log() -> void:
 	term.log_lines = []
 	for k in recent.size():
 		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
+	# The line the pointer's word hover came from may be gone or have moved.
+	var hinted := not term.hint.is_empty()
+	term.hint = WordHover.at(term, term.hint_at * Term.CELL)
+	if hinted == term.hint.is_empty() and not busy:
+		_refresh()
 
 
 ## Shows a full-screen panel: a Menu page.
@@ -876,6 +880,7 @@ func _open(kind: StringName) -> void:
 	menu.log_rows = messages.lines.map(Messages.shown)
 	menu.seed_value = run_seed
 	menu.debug.world = world
+	menu.title = state == &"title"
 	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()

@@ -24,12 +24,7 @@ static func _rows(t: Term) -> Array:
 	if t.panel.is_empty():
 		if t.replay or not t.banner_lines.is_empty():
 			return out
-		var y := 0
-		for line: Array in t.log_lines:
-			for runs: Array in Term.rows_of(line[0], t.cols - Term.MAP.x - 1.0):
-				out.append([y, Term.MAP.x + 0.5, runs])
-				y += 1
-		return out
+		return t.log_rows()
 	var aside: Array = t.panel.get("aside", [])
 	for k in aside.size():
 		out.append([3 + k, t.panel.aside_x, aside[k]])

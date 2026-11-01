@@ -112,7 +112,7 @@ func key(e: InputEventKey, nav: StringName) -> StringName:
 		&"enter":
 			return _use()
 		&"back":
-			return _back()
+			return back()
 	return &""
 
 
@@ -134,7 +134,7 @@ func scroll_by(lines: int) -> void:
 
 
 ## Esc: a list of its own goes back to the commands, on the row that opened it.
-func _back() -> StringName:
+func back() -> StringName:
 	if page == &"":
 		return &"close"
 	page = &""
@@ -225,7 +225,8 @@ func pick(main: Node, event: InputEvent) -> void:
 	if Keys.MOVES.has(action):
 		main._look_at(Grid.nudge(main.hover, Keys.MOVES[action], FAR if event.shift_pressed else 1))
 	elif action == &"confirm":
-		_pick_at(main, main.hover)
+		if not event.is_echo():
+			_pick_at(main, main.hover)
 	elif action == &"fight":
 		main._look_at(_next(main.world, main.hover))
 	elif action in [&"cancel", &"cheat"]:

@@ -81,8 +81,15 @@ var log_rows: Array = []
 var codex := Codex.new()
 ## The debug commands page; it keeps its row when closed.
 var debug := DebugMenu.new()
+## The title is showing: no run is being played, so the options leave out the
+## debug commands, which would write to the run on disk.
+var title := false
 ## The screen in cells, for the pages to fit their lists.
-var room := Vector2i(40, 18)
+var room := Vector2i(40, 18):
+	set(v):
+		room = v
+		codex.room = v
+		debug.room = v
 ## The page this one was opened from and the row it was opened on; Esc goes back
 ## there. Empty when the game opened it.
 var origin := &""
@@ -101,7 +108,6 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	origin = &""
 	if size != Vector2i.ZERO:
 		room = size
-	codex.room = room
 	codex.hover = -1
 	codex.select(codex.selected)
 	if p == &"cheat":
@@ -156,10 +162,10 @@ func key(e: InputEventKey) -> StringName:
 		return _bind(e)
 	if page == &"codex":
 		var out := codex.key(e, nav)
-		return back() if out == &"close" else out
+		return _leave() if out == &"close" else out
 	if page == &"cheat":
 		var out := debug.key(e, nav)
-		return back() if out == &"close" and debug.request.is_empty() else out
+		return _leave() if out == &"close" and debug.request.is_empty() else out
 	var slot := Keys.action_of(e)
 	var out := &"changed"
 	if page in [&"help", &"log"] and slot == page:
@@ -201,7 +207,7 @@ func _move(nav: StringName) -> StringName:
 		&"enter":
 			out = use()
 		&"back":
-			out = back()
+			out = _leave()
 	return out
 
 
@@ -308,7 +314,7 @@ func use() -> StringName:
 
 
 func _use_option() -> StringName:
-	var row: StringName = OPTIONS[selected]
+	var row: StringName = _listed()[selected]
 	match row:
 		&"keys", &"codex", &"cheat":
 			_enter(row)
@@ -332,9 +338,17 @@ func _use_key_row() -> StringName:
 	return &""
 
 
-## Esc: a page opened from another goes back to it, on the row it was opened
-## from; others close.
+## Esc or a right click: the debug page goes back as DebugMenu says; a page
+## opened from another goes back to it, on the row it was opened from; others
+## close.
 func back() -> StringName:
+	if page == &"cheat":
+		var out := debug.back()
+		return _leave() if out == &"close" else out
+	return _leave()
+
+
+func _leave() -> StringName:
 	if confirming:
 		confirming = false
 		return &""
@@ -352,7 +366,7 @@ func back() -> StringName:
 func _change(step: int) -> StringName:
 	if page != &"options":
 		return &""
-	match OPTIONS[selected]:
+	match _listed()[selected]:
 		&"volume":
 			settings.volume = clampi(settings.volume + step * 10, 0, 100)
 		&"music":
@@ -432,6 +446,11 @@ static func _nav(e: InputEventKey) -> StringName:
 	return bound.get(Keys.action_of(e), &"")
 
 
+## The options the page lists.
+func _listed() -> Array:
+	return OPTIONS.filter(func(o): return not (title and o == &"cheat"))
+
+
 func _options() -> Array:
 	var values := {
 		&"volume": str(settings.volume) if settings.volume > 0 else "꺼짐",
@@ -443,7 +462,7 @@ func _options() -> Array:
 		&"seed": "%d 복사했다" % seed_value if copied else str(seed_value),
 	}
 	var rows := []
-	for o in OPTIONS:
+	for o in _listed():
 		var row := [
 			[RESTART_SURE if o == &"restart" and confirming else OPTION_NAMES[o], Palette.TEXT]
 		]
