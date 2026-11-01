@@ -172,7 +172,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적 피해: 2"],
 		[METAL, METAL, METAL]: ["산탄", "반지름 4", "바로 옆 적 피해: 2"],
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
-		[EARTH, EARTH]: ["둘레 2칸", "벽: 금 감"],
+		[EARTH, EARTH]: ["둘레 2칸", "벽: 금이 감"],
 		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "금 간 벽: 무너짐"],
 		[WOOD]: ["거리: 4걸음", "적 1명", "묶임: 2초", "소음: 없음"],
 		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶임: 3초"],

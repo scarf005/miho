@@ -233,14 +233,14 @@ func test_a_remembered_tile_does_not_tell_whether_it_burns_now() -> void:
 	w.seen[Grid.index(p)] = 0
 	var text := Info.plain(Info.terrain(w, p))
 	assert_false(text.contains("불타는 중"), text)
-	assert_string_contains(text, "안 보임.")
+	assert_string_contains(text, "보이지 않음.")
 
 
 func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var w := _hall()
 	var told := {
 		World.LANTERN: ["빛: %d칸" % Light.LANTERN_RADIUS, "부딪칠 때 소음: %d" % World.KNOCK],
-		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새 안 남음."],
+		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새가 남지 않음."],
 		World.BOARD: ["발소리: %d칸" % Tiles.of(World.BOARD, "tread")[0], "\n가연성."],
 		World.GRASS: ["가연성.\n번질 확률: %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
 		World.DOOR: ["\n가연성."],

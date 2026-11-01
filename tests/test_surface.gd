@@ -233,7 +233,7 @@ func test_hover_tells_every_rule_of_each_kind_from_the_table() -> void:
 		World.STRAW: [burn],
 		World.LEAVES: [burn, rustle],
 		World.REEDS: ["막음: 시야\n밟으면: 쓰러짐", rustle, burn],
-		World.SHALLOW: [splash, "냄새 안 남음.", "불 안 붙음."],
+		World.SHALLOW: [splash, "냄새가 남지 않음.", "불이 붙지 않음."],
 		World.PILLAR: ["막음: 길, 시야, 빛", "부술 수 없음."],
 	}
 	for kind: int in told:

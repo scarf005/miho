@@ -13,7 +13,7 @@ const TEXT := Palette.TEXT
 const STATE := {
 	"!": "추격 중이다",
 	"?": "수색 중이다",
-	"x": "눈이 멀어 있다",
+	"x": "눈이 멀었다",
 }
 
 ## {runs, text, round, n}

@@ -535,7 +535,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"소음: 없음",
 		],
 		&"frostbloom":
-		["서리꽃 · 꼬리: 3", "반지름 3", "가시덤불: 자람", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
+		["서리꽃 · 꼬리: 3", "반지름 3", "가시덤불: 생김", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
 		&"swamp":
 		[
 			"늪 · 꼬리: 3",

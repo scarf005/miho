@@ -15,7 +15,7 @@ const RECIPE := {
 }
 ## The label of the harm a projectile does after it has flown MOMENTUM tiles.
 const FAR := "%d칸 이상 날아간 뒤 피해"
-const PIERCE := ["관통", "모든 적, 벽 하나"]
+const PIERCE := ["관통", "적 모두, 벽 한 칸"]
 ## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
 const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
@@ -212,7 +212,7 @@ static func _spray(s: Spell) -> Array:
 				_line("기절", "%d초" % Spray.QUAKE_STUN[i], color),
 			]
 			if level >= 2:
-				out.append(_line("벽", "금 감", color))
+				out.append(_line("벽", "금이 감", color))
 			if level >= 3:
 				out.append(_line("금 간 벽", "무너짐", color))
 			return out
@@ -228,7 +228,7 @@ static func _spray(s: Spell) -> Array:
 
 ## A fan of radius r, as [label, value] lines.
 static func _fan(r: int, name := "") -> Array:
-	return [["모양", name + "부채꼴 90°, 반지름 %d" % r], ["닿음", "보이는 칸만"]]
+	return [["모양", name + "부채꼴 90°, 반지름 %d" % r], ["범위", "보이는 칸만"]]
 
 
 static func _gun(level: int) -> Array:
@@ -255,7 +255,7 @@ static func _compound(s: Spell) -> Array:
 		Cards.EARTH: [["기절", "%d초" % (Elements.STUN + s.extra(Cards.EARTH))]],
 	}
 	if shape[0] == Spray.CLEAVE:
-		plain[Cards.EARTH].append(["벽", "금 감"])
+		plain[Cards.EARTH].append(["벽", "금이 감"])
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append_array(_lines(plain[e], Palette.CARD[e]))
@@ -331,7 +331,7 @@ static func compound(c: StringName) -> Array:
 		&"thorn":
 			var name: String = Tiles.of(World.THORNS, "name")
 			return [
-				[name, "자람"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
+				[name, "생김"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
 		&"split":
 			return [["벽", "소음 없이 무너짐"]]
@@ -353,7 +353,7 @@ static func compound(c: StringName) -> Array:
 			]
 		&"frostbloom":
 			return [
-				[Tiles.of(World.THORNS, "name"), "자람"],
+				[Tiles.of(World.THORNS, "name"), "생김"],
 				["지날 때 피해", "%d" % Compounds.THORN],
 				["연못", "얼음이 됨"],
 				["묶임", "%d초" % Compounds.BLOOM],
@@ -389,12 +389,12 @@ static func compound(c: StringName) -> Array:
 			return [["하늘, 연못", Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
 			var name: String = Gas.of(Gas.FOG, "name") + " 양"
-			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["냄새", "지움"]]
+			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["냄새", "지워짐"]]
 		&"sinkhole":
 			return [
 				["땅", Tiles.of(World.SKY, "name")],
-				["그 칸의 적", "떨어짐"],
-				["안 꺼지는 칸", "미호 칸, 계단으로 가는 길이 끊기는 칸"],
+				["그 칸의 적", "추락"],
+				["꺼지지 않는 칸", "미호 칸, 계단으로 가는 길이 끊기는 칸"],
 			]
 		&"newmoon":
 			return [["꺼짐", "불, 등불"]]
@@ -406,7 +406,7 @@ static func compound(c: StringName) -> Array:
 				["기절", "%d초" % Compounds.THUNDER_STUN],
 			]
 		&"stillness":
-			return [["추격 중인 적", "제자리 수색"], ["냄새", "지움"]]
+			return [["추격 중인 적", "제자리 수색"], ["냄새", "지워짐"]]
 		Cards.SAMSARA:
 			return [["체력", "+%d" % World.HEAL], ["기절", "%d초" % Compounds.SAMSARA_STUN]]
 		Cards.CONQUEST:
@@ -428,7 +428,7 @@ static func _mortar(s: Spell) -> Array:
 	return [
 		["폭발 반지름", "%d" % (1 + s.grown(&"shrapnel"))],
 		["폭발 피해", "%d" % (Compounds.MORTAR + s.count(Cards.METAL))],
-		["주위 벽", "금 감"],
+		["주위 벽", "금이 감"],
 	]
 
 
@@ -535,7 +535,7 @@ static func _shape(s: Spell) -> Array:
 				lines.append(_line(PIERCE[0], PIERCE[1]))
 			lines.append(_line("회전", "칸당 " + _turn(s.turn())))
 			if not s.gun():
-				lines.append(_line("맞히면", "붙어서 %d초" % Spell.WISP_LIFE))
+				lines.append(_line("맞히면", "%d초 동안 붙음" % Spell.WISP_LIFE))
 			lines.append(_line("사거리", "%d칸" % Spell.RANGE))
 			lines.append(_line("지속 시간", "%d초" % Spell.WISP_LIFE))
 			if Lure.lures(s):
@@ -590,11 +590,11 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			return [["묶임", "%d초" % (Elements.ROOT + s.extra(e))]]
 		Cards.METAL:
 			if s.orb:
-				return [["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부숨"]]
+				return [["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부술 수 있음"]]
 			return []
 	var thud := ["멈춘 곳 소음", "%d" % World.THUD]
 	if s.orb:
-		return [["벽", "한 번에 부숨"], thud]
+		return [["벽", "한 번에 부술 수 있음"], thud]
 	return [["기절", "%d초" % (Elements.STUN + s.extra(e))], thud]
 
 

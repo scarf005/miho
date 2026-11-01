@@ -477,7 +477,7 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 			]
 		],
 		[[FOX, EARTH, EARTH], ["기절: %d초" % (Elements.STUN + 1), "멈춘 곳 소음: %d" % World.THUD]],
-		[[ORB, EARTH], ["벽: 한 번에 부숨", "멈춘 곳 소음: %d" % World.THUD]],
+		[[ORB, EARTH], ["벽: 한 번에 부술 수 있음", "멈춘 곳 소음: %d" % World.THUD]],
 		[[FOX, WOOD], ["묶임: %d초" % Elements.ROOT]],
 		[[ORB, WOOD, WOOD], ["나무벽: 멈춘 곳에 직각으로 %d칸" % (Elements.WALL + 1), "나무벽 체력: 1"]],
 	]

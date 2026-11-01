@@ -321,7 +321,7 @@ func _do(action: StringName, shift: bool) -> void:
 	elif action == &"stairs":
 		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
 	elif action == &"explore" and Travel.watched(world):
-		_say("깨어 있는 적이 보인다")
+		_say("깨어 있는 적이 보여서 탐험할 수 없다")
 		sfx.play(&"click")
 	elif action == &"explore":
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
@@ -500,7 +500,7 @@ func _recall(key: String) -> void:
 	var spell := Spell.from_key(key) if key != "" else null
 	var why := ""
 	if spell == null:
-		why = "저장한 주문이 없다. I로 주문서를 열고 칸 키를 눌러 저장"
+		why = "저장한 주문이 없다"
 	elif not spell.cards.all(func(c): return world.cards.has(c)):
 		why = "부적이 모자라다"
 	elif spell.cost() + _held() > Cheat.tails(world):
