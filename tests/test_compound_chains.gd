@@ -246,8 +246,8 @@ func test_each_3dan_has_the_shape_of_the_plan() -> void:
 	assert_eq(cover.call(&"hail"), Spray.square(w, ME + E * 3, 2))
 	assert_eq(cover.call(&"swamp"), Spray.square(w, ME + E * 3, 2, true))
 	assert_eq(cover.call(&"geyser"), Spray.square(w, ME + E * 2, 1))
-	assert_eq(cover.call(&"furnace"), Spray.line(w, ME, E, 6, false, 0))
-	assert_eq(cover.call(&"quench"), Spray.line(w, ME, E, 5, false, 0))
+	assert_eq(cover.call(&"furnace"), Spray.line(w, ME, E, 6, false))
+	assert_eq(cover.call(&"quench"), Spray.line(w, ME, E, 5, false))
 	assert_eq(cover.call(&"frostbloom"), Spray.fan(w, ME, E, 3))
 	assert_eq(cover.call(&"charthorn"), Spray.fan(w, ME, E, 3))
 	assert_eq(

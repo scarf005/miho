@@ -784,17 +784,20 @@ func _fly(s: Shot, to: Vector2i) -> void:
 
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile
 ## strikes the creature it reaches; a wisp stops and hovers at a wall or after
-## Spell.RANGE tiles, chasing or not, and flies no more.
+## Spell.RANGE tiles, chasing or not, and flies no more; a piercing one goes on
+## through creatures and a wall (Elements.bore, pass_through).
 func _step(s: Shot) -> void:
 	if s.turn > 0:
 		s.dir = Homing.steer(self, s)
 		var t := actor(s.target)
-		if t != null and t.pos == s.pos:
+		if t != null and t.pos == s.pos and not s.spell.pierces():
 			s.gone = true
 			_strike(s, t)
 			return
 	var to := s.pos + s.dir
-	if not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
+	if s.spell.pierces() and Elements.bore(self, s, to):
+		to += s.dir
+	elif not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
 			var struck := tile(to)
 			_burst(s)
@@ -805,6 +808,9 @@ func _step(s: Shot) -> void:
 	var a := actor_at(to)
 	if a != null:
 		_fly(s, to)
+		if s.spell.pierces():
+			s.gone = not Elements.pass_through(self, s, a)
+			return
 		s.gone = true
 		_strike(s, a)
 		return
@@ -954,6 +960,8 @@ func _end_round() -> void:
 			if s.life == 0:
 				s.gone = true
 				emit({t = &"fade", shot = s.id, at = s.pos})
+				if s.spell.mortar():
+					Compounds.land(self, s, s.pos)
 	_prune()
 	round_no += 1
 	if outcome != &"" or depth >= FLOORS:

@@ -4,9 +4,10 @@ extends RefCounted
 ## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
 ## on the 3x3 round where the projectile ends (Spray.carried; 벽 가르기 on the
 ## first wall ahead of it and that wall's neighbours across its line), the
-## creature it struck there among them. Each copy past the first reaches one
-## tile farther: a spray's fan, line, square or cleave (Spray.cover), the square
-## round where a projectile ends. Other slots in a spray add their own plain
+## creature it struck there among them. Each copy past the first, and each lone
+## element that feeds a 상생 pair (Spell.grown), reaches one tile farther: a
+## spray's fan, line, square or cleave (Spray.cover), the square round where a
+## projectile ends. Other slots in a spray add their own plain
 ## effect where it reaches (Spray). To add a compound: its tables in Cards, its
 ## shape in Spray.SHAPE, its cases in `ground`, `tip` and `strike` here (`at` is
 ## its centre: where a burst lands, the caster for one round her), its lines in
@@ -19,7 +20,9 @@ extends RefCounted
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
 ## water: whoever stands on it as a round ends takes its harm, unless it eats
 ## fire. Heaven walks round it.
-## 유탄 hurts every creature it reaches for SHRAPNEL.
+## 유탄 hurts every creature it reaches for SHRAPNEL. On an orb (비격진) it
+## bursts: MORTAR harm and a harm more for every lone 쇠, the creature the orb
+## struck among them once, and every breakable wall in reach takes a hit.
 ## 서리 freezes each creature it reaches for FROST rounds (Status: it cannot
 ## move and takes double the next harm), and freezes ponds, and the veil of
 ## dokkaebi fire (Veil), to ice (World.ICE) that can be walked.
@@ -77,6 +80,7 @@ const MOLTEN := 1
 const HOT := [{name = "뜨거운 땅", harm = 1}, {name = "뜨거운 쇠", harm = 2}]
 const HOT_ROUNDS := 3
 const SHRAPNEL := 1
+const MORTAR := 2
 const FROST := 2
 const RAIN := 3
 const STEAM := Gas.MAX
@@ -107,7 +111,7 @@ const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness"]
 static func land(w: World, s: Shot, at: Vector2i) -> void:
 	var struck := w.actor_at(at)
 	for c in s.spell.compounds():
-		var tiles := Spray.carried(w, c, at, s.dir, 1 + s.spell.extra(c))
+		var tiles := Spray.carried(w, c, at, s.dir, 1 + s.spell.grown(c))
 		ground(w, s, c, tiles)
 		tip(w, s, c, at)
 		var line := Vector2i.ZERO if Spray.radial(c) else s.dir
@@ -202,6 +206,9 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 ## caster.
 static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
 	match c:
+		&"shrapnel":
+			if s.spell.mortar():
+				_explode(w, s, at, 1 + s.spell.grown(c))
 		&"quench":
 			Gas.add(w, at, Gas.STEAM, STEAM)
 		&"beacon":
@@ -218,7 +225,9 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 		&"wildfire":
 			Status.ignite(w, a, true)
 		&"shrapnel":
-			Elements.harm(w, s, a, SHRAPNEL)
+			Elements.harm(
+				w, s, a, MORTAR + s.spell.count(Cards.METAL) if s.spell.mortar() else SHRAPNEL
+			)
 		&"frost":
 			Status.freeze(w, a, FROST)
 		&"rain":
@@ -359,6 +368,15 @@ static func _split(w: World, tiles: Array[Vector2i]) -> void:
 static func _forget(w: World, tiles: Array[Vector2i]) -> void:
 	for p in tiles:
 		Scent.clear(w, p)
+
+
+## A 비격진 bursts at `at`: every breakable wall within `r` takes a hit, as a
+## cannonball hits one. Its creatures are hurt by 유탄 (`strike`).
+static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
+	w.emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
+	for p in Spray.square(w, at, r, true):
+		if Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
+			Terrain.hit(w, p)
 
 
 ## 봉화 is heard where it lands, and every dark lantern its caster sees lights.

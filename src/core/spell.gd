@@ -27,7 +27,9 @@ extends RefCounted
 ## it wherever it goes (Elements.stick); a bullet does not stick. Elements alone spray: they
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
-## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
+## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball. A
+## wisp with two 쇠 is armour-piercing (`pierces`, 철갑탄); an orb that carries 유탄
+## is a 비격진 (`mortar`), which bursts where it ends (Compounds).
 ## A compound is an element of its own (Compounds): it does not count as its
 ## elements, but for what a creature is weak to or eats (`holds`).
 
@@ -58,7 +60,12 @@ const WISP := &"wisp"
 const SPRAY := &"spray"
 const SHAPE_NAME := {LEAP: "멀리뛰기", HOMING: "유도 구슬", ORB: "구슬", WISP: "여우불"}
 ## Copies past which an element's spray grows no more.
-const MAX_LEVEL := 3
+const MAX_LEVEL := 5
+## The 쇠 that make a wisp armour-piercing, and its name.
+const PIERCE_METALS := 2
+const PIERCE_NAME := "철갑탄"
+## An orb that carries 유탄, and its name.
+const MORTAR_NAME := "비격진"
 
 ## The cards as they were queued, repeats and all; the slots they fill.
 var cards: Array[StringName] = []
@@ -229,17 +236,31 @@ func title() -> String:
 		return "%s %d칸" % [SHAPE_NAME[LEAP], leap()] + (", " + then.title() if then != null else "")
 	var parts: Array[String] = []
 	var told := {}
+	var named := _named()
 	for slot in elements():
 		if not told.has(slot):
 			told[slot] = true
-			var n := elements().count(slot)
-			parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
+			var n: int = elements().count(slot) - (named[1] if slot == named[0] else 0)
+			if n > 0:
+				parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
+	if pierces():
+		form = PIERCE_NAME
+	elif mortar():
+		form = MORTAR_NAME
 	if shots() > 1:
 		form += " %d발" % shots()
 	if swaps():
 		form += " 바꿔치기"
 	return ("·".join(parts) + " " + form).strip_edges()
+
+
+## The slot and how many of it the name of the shape tells: 철갑탄 two 쇠,
+## 비격진 one 유탄; none for the rest.
+func _named() -> Array:
+	if pierces():
+		return [Cards.METAL, PIERCE_METALS]
+	return [&"shrapnel", 1] if mortar() else [&"", 0]
 
 
 ## What its wisps are called.
@@ -262,12 +283,23 @@ func speed() -> int:
 	return BULLET_SPEED if gun() else WISP_SPEED
 
 
-## A gun: a lone 쇠's spray, a bullet or a cannonball, or 벼락. Its muzzle flash
-## lights the caster's tile for the round it fires (World.flares).
+## A gun: a lone 쇠's spray, a bullet or a cannonball, 벼락, or a 비격진. Its
+## muzzle flash lights the caster's tile for the round it fires (World.flares).
 func gun() -> bool:
 	if shape == SPRAY:
 		return slots[0] == &"thunder" or (level() > 0 and slots[0] == Cards.METAL)
-	return shape != LEAP and has(Cards.METAL)
+	return shape != LEAP and (has(Cards.METAL) or mortar())
+
+
+## An armour-piercing wisp (철갑탄): 여 with two 쇠. It goes through every
+## creature it hits, and one wall.
+func pierces() -> bool:
+	return shape == WISP and count(Cards.METAL) >= PIERCE_METALS
+
+
+## A 비격진: an orb that carries 유탄, which bursts where it ends.
+func mortar() -> bool:
+	return orb and has(&"shrapnel")
 
 
 ## Rounds a projectile lasts in flight; 0 means until it hits something. A
@@ -295,6 +327,12 @@ func turn() -> int:
 ## one step stronger.
 func extra(element: StringName) -> int:
 	return maxi(0, count(element) - 1)
+
+
+## Tiles bigger than its base the compound `c` reaches: one for every copy past
+## the first, and one for every lone element that feeds a 상생 pair (a 토 for 유탄).
+func grown(c: StringName) -> int:
+	return extra(c) + count(Cards.feeder(c))
 
 
 ## Damage on a direct hit by a projectile that has come `distance` tiles from

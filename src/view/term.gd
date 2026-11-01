@@ -311,7 +311,8 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			if _shots.has(e.shot):
 				_shots[e.shot].pos = e.to
 		&"burst", &"hit", &"fade", &"snuff":
-			_shots.erase(e.shot)
+			if not e.get("through", false):
+				_shots.erase(e.shot)
 			_flash(at, Color(1, 1, 1, 0.5))
 		&"clash":
 			_shots.erase(e.shot)

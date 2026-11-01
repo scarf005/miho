@@ -302,7 +302,7 @@ const KINDS := {
 		shout = {word = "이놈", loud = 9},
 		hp = 4,
 		casts = [[FOX, Cards.METAL]],
-		ranks = {2: [[FOX, Cards.METAL], [Cards.METAL, Cards.METAL, Cards.METAL]]},
+		ranks = {2: [[FOX, Cards.METAL], [FOX, Cards.METAL, Cards.METAL]]},
 		cd = 3,
 		move = &"static",
 		deaf = true,

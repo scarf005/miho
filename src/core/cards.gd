@@ -179,6 +179,13 @@ static func pair(a: StringName, b: StringName) -> StringName:
 	return &""
 
 
+## The element that feeds the 상생 pair `c` (the one that grows the other), or
+## none: a 토 feeds 유탄.
+static func feeder(c: StringName) -> StringName:
+	var made: Array = PAIRS.get(c, [])
+	return made[0] if not made.is_empty() and GROWS[made[0]] == made[1] else &""
+
+
 ## The compound element `c` makes with `slot`, up to `tier` elements: their pair
 ## when the slot is a different element; the 3단 of the three when it is a pair;
 ## the 4단 of its ring when it is a 3단; when it is a 4단, 황룡 for a last 토, else

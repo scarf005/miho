@@ -73,7 +73,7 @@ func test_every_compound_has_its_shape() -> void:
 	assert_eq(_cover(w, [WOOD, FIRE]).size(), 15, "들불: a fan of radius 3")
 	assert_eq(_cover(w, [METAL, WOOD]).size(), 8, "가시: a fan of radius 2")
 	for c in [[FIRE, EARTH], [METAL, WATER], [FIRE, METAL]]:
-		assert_eq(_cover(w, c), Spray.line(w, ME, E, 4, false, 0), str(c))
+		assert_eq(_cover(w, c), Spray.line(w, ME, E, 4, false), str(c))
 		assert_eq(_cover(w, c).size(), 4)
 	assert_true(_cover(w, [WOOD, EARTH]).is_empty(), "벽 가르기 with no wall near")
 	assert_eq(Spray.square(w, ME).size(), 9)
@@ -170,7 +170,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n꿰뚫음: 적", "밀침: 3칸"],
 		[METAL]: ["모양: 권총, 곧게 7칸\n멈춤: 첫 적", "피해: 1\n", "쏠 때 빛: 미호 칸", "소음: %d" % Spray.GUN_LOUD],
 		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적 피해: 2"],
-		[METAL, METAL, METAL]: ["모양: 철갑탄, 곧게 8칸", "벽 하나", "피해: 2"],
+		[METAL, METAL, METAL]: ["산탄", "반지름 4", "바로 옆 적 피해: 2"],
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
 		[EARTH, EARTH]: ["둘레 2칸", "벽: 금"],
 		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "금 간 벽: 무너짐"],

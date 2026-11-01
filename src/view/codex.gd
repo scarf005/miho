@@ -71,6 +71,14 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 					_entry(Palette.shot_glyph(s), color, Spell.SHAPE_NAME[kind], _shape(kind))
 				)
 			out.append(_entry(":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY)))
+			for cards in SpellInfo.GUNS:
+				var s := Spell.make(cards)
+				var lines := func(): return SpellInfo.spell(s)
+				out.append(
+					_entry(
+						Palette.shot_glyph(s), Palette.shot_color(s, Actor.FOX), s.title(), lines
+					)
+				)
 			for kind in Guise.RECIPE:
 				var s := Spell.make(Guise.RECIPE[kind])
 				var lines := func(): return SpellInfo.own(kind)

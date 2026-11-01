@@ -211,6 +211,7 @@ func test_thorns_grow_prick_and_hurt_whoever_steps_onto_them() -> void:
 	foe.stunned = 9
 	var me := w.player()
 	var hp := me.hp
+	foe.stunned = 1
 	var before := w.clone()
 	events = w.act({t = &"move", dir = E})
 	assert_eq(me.hp, hp - Compounds.THORN, "a step onto thorns pricks")
@@ -267,8 +268,8 @@ func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() ->
 			&"lava", &"molten":
 				assert_true(w.hot.has(at) and w.hot.has(at + Vector2i(1, -1)), c)
 			&"shrapnel":
-				assert_eq(_harm(events, side.id), Compounds.SHRAPNEL, c)
-				assert_eq(_harm(events, foe.id), 1 + Compounds.SHRAPNEL, "orb and shrapnel")
+				assert_eq(_harm(events, side.id), Compounds.MORTAR, c)
+				assert_eq(_harm(events, foe.id), 1 + Compounds.MORTAR, "orb and the burst")
 			&"frost":
 				assert_eq([foe.rooted, side.rooted], [Compounds.FROST - 1, Compounds.FROST - 1])
 			&"rain":

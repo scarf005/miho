@@ -14,7 +14,9 @@ extends RefCounted
 ## heard Spray.GUN_LOUD. An orb is a cannonball: CANNON more harm, it pushes
 ## the creature it strikes CANNON_PUSH tiles (World.push) and fells the wall
 ## it strikes, heard CANNON_LOUD. Either lights the caster's tile for the
-## round (World.flares). 1 more harm a copy.
+## round (World.flares). 1 more harm a copy. A wisp of two 쇠 pierces: it goes
+## through every creature, hurting each once, and one wall (`bore`,
+## `pass_through`).
 ## 흙: thuds World.THUD where it ends. A wisp stuns STUN rounds, a round more a
 ## copy; an orb fells the wall it strikes in one blow.
 ## 나무: a wisp roots ROOT rounds, a round more a copy; an orb grows a wooden
@@ -109,6 +111,34 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			o.gone = true
 			w._changed()
 			w.emit({t = &"snuff", shot = o.id, at = p})
+
+
+## A piercing wisp (Spell.pierces) flying at the wall `to` goes through it, once,
+## if open air lies behind it. False when it cannot.
+static func bore(w: World, s: Shot, to: Vector2i) -> bool:
+	if s.pierced or not Terrain.wall(w.tile(to)) or not w.open_air(to + s.dir):
+		return false
+	s.pierced = true
+	s.flown += 1
+	return true
+
+
+## A piercing wisp goes through `a`, hurting it once, and flies on. False when
+## `a` ate it.
+static func pass_through(w: World, s: Shot, a: Actor) -> bool:
+	var title := s.spell.title()
+	w.emit(
+		{
+			t = &"hit",
+			shot = s.id,
+			id = a.id,
+			at = a.pos,
+			by = s.caster,
+			title = title,
+			through = true
+		}
+	)
+	return strike(w, s, a, s.spell.damage(Grid.cheb(s.origin, a.pos)))
 
 
 ## An orb of 흙 or 쇠 brings the wall it strikes down in one blow.
