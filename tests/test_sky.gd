@@ -106,10 +106,14 @@ func _pavilions(w: World) -> int:
 	return n
 
 
-func test_a_storey_is_two_to_four_pavilions_joined_by_bridges_across_gaps_of_three_to_six() -> void:
+func test_pavilions_are_two_to_four_joined_by_bridges_across_gaps_of_three_to_six() -> void:
 	var counts := {}
-	_storeys(
-		func(w: World, label: String):
+	for seed_value in SEEDS:
+		for depth in range(1, World.FLOORS + 1):
+			var w := World.create(seed_value * World.FLOORS + depth)
+			w.depth = depth
+			FloorGen.build(w, Skeletons.PAVILIONS)
+			var label := "seed %d storey %d" % [seed_value, depth]
 			var n := _pavilions(w)
 			counts[n] = true
 			assert_between(n, 2, 4, label)
@@ -124,7 +128,6 @@ func test_a_storey_is_two_to_four_pavilions_joined_by_bridges_across_gaps_of_thr
 						assert_between(run, FloorGen.SKY_GAP.x, FloorGen.SKY_GAP.y, label)
 						run = 0
 			assert_gte(bridges, FloorGen.SKY_GAP.x * (n - 1), "%s joins every pavilion" % label)
-	)
 	assert_eq(counts.keys().size(), 3, "2, 3 and 4 pavilions all turn up")
 
 

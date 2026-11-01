@@ -12,16 +12,21 @@ const DECOR := 1
 const SECRET := Vector2i(7, 8)
 
 var _storeys: Array[World] = []
+var _pavilions: Array[World] = []
 
 
-## Every storey of several seeds, built once.
+## Every storey of several seeds, built once: as the seed falls and on pavilions.
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
+			var w := World.create(seed_value * World.FLOORS + depth)
 			w.depth = depth
 			FloorGen.build(w)
 			_storeys.append(w)
+			var p := World.create(seed_value)
+			p.depth = depth
+			FloorGen.build(p, Skeletons.PAVILIONS)
+			_pavilions.append(p)
 
 
 func _label(w: World) -> String:
@@ -81,8 +86,8 @@ func test_rooms_are_at_least_three_wide_and_a_wall_apart() -> void:
 					assert_false(a.grow(1).intersects(b), "%s %s and %s" % [_label(w), a, b])
 
 
-func test_miho_starts_in_the_westmost_room_and_the_exit_is_in_the_farthest() -> void:
-	for w in _storeys:
+func test_on_pavilions_miho_starts_in_the_westmost_room_and_the_exit_is_in_the_farthest() -> void:
+	for w in _pavilions:
 		var home := w.rooms[0]
 		assert_eq(w.start, home.position + home.size / 2, _label(w))
 		for r in w.rooms:
@@ -118,8 +123,8 @@ func _leaps(w: World) -> Array[int]:
 	return out
 
 
-func test_every_storey_has_facing_ledges_with_two_or_three_tiles_of_sky_between() -> void:
-	for w in _storeys:
+func test_pavilions_have_facing_ledges_with_two_or_three_tiles_of_sky_between() -> void:
+	for w in _pavilions:
 		var leaps := _leaps(w)
 		assert_gt(leaps.size(), 0, _label(w))
 		for n in leaps:
@@ -127,7 +132,7 @@ func test_every_storey_has_facing_ledges_with_two_or_three_tiles_of_sky_between(
 
 
 func test_a_ledge_hangs_between_an_outer_wall_or_doorway_and_the_sky() -> void:
-	for w in _storeys:
+	for w in _pavilions:
 		var doorways := 0
 		for i in w.tiles.size():
 			var p := Grid.at(i)

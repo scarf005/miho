@@ -17,8 +17,9 @@ extends RefCounted
 ## by storey (Placement).
 ## From storey 2 a lit room may hold a war drum. Galleries stay plain and dark.
 ## One room may then be made a set room (SetRooms).
-## Miho starts in the westmost room; the stairs (the elixir on the top storey)
-## sit in the room farthest from her, which is always lit. Watchers that never
+## Miho starts in the skeleton's first room (on pavilions, the westmost); the stairs
+## (the elixir on the top storey) sit in the room its plan names or the one farthest
+## from her, which is always lit. Watchers that never
 ## move stand by lanterns. The creatures that walk come in bands (`bands`): those
 ## of one group stand together in one room, and follow the strongest of them.
 
@@ -174,27 +175,33 @@ const OPEN_DOORS := 0.3
 
 
 ## Builds the storey on `skeleton` (Skeletons.pick when none is given); returns the
-## set room it made, {kind, room}, or {} (SetRooms.build). What is laid in the rooms
-## may light the start, leave the exit dark, or cut one of the two routes of a skeleton
-## that has them, and then it starts over.
+## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
+## in its rooms has spoiled (`_sound`) starts over.
 static func build(w: World, skeleton := &"") -> Dictionary:
 	if skeleton == &"":
 		skeleton = Skeletons.pick(w)
 	var set_room := {}
 	for attempt in BUILDS:
 		set_room = _build(w, skeleton)
-		w._changed()
-		var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
-		if (
-			not w.lit(w.start)
-			and w.lit(exit)
-			and (
-				skeleton == Skeletons.PAVILIONS
-				or Skeletons.two_ways(w, w.rooms[0], room_at(w, exit))
-			)
-		):
+		if _sound(w, skeleton):
 			break
 	return set_room
+
+
+## Whether no plate shuts a tile in, the exit can be walked to with nothing to break
+## or put out on the way, the start is dark and the exit lit, and a skeleton that has
+## two routes still has them.
+static func _sound(w: World, skeleton: StringName) -> bool:
+	w._changed()
+	var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
+	var open := Masks.floor_of(w, w.traps.keys(), func(_p): return false)
+	return (
+		connected(w, w.traps.keys())
+		and Grid.search(w.start, open).dist[Grid.index(exit)] >= 0
+		and not w.lit(w.start)
+		and w.lit(exit)
+		and (skeleton == Skeletons.PAVILIONS or Skeletons.two_ways(w, w.rooms[0], room_at(w, exit)))
+	)
 
 
 static func _build(w: World, skeleton: StringName) -> Dictionary:
