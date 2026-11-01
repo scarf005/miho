@@ -12,8 +12,6 @@ extends Control
 signal shown(e: Dictionary, at: Vector2)
 ## The world is on screen as it stands, after a round or a change.
 signal settled(w: World)
-## Ends a hold in `play`: its time ran out, or a key asked (`rush`).
-signal released
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
@@ -105,8 +103,8 @@ var cam := Vector2i.ZERO
 var noise := 0
 
 var _font: FontFile
-## What is left of the hold `play` waits on, in seconds.
-var _hold := 0.0
+## The hold `play` waits on.
+var _hold: SceneTreeTimer
 ## Set by `rush` until the next `play`: the round in progress holds no more.
 var _rushed := false
 var _vis := PackedByteArray()
@@ -188,10 +186,6 @@ func _shown(p: Vector2i) -> bool:
 
 func _process(delta: float) -> void:
 	_time += delta
-	if _hold > 0.0:
-		_hold -= delta
-		if _hold <= 0.0:
-			released.emit()
 	var now := _time
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
@@ -258,8 +252,8 @@ func play(events: Array, before: World, after: World) -> void:
 	for i in events.size():
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0 and not _rushed:
-			_hold = wait / speed
-			await released
+			_hold = get_tree().create_timer(wait / speed)
+			await _hold.timeout
 	noise = NoiseMeter.level(_vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
@@ -271,9 +265,8 @@ func play(events: Array, before: World, after: World) -> void:
 ## the key that asked acts on the finished round. Popups and sounds still play.
 func rush() -> void:
 	_rushed = true
-	if _hold > 0.0:
-		_hold = 0.0
-		released.emit()
+	if _hold != null:
+		_hold.timeout.emit()
 
 
 ## Whether Miho sees tile p: what the log and the popups are told from.
