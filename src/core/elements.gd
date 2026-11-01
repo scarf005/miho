@@ -14,7 +14,9 @@ extends RefCounted
 ## heard Spray.GUN_LOUD. An orb is a cannonball: CANNON more harm, it pushes
 ## the creature it strikes CANNON_PUSH tiles (World.push) and fells the wall
 ## it strikes, heard CANNON_LOUD. Either lights the caster's tile for the
-## round (World.flares). 1 more harm a copy.
+## round (World.flares). 1 more harm a copy. A wisp of two 쇠 pierces: it goes
+## through every creature, hurting each once, and one wall (`bore`,
+## `pass_through`).
 ## 흙: thuds World.THUD where it ends. A wisp stuns STUN rounds, a round more a
 ## copy; an orb fells the wall it strikes in one blow.
 ## 나무: a wisp roots ROOT rounds, a round more a copy; an orb grows a wooden

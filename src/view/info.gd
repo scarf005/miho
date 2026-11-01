@@ -318,6 +318,8 @@ static func _spell_details(s: Spell) -> Array[String]:
 	var out: Array[String] = ["피해: %d" % near if near > 0 else "피해: 없음"]
 	if far > near:
 		out.append("%d칸 이상 날면 피해: %d" % [Spell.MOMENTUM, far])
+	if s.pierces():
+		out.append("%s: %s" % SpellInfo.PIERCE)
 	if s.homing():
 		out.append("꺾임: 한 칸에 " + SpellInfo._turn(s.turn()))
 	if SpellInfo.elements(s) != "":

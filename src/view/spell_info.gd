@@ -13,6 +13,7 @@ const RECIPE := {
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
 }
+const PIERCE := ["꿰뚫음", "모든 적, 벽 하나"]
 ## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
 const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
@@ -511,7 +512,7 @@ static func _shape(s: Spell) -> Array:
 				)
 			)
 			if s.pierces():
-				lines.append(_line("꿰뚫음", "모든 적, 벽 하나"))
+				lines.append(_line(PIERCE[0], PIERCE[1]))
 			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초" % Spell.WISP_LIFE))
