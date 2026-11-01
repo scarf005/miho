@@ -10,7 +10,8 @@ extends Node
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `peace` (every creature of heaven is gone, for long waits),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `jar:x:y:effect` (a jar holding
-## that Jars effect, such as kimchi), `at:x:y` (put Miho there),
+## that Jars effect, such as kimchi), `at:x:y` (put Miho there), `save:slot:key` (a
+## saved spell by its Spell.key),
 ## `trap:x:y:n` (a hidden plate of tile kind n lies there, to be found or stepped on),
 ## `foe:kind:x:y` (a creature stands there), `hunt:x:y` (the creature there notices Miho),
 ## `hp:n:dx:dy` (the creature that far from Miho is left with n health),
@@ -127,7 +128,7 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
-		"tile", "jar", "trap", "at", "foe", "hunt", "card", "gas":
+		"tile", "jar", "trap", "at", "foe", "hunt", "card", "gas", "save":
 			_stage(parts)
 		"hp", "chase", "follow", "lamp":
 			var w: World = main.world
@@ -198,6 +199,8 @@ func _stage(parts: PackedStringArray) -> void:
 			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
 		"hunt":
 			w.hunt_from(w.actor_at(xy), w.player().pos)
+		"save":
+			main.term.saved[StringName(parts[1])] = parts[2]
 		"card":
 			if not w.cards.has(StringName(parts[1])):
 				w.cards.append(StringName(parts[1]))
