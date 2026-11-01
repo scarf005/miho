@@ -13,15 +13,40 @@ extends RefCounted
 ## each row joined by doorways from end to end.
 ## 쌍탑 (towers): two stepped towers, floor on floor, joined by bridges at different
 ## heights; the start and the exit lie at opposite ends of opposite towers.
+## 부서진 층 (broken): BrokenFloor.
+## 흩어진 정자 (scattered): Scattered.
+## 연못 정원 (garden): PondGarden.
+## 겹누각 (keep): Keep. 겹누각 성채 (citadel): Keep.citadel.
+## 무너진 정자 (ruin): a broken building on one side of the map, scattered pavilions on the
+## other, bridges between them.
+##
+## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
+## be hidden doors.
 
 const PAVILIONS := &"pavilions"
 const RING := &"ring"
 const AVENUE := &"avenue"
 const TOWERS := &"towers"
-## What a storey may be built on; `pick` draws from it.
-const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
+const BROKEN := &"broken"
+const SCATTERED := &"scattered"
+const GARDEN := &"garden"
+const KEEP := &"keep"
+const RUIN := &"ruin"
+const CITADEL := &"citadel"
+## What a storey may be built on.
+const ALL: Array[StringName] = [
+	PAVILIONS, RING, AVENUE, TOWERS, BROKEN, SCATTERED, GARDEN, KEEP, RUIN, CITADEL
+]
+## The skeleton of each storey, from the first; a seed varies its shape.
+const STOREYS: Array[StringName] = [
+	AVENUE, RING, GARDEN, SCATTERED, BROKEN, TOWERS, KEEP, RUIN, CITADEL
+]
+## The skeletons with one way to the exit: no two routes are asked of them.
+const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
+## How many rooms `far_ends` tries as the start.
+const ENDS_TRIED := 8
 ## A row of rooms: a room's width with one wall (least, most), and how deep it goes.
 const LOT := Vector2i(6, 12)
 const DEEP := 7
@@ -50,12 +75,15 @@ const TOWER_FLOOR := Vector2i(5, 9)
 const TOWER_LANDINGS := 2
 ## How many rows apart the middles of the start room and the exit room are at least.
 const TOWER_ENDS := 9
+## How wide a ruin's building is (least, most), and how far from the map's north and
+## south edges it stands.
+const RUIN_HALL := Vector2i(22, 27)
+const RUIN_Y := Vector2i(1, 3)
 
 
-## The skeleton of the storey being built. A table of skeletons by storey replaces
-## this draw once every skeleton exists.
+## The skeleton of the storey being built.
 static func pick(w: World) -> StringName:
-	return ALL[w.rng.randi_range(0, ALL.size() - 1)]
+	return STOREYS[w.depth - 1]
 
 
 ## Draws a storey on `skeleton`.
@@ -67,7 +95,77 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return _avenue(w)
 		TOWERS:
 			return _towers(w)
+		BROKEN:
+			return BrokenFloor.draw(w)
+		SCATTERED:
+			return Scattered.draw(w)
+		GARDEN:
+			return PondGarden.draw(w)
+		KEEP:
+			return Keep.draw(w)
+		RUIN:
+			return _ruin(w)
+		CITADEL:
+			return Keep.citadel(w)
 	return FloorGen.pavilions(w)
+
+
+## Whether `skeleton`'s routes stand, but on a skeleton with one way (ONE_WAY): two lead
+## from `home` to `goal`, and one is left with every plank burnt and every plate shut.
+static func routes_hold(w: World, skeleton: StringName, home: Rect2i, goal: Rect2i) -> bool:
+	if ONE_WAY.has(skeleton):
+		return true
+	var left := Masks.floor_of(w, w.traps.keys() + planks(w), func(_p): return false)
+	var from := FloorGen._centre(home)
+	var to := Grid.index(FloorGen._centre(goal))
+	return two_ways(w, home, goal) and Grid.search(from, left).dist[to] >= 0
+
+
+## The tiles of the storey that burn away to sky (Terrain.plank).
+static func planks(w: World) -> Array:
+	var out := []
+	var at := w.tiles.find(World.BOARD)
+	while at >= 0:
+		if Terrain.plank(w, Grid.at(at)):
+			out.append(Grid.at(at))
+		at = w.tiles.find(World.BOARD, at + 1)
+	return out
+
+
+## Makes a random room the start, the first of ENDS_TRIED with two routes to the room
+## farthest from it; returns that room, or an empty rect when none has.
+static func far_ends(w: World) -> Rect2i:
+	var homes := w.rooms.duplicate()
+	FloorGen.shuffle(w.rng, homes)
+	for home: Rect2i in homes.slice(0, ENDS_TRIED):
+		var goal := FloorGen._farthest(w, FloorGen._centre(home))
+		if goal != home and two_ways(w, home, goal):
+			_first(w, home)
+			return goal
+	return Rect2i()
+
+
+## The ruin: a broken building on one side, scattered pavilions on the other, bridges
+## across; holes come last, so that they keep clear of the bridges.
+static func _ruin(w: World) -> Dictionary:
+	var wide := w.rng.randi_range(RUIN_HALL.x, RUIN_HALL.y)
+	var on_west := w.rng.randf() < 0.5
+	var top := w.rng.randi_range(RUIN_Y.x, RUIN_Y.y)
+	var tall := Grid.H - top - w.rng.randi_range(RUIN_Y.x, RUIN_Y.y)
+	var hall := Rect2i(1 if on_west else Grid.W - 1 - wide, top, wide, tall)
+	var from := hall.end.x + 1 if on_west else 1
+	var field := Rect2i(from, 1, Grid.W - 2 - wide - 1, Grid.H - 2)
+	var galleries := BrokenFloor.raise(w, hall)
+	FloorGen._doorways(w, galleries)
+	var blocks := Scattered.plant(w, field)
+	var plan := {spots = [], links = [], goal = Rect2i()}
+	blocks.append(hall)
+	Scattered.join(w, blocks, plan.links)
+	plan.sealed = FloorGen._loops(w, FloorGen._doorways(w, galleries), plan.links)
+	BrokenFloor.tear(w, hall)
+	if not planks(w).is_empty():
+		plan.goal = far_ends(w)
+	return plan
 
 
 ## Whether the walk from the middle of `home` to the middle of `goal` has two routes
@@ -115,6 +213,29 @@ static func _ring(w: World) -> Dictionary:
 	var east := Grid.W - 1 - w.rng.randi_range(RING_X.x, RING_X.y)
 	var south := Grid.H - 1 - w.rng.randi_range(RING_Y.x, RING_Y.y)
 	var outer := Rect2i(west, north, east - west + 1, south - north + 1)
+	var ring := _ring_walls(w, outer)
+	var halls: Array[Rect2i] = ring.halls
+	var court: Rect2i = ring.court
+	_wing(w, Vector2i(1, north), Vector2i(Grid.W - 2, north), Vector2i.UP, RING_GAPS)
+	_wing(w, Vector2i(1, south), Vector2i(Grid.W - 2, south), Vector2i.DOWN, RING_GAPS)
+	_wing(w, outer.position, Vector2i(west, south), Vector2i.LEFT, RING_GAPS)
+	_wing(w, Vector2i(east, north), Vector2i(east, south), Vector2i.RIGHT, RING_GAPS)
+	var near := _rooms_by(w, halls)
+	var home: Rect2i = near[w.rng.randi_range(0, near.size() - 1)]
+	var goal := home
+	for r: Rect2i in near:
+		if _gap(r, home) > _gap(goal, home):
+			goal = r
+	for r in [home, goal]:
+		halls.any(func(h): return _door(w, r, h))
+	_first(w, home)
+	var plan := {spots = FloorGen._doorways(w, halls), links = [], goal = goal}
+	_cross(w, court, plan.links)
+	return plan
+
+
+## The hall RING_HALL wide inside wall `outer`, round a court of sky: {court, halls}.
+static func _ring_walls(w: World, outer: Rect2i) -> Dictionary:
 	var inside := outer.grow(-1)
 	var court := inside.grow(-RING_HALL - 1)
 	FloorGen._fill(w, outer, World.WALL)
@@ -127,24 +248,14 @@ static func _ring(w: World) -> Dictionary:
 		Rect2i(inside.position, Vector2i(RING_HALL, inside.size.y)),
 		Rect2i(inside.end.x - RING_HALL, inside.position.y, RING_HALL, inside.size.y),
 	]
-	_wing(w, Vector2i(1, north), Vector2i(Grid.W - 2, north), Vector2i.UP, RING_GAPS)
-	_wing(w, Vector2i(1, south), Vector2i(Grid.W - 2, south), Vector2i.DOWN, RING_GAPS)
-	_wing(w, outer.position, Vector2i(west, south), Vector2i.LEFT, RING_GAPS)
-	_wing(w, Vector2i(east, north), Vector2i(east, south), Vector2i.RIGHT, RING_GAPS)
-	var near := w.rooms.filter(
+	return {court = court, halls = halls}
+
+
+## The rooms a wall apart from one of `halls`.
+static func _rooms_by(w: World, halls: Array[Rect2i]) -> Array:
+	return w.rooms.filter(
 		func(r): return halls.any(func(h): return not _door_spots(w, r, h).is_empty())
 	)
-	var home: Rect2i = near[w.rng.randi_range(0, near.size() - 1)]
-	var goal := home
-	for r: Rect2i in near:
-		if _gap(r, home) > _gap(goal, home):
-			goal = r
-	for r in [home, goal]:
-		halls.any(func(h): return _door(w, r, h))
-	_first(w, home)
-	var plan := {spots = FloorGen._doorways(w, halls), links = [], goal = goal}
-	_cross(w, court, plan.links)
-	return plan
 
 
 ## How far apart the middles of two rooms are.
