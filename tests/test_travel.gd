@@ -163,6 +163,19 @@ func test_a_walk_stops_when_the_stairs_or_a_peach_first_come_into_sight() -> voi
 	assert_true(Travel.interrupted(w, after, [], {}))
 
 
+func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
+	var w := _world()
+	assert_false(Travel.watched(w))
+	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(12, 8))
+	foe.home = foe.pos
+	assert_true(foe.asleep())
+	assert_false(Travel.watched(w), "one asleep")
+	foe.pos += Vector2i(1, 0)
+	assert_true(Travel.watched(w))
+	w.seen[Grid.index(foe.pos)] = 0
+	assert_false(Travel.watched(w), "one out of sight")
+
+
 func test_a_walk_stops_when_the_storey_changes() -> void:
 	var w := _world()
 	var after := w.clone()
