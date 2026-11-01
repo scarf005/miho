@@ -385,7 +385,7 @@ func test_a_leap_with_nowhere_to_land_says_so_and_keeps_the_turn() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "Up")
 	assert_eq(m.world.round_no, round_no)
-	assert_eq(m.messages.lines.back().text, "내려설 곳이 없다")
+	assert_eq(m.messages.lines.back().text, "착지할 곳이 없다")
 
 
 func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
@@ -480,7 +480,7 @@ func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var parts := [
 		"구슬 바꿔치기",
 		"바꿔치기: 멈춘 칸으로 맞힌 적: 자리 교환",
-		"바꿔치기 소음: 두 자리에서 %d" % Leap.SWAP_LOUD,
+		"바꿔치기 소음: 두 곳에서 %d" % Leap.SWAP_LOUD,
 	]
 	for part in parts:
 		assert_string_contains(text, part)

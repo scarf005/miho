@@ -214,13 +214,13 @@ func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
-			"향 연기 양: %d까지" % Gas.VENT_LEVEL,
+			"향 연기 최대 양: %d" % Gas.VENT_LEVEL,
 			"이 칸과 옆 4칸",
 			": %d초\n" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
-			"옆 가연성 칸에 불",
+			"옆 가연성·인화성 칸에 불",
 		],
-		World.COURTYARD: ["달빛에 드러남."],
+		World.COURTYARD: ["항상 밝음."],
 	}
 	for kind: int in told:
 		var text := _hover(kind)

@@ -19,7 +19,7 @@ const PIERCE := ["관통", "모든 적, 벽 하나"]
 ## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
 const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
-const SWAP := [["바꿔치기", "멈춘 칸으로"], ["맞힌 적", "자리 교환"], ["바꿔치기 소음", "두 자리에서 %d" % Leap.SWAP_LOUD]]
+const SWAP := [["바꿔치기", "멈춘 칸으로"], ["맞힌 적", "자리 교환"], ["바꿔치기 소음", "두 곳에서 %d" % Leap.SWAP_LOUD]]
 ## The numbers of each status (Status) past its name and time, by key, one
 ## `이름: 값` line each; and what a spell that causes it says, as [label, value].
 const STATUS_DOES := {
@@ -163,7 +163,7 @@ static func ward(s: Spell) -> Array:
 			_line("%s 한 장마다" % Cards.NAME[Cards.WOOD], "+%d초" % Guise.PER_WOOD),
 			_line("속는 적", "추격 중이 아닌 적"),
 			_line("발톱", "기습"),
-			_line("해제", "적 옆 %d초 연속, 주문 사용, 피해 입음" % Guise.BESIDE),
+			_line("해제", "적 옆에서 %d초, 주문 사용, 피해" % Guise.BESIDE),
 			_line(name + " 소음", "없음"),
 		]
 	var dark: int = s.light(Actor.FOX).radius
@@ -279,7 +279,7 @@ static func _form(s: Spell) -> Array:
 			return [["모양", "%d칸 앞 %s" % [shape[1], size]], ["멈춤", "벽 앞, 첫 적"]]
 		Spray.ACROSS:
 			var wide: int = shape[2] + s.grown(lead)
-			return [["모양", "%d칸 앞 직각 %d칸" % [shape[1], wide]], ["멈춤", "벽 앞, 첫 적"]]
+			return [["모양", "%d칸 앞에서 직각으로 %d칸" % [shape[1], wide]], ["멈춤", "벽 앞, 첫 적"]]
 		Spray.AROUND:
 			return [["모양", "둘레 %d칸" % n]]
 		Spray.SIGHT:
@@ -399,7 +399,7 @@ static func compound(c: StringName) -> Array:
 		&"newmoon":
 			return [["꺼짐", "불, 등불"]]
 		&"discord":
-			return [["싸움", "가까운 둘씩"], ["시간", "%d초" % Mind.GRUDGE_ROUNDS]]
+			return [["싸움", "가까운 적끼리 둘씩"], ["시간", "%d초" % Mind.GRUDGE_ROUNDS]]
 		&"thunder":
 			return [
 				["피해", "%d" % Compounds.THUNDER],
@@ -523,7 +523,7 @@ static func _shape(s: Spell) -> Array:
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", "%s %d발" % [s.wisp(), s.shots()]))
-			lines.append(_line("대상", "보이는 적, 가까운 순 체력만큼 배분"))
+			lines.append(_line("대상", "보이는 적, 가까운 순으로 체력만큼 나눠 맞힘"))
 			lines.append(
 				(
 					_line("발당 피해", str(s.damage(0)), Palette.HURT)
@@ -533,7 +533,7 @@ static func _shape(s: Spell) -> Array:
 			)
 			if s.pierces():
 				lines.append(_line(PIERCE[0], PIERCE[1]))
-			lines.append(_line("회전", "한 칸에 " + _turn(s.turn())))
+			lines.append(_line("회전", "칸당 " + _turn(s.turn())))
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초" % Spell.WISP_LIFE))
 			lines.append(_line("사거리", "%d칸" % Spell.RANGE))
@@ -544,7 +544,7 @@ static func _shape(s: Spell) -> Array:
 			lines.append(_line("모양", "유도 구슬"))
 			lines.append(_line("대상", "가장 가까운 적"))
 			lines.append_array(_orb_harm(s))
-			lines.append(_line("회전", "한 칸에 " + _turn(s.turn())))
+			lines.append(_line("회전", "칸당 " + _turn(s.turn())))
 			lines.append(_line("남은 시간", "%d초" % Spell.HOMING_LIFE))
 		Spell.ORB:
 			lines.append(_line("모양", "구슬"))

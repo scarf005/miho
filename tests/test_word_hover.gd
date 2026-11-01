@@ -43,9 +43,9 @@ func test_a_word_inside_a_longer_one_has_no_entry() -> void:
 
 
 func test_a_tag_of_several_words_has_its_entry_over_each_of_them() -> void:
-	var row := [["미호 위치를 앎", Palette.DIM]]
+	var row := [["미호의 위치를 알고 있음", Palette.DIM]]
 	for col in [0.5, 2.0, 4.0]:
-		assert_eq(_head(Keywords.entry_at(row, 0.0, col)), "미호 위치를 앎.", str(col))
+		assert_eq(_head(Keywords.entry_at(row, 0.0, col)), "미호의 위치를 알고 있음.", str(col))
 
 
 func test_the_dogam_detail_gives_the_entry_of_a_tag_it_shows() -> void:

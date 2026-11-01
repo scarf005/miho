@@ -217,7 +217,7 @@ func _spells(list: Array[Spell]) -> Array:
 		row.append([s.title(), Palette.TEXT, 14.0])
 		rows.append(row)
 	if rows.is_empty():
-		rows.append([["줄에 든 부적도, 저장한 주문도 없다", Palette.DIM]])
+		rows.append([["고른 부적도, 저장한 주문도 없다", Palette.DIM]])
 	return rows
 
 

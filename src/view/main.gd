@@ -450,7 +450,7 @@ func _stop_look() -> void:
 func _add(card: StringName) -> void:
 	var why := ""
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
-		why = "줄이 가득 찼다"
+		why = "부적 칸이 가득 찼다"
 	elif _held() + Spell.price(picked.size() + 1) > world.tails:
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
@@ -708,7 +708,7 @@ func _walled_in(goal: Vector2i, otherwise: String) -> String:
 		and Travel.route(routes, goal).is_empty()
 		and not Travel.route(Travel.search(world, sightings.at), goal).is_empty()
 	)
-	return "위험구역 너머로는 가지 않는다" if shut else otherwise
+	return "위험구역 너머로는 갈 수 없다" if shut else otherwise
 
 
 ## Whether nothing is left to explore only because of the exclusions.
@@ -737,7 +737,7 @@ func _exploring() -> Dictionary:
 	var d := Travel.explore_step(world, routes)
 	if d == Vector2i.ZERO:
 		if _explore_walled():
-			_say("위험구역 너머는 탐험하지 않는다")
+			_say("위험구역 너머는 탐험할 수 없다")
 		return {}
 	return _resting() if world.tails < world.max_tails() else {t = &"move", dir = d}
 

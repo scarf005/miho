@@ -15,8 +15,8 @@ const TRACE := "흔적."
 ## The conditions a creature or Miho holds besides the statuses (Status), by the
 ## name `_conditions` shows, one `이름: 값` line each: the 도감's 상태이상.
 const CONDITIONS := {
-	"묶임": ["이동: 못 함"],
-	"기절": ["이동, 주문: 못 함", "모으던 주문: 취소"],
+	"묶임": ["움직일 수 없음."],
+	"기절": ["움직일 수도, 주문을 쓸 수도 없음.", "모으던 주문: 취소"],
 	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색 끝: 경계가 끝난 뒤", "어두운 곳 시야: +1칸"],
 }
 
@@ -30,21 +30,21 @@ static func glossary() -> Dictionary:
 	return {
 		"가연성": [burn, "불탄 뒤: 재", "번지는 속도: 초당 1칸", "번질 확률: %d%%" % spread],
 		"인화성": [burn, "불탄 뒤: 재", "번지는 속도: 초당 2칸", "초당 피해: %d" % World.FIERCE_DAMAGE],
-		"함정": ["발견: 밝은 칸이나 %d칸 안" % Traps.REACH, "적: 피해서 걸음"],
+		"함정": ["발견: 밝은 칸이나 %d칸 안" % Traps.REACH, "적은 밟지 않음."],
 		"흔적": ["수색하는 적: 추격 중이 아닌 적", "횟수: 적마다 한 번"],
 		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
-		"둔함": ["본 주문: 날아가는 칸을 수색"],
-		"영리함": ["본 주문: 쏜 곳을 수색", "북 치기: 추격 중 걸어서 %d칸 안" % Drums.REACH],
+		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
+		"영리함": ["주문을 보면: 쏜 곳을 수색", "북 치기: 추격 중 걸어서 %d칸 안" % Drums.REACH],
 		"교활함":
 		[
-			"본 주문: 쏜 곳에서 추격",
+			"주문을 보면: 쏜 곳에서 추격",
 			"북 치기: 추격 중 걸어서 %d칸 안" % Drums.REACH,
 			"여우불 소음: 던진 곳을 수색",
 		],
-		"순찰": ["쉴 때: 방과 방 사이를 걸어 다님", "잠: 안 잠", "무리: 대장을 따라 걸음"],
-		"고정": ["이동: 안 함", "잠: 안 잠"],
+		"순찰": ["쉴 때: 방 사이를 돌아다님", "잠들지 않음.", "무리: 대장을 따라다님"],
+		"고정": ["움직이지 않음.", "잠들지 않음."],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
-		"미호 위치를 앎": ["추격: 항상", "이동: 보지 못해도 미호 쪽으로", "잠: 안 잠"],
+		"미호의 위치를 알고 있음": ["추격: 항상", "보지 못해도 미호를 쫓아감", "잠들지 않음."],
 		"냄새를 따라감": ["쉬거나 수색 중: 미호의 냄새를 따라 걸음", "냄새 나이: %d초 이내" % Scent.TRAIL_AGE],
 		"꺼진 등불을 켬": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
 		"밝음": ["적에게 보임: 시야 안 어디서나"],
@@ -69,7 +69,7 @@ static func glossary() -> Dictionary:
 			"놓치면: 마지막으로 본 곳, 냄새를 따라감",
 			"끝: 수색 중",
 		],
-		"자는 중": ["시야: 없음, 옆 칸도", "깨어남: 소음, 피해"],
+		"자는 중": ["시야: 없음", "깨어남: 소음, 피해"],
 		"소음":
 		[
 			"범위: 소음 값만큼의 칸, 벽을 돌아서",
@@ -229,7 +229,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 	for t: String in traits.filter(func(t): return t.contains(": ")):
 		lines.append([[t, Palette.DIM]])
 	if not spec.get("shout", {}).is_empty():
-		lines.append([["외침 소음: %d" % spec.shout.loud, Palette.DIM]])
+		lines.append([["말할 수 있다.", Palette.DIM]])
 	if spec.get("hat", false):
 		lines.append([["보임: %d칸 안, 도깨비불 붙음" % Hat.REACH, Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
@@ -406,7 +406,7 @@ static func _spell_details(s: Spell) -> Array[String]:
 	if s.pierces():
 		out.append("%s: %s" % SpellInfo.PIERCE)
 	if s.homing():
-		out.append("회전: 한 칸에 " + SpellInfo._turn(s.turn()))
+		out.append("회전: 칸당 " + SpellInfo._turn(s.turn()))
 	if SpellInfo.elements(s) != "":
 		out.push_front("원소: " + SpellInfo.elements(s))
 	if s.orb and s.has(Cards.FIRE):
@@ -431,7 +431,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if elements.has(Cards.WOOD):
 		out.append("불에 탐")
 	if spec.get("hunts", false):
-		out.append("미호 위치를 앎")
+		out.append("미호의 위치를 알고 있음")
 	if spec.get("tracks", false):
 		out.append("냄새를 따라감")
 	if spec.get("stokes", false):
@@ -544,8 +544,8 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("여닫을 때 소음: %d" % Terrain.SLIDE)
 		World.DRUM:
 			out.append("칠 때 소음: 층 전체")
-			out.append("들은 적: 친 적이 미호를 마지막으로 본 곳을 수색")
-			out.append("치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안" % Drums.REACH)
+			out.append("북소리를 들은 적: 북 친 적이 미호를 마지막으로 본 곳을 수색")
+			out.append("북 치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안" % Drums.REACH)
 			out.append("찢어짐: 구슬, 부딪침")
 		World.LANTERN:
 			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
@@ -587,9 +587,9 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.STATUE:
 			out.append("막음: 길")
 		World.POND:
-			out.append("건널 수 있는 것: 주문, 멀리뛰기만")
+			out.append("주문과 멀리뛰기로만 건널 수 있음.")
 		World.SKY:
-			out.append("건널 수 있는 것: 주문, 멀리뛰기만")
+			out.append("주문과 멀리뛰기로만 건널 수 있음.")
 			out.append("추락한 적: 사라짐")
 			out.append("층당 추락 피해: %d" % Fall.DAMAGE)
 		World.WINDOW:
@@ -723,7 +723,7 @@ static func ahead(w: World, forecasts: Dictionary, p: Vector2i) -> Array:
 	var f: Forecast = forecasts.get(d) if Grid.cheb(p, w.player().pos) <= 1 else null
 	if f == null:
 		return []
-	var how := "대기 시" if d == Vector2i.ZERO else "이 칸 이동 시"
+	var how := "기다릴 때" if d == Vector2i.ZERO else "이 칸으로 이동할 때"
 	var lines := []
 	if f.hurt_me() > 0:
 		lines.append([[how + " 피해: %d" % f.hurt_me(), Palette.HURT]])

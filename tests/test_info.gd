@@ -42,7 +42,7 @@ func test_spells_of_the_same_talismans_but_another_form_read_differently() -> vo
 	assert_string_contains(fire_orb, "폭발: 주위 8칸, 피해 2")
 	assert_string_contains(homing, "꼬리: 3")
 	assert_string_contains(homing, "모양: 유도 구슬\n대상: 가장 가까운 적")
-	assert_string_contains(homing, "회전: 한 칸에 45°")
+	assert_string_contains(homing, "회전: 칸당 45°")
 	assert_false(fire_orb.contains("가장 가까운 적"))
 
 
@@ -54,7 +54,7 @@ func test_a_spell_tells_every_number() -> void:
 		"꼬리: 5",
 		"모양: 여우불 2발",
 		"발당 피해: 1",
-		"회전: 한 칸에 60°",
+		"회전: 칸당 60°",
 		"사거리: 7칸",
 		"지속 시간: 8초",
 		"속도: 초당 3칸",
@@ -382,7 +382,7 @@ func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
 	for t in [World.SKY, World.POND]:
 		w.tiles[Grid.index(p)] = t
 		var text := Info.plain(Info.terrain_facts(w, p))
-		assert_string_contains(text, "건널 수 있는 것: 주문, 멀리뛰기만")
+		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있음.")
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
 	assert_string_contains(sky, "추락한 적: 사라짐\n층당 추락 피해: 1")
