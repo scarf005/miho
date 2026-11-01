@@ -92,7 +92,8 @@ const ROWS := {
 	World.REEDS:
 	{name = "갈대", walk = true, sight = true, tread = [2, "바스락"], trample = World.REEDS_FLAT},
 	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true},
-	World.LEAVES: {name = "낙엽", walk = true, burns = true, tread = [2, "바스락"]},
+	World.LEAVES:
+	{name = "낙엽", walk = true, burns = true, tread = [2, "바스락"], trample = World.FLOOR},
 	World.SHALLOW: {name = "얕은 물", walk = true, tread = [2, "철벅"], douses = true, scentless = true},
 	World.PILLAR: {name = "기둥", sight = true, light = false, gas = false},
 	World.WOOD_WALL:

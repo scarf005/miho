@@ -146,9 +146,10 @@ func test_only_shallow_water_ice_and_mud_are_never_taken_by_fire() -> void:
 		)
 
 
-func test_only_reeds_lie_flat_when_stepped_on() -> void:
+func test_only_reeds_lie_flat_and_leaves_crumble_when_stepped_on() -> void:
+	var turns := {World.REEDS: World.REEDS_FLAT, World.LEAVES: World.FLOOR}
 	for t in 256:
-		assert_eq(Tiles.of(t, "trample"), World.REEDS_FLAT if t == World.REEDS else -1, str(t))
+		assert_eq(Tiles.of(t, "trample"), turns.get(t, -1), str(t))
 
 
 func test_only_the_four_plates_are_traps() -> void:
