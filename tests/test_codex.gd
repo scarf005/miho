@@ -63,7 +63,7 @@ func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 		assert_false(_text(facts).contains("발톱"), "Miho's claws are told on her, not on each foe")
 	var text := _text(Codex.detail(_entry(0, "불개")))
 	assert_string_contains(text, "불개 ♥♥♥♥")
-	assert_string_contains(text, "처치: 불 부적")
+	assert_string_contains(text, "소지품: 불 부적")
 
 
 func test_the_hover_of_a_creature_keeps_its_state_lines() -> void:

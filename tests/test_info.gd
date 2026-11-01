@@ -115,9 +115,9 @@ func test_a_creature_tells_its_element() -> void:
 func test_a_creature_tells_the_talisman_it_drops_until_miho_has_it() -> void:
 	var w := World.create(7)
 	var dog := FloorGen.spawn(w, &"bulgae", w.player().pos + Vector2i(2, 0))
-	assert_string_contains(Info.plain(Info.creature(w, dog)), "처치: 불 부적")
+	assert_string_contains(Info.plain(Info.creature(w, dog)), "소지품: 불 부적")
 	w.cards.append(Cards.FIRE)
-	assert_false(Info.plain(Info.creature(w, dog)).contains("처치:"))
+	assert_false(Info.plain(Info.creature(w, dog)).contains("소지품:"))
 
 
 func test_a_creature_tells_what_it_is_weak_to() -> void:

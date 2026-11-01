@@ -153,7 +153,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 		lines.append([["  체력: ", Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
 	var drop: StringName = spec.get("drop", &"")
 	if drop != &"" and not held.has(drop):
-		lines.append([["처치: ", Palette.TEXT], [Cards.NAME[drop] + " 부적", Palette.CARD[drop]]])
+		lines.append([["소지품: ", Palette.TEXT], [Cards.NAME[drop] + " 부적", Palette.CARD[drop]]])
 	return lines
 
 
