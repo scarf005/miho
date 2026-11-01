@@ -68,10 +68,6 @@ artifact: web
     gzip -9 -c build/web/index.wasm > build/artifact/wasm-gz.wasm
     gzip -9 -c build/web/index.side.wasm > build/artifact/side-gz.wasm
 
-# Upload the web build to itch.io under the given version.
-itch version: web
-    butler push build/web scarf005/miho:html5 --userversion {{ version }} --ignore '*.import'
-
 # Save a scripted run's screenshot (see src/view/capture.gd), muted, in headless
 # gamescope: just shot .screenshots/x.png --seed=3 --keys=1,Right
 shot path *args: rust
