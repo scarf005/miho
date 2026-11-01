@@ -190,7 +190,7 @@ static func wash(w: World, p: Vector2i) -> void:
 	if (
 		o != null
 		and o.spell.shape == Spell.WISP
-		and not (o.spell.has(Cards.METAL) or o.spell.has(Cards.WATER))
+		and not (o.spell.holds(Cards.METAL) or o.spell.holds(Cards.WATER))
 	):
 		o.gone = true
 		w._changed()
