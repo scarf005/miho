@@ -5,7 +5,7 @@ extends RefCounted
 ## it costs, what each element does, its light and its sound.
 
 const LABEL := Palette.DIM
-const MUZZLE := ["발사 빛", "둘레 %d칸" % Light.MUZZLE_RADIUS]
+const MUZZLE := ["발사 빛", "쏜 칸"]
 ## The talismans that make each shape but a spray.
 const RECIPE := {
 	Spell.LEAP: Cards.TRIPLES[Cards.VAULT],
@@ -575,7 +575,7 @@ static func _shape(s: Spell) -> Array:
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", "%s %d발" % [s.wisp(), s.shots()]))
-			lines.append(_line("대상", "보이는 적, 가까운 적부터 체력만큼"))
+			lines.append(_line("대상", "보이는 적, 가까운 적부터 남은 체력만큼"))
 			lines.append(
 				(
 					_line("발당 피해", str(s.damage(0)), Palette.HURT)
