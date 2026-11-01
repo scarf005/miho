@@ -216,3 +216,13 @@ func test_no_creature_casts_them() -> void:
 			assert_false(
 				Guise.ANYWHERE.has(Guise.kind(Spell.make(cards))), "%s: %s" % [kind, cards]
 			)
+
+
+func test_a_card_more_on_a_spell_for_herself_cannot_be_cast() -> void:
+	var w := _world()
+	w.cards.assign(Cards.ALL)
+	w.tails = 9
+	var talon: Array = Guise.RECIPE[Guise.TALON]
+	assert_true(w.can({t = &"cast", spells = [{cards = talon, dir = Vector2i.ZERO}]}))
+	var more := {t = &"cast", spells = [{cards = talon + [Cards.WOOD], dir = Vector2i(1, 0)}]}
+	assert_false(w.can(more))

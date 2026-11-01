@@ -421,3 +421,23 @@ func _entry(tab: int, name: String) -> Dictionary:
 		if e.name == name:
 			return e
 	return {}
+
+
+func test_explore_leaves_kimchi_while_she_is_at_full_health() -> void:
+	var w := _world()
+	var at := w.player().pos + Vector2i(2, 0)
+	w.sites.append({kind = Jars.KIMCHI, at = at})
+	w.known.fill(1)
+	var found := Travel.search(w)
+	w.player().hp = w.player().max_hp
+	assert_ne(Travel.explore_step(w, found), Vector2i(1, 0), "nothing to heal")
+	w.player().hp = w.player().max_hp - 1
+	assert_eq(Travel.explore_step(w, found), Vector2i(1, 0), "she goes for it hurt")
+
+
+func test_a_forecast_does_not_tell_what_a_jar_holds() -> void:
+	for row: Dictionary in Jars.ROWS:
+		var w := _world()
+		w.jars[AT] = row.id
+		var seen := Forecast.of(w, ORB)
+		assert_eq(seen.after.jars, {}, "%s stays unknown" % row.id)

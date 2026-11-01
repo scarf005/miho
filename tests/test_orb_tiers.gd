@@ -337,3 +337,35 @@ func test_the_forecast_of_a_flying_orb_draws_the_accelerated_round() -> void:
 	var events := w.act(WAIT)
 	assert_eq(_flies(events), next)
 	assert_eq(f.paths[w.shots[0].id].tiles.back(), w.shots[0].pos)
+
+
+func test_a_blast_stays_on_the_storey_where_the_orb_struck() -> void:
+	var w := _world()
+	w.stairs = ME + E
+	var caster := FloorGen.spawn(w, &"imugi", ME - E * 3)
+	caster.cooldown = 99
+	w.player().hp = 50
+	w.cast(caster, Spell.make(_copies(3, [WATER])), E)
+	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
+	assert_true(kinds.has(&"ascend"), "the push took her up")
+	assert_false(kinds.has(&"splash"), "the blast does not follow her")
+
+
+func test_a_creatures_charged_twin_flies_the_line_it_drew() -> void:
+	var w := _world()
+	var caster := FloorGen.spawn(w, &"imugi", ME - E * 2)
+	caster.cooldown = 99
+	caster.alert = Actor.HUNT
+	caster.intent.assign([{cards = _copies(4), dir = E}])
+	w.player().hp = 50
+	w.act({t = &"move", dir = Vector2i(0, -1)})
+	assert_eq(w.shots.map(func(s): return s.dir), [E, E])
+
+
+func test_an_orb_that_fades_blasts_where_it_ends() -> void:
+	var w := _world()
+	w.cast(w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
+	w.shots[0].life = 1
+	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
+	assert_true(kinds.has(&"fade"))
+	assert_true(kinds.has(&"splash"))

@@ -145,3 +145,9 @@ func test_a_replay_stops_at_an_action_the_rules_refuse() -> void:
 	assert_eq(refused.played, 1, "stops at the action the rules refuse")
 	_write({seed = SEED, kills = 0, actions = [{t = &"wait"}]})
 	assert_true(SaveGame.load_from(PATH).replay())
+
+
+func test_a_run_with_a_closed_door_loads() -> void:
+	var run := SaveGame.new(PATH, SEED)
+	run.record({t = &"close", dir = Vector2i(1, 0)}, 0, false)
+	assert_not_null(SaveGame.load_from(PATH), "a run that closed a door is still a run")
