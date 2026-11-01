@@ -272,6 +272,8 @@ func _tap(pos: Vector2) -> void:
 	var term: Term = main.term
 	var local: Vector2 = main._local(pos)
 	var button := hud.button_at(term, local)
+	if main.erasing and button != &"new":
+		main._show_title()
 	if button != &"":
 		hud.pressed = button
 		hud.pressed_at = term._time
@@ -297,7 +299,7 @@ func _press(id: StringName) -> void:
 		&"continue":
 			main._continue()
 		&"new":
-			main._restart()
+			main._new_game()
 		&"enter":
 			main._panel_input(_key(KEY_ENTER))
 		_ when Keys.SLOTS.has(id) and main.overlay != &"":

@@ -32,6 +32,8 @@ const LOG_ROWS := 3
 const LOG_FADE := 5
 ## Tiles a cursor moves in look mode with Shift.
 const LOOK_FAR := 5
+## What the title asks before it erases the run on disk.
+const ERASE := "이어하던 판을 지우고 새로 시작할까?"
 ## Time per frame spent replaying a saved run on Continue; the rest draws the count.
 const REPLAY_BUDGET_MS := 40
 
@@ -55,6 +57,8 @@ var hover_slot := -1
 var looking := false
 ## Several open doors are next to Miho: the next direction key shuts that one.
 var shutting := false
+## The title asks whether to erase the run on disk for a new one.
+var erasing := false
 ## A talisman or saved spell was just refused: the next direction or tile is
 ## eaten, so the press meant to hurl it does not walk Miho instead.
 var refused := false
@@ -127,17 +131,26 @@ func _ready() -> void:
 
 
 ## The title screen, offering to continue the run on disk if there is one.
-func _show_title() -> void:
+func _show_title(asking := false) -> void:
 	pending = SaveGame.load_from(save_path)
 	state = &"title"
-	term.banner_lines = [
-		"미호",
-		"천상누각 꼭대기에 사람이 되는 영약이 있다",
-		touch.say(
-			"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
-			"화면을 눌러 시작" if pending == null else ""
-		),
-	]
+	erasing = asking and pending != null
+	var line := touch.say(
+		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
+		"화면을 눌러 시작" if pending == null else ""
+	)
+	if erasing:
+		line = touch.say(ERASE + " Y/N", ERASE)
+	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", line]
+
+
+## The title's new run: with a run on disk it asks once, then erases it.
+func _new_game() -> void:
+	if state == &"title" and pending != null and not erasing:
+		sfx.play(&"warn")
+		_show_title(true)
+	else:
+		_restart()
 
 
 ## Puts the settings into effect.
@@ -203,11 +216,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		_panel_input(event)
 	elif menu.debug.asking():
 		menu.debug.pick(self, event)
+	elif state == &"title" and erasing:
+		if event is InputEventKey and event.keycode == KEY_Y:
+			_restart()
+		else:
+			_show_title()
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
 		if event is InputEventKey and event.keycode == KEY_N:
-			_restart()
+			_new_game()
 		elif Keys.action_of(event) == &"confirm" or _left_click(event):
 			_continue()
 	elif state == &"title":
@@ -848,6 +866,8 @@ func _panel_input(event: InputEvent) -> void:
 			_close()
 			_restart()
 			return
+		&"ask":
+			sfx.play(&"warn")
 		&"seed":
 			_copy_seed()
 		&"quit":
