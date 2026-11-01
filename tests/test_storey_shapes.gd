@@ -14,6 +14,7 @@ func before_all() -> void:
 	for kind: StringName in [
 		Skeletons.BROKEN,
 		Skeletons.SCATTERED,
+		Skeletons.GARDEN,
 	]:
 		_built[kind] = []
 		for seed_value in SEEDS:
@@ -141,3 +142,26 @@ func test_two_ways_counts_planks_but_the_route_left_by_fire_does_not() -> void:
 	assert_false(Skeletons.routes_hold(w, Skeletons.SCATTERED, home, goal), "both planks")
 	FloorGen._fill(w, Rect2i(8, 15, 22, 1), World.BRIDGE)
 	assert_true(Skeletons.routes_hold(w, Skeletons.SCATTERED, home, goal), "one of stone")
+
+
+# --- the garden -----------------------------------------------------------------
+
+
+func test_the_garden_has_hardly_a_wall_and_ponds_bamboo_and_reeds_in_clumps() -> void:
+	for w: World in _built[Skeletons.GARDEN]:
+		var walls := w.tiles.count(World.WALL)
+		var ground := 0
+		for t in w.tiles:
+			ground += 1 if t != World.WALL and t != World.SKY and t != World.WINDOW else 0
+		assert_gt(ground, walls * 3, _label(w))
+		for t in [World.POND, World.BAMBOO, World.REEDS]:
+			assert_gte(w.tiles.count(t), 8, "%s tile %d" % [_label(w), t])
+
+
+func test_the_garden_has_walled_houses_for_what_needs_doors() -> void:
+	var vaults := 0
+	for w: World in _built[Skeletons.GARDEN]:
+		vaults += 1 if not w.seals.is_empty() else 0
+		var walled := w.rooms.filter(func(r): return EventRooms.doorways(w, r).size() <= 3)
+		assert_gt(walled.size() + w.sites.size() + w.seals.size(), 0, _label(w))
+	assert_gt(vaults, 0, "treasure rooms in the garden")
