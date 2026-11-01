@@ -48,7 +48,9 @@ static func of(before: World, after: World, events: Array) -> Array:
 	var last := {}
 	for f in Perceived.of(before, after, events).facts:
 		if f.t == &"noise":
-			out.append([["멀리서 ", TEXT], [f.word, Palette.SOUND], [" 소리를 들었다", TEXT]])
+			out.append(
+				[["멀리서 ", TEXT], [f.word, Palette.SOUND], [" 소리를 들었다", TEXT]] + _reach(f.loud)
+			)
 			continue
 		var line := _line(before, after, f, last)
 		if f.t != &"hurt":
@@ -91,6 +93,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return (
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [e.word, Palette.SOUND], [" 소리쳤다", TEXT]]
+				+ _reach(e.loud)
 			)
 		&"truce":
 			return _who(before, after, id, "이", "가") + [[" 싸움을 멈췄다", TEXT]]
@@ -314,6 +317,11 @@ static func _harm_to(before: World, after: World, id: int, n: int) -> Array:
 		_who(before, after, id, "에게", "에게")
 		+ [[" 피해를 ", TEXT], [str(n), Palette.HURT], [" 주었다", TEXT]]
 	)
+
+
+## The reach of a noise, its own run at the end of a line: ` · 소리: 4칸`.
+static func _reach(loud: int) -> Array:
+	return [[" · ", Palette.DIM], ["소리: %d칸" % loud, Palette.SOUND]]
 
 
 static func _took(n: int) -> Array:

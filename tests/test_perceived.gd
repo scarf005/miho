@@ -203,3 +203,42 @@ func test_the_debug_view_does_not_change_the_log() -> void:
 		logs.append(m.messages.lines.map(func(l): return l.text))
 	assert_gt(logs[0].size(), 0, "the rounds tell something")
 	assert_eq(logs[0], logs[1])
+
+
+func test_a_noise_on_a_seen_tile_gives_a_reach_popup_and_no_fact() -> void:
+	var w := _world()
+	var noise := {t = &"noise", at = SEEN, word = "삐걱", loud = 3, heard = false}
+	var p := Perceived.of(w, w, [noise])
+	assert_eq(p.facts, [] as Array[Dictionary], "the log and the sound tell nothing twice")
+	assert_eq(p.sounds.map(Term.popup_of).map(func(q): return q.text), ["삐걱: 3칸"])
+	assert_eq(p.sounds[0].i, 0)
+
+
+func test_a_noise_out_of_sight_is_a_fact_with_its_reach_and_no_extra_popup() -> void:
+	var w := _world()
+	var noise := {t = &"noise", at = HIDDEN, word = "쾅", loud = 9, heard = true}
+	var p := Perceived.of(w, w, [noise])
+	assert_eq(p.facts.map(Term.popup_of).map(func(q): return q.text), ["쾅: 9칸"])
+	assert_eq(p.sounds, [] as Array[Dictionary])
+	var quiet := noise.merged({heard = false}, true)
+	assert_eq(Perceived.of(w, w, [quiet]).facts, [] as Array[Dictionary], "out of earshot")
+
+
+func test_a_shouts_noise_is_not_popped_twice() -> void:
+	var w := _world()
+	var shout := {t = &"shout", id = w.player().id, at = SEEN, word = "낄낄", loud = 6}
+	var noise := {t = &"noise", at = SEEN, word = "낄낄", loud = 6, heard = true}
+	var p := Perceived.of(w, w, [shout, noise])
+	assert_eq(p.facts.map(Term.popup_of).map(func(q): return q.text), ["낄낄: 6칸"])
+	assert_eq(p.sounds, [] as Array[Dictionary])
+
+
+func test_miho_stepping_on_a_board_pops_the_reach_of_her_creak() -> void:
+	var w := _world()
+	w.set_tile(SEEN, World.BOARD)
+	w.player().pos = SEEN - Vector2i(1, 0)
+	w.sense()
+	var before := w.clone()
+	var events := w.act({t = &"move", dir = Vector2i(1, 0)})
+	var p := Perceived.of(before, w, events)
+	assert_eq(p.sounds.map(Term.popup_of).map(func(q): return q.text), ["삐걱: 3칸"])
