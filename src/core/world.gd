@@ -784,9 +784,8 @@ func _fly(s: Shot, to: Vector2i) -> void:
 
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile
 ## strikes the creature it reaches; a wisp stops and hovers at a wall or after
-## Spell.RANGE tiles, chasing or not, and flies no more. A piercing wisp
-## (Spell.pierces) goes on through each creature and one wall, if open air lies
-## behind it.
+## Spell.RANGE tiles, chasing or not, and flies no more; a piercing one goes on
+## through creatures and a wall (Elements.bore, pass_through).
 func _step(s: Shot) -> void:
 	if s.turn > 0:
 		s.dir = Homing.steer(self, s)
@@ -796,9 +795,7 @@ func _step(s: Shot) -> void:
 			_strike(s, t)
 			return
 	var to := s.pos + s.dir
-	if s.spell.pierces() and not s.pierced and Terrain.wall(tile(to)) and open_air(to + s.dir):
-		s.pierced = true
-		s.flown += 1
+	if s.spell.pierces() and Elements.bore(self, s, to):
 		to += s.dir
 	elif not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
 		if s.spell.orb:
@@ -812,7 +809,7 @@ func _step(s: Shot) -> void:
 	if a != null:
 		_fly(s, to)
 		if s.spell.pierces():
-			_pass(s, a)
+			s.gone = not Elements.pass_through(self, s, a)
 			return
 		s.gone = true
 		_strike(s, a)
@@ -881,24 +878,6 @@ func _strike(s: Shot, a: Actor) -> void:
 	_effects(s, at)
 	if not spell.orb and not spell.gun():
 		Elements.stick(self, s, a)
-
-
-## A piercing wisp goes through `a`, hurting it once, and flies on; one that `a`
-## eats ends there.
-func _pass(s: Shot, a: Actor) -> void:
-	var title := s.spell.title()
-	emit(
-		{
-			t = &"hit",
-			shot = s.id,
-			id = a.id,
-			at = a.pos,
-			by = s.caster,
-			title = title,
-			through = true
-		}
-	)
-	s.gone = not Elements.strike(self, s, a, s.spell.damage(Grid.cheb(s.origin, a.pos)))
 
 
 ## Whether `s` rides a living creature, and so neither flies nor strikes again.

@@ -72,7 +72,7 @@ func _hurts(events: Array, a: Actor) -> Array:
 	return events.filter(func(e): return e.t == &"hurt" and e.id == a.id).map(func(e): return e.n)
 
 
-func test_a_shotgun_reaches_one_tile_farther_for_every_more_쇠() -> void:
+func test_a_shotgun_reaches_one_tile_farther_for_every_more_metal() -> void:
 	for copies in range(2, 6):
 		var w := _world()
 		var in_reach := _post(w, copies + 1, 0)
@@ -82,7 +82,7 @@ func test_a_shotgun_reaches_one_tile_farther_for_every_more_쇠() -> void:
 		assert_eq(past.hp, HEALTH, "%d copies stop at radius %d" % [copies, copies + 1])
 
 
-func test_a_shotgun_hits_harder_next_to_the_caster_however_many_쇠() -> void:
+func test_a_shotgun_hits_harder_next_to_the_caster_however_much_metal() -> void:
 	var w := _world()
 	var close := _post(w, 1, 1)
 	var far := _post(w, 4, 0)
@@ -108,7 +108,7 @@ func test_a_piercing_wisp_hurts_each_creature_in_its_line_once_and_goes_through_
 	assert_eq(w.tile(ME + Vector2i(6, 0)), World.WALL)
 
 
-func test_a_piercing_wisp_hurts_one_more_for_every_more_쇠() -> void:
+func test_a_piercing_wisp_hurts_one_more_for_every_more_metal() -> void:
 	var w := _world()
 	var a := _post(w, 2)
 	var b := _post(w, 3)
@@ -194,7 +194,7 @@ func test_a_mortar_into_a_wall_bursts_in_front_of_it_and_hits_the_walls_round_it
 	assert_eq(w.tile(ME + Vector2i(5, 0)), World.WALL)
 
 
-func test_a_mortar_bursts_one_tile_wider_for_every_more_토() -> void:
+func test_a_mortar_bursts_one_tile_wider_for_every_more_earth() -> void:
 	for more in [0, 1, 2]:
 		var w := _world()
 		_post(w, 3)
@@ -205,7 +205,7 @@ func test_a_mortar_bursts_one_tile_wider_for_every_more_토() -> void:
 		assert_eq(past.hp, HEALTH, "%d more 토 stop at radius %d" % [more, 1 + more])
 
 
-func test_a_mortar_hurts_one_more_for_every_more_쇠() -> void:
+func test_a_mortar_hurts_one_more_for_every_more_metal() -> void:
 	var w := _world()
 	_post(w, 3)
 	var beside := _post(w, 3, 1)
@@ -251,7 +251,7 @@ func test_a_mortar_preview_equals_the_round() -> void:
 	assert_eq(f.after.tiles, w.tiles)
 
 
-func test_유탄_sprays_one_tile_wider_for_every_토() -> void:
+func test_shrapnel_sprays_one_tile_wider_for_every_earth() -> void:
 	var w := _world()
 	var plain := _post(w, 5)
 	w.act(_cast([EARTH, METAL]))
@@ -264,14 +264,14 @@ func test_유탄_sprays_one_tile_wider_for_every_토() -> void:
 	assert_eq(past.hp, HEALTH)
 
 
-func test_a_상극_pair_gains_nothing_from_a_lone_element() -> void:
+func test_a_pair_that_beats_gains_nothing_from_a_lone_element() -> void:
 	var w := _world()
 	var with_metal := Spray.cover(w, w.player(), Spell.make([METAL, WOOD, METAL]), E)
 	var plain := Spray.cover(w, w.player(), Spell.make([METAL, WOOD]), E)
 	assert_eq(with_metal.size(), plain.size(), "가시 is a 상극 pair")
 
 
-func test_들불_fans_one_tile_wider_for_every_나무() -> void:
+func test_wildfire_fans_one_tile_wider_for_every_wood() -> void:
 	var w := _world()
 	var wide := Spray.cover(w, w.player(), Spell.make([WOOD, FIRE, WOOD]), E)
 	var plain := Spray.cover(w, w.player(), Spell.make([WOOD, FIRE]), E)

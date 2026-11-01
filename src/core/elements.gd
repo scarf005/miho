@@ -111,6 +111,34 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			w.emit({t = &"snuff", shot = o.id, at = p})
 
 
+## A piercing wisp (Spell.pierces) flying at the wall `to` goes through it, once,
+## if open air lies behind it. False when it cannot.
+static func bore(w: World, s: Shot, to: Vector2i) -> bool:
+	if s.pierced or not Terrain.wall(w.tile(to)) or not w.open_air(to + s.dir):
+		return false
+	s.pierced = true
+	s.flown += 1
+	return true
+
+
+## A piercing wisp goes through `a`, hurting it once, and flies on. False when
+## `a` ate it.
+static func pass_through(w: World, s: Shot, a: Actor) -> bool:
+	var title := s.spell.title()
+	w.emit(
+		{
+			t = &"hit",
+			shot = s.id,
+			id = a.id,
+			at = a.pos,
+			by = s.caster,
+			title = title,
+			through = true
+		}
+	)
+	return strike(w, s, a, s.spell.damage(Grid.cheb(s.origin, a.pos)))
+
+
 ## An orb of 흙 or 쇠 brings the wall it strikes down in one blow.
 static func fells(spell: Spell) -> bool:
 	return spell.orb and (spell.has(Cards.EARTH) or spell.has(Cards.METAL))
