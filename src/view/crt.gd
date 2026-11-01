@@ -3,7 +3,7 @@ extends RefCounted
 ## The barrel curve of crt.gdshader, so the pointer lands on what the curved
 ## screen shows under it. Points are in a viewport of size `view`.
 
-const CURVE := 0.06
+const CURVE := 0.03
 
 
 ## The flat point drawn where the curved screen shows `seen`.
