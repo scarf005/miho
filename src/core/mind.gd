@@ -107,11 +107,21 @@ static func provoke(w: World, a: Actor, by: Actor) -> void:
 		return
 	if by == a or not by.alive() or Bestiary.allied(a.kind, by.kind):
 		return
-	if a.rival != by.id:
-		w.emit({t = &"feud", id = a.id, rival = by.id, at = a.pos})
-	a.rival = by.id
+	feud(w, a, by)
+
+
+## `a` fights `rival` for GRUDGE_ROUNDS, of whatever group.
+static func feud(w: World, a: Actor, rival: Actor) -> void:
+	if a.rival != rival.id:
+		w.emit({t = &"feud", id = a.id, rival = rival.id, at = a.pos})
+	a.rival = rival.id
 	a.grudge = GRUDGE_ROUNDS
-	a.rival_at = by.pos
+	a.rival_at = rival.pos
+
+
+## `a` loses Miho: it searches the tile it stands on.
+static func lose(a: Actor) -> void:
+	_look(a, a.pos)
 
 
 ## `gone` has fallen: whoever fought it stops, and the band it led scatters:

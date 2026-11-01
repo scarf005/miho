@@ -7,7 +7,8 @@ extends RefCounted
 ## A pair and a third element make the 3단 compound of those three (TRIPLES), one
 ## slot worth three cards: 수+목+화 make 도약, which leaps Miho herself (Leap).
 ## A 3단 and a fourth element make the 4단 of its ring (QUADS), and a 4단 and the
-## last element a 5단 (FIVES), up to the tier that forms now (TIER).
+## last element a 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a
+## fourth element only as the last slot (Spell.queue).
 
 const FOX := &"fox"
 const ORB := &"orb"
@@ -30,8 +31,8 @@ const GROWS := {WOOD: FIRE, FIRE: EARTH, EARTH: METAL, METAL: WATER, WATER: WOOD
 ## 상극: each element beats the one it maps to (wood beats earth, ...).
 const BEATS := {WOOD: EARTH, EARTH: WATER, WATER: FIRE, FIRE: METAL, METAL: WOOD}
 
-## The most elements a compound joins now: 4단 and 5단 do not form past this.
-const TIER := 3
+## The most elements a compound joins: the 5단 holds all five.
+const TIER := 5
 
 ## compound -> the two elements it is made of.
 const PAIRS := {
@@ -163,6 +164,11 @@ const GLYPH := {
 	CONQUEST: "극",
 	DRAGON: "룡",
 }
+
+
+## Every compound, pairs first, then by tier.
+static func compounds() -> Array:
+	return PAIRS.keys() + TRIPLES.keys() + QUADS.keys() + FIVES.keys()
 
 
 ## The compound two different elements make.

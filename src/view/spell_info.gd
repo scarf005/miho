@@ -269,6 +269,19 @@ static func _form(s: Spell) -> Array:
 		Spray.ACROSS:
 			var wide: int = shape[2] + s.extra(lead)
 			return [["모양", "%d칸 앞 직각 %d칸" % [shape[1], wide]], ["막히면", "그 앞"]]
+		Spray.AROUND:
+			return [["모양", "둘레 %d칸" % n]]
+		Spray.SIGHT:
+			return [["모양", "보이는 적" + (", 미호" if shape.size() > 2 else "")]]
+		Spray.ROOTS:
+			var deepest := Spell.MAX_LEVEL - 1
+			return [
+				["모양", "땅속 뿌리"],
+				["거리", "%d걸음" % Spray.ROOT_REACH[deepest]],
+				["노림", "보이는 적 모두"],
+			]
+		Spray.STRIKE:
+			return [["모양", "곧게 %d칸" % n], ["꿰뚫음", "적"]]
 	return [["모양", "%d칸 안 첫 벽과 그 양옆" % n]]
 
 
@@ -347,6 +360,48 @@ static func compound(c: StringName) -> Array:
 			return compound(&"thorn") + [["불", "가연성 칸"], ALIGHT_ON]
 		&"palisade":
 			return [["나무벽 체력", "%d" % Tiles.of(World.WOOD_WALL, "health")]]
+		&"beacon":
+			return compound(&"wildfire") + [["켬", "보이는 꺼진 등불"], ["끝 칸 소리", "%d칸" % Compounds.BOOM]]
+		&"ironrain":
+			var steam: Array = compound(&"steam")
+			return hot.call(Compounds.MOLTEN) + [steam[0], ["증기 피해", steam[1][1]], SOAK]
+		&"ironroot":
+			return [["묶음", "%d초" % Compounds.IRONROOT], ["피해", "적마다 %d" % Compounds.IRONROOT_HARM]]
+		&"magpie":
+			return [["하늘, 연못", Tiles.of(World.BRIDGE, "name")]]
+		&"mist":
+			var name: String = Gas.of(Gas.FOG, "name") + " 양"
+			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["냄새", "지움"]]
+		&"sinkhole":
+			return [
+				["땅", Tiles.of(World.SKY, "name")],
+				["선 적", "떨어짐"],
+				["남는 칸", "미호 칸, 계단 길을 끊는 칸"],
+			]
+		&"newmoon":
+			return [["끔", "불, 등불"]]
+		&"discord":
+			return [["싸움", "가까운 둘씩"], ["시간", "%d초" % Mind.GRUDGE_ROUNDS]]
+		&"thunder":
+			return [
+				["피해", "적마다 %d" % Compounds.THUNDER],
+				["기절", "%d초" % Compounds.THUNDER_STUN],
+			]
+		&"stillness":
+			return [["추격 중인 적", "제 칸을 수색"], ["냄새", "지움"]]
+		Cards.SAMSARA:
+			return [["체력", "+%d" % World.HEAL], ["기절", "%d초" % Compounds.SAMSARA_STUN]]
+		Cards.CONQUEST:
+			return [
+				["피해", "적마다 %d" % Compounds.CONQUEST_HARM],
+				["약점인 적 피해", "%d" % (2 * Compounds.CONQUEST_HARM)],
+			]
+		Cards.DRAGON:
+			return [
+				["벽", "무너짐"],
+				["밀침", "%d칸, 바깥으로" % Compounds.DRAGON_PUSH],
+				["기절", "%d초" % Compounds.DRAGON_STUN],
+			]
 	return []
 
 
@@ -522,7 +577,7 @@ static func _light(l: Dictionary) -> String:
 ## hits or bursts.
 static func _sounds(s: Spell) -> Array:
 	if s.cast_noise() == 0:
-		return [["소리", "없음"]]
+		return [] if s.has(&"beacon") else [["소리", "없음"]]
 	var out := [["소리", "쓸 때 %d칸" % s.cast_noise()]]
 	if s.burst_noise() > 0:
 		out.append(["맞거나 터질 때 소리", "%d칸" % s.burst_noise()])

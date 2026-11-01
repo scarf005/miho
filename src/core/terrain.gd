@@ -170,6 +170,11 @@ static func wash(w: World, p: Vector2i) -> void:
 		Status.soak(w, a)
 	if w.tile(p) == World.DRUM:
 		Drums.soak(w, p)
+	douse(w, p)
+
+
+## A lit lantern, a fire or a veil of dokkaebi fire on p goes out.
+static func douse(w: World, p: Vector2i) -> void:
 	if w.tile(p) == World.VEIL:
 		w.emit({t = &"douse", at = p})
 		w.set_tile(p, World.ASH)

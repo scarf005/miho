@@ -1,6 +1,6 @@
 class_name Compounds
 extends RefCounted
-## What each compound (Cards.PAIRS, Cards.TRIPLES) does where it reaches. A spray
+## What each compound (Cards.compounds) does where it reaches. A spray
 ## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
 ## on the 3x3 round where the projectile ends (Spray.carried; 벽 가르기 on the
 ## first wall ahead of it and that wall's neighbours across its line), the
@@ -8,8 +8,10 @@ extends RefCounted
 ## tile farther: a spray's fan, line, square or cleave (Spray.cover), the square
 ## round where a projectile ends. Other slots in a spray add their own plain
 ## effect where it reaches (Spray). To add a compound: its tables in Cards, its
-## shape in Spray.SHAPE, its cases in `ground`, `tip` and `strike` here, its
-## lines in SpellInfo.compound.
+## shape in Spray.SHAPE, its cases in `ground`, `tip` and `strike` here (`at` is
+## its centre: where a burst lands, the caster for one round her), its lines in
+## SpellInfo.compound, its test in tests/test_compound_chains.gd. One that only
+## touches the creatures it reaches is `calm`.
 ##
 ## 상생, one grows the other:
 ## 들불 sets what burns alight, and the creatures it reaches (Status), and
@@ -46,6 +48,26 @@ extends RefCounted
 ## 숯가시 grows thorns and sets what burns alight, pricks each creature for THORN
 ## and sets it alight.
 ## 목책 grows a wooden wall (Elements.grow).
+## 4단, of four elements:
+## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
+## where it relights every dark lantern the caster sees.
+## 쇳비 leaves hot iron and lays steam.
+## 철뿌리 hurts each creature IRONROOT_HARM and roots it IRONROOT rounds.
+## 오작교 makes the sky and the ponds it reaches a skybridge.
+## 안개비 lays fog and washes the scent away.
+## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs
+## (or the elixir) nor her own tile, and what stands on it falls (Fall).
+## 그믐 puts out the fires and lanterns it reaches.
+## 이간질 sets the creatures it reaches against each other in pairs, the
+## nearest first (Mind.feud), when Miho casts it.
+## 벼락 hurts each creature THUNDER and stuns it THUNDER_STUN, and flashes.
+## 고요 sends the creatures hunting within its reach to search where they stand
+## (Mind.lose) and washes the scent away.
+## 5단, of all five, heard BOOM tiles but 윤회:
+## 윤회 heals the caster 1 and stuns each creature SAMSARA_STUN.
+## 상극 hurts each creature CONQUEST_HARM, twice over when it has a weakness.
+## 황룡 fells every breakable wall it reaches, pushes each creature DRAGON_PUSH
+## tiles away from its centre and stuns it DRAGON_STUN.
 ## Open ground is walkable, not a door, a skybridge or water, not the stairs,
 ## the elixir or a peach, and not burning.
 
@@ -66,6 +88,19 @@ const SWAMP := 3
 const GEYSER := 2
 const QUENCH := 2
 const QUENCH_WET := 4
+const BOOM := 12
+const BEACON_WORD := "화르륵"
+const IRONROOT := 4
+const IRONROOT_HARM := 1
+const THUNDER := 3
+const THUNDER_STUN := 2
+const SAMSARA_STUN := 2
+const CONQUEST_HARM := 3
+const DRAGON_PUSH := 3
+const DRAGON_STUN := 2
+## Compounds that do nothing to a creature but their own effect: it is not
+## struck, so it does not hunt Miho or lose a feud for it.
+const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness"]
 
 
 ## `s` carries its compounds to `at`, where it ends.
@@ -73,17 +108,23 @@ static func land(w: World, s: Shot, at: Vector2i) -> void:
 	var struck := w.actor_at(at)
 	for c in s.spell.compounds():
 		var tiles := Spray.carried(w, c, at, s.dir, 1 + s.spell.extra(c))
-		ground(w, c, tiles)
-		tip(w, c, at)
-		for a in Spray.farthest_first(Spray.on(w, s, tiles), s.dir):
+		ground(w, s, c, tiles)
+		tip(w, s, c, at)
+		var line := Vector2i.ZERO if Spray.radial(c) else s.dir
+		for a in Spray.farthest_first(Spray.on(w, s, tiles), line, at):
 			if a == struck or Spray.reaches(w, s, a):
-				strike(w, s, c, a)
-				if a != struck and a.alive():
+				strike(w, s, c, a, at)
+				if a != struck and a.alive() and not CALM.has(c):
 					Mind.struck(w, a, s)
 
 
-## What compound `c` does to the ground on `tiles`.
-static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
+## Whether `spell` has only compounds that are `CALM`.
+static func calm(spell: Spell) -> bool:
+	return spell.slots.all(func(c): return CALM.has(c))
+
+
+## What compound `c` of `s` does to the ground on `tiles`.
+static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> void:
 	match c:
 		&"wildfire":
 			for p in tiles:
@@ -117,31 +158,60 @@ static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
 			heat(w, tiles, MOLTEN)
 			_split(w, tiles)
 		&"frostbloom":
-			ground(w, &"thorn", tiles)
-			ground(w, &"frost", tiles)
+			ground(w, s, &"thorn", tiles)
+			ground(w, s, &"frost", tiles)
 		&"swamp":
 			_split(w, tiles)
-			ground(w, &"mud", tiles)
+			ground(w, s, &"mud", tiles)
 		&"geyser":
-			ground(w, &"steam", tiles)
+			ground(w, s, &"steam", tiles)
 		&"quench":
 			heat(w, tiles, MOLTEN)
 		&"charthorn":
-			ground(w, &"thorn", tiles)
+			ground(w, s, &"thorn", tiles)
 			_kindle(w, tiles)
 		&"palisade":
 			Elements.grow(w, tiles)
+		&"beacon":
+			ground(w, s, &"wildfire", tiles)
+		&"ironrain":
+			ground(w, s, &"molten", tiles)
+			ground(w, s, &"steam", tiles)
+		&"magpie":
+			var gaps := tiles.filter(func(p): return w.tile(p) in [World.SKY, World.POND])
+			_become(w, gaps, World.BRIDGE)
+		&"mist":
+			for p in tiles:
+				Gas.add(w, p, Gas.FOG, Gas.MAX)
+			_forget(w, tiles)
+		&"sinkhole":
+			_sink(w, tiles)
+		&"newmoon":
+			for p in tiles:
+				Terrain.douse(w, p)
+		&"discord":
+			_feud(w, s, tiles)
+		&"stillness":
+			_forget(w, tiles)
+		Cards.DRAGON:
+			_split(w, tiles)
 
 
-## What compound `c` does on `end`, the last tile of its spray or where the
-## projectile carrying it ends.
-static func tip(w: World, c: StringName, end: Vector2i) -> void:
-	if c == &"quench":
-		Gas.add(w, end, Gas.STEAM, STEAM)
+## What compound `c` of `s` does at `at`, the centre of its spray: the last
+## tile of a line, where a burst or the projectile carrying it lands, else the
+## caster.
+static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
+	match c:
+		&"quench":
+			Gas.add(w, at, Gas.STEAM, STEAM)
+		&"beacon":
+			_signal(w, s, at)
+		Cards.SAMSARA:
+			_renew(w, s)
 
 
-## What compound `c` does to creature `a` it reaches.
-static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
+## What compound `c` of `s` does to creature `a` it reaches, round `at`.
+static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> void:
 	if not a.alive():
 		return
 	match c:
@@ -173,6 +243,30 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
 			Elements.harm(w, s, a, THORN)
 			if a.alive():
 				Status.ignite(w, a)
+		&"beacon":
+			strike(w, s, &"wildfire", a, at)
+		&"ironroot":
+			Elements.harm(w, s, a, IRONROOT_HARM)
+			if a.alive():
+				Elements.root(w, a, IRONROOT)
+		&"sinkhole":
+			if w.tile(a.pos) == World.SKY:
+				Fall.drop(w, a, a.pos)
+		&"stillness":
+			if a.faction == Actor.HEAVEN and a.alert == Actor.HUNT:
+				Mind.lose(a)
+		&"thunder":
+			Elements.harm(w, s, a, THUNDER)
+			if a.alive():
+				Elements.stun(w, a, THUNDER_STUN)
+		Cards.SAMSARA:
+			Elements.stun(w, a, SAMSARA_STUN)
+		Cards.CONQUEST:
+			Elements.harm(w, s, a, CONQUEST_HARM)
+		Cards.DRAGON:
+			w.push(a, Grid.nearest_dir(a.pos - at), DRAGON_PUSH)
+			if a.alive():
+				Elements.stun(w, a, DRAGON_STUN)
 
 
 ## `a` has stepped onto `to`: thorns prick it, mud holds it.
@@ -259,3 +353,80 @@ static func _split(w: World, tiles: Array[Vector2i]) -> void:
 		for p: Vector2i in walls:
 			Terrain.hit(w, p)
 		walls = walls.filter(func(p): return Terrain.wall(w.tile(p)))
+
+
+## The scent on `tiles` is washed away.
+static func _forget(w: World, tiles: Array[Vector2i]) -> void:
+	for p in tiles:
+		Scent.clear(w, p)
+
+
+## 봉화 is heard where it lands, and every dark lantern its caster sees lights.
+static func _signal(w: World, s: Shot, at: Vector2i) -> void:
+	w.noise(at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
+	var me := w.actor(s.caster)
+	if me == null or not me.alive():
+		return
+	var view := w.fov(me.pos)
+	for i in w.tiles.size():
+		if view[i] == 1 and w.tiles[i] == World.LANTERN_OUT:
+			Terrain.relight(w, Grid.at(i))
+
+
+## 윤회 heals the caster, up to its health. Only Miho's is told (`heal`).
+static func _renew(w: World, s: Shot) -> void:
+	var me := w.actor(s.caster)
+	if me == null or not me.alive() or me.hp >= me.max_hp:
+		return
+	me.hp += World.HEAL
+	if me.faction == Actor.FOX:
+		w.emit({t = &"heal", id = me.id, hp = me.hp, spell = true})
+
+
+## The open ground on `tiles` becomes sky, but Miho's tile and any tile that
+## would cut her from the stairs (or the elixir), taken in the order of `tiles`.
+static func _sink(w: World, tiles: Array[Vector2i]) -> void:
+	var me := w.player().pos
+	var guard := _linked(w, [])
+	var gone: Array[Vector2i] = []
+	for p in tiles:
+		if p != me and _open(w, p) and (not guard or _linked(w, gone + [p])):
+			gone.append(p)
+	for p in gone:
+		w.hot.erase(p)
+		w.traps.erase(p)
+	_become(w, gone, World.SKY)
+
+
+## Whether Miho can walk to the stairs (the elixir where there are none) with
+## the tiles in `blocked` gone; false when there is no goal.
+static func _linked(w: World, blocked: Array) -> bool:
+	var goal := w.stairs if Grid.inside(w.stairs) else w.elixir
+	if not Grid.inside(goal):
+		return false
+	var dist: PackedInt32Array = Grid.search(goal, Masks.opened(w, blocked)).dist
+	return dist[Grid.index(w.player().pos)] >= 0
+
+
+## The creatures of heaven on `tiles`, the nearest pairs first, are set on each
+## other (Mind.feud) of whatever group, but those that eat the spell. Only
+## Miho's spell does.
+static func _feud(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
+	if s.faction != Actor.FOX:
+		return
+	var foes := Spray.on(w, s, tiles).filter(
+		func(a): return a.faction == Actor.HEAVEN and not Bestiary.absorbs(a.kind, s.spell)
+	)
+	var pairs := []
+	for i in foes.size():
+		for j in range(i + 1, foes.size()):
+			var far: int = (foes[i].pos - foes[j].pos).length_squared()
+			pairs.append([far, foes[i].id, foes[j].id, i, j])
+	pairs.sort_custom(func(a, b): return a < b)
+	var paired := {}
+	for pair: Array in pairs:
+		if not (paired.has(pair[3]) or paired.has(pair[4])):
+			paired[pair[3]] = true
+			paired[pair[4]] = true
+			Mind.feud(w, foes[pair[3]], foes[pair[4]])
+			Mind.feud(w, foes[pair[4]], foes[pair[3]])

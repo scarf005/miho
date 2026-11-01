@@ -1,7 +1,7 @@
 extends GutTest
-## 3단 compounds, and the join rule that makes them: every order of three
-## different elements, each spell's shape and effect, sprayed and carried, its
-## preview, its hover and its sound. 4단 and 5단 follow the rule but do not form.
+## 3단, 4단 and 5단 compounds, and the join rule that makes them: every order
+## of three, four and five different elements, each spell's effect, sprayed and
+## carried, and its preview.
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
@@ -14,6 +14,22 @@ const E := Vector2i(1, 0)
 const W := Vector2i(-1, 0)
 const SE := Vector2i(1, 1)
 const ME := Vector2i(20, 12)
+## The 4단 and 5단 spells.
+const HIGH := [
+	&"beacon",
+	&"ironrain",
+	&"ironroot",
+	&"magpie",
+	&"mist",
+	&"sinkhole",
+	&"newmoon",
+	&"discord",
+	&"thunder",
+	&"stillness",
+	Cards.SAMSARA,
+	Cards.CONQUEST,
+	Cards.DRAGON,
+]
 ## The nine 3단 spells that are no leap.
 const NEW := [
 	&"volcano",
@@ -98,7 +114,7 @@ func _first(events: Array, id: int) -> int:
 
 
 func _made(c: StringName) -> Array:
-	return Cards.TRIPLES[c]
+	return Cards.made_of(c)
 
 
 ## What the cards join into, with no tier in the way.
@@ -190,21 +206,6 @@ func test_every_compound_s_elements_join_back_into_it() -> void:
 	for table: Dictionary in [Cards.PAIRS, Cards.TRIPLES, Cards.QUADS, Cards.FIVES]:
 		for c: StringName in table:
 			assert_eq(_fold(Cards.made_of(c)), c)
-
-
-func test_4dan_and_5dan_do_not_form_yet() -> void:
-	assert_eq(Cards.TIER, 3)
-	assert_eq(
-		Spell.make([WOOD, FIRE, EARTH, METAL]).slots, [&"volcano", METAL] as Array[StringName]
-	)
-	assert_eq(
-		Spell.make([WOOD, FIRE, EARTH, METAL, WATER]).slots,
-		[&"volcano", &"frost"] as Array[StringName]
-	)
-	assert_eq(
-		Spell.make([WATER, WOOD, FIRE, EARTH]).slots, [Cards.VAULT, EARTH] as Array[StringName]
-	)
-	assert_eq(Spell.make([WOOD, FIRE, EARTH, METAL]).cost(), 5, "four cards cost four cards' tails")
 
 
 func test_a_3dan_is_one_slot_worth_three_tails_that_holds_its_elements() -> void:
@@ -472,8 +473,8 @@ func test_a_wisp_that_stops_at_a_wall_still_knows_its_line() -> void:
 		assert_eq(w.shots[0].dir, Vector2i.ZERO, "it hovers")
 
 
-func test_a_3dan_preview_equals_the_round() -> void:
-	for c: StringName in NEW:
+func test_a_compound_preview_equals_the_round() -> void:
+	for c: StringName in NEW + HIGH:
 		for form in [[], [FOX], [ORB]]:
 			for dir: Vector2i in [E, W, SE]:
 				var w := _world()
@@ -482,6 +483,7 @@ func test_a_3dan_preview_equals_the_round() -> void:
 				_post(w, ME + dir * 2)
 				var wet := _post(w, ME + dir * 2 + Vector2i(-dir.y, dir.x))
 				wet.wet = Status.WET
+				w.player().hp = 1
 				_put(w, ME + dir * 2 + Vector2i(0, -1), World.POND)
 				_put(w, ME + dir * 4, World.WALL)
 				w.sense()
@@ -502,6 +504,11 @@ func test_a_3dan_preview_equals_the_round() -> void:
 					assert_eq(
 						[other.pos, other.rooted, other.frozen, other.alight, other.wet],
 						[a.pos, a.rooted, a.frozen, a.alight, a.wet],
+						label
+					)
+					assert_eq(
+						[other.hp, other.stunned, other.alert, other.rival, other.grudge],
+						[a.hp, a.stunned, a.alert, a.rival, a.grudge],
 						label
 					)
 
@@ -585,7 +592,7 @@ func test_a_self_cast_stays_with_a_lone_guise_and_shadow() -> void:
 		assert_eq(Guise.kind(Spell.make(_made(c))), &"", c)
 
 
-func test_no_creature_s_spell_makes_a_3dan() -> void:
+func test_no_creature_s_spell_makes_a_compound_of_three_or_more() -> void:
 	for kind: StringName in Bestiary.KINDS:
 		var spec := Bestiary.info(kind)
 		var casts: Array = spec.get("casts", []).duplicate()
@@ -593,4 +600,4 @@ func test_no_creature_s_spell_makes_a_3dan() -> void:
 			casts.append_array(spec.ranks[rank])
 		for cards: Array in casts:
 			for slot in Spell.make(cards).slots:
-				assert_false(Cards.TRIPLES.has(slot), "%s casts %s" % [kind, cards])
+				assert_lt(Cards.made_of(slot).size(), 3, "%s casts %s" % [kind, cards])

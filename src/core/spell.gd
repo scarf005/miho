@@ -4,8 +4,9 @@ extends RefCounted
 ## A card of the same talisman again stacks; an element merges with the first
 ## slot it can join (Cards.join): a different element into their compound
 ## (Cards.PAIRS), one slot worth two cards, or a pair and a third element into
-## the 3단 compound of the three (Cards.TRIPLES), one slot worth three. A spell
-## of 1 to 5 cards costs COST tails, and each card past five two more.
+## the 3단 compound of the three (Cards.TRIPLES), one slot worth three, and on
+## up to the 5단 of all five. A spell of 1 to 5 cards costs COST tails, and each
+## card past five two more.
 ## Every spell is hurled along one of eight lines, and grows with the cards it
 ## holds: one card is power 1.
 ## The shape is read top down: 도약 (Cards.VAULT) leading the queue leaps
@@ -96,11 +97,14 @@ static func fill(picked: Array) -> Array[StringName]:
 
 
 ## The slots after card `c` joins them: an element merges with the first slot
-## it can join (Cards.join); anything else goes at the end.
+## it can join (Cards.join), but a 도약 that another slot follows, which stays a
+## leap; anything else goes at the end.
 static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	var out := slots.duplicate()
 	if Cards.ELEMENTS.has(c):
 		for i in out.size():
+			if out[i] == Cards.VAULT and i < out.size() - 1:
+				continue
 			var joined := Cards.join(out[i], c)
 			if joined != &"":
 				out[i] = joined
@@ -248,11 +252,11 @@ func speed() -> int:
 	return BULLET_SPEED if gun() else WISP_SPEED
 
 
-## A gun: a lone 쇠's spray, a bullet or a cannonball. Its muzzle flash lights
-## the caster's tile for the round it fires (World.flares).
+## A gun: a lone 쇠's spray, a bullet or a cannonball, or 벼락. Its muzzle flash
+## lights the caster's tile for the round it fires (World.flares).
 func gun() -> bool:
 	if shape == SPRAY:
-		return level() > 0 and slots[0] == Cards.METAL
+		return slots[0] == &"thunder" or (level() > 0 and slots[0] == Cards.METAL)
 	return shape != LEAP and has(Cards.METAL)
 
 

@@ -6,6 +6,7 @@ extends GutTest
 
 const LEAP := [Cards.WATER, Cards.WOOD, Cards.FIRE]
 const VAULT := Cards.VAULT
+const FOX := Cards.FOX
 const WOOD := Cards.WOOD
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
@@ -109,11 +110,33 @@ func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_i
 	assert_eq(split.rest().slots, [&"split"] as Array[StringName])
 
 
+func test_an_element_joins_the_leap_only_when_it_is_the_last_slot() -> void:
+	assert_eq(Spell.make(LEAP + [Cards.EARTH]).slots, [&"mist"] as Array[StringName])
+	assert_eq(Spell.make(LEAP + [Cards.METAL]).slots, [&"magpie"] as Array[StringName])
+	assert_eq(
+		Spell.make(LEAP + [FOX, Cards.EARTH]).slots, [VAULT, FOX, Cards.EARTH] as Array[StringName]
+	)
+	assert_eq(
+		Spell.make([Cards.ORB] + LEAP + [Cards.EARTH]).slots,
+		[Cards.ORB, &"mist"] as Array[StringName],
+		"last behind a projectile it joins"
+	)
+	assert_eq(
+		Spell.make(LEAP + [WOOD, Cards.EARTH]).slots,
+		[VAULT, &"split"] as Array[StringName],
+		"not last, it joins the slot after"
+	)
+
+
 func test_the_leap_slot_leads_a_spell_or_ends_one_projectile() -> void:
-	assert_not_null(Spell.make(LEAP + [Cards.EARTH]))
-	assert_eq(Spell.make(LEAP + [Cards.EARTH]).rest().slots, [Cards.EARTH] as Array[StringName])
-	assert_null(Spell.make([Cards.FIRE, Cards.EARTH, Cards.METAL] + LEAP), "not behind a spray")
-	assert_null(Spell.make([Cards.ORB] + LEAP + [Cards.EARTH]), "last behind a projectile")
+	assert_eq(Spell.make(LEAP + [FOX]).rest().slots, [FOX] as Array[StringName])
+	assert_eq(
+		Spell.make(LEAP + [FOX, Cards.EARTH]).slots, [VAULT, FOX, Cards.EARTH] as Array[StringName]
+	)
+	assert_eq(
+		Spell.make(LEAP + [FOX, Cards.EARTH]).rest().slots, [FOX, Cards.EARTH] as Array[StringName]
+	)
+	assert_null(Spell.make([Cards.ORB] + LEAP + [FOX]), "last behind a projectile")
 	var swap := Spell.make([Cards.ORB] + LEAP)
 	assert_eq(swap.shape, Spell.ORB)
 	assert_true(swap.swaps())
@@ -250,21 +273,23 @@ func test_a_fire_plate_under_the_landing_flames_on_along_the_leap() -> void:
 
 func test_the_rest_of_the_spell_is_cast_where_miho_lands() -> void:
 	var w := _world()
+	w.tails = 7
 	var far := _foe(w, Vector2i(8, 8))
 	_foe(w, Vector2i(5, 9))
-	var events := w.act(_leap(LEAP + [Cards.EARTH]))
+	var events := w.act(_leap(LEAP + [FOX, Cards.EARTH]))
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	var stunned := events.filter(func(e): return e.t == &"stun").map(func(e): return e.id)
-	assert_eq(stunned, [far.id], "next to the landing, not to where she took off")
-	assert_eq(w.tails, 0, "all four talismans, five tails")
+	assert_eq(stunned, [far.id], "the wisp flies from the landing, not from where she took off")
+	assert_eq(w.tails, 0, "five cards, seven tails")
 
 
 func test_landing_on_the_stairs_climbs_and_casts_nothing_more() -> void:
 	var w := _world()
+	w.tails = 7
 	w.stairs = Vector2i(7, 8)
-	var events := w.act(_leap(LEAP + [Cards.EARTH]))
+	var events := w.act(_leap(LEAP + [FOX, Cards.EARTH]))
 	assert_eq(w.depth, 6)
-	assert_false(events.any(func(e): return e.t == &"spray"), "no quake on the new storey")
+	assert_false(events.any(func(e): return e.t == &"spawn"), "no wisp on the new storey")
 
 
 func test_the_forecast_lands_where_the_leap_does() -> void:
@@ -285,10 +310,11 @@ func test_the_log_tells_the_leap() -> void:
 
 
 func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
-	var text := " ".join(SpellInfo.spell(Spell.make(LEAP + [Cards.EARTH])).map(Messages.plain))
+	var both := Spell.make(LEAP + [FOX, Cards.EARTH])
+	var text := " ".join(SpellInfo.spell(both).map(Messages.plain))
 	var parts := [
 		"멀리뛰기 3칸",
-		" · 꼬리: %d · " % Spell.make(LEAP + [Cards.EARTH]).cost(),
+		" · 꼬리: %d · " % both.cost(),
 		"모양: 곧게 3칸",
 		"거리: 나무 한 장마다 +1칸",
 		"넘어감: 하늘",
@@ -368,7 +394,7 @@ func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	_press(m, "2")
 	_pick_leap(m)
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
-	_press(m, "3")
+	_press(m, "1")
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP))
 	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 끝")
 

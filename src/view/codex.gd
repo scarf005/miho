@@ -76,7 +76,7 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				var lines := func(): return SpellInfo.own(kind)
 				out.append(_entry(",", Palette.card(s.slots.back()), Guise.NAME[kind], lines))
 		2:
-			for c in Cards.PAIRS.keys() + Cards.TRIPLES.keys():
+			for c in Cards.compounds():
 				var lines := func(): return SpellInfo.combo(c)
 				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines))
 		3:

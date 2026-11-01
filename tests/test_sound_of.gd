@@ -72,6 +72,8 @@ const SOUNDS := [
 	[{t = &"ignite"}, &"burn"],
 	[{t = &"heat"}, &"burn"],
 	[{t = &"relight"}, &"burn"],
+	[{t = &"become", tile = World.BRIDGE}, &"creak"],
+	[{t = &"become", tile = World.SKY}, &"fall"],
 	[{t = &"stick"}, &"foxfire"],
 	[{t = &"yelp"}, &"foxfire"],
 	[{t = &"noise", word = Lure.WORD}, &"foxfire"],
@@ -112,12 +114,12 @@ const SILENT := [
 	{t = &"sear"},
 	{t = &"burn"},
 	{t = &"burnout"},
-	{t = &"become"},
+	{t = &"become", tile = World.ICE},
 	{t = &"trample"},
 	{t = &"soak"},
 	{t = &"wet"},
 	{t = &"ride"},
-	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE, Cards.EARTH]},
+	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE]},
 ]
 
 
@@ -153,7 +155,7 @@ func _heard(before: World, after: World) -> Array:
 
 
 func test_a_compound_cast_on_empty_ground_is_heard() -> void:
-	for c: StringName in Cards.PAIRS.keys() + Cards.TRIPLES.keys():
+	for c: StringName in Cards.compounds():
 		if c == Cards.VAULT:
 			continue
 		var w := _world()
