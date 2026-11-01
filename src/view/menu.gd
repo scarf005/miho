@@ -49,6 +49,8 @@ const OPTION_NAMES := {
 const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
 
 var settings := Settings.new()
+## The seed of the run, shown under the options (DCSS shows it in its version page).
+var seed_value := 0
 var page := &""
 var selected := 0
 ## The first row shown, and the row the pointer is over (-1 for none).
@@ -103,7 +105,9 @@ func panel() -> Dictionary:
 	var out := {title = "도움말", rows = _help()}
 	match page:
 		&"options":
-			out = {title = "설정", rows = _options()}
+			out = {
+				title = "설정", rows = _options(), detail = [[["시드: %d" % seed_value, Palette.DIM]]]
+			}
 		&"keys":
 			out = {title = "키 설정", rows = _keys()}
 		&"spells":
