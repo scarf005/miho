@@ -321,7 +321,7 @@ func _do(action: StringName, shift: bool) -> void:
 	elif action == &"stairs":
 		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
 	elif action == &"explore" and Travel.watched(world):
-		_say("깨어 있는 적이 보인다")
+		_say("깨어 있는 적이 보여서 탐험할 수 없다")
 		sfx.play(&"click")
 	elif action == &"explore":
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
@@ -408,6 +408,7 @@ func _local(screen: Vector2) -> Vector2:
 
 
 func _point(screen: Vector2) -> void:
+	var hinted := not term.hint.is_empty()
 	var local := _local(screen)
 	if overlay != &"":
 		menu.point(PanelView.row_at(term, local))
@@ -419,8 +420,11 @@ func _point(screen: Vector2) -> void:
 	var status: bool = term.bar.status_at(term, local)
 	var spell: String = term.bar.slot_at(term, local) + term.bar.hand_at(term, local)
 	var slot: int = term.bar.queue_at(term, local)
+	term.hint = WordHover.at(term, local)
+	term.hint_at = local / Term.CELL
 	if (
-		tile != hover
+		hinted == term.hint.is_empty()
+		or tile != hover
 		or card != hover_card
 		or status != hover_status
 		or spell != hover_spell
@@ -478,11 +482,11 @@ func _stop_look() -> void:
 func _add(card: StringName) -> void:
 	var why := ""
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
-		why = "줄이 가득 찼다"
+		why = "부적 칸이 가득 찼다"
 	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
-		why = "도약: 맨 앞, 또는 여·구 뒤 끝"
+		why = "도약: 맨 앞, 또는 여·구 뒤 맨 끝"
 	if why != "":
 		_refuse(why)
 	else:
@@ -496,7 +500,7 @@ func _recall(key: String) -> void:
 	var spell := Spell.from_key(key) if key != "" else null
 	var why := ""
 	if spell == null:
-		why = "저장한 주문이 없다. I로 주문서를 열고 칸 키를 눌러 저장"
+		why = "저장한 주문이 없다"
 	elif not spell.cards.all(func(c): return world.cards.has(c)):
 		why = "부적이 모자라다"
 	elif spell.cost() + _held() > Cheat.tails(world):
@@ -597,7 +601,7 @@ func _direction(d: Vector2i, hold: bool) -> void:
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not world.can({t = &"cast", spells = spells}):
 		if Spell.make(picked).shape == Spell.LEAP:
-			_say("내려설 곳이 없다")
+			_say("착지할 곳이 없다")
 		sfx.play(&"click")
 		return
 	if hold:
@@ -737,7 +741,7 @@ func _walled_in(goal: Vector2i, otherwise: String) -> String:
 		and Travel.route(routes, goal).is_empty()
 		and not Travel.route(Travel.search(world, sightings.at), goal).is_empty()
 	)
-	return "위험구역 너머로는 가지 않는다" if shut else otherwise
+	return "위험구역 너머로는 갈 수 없다" if shut else otherwise
 
 
 ## Whether nothing is left to explore only because of the exclusions.
@@ -766,7 +770,7 @@ func _exploring() -> Dictionary:
 	var d := Travel.explore_step(world, routes)
 	if d == Vector2i.ZERO:
 		if _explore_walled():
-			_say("위험구역 너머는 탐험하지 않는다")
+			_say("위험구역 너머는 탐험할 수 없다")
 		return {}
 	return _resting() if world.tails < world.max_tails() else {t = &"move", dir = d}
 
@@ -957,7 +961,7 @@ func _refresh() -> void:
 func _inspect() -> void:
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
-	if state != &"play":
+	if state != &"play" or not term.hint.is_empty():
 		return
 	term.cursor = hover
 	if hover_slot >= 0:

@@ -187,6 +187,40 @@ func test_water_puts_out_a_wisp_in_flight_and_leaves_a_bullet_and_an_orb() -> vo
 	assert_false(shots[[Cards.ORB]].gone, "an orb flies on")
 
 
+func test_water_leaves_a_wisp_that_holds_water_or_metal_and_puts_out_a_plain_or_fire_wisp() -> void:
+	var goes_out := {
+		[Cards.FOX]: true,
+		[Cards.FOX, FIRE]: true,
+		[Cards.FOX, WATER]: false,
+		[Cards.FOX, WATER, WOOD]: false,
+		[Cards.FOX, EARTH, WATER]: false,
+		[Cards.FOX, EARTH, METAL]: false,
+	}
+	for cards: Array in goes_out:
+		var w := _world()
+		var s := Shot.new()
+		s.id = w.new_id()
+		s.spell = Spell.make(cards)
+		s.pos = ME + E
+		w.shots.append(s)
+		Terrain.wash(w, s.pos)
+		assert_eq(s.gone, goes_out[cards], str(cards))
+
+
+func test_a_rain_or_mud_wisp_hovers_on_after_its_own_landing() -> void:
+	for cards: Array in [[Cards.FOX, WATER, WOOD], [Cards.FOX, EARTH, WATER]]:
+		var w := _world()
+		_put(w, ME + E * 2, World.WALL)
+		var events := w.act(_cast(cards))
+		for i in 4:
+			if events.any(func(e): return e.t == &"land"):
+				break
+			events = w.act(WAIT)
+		assert_true(events.any(func(e): return e.t == &"land"), str(cards))
+		assert_false(events.any(func(e): return e.t == &"snuff"), str(cards))
+		assert_eq(w.shots.size(), 1, str(cards))
+
+
 func test_a_water_jet_douses_fire_and_the_lantern_it_runs_into() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(2, 0), World.BOARD)

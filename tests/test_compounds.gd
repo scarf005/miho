@@ -375,7 +375,7 @@ func test_hover_tells_the_new_ground_from_the_rules() -> void:
 	w.sense()
 	assert_string_contains(Info.plain(Info.at(w, ME + E)), "지날 때 피해: %d" % Compounds.THORN)
 	assert_string_contains(Info.plain(Info.at(w, ME + E)), "\n가연성.")
-	assert_string_contains(Info.plain(Info.at(w, ME + E * 2)), "걸음: %d초" % Compounds.MUD)
+	assert_string_contains(Info.plain(Info.at(w, ME + E * 2)), "밟으면: 묶임 %d초" % Compounds.MUD)
 	var hot := Info.plain(Info.at(w, ME + Vector2i(0, 1)))
 	var spec: Dictionary = Compounds.HOT[Compounds.MOLTEN]
 	assert_string_contains(hot, "%s: 2초 남음" % spec.name)

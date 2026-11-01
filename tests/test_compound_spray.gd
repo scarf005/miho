@@ -167,16 +167,16 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
 		[WATER]: ["모양: 곧게 4칸\n멈춤: 첫 적", "밀침: 1칸", "소음: 없음"],
 		[WATER, WATER]: ["곧게 6칸", "밀침: 2칸"],
-		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n꿰뚫음: 적", "밀침: 3칸"],
-		[METAL]: ["모양: 권총, 곧게 7칸\n멈춤: 첫 적", "피해: 1\n", "쏠 때 빛: 미호 칸", "소음: %d" % Spray.GUN_LOUD],
+		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n관통: 적", "밀침: 3칸"],
+		[METAL]: ["모양: 권총, 곧게 7칸\n멈춤: 첫 적", "피해: 1\n", "발사 빛: 미호 칸", "소음: %d" % Spray.GUN_LOUD],
 		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적 피해: 2"],
 		[METAL, METAL, METAL]: ["산탄", "반지름 4", "바로 옆 적 피해: 2"],
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
-		[EARTH, EARTH]: ["둘레 2칸", "벽: 금"],
+		[EARTH, EARTH]: ["둘레 2칸", "벽: 금이 감"],
 		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "금 간 벽: 무너짐"],
-		[WOOD]: ["거리: 4걸음", "적 1명", "묶음: 2초", "소음: 없음"],
-		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶음: 3초"],
-		[WOOD, WOOD, WOOD]: ["거리: 8걸음", "적 모두", "묶음: 4초"],
+		[WOOD]: ["거리: 4걸음", "적 1명", "묶임: 2초", "소음: 없음"],
+		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶임: 3초"],
+		[WOOD, WOOD, WOOD]: ["거리: 8걸음", "적 모두", "묶임: 4초"],
 		[WATER, FIRE]:
 		[
 			"증기 · 꼬리: 2",
@@ -187,7 +187,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		],
 		[WATER, FIRE, WATER, FIRE]: ["증기×2", "3칸 앞 5×5"],
 		[METAL, WOOD]: ["가시", "반지름 2", "피해: %d\n지날 때 피해: %d" % [Compounds.THORN, Compounds.THORN]],
-		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽: 소리 없이 무너짐", "소음: 없음"],
+		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽: 소음 없이 무너짐", "소음: 없음"],
 		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
 		[FIRE, EARTH]:
 		[
@@ -201,12 +201,12 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			"뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.MOLTEN].harm,
 		],
-		[WOOD, FIRE]: ["들불", "반지름 3", "번짐: 늘", "소음: %d" % Spray.HUSH],
+		[WOOD, FIRE]: ["들불", "반지름 3", "번질 확률: 100%", "소음: %d" % Spray.HUSH],
 		[EARTH, METAL]:
 		["유탄", "3칸 앞 3×3", "피해: %d" % Compounds.SHRAPNEL, "소음: %d" % Spray.GUN_LOUD],
 		[METAL, WATER]: ["서리", "곧게 4칸", "얼어붙음: %d초" % Compounds.FROST, "연못: 얼음이 됨"],
-		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "묶음: %d초" % Compounds.RAIN, "끔: 불, 등불"],
-		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "걸음: %d초\n발소리: 없음" % Compounds.MUD],
+		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "묶임: %d초" % Compounds.RAIN, "꺼짐: 불, 등불"],
+		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "밟으면: 묶임 %d초\n발소리: 없음" % Compounds.MUD],
 		[EARTH, WATER, EARTH]: ["진흙·흙", "기절: %d초" % Elements.STUN],
 		[FOX, WATER, FIRE]: ["증기 여우불", "멈춘 곳 3×3", "증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX]],
 		[ORB, WOOD, EARTH]: ["멈춘 곳에서 1칸 안 첫 벽과 그 양옆"],

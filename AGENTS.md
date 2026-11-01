@@ -33,6 +33,8 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `2층` -> `2층으로 올라갔다`
   - `비키면 헛손질하고 휘청인다` -> a coined word such as `헛손질` does not go in the 도감; say what happens in common words.
 - 꼬리 and 여우불 are Miho's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
+- One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
+- Every bare tag that carries a rule has an entry in `Info.glossary`, its rule read from the code that applies it. A tag whose rule changes nothing the player does is deleted. A word with an entry shows it on mouse hover in the 도감 detail and the log (Keywords, WordHover).
 
 ## UI conventions
 

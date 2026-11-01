@@ -928,6 +928,7 @@ func _end_round() -> void:
 				s.gone = true
 				emit({t = &"fade", shot = s.id, at = s.pos})
 				if s.spell.mortar():
+					noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 					Compounds.land(self, s, s.pos)
 	_prune()
 	round_no += 1

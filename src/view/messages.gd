@@ -11,9 +11,9 @@ const KEEP := 40
 const TEXT := Palette.TEXT
 ## What a creature's map mark says, for one that comes into sight marked.
 const STATE := {
-	"!": "쫓고 있다",
-	"?": "수색하고 있다",
-	"x": "눈이 멀어 있다",
+	"!": "추격 중이다",
+	"?": "수색 중이다",
+	"x": "눈이 멀었다",
 }
 
 ## {runs, text, round, n}
@@ -151,7 +151,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"blind":
 			return _subject(before, after, id, "의") + [_ill(after, id, "눈이 멀었다")]
 		&"root":
-			return _subject(before, after, id) + [_ill(after, id, "덩굴에 묶였다")]
+			return _subject(before, after, id) + [_ill(after, id, "묶였다")]
 		&"stun":
 			return _subject(before, after, id) + [_ill(after, id, "기절했다")]
 		&"push":
@@ -222,7 +222,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"fade":
 			if not e.get("lit", false):
 				return []
-			return [[e.title + _particle(e.title, "이", "가") + " 불빛에 걷혔다", TEXT]]
+			return [[e.title + _particle(e.title, "이", "가") + " 불빛에 사라졌다", TEXT]]
 		&"open", &"close":
 			var what := "열었다" if e.t == &"open" else "닫았다"
 			if id == after.player().id:

@@ -131,6 +131,31 @@ func test_a_room_too_small_or_with_ways_in_by_both_ends_is_refused() -> void:
 	assert_true(w.actors.size() == 1 and w.tiles.count(World.LAMP) == 0, "nothing was laid")
 
 
+func test_a_room_with_sky_where_any_part_of_the_yard_would_lie_is_refused() -> void:
+	var lamp := Vector2i(ROOM.position.x + 1, ROOM.position.y)
+	var pillar := GUARD + Vector2i(-Yard.PILLARS, 1)
+	var bamboo := GUARD + Vector2i(1 - ROOM.size.x + Yard.GROVE, 0)
+	for p: Vector2i in [GUARD, STAND, lamp, pillar, bamboo]:
+		var w := _hall()
+		w.tiles[Grid.index(p)] = World.SKY
+		w._changed()
+		var rng := RandomNumberGenerator.new()
+		assert_false(Yard.make(w, ROOM, rng), str(p))
+		assert_eq(w.tile(p), World.SKY, str(p))
+		assert_eq(w.actors.size(), 1, str(p))
+		assert_eq(w.tiles.count(World.LAMP), 0, str(p))
+
+
+func test_the_storeys_that_laid_a_yard_over_the_sky_keep_their_guard_on_the_ground() -> void:
+	for pair: Array in [[1383, 5], [1815, 5], [1899, 8], [2016, 8]]:
+		var w := World.create(pair[0])
+		w.depth = pair[1]
+		FloorGen.build(w)
+		for a in w.actors:
+			if a.guard:
+				assert_true(w.open_floor(a.pos), "seed %d storey %d" % pair)
+
+
 # --- the guard ---------------------------------------------------------------
 
 
@@ -231,19 +256,19 @@ func test_hovering_the_stand_keeps_what_it_gives_a_secret() -> void:
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, STAND))
-	assert_string_contains(text, "부적 단")
+	assert_string_contains(text, "부적 제단")
 	assert_false(text.contains("밟으면") or text.contains("얻는 부적"), text)
 
 
 func test_hovering_the_guard_says_it_does_not_sleep() -> void:
 	var w := _yard()
 	var text := Info.plain(Info.creature(w, _guard(w)))
-	assert_string_contains(text, "잠들지 않음")
+	assert_string_contains(text, "고정")
 	assert_string_contains(text, "지키는 중")
 
 
 func test_the_codex_lists_the_lamp_and_the_stand_by_what_they_are() -> void:
-	for name in ["석등", "부적 단"]:
+	for name in ["석등", "부적 제단"]:
 		var entry := Codex.entries(4).filter(func(e): return e.name == name)
 		assert_eq(entry.size(), 1, name)
 		assert_false(Info.plain(Codex.detail(entry[0])).contains("얻는 부적"), name)

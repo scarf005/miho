@@ -69,18 +69,21 @@ func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 func test_the_hover_of_a_creature_keeps_its_state_lines() -> void:
 	var w := Codex.stage()
 	var hover := _text(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", FAR)))
-	for part in ["순찰 중", "미호를 못 본다.", "기습 피해: 3"]:
+	for part in ["순찰 중", "미호를 볼 수 없음", "기습 피해: 3"]:
 		assert_string_contains(hover, part)
 
 
 func test_no_entry_tells_how_it_stands_now() -> void:
-	var now := ["미호를 본다", "미호를 못 본다", "못 알아본다", "기습 피해", "남은 둘러보기"]
-	var light := ["어두움", "밝음.", "대숲 속:", "안 보임"]
+	var now := ["미호를 볼 수 있음", "미호를 볼 수 없음", "둔갑한 미호를 알아볼 수 없음", "기습 피해", "남은 둘러보기"]
+	var light := ["어두움", "대숲 속:", "안 보임"]
 	for tab in Codex.TABS.size():
 		for e in Codex.entries(tab):
 			var text := _text(Codex.detail(e))
-			for part in now + light:
+			for part in now:
 				assert_false(text.contains(part), "%s: %s" % [e.name, part])
+			for part in [] if tab == 6 else light:
+				assert_false(text.contains(part), "%s: %s" % [e.name, part])
+			assert_false(tab != 6 and text.split("\n").has("밝음."), e.name)
 			for state in Info.STATE + ["자는 중", "순찰 중", "돌아가는 중"]:
 				assert_false(text.split("\n").has(state), "%s: %s" % [e.name, state])
 
@@ -99,7 +102,7 @@ func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
 	var homing := _text(Codex.detail(_entry(1, "유도 구슬")))
 	assert_string_contains(homing, "만드는 법: 여우불+구슬")
 	assert_string_contains(homing, "가장 가까운 적")
-	assert_string_contains(homing, "꺾임: 한 칸에 45°")
+	assert_string_contains(homing, "회전: 칸당 45°")
 	assert_string_contains(_text(Codex.detail(_entry(1, "뿌리기"))), "모양: 투사체 없이")
 
 
@@ -171,7 +174,7 @@ func test_every_named_tile_is_its_hover_facts() -> void:
 
 func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen() -> void:
 	var names := _names(4)
-	for name in ["계단", "불타는 칸", "쓰러진 몸"]:
+	for name in ["계단", "불타는 칸", "시체"]:
 		assert_true(names.has(name), name)
 	for spec in Compounds.HOT:
 		assert_true(names.has(spec.name), spec.name)
@@ -179,7 +182,7 @@ func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen()
 		assert_true(names.has(Gas.of(kind, "name")), str(kind))
 	assert_string_contains(_text(Codex.detail(_entry(4, "불타는 칸"))), "초당 피해:")
 	assert_string_contains(_text(Codex.detail(_entry(4, "증기"))), "시야 막음")
-	assert_string_contains(_text(Codex.detail(_entry(4, "쓰러진 몸"))), Info.TRACE)
+	assert_string_contains(_text(Codex.detail(_entry(4, "시체"))), Info.TRACE)
 	assert_string_contains(_text(Codex.detail(_entry(4, "뜨거운 땅"))), "초 남음")
 	assert_string_contains(_text(Codex.detail(_entry(4, "계단"))), "꼬리: 모두 회복")
 
@@ -193,18 +196,18 @@ func test_a_gas_entry_tells_what_the_gas_is_not_how_much_of_it_lies_there() -> v
 			assert_string_contains(text, "시야 막음: %d 이상" % Gas.OPAQUE)
 		else:
 			assert_string_contains(text, "시야 막음: 없음")
-		assert_string_contains(text, "줄어듦")
+		assert_string_contains(text, "감소")
 		assert_false(text.contains("\n시야 막음."), name + " does not say it blocks sight now")
 
 
 func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
-	for name in ["불타는 칸", "증기", "쓰러진 몸", "뜨거운 쇠"]:
+	for name in ["불타는 칸", "증기", "시체", "뜨거운 쇠"]:
 		var text := _text(Codex.detail(_entry(4, name)))
 		assert_false(text.begins_with("바닥"), name)
 		assert_false(text.is_empty(), name)
 	assert_true(_text(Codex.detail(_entry(4, "증기"))).begins_with("증기\n"))
-	var body := _text(Codex.detail(_entry(4, "쓰러진 몸")))
-	assert_eq(body, "쓰러진 몸\n" + Info.TRACE)
+	var body := _text(Codex.detail(_entry(4, "시체")))
+	assert_eq(body, "시체\n" + Info.TRACE)
 	for kind in Codex.foes():
 		assert_false(body.contains(Bestiary.info(kind).name), "a body names no creature")
 

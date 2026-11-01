@@ -1,6 +1,6 @@
 class_name Guise
 extends RefCounted
-## 자신에게 걸기: a spell cast with no direction (`,`, or a click on Miho's own
+## 스스로에게 걸기: a spell cast with no direction (`,`, or a click on Miho's own
 ## tile) goes on the caster herself. Only the spells that change how she is
 ## seen take that aim (`kind`); any other is refused with `only`.
 ##

@@ -90,7 +90,7 @@ func _rows() -> Array:
 			for cmd in COMMANDS:
 				var row := [[Cheat.NAME[cmd], Palette.TEXT]]
 				if Cheat.TOGGLES.has(cmd):
-					row.append(["켬" if Cheat.on(world, cmd) else "끔", Palette.SIDE[0], VALUE_COL])
+					row.append(["켜짐" if Cheat.on(world, cmd) else "꺼짐", Palette.SIDE[0], VALUE_COL])
 				elif cmd == &"damage":
 					row.append([str(AMOUNTS[amount]), Palette.SIDE[0], VALUE_COL])
 				rows.append(row)

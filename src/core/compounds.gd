@@ -423,6 +423,7 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 		w.hot.erase(p)
 		w.traps.erase(p)
 	_become(w, gone, World.SKY)
+	Scrolls.displace(w, gone)
 
 
 ## Whether Miho can walk to the stairs (the elixir where there are none) with

@@ -1,5 +1,5 @@
 extends GutTest
-## 자신에게 걸기 and 그림자: a spell cast with no direction goes on Miho, and
+## 스스로에게 걸기 and 그림자: a spell cast with no direction goes on Miho, and
 ## 여 with 수 lays a dark wisp on her that darkens the tiles round her (Guise).
 
 const FOX := Cards.FOX
@@ -132,7 +132,7 @@ func test_a_fire_lit_in_the_dark_ends_the_shadow() -> void:
 	var faded := events.filter(func(e): return e.t == &"fade" and e.shot == id)
 	assert_eq(faded.size(), 1)
 	assert_true(faded[0].get("lit", false))
-	assert_has(Messages.of(before, w, events).map(Messages.plain), "그림자가 불빛에 걷혔다")
+	assert_has(Messages.of(before, w, events).map(Messages.plain), "그림자가 불빛에 사라졌다")
 
 
 func test_a_lantern_lit_in_the_dark_ends_it_and_one_lit_beyond_does_not() -> void:

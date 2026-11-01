@@ -258,6 +258,17 @@ func test_sinkhole_drops_the_open_ground_and_what_stands_on_it() -> void:
 	assert_eq(w.tile(ME), World.FLOOR)
 
 
+func test_sinkhole_moves_a_scroll_off_the_ground_it_takes() -> void:
+	var w := _world()
+	var on := ME + E * 3
+	w.sites.append({kind = &"scroll", at = on, card = FIRE})
+	w.act(_cast(_made(&"sinkhole")))
+	assert_eq(w.tile(on), World.SKY)
+	var at: Vector2i = w.sites[0].at
+	assert_true(w.vacant(at), str(at))
+	assert_eq(Grid.cheb(at, on), 2, "the nearest floor past the sinkhole")
+
+
 func test_sinkhole_never_takes_miho_s_tile_nor_the_stairs_the_elixir_or_a_peach() -> void:
 	var w := _world()
 	_put(w, ME + E, World.WALL)
