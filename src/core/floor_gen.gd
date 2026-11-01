@@ -62,7 +62,7 @@ const PLAN := {
 	],
 	5:
 	[
-		&"imugi",
+		&"gangcheori",
 		&"imugi",
 		&"imugi",
 		&"imugi",
@@ -78,23 +78,23 @@ const PLAN := {
 		&"bulgasari",
 		&"oedari",
 		&"bujigaengi",
-		&"bitjaru",
+		&"eodeopsini",
 		&"dokkaebi",
 		&"gamtu",
-		&"imugi",
+		&"gangcheori",
 		&"imugi",
 		&"jangseung",
 		&"jangseung",
 	],
 	7:
 	[
-		&"oedari",
+		&"dueoksini",
 		&"oedari",
 		&"bujigaengi",
-		&"bitjaru",
+		&"eodeopsini",
 		&"dokkaebi",
 		&"gamtu",
-		&"imugi",
+		&"gangcheori",
 		&"imugi",
 		&"imugi",
 		&"imugi",
@@ -105,11 +105,11 @@ const PLAN := {
 	[
 		&"haetae",
 		&"haetae",
-		&"oedari",
-		&"bitjaru",
+		&"dueoksini",
+		&"eodeopsini",
 		&"dokkaebi",
 		&"gamtu",
-		&"imugi",
+		&"gangcheori",
 		&"imugi",
 		&"jangseung",
 		&"jangseung",
@@ -119,13 +119,13 @@ const PLAN := {
 	9:
 	[
 		&"cheonnyeon",
+		&"dueoksini",
 		&"haetae",
 		&"haetae",
-		&"haetae",
-		&"oedari",
+		&"eodeopsini",
 		&"bujigaengi",
 		&"dokkaebi",
-		&"imugi",
+		&"gangcheori",
 	],
 }
 ## Peaches grow on every odd storey from the third.
@@ -802,5 +802,6 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.rank = Bestiary.rank(w.depth)
 	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp
+	a.tails = Bestiary.tails(kind)
 	w.actors.append(a)
 	return a

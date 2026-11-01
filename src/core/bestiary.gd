@@ -16,7 +16,12 @@ extends RefCounted
 ## of the name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
-## and `throw`, how many tiles the blow pushes her back (into the sky she falls).
+## and `throw`, how many tiles the blow pushes her back (into the sky she falls),
+## and `root`, how many rounds it roots her (Elements.root).
+## tails: it pays for its spells with tails, as Miho does (Spell.price), in place
+## of waiting `cd` rounds: it regrows one every World.TAIL_REGROW rounds, picks
+## what to cast from any rank on (Aim.at) and casts two at once when it can pay
+## for both. It starts with all of them (Actor.tails).
 ## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
 ## tracks: follows Miho's scent while it rests or searches (Mind).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
@@ -49,6 +54,35 @@ const DOUBLES := 4
 ## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
 ## its kind (Bestiary.elements).
 const KINDLE := [Cards.FIRE]
+## Every spell 저승사자 can buy with its tails, at any rank: all five elements,
+## one to five cards.
+const REAPER := [
+	[Cards.WOOD],
+	[Cards.FIRE],
+	[Cards.WATER],
+	[Cards.METAL],
+	[Cards.EARTH],
+	[FOX, Cards.WATER],
+	[FOX, Cards.METAL],
+	[ORB, Cards.FIRE],
+	[Cards.WOOD, Cards.WOOD],
+	[Cards.METAL, Cards.WATER],
+	[Cards.FIRE, Cards.EARTH],
+	[FOX, ORB, Cards.METAL],
+	[ORB, Cards.FIRE, Cards.METAL],
+	[FOX, ORB, Cards.WOOD],
+	[FOX, FOX, Cards.FIRE],
+	[Cards.WOOD, Cards.WOOD, Cards.WOOD],
+	[FOX, FOX, ORB, Cards.FIRE],
+	[FOX, ORB, Cards.EARTH, Cards.METAL],
+	[FOX, FOX, FOX, Cards.WATER],
+	[ORB, Cards.WOOD, Cards.WOOD, Cards.EARTH],
+	[FOX, FOX, ORB, Cards.FIRE, Cards.METAL],
+	[FOX, FOX, FOX, Cards.METAL, Cards.WATER],
+	[FOX, ORB, Cards.EARTH, Cards.WOOD, Cards.METAL],
+	[Cards.WOOD, Cards.WOOD, Cards.EARTH, Cards.EARTH, Cards.METAL],
+	[FOX, FOX, ORB, Cards.EARTH, Cards.WATER],
+]
 const DULL := 0
 const SHARP := 1
 const CUNNING := 2
@@ -310,20 +344,75 @@ const KINDS := {
 		name = "저승사자",
 		glyph = "사",
 		group = &"underworld",
-		hp = 9,
-		melee = {name = "오랏줄", hit = "맞아", damage = 1},
-		casts = [[ORB]],
-		ranks =
-		{
-			2: [[ORB], [FOX, ORB]],
-			3: [[FOX, ORB], [FOX, FOX]],
-			4: [[FOX, ORB], [FOX, FOX], [FOX, FOX, ORB]],
-		},
-		cd = 2,
+		hp = 12,
+		melee = {name = "오랏줄", hit = "맞아", damage = 1, root = 2},
+		tails = 9,
+		casts = REAPER,
 		move = &"approach",
 		step = 3,
 		hunts = true,
 		wits = 2,
+	},
+	&"gangcheori":
+	{
+		name = "강철이",
+		glyph = "강",
+		group = &"dragon",
+		shout = {word = "우르릉", loud = 8},
+		hp = 5,
+		casts = [[ORB, Cards.FIRE, Cards.METAL], [FOX, Cards.FIRE]],
+		ranks =
+		{
+			4: [[ORB, Cards.FIRE, Cards.METAL], [FOX, Cards.FIRE], [Cards.FIRE, Cards.FIRE]],
+			5:
+			[
+				[ORB, Cards.FIRE, Cards.METAL],
+				[FOX, Cards.FIRE],
+				[Cards.FIRE, Cards.FIRE],
+				[FOX, ORB, Cards.FIRE],
+			],
+		},
+		cd = 3,
+		move = &"align",
+		step = 3,
+		wits = 1,
+		absorb = &"fire",
+	},
+	&"eodeopsini":
+	{
+		name = "어둑시니",
+		glyph = "어",
+		group = &"underworld",
+		hp = 3,
+		melee = {name = "손톱", hit = "긁혀", damage = 1},
+		casts = [[FOX, Cards.WATER]],
+		ranks =
+		{
+			4: [[FOX, Cards.WATER], [FOX, FOX, Cards.WATER]],
+			5: [[FOX, Cards.WATER], [FOX, FOX, Cards.WATER], [FOX, ORB, Cards.WATER]],
+		},
+		cd = 3,
+		move = &"approach",
+		step = 0,
+		wits = 1,
+		patrol = true,
+		tracks = true,
+	},
+	&"dueoksini":
+	{
+		name = "두억시니",
+		glyph = "두",
+		group = &"underworld",
+		shout = {word = "우어어", loud = 9},
+		hp = 6,
+		melee = {name = "주먹", hit = "맞아", damage = 2, throw = 3},
+		casts = [[Cards.EARTH]],
+		ranks = {4: [[Cards.EARTH], [Cards.EARTH, Cards.EARTH]]},
+		cd = 3,
+		move = &"slow",
+		step = 5,
+		wits = 0,
+		patrol = true,
 	},
 }
 
@@ -368,6 +457,11 @@ static func allied(a: StringName, b: StringName) -> bool:
 ## Whether `word` is what some creature shouts.
 static func shouted(word: String) -> bool:
 	return KINDS.values().any(func(k): return k.get("shout", {}).get("word", "") == word)
+
+
+## The tails a creature of `kind` pays its spells with, 0 for one that waits `cd`.
+static func tails(kind: StringName) -> int:
+	return info(kind).get("tails", 0)
 
 
 static func wits(kind: StringName) -> int:

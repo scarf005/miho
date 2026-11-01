@@ -77,7 +77,7 @@ func test_health_grows_with_the_rank() -> void:
 		hp.append(FloorGen.spawn(_world(depth), &"dokkaebi", Vector2i(20, 8)).max_hp)
 	assert_eq(hp, [2, 3, 5, 7, 8])
 	assert_eq(FloorGen.spawn(_world(9), &"cheonnyeon", Vector2i(20, 8)).hp, 14)
-	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 15)
+	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 18)
 
 
 func test_no_rank_gives_a_kind_another_element() -> void:
@@ -88,6 +88,7 @@ func test_no_rank_gives_a_kind_another_element() -> void:
 	assert_eq(Bestiary.elements(&"dokkaebi"), [] as Array[StringName], "잡몹 stays plain")
 
 
+## 저승사자 is left out of the harm cap: it buys five-card spells with its tails.
 func test_a_caster_has_more_spells_deeper_and_each_hits_for_two_at_most() -> void:
 	for kind in Codex.foes():
 		var last := 0
@@ -99,9 +100,9 @@ func test_a_caster_has_more_spells_deeper_and_each_hits_for_two_at_most() -> voi
 				var s := Spell.make(cast)
 				assert_not_null(s, "%s %s" % [kind, cast])
 				for d in range(0, Spell.RANGE + 1):
-					if s.shape != Spell.SPRAY:
+					if s.shape != Spell.SPRAY and kind != &"saja":
 						assert_true(s.damage(d) <= 2, "%s %s" % [kind, s.title()])
-	for kind in [&"dokkaebi", &"jangseung", &"imugi", &"haetae", &"saja", &"bujigaengi"]:
+	for kind in [&"dokkaebi", &"jangseung", &"imugi", &"haetae", &"bujigaengi"]:
 		assert_gt(Bestiary.casts(kind, Bestiary.RANKS).size(), Bestiary.casts(kind, 1).size())
 
 
@@ -216,9 +217,12 @@ func test_hover_tells_its_homing_orbs_apart_by_their_turn() -> void:
 
 
 ## Two spells a turn: each projectile spell of a creature that casts two hurts
-## for 2 at most, all its wisps together.
+## for 2 at most, all its wisps together. 저승사자 pays for its spells with
+## tails and is the one creature allowed more.
 func test_a_double_charge_hurts_miho_for_four_at_most() -> void:
 	for kind in Codex.foes().filter(func(k): return not Bestiary.info(k).get("boss", false)):
+		if kind == &"saja":
+			continue
 		for r in range(Bestiary.DOUBLES, Bestiary.RANKS + 1):
 			var most := 0
 			for cast: Array in Bestiary.casts(kind, r):

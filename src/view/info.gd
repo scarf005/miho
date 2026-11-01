@@ -133,6 +133,9 @@ static func _arms(a: Actor, held: Array) -> Array:
 		var throw: int = spec.melee.get("throw", 0)
 		if throw > 0:
 			lines.append([["  던짐: %d칸" % throw, Palette.TEXT]])
+		var root: int = spec.melee.get("root", 0)
+		if root > 0:
+			lines.append([["  묶음: %d초" % root, Palette.TEXT]])
 	lines.append_array(_casts(a))
 	var traits := _traits(a, elements)
 	var tags := traits.filter(func(t): return not t.contains(": "))
@@ -270,17 +273,26 @@ static func _status(a: Actor) -> Array:
 
 
 ## Each spell it casts at its rank, with its cooldown, harm and noise, and how
-## many it casts at once from Bestiary.DOUBLES.
+## many it casts at once from Bestiary.DOUBLES. One with tails shows its tails and
+## each spell's price on a line of its own.
 static func _casts(a: Actor) -> Array:
 	var out := []
-	if a.rank >= Bestiary.DOUBLES and a.repertoire().size() > 1:
+	var tailed := Bestiary.tails(a.kind) > 0
+	if tailed:
+		out.append([["꼬리: %d/%d" % [a.tails, Bestiary.tails(a.kind)], Palette.SIDE[0]]])
+		out.append([["회복: %d초마다 1개" % World.TAIL_REGROW, Palette.DIM]])
+	if (a.rank >= Bestiary.DOUBLES or tailed) and a.repertoire().size() > 1:
 		out.append([["동시 주술: 2개", Palette.TEXT]])
 	for cast: Array in a.repertoire():
 		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
 			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]
+		if tailed:
+			line.append([" · 꼬리: %d" % spell.cost(), Palette.DIM])
 		out.append(line)
+		if tailed:
+			continue
 		out.append([["  간격: %d초" % a.info().cd, Palette.DIM]])
 		if a.intent.any(func(plan): return Spell.make(plan.cards).key() == spell.key()):
 			out.append([["  모으는 중.", Palette.HURT]])

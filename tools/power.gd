@@ -36,6 +36,9 @@ const ALL_KINDS: Array[StringName] = [
 	&"jiha",
 	&"bulgasari",
 	&"cheonnyeon",
+	&"gangcheori",
+	&"eodeopsini",
+	&"dueoksini",
 	&"saja",
 ]
 
@@ -347,6 +350,8 @@ func _creature_table() -> void:
 			other.append(String(info.move))
 		if info.get("melee", {}).get("throw", 0) > 0:
 			other.append("throws %d" % info.melee.throw)
+		if info.get("melee", {}).get("root", 0) > 0:
+			other.append("roots %d" % info.melee.root)
 		var cast := "%d (%s)" % [blow.cast, blow.cast_name] if blow.cast_name != "" else "-"
 		_say(
 			(

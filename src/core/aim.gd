@@ -12,8 +12,10 @@ extends RefCounted
 ## foe is weak to, else the first; from Bestiary.DOUBLES on also the next after
 ## it whose projectiles leave on tiles the first one's leave free (`_apart`).
 ## An orb needs a clear line; wisps and homing orbs only the foe in reach; a
-## spray must cover the foe.
+## spray must cover the foe. A creature with tails buys its spells (`_buy`).
 static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
+	if Bestiary.tails(a.kind) > 0:
+		return _buy(w, a, foe)
 	var plans: Array[Dictionary] = []
 	for cast: Array in _turn(a):
 		var plan := _reach(w, a, cast, foe)
@@ -37,6 +39,60 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 			out.append(then)
 			break
 	return out
+
+
+## What a creature with tails casts at `foe` (Bestiary tails): the dearest spell
+## it can pay for that reaches the foe, that the foe does not absorb and that is
+## not moot (`_moot`); then, with the tails left, the dearest after it that
+## leaves on open tiles of its own (`_apart`).
+static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var first := _dearest(w, a, foe, a.tails, [])
+	if first.is_empty():
+		return out
+	out.append(first)
+	var left := a.tails - Spell.price(first.cards.size())
+	var taken := _departs(w, a, first)
+	var skip := [first.cards]
+	while true:
+		var next := _dearest(w, a, foe, left, skip)
+		if next.is_empty():
+			break
+		skip.append(next.cards)
+		var then := _apart(w, a, next, taken)
+		if not then.is_empty():
+			out.append(then)
+			break
+	return out
+
+
+## The dearest spell of `a` that costs at most `tails` and is not in `skip`,
+## reaching `foe`, as a plan, or empty. Equal prices keep the order of its list.
+static func _dearest(w: World, a: Actor, foe: Actor, tails: int, skip: Array) -> Dictionary:
+	var best := {}
+	var best_price := 0
+	for cast: Array in a.repertoire():
+		var price := Spell.price(cast.size())
+		var spell := Spell.make(cast)
+		if price <= best_price or price > tails or skip.has(cast) or _moot(spell, foe):
+			continue
+		if Bestiary.absorbs(foe.kind, spell):
+			continue
+		var plan := _reach(w, a, cast, foe)
+		if not plan.is_empty():
+			best = plan
+			best_price = price
+	return best
+
+
+## Whether a spray adds nothing to `foe`: every element it holds is a mark the
+## foe already bears (rooted by 나무, wet by 물, alight by 불).
+static func _moot(spell: Spell, foe: Actor) -> bool:
+	if spell.shape != Spell.SPRAY:
+		return false
+	var marks := {Cards.WOOD: foe.rooted, Cards.WATER: foe.wet, Cards.FIRE: foe.alight}
+	var held: Array = spell.slots.reduce(func(all, slot): return all + Cards.parts(slot), [])
+	return held.all(func(e): return marks.get(e, 0) > 0)
 
 
 ## The tiles next to `a` the projectiles of `plan` leave onto (Homing.headings):
@@ -76,9 +132,12 @@ static func kindle(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 
 
 ## Its spells in the order it tries them, from the next in turn: that one
-## alone below Bestiary.PICKS, the lone fire aside (`kindle`).
+## alone below Bestiary.PICKS, the lone fire aside (`kindle`). One with tails
+## tries those it can pay for, the cheapest first, and none of 수's darkness.
 static func _turn(a: Actor) -> Array:
 	var list := a.repertoire()
+	if Bestiary.tails(a.kind) > 0:
+		return _cheap(a, list)
 	if a.rank < Bestiary.PICKS:
 		list = list.filter(func(c): return c != Bestiary.KINDLE)
 	if list.is_empty():
@@ -86,6 +145,20 @@ static func _turn(a: Actor) -> Array:
 	var start := a.casts % list.size()
 	var out := list.slice(start) + list.slice(0, start)
 	return out if a.rank >= Bestiary.PICKS else out.slice(0, 1)
+
+
+## The spells in `list` that `a` can pay for and that are no darkness, the cheapest first.
+static func _cheap(a: Actor, list: Array) -> Array:
+	var out := []
+	for n in range(1, Spell.MAX_SLOTS + 1):
+		if Spell.price(n) > a.tails:
+			break
+		out.append_array(list.filter(func(c): return c.size() == n and not _dark(c)))
+	return out
+
+
+static func _dark(cast: Array) -> bool:
+	return Spell.make(cast).holds(Cards.WATER)
 
 
 ## The plan that takes `cast` to `foe`, or empty.
