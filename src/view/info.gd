@@ -16,8 +16,15 @@ const TRACE := "흔적."
 ## name `_conditions` shows, one `이름: 값` line each: the 도감's 상태이상.
 const CONDITIONS := {
 	"묶임": ["움직일 수 없다."],
-	"기절": ["움직일 수도, 주문을 쓸 수도 없음.", "모으던 주문: 취소"],
+	"기절": ["움직일 수도, 주문을 쓸 수도 없다.", "모으던 주문: 취소"],
 	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색 끝: 경계가 끝난 뒤", "어두운 곳 시야: +%d칸" % World.WARY_SIGHT],
+	"둔갑":
+	[
+		"시간: %d초" % Guise.ROUNDS,
+		"%s마다: +%d초" % [Cards.NAME[Cards.WOOD], Guise.PER_WOOD],
+		"풀림: 피해, 주문, 적 옆 %d초 연속" % Guise.BESIDE,
+		"속는 적: 추격 중이 아닌 적",
+	],
 }
 
 

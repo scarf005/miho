@@ -293,7 +293,7 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 			w.emit({t = &"prick", id = a.id, at = to})
 			w.hurt(a, THORN)
 		World.MUD:
-			a.rooted = maxi(a.rooted, MUD)
+			Elements.root(w, a, MUD)
 
 
 ## A round of hot ground: it sears whoever stands on it and cools by a round.

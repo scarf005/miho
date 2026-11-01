@@ -159,6 +159,9 @@ const LEVEL := {
 	&"dry": -8.0,
 	&"quench": -8.0,
 	&"thaw": -8.0,
+	&"unroot": -8.0,
+	&"unstun": -8.0,
+	&"unblind": -8.0,
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
@@ -419,6 +422,10 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"root"
 		&"stun":
 			return &"stun"
+		&"unroot":
+			return &"rustle"
+		&"unstun", &"unblind":
+			return &"tick"
 		&"become":
 			return BECOME.get(e.get("tile", -1), &"")
 		&"gas":

@@ -119,6 +119,7 @@ var _popups: Array[Dictionary] = []
 ## event index -> the Perceived fact of the round being played.
 var _told := {}
 var _flashes: Array[Dictionary] = []
+var _ghosts: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
 ## shot id -> the tiles it last flew through, newest last (TRAIL of them).
@@ -203,6 +204,7 @@ func _process(delta: float) -> void:
 	var now := _time
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
+	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
 	queue_redraw()
 
 
@@ -263,7 +265,10 @@ func play(events: Array, before: World, after: World) -> void:
 	for s in before.shots:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
+	var passes := Afterimage.plan(events)
 	for i in events.size():
+		var left := Afterimage.copies(passes.get(i, []), _actors, _time)
+		_ghosts.append_array(left.filter(func(g): return _visible(g.at)))
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0 and not _rushed:
 			_hold = get_tree().create_timer(wait / speed)
@@ -474,6 +479,7 @@ func _draw() -> void:
 				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
+	Afterimage.draw(self, _ghosts, _time)
 	for f in _flashes:
 		if not _shown(f.at) or _time < f.born:
 			continue
@@ -887,8 +893,12 @@ func _small(cell: Vector2, s: String, color: Color) -> void:
 	draw_string(_font, at.round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL, color)
 
 
-## The mark of the status `a` holds (Status.of), small at `cell`.
+## The marks of what holds `a`, small at `cell`: its status (Status.of), then
+## rooted and stunned.
 func _status(cell: Vector2, a: Actor) -> void:
-	var mark: Array = Palette.STATUS.get(Status.of(a), [])
-	if not mark.is_empty():
-		_small(cell, mark[0], mark[1])
+	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.get(k) > 0)
+	var marks: Array = held.map(func(k): return Palette.CONDITION[k])
+	if Palette.STATUS.has(Status.of(a)):
+		marks.push_front(Palette.STATUS[Status.of(a)])
+	for i in marks.size():
+		_small(cell + Vector2(i * 0.33, 0), marks[i][0], marks[i][1])
