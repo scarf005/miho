@@ -7,7 +7,7 @@ extends RefCounted
 
 const PATH := "user://save.cfg"
 ## Bumped when a change to the rules would make old actions play differently.
-const VERSION := 52
+const VERSION := 53
 
 var path := PATH
 var seed_value := 0
@@ -123,6 +123,8 @@ static func _shaped(action: Dictionary) -> bool:
 		&"cast":
 			var spells: Variant = action.get("spells")
 			return spells is Array and spells.all(_spell_shaped)
+		&"cheat":
+			return Cheat.shaped(action)
 	return false
 
 

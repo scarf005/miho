@@ -30,6 +30,8 @@ static func _regrow(a: Actor) -> void:
 
 
 static func heaven_phase(w: World) -> void:
+	if Cheat.on(w, &"halt"):
+		return
 	for a in w.actors.duplicate():
 		if w.outcome != &"":
 			return

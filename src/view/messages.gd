@@ -262,6 +262,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 꺼졌다", TEXT]]
 		&"wake":
 			return _named(Tiles.of(World.STATUE, "name"), "이", "가") + [[" 깨어났다", TEXT]]
+		&"cheat":
+			return _cheat(e)
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
@@ -297,6 +299,28 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return [["향로가 쓰러졌다", TEXT]]
 			return _named(Tiles.of(e.was, "name"), "이", "가") + [[" 부서졌다", TEXT]]
 	return []
+
+
+## A debug command (Cheat) as a line: a toggle says which way it went.
+static func _cheat(e: Dictionary) -> Array:
+	var name: String = Cheat.NAME[e.cmd]
+	var kind: String = Bestiary.info(e.kind).name if e.has("kind") else ""
+	match e.cmd:
+		&"teleport":
+			return [["순간이동했다", TEXT]]
+		&"kill":
+			return [[kind + _particle(kind, "을", "를") + " 없앴다", TEXT]]
+		&"kill_all":
+			return [["적을 모두 없앴다", TEXT]]
+		&"move_foe":
+			return [[kind + _particle(kind, "을", "를") + " 옮겼다", TEXT]]
+		&"floor":
+			return [["%d층" % e.depth, Palette.KIND[&"miho"]], ["으로 이동했다", TEXT]]
+		&"summon":
+			return [[kind + _particle(kind, "을", "를") + " 불러냈다", TEXT]]
+		&"heal":
+			return [["체력을 모두 회복했다", TEXT]]
+	return [[name + _particle(name, "을", "를") + (" 켰다" if e.on else " 껐다"), TEXT]]
 
 
 static func _hurt_line(before: World, after: World, e: Dictionary, last: Dictionary) -> Array:

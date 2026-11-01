@@ -70,12 +70,9 @@ extends RefCounted
 ## is kept as she left it (Storeys).
 ##
 ## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
-## hovering wisp of 여 alone yelps, an alarm (Lure).
-##
-## Each storey climbed gives back one health.
-##
-## A storey may hold one event room, built by hand, whose reward is used on the
-## spot: see EventRooms.
+## hovering wisp of 여 alone yelps, an alarm (Lure). Each storey climbed gives back
+## one health. A storey may hold one event room, built by hand, whose reward is
+## used on the spot: see EventRooms. The debug commands take no round: see Cheat.
 ##
 ## Miho grows one more tail on every storey (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
@@ -189,6 +186,7 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
+var cheats := {}
 var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
 var round_no := 0
 var outcome := &""
@@ -258,6 +256,7 @@ func clone() -> World:
 	w.next_id = next_id
 	w.tails = tails
 	w.regrow = regrow
+	w.cheats = cheats.duplicate()
 	w.cards = cards.duplicate()
 	w.round_no = round_no
 	w.outcome = outcome
@@ -447,7 +446,7 @@ func can(action: Dictionary) -> bool:
 			return _can_cast(action.get("spells", []))
 		&"close":
 			return _can_close(action.get("dir", Vector2i.ZERO))
-	return false
+	return action.get("t") == &"cheat" and Cheat.can(self, action)
 
 
 ## A step onto a free tile, even one a shot flies through (a closed door slides
@@ -489,7 +488,7 @@ func _can_cast(spells: Array) -> bool:
 		var spell := Spell.make(one.get("cards", []))
 		if spell == null or spell.cards.any(func(c): return not cards.has(c)):
 			return false
-		cost += spell.cost()
+		cost += Cheat.cost(self, spell)
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
 		if not Leap.open(self, me, spell, d) or aims.has(d):
 			return false
@@ -511,7 +510,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	events = []
 	heard = []
 	_changed()
-	if not can(action):
+	if not can(action) or Cheat.handled(self, action):
 		return events
 	var me := player()
 	_regrow()
@@ -540,7 +539,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
-				tails -= spell.cost()
+				tails -= Cheat.cost(self, spell)
 				cast(me, spell, one.dir)
 	_shots_phase()
 	Mind.heaven_phase(self)
@@ -582,6 +581,7 @@ func sense() -> void:
 			known[i] = 1
 	Traps.find(self)
 	Notice.remember(self)
+	Cheat.reveal(self)
 
 
 func emit(e: Dictionary) -> void:
@@ -887,7 +887,7 @@ func rides(s: Shot) -> bool:
 
 
 func hurt(a: Actor, n: int, weak := false) -> void:
-	if not a.alive():
+	if not a.alive() or Cheat.immune(self, a):
 		return
 	var shatter := Status.shatter(a)
 	n *= 2 if shatter else 1

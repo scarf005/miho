@@ -68,7 +68,8 @@ const GLOBAL := [
 	&"won",
 	&"lost",
 	&"omen",
-	&"arrive"
+	&"arrive",
+	&"cheat"
 ]
 ## How loud an event sounds from its place, in dB; those left out play at full.
 ## A step is -6 dB on bare ground and louder by STEP_DB for each tile its tread is heard.
@@ -284,6 +285,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"tick" if e.kind == World.DOOR else &"warn"
 		&"spot":
 			return &"tick"
+		&"cheat":
+			return &"click"
 		&"open", &"close":
 			return &"door"
 		&"root", &"freeze", &"sprout", &"guise":
