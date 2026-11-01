@@ -8,8 +8,8 @@ extends RefCounted
 ## A row is [map, do, cards]; `do` and `cards` may be left out. The map's rows are
 ## parted by "/" and centred in the hall's height, column 0 at the hall's left. It
 ## has a mark from MARKS, or one of:
-## @ Miho, d a creature hunting her that casts nothing, z one at rest, w one at rest
-## with one health, k the creature the row is for, t the tile the row is for,
+## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
+## rest, w one at rest with one health, k the creature the row is for, t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, S a scroll.
 ## `do` is a round for each letter: c casts the cards east, s casts them on Miho,
@@ -72,6 +72,8 @@ const TABLE := {
 	&"orb+earth+metal": ["  @    d/       d"],
 	Guise.SHADOW: ["  @     d", "s..."],
 	Guise.GUISE: ["  @w", ">s.."],
+	Guise.TALON: ["  @d", "s>>"],
+	Guise.CLOAK: ["  @     d", "s..."],
 	&"wildfire": ["   ,,,,/  @,d,,/   ,,,,"],
 	&"lava": [SHOT],
 	&"shrapnel": ["     d/  @  d/     d"],
@@ -80,7 +82,7 @@ const TABLE := {
 	&"steam": [NEAR],
 	&"molten": [SHOT],
 	&"thorn": ["  @ d"],
-	&"split": ["    #/    #/    #/  @ #   d/    #/    #/    #", "c...."],
+	&"rift": ["    #/    #/    #/  @ #   d/    #/    #/    #", "c...."],
 	&"mud": ["  @    d", "c...."],
 	&"volcano": [NEAR],
 	&"furnace": [COLUMN],
@@ -93,8 +95,9 @@ const TABLE := {
 	&"palisade": ["  @     d", "c....."],
 	&"beacon": ["   l    ,,,/  @     ,d,/        ,,,"],
 	&"ironrain": [SHOT],
-	&"ironroot": ["  @    d/      d"],
+	&"bind": ["  @    d/      d"],
 	&"magpie": ["     ~~/     ~~/     ~~/  @  ~~   d/     ~~/     ~~/     ~~", "c....."],
+	&"hypnosis": ["  @   i"],
 	&"mist": [SHOT],
 	&"sinkhole": [NEAR],
 	&"newmoon": ["  @   *  d"],
@@ -111,6 +114,8 @@ const TABLE := {
 	"기절": [NEAR, CASTS, [Cards.FOX, Cards.EARTH]],
 	"경계": ["  @    z", CASTS, [Cards.METAL]],
 	"둔갑": ["  @w", ">s..", [Cards.WOOD, Cards.EARTH]],
+	"쇠발톱": ["  @d", "s>>", Guise.RECIPE[Guise.TALON]],
+	"은신": ["  @     d", "s...", Guise.RECIPE[Guise.CLOAK]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
 	&"scroll": ["  @ S", ">>."],
@@ -235,6 +240,8 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 		"@":
 			w.player().pos = p
 			w.start = p
+		"i":
+			_foe(w, &"imugi", p, mark)
 		"d", "z", "w":
 			_foe(w, &"dokkaebi", p, mark)
 		"k":
@@ -269,6 +276,6 @@ static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 		a.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1
-	if mark == "d" or mark == "k":
+	if mark in ["d", "i", "k"]:
 		a.alert = Actor.HUNT
 		a.target = w.player().pos

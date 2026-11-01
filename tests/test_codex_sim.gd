@@ -45,7 +45,7 @@ func _result(w: World) -> String:
 	var creatures := []
 	for a in w.actors:
 		creatures.append([a.hp, a.wet, a.alight, a.frozen, a.rooted, a.stunned, a.alert, a.rival])
-	var me := [w.player().pos, w.player().guise]
+	var me := [w.player().pos, w.player().guise, w.player().cloak]
 	return str(
 		[w.tiles, w.burning.keys(), w.hot.keys(), w.gas.keys(), w.shots.size(), creatures, me]
 	)
