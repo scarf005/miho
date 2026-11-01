@@ -122,6 +122,12 @@ static func in_sight(w: World) -> Dictionary:
 	return out
 
 
+## Whether Miho sees an awake creature of heaven, so exploring does not start
+## (DCSS): one blocking the only way on would turn the walk back and forth.
+static func watched(w: World) -> bool:
+	return in_sight(w).keys().any(func(id): return not w.actor(id).asleep())
+
+
 ## Whether a walk must stop after a round from `before` to `after`: a creature
 ## of heaven came into sight that was not in sight when the walk began (ids in
 ## `sighted`), one Miho sees noticed her, she was hurt, heard a noise, picked

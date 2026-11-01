@@ -284,6 +284,9 @@ func _key(event: InputEventKey) -> void:
 		_open(&"options")
 	elif action == &"stairs":
 		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
+	elif action == &"explore" and Travel.watched(world):
+		_say("깨어 있는 적이 보인다")
+		sfx.play(&"click")
 	elif action == &"explore":
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
 	elif action == &"exclude_clear":

@@ -166,7 +166,7 @@ func test_a_walk_stops_when_the_stairs_or_a_peach_first_come_into_sight() -> voi
 func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
 	var w := _world()
 	assert_false(Travel.watched(w))
-	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(12, 8))
+	var foe := FloorGen.spawn(w, &"jangseung", Vector2i(12, 8))
 	foe.home = foe.pos
 	assert_true(foe.asleep())
 	assert_false(Travel.watched(w), "one asleep")
