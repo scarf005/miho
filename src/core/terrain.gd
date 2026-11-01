@@ -265,7 +265,8 @@ static func burn(w: World, alight: Array) -> void:
 	for q in again:
 		caught.append_array(_catch(w, q))
 	for p in caught:
-		w.ignite(p)
+		if not gone.has(p):
+			w.ignite(p)
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})
