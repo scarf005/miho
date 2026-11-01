@@ -590,7 +590,8 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			return [["묶임", "%d초" % (Elements.ROOT + s.extra(e))]]
 		Cards.METAL:
 			if s.orb:
-				return [["밀침", "%d칸" % Elements.CANNON_PUSH], ["벽", "한 번에 부술 수 있음"]]
+				var fells := ["벽", "한 번에 부술 수 있음"]
+				return [fells] if s.mortar() else [["밀침", "%d칸" % Elements.CANNON_PUSH], fells]
 			return []
 	var thud := ["멈춘 곳 소음", "%d" % World.THUD]
 	if s.orb:

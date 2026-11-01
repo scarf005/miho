@@ -455,7 +455,7 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
 	var burns := w.burning.has(p) and w.seen[Grid.index(p)] == 1
-	var notes := _notes(t, breakable, burns)
+	var notes := _notes(t, breakable, burns, Terrain.plank(w, p))
 	var health: int = Tiles.of(t, "health") if breakable else 0
 	if p == w.stairs:
 		name = "계단"
@@ -520,7 +520,7 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 
 ## What a kind of tile does, an `이름: 값` line or a tag each; numbers from the
 ## rules, a shared rule as its glossary tag.
-static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
+static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[String]:
 	var out: Array[String] = []
 	match t:
 		World.ALTAR:
@@ -630,6 +630,8 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		out.append("인화성." if Tiles.fierce[t] == 1 else "가연성.")
 		if Tiles.fierce[t] == 0 and spread != roundi(Tiles.DEFAULT.spread * 100):
 			out.append("번질 확률: %d%%" % spread)
+	if plank:
+		out.append("불탄 뒤: %s" % Tiles.of(World.SKY, "name"))
 	return out
 
 

@@ -282,3 +282,101 @@ func test_the_observation_lists_a_scroll_where_it_lists_peaches() -> void:
 	rows.assign(Array(Observation.text(w).split("\n")))
 	var row: String = rows.filter(func(r: String): return r.begins_with("%2d " % ROW))[0]
 	assert_eq(row[3 + FOE.x], Palette.SCROLL)
+
+
+# --- when the ground under it goes ---------------------------------------------
+
+
+## A lone plank out in the sky, two tiles from the hall.
+func _plank(w: World) -> Vector2i:
+	var at := Vector2i(EDGE + 1, ROW)
+	w.set_tile(at, World.BOARD)
+	return at
+
+
+func _burn_out(w: World, at: Vector2i) -> void:
+	w.ignite(at)
+	for i in World.BURN_ROUNDS:
+		Terrain.burn(w, [])
+
+
+func test_a_scroll_on_a_plank_that_burns_moves_off_the_sky_and_can_be_taken() -> void:
+	var w := _world()
+	var plank := _plank(w)
+	w.sites.append({kind = &"scroll", at = plank, card = Cards.FIRE})
+	_burn_out(w, plank)
+	assert_eq(w.tile(plank), World.SKY)
+	var at: Vector2i = _scroll(w).at
+	assert_true(w.vacant(at), "she can stand on it")
+	assert_eq(Grid.cheb(at, plank), 2, "the nearest floor")
+	_step_onto(w, at)
+	assert_has(w.cards, Cards.FIRE)
+
+
+func test_a_peach_on_a_plank_that_burns_moves_off_the_sky_and_can_be_eaten() -> void:
+	var w := _world()
+	var plank := _plank(w)
+	w.peaches.append(plank)
+	_burn_out(w, plank)
+	assert_eq(w.peaches.size(), 1)
+	var at := w.peaches[0]
+	assert_true(w.vacant(at), "she can stand on it")
+	assert_eq(Grid.cheb(at, plank), 2, "the nearest floor")
+	w.player().hp = 1
+	_step_onto(w, at)
+	assert_true(w.peaches.is_empty())
+	assert_gt(w.player().hp, 1)
+
+
+func test_two_things_on_a_burnt_plank_do_not_land_on_one_tile() -> void:
+	var w := _world()
+	var plank := _plank(w)
+	w.sites.append({kind = &"scroll", at = plank, card = Cards.FIRE})
+	w.sites.append({kind = &"scroll", at = plank, card = Cards.WATER})
+	w.peaches.append(plank)
+	_burn_out(w, plank)
+	var spots := Scrolls.spots(w) + w.peaches
+	assert_eq(spots.size(), 3)
+	for at: Vector2i in spots:
+		assert_true(w.vacant(at), str(at))
+		assert_eq(spots.count(at), 1, str(at))
+
+
+func test_with_no_tile_to_hold_it_a_scroll_and_a_peach_on_a_burnt_plank_are_lost() -> void:
+	var w := _world()
+	w.tiles.fill(World.SKY)
+	w.set_tile(w.player().pos, World.FLOOR)
+	var plank := _plank(w)
+	w.sites.append({kind = &"scroll", at = plank, card = Cards.FIRE})
+	w.peaches.append(plank)
+	_burn_out(w, plank)
+	assert_true(w.sites.is_empty())
+	assert_true(w.peaches.is_empty())
+
+
+func test_a_forecast_of_the_plank_burning_moves_the_scroll_as_the_round_does() -> void:
+	var w := _world()
+	var plank := _plank(w)
+	w.sites.append({kind = &"scroll", at = plank, card = Cards.FIRE})
+	w.ignite(plank)
+	for i in World.BURN_ROUNDS - 1:
+		w.act({t = &"wait"})
+	var f := Forecast.of(w, {t = &"wait"})
+	assert_eq(_scroll(w).at, plank, "the forecast leaves it where it is")
+	w.act({t = &"wait"})
+	assert_eq(w.tile(plank), World.SKY)
+	assert_eq(f.after.sites, w.sites)
+	assert_ne(_scroll(w).at, plank)
+
+
+func test_a_scroll_and_a_peach_on_a_rotten_board_move_when_it_gives_way() -> void:
+	var w := _world()
+	var at := FOE + Vector2i(2, 0)
+	w.set_tile(at, World.BOARD_ROTTEN)
+	w.sites.append({kind = &"scroll", at = at, card = Cards.FIRE})
+	w.peaches.append(at)
+	var foe := _foe(w, at + E)
+	Terrain.crumble(w, foe, at)
+	assert_eq(w.tile(at), World.SKY)
+	for spot: Vector2i in [_scroll(w).at, w.peaches[0]]:
+		assert_true(w.vacant(spot), str(spot))

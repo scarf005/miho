@@ -44,7 +44,7 @@ static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if not Grid.DIRS.has(dir):
 		return false
 	if spell.shape != Spell.LEAP:
-		return Terrain.throwable(w, spell, a.pos + dir)
+		return Terrain.throwable(w, spell, a.pos + dir, dir)
 	return a.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
 
 

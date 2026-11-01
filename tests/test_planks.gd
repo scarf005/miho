@@ -4,6 +4,7 @@ extends GutTest
 const ROW := 8
 const AT := Vector2i(12, ROW)
 const WAIT := {t = &"wait"}
+const SEEDS := 200
 
 
 ## Two floors with a bridge of planks between them on ROW, x from 11 to 15, Miho on the
@@ -68,13 +69,33 @@ func test_a_plank_gives_way_with_a_crack_and_the_sound_of_a_fall() -> void:
 	assert_false(w.events.any(func(e): return e.t == &"burnout" and e.at == AT), "no ash")
 
 
-func test_wild_fire_runs_along_the_planks_until_none_is_left() -> void:
+func test_wild_fire_turns_each_plank_it_reaches_to_sky_whatever_the_seed() -> void:
+	var far_end_burnt := 0
+	for seed_value in SEEDS:
+		var w := _world()
+		w.rng.seed = seed_value
+		w.ignite(AT, false, true)
+		for i in 60:
+			Terrain.burn(w, [])
+		for x in range(11, 14):
+			assert_eq(w.tile(Vector2i(x, ROW)), World.SKY, "seed %d x %d" % [seed_value, x])
+		for x in range(14, 16):
+			assert_ne(w.tile(Vector2i(x, ROW)), World.ASH, "seed %d x %d" % [seed_value, x])
+		far_end_burnt += 1 if w.tile(Vector2i(15, ROW)) == World.SKY else 0
+	assert_gt(far_end_burnt, 0, "the fire runs on to the far end")
+
+
+func test_the_hover_tells_what_a_plank_leaves_when_burnt_and_a_board_on_a_floor_says_nothing(
+) -> void:
 	var w := _world()
-	w.ignite(AT, false, true)
-	for i in 60:
-		Terrain.burn(w, [])
-	for x in range(11, 16):
-		assert_eq(w.tile(Vector2i(x, ROW)), World.SKY, str(x))
+	var floor_board := Vector2i(5, 5)
+	w.set_tile(floor_board, World.BOARD)
+	w.seen.fill(1)
+	var plank_says := Info.plain(Info.terrain_facts(w, AT))
+	var board_says := Info.plain(Info.terrain_facts(w, floor_board))
+	_burn_out(w, AT)
+	assert_string_contains(plank_says, "탄 뒤: %s" % Tiles.of(w.tile(AT), "name"))
+	assert_false(board_says.contains("탄 뒤"), board_says)
 
 
 func test_a_creature_on_a_plank_falls_when_it_gives_way() -> void:
