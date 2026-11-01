@@ -599,7 +599,7 @@ func _hurl_at_cursor() -> void:
 
 ## The refusal when a spell needs more tails than Miho has.
 func _short(need: int) -> String:
-	return "꼬리가 모자라다: %d/%d" % [Cheat.tails(world), need]
+	return "꼬리가 %d개 모자라다" % (need - Cheat.tails(world))
 
 
 ## Says why a talisman or saved spell cannot be picked, with the warning sound.
