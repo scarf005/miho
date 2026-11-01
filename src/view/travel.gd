@@ -123,7 +123,11 @@ static func exit(w: World) -> Vector2i:
 static func explore_step(w: World, found: Dictionary) -> Vector2i:
 	if watched(w):
 		return Vector2i.ZERO
-	var path := route(found, _nearest(found, w.peaches + Scrolls.spots(w) + Jars.spots(w)))
+	var hurt := w.player().hp < w.player().max_hp
+	var food := w.peaches + Scrolls.spots(w)
+	if hurt:
+		food += Jars.spots(w)
+	var path := route(found, _nearest(found, food))
 	if path.is_empty():
 		path = route(found, frontier(w, found))
 	if path.is_empty():
