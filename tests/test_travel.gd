@@ -159,6 +159,7 @@ func test_a_walk_stops_when_the_stairs_or_a_peach_first_come_into_sight() -> voi
 	w.known[Grid.index(w.stairs)] = 1
 	assert_false(Travel.interrupted(w, after, [], {}), "stairs seen before")
 	after.peaches.append(Vector2i(14, 8))
+	w.known[Grid.index(Vector2i(14, 8))] = 0
 	assert_true(Travel.interrupted(w, after, [], {}))
 
 
