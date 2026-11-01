@@ -83,7 +83,7 @@ func test_the_hover_and_the_log_of_a_rotten_board() -> void:
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "낡은 마루")
 	assert_false(text.contains("하늘"), "the hole it leaves is a surprise")
-	assert_string_contains(text, "소리: %d칸" % Terrain.CRACK)
+	assert_string_contains(text, "소음: %d" % Terrain.CRACK)
 	assert_string_contains(text, "발소리: 3칸")
 	assert_false(text.contains("삐걱"), "no sound word in the hover")
 	w.act({t = &"move", dir = E})

@@ -197,7 +197,7 @@ func test_the_hover_and_the_log_tell_of_wet() -> void:
 	var before := w.clone()
 	var events := w.act(_cast([FOX, WATER]))
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "젖음: %d초\n  소리: %d칸" % [Status.WET - 1, Status.SPLASH])
+	assert_string_contains(text, "젖음: %d초\n  소음: %d" % [Status.WET - 1, Status.SPLASH])
 	assert_false(text.contains(Status.SPLASH_WORD), text)
 	var log := Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "장승이 젖었다")

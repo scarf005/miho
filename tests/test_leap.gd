@@ -318,7 +318,7 @@ func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 		"모양: 곧게 3칸",
 		"거리: 나무 한 장마다 +1칸",
 		"넘어감: 하늘",
-		"내릴 때 소리: %d칸" % Leap.LOUD,
+		"내릴 때 소음: %d" % Leap.LOUD,
 		"내린 자리에서: 흙",
 		"기절",
 	]
@@ -480,7 +480,7 @@ func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var parts := [
 		"구슬 바꿔치기",
 		"바꿔치기: 멈춘 칸으로 맞힌 적: 자리 교환",
-		"바꿔치기 소리: 두 자리에서 %d칸" % Leap.SWAP_LOUD,
+		"바꿔치기 소음: 두 자리에서 %d" % Leap.SWAP_LOUD,
 	]
 	for part in parts:
 		assert_string_contains(text, part)

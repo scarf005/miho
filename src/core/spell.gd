@@ -217,10 +217,13 @@ static func from_key(k: String) -> Spell:
 	return make(Array(k.split("+")).map(func(c): return StringName(c)))
 
 
-## The elements it carries, then its shape: "불×2 구슬".
+## The elements it carries, then its shape: "불×2 구슬"; a lone element's
+## spray goes by its name alone: "불길".
 func title() -> String:
 	if called != "":
 		return called
+	if shape == SPRAY and level() > 0:
+		return Spray.called(self)
 	if shape == LEAP:
 		var then := rest()
 		return "%s %d칸" % [SHAPE_NAME[LEAP], leap()] + (", " + then.title() if then != null else "")

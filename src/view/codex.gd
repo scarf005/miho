@@ -10,7 +10,7 @@ extends RefCounted
 ## tables, so a new kind appears with no change here.
 ## `key` returns &"close" or nothing.
 
-const TABS := ["적", "주문", "조합", "아이템", "지형지물", "용어"]
+const TABS := ["적", "주문", "조합", "아이템", "지형지물", "상태이상", "용어"]
 ## The cell where the detail starts.
 const SIDE_X := 13.0
 const ME := Vector2i(4, 8)
@@ -93,6 +93,14 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile))
 			out.append_array(_extras())
 		5:
+			for key in Status.NAME:
+				var glyph: Array = Palette.STATUS[key]
+				out.append(
+					_entry(glyph[0], glyph[1], Status.NAME[key], Info.status_facts.bind(key))
+				)
+			for name: String in Info.CONDITIONS:
+				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name)))
+		6:
 			var terms := Info.glossary()
 			for term: String in terms:
 				var lines := func():
@@ -183,7 +191,7 @@ static func _legible(line: Array) -> Array:
 
 
 ## Handles a key press that menu movement `nav` names: Left and Right, Tab and
-## Shift+Tab (or 1 to 5) change the tab; Up, Down, Home and End the entry, which
+## Shift+Tab (or 1 to 7) change the tab; Up, Down, Home and End the entry, which
 ## wrap at the ends; Page Up and Down scroll the detail while it overflows, else
 ## move the entry a page.
 func key(e: InputEventKey, nav: StringName) -> StringName:

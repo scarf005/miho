@@ -209,8 +209,8 @@ func test_a_courtyard_is_lit_by_the_moon_in_a_dark_hall_and_walkable() -> void:
 func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 	var told := {
 		World.SCREEN:
-		["막음: 길, 시야", "타격: 쓰러짐", "부딪칠 때 소리: %d칸" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
-		World.JAR: ["막음: 길", "타격: 깨짐", "부딪칠 때 소리: %d칸" % Tiles.of(World.JAR, "hit")[0]],
+		["막음: 길, 시야", "타격: 쓰러짐", "부딪칠 때 소음: %d" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
+		World.JAR: ["막음: 길", "타격: 깨짐", "부딪칠 때 소음: %d" % Tiles.of(World.JAR, "hit")[0]],
 		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
