@@ -349,6 +349,10 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_flash(at, Color(Palette.SOUND, 0.6))
 		&"trap":
 			_flash(at, Color(Palette.TILES[e.kind][1], 0.6))
+		&"fall" when e.has("depth"):
+			_popups.clear()
+		&"ascend":
+			_popups.clear()
 		&"splash":
 			var glow: Color = (
 				Palette.BURNING[1] if Spell.make(e.cards).has(Cards.FIRE) else Color.WHITE
