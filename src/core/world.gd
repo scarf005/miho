@@ -66,7 +66,8 @@ extends RefCounted
 ## Screens, jars and censers stand in rooms and react when hit (Structures).
 ##
 ## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## a new storey one below. 도약 leaps her across it (Leap).
+## the storey below. 도약 leaps her across it (Leap). Every storey she has left
+## is kept as she left it (Storeys).
 ##
 ## A spell cast with no direction goes on Miho: 그림자 or 둔갑 (Guise). A
 ## hovering wisp of 여 alone yelps, an alarm (Lure).
@@ -182,6 +183,8 @@ var seals := {}
 var sites: Array[Dictionary] = []
 ## Tails this storey allows beyond max_tails' count by depth (Altar).
 var tail_bonus := 0
+## The storeys Miho has left: depth -> what Storeys kept of each.
+var storeys := {}
 var actors: Array[Actor] = []
 var shots: Array[Shot] = []
 var next_id := 1
@@ -248,6 +251,7 @@ func clone() -> World:
 	w.seals = seals.duplicate(true)
 	w.sites.assign(sites.duplicate(true))
 	w.tail_bonus = tail_bonus
+	w.storeys = storeys.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
 	for s in shots:
@@ -964,12 +968,9 @@ func _prune() -> void:
 
 
 func _ascend() -> void:
-	depth += 1
+	Storeys.leave(self)
+	Storeys.enter(self, depth + 1)
 	regrow = 0
-	scent.clear()
-	for s in shots:
-		s.gone = true
-	FloorGen.build(self)
 	tails = max_tails()
 	_changed()
 	emit({t = &"ascend", depth = depth})

@@ -87,6 +87,8 @@ const STATUS := {
 const BODY := ["%", Color(0.62, 0.36, 0.3)]
 ## Dark tiles Miho makes out by shape only.
 const STARLIGHT := Color(0.05, 0.06, 0.14)
+## The storey below, made out through the sky (Storeys.below).
+const BELOW := Color(0.06, 0.07, 0.16)
 
 const SIDE := [Color(0.5, 0.78, 1.0), Color(1.0, 0.36, 0.26)]
 const KIND := {

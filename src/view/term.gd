@@ -501,6 +501,7 @@ func _draw() -> void:
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
+	var below := Storeys.below(world)
 	for i in world.tiles.size():
 		var p := Grid.at(i)
 		if world.known[i] == 0 and _vis[i] == 0 and debug.is_empty() or not _shown(p):
@@ -546,6 +547,9 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			var v := fg.get_luminance()
 			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
 			bg = Palette.MEMORY_BG
+		if t == World.SKY and below.size() > i and below[i] != World.SKY:
+			glyph = Palette.TILES[below[i]][0]
+			fg = Palette.BELOW
 		if _vis[i] == 1 and world.gas.has(p):
 			var g: Vector2i = world.gas[p]
 			var glow := clampf(0.35 + Light.level(light[i]), 0.35, 1.0)

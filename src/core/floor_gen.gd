@@ -768,10 +768,13 @@ static func patrol_point(w: World) -> Vector2i:
 	return _centre(w.rooms[w.rng.randi_range(0, w.rooms.size() - 1)])
 
 
-static func nearest_free(w: World, from: Vector2i) -> Vector2i:
+## The free tile with no plate nearest `from` across the `open` tiles (floor
+## when none are given), or (-1, -1).
+static func nearest_free(w: World, from: Vector2i, open := PackedByteArray()) -> Vector2i:
 	if w.vacant(from) and not w.traps.has(from):
 		return from
-	var dist: PackedInt32Array = Grid.search(from, Masks.floor_of(w)).dist
+	var mask := open if not open.is_empty() else Masks.floor_of(w)
+	var dist: PackedInt32Array = Grid.search(from, mask).dist
 	var best := -1
 	for i in dist.size():
 		var free := w.vacant(Grid.at(i)) and not w.traps.has(Grid.at(i))
