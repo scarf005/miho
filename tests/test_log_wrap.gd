@@ -27,5 +27,11 @@ func test_a_wide_line_wraps_at_spaces_keeping_text_and_colours() -> void:
 	assert_eq(rows[1].slice(1), [[" · ", Palette.DIM], ["소리: 4칸", Palette.SOUND]])
 
 
+func test_cells_follow_the_width_the_font_draws() -> void:
+	assert_eq(Term._cells("물×2 물줄기"), 5.5, "× is narrow, so no gap opens after it")
+	assert_eq([Term._cells("°"), Term._cells("·"), Term._cells("a")], [0.5, 0.5, 0.5])
+	assert_eq([Term._cells("가"), Term._cells("←"), Term._cells("♥")], [1.0, 1.0, 1.0])
+
+
 func test_a_word_wider_than_the_screen_takes_a_row_of_its_own() -> void:
 	assert_eq(Term.rows_of([["가나다라마 바", Palette.TEXT]], 3.0).map(_text), ["가나다라마", "바"])
