@@ -317,9 +317,9 @@ func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 		" · 꼬리: %d · " % both.cost(),
 		"모양: 곧게 3칸",
 		"거리: 나무 한 장마다 +1칸",
-		"넘어감: 하늘",
-		"내릴 때 소음: %d" % Leap.LOUD,
-		"내린 자리에서: 흙",
+		"건너는 것: 하늘",
+		"착지 소음: %d" % Leap.LOUD,
+		"착지 후: 흙",
 		"기절",
 	]
 	for part in parts:
@@ -396,7 +396,7 @@ func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
 	_press(m, "1")
 	assert_eq(m.picked, _typed([Cards.ORB] + LEAP))
-	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 끝")
+	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 맨 끝")
 
 
 # --- 바꿔치기 -------------------------------------------------------------------

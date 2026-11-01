@@ -387,8 +387,8 @@ static func _nav(e: InputEventKey) -> StringName:
 
 func _options() -> Array:
 	var values := {
-		&"volume": str(settings.volume) if settings.volume > 0 else "끔",
-		&"music": str(settings.music) if settings.music > 0 else "끔",
+		&"volume": str(settings.volume) if settings.volume > 0 else "꺼짐",
+		&"music": str(settings.music) if settings.music > 0 else "꺼짐",
 		&"crt": _on(settings.crt),
 		&"zoom": "맞춤" if settings.zoom == 0.0 else str(settings.zoom),
 		&"speed": "%dx" % int(settings.speed),
@@ -405,7 +405,7 @@ func _options() -> Array:
 
 
 static func _on(v: bool) -> String:
-	return "켬" if v else "끔"
+	return "켜짐" if v else "꺼짐"
 
 
 func _keys() -> Array:
@@ -414,7 +414,7 @@ func _keys() -> Array:
 		var action: StringName = _actions()[k]
 		var keys := ", ".join(Keys.keys_of(action).map(Keys.label))
 		if waiting and k == selected:
-			keys = "키를 누르세요"
+			keys = "키 입력 대기"
 		rows.append([[Keys.ACTIONS[action][0], Palette.TEXT], [keys, Palette.SIDE[0], VALUE_COL]])
 	rows.append([["모두 기본값", Palette.TEXT]])
 	return rows

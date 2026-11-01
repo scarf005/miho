@@ -109,12 +109,8 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 			for name: String in Info.CONDITIONS:
 				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name)))
 		6:
-			var terms := Info.glossary()
-			for term: String in terms:
-				var lines := func():
-					var rules: Array = terms[term].map(func(r): return [[r, Palette.DIM]])
-					return [[[term + ".", Palette.TEXT]]] + rules
-				out.append(_entry("·", Palette.TEXT, term, lines))
+			for term: String in Info.glossary():
+				out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
 	return out
 
 

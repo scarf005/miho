@@ -450,7 +450,7 @@ func _add(card: StringName) -> void:
 	elif _held() + Spell.price(picked.size() + 1) > world.tails:
 		why = "꼬리가 모자라다"
 	elif Spell.make(picked + [card]) == null:
-		why = "도약: 맨 앞, 또는 여·구 뒤 끝"
+		why = "도약: 맨 앞, 또는 여·구 뒤 맨 끝"
 	if why != "":
 		_refuse(why)
 	else:
@@ -565,7 +565,7 @@ func _direction(d: Vector2i, hold: bool) -> void:
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not world.can({t = &"cast", spells = spells}):
 		if Spell.make(picked).shape == Spell.LEAP:
-			_say("내려설 곳이 없다")
+			_say("착지할 곳이 없다")
 		sfx.play(&"click")
 		return
 	if hold:
