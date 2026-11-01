@@ -94,6 +94,25 @@ func test_exploring_heads_for_the_nearest_unexplored_edge() -> void:
 	assert_eq(Travel.explore_step(w, Travel.search(w)), Vector2i.ZERO, "nowhere known to go")
 
 
+func test_exploring_eats_a_known_peach_before_the_unexplored_edge() -> void:
+	var w := _world()
+	_forget(w, Vector2i(0, 0), Vector2i(1, 12))
+	w.peaches = [Vector2i(9, 8), Vector2i(4, 12)]
+	w.known[Grid.index(Vector2i(4, 12))] = 0
+	assert_eq(
+		Travel.explore_step(w, Travel.search(w)), Vector2i(1, 0), "the known one, not the edge"
+	)
+	w.peaches = [Vector2i(4, 12)]
+	assert_eq(
+		Travel.explore_step(w, Travel.search(w)), Vector2i(-1, 0), "an unknown one is no goal"
+	)
+	w.stairs = Vector2i(5, 8)
+	_forget(w, Vector2i(0, 0), Vector2i(0, 0))
+	w.known.fill(1)
+	w.peaches = [Vector2i(9, 8)]
+	assert_eq(Travel.explore_step(w, Travel.search(w)), Vector2i(1, 0), "before the stairs too")
+
+
 func test_explored_storeys_lead_beside_the_known_stairs() -> void:
 	var w := _world()
 	w.stairs = Vector2i(9, 8)
