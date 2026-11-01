@@ -54,6 +54,12 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	return a
 
 
+func test_every_recipe_named_in_the_refusal_goes_on_miho() -> void:
+	for k in Guise.RECIPE:
+		assert_eq(Guise.kind(Spell.make(Guise.RECIPE[k])), k)
+		assert_string_contains(Guise.only(), Guise.NAME[k])
+
+
 func test_only_the_shadow_and_the_guise_go_on_miho() -> void:
 	var w := _world()
 	assert_true(w.can(_self([FOX, WATER])))
@@ -62,7 +68,7 @@ func test_only_the_shadow_and_the_guise_go_on_miho() -> void:
 		[FOX], [Cards.ORB], [FOX, FOX, WATER], [FOX, WATER, Cards.WOOD, Cards.FIRE], [WATER]
 	]:
 		assert_false(w.can(_self(cards)), str(cards))
-		assert_eq(Guise.why(w.player(), Spell.make(cards)), Guise.ONLY)
+		assert_eq(Guise.why(w.player(), Spell.make(cards)), Guise.only())
 	var two := {
 		t = &"cast",
 		spells = [{cards = [FOX, WATER], dir = Vector2i.ZERO}, {cards = [FOX], dir = Vector2i.ZERO}]
@@ -223,5 +229,5 @@ func test_comma_with_a_spell_that_does_not_go_on_miho_says_so_and_keeps_the_turn
 	var round_no: int = m.world.round_no
 	_press(m, "Comma")
 	assert_eq(m.world.round_no, round_no)
-	assert_eq(m.messages.lines.back().text, Guise.ONLY)
+	assert_eq(m.messages.lines.back().text, Guise.only())
 	assert_eq(m.picked, [FOX] as Array[StringName], "the queue stays")

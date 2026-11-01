@@ -2,7 +2,7 @@ class_name Guise
 extends RefCounted
 ## 자신에게 걸기: a spell cast with no direction (`,`, or a click on Miho's own
 ## tile) goes on the caster herself. Only the spells that change how she is
-## seen take that aim (`kind`); any other is refused with ONLY.
+## seen take that aim (`kind`); any other is refused with `only`.
 ##
 ## 그림자 (SHADOW: one 여 and any number of 수): a dark wisp rides her
 ## (Elements.stick) for Spell.WISP_LIFE rounds, darkening the tiles round her
@@ -27,11 +27,20 @@ const GUISE := &"guise"
 const NAME := {SHADOW: "그림자", GUISE: "둔갑"}
 ## The talismans that make each, at their weakest.
 const RECIPE := {SHADOW: [Cards.FOX, Cards.WATER], GUISE: [Cards.WOOD, Cards.EARTH]}
-const ONLY := "스스로에겐 그림자(여+수)나 둔갑(목+토)만 걸 수 있다"
 const NO_PREY := "아직 처치한 적이 없다"
 const ROUNDS := 8
 const PER_WOOD := 2
 const BESIDE := 2
+
+
+## The refusal for a spell that does not go on oneself, listing every one that does.
+static func only() -> String:
+	var spells := RECIPE.keys().map(
+		func(k):
+			var cards: Array = RECIPE[k].map(func(c): return Cards.GLYPH[c])
+			return "%s(%s)" % [NAME[k], "+".join(cards)]
+	)
+	return "스스로에겐 %s만 걸 수 있다" % ", ".join(spells)
 
 
 ## What `spell` does cast on oneself: SHADOW, GUISE, or empty when it does not
@@ -54,7 +63,7 @@ static func kind(spell: Spell) -> StringName:
 static func why(a: Actor, spell: Spell) -> String:
 	match kind(spell):
 		&"":
-			return ONLY
+			return only()
 		GUISE:
 			return NO_PREY if a.prey == &"" else ""
 	return ""
