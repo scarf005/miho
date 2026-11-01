@@ -44,6 +44,7 @@ const ACTIONS := {
 	&"slot_4": ["저장 주문 4", ["A"]],
 	&"slot_5": ["저장 주문 5", ["S"]],
 	&"slot_6": ["저장 주문 6", ["D"]],
+	&"unpick": ["주문 하나 빼기", ["Ctrl"]],
 	&"cancel": ["취소 / 설정", ["Escape"]],
 	&"stairs": ["계단으로 가기", ["Shift+Period"]],
 	&"explore": ["자동 탐험", ["O"]],
@@ -98,7 +99,11 @@ static func event(key: String) -> InputEventKey:
 
 ## The action a key press means: one bound with exactly its modifiers, else a
 ## move bound without them (Shift with a direction holds a spell). Empty if none.
+## A press of Ctrl alone is read as Ctrl without the modifier it sets.
 static func action_of(e: InputEvent) -> StringName:
+	if e is InputEventKey and e.keycode == KEY_CTRL and e.ctrl_pressed:
+		e = e.duplicate()
+		e.ctrl_pressed = false
 	for action in ACTIONS:
 		if e.is_action(action, true):
 			return action

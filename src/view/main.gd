@@ -278,6 +278,8 @@ func _key(event: InputEventKey) -> void:
 		_direction(Vector2i.ZERO, event.shift_pressed)
 	elif action in [&"wait", &"confirm"]:
 		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
+	elif action == &"unpick":
+		_unpick()
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
 		_clear()
 	elif action == &"cancel":
@@ -517,6 +519,18 @@ func _refuse(why: String) -> void:
 
 func _held() -> int:
 	return staged.reduce(func(n, s): return n + s.cards.size(), 0)
+
+
+## Takes back the last talisman picked, else the last spell held.
+func _unpick() -> void:
+	if not picked.is_empty():
+		picked.pop_back()
+	elif not staged.is_empty():
+		staged.pop_back()
+	else:
+		return
+	sfx.play(&"click")
+	_forecast()
 
 
 ## Empties the queue and what is held; the cursor goes back to the pointer.
