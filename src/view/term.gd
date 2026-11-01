@@ -600,25 +600,28 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 	)
 
 
-## A charging creature's line, so every incoming spell is seen a round early.
-## A creature running to a drum shows no line: the sidebar and its info say so.
+## A charging creature's line for each spell (a spray's tiles), so every incoming
+## spell is seen a round early. One running to a drum shows none: its info says so.
 func _draw_telegraphs(actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction == Actor.FOX or a.intent.is_empty() or not _revealed(a.pos):
+		if a.faction == Actor.FOX or not _revealed(a.pos):
 			continue
-		var spell := Spell.make(a.intent)
-		var ray := Forecast.ray(world, a.pos, a.aim)
-		if not spell.orb:
-			ray = ray.slice(0, Spell.RANGE)
-		for k in ray.size():
-			if not _shown(ray[k]):
-				continue
-			var pulse := 0.5 + 0.5 * sin(_time * 8.0 - k * 0.6)
-			var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
-			draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
-			if k == 0:
-				_glyph(_cell(ray[k]), Palette.BOLT[a.aim], Palette.SIDE[1])
+		for plan in a.intent:
+			var spell := Spell.make(plan.cards)
+			var ray := Forecast.ray(world, a.pos, plan.dir)
+			if spell.shape == Spell.SPRAY:
+				ray = Spray.cover(world, a, spell, plan.dir)
+			elif not spell.orb:
+				ray = ray.slice(0, Spell.RANGE)
+			for k in ray.size():
+				if not _shown(ray[k]):
+					continue
+				var pulse := 0.5 + 0.5 * sin(_time * 8.0 - k * 0.6)
+				var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
+				draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
+			if not ray.is_empty() and _shown(a.pos + plan.dir):
+				_glyph(_cell(a.pos + plan.dir), Palette.BOLT[plan.dir], Palette.SIDE[1])
 
 
 ## Where each projectile in sight flies next, over tiles Miho knows: an orb
@@ -706,8 +709,8 @@ func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	return list.slice(0, (rows - 2) / SIDE_ROWS)
 
 
-## Creatures in sight, nearest first, as Brogue lists them: glyph and name,
-## hearts, then what it is doing and the spell it charges with its aim.
+## Creatures in sight, nearest first, as Brogue lists them: glyph and name, hearts,
+## then what it is doing and the spells it charges, aimed (alone when both do not fit).
 func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 	var list := _side_list(actors, me_pos)
 	for k in list.size():
@@ -725,14 +728,18 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 		var doing: String = Info.state(a) if a.blind <= 0 else "눈멂"
 		if a.fighting() and a.blind <= 0:
 			doing = "싸우는 중"
-		_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
+		var plans := a.intent.map(func(p): return [Spell.make(p.cards).slots, p.dir])
 		var x := _cells(doing) + 0.5
-		if a.intent.is_empty():
-			continue
-		var slots := Spell.make(a.intent).slots
-		for j in slots.size():
-			_glyph(Vector2(x + j, row + 2), Cards.GLYPH[slots[j]], Palette.card(slots[j]))
-		_glyph(Vector2(x + slots.size(), row + 2), Palette.BOLT[a.aim], Palette.SIDE[1])
+		if x + plans.reduce(func(n, p): return n + p[0].size() + 1, 0) > MAP.x:
+			x = 0.0
+		else:
+			_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
+		for plan: Array in plans:
+			for slot: StringName in plan[0]:
+				_glyph(Vector2(x, row + 2), Cards.GLYPH[slot], Palette.card(slot))
+				x += 1
+			_glyph(Vector2(x, row + 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
+			x += 1
 
 
 ## A frame on the tile under the pointer, and what is there in a box on the

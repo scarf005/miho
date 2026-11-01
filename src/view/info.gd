@@ -281,17 +281,20 @@ static func _status(a: Actor) -> Array:
 	return [line] + SpellInfo.STATUS_DOES[key].map(func(d): return [["  " + d, Palette.TEXT]])
 
 
-## Each spell it casts, with its cooldown, harm and noise.
+## Each spell it casts at its rank, with its cooldown, harm and noise, and how
+## many it casts at once from Bestiary.DOUBLES.
 static func _casts(a: Actor) -> Array:
 	var out := []
-	for cast: Array in a.info().get("casts", []):
+	if a.rank >= Bestiary.DOUBLES and a.repertoire().size() > 1:
+		out.append([["동시 주술: 2개", Palette.TEXT]])
+	for cast: Array in a.repertoire():
 		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
 			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]
 		out.append(line)
 		out.append([["  간격: %d초" % a.info().cd, Palette.DIM]])
-		if not a.intent.is_empty() and Spell.make(a.intent).key() == spell.key():
+		if a.intent.any(func(plan): return Spell.make(plan.cards).key() == spell.key()):
 			out.append([["  모으는 중.", Palette.HURT]])
 		elif a.cooldown > 0:
 			out.append([["  다음: %d초 뒤" % a.cooldown, Palette.DIM]])
@@ -301,8 +304,14 @@ static func _casts(a: Actor) -> Array:
 
 
 ## The elements of a spell its title does not tell (SpellInfo.elements), harm,
-## the burst of a fire orb and noise of a spell, one short line each.
+## the burst of a fire orb and noise of a spell, one short line each; a spray's
+## shape and effect (SpellInfo._spray) in place of the harm and burst.
 static func _spell_details(s: Spell) -> Array[String]:
+	if s.shape == Spell.SPRAY:
+		var lines: Array[String] = []
+		for line: Array in SpellInfo._spray(s) + SpellInfo._lines(SpellInfo._sounds(s)):
+			lines.append("".join(line.map(func(run): return run[0])))
+		return lines
 	var near := s.damage(0)
 	var far := s.damage(Spell.MOMENTUM)
 	var out: Array[String] = ["피해: %d" % near if near > 0 else "피해: 없음"]

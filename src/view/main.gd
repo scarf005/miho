@@ -765,6 +765,7 @@ func _show_log() -> void:
 func _open(kind: StringName) -> void:
 	overlay = kind
 	menu.log_rows = messages.lines.map(Messages.shown)
+	menu.codex.rank = Bestiary.rank(world.tier())
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
 

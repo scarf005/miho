@@ -4,8 +4,15 @@ extends RefCounted
 ## ones (`drop`) add an element and give it to Miho when they fall, and
 ## 부지깽이 도깨비 (도깨비불) and 불개 add fire to their foxfire. The plain
 ## dokkaebi's 도깨비불 is a lone wisp: no element, no harm.
-## spell_name: what the log and hover call the spell it casts, in place of the
-## name its cards give it (Bestiary.spell).
+## Ranks: the storeys come in ranks of two tiers (`rank`), 1 to RANKS. A
+## creature is of the rank of the storey it came to (Actor.rank): RANK_HP adds
+## to its health, and `ranks` holds, by rank, every spell it casts from that
+## rank on (`casts` before the first). Deeper spells keep the kind's elements
+## and change the board more than they hurt: more wisps, homing orbs, sprays
+## and compounds. From PICKS on it picks the spell that suits (Aim.at), and from
+## DOUBLES on it charges two at once.
+## spell_name: what the log and hover call its first spell (`casts`), in place
+## of the name its cards give it (Bestiary.spell).
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
 ## and `throw`, how many tiles the blow pushes her back (into the sky she falls).
@@ -34,6 +41,12 @@ extends RefCounted
 const FOX := Cards.FOX
 const ORB := Cards.ORB
 const GROWTH := 1
+const RANKS := 5
+## Health added at each rank: from the second, three creatures that stand
+## together outlast Miho's best cast at the storey the rank starts on.
+const RANK_HP := [0, 1, 3, 5, 6]
+const PICKS := 3
+const DOUBLES := 4
 const DULL := 0
 const SHARP := 1
 const CUNNING := 2
@@ -58,6 +71,12 @@ const KINDS := {
 		hp = 2,
 		melee = {name = "방망이", hit = "맞아", damage = 1},
 		casts = [[FOX]],
+		ranks =
+		{
+			2: [[FOX], [FOX, FOX]],
+			3: [[FOX], [FOX, FOX], [FOX, ORB]],
+			5: [[FOX], [FOX, FOX, FOX], [FOX, ORB]],
+		},
 		spell_name = "도깨비불",
 		cd = 3,
 		move = &"approach",
@@ -87,6 +106,12 @@ const KINDS := {
 		hp = 2,
 		melee = {name = "부지깽이", hit = "맞아", damage = 1},
 		casts = [[FOX, Cards.FIRE]],
+		ranks =
+		{
+			2: [[FOX, Cards.FIRE], [ORB, Cards.FIRE]],
+			3: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE]],
+			5: [[FOX, Cards.FIRE], [ORB, Cards.FIRE], [Cards.FIRE, Cards.FIRE, Cards.FIRE]],
+		},
 		spell_name = "도깨비불",
 		cd = 3,
 		move = &"approach",
@@ -129,6 +154,12 @@ const KINDS := {
 		group = &"jangseung",
 		hp = 3,
 		casts = [[ORB]],
+		ranks =
+		{
+			2: [[ORB], [FOX, ORB]],
+			3: [[ORB], [FOX, ORB], [FOX, FOX, ORB]],
+			5: [[ORB], [FOX, ORB], [FOX, FOX, FOX, FOX, ORB]],
+		},
 		cd = 2,
 		move = &"static",
 		deaf = true,
@@ -142,6 +173,12 @@ const KINDS := {
 		shout = {word = "쉭", loud = 3},
 		hp = 2,
 		casts = [[ORB]],
+		ranks =
+		{
+			2: [[ORB], [FOX, FOX]],
+			3: [[ORB], [FOX, FOX], [FOX, ORB]],
+			5: [[ORB], [FOX, FOX, FOX], [FOX, ORB]],
+		},
 		cd = 3,
 		move = &"align",
 		wits = 1,
@@ -171,6 +208,17 @@ const KINDS := {
 		shout = {word = "으르렁", loud = 5},
 		hp = 4,
 		casts = [[ORB, Cards.WATER]],
+		ranks =
+		{
+			2: [[ORB, Cards.WATER], [Cards.WATER]],
+			3: [[ORB, Cards.WATER], [Cards.WATER, Cards.WATER], [FOX, ORB, Cards.WATER]],
+			5:
+			[
+				[ORB, Cards.WATER],
+				[Cards.WATER, Cards.WATER, Cards.WATER],
+				[FOX, ORB, Cards.WATER],
+			],
+		},
 		cd = 3,
 		move = &"align",
 		step = 3,
@@ -187,6 +235,7 @@ const KINDS := {
 		shout = {word = "이놈", loud = 9},
 		hp = 4,
 		casts = [[ORB, Cards.WOOD]],
+		ranks = {2: [[ORB, Cards.WOOD], [Cards.WOOD]]},
 		cd = 2,
 		move = &"static",
 		deaf = true,
@@ -201,6 +250,7 @@ const KINDS := {
 		shout = {word = "이놈", loud = 9},
 		hp = 4,
 		casts = [[FOX, Cards.METAL]],
+		ranks = {2: [[FOX, Cards.METAL], [Cards.METAL, Cards.METAL, Cards.METAL]]},
 		cd = 3,
 		move = &"static",
 		deaf = true,
@@ -216,6 +266,7 @@ const KINDS := {
 		hp = 3,
 		melee = {name = "쇠톱 같은 이빨", hit = "물려", damage = 1},
 		casts = [[ORB, Cards.EARTH]],
+		ranks = {3: [[ORB, Cards.EARTH], [FOX, Cards.EARTH], [Cards.EARTH, Cards.EARTH]]},
 		cd = 3,
 		move = &"slow",
 		step = 5,
@@ -232,6 +283,16 @@ const KINDS := {
 		shout = {word = "크아앙", loud = 12},
 		hp = 8,
 		casts = [[FOX, ORB, Cards.WATER], [ORB, Cards.FIRE, Cards.METAL]],
+		ranks =
+		{
+			5:
+			[
+				[FOX, ORB, Cards.WATER],
+				[ORB, Cards.FIRE, Cards.METAL],
+				[FOX, Cards.WATER, Cards.METAL],
+				[Cards.WATER, Cards.FIRE],
+			],
+		},
 		cd = 2,
 		move = &"align",
 		boss = true,
@@ -245,6 +306,12 @@ const KINDS := {
 		hp = 9,
 		melee = {name = "오랏줄", hit = "맞아", damage = 1},
 		casts = [[ORB]],
+		ranks =
+		{
+			2: [[ORB], [FOX, ORB]],
+			3: [[FOX, ORB], [FOX, FOX]],
+			4: [[FOX, ORB], [FOX, FOX], [FOX, FOX, ORB]],
+		},
 		cd = 2,
 		move = &"approach",
 		step = 3,
@@ -259,10 +326,31 @@ static func info(kind: StringName) -> Dictionary:
 	return KINDS[kind]
 
 
-## The spell a `kind` hurls from `cards`, called by its own name if it has one.
+## The rank of the storeys of a tier: two tiers each.
+static func rank(tier: int) -> int:
+	return mini((tier + 1) / 2, RANKS)
+
+
+## Every spell a creature of `kind` casts at rank `r`.
+static func casts(kind: StringName, r: int) -> Array:
+	var out: Array = info(kind).get("casts", [])
+	for k in range(2, r + 1):
+		out = info(kind).get("ranks", {}).get(k, out)
+	return out
+
+
+## The health of a creature of `kind` at rank `r`.
+static func hp(kind: StringName, r: int) -> int:
+	return info(kind).hp + RANK_HP[r - 1]
+
+
+## The spell a `kind` hurls from `cards`, its first spell called by its own
+## name if it has one.
 static func spell(kind: StringName, cards: Array) -> Spell:
 	var s := Spell.make(cards)
-	s.called = info(kind).get("spell_name", "")
+	var first: Array = info(kind).get("casts", [[]])[0]
+	if "+".join(first) == s.key():
+		s.called = info(kind).get("spell_name", "")
 	return s
 
 
@@ -316,11 +404,15 @@ static func eats(kind: StringName, spell: Spell) -> bool:
 	return absorbs(kind, spell) and spell.holds(info(kind).get("eats", &""))
 
 
-## A creature's elements: those of the spells it casts, in 오행 order.
+## A creature's elements: those of the spells it casts at any rank, in 오행
+## order.
 static func elements(kind: StringName) -> Array[StringName]:
+	var all := []
+	for r in range(1, RANKS + 1):
+		all.append_array(casts(kind, r))
 	var out: Array[StringName] = []
 	for c in Cards.ELEMENTS:
-		if info(kind).get("casts", []).any(func(cast): return cast.has(c)):
+		if all.any(func(cast): return cast.has(c)):
 			out.append(c)
 	return out
 

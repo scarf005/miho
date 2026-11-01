@@ -19,6 +19,8 @@ const AT := Vector2i(5, 8)
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
 var tab := 0
+## The rank of the storey Miho is on (Bestiary.rank): the creatures read as there.
+var rank := 1
 var selected := 0
 ## The first entry shown, and the entry the pointer is over (-1 for none).
 var top := 0
@@ -50,14 +52,14 @@ static func stage() -> World:
 
 
 ## The entries of a tab: {glyph, color, name, lines}, `lines` a Callable
-## returning the hover lines.
-static func entries(tab_index: int) -> Array[Dictionary]:
+## returning the hover lines; a creature as it comes at rank `at_rank`.
+static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	match tab_index:
 		0:
 			for kind in foes():
 				var spec := Bestiary.info(kind)
-				var lines := func(): return Info.creature_facts(foe(kind), [])
+				var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
 				out.append(_entry(spec.glyph, Palette.KIND[kind], spec.name, lines))
 		1:
 			for c in Cards.FORMS + Cards.ELEMENTS:
@@ -104,11 +106,12 @@ static func foes() -> Array:
 	return Bestiary.KINDS.keys().filter(func(k): return k != &"miho")
 
 
-## A creature of `kind` at full health, unaware.
-static func foe(kind: StringName) -> Actor:
+## A creature of `kind` of rank `at_rank` at full health, unaware.
+static func foe(kind: StringName, at_rank := 1) -> Actor:
 	var a := Actor.new()
 	a.kind = kind
-	a.hp = Bestiary.info(kind).hp
+	a.rank = at_rank
+	a.hp = Bestiary.hp(kind, at_rank)
 	a.max_hp = a.hp
 	return a
 
@@ -148,7 +151,7 @@ static func flow(lines: Array, width: float) -> Array:
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
-	var list := entries(tab)
+	var list := entries(tab, rank)
 	var rows := []
 	for e in list:
 		rows.append([[e.glyph, e.color, 2.0], [e.name, Palette.TEXT, 4.0]])
@@ -225,7 +228,7 @@ func go(t: int) -> void:
 
 ## The detail of the selected entry, cut to the room.
 func _lines() -> Array:
-	return flow(detail(entries(tab)[selected]), room.x - SIDE_X - 1.0)
+	return flow(detail(entries(tab, rank)[selected]), room.x - SIDE_X - 1.0)
 
 
 ## Lines of the detail, and rows of the list, that fit.

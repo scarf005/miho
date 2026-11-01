@@ -148,17 +148,19 @@ func test_from_the_fourth_rank_it_charges_two_spells_and_casts_both() -> void:
 
 func test_the_forecast_shows_both_spells_of_a_double_charge() -> void:
 	var w := _world(19)
-	var post := _hunter(w, &"jangseung", ME + E * 4)
+	var post := _hunter(w, &"jangseung", ME + E * 2)
 	w.act(WAIT)
+	var cast := Forecast.of(w, WAIT)
+	assert_eq(_of(cast.events, &"cast", post.id).size(), 2)
+	var cast_round := w.act(WAIT)
+	assert_false(cast_round.any(func(e): return e.t in [&"clash", &"snuff"]), "they leave apart")
 	var f := Forecast.of(w, WAIT)
-	var events := w.act(WAIT)
 	var harm := 0
-	for e in events:
+	for e in w.act(WAIT):
 		if e.t == &"hurt" and e.id == w.player().id:
 			harm += e.n
 	assert_gt(harm, 0)
 	assert_eq(f.harm.get(w.player().id, 0), harm)
-	assert_eq(_of(f.events, &"cast", post.id).size(), 2)
 
 
 func test_a_water_jet_from_heaven_pushes_miho_back() -> void:

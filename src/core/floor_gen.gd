@@ -794,7 +794,8 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.pos = at
 	a.home = at
 	a.post = at
-	a.hp = Bestiary.info(kind).hp
+	a.rank = Bestiary.rank(w.tier())
+	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp
 	w.actors.append(a)
 	return a
