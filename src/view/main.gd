@@ -373,7 +373,6 @@ func _do(action: StringName, shift: bool) -> void:
 		excluded.clear()
 		_zones_changed()
 	elif action == &"spellbook":
-		menu.queued = Spell.make(picked)
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
 		_recall(settings.spells.get(action, ""))
@@ -530,7 +529,7 @@ func _add(card: StringName) -> void:
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
 		why = "부적 칸이 가득 찼다"
 	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
-		why = "꼬리가 모자라다"
+		why = _short(_held() + Spell.price(picked.size() + 1))
 	elif Spell.make(picked + [card]) == null:
 		why = "%s: 맨 앞, 또는 %s" % [Cards.NAME[Cards.VAULT], SpellInfo.behind()]
 	if why != "":
@@ -550,7 +549,7 @@ func _recall(key: String) -> void:
 	elif not spell.cards.all(func(c): return world.cards.has(c)):
 		why = "부적이 모자라다"
 	elif spell.cost() + _held() > Cheat.tails(world):
-		why = "꼬리가 모자라다"
+		why = _short(spell.cost() + _held())
 	if why != "":
 		_refuse(why)
 		return
@@ -596,6 +595,11 @@ func _hurl_at_cursor() -> void:
 		_direction(Grid.nearest_dir(hover - me), false)
 	else:
 		_refuse("겨눌 곳이 없다")
+
+
+## The refusal when a spell needs more tails than Miho has.
+func _short(need: int) -> String:
+	return "꼬리가 모자라다: %d/%d" % [Cheat.tails(world), need]
 
 
 ## Says why a talisman or saved spell cannot be picked, with the warning sound.
@@ -881,6 +885,7 @@ func _show_log() -> void:
 
 ## Shows a full-screen panel: a Menu page.
 func _open(kind: StringName) -> void:
+	menu.queued = Spell.make(picked)
 	overlay = kind
 	if touch.enabled:
 		_fit()

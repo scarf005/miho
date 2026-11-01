@@ -39,6 +39,9 @@ const OPTIONS := [
 	&"speed",
 	&"codex",
 	&"keys",
+	&"spells",
+	&"log",
+	&"help",
 	&"seed",
 	&"cheat",
 	&"restart",
@@ -53,6 +56,9 @@ const OPTION_NAMES := {
 	&"replay": "명장면 다시보기",
 	&"codex": "도감",
 	&"keys": "키 설정",
+	&"spells": "주문서",
+	&"log": "기록",
+	&"help": "도움말",
 	&"seed": "시드",
 	&"cheat": "디버그 명령",
 	&"restart": "처음부터",
@@ -147,7 +153,8 @@ func panel() -> Dictionary:
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
 			out = {title = "주문서", rows = _spells(list), detail = detail}
 		&"log":
-			out = {title = "기록", rows = log_rows, painted = true}
+			var none := [[["기록이 없다", Palette.DIM]]]
+			out = {title = "기록", rows = log_rows if log_rows else none, painted = true}
 		&"codex":
 			return codex.panel()
 		&"cheat":
@@ -311,7 +318,7 @@ func scroll_by(lines: int, aside: bool) -> void:
 func use() -> StringName:
 	match page:
 		&"help", &"log":
-			return &"close"
+			return _leave()
 		&"spells":
 			return _choose()
 		&"keys":
@@ -324,7 +331,7 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = _listed()[selected]
 	match row:
-		&"keys", &"codex", &"cheat":
+		&"keys", &"codex", &"cheat", &"spells", &"log", &"help":
 			_enter(row)
 			return &""
 		&"restart" when not confirming:
@@ -456,7 +463,7 @@ static func _nav(e: InputEventKey) -> StringName:
 
 ## The options the page lists.
 func _listed() -> Array:
-	return OPTIONS.filter(func(o): return not (title and o == &"cheat"))
+	return OPTIONS.filter(func(o): return not (title and o in [&"cheat", &"spells", &"log"]))
 
 
 func _options() -> Array:

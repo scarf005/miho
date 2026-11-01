@@ -198,3 +198,32 @@ func test_the_help_page_scrolls_and_a_modifier_or_click_does_not_close_it() -> v
 	assert_eq(m.term.panel.selected, 2, "the click selects the row")
 	_key(m, "Escape")
 	assert_eq(m.overlay, &"")
+
+
+func test_every_page_opens_from_the_esc_menu_and_esc_returns_to_its_row() -> void:
+	for page: StringName in [&"spells", &"log", &"help"]:
+		var m := _main()
+		m._open(&"options")
+		m.menu.selected = m.menu._listed().find(page)
+		_key(m, "Enter")
+		assert_eq(m.menu.page, page)
+		_key(m, "Escape")
+		assert_eq(m.menu.page, &"options", page)
+		assert_eq(m.menu._listed()[m.menu.selected], page)
+
+
+func test_an_empty_log_says_so() -> void:
+	var m := _main()
+	m.messages.lines.clear()
+	m._open(&"log")
+	assert_eq(m.menu.panel().rows.size(), 1)
+
+
+func test_a_popup_of_the_storey_she_left_is_gone_when_she_lands() -> void:
+	var m := _main()
+	var at := Vector2i(5, 5)
+	var plate := {t = &"trap", at = at, kind = World.TRAP_ALARM, where = at}
+	m.term._apply(plate, plate)
+	assert_false(m.term._popups.is_empty())
+	m.term._apply({t = &"fall", id = 0, from = at, at = at, depth = 1}, {})
+	assert_true(m.term._popups.is_empty())
