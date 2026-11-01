@@ -272,7 +272,7 @@ static func _form(s: Spell) -> Array:
 		Spray.AROUND:
 			return [["모양", "둘레 %d칸" % n]]
 		Spray.SIGHT:
-			return [["모양", "보이는 적" + (", 미호" if shape.size() > 2 else "")]]
+			return [["노림", "보이는 적 모두" + (", 미호" if shape.size() > 2 else "")]]
 		Spray.ROOTS:
 			var deepest := Spell.MAX_LEVEL - 1
 			return [
