@@ -29,7 +29,7 @@ func _hall() -> World:
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
 	w.dim.resize(w.tiles.size())
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	return w
 

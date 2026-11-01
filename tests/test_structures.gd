@@ -25,7 +25,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	w.rng.seed = 5
 	w.sense()
@@ -281,13 +281,13 @@ func test_storeys_lay_each_kind_and_stay_whole() -> void:
 		assert_gt(seen.get(kind, 0), 10, "kind %d appears" % kind)
 
 
-func test_no_censer_before_the_second_tier_and_the_same_seed_lays_the_same_tiles() -> void:
+func test_no_censer_before_the_second_storey_and_the_same_seed_lays_the_same_tiles() -> void:
 	for seed_value in 4:
 		var a := World.create(seed_value)
 		var b := World.create(seed_value)
 		assert_eq(a.tiles, b.tiles)
 		assert_eq(a.vents, b.vents)
-		for depth in range(1, 4):
+		for depth in range(1, 2):
 			a.depth = depth
 			FloorGen.build(a)
 			assert_false(a.tiles.has(World.CENSER), "storey %d" % depth)

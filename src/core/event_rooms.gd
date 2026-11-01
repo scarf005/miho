@@ -19,14 +19,14 @@ extends RefCounted
 ## 서고 (Library): a dark room behind closed doors; its scrolls show the map.
 
 ## The chance of a treasure room.
-const VAULTS := 0.4
-## The other rooms: the first tier each appears on, and the chance, tried in order.
+const VAULTS := 0.45
+## The other rooms: the first storey each appears on, and the chance, tried in order.
 const ROWS := [
-	{kind = &"altar", tier = 1, chance = 0.12},
-	{kind = &"veil", tier = 1, chance = 0.12},
-	{kind = &"yard", tier = 1, chance = 0.12},
-	{kind = &"creak", tier = 3, chance = 0.12},
-	{kind = &"library", tier = 2, chance = 0.12},
+	{kind = &"altar", tier = 1, chance = 0.3},
+	{kind = &"veil", tier = 1, chance = 0.3},
+	{kind = &"yard", tier = 1, chance = 0.3},
+	{kind = &"creak", tier = 3, chance = 0.3},
+	{kind = &"library", tier = 2, chance = 0.3},
 ]
 
 
@@ -38,7 +38,7 @@ static func build(w: World, home: Rect2i) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = w.rng.state
 	for row: Dictionary in ROWS:
-		if w.tier() >= row.tier and rng.randf() < row.chance and _try(w, home, rng, row.kind):
+		if w.depth >= row.tier and rng.randf() < row.chance and _try(w, home, rng, row.kind):
 			return
 
 

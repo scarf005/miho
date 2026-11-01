@@ -28,7 +28,7 @@ func _hall(secret: bool) -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(5, 7)
 	w.actors.append(me)
-	w.depth = 13
+	w.depth = 5
 	w.tails = 1
 	return w
 

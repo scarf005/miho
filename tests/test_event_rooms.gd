@@ -25,15 +25,17 @@ func test_a_vault_comes_up_in_about_two_storeys_in_five() -> void:
 	assert_between(float(row.present) / row.storeys, 0.3, 0.5, "share of storeys")
 
 
-## Storey 1 of these seeds put ponds round a lantern of the vault.
+## Ponds once grew round a lantern of the vault on storey 1 of some seeds.
 func test_a_pond_never_cuts_a_vault_lantern_off() -> void:
-	for seed_value in [29, 117, 156]:
+	var vaults := 0
+	for seed_value in 200:
 		var w := World.create(seed_value)
 		w.depth = 1
 		FloorGen.build(w)
-		assert_false(w.seals.is_empty(), "seed %d has a vault" % seed_value)
+		vaults += w.seals.size()
 		for seal: Vector2i in w.seals:
 			assert_true(EventRooms._vault_opens(w, seal), "seed %d" % seed_value)
+	assert_gt(vaults, 50, "storey 1 of 200 seeds holds vaults")
 
 
 func test_a_vault_with_a_broken_lantern_is_not_opened_by_its_lanterns() -> void:

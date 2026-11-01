@@ -10,9 +10,9 @@ extends RefCounted
 ## `vent` lays `what` and has it breathe that gas. A row with `hidden` lays a
 ## plate (Traps) that is `what`, but the tile stays `on` until Miho finds it. A
 ## row with `aside` draws from a generator of its own (see `scatter`).
-## tiers: the first and last tier (World.tier, 1 to 9) it appears on.
+## tiers: the first and last storey (1 to 9) it appears on.
 ## chance: the percent chance that each patch is laid.
-## count: [intercept, slope, most]. A storey has (intercept + tier * slope) / 100
+## count: [intercept, slope, most]. A storey has (intercept + depth * slope) / 100
 ## patches, at most `most`; the remainder is the chance of one more.
 ## grow: [start, step]. A patch starts on one random tile and spreads to each of
 ## its four neighbours in the room with `start` percent, then on from those with
@@ -167,7 +167,7 @@ const ROWS := [
 const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 
 
-## Lays every row's patches for this storey's tier in the rooms but `goal`.
+## Lays every row's patches for this storey in the rooms but `goal`.
 ## Plates, and the rows with `aside` (furniture), draw from generators of their
 ## own, seeded from the world's, so they leave the draws of everything laid
 ## after them as they were.
@@ -177,14 +177,14 @@ static func scatter(w: World, goal: Rect2i) -> void:
 	var furniture := RandomNumberGenerator.new()
 	furniture.seed = hash(w.rng.state)
 	for row: Dictionary in ROWS:
-		if w.tier() < row.tiers[0] or w.tier() > row.tiers[1]:
+		if w.depth < row.tiers[0] or w.depth > row.tiers[1]:
 			continue
 		var rng := w.rng
 		if row.get("hidden", false):
 			rng = plates
 		elif row.get("aside", false):
 			rng = furniture
-		for i in count(row, w.tier(), rng):
+		for i in count(row, w.depth, rng):
 			var spots := _spots(w, row, goal)
 			if spots.is_empty():
 				break
@@ -193,9 +193,9 @@ static func scatter(w: World, goal: Rect2i) -> void:
 	w._changed()
 
 
-## How many patches of `row` a storey of `tier` has.
-static func count(row: Dictionary, tier: int, rng: RandomNumberGenerator) -> int:
-	var hundredths := maxi(0, row.count[0] + tier * row.count[1])
+## How many patches of `row` storey `depth` has.
+static func count(row: Dictionary, depth: int, rng: RandomNumberGenerator) -> int:
+	var hundredths := maxi(0, row.count[0] + depth * row.count[1])
 	var extra := 1 if rng.randi_range(0, 99) < hundredths % 100 else 0
 	return mini(row.count[2], hundredths / 100 + extra)
 

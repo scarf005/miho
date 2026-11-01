@@ -7,7 +7,7 @@ const ROOM := Rect2i(10, 5, 11, 5)
 const DOOR := Vector2i(9, 7)
 const SHELVES := [11, 13, 15, 17, 19]
 const SEEDS := 24
-const DEPTHS := [4, 13, 25]
+const DEPTHS := [2, 5, 9]
 
 var _storeys: Array[World] = []
 
@@ -44,7 +44,7 @@ func _hall() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(6, 7)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 1
 	return w
 

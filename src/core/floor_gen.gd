@@ -14,15 +14,15 @@ extends RefCounted
 ## light some rooms. Some other rooms get a bamboo patch, a pond, or
 ## floorboards (a pavilion hall).
 ## Patches of grass, leaves, straw, reeds, shallow water and pillars lie in rooms
-## by tier (Placement).
-## From tier 2 a lit room may hold a war drum. Galleries stay plain and dark.
+## by storey (Placement).
+## From storey 2 a lit room may hold a war drum. Galleries stay plain and dark.
 ## One room may then be made a set room (SetRooms).
 ## Miho starts in the westmost room; the stairs (the elixir on the top storey)
 ## sit in the room farthest from her, which is always lit. Watchers that never
 ## move stand by lanterns. The creatures that walk come in bands (`bands`): those
 ## of one group stand together in one room, and follow the strongest of them.
 
-## The creatures of each tier of three storeys; a boss only comes to the last storey.
+## The creatures of each storey; a boss only comes to the last storey.
 const PLAN := {
 	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"dokkaebi", &"jangseung", &"jangseung"],
 	2:
@@ -250,11 +250,11 @@ static func _carve(w: World) -> void:
 
 
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
-## tiers), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
+## storeys), SKY_GAP apart, each tall enough to span BRIDGE_ROWS so that a
 ## straight bridge on those rows meets any two neighbours. One pair, at random,
 ## stands far enough apart for ledges LEAP apart.
 static func _pavilions(w: World) -> Array[Rect2i]:
-	var n := clampi(2 + (w.tier() - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
+	var n := clampi(2 + (w.depth - 1) / 4 + w.rng.randi_range(0, 1), 2, 4)
 	var gaps: Array[int] = []
 	var spare := Grid.W - 2 - MIN_WIDTH * n
 	var leap := w.rng.randi_range(0, n - 2)
@@ -382,13 +382,18 @@ static func _walled(w: World, p: Vector2i, across: Vector2i) -> bool:
 	)
 
 
-## 1 + (tier - 1) / 3 hidden doors, on tiles of `spots` (from _doorways)
+## The hidden doors of storey `depth`: two, and one more every third storey.
+static func hidden_doors(depth: int) -> int:
+	return 2 + (depth - 1) / 3
+
+
+## `hidden_doors` of them, on tiles of `spots` (from _doorways)
 ## between two rooms at least SHORTCUT steps apart, neither the start room
 ## (rooms[0]), where one would be found, and let light in, at once.
 static func _hide_doors(w: World, spots: Array) -> void:
 	var open := Masks.floor_of(w)
 	for s: Array in spots:
-		if w.secrets.size() > (w.tier() - 1) / 3:
+		if w.secrets.size() >= hidden_doors(w.depth):
 			return
 		var p: Vector2i = s[0]
 		var d: Vector2i = s[1]
@@ -595,10 +600,10 @@ static func _features(w: World, goal: Rect2i) -> void:
 						w.tiles[Grid.index(Vector2i(x, y))] = World.BOARD
 
 
-## From tier 2, at a chance, a drum on a bare tile of a lit room, unless it would
+## From storey 2, at a chance, a drum on a bare tile of a lit room, unless it would
 ## cut the storey apart.
 static func _drum(w: World) -> void:
-	if w.tier() < Drums.FIRST_TIER or w.rng.randf() >= Drums.CHANCE:
+	if w.depth < Drums.FIRST_STOREY or w.rng.randf() >= Drums.CHANCE:
 		return
 	w._changed()
 	var spots: Array[Vector2i] = []
@@ -674,10 +679,10 @@ static func bands(kinds: Array) -> Array:
 ## Standing watchers and bosses where they belong, then each band: its leader
 ## anywhere, its followers round it in the same room (alone where none fits).
 static func _creatures(w: World) -> void:
-	for kind in PLAN[w.tier()]:
+	for kind in PLAN[w.depth]:
 		if not Bestiary.bands(kind):
 			_place(w, kind)
-	for band in bands(PLAN[w.tier()]):
+	for band in bands(PLAN[w.depth]):
 		var lead := _place(w, band[0])
 		for kind in band.slice(1):
 			var spot := Vector2i(-1, -1)
@@ -794,7 +799,7 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.pos = at
 	a.home = at
 	a.post = at
-	a.rank = Bestiary.rank(w.tier())
+	a.rank = Bestiary.rank(w.depth)
 	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp
 	w.actors.append(a)

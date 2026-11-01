@@ -22,7 +22,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 5
+	w.depth = 2
 	w.rng.seed = 5
 	w.set_tile(AT, World.STATUE)
 	w.sense()

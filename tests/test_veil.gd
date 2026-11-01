@@ -11,7 +11,7 @@ const WAIT := {t = &"wait"}
 const ME := Vector2i(20, 12)
 const LINE_X := 30
 const SEEDS := 16
-const DEPTHS := [1, 7, 13, 25]
+const DEPTHS := [1, 3, 5, 9]
 
 var _storeys: Array[World] = []
 
@@ -49,7 +49,7 @@ func _world() -> World:
 	me.max_hp = 9
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 13
+	w.depth = 5
 	w.tails = 5
 	w.cards.assign(Cards.ALL)
 	w.sense()

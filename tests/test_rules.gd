@@ -27,7 +27,7 @@ func _world(at := Vector2i(4, 8)) -> World:
 	me.max_hp = 3
 	me.pos = at
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	return w
 
@@ -526,7 +526,7 @@ func test_strong_foe_gives_its_element_and_a_kill_gives_back_a_tail() -> void:
 
 func test_one_turn_splits_the_tails_across_several_spells() -> void:
 	var w := _world()
-	w.depth = 5
+	w.depth = 2
 	w.tails = 5
 	for c in Cards.ELEMENTS:
 		w.cards.append(c)
@@ -543,7 +543,7 @@ func test_one_turn_splits_the_tails_across_several_spells() -> void:
 
 func test_spent_tails_regrow_one_every_three_rounds_up_to_the_most_the_storey_allows() -> void:
 	var w := _world()
-	w.depth = 4
+	w.depth = 2
 	w.tails = 0
 	for i in 3:
 		w.act(WAIT)
@@ -553,15 +553,15 @@ func test_spent_tails_regrow_one_every_three_rounds_up_to_the_most_the_storey_al
 	assert_eq(w.tails, 2)
 
 
-func test_a_tail_grows_every_third_storey() -> void:
+func test_a_tail_grows_on_every_storey() -> void:
 	var w := World.create(5)
-	for case in [[1, 1], [3, 1], [4, 2], [6, 2], [7, 3], [25, 9], [27, 9]]:
+	for case in [[1, 1], [2, 2], [3, 3], [5, 5], [8, 8], [9, 9]]:
 		w.depth = case[0]
 		assert_eq(w.max_tails(), case[1], "storey %d" % case[0])
 
 
 func test_climbing_refills_the_tails_to_what_the_new_storey_allows() -> void:
-	for depth in [1, 3]:
+	for depth in [1, 4]:
 		var w := World.create(5)
 		w.depth = depth
 		FloorGen.build(w)
@@ -571,7 +571,7 @@ func test_climbing_refills_the_tails_to_what_the_new_storey_allows() -> void:
 			w.actors[0].pos = w.stairs + E
 		w.act({t = &"move", dir = w.stairs - w.actors[0].pos})
 		assert_eq(w.depth, depth + 1)
-		assert_eq(w.tails, 1 if depth == 1 else 2, "arriving on storey %d" % w.depth)
+		assert_eq(w.tails, depth + 1, "arriving on storey %d" % w.depth)
 
 
 func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
@@ -590,7 +590,8 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				assert_gt(dist[i], -1, "seed %d tile %s" % [seed_value, Grid.at(i)])
 		assert_true(w.lit(w.stairs), "seed %d" % seed_value)
 		assert_false(w.lit(w.start), "seed %d" % seed_value)
-		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size())
+		var guards := w.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
+		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size() + guards)
 		for a in w.actors.slice(1):
 			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)
 	for t in features:

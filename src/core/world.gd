@@ -77,13 +77,12 @@ extends RefCounted
 ## A storey may hold one event room, built by hand, whose reward is used on the
 ## spot: see EventRooms.
 ##
-## Miho grows one more tail every third storey (일미호 to 구미호). Her action
+## Miho grows one more tail on every storey (일미호 to 구미호). Her action
 ## is a move, a wait, or any number of spells whose cards together cost no more
 ## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
 ## kill gives one back.
 
-const FLOORS := 27
-const TAIL_EVERY := 3
+const FLOORS := 9
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
 const TAIL_REGROW := 3
@@ -297,12 +296,7 @@ func player() -> Actor:
 
 
 func max_tails() -> int:
-	return 1 + (depth - 1) / TAIL_EVERY + tail_bonus
-
-
-## The difficulty step of this storey: 1 to 9, each lasting TAIL_EVERY storeys.
-func tier() -> int:
-	return (depth + TAIL_EVERY - 1) / TAIL_EVERY
+	return depth + tail_bonus
 
 
 func tile(p: Vector2i) -> int:

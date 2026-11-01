@@ -81,7 +81,7 @@ func test_the_observation_tells_the_state_and_the_map() -> void:
 	var text: String = (
 		_game().handle(_request("tools/call", {name = "observe"})).result.content[0].text
 	)
-	for part in ["storey 1/27", "hp 3/3", "tails 1/1", "1 fox (여우불)", "@", "moves:"]:
+	for part in ["storey 1/9", "hp 3/3", "tails 1/1", "1 fox (여우불)", "@", "moves:"]:
 		assert_string_contains(text, part)
 
 

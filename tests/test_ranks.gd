@@ -1,5 +1,5 @@
 extends GutTest
-## Ranks of storeys (Bestiary.rank): two tiers each. A creature of a deeper rank
+## Ranks of storeys (Bestiary.rank): two storeys each. A creature of a deeper rank
 ## has more health and more spells, picks the one that suits from the third rank
 ## and charges two at once from the fourth; the first rank keeps every creature
 ## as it was.
@@ -11,7 +11,7 @@ const ME := Vector2i(10, 8)
 const E := Vector2i(1, 0)
 const W := Vector2i(-1, 0)
 ## The first storey of each rank.
-const FIRST := [1, 7, 13, 19, 25]
+const FIRST := [1, 3, 5, 7, 9]
 
 
 ## An open hall, Miho at ME by a lantern, on storey `depth`.
@@ -56,17 +56,15 @@ func _elements(casts: Array) -> Array:
 	return Cards.ELEMENTS.filter(func(c): return casts.any(func(cast): return cast.has(c)))
 
 
-func test_a_rank_spans_two_tiers_of_storeys() -> void:
-	var w := World.new()
-	var by_depth := {1: 1, 6: 1, 7: 2, 12: 2, 13: 3, 18: 3, 19: 4, 24: 4, 25: 5, 27: 5}
+func test_a_rank_spans_two_storeys() -> void:
+	var by_depth := {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4, 9: 5}
 	for depth in by_depth:
-		w.depth = depth
-		assert_eq(Bestiary.rank(w.tier()), by_depth[depth], "storey %d" % depth)
+		assert_eq(Bestiary.rank(depth), by_depth[depth], "storey %d" % depth)
 
 
 func test_the_first_rank_keeps_every_kind_as_it_was() -> void:
 	for kind in Codex.foes():
-		var a := FloorGen.spawn(_world(6), kind, Vector2i(20, 8))
+		var a := FloorGen.spawn(_world(2), kind, Vector2i(20, 8))
 		var spec := Bestiary.info(kind)
 		assert_eq(a.rank, 1, kind)
 		assert_eq([a.hp, a.max_hp], [spec.hp, spec.hp], kind)
@@ -78,8 +76,8 @@ func test_health_grows_with_the_rank() -> void:
 	for depth in FIRST:
 		hp.append(FloorGen.spawn(_world(depth), &"dokkaebi", Vector2i(20, 8)).max_hp)
 	assert_eq(hp, [2, 3, 5, 7, 8])
-	assert_eq(FloorGen.spawn(_world(27), &"cheonnyeon", Vector2i(20, 8)).hp, 14)
-	assert_eq(FloorGen.spawn(_world(27), &"saja", Vector2i(20, 8)).hp, 15)
+	assert_eq(FloorGen.spawn(_world(9), &"cheonnyeon", Vector2i(20, 8)).hp, 14)
+	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 15)
 
 
 func test_no_rank_gives_a_kind_another_element() -> void:
@@ -109,10 +107,10 @@ func test_a_caster_has_more_spells_deeper_and_each_hits_for_two_at_most() -> voi
 
 func test_below_the_third_rank_it_tries_only_its_next_spell() -> void:
 	var off_line := ME + Vector2i(4, 2)
-	var low := _world(7)
+	var low := _world(3)
 	var guard := _hunter(low, &"haetae", off_line)
 	assert_eq(Aim.at(low, guard, low.player()), [] as Array[Dictionary], "no line for its orb")
-	var deep := _world(13)
+	var deep := _world(5)
 	var picker := _hunter(deep, &"haetae", off_line)
 	var plans := Aim.at(deep, picker, deep.player())
 	assert_eq(plans.size(), 1)
@@ -120,7 +118,7 @@ func test_below_the_third_rank_it_tries_only_its_next_spell() -> void:
 
 
 func test_it_passes_over_what_its_rival_absorbs_and_takes_what_it_is_weak_to() -> void:
-	var w := _world(27)
+	var w := _world(9)
 	var boss := _hunter(w, &"cheonnyeon", Vector2i(20, 8), 1)
 	var dog := FloorGen.spawn(w, &"bulgae", Vector2i(16, 8))
 	w.sense()
@@ -133,7 +131,7 @@ func test_it_passes_over_what_its_rival_absorbs_and_takes_what_it_is_weak_to() -
 
 
 func test_from_the_fourth_rank_it_charges_two_spells_and_casts_both() -> void:
-	var w := _world(19)
+	var w := _world(7)
 	var post := _hunter(w, &"jangseung", ME + E * 4)
 	var events := w.act(WAIT)
 	assert_eq(_of(events, &"charge", post.id).size(), 2)
@@ -141,13 +139,13 @@ func test_from_the_fourth_rank_it_charges_two_spells_and_casts_both() -> void:
 	events = w.act(WAIT)
 	assert_eq(_of(events, &"cast", post.id).size(), 2)
 	assert_eq(post.intent, [] as Array[Dictionary])
-	var third := _world(13)
+	var third := _world(5)
 	var one := _hunter(third, &"jangseung", ME + E * 4)
 	assert_eq(_of(third.act(WAIT), &"charge", one.id).size(), 1)
 
 
 func test_the_forecast_shows_both_spells_of_a_double_charge() -> void:
-	var w := _world(19)
+	var w := _world(7)
 	var post := _hunter(w, &"jangseung", ME + E * 2)
 	w.act(WAIT)
 	var cast := Forecast.of(w, WAIT)
@@ -164,7 +162,7 @@ func test_the_forecast_shows_both_spells_of_a_double_charge() -> void:
 
 
 func test_a_water_jet_from_heaven_pushes_miho_back() -> void:
-	var w := _world(7)
+	var w := _world(3)
 	var guard := _hunter(w, &"haetae", ME + E * 3, 1)
 	w.act(WAIT)
 	assert_eq(guard.intent.size(), 1)
@@ -174,7 +172,7 @@ func test_a_water_jet_from_heaven_pushes_miho_back() -> void:
 
 
 func test_roots_from_heaven_hold_miho() -> void:
-	var w := _world(10)
+	var w := _world(4)
 	_hunter(w, &"cheonha", ME + E * 3, 1)
 	w.act(WAIT)
 	w.act(WAIT)
@@ -182,7 +180,7 @@ func test_roots_from_heaven_hold_miho() -> void:
 
 
 func test_the_great_serpent_freezes_miho() -> void:
-	var w := _world(27)
+	var w := _world(9)
 	var boss := _hunter(w, &"cheonnyeon", ME + E * 3, 2)
 	var events := w.act(WAIT)
 	for i in 2:
@@ -192,7 +190,7 @@ func test_the_great_serpent_freezes_miho() -> void:
 
 
 func test_hover_and_codex_tell_the_spells_and_health_of_its_rank() -> void:
-	var w := _world(19)
+	var w := _world(7)
 	var guard := _hunter(w, &"haetae", ME + E * 3)
 	w.act(WAIT)
 	var text := Info.plain(Info.creature(w, guard))

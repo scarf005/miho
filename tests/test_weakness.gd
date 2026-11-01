@@ -24,7 +24,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	w.cards.assign(Cards.ALL)
 	return w

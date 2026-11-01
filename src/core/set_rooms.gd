@@ -3,7 +3,7 @@ extends RefCounted
 ## Set rooms (짜인 방): rooms made of terrain alone, no key and no prize. Unlike
 ## an event room (EventRooms) one stays on World.rooms, so creatures are placed
 ## in it as in any other. Each storey tries one, after the patches are laid: of
-## the kinds (ROWS) whose first tier has come, in a random order, the first that
+## the kinds (ROWS) whose first storey has come, in a random order, the first that
 ## fits a random room but the start room and the goal room. The room is cleared
 ## of patches, plates and vents first. The choice draws from a generator of its
 ## own, seeded from the world's, as EventRooms does, so it leaves the draws of
@@ -73,12 +73,12 @@ const CLEARED: Array[int] = [
 ]
 
 
-## The first kind of the storey's tier that fits a room is built there: {kind,
+## The first kind of the storey that fits a room is built there: {kind,
 ## room}, or an empty {} when none fits.
 static func build(w: World, home: Rect2i, goal: Rect2i) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = w.rng.state
-	var kinds := ROWS.filter(func(row): return w.tier() >= row.tier)
+	var kinds := ROWS.filter(func(row): return w.depth >= row.tier)
 	FloorGen.shuffle(rng, kinds)
 	var rooms := w.rooms.filter(
 		func(r): return r != home and r != goal and r.get_area() >= LEAST_AREA

@@ -49,7 +49,7 @@ func test_some_storeys_of_every_tier_have_one_vault() -> void:
 	for w in _storeys:
 		assert_lte(w.seals.size(), 1, _label(w))
 		if not w.seals.is_empty():
-			tiers[w.tier()] = true
+			tiers[w.depth] = true
 	assert_eq(tiers.size(), 9, "every tier")
 
 
@@ -161,7 +161,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(8, 4)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.sense()
 	return w
 

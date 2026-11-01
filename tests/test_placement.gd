@@ -143,8 +143,8 @@ func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
 func test_no_tile_of_a_row_appears_before_its_first_tier_or_after_its_last() -> void:
 	for w in _storeys_built:
 		for row: Dictionary in Placement.ROWS:
-			if w.tier() < row.tiers[0] or w.tier() > row.tiers[1]:
-				assert_eq(_laid(w, row), [], "tier %d has no %s" % [w.tier(), row.keys()])
+			if w.depth < row.tiers[0] or w.depth > row.tiers[1]:
+				assert_eq(_laid(w, row), [], "storey %d has no %s" % [w.depth, row.keys()])
 
 
 func test_each_row_turns_up_on_the_tiers_it_asks_for() -> void:
@@ -152,7 +152,7 @@ func test_each_row_turns_up_on_the_tiers_it_asks_for() -> void:
 		var found := {}
 		for w in _storeys_built:
 			if not _laid(w, row).is_empty():
-				found[w.tier()] = true
+				found[w.depth] = true
 		for tier in range(row.tiers[0], row.tiers[1] + 1):
 			assert_true(
 				found.has(tier), "row %s on tier %d" % [row.get("what", row.get("gas")), tier]
@@ -169,7 +169,7 @@ func test_fog_is_laid_over_ponds_outside_the_goal_room_at_full_amount() -> void:
 			assert_eq(w.tile(p), World.POND, "%s is over a pond" % p)
 			assert_eq(w.gas[p].y, row.amount)
 			assert_false(w.rooms.any(func(r: Rect2i): return r.has_point(p) and r.has_point(goal)))
-	assert_gt(found, 20, "storeys of tier 2 and up have fog")
+	assert_gt(found, 20, "storeys from the second have fog")
 
 
 func test_a_gas_patch_grows_like_a_tile_patch_and_leaves_the_tiles_alone() -> void:
@@ -191,8 +191,9 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 	for w in _storeys_built:
 		var goal: Vector2i = w.elixir if w.elixir.x >= 0 else w.stairs
 		var library := w.sites.any(func(s): return s.kind == &"library")
+		var yard := w.sites.any(func(s): return s.kind == &"yard")
 		for kind: int in KINDS:
-			if kind == World.STRAW and library:
+			if (kind == World.STRAW and library) or (kind == World.PILLAR and yard):
 				continue
 			for p in _tiles_of(w, kind):
 				assert_true(
@@ -218,7 +219,7 @@ func test_a_storey_with_patches_stays_connected_with_its_start_and_stairs_free()
 
 func test_a_seed_and_depth_lay_the_same_patches_every_time() -> void:
 	for seed_value in [1, 5]:
-		for depth in [1, 7, 20]:
+		for depth in [1, 3, 7]:
 			var tiles := []
 			for i in 2:
 				var w := World.create(seed_value)

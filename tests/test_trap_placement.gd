@@ -42,7 +42,7 @@ func test_a_storey_has_only_the_plates_its_tier_allows() -> void:
 			var kind: int = w.traps[p]
 			seen[kind] = true
 			var row: Dictionary = _rows().filter(func(r): return r.what == kind)[0]
-			assert_between(w.tier(), row.tiers[0], row.tiers[1], "depth %d %s" % [w.depth, p])
+			assert_between(w.depth, row.tiers[0], row.tiers[1], "depth %d %s" % [w.depth, p])
 	for kind in KINDS:
 		assert_true(seen.has(kind), "kind %d is laid somewhere" % kind)
 
@@ -55,9 +55,9 @@ func test_no_storey_has_more_plates_of_a_kind_than_its_row_allows() -> void:
 			assert_lte(n, row.count[2] + corridor, "depth %d kind %d" % [w.depth, row.what])
 
 
-func test_the_first_tier_has_only_alarm_plates() -> void:
+func test_the_first_storey_has_only_alarm_plates() -> void:
 	var alarms := 0
-	for w in _storeys.filter(func(w): return w.tier() == 1):
+	for w in _storeys.filter(func(w): return w.depth == 1):
 		for kind in w.traps.values():
 			assert_eq(kind, World.TRAP_ALARM)
 			alarms += 1
@@ -104,7 +104,7 @@ func test_the_same_seed_lays_the_same_plates_and_finds_them_the_same_way() -> vo
 	var runs := []
 	for run in 2:
 		var w := World.create(5)
-		w.depth = 8
+		w.depth = 3
 		FloorGen.build(w)
 		w.sense()
 		var events := []

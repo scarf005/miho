@@ -146,9 +146,10 @@ func test_a_ledge_hangs_between_an_outer_wall_or_doorway_and_the_sky() -> void:
 # --- hidden doors: where they lie --------------------------------------------
 
 
-func test_a_storey_has_one_hidden_door_more_every_third_tier() -> void:
+func test_a_storey_has_one_hidden_door_more_every_third_storey() -> void:
 	for w in _storeys:
-		assert_eq(w.secrets.size(), 1 + (w.tier() - 1) / 3, _label(w))
+		assert_eq(w.secrets.size(), FloorGen.hidden_doors(w.depth), _label(w))
+	assert_eq(range(1, World.FLOORS + 1).map(FloorGen.hidden_doors), [2, 2, 2, 3, 3, 3, 4, 4, 4])
 
 
 func test_a_hidden_door_is_a_wall_between_two_rooms_far_apart_without_it() -> void:
@@ -189,7 +190,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = Vector2i(4, 8)
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.tails = 4
 	w.sense()
 	return w

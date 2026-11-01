@@ -6,8 +6,8 @@ const WAIT := {t = &"wait"}
 const PLATE := Vector2i(7, 8)
 
 
-## An open hall walled at the edges with no light, Miho at (4, 8) on storey 4.
-func _world(depth := 4) -> World:
+## An open hall walled at the edges with no light, Miho at (4, 8) on storey 2.
+func _world(depth := 2) -> World:
 	var w := World.new()
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.WALL)
@@ -104,10 +104,10 @@ func test_miho_stepping_on_a_collapsing_floor_goes_one_storey_down() -> void:
 	w.player().pos = PLATE - E
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	var events := w.act({t = &"move", dir = E})
-	assert_eq(w.depth, 3)
+	assert_eq(w.depth, 1)
 	var fall := events.filter(func(e): return e.t == &"fall")
 	assert_eq(fall.size(), 1)
-	assert_eq(fall[0].depth, 3)
+	assert_eq(fall[0].depth, 1)
 	assert_eq(w.player().pos, PLATE, "she lands under the plate")
 	assert_eq(w.scent.count(0), w.scent.size(), "no trail of hers on the storey below")
 	assert_eq(w.player().hp, 2)
@@ -119,7 +119,7 @@ func test_a_creature_on_a_collapsing_floor_falls_out_of_the_game() -> void:
 	var foe := _foe(w, PLATE - E)
 	w.push(foe, E, 1)
 	assert_false(foe.alive())
-	assert_eq(w.depth, 4, "Miho stays")
+	assert_eq(w.depth, 2, "Miho stays")
 	assert_eq(w.tails, 2, "a kill gives a tail back")
 	var types := _types(w.events)
 	assert_has(types, &"trap")
@@ -146,7 +146,7 @@ func test_a_push_ends_when_the_creature_falls_through_a_plate_on_the_way() -> vo
 	w.player().pos = PLATE - E
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	w.push(w.player(), E, 4)
-	assert_eq(w.depth, 3, "dropped once, not pushed on")
+	assert_eq(w.depth, 1, "dropped once, not pushed on")
 	assert_eq(w.player().pos, PLATE)
 
 

@@ -24,7 +24,7 @@ func _world() -> World:
 	me.max_hp = 3
 	me.pos = ME
 	w.actors.append(me)
-	w.depth = 4
+	w.depth = 2
 	w.sense()
 	return w
 

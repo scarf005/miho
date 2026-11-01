@@ -154,11 +154,11 @@ func test_miho_pushed_into_the_sky_lands_one_storey_down() -> void:
 
 
 func test_her_tails_are_kept_up_to_what_the_lower_storey_allows() -> void:
-	var w := _world(4)
+	var w := _world(2)
 	assert_eq(w.tails, 2)
 	w.player().pos = Vector2i(EDGE - 1, ROW)
 	w.push(w.player(), E, 1)
-	assert_eq(w.depth, 3)
+	assert_eq(w.depth, 1)
 	assert_eq(w.tails, 1)
 
 
