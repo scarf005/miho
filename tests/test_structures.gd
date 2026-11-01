@@ -220,7 +220,6 @@ func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
 			"옆 가연성·인화성 칸에 불",
 		],
-		World.COURTYARD: ["항상 밝음."],
 	}
 	for kind: int in told:
 		var text := _hover(kind)

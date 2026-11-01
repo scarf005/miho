@@ -580,8 +580,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("타격: 옆 가연성·인화성 칸에 불")
 			out.append("%s: %d초" % [coals.name, Compounds.HOT_ROUNDS])
 			out.append("%s 초당 피해: %d" % [coals.name, coals.harm])
-		World.COURTYARD:
-			out.append("항상 밝음.")
 		World.BOARD_ROTTEN:
 			out.append("소음: %d" % Terrain.CRACK)
 		World.STATUE:
@@ -595,7 +593,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.WINDOW:
 			out.append("막음: 길")
 		World.BRIDGE:
-			out.append("항상 밝음.")
 			out.append("불에 타지 않음.")
 		World.THORNS:
 			out.append("지날 때 피해: %d" % Compounds.THORN)
