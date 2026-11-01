@@ -7,7 +7,11 @@ extends RefCounted
 ## At the cast the caster's foes in its sight line up by (distance, id). A
 ## homing orb takes the nearest. Wisps fill each foe in turn up to what its
 ## health needs (harmless wisps all take the nearest), and the wisps left over
-## go to the nearest. A projectile whose creature has fallen, or that had none,
+## go to the nearest. The orbs of a cast of several (Spell.shots) spread among
+## the foes within an arc round the cast line instead (`spread`), each leaving
+## straight at its own (`headings`), one on the line of another trailing it;
+## wisps keep their own way, which reads health and not the line. A projectile
+## whose creature has fallen, or that had none,
 ## takes the nearest foe it sees from where it is; others keep theirs.
 ##
 ## Each wisp of a cast leaves the caster on a tile of its own next to it, as
