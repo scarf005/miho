@@ -50,7 +50,7 @@ const ARC_SLACK := 0.001
 static func targets(w: World, caster: Actor, spell: Spell, dir := Vector2i.ZERO) -> Array[int]:
 	var out: Array[int] = []
 	out.resize(spell.shots())
-	var twins := spell.orb and out.size() > 1
+	var twins := spell.orb and out.size() > 1 and (caster.faction == Actor.FOX or spell.turn() > 0)
 	if spell.turn() == 0 and not twins:
 		return out
 	var rival := caster.rival if caster.fighting() else 0

@@ -349,31 +349,7 @@ func test_each_new_jar_event_has_a_log_line_and_a_sound() -> void:
 		assert_true(Messages.JAR_DOES.has(id), str(id))
 
 
-func test_a_forecast_of_a_cast_that_breaks_a_jar_of_coals_tells_the_harm() -> void:
-	var w := _world()
-	var foe := _foe(w, AT + Vector2i(0, 1))
-	_jar(w, AT, &"coals")
-	var forecast := Forecast.of(w, ORB)
-	var hp := foe.hp
-	w.act(ORB)
-	assert_gt(hp - foe.hp, 0, "the coals burned it")
-	assert_eq(forecast.harm.get(foe.id, 0), hp - foe.hp)
-
-
 # --- forecast and the 도감 ---------------------------------------------------------
-
-
-func test_a_forecast_of_a_cast_that_breaks_a_jar_tells_the_harm_it_does() -> void:
-	var w := _world()
-	var foe := _foe(w, NEAR_FOE)
-	_jar(w, AT, &"effigy")
-	var forecast := Forecast.of(w, ORB)
-	var hp := foe.hp
-	w.act(ORB)
-	assert_gt(hp - foe.hp, 0, "the cast tore it")
-	assert_eq(forecast.harm.get(foe.id, 0), hp - foe.hp)
-	assert_eq(forecast.after.tile(AT), w.tile(AT))
-	assert_eq(forecast.after.jars, w.jars)
 
 
 func test_a_preview_lets_the_same_things_out_as_the_round() -> void:

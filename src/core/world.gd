@@ -286,12 +286,13 @@ func clone() -> World:
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
-## sight and plates and doors she has not found are left out, so a preview
+## sight, plates and doors she has not found and what jars hold are left out, so a preview
 ## never gives hidden things away.
 func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
 	w.secrets = {}
+	w.jars = {}
 	w.actors.assign(w.actors.filter(func(a): return a.faction == Actor.FOX or Hat.shown(self, a)))
 	w.shots.assign(w.shots.filter(func(s): return seen[Grid.index(s.pos)] == 1))
 	return w
@@ -865,7 +866,8 @@ func _strike(s: Shot, a: Actor) -> void:
 		}
 	)
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
-	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
+	var storey := depth
+	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))) or depth != storey:
 		return
 	if spell.blasts():
 		Elements.splash(self, s, at, a)
@@ -960,6 +962,8 @@ func _end_round() -> void:
 				if s.spell.mortar():
 					noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 					Compounds.land(self, s, s.pos)
+				elif s.spell.blasts():
+					Elements.splash(self, s, s.pos, null)
 	_prune()
 	round_no += 1
 	if outcome != &"" or depth >= FLOORS:
