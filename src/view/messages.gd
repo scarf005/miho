@@ -5,14 +5,15 @@ extends RefCounted
 ## events and kinds of event it does not know give no line. Each line is a list
 ## of [text, Color] runs, with names, harm and sound words in their colours.
 ## What she perceived is Perceived's: the map's popups read the same facts.
-## A line repeated right after itself is counted instead of written again.
+## A line repeated right after itself or in its own round is counted instead of
+## written again.
 
-const KEEP := 40
+const KEEP := 2000
 const TEXT := Palette.TEXT
 ## What a creature's map mark says, for one that comes into sight marked.
 const STATE := {
-	"!": "추격 중이다",
-	"?": "수색 중이다",
+	"!": "추격을 시작했다",
+	"?": "수색을 시작했다",
 	"x": "눈이 멀었다",
 }
 ## How a creature is told to be freed of what held it, by event.
@@ -35,11 +36,14 @@ var lines: Array[Dictionary] = []
 
 func add(runs: Array, round_no: int) -> void:
 	var text := plain(runs)
-	if not lines.is_empty() and lines.back().text == text:
-		lines.back().n += 1
-		lines.back().round = round_no
-	else:
-		lines.append({runs = runs, text = text, round = round_no, n = 1})
+	var i := lines.size() - 1
+	while i >= 0 and (i == lines.size() - 1 or lines[i].round == round_no):
+		if lines[i].text == text:
+			lines[i].n += 1
+			lines[i].round = round_no
+			return
+		i -= 1
+	lines.append({runs = runs, text = text, round = round_no, n = 1})
 	if lines.size() > KEEP:
 		lines = lines.slice(-KEEP)
 
@@ -47,7 +51,7 @@ func add(runs: Array, round_no: int) -> void:
 ## The line as shown, with its count.
 static func shown(line: Dictionary) -> Array:
 	return Keywords.paint(
-		line.runs if line.n == 1 else line.runs + [[" x%d" % line.n, Palette.DIM]]
+		line.runs if line.n == 1 else line.runs + [[" ×%d" % line.n, Palette.DIM]]
 	)
 
 
@@ -219,7 +223,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return (
 				_who(before, after, id, "이", "가")
 				+ [[" ", TEXT], [spell.title(), Palette.card(spell.slots.back())]]
-				+ [[_particle(spell.title(), "을", "를") + " 모으고 있다", TEXT]]
+				+ [[_particle(spell.title(), "을", "를") + " 모으기 시작했다", TEXT]]
 			)
 		&"stick":
 			var spell := Spell.make(e.cards)

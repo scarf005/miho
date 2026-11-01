@@ -64,7 +64,7 @@ func test_a_creature_that_noticed_miho_in_the_dark_is_told_once_when_it_comes_in
 		{t = &"notice", id = r[2], at = HIDDEN},
 		{t = &"move", id = r[2], from = HIDDEN, to = SEEN},
 	]
-	assert_eq(_lines(r[0], r[1], events), ["도깨비가 추격 중이다"] as Array[String])
+	assert_eq(_lines(r[0], r[1], events), ["도깨비가 추격을 시작했다"] as Array[String])
 	assert_eq(_lines(r[1], r[1], []), [] as Array[String], "still in view and still hunting")
 
 
@@ -83,7 +83,7 @@ func test_a_seen_heed_is_told_once() -> void:
 
 func test_a_creature_coming_into_view_searching_or_blind_is_told() -> void:
 	var r := _round(HIDDEN, SEEN, Actor.SEARCH, [])
-	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색 중이다"] as Array[String])
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색을 시작했다"] as Array[String])
 	r[1].actor(r[2]).blind = 2
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 눈이 멀었다"] as Array[String])
 	var seen := _round(SEEN, SEEN, Actor.SEARCH, [])
@@ -94,11 +94,11 @@ func test_a_creature_coming_into_view_searching_or_blind_is_told() -> void:
 
 func test_a_mark_changing_in_sight_is_told() -> void:
 	var r := _round(SEEN, SEEN, Actor.SEARCH, [])
-	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색 중이다"] as Array[String])
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색을 시작했다"] as Array[String])
 	assert_eq(_lines(r[1], r[1], []), [] as Array[String])
 	r[0].actor(r[2]).alert = Actor.SEARCH
 	r[1].actor(r[2]).alert = Actor.HUNT
-	assert_eq(_lines(r[0], r[1], []), ["도깨비가 추격 중이다"] as Array[String])
+	assert_eq(_lines(r[0], r[1], []), ["도깨비가 추격을 시작했다"] as Array[String])
 
 
 func test_a_hidden_notice_gives_no_popup() -> void:

@@ -113,7 +113,7 @@ func test_the_charge_line_and_the_projectile_hover_name_it() -> void:
 		var foe := _foe(w, kind)
 		var cards: Array = foe.info().casts[0]
 		var charge := {t = &"charge", id = foe.id, cards = cards, dir = WEST}
-		var line := "%s가 도깨비불을 모으고 있다" % foe.info().name
+		var line := "%s가 도깨비불을 모으기 시작했다" % foe.info().name
 		assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), [line])
 		w.cast(foe, Bestiary.spell(foe.kind, cards), WEST)
 		var text := Info.plain(SpellInfo.shot(w, w.shots[0]))
@@ -128,7 +128,7 @@ func test_only_miho_s_wisps_are_called_foxfire() -> void:
 	var w := _world()
 	var foe := _foe(w, &"bulgae")
 	var charge := {t = &"charge", id = foe.id, cards = [Cards.FOX, Cards.FIRE], dir = WEST}
-	assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), ["불개가 불 혼불을 모으고 있다"])
+	assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), ["불개가 불 혼불을 모으기 시작했다"])
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 혼불")
 	w.cast(w.player(), own, Vector2i(1, 0))

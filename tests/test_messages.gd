@@ -99,12 +99,22 @@ func test_a_claw_tells_its_harm_once() -> void:
 	assert_eq(foe.hp, -1)
 
 
+func test_identical_lines_of_one_round_fold_into_the_first() -> void:
+	var log := Messages.new()
+	log.add([["마루에 불이 붙었다", Palette.TEXT]], 4)
+	log.add([["연기가 피어올랐다", Palette.TEXT]], 4)
+	log.add([["마루에 불이 붙었다", Palette.TEXT]], 4)
+	log.add([["마루에 불이 붙었다", Palette.TEXT]], 5)
+	var shown := log.lines.map(func(l): return Messages.plain(Messages.shown(l)))
+	assert_eq(shown, ["마루에 불이 붙었다 ×2", "연기가 피어올랐다", "마루에 불이 붙었다"])
+
+
 func test_repeated_lines_are_counted() -> void:
 	var log := Messages.new()
 	log.add([["멀리서 ", Palette.TEXT], ["탁", Palette.SOUND]], 1)
 	log.add([["멀리서 ", Palette.TEXT], ["탁", Palette.SOUND]], 2)
 	log.add([["2층", Palette.TEXT]], 2)
-	assert_eq(log.lines.map(func(l): return Messages.plain(Messages.shown(l))), ["멀리서 탁 x2", "2층"])
+	assert_eq(log.lines.map(func(l): return Messages.plain(Messages.shown(l))), ["멀리서 탁 ×2", "2층"])
 	for i in Messages.KEEP + 5:
 		log.add([[str(i), Palette.TEXT]], 3)
 	assert_eq(log.lines.size(), Messages.KEEP)
