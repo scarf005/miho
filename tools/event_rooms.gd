@@ -50,18 +50,19 @@ static func _veil_tiles(w: World) -> Array:
 	return [] if i < 0 else [Grid.at(i)]
 
 
-## Miho walks to a tile from which a water jet along a line reaches the veil, and
-## the water puts that tile out.
-static func _veil_opens(w: World, veil: Vector2i) -> bool:
+## Miho walks to a tile from which a water jet along a line reaches some tile of the
+## veil, and the water puts that tile out.
+static func _veil_opens(w: World, _veil: Vector2i) -> bool:
 	var reach := _reach(w)
 	for i in reach.size():
 		if reach[i] < 0:
 			continue
 		for d: Vector2i in Grid.DIRS:
-			if Spray.line(w, Grid.at(i), d, Spray.JET[0], false, 0).has(veil):
+			var jet := Spray.line(w, Grid.at(i), d, Spray.JET[0], false, 0)
+			if not jet.is_empty() and w.tile(jet.back()) == World.VEIL:
 				var wet := w.clone()
-				Terrain.wash(wet, veil)
-				return wet.open_floor(veil)
+				Terrain.wash(wet, jet.back())
+				return wet.open_floor(jet.back())
 	return false
 
 
