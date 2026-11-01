@@ -14,7 +14,11 @@ const RECIPE := {
 	Spell.ORB: [Cards.ORB],
 }
 ## The label of the harm a projectile does after it has flown MOMENTUM tiles.
+## The label of the tiles a second an orb gains each round it flies.
+const ACCEL := "가속"
 const FAR := "%d칸 이상 날아간 뒤 피해"
+## The label of the blast harm after MOMENTUM tiles.
+const FAR_BLAST := "%d칸 이상 날아간 뒤 폭발 피해"
 const PIERCE := ["관통", "적 모두, 벽 한 칸"]
 ## The guns that are named (Spell.bullet, Spell.pierces, Spell.mortar), by their talismans.
 const GUNS := [
@@ -131,6 +135,8 @@ static func spell(s: Spell) -> Array:
 			lines.append(_line(MUZZLE[0], MUZZLE[1]) if s.gun() else _line("빛", "없음"))
 		return lines + _lines(_sounds(s)) + ward(s)
 	lines.append_array(_shape(s))
+	if s.edged():
+		lines.append_array(_lines(blast(s), Palette.HURT))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
 			lines.append_array(_lines(_effect(s, e), Palette.CARD[e]))
@@ -486,7 +492,9 @@ static func shot(w: World, s: Shot) -> Array:
 		var t := w.actor(s.target)
 		lines.append(_line("대상", "없음" if t == null else t.info().name))
 		lines.append(_line("회전", _turn(s.turn)))
-	lines.append(_line("속도", "초당 %d칸" % spell.speed() if s.dir != Vector2i.ZERO else "정지"))
+	lines.append(_line("속도", "초당 %d칸" % s.pace() if s.dir != Vector2i.ZERO else "정지"))
+	if spell.accel() > 0:
+		lines.append(_line(ACCEL, "초당 %d칸" % spell.accel()))
 	if s.life > 0:
 		lines.append(_line("남은 시간", "%d초" % s.life))
 	if spell.swaps():
@@ -577,17 +585,42 @@ static func _shape(s: Spell) -> Array:
 			if Lure.lures(s):
 				lines.append_array(_lure(s))
 		Spell.HOMING:
-			lines.append(_line("모양", Spell.SHAPE_NAME[Spell.HOMING]))
-			lines.append(_line("대상", "가장 가까운 적"))
+			lines.append(_line("모양", _orbs(s, Spell.SHAPE_NAME[Spell.HOMING])))
+			lines.append(_line("대상", _arc() if s.shots() > 1 else "가장 가까운 적"))
 			lines.append_array(_orb_harm(s))
 			lines.append(_line("회전", "칸당 " + _turn(s.turn())))
 			lines.append(_line("남은 시간", "%d초" % Spell.HOMING_LIFE))
 		Spell.ORB:
-			lines.append(_line("모양", Spell.SHAPE_NAME[Spell.ORB]))
+			lines.append(_line("모양", _orbs(s, Spell.SHAPE_NAME[Spell.ORB])))
+			if s.shots() > 1:
+				lines.append(_line("대상", _arc()))
 			lines.append(_line("경로", "벽까지 직선"))
 			lines.append_array(_orb_harm(s))
 	lines.append(_line("속도", "초당 %d칸" % s.speed()))
+	if s.accel() > 0:
+		lines.append(_line(ACCEL, "초당 %d칸" % s.accel()))
 	return lines
+
+
+## An orb's shape, and how many it hurls when it hurls several.
+static func _orbs(s: Spell, shape: String) -> String:
+	return "%s %d발" % [shape, s.shots()] if s.shots() > 1 else shape
+
+
+## The creatures the orbs of one cast spread among.
+static func _arc() -> String:
+	return "부채꼴 %d° 안의 적" % Homing.ARCS.back()
+
+
+## What the blast of an orb that ends hurts: its radius and harm, and the harm
+## after MOMENTUM tiles when that is more.
+static func blast(s: Spell) -> Array:
+	var near := s.blast(s.damage(0))
+	var far := s.blast(s.damage(Spell.MOMENTUM))
+	var out := [["폭발 반지름", "%d" % Grid.NEAR], ["폭발 피해", "%d" % near]]
+	if far > near:
+		out.append([FAR_BLAST % Spell.MOMENTUM, "%d" % far])
+	return out
 
 
 ## 여우 홀림: what a hovering wisp of 여 alone is heard as (Lure).
@@ -609,7 +642,7 @@ static func _effect(s: Spell, e: StringName) -> Array:
 	match e:
 		Cards.FIRE:
 			var out := [["불타는 칸", "지나간 가연성·인화성 칸"]]
-			if s.orb:
+			if s.orb and not s.edged():
 				out.append(
 					["폭발", "주위 %d칸, 피해 %d" % [Grid.DIRS.size(), World.FIRE_DAMAGE + s.extra(e)]]
 				)
@@ -619,7 +652,10 @@ static func _effect(s: Spell, e: StringName) -> Array:
 				out.append(ALIGHT_ON)
 			return out
 		Cards.WATER:
-			return [["꺼짐", "멈춘 곳 %s의 불, 등불" % _square(Grid.NEAR)]]
+			var out := [["꺼짐", "멈춘 곳 %s의 불, 등불" % _square(Grid.NEAR)]]
+			if s.orb:
+				out.append(["밀침", "%d칸" % (Spray.PLAIN_PUSH + s.extra(e))])
+			return out
 		Cards.WOOD:
 			if s.orb:
 				var health: int = Tiles.of(World.WOOD_WALL, "health")
