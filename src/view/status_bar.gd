@@ -7,6 +7,9 @@ extends RefCounted
 ## another card), the compounds Miho can make now, the queued spell's name and
 ## the noise bar.
 
+## Cells between two compound glyphs, so that a run does not read as a word.
+const COMBO_GAP := 0.5
+
 
 static func draw(t: Term) -> void:
 	var w := t.world
@@ -29,11 +32,13 @@ static func draw(t: Term) -> void:
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
 		var ready := _castable(t, spell, held)
-		t._small(Vector2(slot.x, row + 0.05), slot.key, Palette.TEXT if ready else Palette.DIM)
+		t._text(Vector2(slot.x, row), slot.key, Palette.TEXT if ready else Palette.DIM)
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
 			t._glyph(
-				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.slots[k]], c if ready else c * 0.4
+				Vector2(slot.x + t._cells(slot.key) + k, row),
+				Cards.GLYPH[spell.slots[k]],
+				c if ready else c * 0.4
 			)
 	row += 1
 	var queued := Spell.make(t.picked)
@@ -59,8 +64,10 @@ static func draw(t: Term) -> void:
 		else:
 			t._glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
 	for combo in combos(t):
-		var c := Palette.card(combo.c) if combo.c != &"" else Palette.DIM
-		t._glyph(Vector2(combo.x, row), Cards.GLYPH.get(combo.c, "…"), c)
+		if combo.c == &"":
+			t._text(Vector2(combo.x, row), "+%d" % combo.more, Palette.DIM)
+			continue
+		t._glyph(Vector2(combo.x, row), Cards.GLYPH[combo.c], Palette.card(combo.c))
 	var name := _name(t, queued)
 	var at := title_at(t, name)
 	if at.y < row:
@@ -131,12 +138,15 @@ static func combos(t: Term) -> Array:
 	var name := _name(t, Spell.make(t.picked))
 	if name != "" and title_at(t, name).y == t.rows - 1:
 		end = minf(end, title_at(t, name).x - 1.0)
-	var room := floori(end - start)
-	var shown := list.size() if list.size() <= room else maxi(0, room - 1)
+	var room := end - start
+	var step := 1.0 + COMBO_GAP
+	var shown := list.size()
+	if shown * step - COMBO_GAP > room:
+		shown = maxi(0, floori((room - Term._cells("+%d" % list.size())) / step))
 	for i in shown:
-		out.append({c = list[i], x = start + i})
+		out.append({c = list[i], x = start + i * step})
 	if shown < list.size() and room > 0:
-		out.append({c = &"", x = start + shown})
+		out.append({c = &"", x = start + shown * step, more = list.size() - shown})
 	return out
 
 
@@ -150,15 +160,9 @@ static func saved_slots(t: Term) -> Array:
 		if not t.saved.has(action):
 			continue
 		var keys := Keys.keys_of(action)
-		var width := 0.5 + Spell.from_key(t.saved[action]).slots.size()
-		out.append(
-			{
-				action = action,
-				key = Keys.label(keys[0]) if not keys.is_empty() else "",
-				x = x,
-				width = width
-			}
-		)
+		var key := Keys.label(keys[0]) if not keys.is_empty() else ""
+		var width: float = Term._cells(key) + Spell.from_key(t.saved[action]).slots.size()
+		out.append({action = action, key = key, x = x, width = width})
 		x += width + 1.0
 	return out
 

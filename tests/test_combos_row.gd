@@ -92,7 +92,7 @@ func test_the_row_fits_before_the_name_and_the_bar_at_every_zoom_of_a_1280x720_w
 				assert_lte(k.x + 1.0, bar.x, "clear of the bar: " + ctx)
 
 
-func test_what_does_not_fit_is_cut_short_with_an_ellipsis() -> void:
+func test_what_does_not_fit_is_cut_short_with_a_count() -> void:
 	var m := _main()
 	var t: Term = m.term
 	_hold(m, Cards.ALL, 9)
@@ -106,7 +106,7 @@ func test_what_does_not_fit_is_cut_short_with_an_ellipsis() -> void:
 		cut += 1
 		if row.is_empty():
 			continue
-		assert_eq(row.back().c, &"", "ends with the ellipsis at zoom %s" % zoom)
+		assert_eq(row.back().c, &"", "ends with the count at zoom %s" % zoom)
 		assert_eq(row.slice(0, -1).map(func(k): return k.c), all.slice(0, row.size() - 1))
 	assert_gt(cut, 0, "some zoom is too tight for them all")
 
