@@ -75,6 +75,45 @@ func _main() -> Node:
 	return m
 
 
+func test_the_bar_sits_under_the_storey_flush_with_the_right_edge() -> void:
+	var t: Term = _main().term
+	t.fit(Vector2(1920, 1080), 0.0)
+	assert_eq(NoiseMeter.at(t), Vector2(t.cols - NoiseMeter.WIDTH, t.rows - 1))
+
+
+## The bar never covers the queue or the spell's name at any zoom of the windows
+## the game opens in, with the fewest talismans and with them all.
+func test_the_bar_clears_the_queue_and_the_name_at_every_zoom() -> void:
+	var m := _main()
+	var t: Term = m.term
+	for view in [Vector2(1280, 720), Vector2(1920, 1080)]:
+		for zoom in Settings.ZOOMS:
+			t.fit(view, zoom)
+			for count in range(Cards.FORMS.size(), Cards.ALL.size() + 1):
+				m.world.cards.assign(Cards.ALL.slice(0, count))
+				var ctx := "%s zoom %s, %d talismans" % [view, zoom, count]
+				var bar := NoiseMeter.at(t)
+				assert_eq(bar.x + NoiseMeter.WIDTH, float(t.cols), "on screen: " + ctx)
+				if bar.y == t.rows - 1:
+					assert_gte(bar.x, StatusBar.queue_x(t) + Spell.MAX_SLOTS, "queue: " + ctx)
+				var name := StatusBar.title_at(t, "도깨비불")
+				if name.y == bar.y:
+					assert_lte(name.x + Term._cells("도깨비불"), bar.x, "name: " + ctx)
+
+
+func test_the_bar_is_not_the_spell_name_to_the_mouse() -> void:
+	var m := _main()
+	m.term.fit(Vector2(1920, 1080), 0.0)
+	m.picked.assign([Cards.ORB])
+	var t: Term = m.term
+	var on_bar := (NoiseMeter.at(t) + Vector2(1, 0.5)) * Term.CELL
+	assert_eq(StatusBar.hand_at(t, on_bar), "")
+	var name := StatusBar.title_at(t, Spell.make(m.picked).title())
+	assert_eq(
+		StatusBar.hand_at(t, (name + Vector2(0.25, 0.5)) * Term.CELL), Spell.make(m.picked).key()
+	)
+
+
 func test_the_bar_shows_a_creak_after_the_round_and_is_empty_after_a_quiet_one() -> void:
 	var m := _main()
 	m.world.actors = m.world.actors.filter(func(a): return a.faction == Actor.FOX)

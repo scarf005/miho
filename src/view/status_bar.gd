@@ -2,9 +2,9 @@ class_name StatusBar
 extends RefCounted
 ## The two rows under the map. The upper one holds Miho's health, her tails
 ## (those the queued spells would spend in yellow), the saved spells by their
-## slot keys, the storey and the time. The lower one holds the noise bar, the
-## talismans by their number keys, the queue of MAX_SLOTS slots (a dim dot where
-## no tail is left for another card) and the queued spell's name.
+## slot keys, the storey and the time. The lower one holds the talismans by their
+## number keys, the queue of MAX_SLOTS slots (a dim dot where no tail is left for
+## another card), the queued spell's name and the noise bar.
 
 
 static func draw(t: Term) -> void:
@@ -35,7 +35,6 @@ static func draw(t: Term) -> void:
 				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.slots[k]], c if ready else c * 0.4
 			)
 	row += 1
-	NoiseMeter.draw(t, row)
 	var queued := Spell.make(t.picked)
 	for i in w.cards.size():
 		var card := w.cards[i]
@@ -66,6 +65,7 @@ static func draw(t: Term) -> void:
 			Rect2(at * Term.CELL, Vector2(t._cells(name), 1) * Term.CELL), Color(Palette.VOID, 0.85)
 		)
 	t._text(at, name, Palette.TEXT)
+	NoiseMeter.draw(t)
 
 
 ## Tails the spells held with Shift spend.
@@ -84,12 +84,15 @@ static func _name(t: Term, spell: Spell) -> String:
 	return "+%d %s" % [t.staged.size(), name] if not t.staged.is_empty() else name
 
 
-## Where the queued spell's name starts, flush with the right edge: on the lower
-## row after the queue when it fits there, else on the map row above it.
+## Where the queued spell's name starts: on the lower row between the queue and
+## the noise bar when it fits there, else flush right on the map row above them.
 static func title_at(t: Term, name: String) -> Vector2:
-	var x := t.cols - t._cells(name)
-	var fits := x >= queue_x(t) + Spell.MAX_SLOTS + 0.5
-	return Vector2(x if fits else maxf(0.0, x), t.rows - (1 if fits else 3))
+	var bar := NoiseMeter.at(t)
+	var end: float = bar.x - 0.5 if bar.y == t.rows - 1 else float(t.cols)
+	var x := end - t._cells(name)
+	if x >= queue_x(t) + Spell.MAX_SLOTS + 0.5:
+		return Vector2(x, t.rows - 1)
+	return Vector2(maxf(0.0, t.cols - t._cells(name)), mini(t.rows - 3, int(bar.y) - 1))
 
 
 ## Saved spells on the upper row: {action, key, x, width}, left to right.
@@ -140,8 +143,9 @@ static func hand_at(t: Term, local: Vector2) -> String:
 	if spell == null:
 		return ""
 	var c := local / Term.CELL
-	var name := title_at(t, _name(t, spell))
-	var on_name := floori(c.y) == int(name.y) and c.x >= name.x
+	var label := _name(t, spell)
+	var name := title_at(t, label)
+	var on_name := floori(c.y) == int(name.y) and c.x >= name.x and c.x < name.x + t._cells(label)
 	return spell.key() if on_name or queue_at(t, local) >= 0 else ""
 
 
