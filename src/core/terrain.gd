@@ -178,7 +178,7 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 		var p := at + d
 		if lights(s.spell) and p != struck:
 			relight(w, p)
-		if s.spell.has(Cards.WATER):
+		if s.spell.has(Cards.WATER) and Grid.inside(p):
 			wash(w, p)
 
 
