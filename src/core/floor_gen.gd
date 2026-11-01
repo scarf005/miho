@@ -1,13 +1,13 @@
 class_name FloorGen
 extends RefCounted
-## Builds each storey: two to four pavilions in open sky, joined by skybridges,
-## with windows in their outer walls. Pavilions that stand close get ledges of
-## 마루 on their facing walls, a few tiles of sky apart, for a leap. A
+## Builds each storey on a skeleton (Skeletons). One is two to four pavilions in open
+## sky, joined by skybridges, with windows in their outer walls. Pavilions that stand
+## close get ledges of 마루 on their facing walls, a few tiles of sky apart, for a leap. A
 ## pavilion is a floor plan: its inside is cut into rooms by walls one tile
 ## thick (binary space partition), and one cut of a wide pavilion may be a
 ## gallery, a hall one tile wide between two walls.
-## Doorways in those walls join every room, with a few extra loops (so a hunted
-## fox has somewhere to slip away); some hold sliding doors (some start open).
+## Doorways in those walls join every room, with a few extra loops where the walk
+## round is long; some hold sliding doors (some start open).
 ## A few walls between rooms far apart are hidden doors (Traps). On some
 ## storeys one room is an event room, such as a treasure room behind a wall
 ## that three dark lanterns in front of it bring down (EventRooms). Lanterns
@@ -131,6 +131,8 @@ const PLAN := {
 ## Peaches grow on every odd storey from the third.
 const FIRST_PEACH_FLOOR := 3
 const MIN_ROOMS := 9
+## How many times a storey starts over when what is laid in it spoils it.
+const BUILDS := 20
 ## A room is at least ROOM_LEAST tiles across; one that fits in ROOM_MOST stays
 ## whole at the chance WHOLE, and is cut again otherwise.
 const ROOM_LEAST := 3
@@ -138,9 +140,11 @@ const ROOM_MOST := Vector2i(12, 8)
 const WHOLE := 0.4
 ## The chance that a pavilion's first cut is a gallery.
 const GALLERIES := 0.6
-## Doorways opened beyond those that join every room; the share of doorways
-## that hold a sliding door.
+## The most doorways opened beyond those that join every room, and the least walk
+## between the two sides of one, or of a bridge beyond the first of a pair; the share
+## of doorways that hold a sliding door.
 const LOOPS := 6
+const APART := 14
 const DOORS := 0.6
 ## A hidden door joins two rooms at least this many steps apart without it.
 const SHORTCUT := 10
@@ -169,8 +173,31 @@ const WINDOWS := 0.35
 const OPEN_DOORS := 0.3
 
 
-## Builds the storey; returns the set room it made, {kind, room}, or {} (SetRooms.build).
-static func build(w: World) -> Dictionary:
+## Builds the storey on `skeleton` (Skeletons.pick when none is given); returns the
+## set room it made, {kind, room}, or {} (SetRooms.build). What is laid in the rooms
+## may light the start, leave the exit dark, or cut one of the two routes of a skeleton
+## that has them, and then it starts over.
+static func build(w: World, skeleton := &"") -> Dictionary:
+	if skeleton == &"":
+		skeleton = Skeletons.pick(w)
+	var set_room := {}
+	for attempt in BUILDS:
+		set_room = _build(w, skeleton)
+		w._changed()
+		var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
+		if (
+			not w.lit(w.start)
+			and w.lit(exit)
+			and (
+				skeleton == Skeletons.PAVILIONS
+				or Skeletons.two_ways(w, w.rooms[0], room_at(w, exit))
+			)
+		):
+			break
+	return set_room
+
+
+static func _build(w: World, skeleton: StringName) -> Dictionary:
 	var me := w.player()
 	w.actors.assign([me])
 	w.shots.clear()
@@ -189,16 +216,26 @@ static func build(w: World) -> Dictionary:
 	me.rooted = 0
 	me.stunned = 0
 	me.blind = 0
+	var goal := Rect2i()
 	for attempt in 100:
-		_carve(w)
-		if w.rooms.size() >= MIN_ROOMS and connected(w):
+		goal = _carve(w, skeleton).goal
+		if (
+			w.rooms.size() >= MIN_ROOMS
+			and w.secrets.size() == hidden_doors(w.depth)
+			and connected(w)
+			and (not goal.has_area() or Skeletons.two_ways(w, w.rooms[0], goal))
+		):
 			break
 	w._changed()
 	var home := w.rooms[0]
 	w.start = _centre(home)
 	me.pos = w.start
+	w.rooms.erase(goal)
 	EventRooms.build(w, home)
-	var goal := _farthest(w, w.start)
+	if goal.has_area():
+		w.rooms.append(goal)
+	else:
+		goal = _farthest(w, w.start)
 	w.elixir = Vector2i(-1, -1)
 	w.stairs = Vector2i(-1, -1)
 	if w.depth >= World.FLOORS:
@@ -222,7 +259,10 @@ static func _centre(r: Rect2i) -> Vector2i:
 	return r.position + r.size / 2
 
 
-static func _carve(w: World) -> void:
+## Clears the storey and draws it on `skeleton`, with its far doorways, hidden doors
+## and windows; returns the plan (Skeletons.draw) with every link it cut in `links`,
+## in order, each {at, a, b}: the tile that makes the link, and the tiles it joins.
+static func _carve(w: World, skeleton: StringName) -> Dictionary:
 	w.tiles = PackedByteArray()
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.SKY)
@@ -231,6 +271,15 @@ static func _carve(w: World) -> void:
 	w.seals.clear()
 	w.sites.clear()
 	w.tail_bonus = 0
+	var plan := Skeletons.draw(w, skeleton)
+	_hide_doors(w, _loops(w, plan.spots, plan.links))
+	_windows(w)
+	return plan
+
+
+## The pavilions skeleton: the rooms sorted west to east, doorways, and bridges and
+## ledges between neighbours. Bridges beyond the first of a pair must be far_apart.
+static func pavilions(w: World) -> Dictionary:
 	var blocks := _pavilions(w)
 	var galleries: Array[Rect2i] = []
 	for b in blocks:
@@ -238,15 +287,29 @@ static func _carve(w: World) -> void:
 		_fill(w, b.grow(-1), World.FLOOR)
 		_split(w, b.grow(-1), galleries, w.rng.randf() < GALLERIES)
 	w.rooms.sort_custom(func(a: Rect2i, b: Rect2i): return _centre(a).x < _centre(b).x)
-	var spots := _doorways(w, galleries)
+	var plan := {spots = _doorways(w, galleries), links = [], goal = Rect2i()}
 	for i in range(1, blocks.size()):
 		var leap := _leap(blocks[i - 1], blocks[i])
 		var rows := _bridge_rows(w, blocks[i - 1], blocks[i], leap >= LEAP.x and leap <= LEAP.y)
 		for y in rows:
-			_bridge(w, blocks[i - 1], blocks[i], y)
+			link_far(w, blocks[i - 1], blocks[i], y, plan.links)
 		_ledges(w, blocks[i - 1], blocks[i], rows)
-	_hide_doors(w, spots)
-	_windows(w)
+	return plan
+
+
+## A bridge on row y between `west` and `east`, when it joins what is not yet joined
+## or saves a walk of at least APART steps; the second joins `links`. False when it
+## stays uncut.
+static func link_far(w: World, west: Rect2i, east: Rect2i, y: int, links: Array) -> bool:
+	var a := Vector2i(west.end.x - 2, y)
+	var b := Vector2i(east.position.x + 1, y)
+	var dist: int = Grid.search(a, Masks.floor_of(w)).dist[Grid.index(b)]
+	if dist >= 0 and dist < APART:
+		return false
+	if dist >= 0:
+		links.append({at = a + Vector2i.RIGHT * 2, a = a, b = b})
+	_bridge(w, west, east, y)
+	return true
 
 
 ## The pavilions, west to east, standing in sky: 2 to 4 of them (more on higher
@@ -305,12 +368,13 @@ static func _split(w: World, r: Rect2i, galleries: Array[Rect2i], gallery := fal
 	_split(w, Rect2i(r.position + axis * (at + cut), r.size - axis * (at + cut)), galleries)
 
 
-## Doorways in the walls between rooms and galleries. In a random order, a wall
-## tile with two different parts on opposite sides and wall on the other two
-## opens when it joins parts not yet joined, until all are one, and LOOPS more
-## open anyway. DOORS of them hold a sliding door, OPEN_DOORS of those open.
-## Returns the tiles left that could still have been doorways: [tile, across,
-## part, part], where parts below w.rooms.size() are rooms.
+## Doorways in the walls between rooms and galleries. Parts already joined, by a
+## doorway or by standing open to one another, count as one. In a random order, a
+## wall tile with two different parts on opposite sides and wall on the other two
+## opens when it joins parts not yet joined, until all are one. DOORS of them hold a
+## sliding door, OPEN_DOORS of those open. Returns the tiles left that could still
+## have been doorways: [tile, across, part, part], where parts below w.rooms.size()
+## are rooms.
 static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 	var parts := w.rooms.duplicate()
 	parts.append_array(galleries)
@@ -321,28 +385,54 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 		for y in range(parts[k].position.y, parts[k].end.y):
 			for x in range(parts[k].position.x, parts[k].end.x):
 				part[Grid.index(Vector2i(x, y))] = k
+	var joined := range(parts.size())
 	var spots := []
 	for i in w.tiles.size():
 		var p := Grid.at(i)
 		for d: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
-			if w.tiles[i] == World.WALL and Grid.inside(p - d) and Grid.inside(p + d):
+			if Grid.inside(p - d) and Grid.inside(p + d):
 				var a := part[Grid.index(p - d)]
 				var b := part[Grid.index(p + d)]
-				if a >= 0 and b >= 0 and a != b:
+				if a < 0 or b < 0 or a == b:
+					continue
+				if w.tiles[i] == World.WALL:
 					spots.append([p, d, a, b])
+				else:
+					joined[_root(joined, a)] = _root(joined, b)
 	shuffle(w.rng, spots)
-	var joined := range(parts.size())
-	var loops := LOOPS
 	var left := []
 	for s: Array in spots:
 		var a := _root(joined, s[2])
 		var b := _root(joined, s[3])
-		if not _walled(w, s[0], s[1]) or (a == b and loops <= 0):
+		if a == b or not _walled(w, s[0], s[1]):
 			left.append(s)
 			continue
-		loops -= 1 if a == b else 0
 		joined[a] = b
 		_doorway(w, s[0])
+	return left
+
+
+## Up to LOOPS more doorways on `spots` (from _doorways), each only where the walk
+## between its two sides is at least APART steps, so that a hunted fox has somewhere
+## to slip away. Each joins `links`. Returns the spots left.
+static func _loops(w: World, spots: Array, links: Array) -> Array:
+	var open := Masks.floor_of(w)
+	var cut := 0
+	var left := []
+	for s: Array in spots:
+		var p: Vector2i = s[0]
+		var d: Vector2i = s[1]
+		if (
+			cut < LOOPS
+			and _walled(w, p, d)
+			and Grid.search(p - d, open).dist[Grid.index(p + d)] >= APART
+		):
+			_doorway(w, p)
+			open[Grid.index(p)] = 1
+			links.append({at = p, a = p - d, b = p + d})
+			cut += 1
+		else:
+			left.append(s)
 	return left
 
 
