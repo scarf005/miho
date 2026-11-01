@@ -184,7 +184,6 @@ func _fit() -> void:
 		term.fit(get_viewport().get_visible_rect().size, settings.zoom)
 	if overlay != &"":
 		menu.room = Vector2i(term.cols, term.rows)
-		menu.codex.room = menu.room
 		term.panel = menu.panel()
 
 

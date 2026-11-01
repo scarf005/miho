@@ -229,6 +229,23 @@ func test_the_menu_button_gives_up_a_debug_pick_as_a_right_click_does() -> void:
 	assert_eq(_me(m), Vector2i(4, 8))
 
 
+func test_the_debug_list_fits_the_screen_after_the_phone_is_turned() -> void:
+	var m := _main()
+	get_tree().root.size = Vector2i(390, 844)
+	m._fit()
+	m._open(&"cheat")
+	m.menu.debug.selected = DebugMenu.COMMANDS.size() - 1
+	get_tree().root.size = Vector2i(844, 390)
+	m._fit()
+	var e := Keys.event("Up")
+	e.pressed = true
+	m._unhandled_input(e)
+	var shown := PanelView.span(m.term)
+	var row: int = m.term.panel.selected
+	assert_true(row >= shown.x and row < shown.x + shown.y, "row %d in %s" % [row, shown])
+	get_tree().root.size = Vector2i(1280, 720)
+
+
 # --- aiming ---------------------------------------------------------------------
 
 

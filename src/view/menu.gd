@@ -85,7 +85,11 @@ var debug := DebugMenu.new()
 ## debug commands, which would write to the run on disk.
 var title := false
 ## The screen in cells, for the pages to fit their lists.
-var room := Vector2i(40, 18)
+var room := Vector2i(40, 18):
+	set(v):
+		room = v
+		codex.room = v
+		debug.room = v
 ## The page this one was opened from and the row it was opened on; Esc goes back
 ## there. Empty when the game opened it.
 var origin := &""
@@ -104,7 +108,6 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	origin = &""
 	if size != Vector2i.ZERO:
 		room = size
-	codex.room = room
 	codex.hover = -1
 	codex.select(codex.selected)
 	if p == &"cheat":
@@ -159,10 +162,10 @@ func key(e: InputEventKey) -> StringName:
 		return _bind(e)
 	if page == &"codex":
 		var out := codex.key(e, nav)
-		return back() if out == &"close" else out
+		return _leave() if out == &"close" else out
 	if page == &"cheat":
 		var out := debug.key(e, nav)
-		return back() if out == &"close" and debug.request.is_empty() else out
+		return _leave() if out == &"close" and debug.request.is_empty() else out
 	var slot := Keys.action_of(e)
 	var out := &"changed"
 	if page in [&"help", &"log"] and slot == page:
@@ -204,7 +207,7 @@ func _move(nav: StringName) -> StringName:
 		&"enter":
 			out = use()
 		&"back":
-			out = back()
+			out = _leave()
 	return out
 
 
@@ -335,9 +338,17 @@ func _use_key_row() -> StringName:
 	return &""
 
 
-## Esc: a page opened from another goes back to it, on the row it was opened
-## from; others close.
+## Esc or a right click: the debug page goes back as DebugMenu says; a page
+## opened from another goes back to it, on the row it was opened from; others
+## close.
 func back() -> StringName:
+	if page == &"cheat":
+		var out := debug.back()
+		return _leave() if out == &"close" else out
+	return _leave()
+
+
+func _leave() -> StringName:
 	if confirming:
 		confirming = false
 		return &""

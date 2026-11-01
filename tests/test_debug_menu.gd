@@ -245,3 +245,37 @@ func test_the_title_does_not_offer_the_commands_and_the_saved_run_stays() -> voi
 	var disk := SaveGame.load_from(path)
 	assert_eq([disk.seed_value, disk.actions.size()], [7, 3], "the saved run is as it was")
 	DirAccess.remove_absolute(path)
+
+
+func test_a_right_click_in_a_list_of_its_own_goes_back_to_its_row_as_escape_does() -> void:
+	var m := _main()
+	await _key(m, "F4")
+	_row(m, &"floor")
+	await _key(m, "Enter")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_RIGHT
+	click.pressed = true
+	m._unhandled_input(click)
+	assert_eq(m.overlay, &"cheat", "the page stays")
+	assert_eq(m.menu.debug.page, &"", "on the commands")
+	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"floor"))
+	m._unhandled_input(click)
+	assert_eq(m.overlay, &"", "a second one closes it")
+
+
+func test_a_held_key_never_answers_a_pick() -> void:
+	var m := _main()
+	_foe(m, &"dokkaebi", Vector2i(2, 0))
+	await _key(m, "F4")
+	_row(m, &"kill")
+	await _key(m, "Enter")
+	await _key(m, "Enter")
+	assert_true(m.menu.debug.asking())
+	var acts: int = m.run.actions.size()
+	var held := Keys.event("Enter")
+	held.pressed = true
+	held.echo = true
+	m._unhandled_input(held)
+	await wait_until(func(): return not m.busy, 5)
+	assert_true(m.menu.debug.asking(), "the repeat of the key that chose the row")
+	assert_eq(m.run.actions.size(), acts)
