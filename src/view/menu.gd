@@ -184,7 +184,7 @@ func key(e: InputEventKey) -> StringName:
 	var slot := Keys.action_of(e)
 	var out := &"changed"
 	if page in [&"help", &"log"] and slot == page:
-		out = &"close"
+		out = _leave()
 	elif page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
 		save(slot)
 	elif (

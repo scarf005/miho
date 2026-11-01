@@ -274,3 +274,16 @@ func test_a_pan_stops_at_the_map_edge() -> void:
 	var from := _tile_at(m, Vector2i(4, 14))
 	_drag(m, from, from + Vector2(6.0 * tile, 0.0), Vector3(0.0, 0.6, 0.7))
 	assert_eq(m.term.cam.x, 0, "there is no map left of it")
+
+
+func test_the_spellbook_entered_from_the_esc_menu_has_its_buttons() -> void:
+	var m := _main()
+	_finger(m, _hud(m, &"card", 1))
+	_finger(m, _hud(m, &"spellbook"))
+	_finger(m, _hud(m, &"back"))
+	m._open(&"options")
+	m.menu.selected = m.menu._listed().find(&"spells")
+	m._panel_input(m.touch._key(KEY_ENTER))
+	m.touch._process(0.0)
+	assert_eq(m.menu.page, &"spells")
+	assert_ne(_hud(m, &"enter"), Vector2.ZERO)

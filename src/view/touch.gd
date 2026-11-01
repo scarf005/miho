@@ -175,13 +175,15 @@ func _mode() -> StringName:
 
 ## The page the HUD has buttons for: the spellbook only when it lists a spell.
 func _page() -> StringName:
-	var spells: bool = main.overlay == &"spells" and not main.menu.spells().is_empty()
-	return &"spells" if spells else &""
+	var open: bool = (
+		main.overlay == &"spells" or main.overlay != &"" and main.menu.page == &"spells"
+	)
+	return &"spells" if open and not main.menu.spells().is_empty() else &""
 
 
 ## What the layout depends on besides the screen.
 func _shape() -> Array:
-	return [_mode(), main.term.saved.is_empty()]
+	return [_mode(), _page(), main.term.saved.is_empty()]
 
 
 func _process(_delta: float) -> void:
@@ -281,7 +283,7 @@ func _tap(pos: Vector2) -> void:
 		hud.pressed_at = term._time
 		main.sfx.play(&"click")
 		_press(button)
-	elif main.overlay == &"spells":
+	elif main.overlay != &"" and main.menu.page == &"spells":
 		var row := PanelView.row_at(term, local)
 		if row >= 0:
 			main.menu.select(row)
