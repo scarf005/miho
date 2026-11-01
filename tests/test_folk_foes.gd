@@ -108,7 +108,7 @@ func test_a_charge_pays_its_mana_and_a_creature_with_none_left_casts_nothing() -
 	for plan in saja.intent:
 		spent += Spell.price(plan.cards.size())
 	assert_gt(spent, 0)
-	assert_eq(saja.mana, 9 - spent + (1 if saja.acted % World.TAIL_REGROW == 0 else 0))
+	assert_eq(saja.mana, 9 - spent)
 	saja.mana = 0
 	assert_eq(Aim.at(w, saja, w.player()), [] as Array[Dictionary])
 
@@ -124,6 +124,12 @@ func test_its_mana_regrows_one_in_the_rounds_miho_regrows_a_tail() -> void:
 	saja.mana = 9
 	w.act(WAIT)
 	assert_eq(saja.mana, 9, "never past nine")
+	saja.mana = 8
+	for i in World.TAIL_REGROW - 1:
+		w.act(WAIT)
+		assert_eq(saja.mana, 8, "a full wait from the moment it is spent")
+	w.act(WAIT)
+	assert_eq(saja.mana, 9)
 
 
 func test_a_spray_that_adds_nothing_is_not_bought() -> void:

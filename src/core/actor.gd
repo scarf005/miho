@@ -32,6 +32,8 @@ var frozen := 0
 var casts := 0
 ## The mana it has left to pay for spells with (Bestiary mana).
 var mana := 0
+## Rounds counted towards its next mana (Mind._regrow).
+var regrow := 0
 var acted := 0
 var alert := REST
 ## Where it last saw Miho, or the spot it is searching.
@@ -130,6 +132,7 @@ func clone() -> Actor:
 		"frozen",
 		"casts",
 		"mana",
+		"regrow",
 		"acted",
 		"alert",
 		"target",

@@ -464,6 +464,13 @@ func _rounds(ladder: Array, hp: int, tails: int) -> Array:
 	var regrow := 0
 	while left > 0 and rounds < 200:
 		rounds += 1
+		if tails < ladder.size() - 1:
+			regrow += 1
+			if regrow >= World.TAIL_REGROW:
+				regrow = 0
+				tails += 1
+		else:
+			regrow = 0
 		var pick := 0
 		for n in range(1, mini(tails, ladder.size() - 1) + 1):
 			if ladder[n].one >= left:
@@ -478,10 +485,6 @@ func _rounds(ladder: Array, hp: int, tails: int) -> Array:
 		left -= dealt
 		tails -= pick
 		spent += pick
-		regrow += 1
-		if regrow >= World.TAIL_REGROW:
-			regrow = 0
-			tails = mini(tails + 1, ladder.size() - 1)
 	return [rounds, spent]
 
 

@@ -17,6 +17,18 @@ extends RefCounted
 const GRUDGE_ROUNDS := 10
 
 
+## One round of spent mana growing back, as World._regrow does for tails; it
+## runs before the creature casts.
+static func _regrow(a: Actor) -> void:
+	if a.mana >= Bestiary.mana(a.kind):
+		a.regrow = 0
+		return
+	a.regrow += 1
+	if a.regrow >= World.TAIL_REGROW:
+		a.regrow = 0
+		a.mana += 1
+
+
 static func heaven_phase(w: World) -> void:
 	for a in w.actors.duplicate():
 		if w.outcome != &"":
@@ -24,8 +36,7 @@ static func heaven_phase(w: World) -> void:
 		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
 			continue
 		a.acted += 1
-		if a.mana < Bestiary.mana(a.kind) and a.acted % World.TAIL_REGROW == 0:
-			a.mana += 1
+		_regrow(a)
 		if a.stunned > 0:
 			a.stunned -= 1
 			continue

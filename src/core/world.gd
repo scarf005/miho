@@ -514,6 +514,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	if not can(action):
 		return events
 	var me := player()
+	_regrow()
 	var alight := burning.keys()
 	if me.stunned > 0:
 		me.stunned -= 1
@@ -925,13 +926,21 @@ func ignite(p: Vector2i, force := false, wildfire := false) -> void:
 		emit({t = &"ignite", at = p})
 
 
-func _end_round() -> void:
-	Drums.dry(self)
-	flares.clear()
+## One round of a spent tail growing back, counted before the action: the round
+## a tail is spent in does not count, and nothing counts while none is missing.
+func _regrow() -> void:
+	if tails >= max_tails():
+		regrow = 0
+		return
 	regrow += 1
 	if regrow >= TAIL_REGROW:
 		regrow = 0
-		tails = mini(max_tails(), tails + 1)
+		tails += 1
+
+
+func _end_round() -> void:
+	Drums.dry(self)
+	flares.clear()
 	for a in actors:
 		if a.alive():
 			a.cooldown = maxi(0, a.cooldown - 1)
