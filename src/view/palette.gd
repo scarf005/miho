@@ -109,6 +109,9 @@ const KIND := {
 	&"bulgasari": Color(0.95, 0.82, 0.35),
 	&"cheonnyeon": Color(0.8, 0.5, 1.0),
 	&"saja": Color(0.75, 0.75, 0.8),
+	&"gangcheori": Color(0.85, 0.5, 0.35),
+	&"eodeopsini": Color(0.45, 0.4, 0.6),
+	&"dueoksini": Color(0.7, 0.55, 0.3),
 }
 const CARD := {
 	Cards.FOX: Color(0.6, 0.82, 1.0),

@@ -93,6 +93,8 @@ static func creature(a: Actor) -> Array:
 static func _clock(a: Actor) -> Array:
 	if a.intent.is_empty():
 		var text := "%d초 뒤 주술" % a.cooldown if a.cooldown > 0 else "주술 가능"
+		if Bestiary.mana(a.kind) > 0:
+			text = "마력 %d/%d" % [a.mana, Bestiary.mana(a.kind)]
 		return [[text, Palette.TEXT]]
 	var glyphs := func(cards: Array) -> String:
 		return "".join(cards.map(func(c): return Cards.GLYPH[c]))

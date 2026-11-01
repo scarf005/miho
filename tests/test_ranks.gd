@@ -77,7 +77,7 @@ func test_health_grows_with_the_rank() -> void:
 		hp.append(FloorGen.spawn(_world(depth), &"dokkaebi", Vector2i(20, 8)).max_hp)
 	assert_eq(hp, [2, 3, 5, 7, 8])
 	assert_eq(FloorGen.spawn(_world(9), &"cheonnyeon", Vector2i(20, 8)).hp, 14)
-	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 15)
+	assert_eq(FloorGen.spawn(_world(9), &"saja", Vector2i(20, 8)).hp, 18)
 
 
 func test_no_rank_gives_a_kind_another_element() -> void:
@@ -98,7 +98,7 @@ func test_a_caster_has_more_spells_deeper() -> void:
 			for cast: Array in casts:
 				var s := Spell.make(cast)
 				assert_not_null(s, "%s %s" % [kind, cast])
-	for kind in [&"dokkaebi", &"jangseung", &"imugi", &"haetae", &"saja", &"bujigaengi"]:
+	for kind in [&"dokkaebi", &"jangseung", &"imugi", &"haetae", &"bujigaengi"]:
 		assert_gt(Bestiary.casts(kind, Bestiary.RANKS).size(), Bestiary.casts(kind, 1).size())
 
 

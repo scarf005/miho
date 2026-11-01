@@ -24,6 +24,8 @@ static func heaven_phase(w: World) -> void:
 		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
 			continue
 		a.acted += 1
+		if a.mana < Bestiary.mana(a.kind) and a.acted % World.TAIL_REGROW == 0:
+			a.mana += 1
 		if a.stunned > 0:
 			a.stunned -= 1
 			continue
@@ -31,7 +33,7 @@ static func heaven_phase(w: World) -> void:
 		if not a.intent.is_empty():
 			var plans: Array[Dictionary] = a.intent.duplicate()
 			a.intent.clear()
-			a.cooldown = a.info().cd
+			a.cooldown = a.info().get("cd", 0)
 			for plan in plans:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
 					w.cast(a, Bestiary.spell(a.kind, plan.cards), plan.dir)
@@ -275,22 +277,27 @@ static func rest(w: World, a: Actor) -> void:
 
 
 ## `a` strikes `target` beside it with its `melee` (Bestiary), throwing it
-## back when the blow throws.
+## back when the blow throws and rooting it when the blow roots.
 static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void:
 	w.emit({t = &"melee", id = a.id, target = target.id, at = target.pos, n = melee.damage})
 	w.noise(target.pos, 3, "퍽", true, a.id)
 	w.hurt(target, melee.damage)
 	provoke(w, target, a)
+	if melee.get("root", 0) > 0 and target.alive():
+		Elements.root(w, target, melee.root)
 	if melee.get("throw", 0) > 0 and target.alive():
 		w.push(target, target.pos - a.pos, melee.throw)
 
 
-## `a` charges the spells `plans` (Aim), one `charge` event each.
+## `a` charges the spells `plans` (Aim), one `charge` event each, paying their
+## mana when it has some.
 static func _charge(w: World, a: Actor, plans: Array[Dictionary]) -> bool:
 	if plans.is_empty():
 		return false
 	a.intent.assign(plans)
 	for plan in plans:
+		if Bestiary.mana(a.kind) > 0:
+			a.mana -= Spell.price(plan.cards.size())
 		w.emit({t = &"charge", id = a.id, cards = plan.cards.duplicate(), dir = plan.dir})
 	return true
 
