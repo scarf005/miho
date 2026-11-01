@@ -222,6 +222,15 @@ func test_kimchi_stays_while_she_is_at_full_health_and_she_keeps_her_scent() -> 
 	assert_false(w.events.any(func(e): return e.t == &"heal"))
 
 
+func test_she_eats_the_kimchi_under_her_once_she_is_hurt() -> void:
+	var w := _kimchi(3)
+	w.act({t = &"move", dir = E})
+	w.hurt(w.player(), 1)
+	w.act({t = &"wait"})
+	assert_eq(w.player().hp, 3)
+	assert_true(Jars.spots(w).is_empty())
+
+
 func test_a_hurt_miho_never_goes_above_the_maximum() -> void:
 	var w := _kimchi(2)
 	w.player().max_hp = 2 + World.HEAL

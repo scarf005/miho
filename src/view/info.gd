@@ -569,7 +569,10 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	elif Jars.spots(w).has(p):
 		name = Jars.name_of(Jars.KIMCHI)
 		notes = [
-			"체력: +%d" % World.HEAL, "최대 체력: 오르지 않음", "먹은 뒤 냄새: %d초 동안 진함" % Jars.PUNGENT_ROUNDS
+			"체력: +%d" % World.HEAL,
+			"최대 체력: 오르지 않음",
+			"가득 찼을 때: 먹지 않음",
+			"먹은 뒤 냄새: %d초 동안 진함" % Jars.PUNGENT_ROUNDS,
 		]
 	elif Scrolls.card_at(w, p) != &"":
 		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"

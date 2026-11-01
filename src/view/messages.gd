@@ -403,12 +403,10 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	return _subject(before, after, id) + _took(e.n)
 
 
-## Miho eats kimchi: the heal is told only when it healed.
+## Miho eats kimchi.
 static func _kimchi(healed: int) -> Array:
 	var name := Jars.name_of(Jars.KIMCHI)
 	var eaten := [[name + _particle(name, "을", "를") + " 먹었다", TEXT]]
-	if healed <= 0:
-		return eaten
 	return eaten + [[". 체력을 ", TEXT], [str(healed), Palette.HURT], [" 회복했다", TEXT]]
 
 

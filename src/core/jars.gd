@@ -9,8 +9,9 @@ extends RefCounted
 ## 빈 독 does nothing. 물 floods the bare floor round the jar to shallow water, and
 ## water's own rules (Terrain.wash) put out fire, lanterns and a veil and wash the
 ## scent away there. 김치 lies on the tile as a site {kind, at} (kept as a scroll
-## is): Miho eats it by coming onto the tile. It heals HEAL, never above her
-## maximum, and her scent is strong for PUNGENT_ROUNDS (Scent). 제웅, a straw
+## is): Miho eats it on the tile once she is hurt, whether she came onto it hurt or
+## was hurt standing there. It heals HEAL, never above her maximum, and her scent is
+## strong for PUNGENT_ROUNDS (Scent). 제웅, a straw
 ## doll, tears and hurts the nearest creature of heaven Miho sees by EFFIGY_HARM.
 ## 허수아비, a scarecrow, falls where every creature that sees it goes to search
 ## (Notice), as it does for a lantern that broke. 소금, salt, clears the scent trail of the
@@ -117,11 +118,11 @@ static func spots(w: World) -> Array[Vector2i]:
 	return out
 
 
-## Miho has come onto her tile: she eats the kimchi there, once, unless she is at
-## full health, when it stays for later.
+## She eats the kimchi on her tile, once, if she is alive and hurt; at full health
+## it stays for later.
 static func arrive(w: World, me: Actor) -> void:
 	for site: Dictionary in w.sites.duplicate():
-		if site.kind == KIMCHI and site.at == me.pos and me.hp < me.max_hp:
+		if site.kind == KIMCHI and site.at == me.pos and me.alive() and me.hp < me.max_hp:
 			w.sites.erase(site)
 			var healed := mini(World.HEAL, me.max_hp - me.hp)
 			me.hp += healed

@@ -953,6 +953,7 @@ func _end_round() -> void:
 			a.wary = maxi(0, a.wary - 1)
 			a.grudge = maxi(0, a.grudge - 1)
 	pungent = maxi(0, pungent - 1)
+	Jars.arrive(self, player())
 	for s in shots:
 		if not s.gone and s.life > 0:
 			s.life -= 1
