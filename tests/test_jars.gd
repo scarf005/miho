@@ -40,15 +40,18 @@ func _jar(w: World, at: Vector2i, what: StringName) -> void:
 	w.sense()
 
 
-func _break(w: World, how: StringName, what: StringName) -> void:
+## Breaks a jar holding `what` by `how` and returns every event of the rounds.
+func _break(w: World, how: StringName, what: StringName) -> Array:
+	var seen := []
 	if how == &"bump":
 		_jar(w, AT, what)
-		w.act({t = &"move", dir = E})
+		seen.append_array(w.act({t = &"move", dir = E}))
 	else:
 		_jar(w, FAR, what)
-		w.act(ORB)
+		seen.append_array(w.act(ORB))
 		for i in 4:
-			w.act(WAIT)
+			seen.append_array(w.act(WAIT))
+	return seen
 
 
 func _foe(w: World, at: Vector2i) -> Actor:
@@ -261,6 +264,100 @@ func test_water_washes_a_strong_trail_away() -> void:
 	assert_true(w.strong.has(AT))
 	Scent.clear(w, AT)
 	assert_false(w.strong.has(AT))
+
+
+# --- 소금, 팥 and 숯 ----------------------------------------------------------------
+
+
+func _lay_trail(w: World) -> void:
+	w.scent.resize(w.tiles.size())
+	for x in range(8, 12):
+		w.scent[Grid.index(Vector2i(x, 8))] = w.round_no + x
+	w.strong[Vector2i(10, 8)] = true
+
+
+func test_salt_clears_the_scent_trail_so_a_hunter_follows_nothing() -> void:
+	for how in [&"bump", &"orb"]:
+		var w := _world()
+		_lay_trail(w)
+		var foe := _foe(w, Vector2i(9, 9))
+		assert_ne(Scent.next(w, foe), foe.pos, "%s: a trail to follow before" % how)
+		_break(w, how, &"salt")
+		assert_eq(Scent.next(w, foe), foe.pos, "%s: nothing to follow" % how)
+		assert_true(w.strong.is_empty(), str(how))
+
+
+func test_beans_stun_each_creature_of_heaven_round_the_jar_and_not_miho() -> void:
+	for how in [&"bump", &"orb"]:
+		var w := _world()
+		var at := AT if how == &"bump" else FAR
+		var near := _foe(w, at + Vector2i(0, 1))
+		var far := _foe(w, at + Vector2i(0, 3))
+		var stunned := {}
+		for e in _break(w, how, &"beans").filter(func(e): return e.t == &"stun"):
+			stunned[e.id] = e.rounds
+		assert_eq(stunned.get(near.id), Jars.BEANS_STUN, "%s: round the jar" % how)
+		assert_false(stunned.has(far.id), "%s: three tiles away" % how)
+		assert_false(stunned.has(w.player().id), "%s: Miho is not stunned" % how)
+
+
+func test_miho_beside_a_jar_of_beans_is_not_stunned() -> void:
+	var w := _world()
+	_jar(w, AT, &"beans")
+	Structures.broke(w, World.JAR, AT)
+	assert_eq(Grid.cheb(w.player().pos, AT), 1)
+	assert_eq(w.player().stunned, 0)
+
+
+func test_beans_make_the_stun_sound_once_for_a_creature() -> void:
+	var w := _world()
+	_foe(w, AT + Vector2i(0, 1))
+	_break(w, &"bump", &"beans")
+	var sounds := []
+	for e in w.events:
+		sounds.append_array(Sfx.sounds_of(e))
+	assert_eq(sounds.count(&"stun"), 1)
+
+
+func test_coals_spill_hot_ground_on_the_jar_and_its_four_sides() -> void:
+	for how in [&"bump", &"orb"]:
+		var w := _world()
+		var at := AT if how == &"bump" else FAR
+		var heated := []
+		for e in _break(w, how, &"coals").filter(func(e): return e.t == &"heat"):
+			heated.append_array(e.tiles)
+		var ring: Array[Vector2i] = [at]
+		for d in Placement.SIDES:
+			ring.append(at + d)
+		ring.sort()
+		heated.sort()
+		assert_eq(heated, ring, str(how))
+
+
+func test_coals_hurt_a_creature_standing_on_them() -> void:
+	var w := _world()
+	var foe := _foe(w, AT + Vector2i(0, 1))
+	var hp := foe.hp
+	_break(w, &"bump", &"coals")
+	assert_lt(foe.hp, hp)
+
+
+func test_each_new_jar_event_has_a_log_line_and_a_sound() -> void:
+	for id in [&"salt", &"beans", &"coals"]:
+		var e := {t = &"jar", what = id, at = AT}
+		assert_ne(Sfx.sound_of(e), &"", str(id))
+		assert_true(Messages.JAR_DOES.has(id), str(id))
+
+
+func test_a_forecast_of_a_cast_that_breaks_a_jar_of_coals_tells_the_harm() -> void:
+	var w := _world()
+	var foe := _foe(w, AT + Vector2i(0, 1))
+	_jar(w, AT, &"coals")
+	var forecast := Forecast.of(w, ORB)
+	var hp := foe.hp
+	w.act(ORB)
+	assert_gt(hp - foe.hp, 0, "the coals burned it")
+	assert_eq(forecast.harm.get(foe.id, 0), hp - foe.hp)
 
 
 # --- forecast and the 도감 ---------------------------------------------------------

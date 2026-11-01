@@ -116,9 +116,12 @@ static func jar_facts() -> Array:
 	var does := {
 		&"empty": "",
 		&"water": ", 주위 %d칸 %s, 불과 냄새 지움" % [Grid.DIRS.size(), Tiles.of(World.SHALLOW, "name")],
-		Jars.KIMCHI: ", 체력 +%d 아이템" % World.HEAL,
+		Jars.KIMCHI: ", 체력 +%d" % World.HEAL,
 		&"effigy": ", 보이는 가장 가까운 적 피해 %d" % Jars.EFFIGY_HARM,
 		&"scarecrow": ", 보는 적이 이 칸 수색",
+		&"salt": ", 냄새 지움",
+		&"beans": ", 주위 %d칸 적 기절 %d초" % [Grid.DIRS.size(), Jars.BEANS_STUN],
+		&"coals": ", 이 칸과 옆 %d칸 %s" % [Placement.SIDES.size(), Compounds.HOT[Compounds.LAVA].name],
 	}
 	var chances := Jars.chances()
 	var out := []

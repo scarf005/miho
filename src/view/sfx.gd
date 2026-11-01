@@ -169,12 +169,17 @@ const LEVEL := {
 	&"relight": -8.0,
 	&"ignite": -10.0,
 }
-## The sound of what a jar holds when it breaks (Jars): a spill, a find, a tear, a fall of straw.
+## The sound of what a jar holds when it breaks (Jars): a spill, a find, a tear, a fall of
+## straw, a scatter of salt, a clatter of beans, a thud of coals. A stun and the coals' heat
+## make their own sounds, so beans and coals add none of those.
 const JAR_SOUNDS := {
 	&"water": &"splash",
 	Jars.KIMCHI: &"tick",
 	&"effigy": &"tear",
 	&"scarecrow": &"rustle",
+	&"salt": &"rustle",
+	&"beans": &"tick",
+	&"coals": &"stone",
 }
 ## The sound of a tile that forms where a compound reaches; the others are silent.
 const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}

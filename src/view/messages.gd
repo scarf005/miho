@@ -24,6 +24,9 @@ const JAR_DOES := {
 	Jars.KIMCHI: "나왔다",
 	&"effigy": "찢어졌다",
 	&"scarecrow": "쓰러졌다",
+	&"salt": "흩어졌다",
+	&"beans": "쏟아졌다",
+	&"coals": "쏟아졌다",
 }
 
 ## {runs, text, round, n}

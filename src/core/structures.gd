@@ -18,10 +18,10 @@ static func broke(w: World, was: int, at: Vector2i) -> void:
 		World.JAR:
 			Jars.broke(w, at)
 		World.CENSER:
-			_spill(w, at)
+			spill(w, at)
 
 
-static func _spill(w: World, at: Vector2i) -> void:
+static func spill(w: World, at: Vector2i) -> void:
 	w.vents.erase(at)
 	var ring: Array[Vector2i] = [at]
 	for d in Placement.SIDES:

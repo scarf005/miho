@@ -13,20 +13,28 @@ extends RefCounted
 ## maximum, and her scent is strong for PUNGENT_ROUNDS (Scent). 제웅, a straw
 ## doll, tears and hurts the nearest creature of heaven Miho sees by EFFIGY_HARM.
 ## 허수아비, a scarecrow, falls where every creature that sees it goes to search
-## (Notice), as it does for a lantern that broke.
+## (Notice), as it does for a lantern that broke. 소금, salt, clears the scent trail of the
+## whole storey (Scent.clear). 팥, red beans, stun every creature of heaven in the eight
+## tiles round the jar for BEANS_STUN rounds, Miho not. 숯, charcoal, spills coals the way a
+## censer does (Structures.spill).
 
 ## The effects with their weights, in the order the dice go over them.
 const ROWS := [
 	{id = &"empty", name = "빈 독", weight = 30},
-	{id = &"water", name = "물", weight = 20},
-	{id = &"kimchi", name = "김치", weight = 25},
+	{id = &"water", name = "물", weight = 15},
+	{id = &"kimchi", name = "김치", weight = 20},
 	{id = &"effigy", name = "제웅", weight = 10},
-	{id = &"scarecrow", name = "허수아비", weight = 15},
+	{id = &"scarecrow", name = "허수아비", weight = 10},
+	{id = &"salt", name = "소금", weight = 5},
+	{id = &"beans", name = "팥", weight = 5},
+	{id = &"coals", name = "숯", weight = 5},
 ]
 const KIMCHI := &"kimchi"
 ## Rounds Miho's scent stays strong after she eats kimchi.
 const PUNGENT_ROUNDS := 20
 const EFFIGY_HARM := 1
+## Rounds the creatures round a jar of red beans are stunned: a 흙 wisp's.
+const BEANS_STUN := Elements.STUN
 
 
 ## The weight of every effect of `rows` together.
@@ -87,6 +95,12 @@ static func broke(w: World, at: Vector2i) -> void:
 			_tear(w)
 		&"scarecrow":
 			Notice.record(w, &"scarecrow", at)
+		&"salt":
+			_scatter(w)
+		&"beans":
+			_pour(w, at)
+		&"coals":
+			Structures.spill(w, at)
 
 
 ## The name of effect `id`.
@@ -136,3 +150,15 @@ static func _tear(w: World) -> void:
 			near = a
 	if near != null:
 		w.hurt(near, EFFIGY_HARM)
+
+
+static func _scatter(w: World) -> void:
+	for i in w.tiles.size():
+		Scent.clear(w, Grid.at(i))
+
+
+static func _pour(w: World, at: Vector2i) -> void:
+	for d in Grid.DIRS:
+		var a := w.actor_at(at + d)
+		if a != null and a.faction == Actor.HEAVEN and a.alive():
+			Elements.stun(w, a, BEANS_STUN)
