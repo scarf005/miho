@@ -587,7 +587,7 @@ static func _shape(s: Spell) -> Array:
 				lines.append(_line(PIERCE[0], PIERCE[1]))
 			lines.append(_line("회전", "칸당 " + _turn(s.turn())))
 			if not s.gun():
-				lines.append(_line("맞히면", "%d초 동안 붙음" % Spell.WISP_LIFE))
+				lines.append(_line("맞히면", "달라붙음"))
 			lines.append(_line("사거리", "%d칸" % Spell.RANGE))
 			lines.append(_line("지속 시간", "%d초" % Spell.WISP_LIFE))
 			if Lure.lures(s):
