@@ -38,8 +38,6 @@ var lost := 0
 ## Rounds left of wariness after being hurt: it does not go back to rest, and
 ## notices Miho one tile farther in the dark.
 var wary := 0
-## The id of the hostile projectile it saw and reacted to last.
-var noted := 0
 ## The ids of the changes (Notice) it has seen and reacted to.
 var marked: Array[int] = []
 var sees_me := false
@@ -140,7 +138,6 @@ func clone() -> Actor:
 		"target",
 		"lost",
 		"wary",
-		"noted",
 		"sees_me",
 		"guard",
 		"drum",

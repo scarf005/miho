@@ -28,9 +28,9 @@ extends RefCounted
 ## group: the group of heaven it belongs to (GROUPS).
 ## shout: what it shouts when it starts to hunt Miho, its word and how many
 ## tiles it is heard (Mind.shout); a creature without one is silent.
-## wits: how well it reads a projectile (Mind): 0 dull, 1 sharp, 2 cunning. A
-## dull creature looks at the spot, a sharp one at where the projectile came
-## from, a cunning one hunts from there.
+## wits: how well it reads a projectile it sees fly (Mind): 0 dull, 1 sharp, 2
+## cunning. A dull creature looks at the spot, a sharp one at where it came from,
+## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
 ## hat: wears the invisibility hat, seen only from the next tile or with a wisp
 ## clinging to it (Hat).
 ## brave: never flees (Bestiary.flees). Any other creature that is sharp or
