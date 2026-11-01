@@ -89,3 +89,18 @@ bench: rust
 event-rooms seeds="200": rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/event_rooms.gd -- {{ seeds }}
+
+# Print Miho's power against each depth's creatures as Markdown; measures on N processes (about 40 min on 7).
+power procs="7": rust
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ godot }} --headless --path . --import >/dev/null 2>&1
+    dir=$(mktemp -d -p "${XDG_CACHE_HOME:-$HOME/.cache}")
+    trap 'gio trash "$dir"' EXIT
+    pids=()
+    for i in $(seq 0 $(({{ procs }} - 1))); do
+        {{ godot }} --headless --path . -s tools/power.gd -- --shard=$i/{{ procs }} --memo="$dir" >/dev/null 2>&1 &
+        pids+=($!)
+    done
+    for pid in "${pids[@]}"; do wait "$pid"; done
+    {{ godot }} --headless --path . -s tools/power.gd -- --memo="$dir" 2>/dev/null | rg -v '^(Initialize godot-rust|Godot Engine)'
