@@ -55,6 +55,8 @@ static func of(before: World, after: World, events: Array) -> Array:
 			last = f
 		if not line.is_empty():
 			out.append(line)
+	if after.max_tails() > before.max_tails():
+		out.append([["꼬리가 %d개로 늘었다" % after.max_tails(), Palette.SIDE[0]]])
 	return out
 
 

@@ -218,3 +218,12 @@ func test_a_starfish_that_grows_says_what_it_ate() -> void:
 	w.sense()
 	var grow := {t = &"grow", id = foe.id, hp = 4, max_hp = 4}
 	assert_eq(_lines(w, [grow]), ["불가사리가 쇠를 먹고 커졌다"] as Array[String])
+
+
+func test_a_new_tail_is_told_and_losing_one_is_not() -> void:
+	var w := _world()
+	var before := w.clone()
+	w.tail_bonus += 1
+	var grown := "꼬리가 %d개로 늘었다" % w.max_tails()
+	assert_eq(Messages.of(before, w, []).map(Messages.plain), [grown])
+	assert_eq(Messages.of(w, before, []), [])
