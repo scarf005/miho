@@ -520,10 +520,10 @@ func _draw_game() -> void:
 			_draw_log()
 		_draw_info()
 	var v := map_view()
-	if not banner_lines.is_empty():
+	if panel.is_empty() and not banner_lines.is_empty():
 		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
-	for r: Array in _banner_rows():
-		_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
+		for r: Array in _banner_rows():
+			_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines
