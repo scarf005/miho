@@ -744,7 +744,7 @@ func _draw_box(lines: Array, p: Variant) -> void:
 	var fit := _info_fit(p, lines)
 	draw_set_transform(fit.at * CELL, 0.0, Vector2(fit.scale, fit.scale))
 	var box := Rect2(Vector2.ZERO, fit.cells * CELL)
-	draw_rect(box, Color(Palette.VOID, 0.92))
+	draw_rect(box, Palette.VOID)
 	draw_rect(box.grow(-1), Palette.DIM, false, 2.0)
 	for column: Array in fit.columns:
 		for k in column[1].size():

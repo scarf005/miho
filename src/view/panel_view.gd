@@ -38,10 +38,7 @@ static func draw(t: Term) -> void:
 	var panel: Dictionary = t.panel
 	var cols := t.cols
 	var rows := t.rows
-	t.draw_rect(
-		Rect2(Vector2.ZERO, t.size),
-		Color(Palette.VOID, 1.0 if panel.get("opaque", false) else 0.92)
-	)
+	t.draw_rect(Rect2(Vector2.ZERO, t.size), Palette.VOID)
 	var detail: Array = panel.get("detail", [])
 	for k in detail.size():
 		var y := rows - detail.size() + k
