@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env: { GODOT_VERSION: 4.7.2, EMSDK_VERSION: 4.0.20 }
+    env: { GODOT_VERSION: 4.7.2, EMSDK_VERSION: 4.0.20, MIHO_NIGHTLY: nightly-2026-05-03 }
     steps:
       - uses: actions/checkout@v4
       - uses: extractions/setup-just@v3
@@ -29,8 +29,8 @@ jobs:
           echo "MIHO_EMSDK=$HOME/emsdk" >> "$GITHUB_ENV"
       - name: Rust
         run: |
-          rustup toolchain install nightly --profile minimal --component rust-src
-          rustup target add wasm32-unknown-emscripten --toolchain nightly
+          rustup toolchain install "$MIHO_NIGHTLY" --profile minimal --component rust-src
+          rustup target add wasm32-unknown-emscripten --toolchain "$MIHO_NIGHTLY"
       - run: '"$GODOT" --headless --path . --import'
       - run: just web
       - uses: KikimoraGames/itch-publish@v0.0.3
