@@ -18,4 +18,4 @@ func test_seen_inverts_flat() -> void:
 
 func test_the_talisman_row_is_found_where_it_shows() -> void:
 	# At 1280x720 the fitted term has 30 rows of 24 px; talismans are the last.
-	assert_eq(floori(Crt.flat(Vector2(215, 696), VIEW).y / 24.0), 29)
+	assert_eq(floori(Crt.flat(Vector2(215, 700), VIEW).y / 24.0), 29)

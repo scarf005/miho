@@ -3,7 +3,7 @@
 shader_type canvas_item;
 
 uniform sampler2D screen : hint_screen_texture, filter_linear;
-uniform float curve = 0.03;
+uniform float curve = 0.02;
 uniform float fringe = 0.0006;
 uniform float glow = 0.35;
 uniform float scan = 0.18;
