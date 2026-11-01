@@ -157,7 +157,7 @@ func test_a_creature_tells_what_it_strikes_with() -> void:
 		assert_string_contains(
 			Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at))), told[kind]
 		)
-	var none := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
+	var none := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jiha", at)))
 	assert_false(none.contains("근접"), "a caster that cannot strike has no melee line")
 
 
