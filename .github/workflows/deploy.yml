@@ -1,0 +1,43 @@
+name: deploy
+
+on:
+  push: { tags: ["*"] }
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env: { GODOT_VERSION: 4.7.2, EMSDK_VERSION: 4.0.20 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v3
+      - name: Godot
+        run: |
+          base=https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION-stable
+          curl -fsSL -o godot.zip "$base/Godot_v$GODOT_VERSION-stable_linux.x86_64.zip"
+          curl -fsSL -o templates.tpz "$base/Godot_v$GODOT_VERSION-stable_export_templates.tpz"
+          unzip -q godot.zip -d "$HOME/godot"
+          dir="$HOME/.local/share/godot/export_templates/$GODOT_VERSION.stable"
+          mkdir -p "$dir"
+          unzip -q -j templates.tpz 'templates/web*' -d "$dir"
+          echo "GODOT=$HOME/godot/Godot_v$GODOT_VERSION-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk "$HOME/emsdk"
+          "$HOME/emsdk/emsdk" install "$EMSDK_VERSION"
+          "$HOME/emsdk/emsdk" activate "$EMSDK_VERSION"
+          echo "MIHO_EMSDK=$HOME/emsdk" >> "$GITHUB_ENV"
+      - name: Rust
+        run: |
+          rustup toolchain install nightly --profile minimal --component rust-src
+          rustup target add wasm32-unknown-emscripten --toolchain nightly
+      - run: '"$GODOT" --headless --path . --import'
+      - run: just web
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
+          gameData: ./build/web
+          itchUsername: scarf005
+          itchGameId: miho
+          buildChannel: html5
+          buildNumber: ${{ github.ref_name }}
