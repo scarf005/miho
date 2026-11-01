@@ -249,6 +249,26 @@ func test_the_log_tells_who_slid_a_door() -> void:
 	assert_eq(lines.map(Messages.plain), ["도깨비가 문을 열었다"])
 
 
+func test_the_log_does_not_name_who_slid_a_door_out_of_sight() -> void:
+	var w := _world()
+	w.sense()
+	var foe := _foe(w, &"dokkaebi", DOOR_AT + Vector2i(2, 0))
+	assert_eq(w.seen[Grid.index(foe.pos)], 0, "the shut door hides it")
+	assert_eq(w.seen[Grid.index(DOOR_AT)], 1, "the door is in sight")
+	var lines := Messages.of(
+		w, w, [{t = &"open", at = DOOR_AT, id = foe.id}, {t = &"close", at = DOOR_AT, id = foe.id}]
+	)
+	assert_eq(lines.map(Messages.plain), ["문이 열렸다", "문이 닫혔다"])
+
+
+func test_the_log_does_not_name_a_creature_out_of_sight_for_what_it_does_on_a_seen_tile() -> void:
+	var w := _world()
+	w.sense()
+	var foe := _foe(w, &"dokkaebi", DOOR_AT + Vector2i(2, 0))
+	var lines := Messages.of(w, w, [{t = &"drum", at = DOOR_AT, id = foe.id, wet = false}])
+	assert_eq(lines.map(Messages.plain), ["무언가가 북을 쳤다"])
+
+
 func test_the_agent_sees_doors_in_the_legend_and_moves_and_can_close_one() -> void:
 	var tools := GameTools.new()
 	tools.world = _world()
