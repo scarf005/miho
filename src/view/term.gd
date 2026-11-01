@@ -779,16 +779,41 @@ func _info_fit(p: Variant = null) -> Dictionary:
 
 
 func _draw_log() -> void:
-	for k in log_lines.size():
-		var runs: Array = log_lines[k][0]
-		var alpha: float = log_lines[k][1]
-		var width: float = runs.reduce(func(n, r): return n + _cells(r[0]), 0.0)
-		var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
-		draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
-		var x := MAP.x + 0.5
-		for run: Array in runs:
-			_text(Vector2(x, k), run[0], Color(run[1], alpha))
+	var k := 0
+	for line: Array in log_lines:
+		var alpha: float = line[1]
+		for runs: Array in rows_of(line[0], cols - MAP.x - 1.0):
+			var width: float = runs.reduce(func(n, r): return n + _cells(r[0]), 0.0)
+			var box := Rect2(Vector2(MAP.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
+			draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
+			var x := MAP.x + 0.5
+			for run: Array in runs:
+				_text(Vector2(x, k), run[0], Color(run[1], alpha))
+				x += _cells(run[0])
+			k += 1
+
+
+## Coloured runs broken into rows no wider than `width` cells, at the spaces;
+## a word wider than that takes a row of its own.
+static func rows_of(runs: Array, width: float) -> Array:
+	var out := [[]]
+	var x := 0.0
+	for run: Array in runs:
+		if x + _cells(run[0]) <= width:
+			out[-1].append(run)
 			x += _cells(run[0])
+			continue
+		var words: PackedStringArray = run[0].split(" ")
+		for i in words.size():
+			var word: String = (" " if i > 0 else "") + words[i]
+			if x > 0.0 and x + _cells(word) > width:
+				out.append([])
+				x = 0.0
+				word = word.lstrip(" ")
+			if word != "":
+				out[-1].append([word, run[1]])
+				x += _cells(word)
+	return out
 
 
 ## Rows of a panel list that fit on `screen_rows` rows under a detail of `detail` lines.
