@@ -108,6 +108,8 @@ var _animating := false
 var _popups: Array[Dictionary] = []
 ## event index -> the Perceived fact of the round being played.
 var _told := {}
+## event index -> the noise on a seen tile (Perceived.sounds) of the round being played.
+var _sounded := {}
 var _flashes: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
@@ -232,6 +234,9 @@ func play(events: Array, before: World, after: World) -> void:
 	for f in perceived.facts:
 		if f.i >= 0:
 			_told[f.i] = f
+	_sounded.clear()
+	for f in perceived.sounds:
+		_sounded[f.i] = f
 	_actors.clear()
 	for a in before.actors:
 		if a.alive():
@@ -241,6 +246,8 @@ func play(events: Array, before: World, after: World) -> void:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
 	for i in events.size():
+		if _sounded.has(i):
+			_popups.append(popup_of(_sounded[i]).merged({born = _time}))
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0:
 			await get_tree().create_timer(wait / speed).timeout
@@ -284,7 +291,8 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 		&"heal":
 			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
 		&"noise", &"shout":
-			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
+			var text := "%s: %d칸" % [fact.word, fact.loud]
+			return {at = at, text = text, color = Palette.SOUND, life = 1.4}
 		&"find":
 			var plate: Array = Palette.TILES[fact.kind]
 			return {at = at, text = plate[0], color = plate[1], life = 1.6}

@@ -135,7 +135,7 @@ func test_the_log_tells_a_yelp_in_sight_and_a_yelp_heard_from_the_dark() -> void
 	s.pos = ME + Vector2i(3, 0)
 	before = blind.clone()
 	lines = Messages.of(before, blind, blind.act(WAIT)).map(Messages.plain)
-	assert_has(lines, "멀리서 캥 소리를 들었다")
+	assert_has(lines, "멀리서 캥 소리를 들었다 · 소리: 4칸")
 
 
 func test_the_spell_info_tells_the_yelp_and_its_reach() -> void:

@@ -77,7 +77,7 @@ func test_only_noises_heard_out_of_sight_are_told() -> void:
 	var w := _world()
 	var far := {t = &"noise", at = HIDDEN, word = "쾅", loud = 9, heard = true}
 	var near := {t = &"noise", at = SEEN, word = "쾅", loud = 9, heard = true}
-	assert_eq(_lines(w, [far]), ["멀리서 쾅 소리를 들었다"] as Array[String])
+	assert_eq(_lines(w, [far]), ["멀리서 쾅 소리를 들었다 · 소리: 9칸"] as Array[String])
 	assert_eq(_lines(w, [near]), [] as Array[String])
 
 
@@ -165,6 +165,7 @@ func test_names_harm_and_sounds_stand_out_in_their_colours() -> void:
 		Messages.of(w, w, [{t = &"noise", at = HIDDEN, word = "끽", loud = 9, heard = true}])[0]
 	)
 	assert_true(heard.has(["끽", Palette.SOUND]), "%s" % [heard])
+	assert_true(heard.has(["소리: 9칸", Palette.SOUND]), "the reach is its own run: %s" % [heard])
 
 
 func test_healing_tells_its_source() -> void:
