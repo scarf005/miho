@@ -485,15 +485,27 @@ func _draw() -> void:
 	var v := map_view()
 	if not banner_lines.is_empty():
 		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
-	var top := maxi(0, (v.y - banner_lines.size() * 2) / 2)
 	for i in banner_lines.size():
-		var line := banner_lines[i]
 		var color: Color = Palette.KIND[&"miho"] if i == 0 else Palette.TEXT
-		var w := _cells(line)
-		var x := clampf(MAP.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
-		_text(Vector2(x, top + i * 2), line, color)
+		_text(banner_rect(i).position, banner_lines[i], color)
 	if not panel.is_empty():
 		_draw_panel()
+
+
+## Where banner line `i` is drawn, in cells.
+func banner_rect(i: int) -> Rect2:
+	var v := map_view()
+	var w := _cells(banner_lines[i])
+	var x := clampf(MAP.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
+	return Rect2(x, maxi(0, (v.y - banner_lines.size() * 2) / 2) + i * 2, w, 1)
+
+
+## The banner line under a point in this node's space, or -1.
+func banner_at(local: Vector2) -> int:
+	for i in banner_lines.size():
+		if banner_rect(i).has_point(local / CELL):
+			return i
+	return -1
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:

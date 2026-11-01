@@ -57,3 +57,13 @@ func _cover(w: World, at: Vector2i, radius: int) -> Dictionary:
 			if w.known[i] == 1 and view[i] == 1:
 				out[Vector2i(x, y)] = true
 	return out
+
+
+## The line for a tile in a zone (`covered`, from `tiles`), with the radius at its
+## centre; none for another tile.
+func lines(p: Vector2i, covered: Dictionary) -> Array:
+	if not covered.has(p):
+		return []
+	var radius: Variant = zones.get(p)
+	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
+	return [[[text, Palette.ZONE]]]

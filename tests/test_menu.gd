@@ -98,11 +98,15 @@ func test_options_step_and_wrap() -> void:
 	assert_eq(menu.key(_press("Escape")), &"close")
 
 
-func test_options_show_the_seed_of_the_run() -> void:
+func test_the_seed_is_a_row_of_the_options_that_enter_asks_to_copy() -> void:
 	var menu := Menu.new()
 	menu.seed_value = 2715675124
 	menu.open(&"options")
-	assert_eq(menu.panel().detail.map(Messages.plain), ["시드: 2715675124"])
+	_select(menu, &"seed")
+	var row: Array = menu.panel().rows[menu.selected]
+	assert_string_contains(Messages.plain(row), "2715675124")
+	assert_eq(menu.key(_press("Enter")), &"seed")
+	assert_string_contains(Messages.plain(menu.panel().rows[menu.selected]), "2715675124")
 
 
 func test_options_can_save_and_quit() -> void:

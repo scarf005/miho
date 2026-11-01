@@ -198,6 +198,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == &"over":
 		if Keys.action_of(event) == &"restart":
 			_restart()
+		elif _left_click(event) and term.banner_at(_local(event.position)) == Banner.SEED:
+			_copy_seed()
 	elif event is InputEventKey:
 		_key(event)
 	elif event is InputEventMouseButton and press:
@@ -381,7 +383,7 @@ func _point(screen: Vector2) -> void:
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
 		tile = term.side_at(local)
-	var card := StatusBar.card_at(term, local)
+	var card := StatusBar.talisman_at(term, local)
 	var status := StatusBar.status_at(term, local)
 	var spell := StatusBar.slot_at(term, local) + StatusBar.hand_at(term, local)
 	var slot := StatusBar.queue_at(term, local)
@@ -615,14 +617,7 @@ func _act(action: Dictionary) -> Array:
 		reel.clear()
 	if world.outcome != &"":
 		state = &"over"
-		var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
-		term.banner_lines = [
-			"사람이 되었다" if world.outcome == &"won" else "쓰러졌다",
-			"%d층 · %d초" % [world.depth, world.round_no],
-			"처치 %d" % kills,
-			"시드 %d" % run_seed,
-			"%s키를 눌러 재시작" % again,
-		]
+		term.banner_lines = Banner.over(world, kills, run_seed)
 	busy = false
 	_forecast()
 	return events
@@ -750,6 +745,13 @@ func _resting() -> Dictionary:
 # --- messages and panels --------------------------------------------------------
 
 
+## Puts the run's seed on the clipboard; the banner of a finished run says so.
+func _copy_seed() -> void:
+	Banner.copy(run_seed, term)
+	sfx.play(&"card")
+	_say("시드를 복사했다")
+
+
 func _say(text: String) -> void:
 	messages.add([[text, Palette.TEXT]], world.round_no)
 	_show_log()
@@ -805,6 +807,8 @@ func _panel_input(event: InputEvent) -> void:
 			_close()
 			_restart()
 			return
+		&"seed":
+			_copy_seed()
 		&"quit":
 			_quit()
 			return
@@ -972,18 +976,9 @@ func _inspect() -> void:
 	elif hover_spell != "":
 		term.info = SpellInfo.spell(Spell.from_key(hover_spell))
 	elif hover_card != &"":
-		term.info = SpellInfo.card(hover_card, Spell.make(picked + [hover_card]))
+		term.info = SpellInfo.hovered(hover_card, picked)
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
 		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
-		term.info = lines + _zone_lines(hover) + Info.ahead(world, ahead, hover)
-
-
-## Says a tile is in a travel exclusion, and the radius at its centre.
-func _zone_lines(p: Vector2i) -> Array:
-	if not zone.has(p):
-		return []
-	var radius: Variant = excluded.zones.get(p)
-	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
-	return [[[text, Palette.ZONE]]]
+		term.info = lines + excluded.lines(hover, zone) + Info.ahead(world, ahead, hover)
