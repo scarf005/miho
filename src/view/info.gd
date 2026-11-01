@@ -421,24 +421,63 @@ static func _casts(a: Actor) -> Array:
 		out.append([_regrows()])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
 		out.append([["동시 주술: %d개" % Aim.CASTS, Palette.TEXT]])
-	for cast: Array in a.repertoire():
-		var spell := Bestiary.spell(a.kind, cast)
+	for group: Array in _by_title(a):
+		var spell: Spell = group[0]
 		var line: Array = [
 			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]
 		if has_mana:
-			line.append([" · 마력: %d" % spell.cost(), Palette.DIM])
+			var costs := group.map(func(s): return str(s.cost()))
+			line.append([" · 마력: %s" % _joined(costs), Palette.DIM])
 		out.append(line)
 		if has_mana:
 			continue
 		out.append([["  간격: %d초" % a.info().cd, Palette.DIM]])
-		if a.intent.any(func(plan): return Spell.make(plan.cards).key() == spell.key()):
+		var keys := group.map(func(s): return s.key())
+		if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
 			out.append([["  모으는 중.", Palette.HURT]])
 		elif a.cooldown > 0:
 			out.append([["  다음: %d초 뒤" % a.cooldown, Palette.DIM]])
-		for detail in _spell_details(spell):
+		for detail in _merged(group):
 			out.append([["  " + detail, Palette.DIM]])
 	return out
+
+
+## The spells of its repertoire, those of one name together, so a name shows once.
+static func _by_title(a: Actor) -> Array:
+	var groups := {}
+	for cast: Array in a.repertoire():
+		var spell := Bestiary.spell(a.kind, cast)
+		if not groups.has(spell.title()):
+			groups[spell.title()] = []
+		groups[spell.title()].append(spell)
+	return groups.values()
+
+
+## The detail lines of spells of one name: a label once, its differing values
+## joined in order; a line with no label once.
+static func _merged(group: Array) -> Array[String]:
+	var values := {}
+	for spell: Spell in group:
+		for detail in _spell_details(spell):
+			var cut := detail.find(": ")
+			var label: String = detail.substr(0, cut) if cut >= 0 else detail
+			if not values.has(label):
+				values[label] = []
+			if cut >= 0:
+				values[label].append(detail.substr(cut + 2))
+	var out: Array[String] = []
+	for label: String in values:
+		out.append("%s: %s" % [label, _joined(values[label])] if values[label] else label)
+	return out
+
+
+static func _joined(values: Array) -> String:
+	var unique := []
+	for v in values:
+		if not v in unique:
+			unique.append(v)
+	return ", ".join(unique)
 
 
 ## The elements of a spell its title does not tell (SpellInfo.elements), harm,
