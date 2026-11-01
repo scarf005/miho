@@ -200,7 +200,8 @@ static func sprout(w: World, s: Shot, at: Vector2i) -> void:
 static func growable(w: World, tiles: Array[Vector2i]) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	for p in tiles:
-		var special := p == w.stairs or p == w.elixir or w.peaches.has(p)
+		var sites := w.sites.any(func(site): return site.at == p)
+		var special := p == w.stairs or p == w.elixir or w.peaches.has(p) or sites
 		if (
 			w.open_floor(p)
 			and w.tile(p) not in [World.DOOR, World.DOOR_OPEN]
