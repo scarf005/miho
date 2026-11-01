@@ -98,28 +98,28 @@ const LEVEL := {
 ## The sound of a tile that forms where a compound reaches; the others are silent.
 const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}
 const WORDS := {
-	"탁": &"step",
-	"휙": &"foxfire",
-	"웅": &"orb",
-	"쾅": &"blast",
-	"탕": &"blast",
-	"화르륵": &"burn",
-	"쿵": &"blast",
-	"퍽": &"clash",
-	"끽": &"hurt",
-	"쨍": &"clash",
-	"쨍그랑": &"shatter",
-	"우지끈": &"fall",
-	"사각": &"rustle",
-	"바스락": &"rustle",
-	"철벅": &"splash",
-	"삐걱": &"creak",
-	"드르륵": &"door",
-	"둥": &"drum",
-	"댕": &"gong",
-	"찌익": &"tear",
-	"타닥": &"burn",
-	"캥": &"foxfire",
+	"탁": &"step",  # i18n: keep
+	"휙": &"foxfire",  # i18n: keep
+	"웅": &"orb",  # i18n: keep
+	"쾅": &"blast",  # i18n: keep
+	"탕": &"blast",  # i18n: keep
+	"화르륵": &"burn",  # i18n: keep
+	"쿵": &"blast",  # i18n: keep
+	"퍽": &"clash",  # i18n: keep
+	"끽": &"hurt",  # i18n: keep
+	"쨍": &"clash",  # i18n: keep
+	"쨍그랑": &"shatter",  # i18n: keep
+	"우지끈": &"fall",  # i18n: keep
+	"사각": &"rustle",  # i18n: keep
+	"바스락": &"rustle",  # i18n: keep
+	"철벅": &"splash",  # i18n: keep
+	"삐걱": &"creak",  # i18n: keep
+	"드르륵": &"door",  # i18n: keep
+	"둥": &"drum",  # i18n: keep
+	"댕": &"gong",  # i18n: keep
+	"찌익": &"tear",  # i18n: keep
+	"타닥": &"burn",  # i18n: keep
+	"캥": &"foxfire",  # i18n: keep
 }
 
 var listener: AudioListener2D

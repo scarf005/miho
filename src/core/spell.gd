@@ -227,30 +227,43 @@ static func from_key(k: String) -> Spell:
 ## The elements it carries, then its shape: "불×2 구슬"; a lone element's
 ## spray goes by its name alone: "불길".
 func title() -> String:
+	return _title(func(s: String) -> String: return s)
+
+
+## The title in the language shown, for the player to read and no rule to use.
+func shown() -> String:
+	return _title(Lang.t)
+
+
+## The title with every name, form and format string passed through `t`.
+func _title(t: Callable) -> String:
 	if called != "":
-		return called
+		return t.call(called)
 	if shape == SPRAY and level() > 0:
-		return Spray.called(self)
+		return t.call(Spray.called(self))
 	if shape == LEAP:
 		var then := rest()
-		return "%s %d칸" % [SHAPE_NAME[LEAP], leap()] + (", " + then.title() if then != null else "")
+		var leap_title: String = t.call("%s %d칸") % [t.call(SHAPE_NAME[LEAP]), leap()]
+		return leap_title + (", " + then._title(t) if then != null else "")
 	var parts: Array[String] = []
 	var told := {}
 	for slot in elements():
 		if not told.has(slot):
 			told[slot] = true
 			var n: int = elements().count(slot) - _named(slot)
+			var name: String = t.call(Cards.NAME[slot])
 			if n > 0:
-				parts.append(Cards.NAME[slot] if n == 1 else "%s×%d" % [Cards.NAME[slot], n])
+				parts.append(name if n == 1 else "%s×%d" % [name, n])
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
 	if pierces():
 		form = PIERCE_NAME
 	elif mortar():
 		form = MORTAR_NAME
+	form = t.call(form)
 	if shots() > 1:
-		form += " %d발" % shots()
+		form += t.call(" %d발") % shots()
 	if swaps():
-		form += " 바꿔치기"
+		form += t.call(" 바꿔치기")
 	return ("·".join(parts) + " " + form).strip_edges()
 
 

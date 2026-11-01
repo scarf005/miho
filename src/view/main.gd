@@ -127,16 +127,31 @@ func _ready() -> void:
 func _show_title() -> void:
 	pending = SaveGame.load_from(save_path)
 	state = &"title"
-	term.banner_lines = [
-		"미호",
-		"천상누각 꼭대기에 사람이 되는 영약이 있다",
-		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
-	]
+	term.banner_lines = Banner.title(pending)
+
+
+## The ending's lines over the map.
+func _show_over() -> void:
+	var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
+	term.banner_lines = Banner.over(world.outcome == &"won", world, kills, run_seed, again)
+
+
+## Writes again the text kept from before a change of language: the banner, the
+## log over the map and the hover.
+func _translated() -> void:
+	if state == &"title" and not busy:
+		term.banner_lines = Banner.title(pending)
+	elif state == &"over":
+		_show_over()
+	_show_log()
+	_inspect()
 
 
 ## Puts the settings into effect.
 func _apply() -> void:
 	menu.settings = settings
+	settings.apply_language()
+	_translated()
 	settings.apply_sound()
 	sfx.set_music(settings.music)
 	term.saved = settings.spells
@@ -216,7 +231,7 @@ func _continue() -> void:
 	busy = true
 	saved.begin()
 	while saved.played < saved.actions.size():
-		term.banner_lines = ["미호", "%d/%d" % [saved.played, saved.actions.size()]]
+		term.banner_lines = [Lang.t("미호"), "%d/%d" % [saved.played, saved.actions.size()]]
 		var until := Time.get_ticks_msec() + REPLAY_BUDGET_MS
 		while saved.played < saved.actions.size() and Time.get_ticks_msec() < until:
 			if not saved.step():
@@ -600,8 +615,7 @@ func _act(action: Dictionary) -> Array:
 	run.record(action, kills, world.outcome != &"")
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
-	for line in Messages.of(before, world, events):
-		messages.add(line, world.round_no)
+	messages.add_round(before, world, events)
 	_show_log()
 	if action.t == &"cast":
 		last_spell = "+".join(action.spells.back().cards)
@@ -615,14 +629,7 @@ func _act(action: Dictionary) -> Array:
 		reel.clear()
 	if world.outcome != &"":
 		state = &"over"
-		var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
-		term.banner_lines = [
-			"사람이 되었다" if world.outcome == &"won" else "쓰러졌다",
-			"%d층 · %d초" % [world.depth, world.round_no],
-			"처치 %d" % kills,
-			"시드 %d" % run_seed,
-			"%s키를 눌러 재시작" % again,
-		]
+		_show_over()
 	busy = false
 	_forecast()
 	return events
@@ -751,7 +758,7 @@ func _resting() -> Dictionary:
 
 
 func _say(text: String) -> void:
-	messages.add([[text, Palette.TEXT]], world.round_no)
+	messages.add_text(text, world.round_no)
 	_show_log()
 
 
@@ -985,5 +992,5 @@ func _zone_lines(p: Vector2i) -> Array:
 	if not zone.has(p):
 		return []
 	var radius: Variant = excluded.zones.get(p)
-	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
+	var text := Lang.t("위험구역") if radius == null else Lang.t("위험구역 (반경 %d)") % radius
 	return [[[text, Palette.ZONE]]]

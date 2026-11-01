@@ -5,7 +5,7 @@ extends RefCounted
 ## reads and writes them through Keys.
 
 const PATH := "user://settings.cfg"
-const NAMES := ["volume", "music", "crt", "zoom", "speed"]
+const NAMES := ["volume", "music", "crt", "zoom", "speed", "language"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -23,6 +23,8 @@ var music := 60
 var crt := true
 var zoom := 0.0
 var speed := 1.0
+## The language code (Lang.NAMES); with none saved, the system's.
+var language := String(Lang.detect())
 ## The highlight replay of each storey left behind: off, with no row in the options
 ## and not read from the file, until it is wanted again.
 var replay := false
@@ -69,6 +71,8 @@ func from_config(c: ConfigFile) -> void:
 	crt = bool(c.get_value("settings", "crt", crt))
 	zoom = _one_of(c.get_value("settings", "zoom", zoom), ZOOMS, zoom)
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)
+	var code = c.get_value("settings", "language", language)
+	language = code if code is String and Lang.NAMES.has(StringName(code)) else language
 	spells = {}
 	for slot in Keys.SLOTS:
 		var key = c.get_value("spells", slot, "")
@@ -84,6 +88,11 @@ func from_config(c: ConfigFile) -> void:
 
 static func _one_of(v: Variant, allowed: Array, fallback: float) -> float:
 	return float(v) if (v is float or v is int) and allowed.has(float(v)) else fallback
+
+
+## Shows every string in the language.
+func apply_language() -> void:
+	Lang.use(language)
 
 
 ## Sets the master bus to the volume, silent at 0.

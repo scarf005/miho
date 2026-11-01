@@ -132,7 +132,16 @@ static func tick(w: World) -> void:
 		if lit.any(func(e): return Grid.cheb(e.at, s.pos) <= l.radius):
 			s.gone = true
 			w._changed()
-			w.emit({t = &"fade", shot = s.id, at = s.pos, lit = true, title = s.spell.title()})
+			w.emit(
+				{
+					t = &"fade",
+					shot = s.id,
+					at = s.pos,
+					lit = true,
+					title = s.spell.title(),
+					spell = s.spell
+				}
+			)
 	var me := w.player()
 	if me.guise <= 0:
 		return

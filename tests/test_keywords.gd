@@ -121,7 +121,7 @@ func test_the_term_holds_hover_and_panel_text_painted() -> void:
 
 func _rooted_line(w: World, id: int) -> Array:
 	var events := [{t = &"root", id = id, at = w.actor(id).pos}]
-	return Messages.shown({runs = Messages.of(w, w, events)[0], n = 1})
+	return Messages.shown({variants = {&"ko": Messages.of(w, w, events)[0]}, n = 1})
 
 
 func test_the_log_colours_being_rooted_by_who_suffers_it() -> void:

@@ -68,8 +68,7 @@ func test_loading_rebuilds_the_message_log() -> void:
 	var w := World.create(SEED)
 	for action in back.actions:
 		var before := w.clone()
-		for line in Messages.of(before, w, w.act(action)):
-			live.add(line, w.round_no)
+		live.add_round(before, w, w.act(action))
 	assert_false(live.lines.is_empty())
 	assert_eq(back.messages.lines, live.lines)
 

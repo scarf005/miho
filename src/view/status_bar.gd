@@ -21,10 +21,14 @@ static func draw(t: Term) -> void:
 		elif i >= w.tails - held:
 			c = Palette.CARD[Cards.EARTH]
 		t._glyph(Vector2(Term.MAP.x + i, row), "~", c)
-	var right := "%d층 %d초" % [w.depth, w.round_no]
+	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
 	t._text(Vector2(t.cols - t._cells(right), row), right, Palette.TEXT)
 	if not t.debug.is_empty():
-		t._text(Vector2(t.cols - t._cells(right) - t._cells("디버그") - 1, row), "디버그", Palette.SOUND)
+		t._text(
+			Vector2(t.cols - t._cells(right) - t._cells(Lang.t("디버그")) - 1, row),
+			Lang.t("디버그"),
+			Palette.SOUND
+		)
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
 		var ready := _castable(t, spell, held)
@@ -32,7 +36,9 @@ static func draw(t: Term) -> void:
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
 			t._glyph(
-				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.slots[k]], c if ready else c * 0.4
+				Vector2(slot.x + 0.5 + k, row),
+				Lang.t(Cards.GLYPH[spell.slots[k]], "talisman"),
+				c if ready else c * 0.4
 			)
 	row += 1
 	var queued := Spell.make(t.picked)
@@ -45,7 +51,7 @@ static func draw(t: Term) -> void:
 				Palette.CARD[card] * 0.45
 			)
 		t._small(Vector2(x, row + 0.05), str(i + 1), Palette.DIM)
-		t._glyph(Vector2(x + 1, row), Cards.GLYPH[card], Palette.CARD[card])
+		t._glyph(Vector2(x + 1, row), Lang.t(Cards.GLYPH[card], "talisman"), Palette.CARD[card])
 	var slots: Array[StringName] = []
 	if queued != null:
 		slots = queued.slots
@@ -54,7 +60,7 @@ static func draw(t: Term) -> void:
 		if i < slots.size():
 			var c := Palette.card(slots[i])
 			t.draw_rect(Rect2(at * Term.CELL, Term.CELL).grow(-2), c * 0.35)
-			t._glyph(at, Cards.GLYPH[slots[i]], c)
+			t._glyph(at, Lang.t(Cards.GLYPH[slots[i]], "talisman"), c)
 		else:
 			t._glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
 	var name := _name(t, queued)
@@ -86,7 +92,7 @@ static func queue_x(t: Term) -> float:
 
 ## The queued spell's name as drawn, with the count of spells held with Shift.
 static func _name(t: Term, spell: Spell) -> String:
-	var name := spell.title() if spell != null else ""
+	var name := spell.shown() if spell != null else ""
 	return "+%d %s" % [t.staged.size(), name] if not t.staged.is_empty() else name
 
 

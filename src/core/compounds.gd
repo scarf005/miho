@@ -373,7 +373,16 @@ static func _forget(w: World, tiles: Array[Vector2i]) -> void:
 ## A 비격진 bursts at `at`: every breakable wall within `r` takes a hit, as a
 ## cannonball hits one. Its creatures are hurt by 유탄 (`strike`).
 static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
-	w.emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
+	w.emit(
+		{
+			t = &"splash",
+			at = at,
+			faction = s.faction,
+			by = s.caster,
+			title = s.spell.title(),
+			spell = s.spell
+		}
+	)
 	for p in Spray.square(w, at, r, true):
 		if Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
 			Terrain.hit(w, p)

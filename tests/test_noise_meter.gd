@@ -78,7 +78,7 @@ func _main() -> Node:
 func test_the_bar_sits_under_the_storey_flush_with_the_right_edge() -> void:
 	var t: Term = _main().term
 	t.fit(Vector2(1920, 1080), 0.0)
-	assert_eq(NoiseMeter.at(t), Vector2(t.cols - NoiseMeter.WIDTH, t.rows - 1))
+	assert_eq(NoiseMeter.at(t), Vector2(t.cols - NoiseMeter.width(), t.rows - 1))
 
 
 ## The bar never covers the queue or the spell's name at any zoom of the windows
@@ -93,7 +93,7 @@ func test_the_bar_clears_the_queue_and_the_name_at_every_zoom() -> void:
 				m.world.cards.assign(Cards.ALL.slice(0, count))
 				var ctx := "%s zoom %s, %d talismans" % [view, zoom, count]
 				var bar := NoiseMeter.at(t)
-				assert_eq(bar.x + NoiseMeter.WIDTH, float(t.cols), "on screen: " + ctx)
+				assert_eq(bar.x + NoiseMeter.width(), float(t.cols), "on screen: " + ctx)
 				if bar.y == t.rows - 1:
 					assert_gte(bar.x, StatusBar.queue_x(t) + Spell.MAX_SLOTS, "queue: " + ctx)
 				var name := StatusBar.title_at(t, "도깨비불")

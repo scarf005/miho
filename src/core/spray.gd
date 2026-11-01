@@ -483,6 +483,7 @@ static func _tell(w: World, s: Shot, a: Actor) -> void:
 			at = a.pos,
 			by = s.caster,
 			title = s.spell.title(),
+			spell = s.spell,
 			spray = true
 		}
 	)

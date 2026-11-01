@@ -17,7 +17,7 @@ const TRACE := "흔적."
 const CONDITIONS := {
 	"묶임": ["이동: 못 함"],
 	"기절": ["이동, 주문: 못 함", "모으던 주문: 끊김"],
-	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색: 경계 끝까지"],
+	"경계": [["시간: %d초", World.WARY_ROUNDS], "수색: 경계 끝까지"],
 }
 
 
@@ -28,41 +28,46 @@ static func glossary() -> Dictionary:
 	return {
 		"가연성":
 		[
-			"탐: %d초" % World.BURN_ROUNDS,
-			"그 뒤: 재",
-			"번짐: 초당 1칸",
-			"번질 확률: %d%%" % spread,
+			Lang.t("탐: %d초") % World.BURN_ROUNDS,
+			Lang.t("그 뒤: 재"),
+			Lang.t("번짐: 초당 1칸"),
+			Lang.t("번질 확률: %d%%") % spread,
 		],
 		"인화성":
 		[
-			"탐: %d초" % World.BURN_ROUNDS,
-			"그 뒤: 재",
-			"번짐: 초당 2칸",
-			"초당 피해: %d" % World.FIERCE_DAMAGE,
+			Lang.t("탐: %d초") % World.BURN_ROUNDS,
+			Lang.t("그 뒤: 재"),
+			Lang.t("번짐: 초당 2칸"),
+			Lang.t("초당 피해: %d") % World.FIERCE_DAMAGE,
 		],
-		"함정": ["드러남: 밝은 칸이나 %d칸 안" % Traps.REACH, "적: 돌아감"],
-		"흔적": ["수색: 처음 본 적", "제외: 추격 중인 적"],
-		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
+		"함정": [Lang.t("드러남: 밝은 칸이나 %d칸 안") % Traps.REACH, Lang.t("적: 돌아감")],
+		"흔적": [Lang.t("수색: 처음 본 적"), Lang.t("제외: 추격 중인 적")],
+		"약점": [Lang.t("피해: ×2"), Lang.t("대상: 그 원소가 든 주문")],
 	}
 
 
 ## A status (Status), by its key, as the 도감 tells it: name, time, what it does.
 static func status_facts(key: StringName) -> Array:
 	var time := {&"wet": Status.WET, &"alight": Status.ALIGHT, &"frozen": Compounds.FROST}
-	var lines: Array = ["시간: %d초" % time[key]]
+	var lines: Array = [Lang.t("시간: %d초") % time[key]]
 	if key == &"frozen":
-		lines.append("젖은 적 시간: %d초" % (2 * Compounds.FROST))
-	lines.append_array(SpellInfo.STATUS_DOES[key])
-	return [[[Status.NAME[key], Palette.STATUS[key][1]]]] + _tags(lines)
+		lines.append(Lang.t("젖은 적 시간: %d초") % (2 * Compounds.FROST))
+	lines.append_array(SpellInfo.status_does(key))
+	return [[[Lang.t(Status.NAME[key]), Palette.STATUS[key][1]]]] + _tags(lines)
 
 
 ## A condition (`CONDITIONS`), by its name, as the 도감 tells it.
 static func condition_facts(name: String) -> Array:
-	return [[[name, Palette.TEXT]]] + _tags(CONDITIONS[name])
+	return [[[Lang.t(name), Palette.TEXT]]] + _tags(CONDITIONS[name])
 
 
+## Lines of text: a string, or a format string and its numbers; each in the language shown.
 static func _tags(lines: Array) -> Array:
-	return lines.map(func(l): return [[l, Palette.TEXT]])
+	return lines.map(func(l): return [[_text(l), Palette.TEXT]])
+
+
+static func _text(line: Variant) -> String:
+	return Lang.t(line[0]) % line.slice(1) if line is Array else Lang.t(line)
 
 
 ## Lines for map tile p, or empty when Miho knows nothing there.
@@ -98,7 +103,9 @@ static func creature_facts(a: Actor, held: Array) -> Array:
 
 
 static func _head(a: Actor) -> Array:
-	return [[a.info().name + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]]
+	return [
+		[Lang.t(a.info().name) + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]
+	]
 
 
 ## Name and health, elements, weakness and immunities.
@@ -106,9 +113,16 @@ static func _profile(a: Actor) -> Array:
 	var lines := [_head(a)]
 	var elements := Bestiary.elements(a.kind)
 	if not elements.is_empty():
-		var line := [["오행: ", Palette.DIM]]
+		var line := [[Lang.t("오행: "), Palette.DIM]]
 		for c in elements:
-			line.append([Cards.GLYPH[c] + "(" + Cards.NAME[c] + ") ", Palette.CARD[c]])
+			line.append(
+				[
+					Lang.t("{0}({1}) ").format(
+						[Lang.t(Cards.GLYPH[c], "talisman"), Lang.t(Cards.NAME[c])]
+					),
+					Palette.CARD[c]
+				]
+			)
 		lines.append(line)
 		lines.append(_weakness(a.kind))
 	lines.append_array(_immunities(a))
@@ -119,16 +133,16 @@ static func _profile(a: Actor) -> Array:
 ## shut), on patrol, walking back home, or just resting.
 static func state(a: Actor) -> String:
 	if a.alert != Actor.REST:
-		return STATE[a.alert]
+		return Lang.t(STATE[a.alert])
 	if a.asleep():
-		return "자는 중"
+		return Lang.t("자는 중")
 	if a.guard and a.pos == a.home:
-		return "지키는 중"
+		return Lang.t("지키는 중")
 	if a.following():
-		return "따라가는 중"
+		return Lang.t("따라가는 중")
 	if a.info().get("patrol", false):
-		return "순찰 중"
-	return "돌아가는 중" if a.pos != a.home else STATE[Actor.REST]
+		return Lang.t("순찰 중")
+	return Lang.t("돌아가는 중" if a.pos != a.home else STATE[Actor.REST])
 
 
 ## How a creature stands now: its state, conditions, whether it sees Miho and
@@ -141,16 +155,16 @@ static func _situation(w: World, a: Actor) -> Array:
 	lines.append_array(_conditions(w, a))
 	if a.fighting():
 		var rival := _name_of(w, w.actor(a.rival))
-		lines.append([["싸우는 중: " + rival, Palette.ALERT[2]]])
-		lines.append([["  남은 시간: %d초" % a.grudge, Palette.ALERT[2]]])
+		lines.append([[Lang.t("싸우는 중: %s") % rival, Palette.ALERT[2]]])
+		lines.append([[Lang.t("  남은 시간: %d초") % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
-		lines.append([["북 치러 가는 중.", Palette.SOUND]])
+		lines.append([[Lang.t("북 치러 가는 중."), Palette.SOUND]])
 	if Guise.knows(w, a):
-		lines.append([["미호를 본다.", Palette.HURT]])
+		lines.append([[Lang.t("미호를 본다."), Palette.HURT]])
 	elif w.sees(a, w.player().pos):
-		lines.append([["둔갑한 미호를 못 알아본다.", Palette.SIDE[0]]])
+		lines.append([[Lang.t("둔갑한 미호를 못 알아본다."), Palette.SIDE[0]]])
 	else:
-		lines.append([["미호를 못 본다.", Palette.SIDE[0]]])
+		lines.append([[Lang.t("미호를 못 본다."), Palette.SIDE[0]]])
 	if w.caught_unawares(a):
 		lines.append(_amount("기습 피해: ", World.CLAW * World.SNEAK))
 	return lines
@@ -158,7 +172,7 @@ static func _situation(w: World, a: Actor) -> Array:
 
 ## The name of creature `b` when Miho sees it, else "무언가".
 static func _name_of(w: World, b: Actor) -> String:
-	return b.info().name if b != null and Hat.shown(w, b) else "무언가"
+	return Lang.t(b.info().name if b != null and Hat.shown(w, b) else "무언가")
 
 
 ## What it strikes and casts with, what it eats and what it leaves.
@@ -167,14 +181,14 @@ static func _arms(a: Actor, held: Array) -> Array:
 	var lines := []
 	var elements := Bestiary.elements(a.kind)
 	if spec.has("melee"):
-		lines.append([["근접: " + spec.melee.name, Palette.TEXT]])
+		lines.append([[Lang.t("근접: %s") % Lang.t(spec.melee.name), Palette.TEXT]])
 		lines.append(_amount("  피해: ", spec.melee.damage))
 		var throw: int = spec.melee.get("throw", 0)
 		if throw > 0:
-			lines.append([["  던짐: %d칸" % throw, Palette.TEXT]])
+			lines.append([[Lang.t("  던짐: %d칸") % throw, Palette.TEXT]])
 		var root: int = spec.melee.get("root", 0)
 		if root > 0:
-			lines.append([["  묶음: %d초" % root, Palette.TEXT]])
+			lines.append([[Lang.t("  묶음: %d초") % root, Palette.TEXT]])
 	lines.append_array(_casts(a))
 	var traits := _traits(a, elements)
 	var tags := traits.filter(func(t): return not t.contains(": "))
@@ -182,17 +196,27 @@ static func _arms(a: Actor, held: Array) -> Array:
 	for t: String in traits.filter(func(t): return t.contains(": ")):
 		lines.append([[t, Palette.DIM]])
 	if not spec.get("shout", {}).is_empty():
-		lines.append([["말할 수 있다.", Palette.DIM]])
+		lines.append([[Lang.t("말할 수 있다."), Palette.DIM]])
 	if spec.get("hat", false):
-		lines.append([["보임: %d칸 안, 도깨비불 붙음" % Hat.REACH, Palette.DIM]])
+		lines.append([[Lang.t("보임: %d칸 안, 도깨비불 붙음") % Hat.REACH, Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
-		lines.append([["먹이: ", Palette.TEXT], [Cards.NAME[eats] + " 주문", Palette.CARD[eats]]])
-		lines.append([["  최대 체력: ", Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
-		lines.append([["  체력: ", Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
+		lines.append(
+			[
+				[Lang.t("먹이: "), Palette.TEXT],
+				[Lang.t("%s 주문") % Lang.t(Cards.NAME[eats]), Palette.CARD[eats]]
+			]
+		)
+		lines.append([[Lang.t("  최대 체력: "), Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
+		lines.append([[Lang.t("  체력: "), Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
 	var drop: StringName = spec.get("drop", &"")
 	if drop != &"" and not held.has(drop):
-		lines.append([["소지품: ", Palette.TEXT], [Cards.NAME[drop] + " 부적", Palette.CARD[drop]]])
+		lines.append(
+			[
+				[Lang.t("소지품: "), Palette.TEXT],
+				[Lang.t("%s 부적") % Lang.t(Cards.NAME[drop]), Palette.CARD[drop]]
+			]
+		)
 	return lines
 
 
@@ -202,12 +226,12 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head] + _tails(w) + _claws()
 	lines.append_array(_conditions(w, a))
 	if a.guise > 0:
-		var form: String = Bestiary.info(a.form).name
-		lines.append([["둔갑", Palette.TEXT], [": " + form, Palette.SIDE[0]]])
-		lines.append([["  남은 시간: %d초" % a.guise, Palette.SIDE[0]]])
-		lines.append([["적 옆: %d/%d초" % [a.beside, Guise.BESIDE], Palette.DIM]])
+		var form: String = Lang.t(Bestiary.info(a.form).name)
+		lines.append([[Lang.t("둔갑"), Palette.TEXT], [": " + form, Palette.SIDE[0]]])
+		lines.append([[Lang.t("  남은 시간: %d초") % a.guise, Palette.SIDE[0]]])
+		lines.append([[Lang.t("적 옆: %d/%d초") % [a.beside, Guise.BESIDE], Palette.DIM]])
 	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
-		lines.append([["둔갑할 모습: " + Bestiary.info(a.prey).name, Palette.DIM]])
+		lines.append([[Lang.t("둔갑할 모습: %s") % Lang.t(Bestiary.info(a.prey).name), Palette.DIM]])
 	lines.append(_hidden(w, a.pos))
 	return lines
 
@@ -219,21 +243,21 @@ static func _claws() -> Array:
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.
 static func _amount(before: String, n: int, after := "") -> Array:
-	var line := [[before, Palette.TEXT], [str(n), Palette.HURT]]
+	var line := [[Lang.t(before), Palette.TEXT], [str(n), Palette.HURT]]
 	if after != "":
-		line.append([after, Palette.TEXT])
+		line.append([Lang.t(after), Palette.TEXT])
 	return line
 
 
 ## The elements whose spells hurt a creature twice as much.
 static func _weakness(kind: StringName) -> Array:
-	var line := [["약점: ", Palette.DIM]]
+	var line := [[Lang.t("약점: "), Palette.DIM]]
 	for c in Bestiary.weak_to(kind):
-		line.append([Cards.NAME[c], Palette.CARD[c]])
+		line.append([Lang.t(Cards.NAME[c]), Palette.CARD[c]])
 		line.append([", ", Palette.DIM])
 	line.pop_back()
 	if Bestiary.info(kind).get("absorb", &"") == &"nofire":
-		line.append([" (불과 함께)", Palette.DIM])
+		line.append([Lang.t(" (불과 함께)"), Palette.DIM])
 	return line
 
 
@@ -250,12 +274,12 @@ static func _immunities(a: Actor) -> Array:
 	if spec.get("deaf", false):
 		out.append(_immune("소리", Palette.SOUND))
 	if spec.get("move", &"") == &"static":
-		out.append([["움직이지 않는다.", Palette.DIM]])
+		out.append([[Lang.t("움직이지 않는다."), Palette.DIM]])
 	return out
 
 
 static func _immune(what: String, color: Color) -> Array:
-	return [["면역: ", Palette.DIM], [what, color]]
+	return [[Lang.t("면역: "), Palette.DIM], [Lang.t(what), color]]
 
 
 ## What holds it now, with the seconds left: blind, rooted, stunned, wary, and
@@ -265,15 +289,15 @@ static func _immune(what: String, color: Color) -> Array:
 static func _search_left(a: Actor) -> String:
 	var left := World.SEARCH_ROUNDS + 1 - a.lost
 	if a.wary > 0 and left <= 1:
-		return "수색: 경계 끝까지"
-	return "수색: %d번 더" % left
+		return Lang.t("수색: 경계 끝까지")
+	return Lang.t("수색: %d번 더") % left
 
 
 static func _conditions(w: World, a: Actor) -> Array:
 	var out := []
 	for c in [[a.blind, "눈멂"], [a.rooted, "묶임"], [a.stunned, "기절"], [a.wary, "경계"]]:
 		if c[0] > 0:
-			out.append([["%s: %d초" % [c[1], c[0]], Palette.TEXT]])
+			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
 	out.append_array(_status(a))
 	if (
 		w.burning.has(a.pos)
@@ -281,8 +305,8 @@ static func _conditions(w: World, a: Actor) -> Array:
 		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
-		var fire := "맹렬한 불" if fierce else "불타는 칸"
-		out.append([["%s 위: %d초" % [fire, w.burning[a.pos]], Palette.TEXT]])
+		var fire := Lang.t("맹렬한 불" if fierce else "불타는 칸")
+		out.append([[Lang.t("%s 위: %d초") % [fire, w.burning[a.pos]], Palette.TEXT]])
 		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
 	if (
 		Veil.scorches(w, a.pos)
@@ -291,12 +315,12 @@ static func _conditions(w: World, a: Actor) -> Array:
 		out.append(_amount("도깨비불 장막 곁 초당 피해: ", World.FIRE_DAMAGE))
 	for s in w.shots:
 		if s.host == a.id and not s.gone:
-			var runs := [[s.spell.title(), Palette.card(s.spell.slots.back())]]
-			out.append(runs + [[" 붙음: %d초" % s.life, Palette.TEXT]])
+			var runs := [[s.spell.shown(), Palette.card(s.spell.slots.back())]]
+			out.append(runs + [[Lang.t(" 붙음: %d초") % s.life, Palette.TEXT]])
 	if w.hot.has(a.pos):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
-		out.append([["%s 위: %d초" % [spec.name, h.y], Palette.TEXT]])
+		out.append([[Lang.t("%s 위: %d초") % [Lang.t(spec.name), h.y], Palette.TEXT]])
 		out.append(_amount("  초당 피해: ", spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
@@ -308,9 +332,10 @@ static func _status(a: Actor) -> Array:
 	if key == &"":
 		return []
 	var line := [
-		[Status.NAME[key], Palette.STATUS[key][1]], [": %d초" % Status.rounds(a), Palette.TEXT]
+		[Lang.t(Status.NAME[key]), Palette.STATUS[key][1]],
+		[Lang.t(": %d초") % Status.rounds(a), Palette.TEXT]
 	]
-	return [line] + SpellInfo.STATUS_DOES[key].map(func(d): return [["  " + d, Palette.TEXT]])
+	return [line] + SpellInfo.status_does(key).map(func(d): return [["  " + d, Palette.TEXT]])
 
 
 ## Each spell it casts at its rank, with its cooldown, harm and noise, and how
@@ -320,25 +345,25 @@ static func _casts(a: Actor) -> Array:
 	var out := []
 	var has_mana := Bestiary.mana(a.kind) > 0
 	if has_mana:
-		out.append([["마력: %d/%d" % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
-		out.append([["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]])
+		out.append([[Lang.t("마력: %d/%d") % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
+		out.append([[Lang.t("회복: %d초마다 1") % World.TAIL_REGROW, Palette.DIM]])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
-		out.append([["동시 주술: 2개", Palette.TEXT]])
+		out.append([[Lang.t("동시 주술: 2개"), Palette.TEXT]])
 	for cast: Array in a.repertoire():
 		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
-			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
+			[Lang.t("주술: "), Palette.TEXT], [spell.shown(), Palette.card(spell.slots.back())]
 		]
 		if has_mana:
-			line.append([" · 마력: %d" % spell.cost(), Palette.DIM])
+			line.append([Lang.t(" · 마력: %d") % spell.cost(), Palette.DIM])
 		out.append(line)
 		if has_mana:
 			continue
-		out.append([["  간격: %d초" % a.info().cd, Palette.DIM]])
+		out.append([[Lang.t("  간격: %d초") % a.info().cd, Palette.DIM]])
 		if a.intent.any(func(plan): return Spell.make(plan.cards).key() == spell.key()):
-			out.append([["  모으는 중.", Palette.HURT]])
+			out.append([[Lang.t("  모으는 중."), Palette.HURT]])
 		elif a.cooldown > 0:
-			out.append([["  다음: %d초 뒤" % a.cooldown, Palette.DIM]])
+			out.append([[Lang.t("  다음: %d초 뒤") % a.cooldown, Palette.DIM]])
 		for detail in _spell_details(spell):
 			out.append([["  " + detail, Palette.DIM]])
 	return out
@@ -356,42 +381,42 @@ static func _spell_details(s: Spell) -> Array[String]:
 		return lines
 	var near := s.damage(0)
 	var far := s.damage(Spell.MOMENTUM)
-	var out: Array[String] = ["피해: %d" % near if near > 0 else "피해: 없음"]
+	var out: Array[String] = [Lang.t("피해: %d") % near if near > 0 else Lang.t("피해: 없음")]
 	if far > near:
-		out.append("%d칸 이상 날면 피해: %d" % [Spell.MOMENTUM, far])
+		out.append(Lang.t("%d칸 이상 날면 피해: %d") % [Spell.MOMENTUM, far])
 	if s.pierces():
-		out.append("%s: %s" % SpellInfo.PIERCE)
+		out.append("%s: %s" % SpellInfo.PIERCE.map(Lang.t))
 	if s.homing():
-		out.append("꺾임: 한 칸에 " + SpellInfo._turn(s.turn()))
+		out.append(Lang.t("꺾임: 한 칸에 %s") % SpellInfo._turn(s.turn()))
 	if SpellInfo.elements(s) != "":
-		out.push_front("원소: " + SpellInfo.elements(s))
+		out.push_front(Lang.t("원소: %s") % SpellInfo.elements(s))
 	if s.orb and s.has(Cards.FIRE):
-		out.append("폭발 피해: %d" % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
+		out.append(Lang.t("폭발 피해: %d") % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
 	for c in s.compounds():
 		for part: Array in SpellInfo.compound(c):
-			out.append("%s: %s" % part)
+			out.append("%s: %s" % part.map(Lang.t))
 	for part: Array in SpellInfo._sounds(s):
-		out.append("%s: %s" % part)
+		out.append("%s: %s" % part.map(Lang.t))
 	return out
 
 
 static func _traits(a: Actor, elements: Array) -> Array:
 	var spec := a.info()
-	var out := [WITS[Bestiary.wits(a.kind)]]
+	var out := [Lang.t(WITS[Bestiary.wits(a.kind)])]
 	if spec.get("patrol", false):
-		out.append("순찰")
+		out.append(Lang.t("순찰"))
 	if spec.get("move", &"static") == &"static":
-		out.append("잠들지 않음")
+		out.append(Lang.t("잠들지 않음"))
 	if spec.get("step", 0) > 0:
-		out.append("발소리: %d칸" % spec.step)
+		out.append(Lang.t("발소리: %d칸") % spec.step)
 	if elements.has(Cards.WOOD):
-		out.append("불에 탐")
+		out.append(Lang.t("불에 탐"))
 	if spec.get("hunts", false):
-		out.append("미호 위치를 앎")
+		out.append(Lang.t("미호 위치를 앎"))
 	if spec.get("tracks", false):
-		out.append("냄새를 따라감")
+		out.append(Lang.t("냄새를 따라감"))
 	if spec.get("stokes", false):
-		out.append("꺼진 등불을 켬")
+		out.append(Lang.t("꺼진 등불을 켬"))
 	return out
 
 
@@ -415,35 +440,36 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var health: int = Tiles.of(t, "health") if breakable else 0
 	if p == w.stairs:
 		name = "계단"
-		notes = ["체력: +%d" % World.HEAL, "꼬리: 모두 회복"]
+		notes = [Lang.t("체력: +%d") % World.HEAL, "꼬리: 모두 회복"]
 	elif p == w.elixir:
 		name = "영약"
 		notes = ["사람이 된다."]
 	elif w.peaches.has(p):
 		name = "복숭아"
-		notes = ["체력: +%d" % World.HEAL, "가득 찼을 때 최대 체력: +%d" % World.HEAL]
+		notes = [Lang.t("체력: +%d") % World.HEAL, Lang.t("가득 찼을 때 최대 체력: +%d") % World.HEAL]
 	elif Scrolls.card_at(w, p) != &"":
-		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"
-	var head := [[name, Palette.TEXT]]
+		name = Lang.t("%s 주문서") % Lang.t(Cards.NAME[Scrolls.card_at(w, p)])
+	var head := [[Lang.t(name), Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
 	var lines := [head]
 	for note in notes:
-		lines.append([[note, Palette.DIM]])
+		lines.append([[Lang.t(note), Palette.DIM]])
 	if burns:
 		lines.append_array(_burning(w.burning[p], Tiles.fierce[t] == 1))
 	if w.hot.has(p) and w.seen[Grid.index(p)] == 1:
 		var h: Vector2i = w.hot[p]
 		var spec: Dictionary = Compounds.HOT[h.x]
-		lines.append([["%s: %d초 남음" % [spec.name, h.y], Palette.HURT]])
+		lines.append([[Lang.t("%s: %d초 남음") % [Lang.t(spec.name), h.y], Palette.HURT]])
 		lines.append(_amount("초당 피해: ", spec.harm))
 	lines.append_array(_gas(w, p, now))
 	if w.vents.has(p):
 		var vent := [
-			["뿜는 기체: ", Palette.DIM], [Gas.of(w.vents[p], "name"), Palette.GAS[w.vents[p]][1]]
+			[Lang.t("뿜는 기체: "), Palette.DIM],
+			[Lang.t(Gas.of(w.vents[p], "name")), Palette.GAS[w.vents[p]][1]]
 		]
 		lines.append(vent)
-		lines.append([["  양: %d까지" % Gas.VENT_LEVEL, Palette.DIM]])
+		lines.append([[Lang.t("  양: %d까지") % Gas.VENT_LEVEL, Palette.DIM]])
 	if t == World.DRUM:
 		lines.append_array(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))
@@ -456,22 +482,24 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 	var body: Dictionary = w.bodies.get(p, {})
 	if change.is_empty() or (change.kind == &"body" and not body.get("met", false)):
 		return []
-	var label: String = Notice.LABEL[change.kind]
+	var label := Lang.t(Notice.LABEL[change.kind])
 	var color := Palette.TEXT
 	if change.kind == &"body":
-		label = "쓰러진 " + Bestiary.info(body.kind).name
+		label = Lang.t("쓰러진 %s") % Lang.t(Bestiary.info(body.kind).name)
 		color = Palette.KIND[body.kind]
 	return [
-		[[label, color], [": %d초 전" % (w.round_no - change.round), Palette.DIM]],
-		[[TRACE, Palette.DIM]],
+		[[label, color], [Lang.t(": %d초 전") % (w.round_no - change.round), Palette.DIM]],
+		[[Lang.t(TRACE), Palette.DIM]],
 	]
 
 
 ## Whether a drum would sound: wet ones are silent, for how long.
 static func _drum_line(w: World, p: Vector2i) -> Array:
 	if w.wet.has(p):
-		return [[["젖음: %d초" % w.wet[p], Palette.SIDE[0]]], [["소음: 없음", Palette.SIDE[0]]]]
-	return [[["젖으면: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]]]
+		return [
+			[[Lang.t("젖음: %d초") % w.wet[p], Palette.SIDE[0]]], [[Lang.t("소음: 없음"), Palette.SIDE[0]]]
+		]
+	return [[[Lang.t("젖으면: %d초 소리 없음") % Drums.WET_ROUNDS, Palette.DIM]]]
 
 
 ## What a kind of tile does, an `이름: 값` line or a tag each; numbers from the
@@ -480,115 +508,115 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	var out: Array[String] = []
 	match t:
 		World.ALTAR:
-			out.append("막음: 길, 주문")
+			out.append(Lang.t("막음: 길, 주문"))
 		World.ALTAR_LIT:
-			out.append("막음: 길, 주문")
-			out.append("빛: %d칸" % Light.SOUL_RADIUS)
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("빛: %d칸") % Light.SOUL_RADIUS)
 		World.LAMP:
-			out.append("막음: 길, 주문")
-			out.append("부술 수 없음.")
-			out.append("꺼지지 않음.")
-			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("부술 수 없음."))
+			out.append(Lang.t("꺼지지 않음."))
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
 		World.VEIL:
-			out.append("막음: 길, 주문")
-			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
-			out.append("곁 초당 피해: %d" % World.FIRE_DAMAGE)
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
+			out.append(Lang.t("곁 초당 피해: %d") % World.FIRE_DAMAGE)
 		World.DOOR:
-			out.append("막음: 시야")
-			out.append("여닫을 때 소음: %d" % Terrain.SLIDE)
+			out.append(Lang.t("막음: 시야"))
+			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
 		World.DOOR_OPEN:
-			out.append("여닫을 때 소음: %d" % Terrain.SLIDE)
+			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
 		World.DRUM:
-			out.append("칠 때 소음: 층 전체")
-			out.append("들은 적: 친 적이 미호를 마지막으로 본 곳을 수색")
-			out.append("치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안" % Drums.REACH)
-			out.append("찢어짐: 구슬, 부딪침")
+			out.append(Lang.t("칠 때 소음: 층 전체"))
+			out.append(Lang.t("들은 적: 친 적이 미호를 마지막으로 본 곳을 수색"))
+			out.append(Lang.t("치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안") % Drums.REACH)
+			out.append(Lang.t("찢어짐: 구슬, 부딪침"))
 		World.LANTERN:
-			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
 		World.LANTERN_OUT:
-			out.append("다시 켜짐: 불, 수색하는 적")
+			out.append(Lang.t("다시 켜짐: 불, 수색하는 적"))
 		World.BAMBOO:
-			out.append("막음: 시야, 빛")
+			out.append(Lang.t("막음: 시야, 빛"))
 		World.REEDS:
-			out.append("막음: 시야")
-			out.append("밟으면: 쓰러짐")
+			out.append(Lang.t("막음: 시야"))
+			out.append(Lang.t("밟으면: 쓰러짐"))
 		World.PILLAR:
-			out.append("막음: 길, 시야, 빛")
-			out.append("부술 수 없음.")
+			out.append(Lang.t("막음: 길, 시야, 빛"))
+			out.append(Lang.t("부술 수 없음."))
 		World.WOOD_WALL:
-			out.append("막음: 길, 시야, 빛")
-			out.append("부서짐: 구슬")
+			out.append(Lang.t("막음: 길, 시야, 빛"))
+			out.append(Lang.t("부서짐: 구슬"))
 		World.SCREEN:
-			out.append("막음: 길, 시야")
-			out.append("타격: 쓰러짐")
+			out.append(Lang.t("막음: 길, 시야"))
+			out.append(Lang.t("타격: 쓰러짐"))
 		World.JAR:
-			out.append("막음: 길")
-			out.append("타격: 깨짐")
+			out.append(Lang.t("막음: 길"))
+			out.append(Lang.t("타격: 깨짐"))
 		World.WATER_JAR:
-			out.append("막음: 길")
-			out.append("타격: 주위 8칸 얕은 물")
-			out.append("타격: 불, 냄새 지움")
+			out.append(Lang.t("막음: 길"))
+			out.append(Lang.t("타격: 주위 8칸 얕은 물"))
+			out.append(Lang.t("타격: 불, 냄새 지움"))
 		World.CENSER:
-			out.append("막음: 길")
+			out.append(Lang.t("막음: 길"))
 			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
-			out.append("%s 양: %d까지" % [Gas.of(Gas.INCENSE, "name"), Gas.VENT_LEVEL])
-			out.append("타격: %s, 이 칸과 옆 4칸" % coals.name)
-			out.append("타격: 옆 가연성 칸에 불")
-			out.append("%s: %d초" % [coals.name, Compounds.HOT_ROUNDS])
-			out.append("%s 초당 피해: %d" % [coals.name, coals.harm])
+			out.append(Lang.t("%s 양: %d까지") % [Gas.of(Gas.INCENSE, "name"), Gas.VENT_LEVEL])
+			out.append(Lang.t("타격: %s, 이 칸과 옆 4칸") % coals.name)
+			out.append(Lang.t("타격: 옆 가연성 칸에 불"))
+			out.append(Lang.t("%s: %d초") % [coals.name, Compounds.HOT_ROUNDS])
+			out.append(Lang.t("%s 초당 피해: %d") % [coals.name, coals.harm])
 		World.COURTYARD:
-			out.append("달빛에 드러남.")
+			out.append(Lang.t("달빛에 드러남."))
 		World.BOARD_ROTTEN:
-			out.append("소음: %d" % Terrain.CRACK)
+			out.append(Lang.t("소음: %d") % Terrain.CRACK)
 		World.STATUE:
-			out.append("막음: 길")
+			out.append(Lang.t("막음: 길"))
 		World.POND:
-			out.append("넘어감: 주문, 멀리뛰기만")
+			out.append(Lang.t("넘어감: 주문, 멀리뛰기만"))
 		World.SKY:
-			out.append("넘어감: 주문, 멀리뛰기만")
-			out.append("추락한 적: 사라짐")
-			out.append("층당 추락 피해: %d" % Fall.DAMAGE)
+			out.append(Lang.t("넘어감: 주문, 멀리뛰기만"))
+			out.append(Lang.t("추락한 적: 사라짐"))
+			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
 		World.WINDOW:
-			out.append("막음: 길")
+			out.append(Lang.t("막음: 길"))
 		World.BRIDGE:
-			out.append("달빛에 드러남.")
-			out.append("불에 타지 않음.")
+			out.append(Lang.t("달빛에 드러남."))
+			out.append(Lang.t("불에 타지 않음."))
 		World.THORNS:
-			out.append("지날 때 피해: %d" % Compounds.THORN)
+			out.append(Lang.t("지날 때 피해: %d") % Compounds.THORN)
 		World.MUD:
-			out.append("걸음: %d초" % Compounds.MUD)
-			out.append("발소리: 없음")
+			out.append(Lang.t("걸음: %d초") % Compounds.MUD)
+			out.append(Lang.t("발소리: 없음"))
 		World.TRAP_ALARM:
-			out.append("밟으면: 층 전체에 소리")
+			out.append(Lang.t("밟으면: 층 전체에 소리"))
 		World.TRAP_COLLAPSE:
-			out.append("밟으면: 하늘로 추락")
+			out.append(Lang.t("밟으면: 하늘로 추락"))
 		World.TRAP_FIRE:
-			out.append("밟으면: 밟은 방향 앞 %d칸에 불" % Traps.FLAME_REACH)
+			out.append(Lang.t("밟으면: 밟은 방향 앞 %d칸에 불") % Traps.FLAME_REACH)
 		World.TRAP_VINE:
 			var side := 2 * Traps.VINE_REACH + 1
-			out.append("밟으면: 주위 %d×%d 모두 묶음" % [side, side])
-			out.append("묶음: %d초" % Traps.ROOT_ROUNDS)
+			out.append(Lang.t("밟으면: 주위 %d×%d 모두 묶음") % [side, side])
+			out.append(Lang.t("묶음: %d초") % Traps.ROOT_ROUNDS)
 	if Tiles.of(t, "trap"):
-		out.append("함정.")
+		out.append(Lang.t("함정."))
 	if Terrain.wall(t) and breakable:
-		out.append("부서짐: 구슬")
-		out.append("부서질 때 소음: %d" % World.THUD)
+		out.append(Lang.t("부서짐: 구슬"))
+		out.append(Lang.t("부서질 때 소음: %d") % World.THUD)
 	elif Terrain.wall(t):
-		out.append("부술 수 없음.")
+		out.append(Lang.t("부술 수 없음."))
 	if Terrain.knockable(t) and t != World.DRUM:
-		out.append("부딪칠 때 소음: %d" % Tiles.of(t, "hit")[0])
+		out.append(Lang.t("부딪칠 때 소음: %d") % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
-		out.append("발소리: %d칸" % tread[0])
+		out.append(Lang.t("발소리: %d칸") % tread[0])
 	if Tiles.of(t, "scentless"):
-		out.append("냄새 안 남음.")
+		out.append(Lang.t("냄새 안 남음."))
 	if Tiles.of(t, "douses"):
-		out.append("불 안 붙음.")
+		out.append(Lang.t("불 안 붙음."))
 	if Tiles.burns[t] == 1 and not burns:
 		var spread := roundi(Tiles.of(t, "spread") * 100)
-		out.append("인화성." if Tiles.fierce[t] == 1 else "가연성.")
+		out.append(Lang.t("인화성." if Tiles.fierce[t] == 1 else "가연성."))
 		if Tiles.fierce[t] == 0 and spread != roundi(Tiles.DEFAULT.spread * 100):
-			out.append("번질 확률: %d%%" % spread)
+			out.append(Lang.t("번질 확률: %d%%") % spread)
 	return out
 
 
@@ -600,23 +628,23 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if g.x < 0 or w.seen[Grid.index(p)] == 0:
 		return []
 	var color: Color = Palette.GAS[g.x][1]
-	var head := [[Gas.of(g.x, "name"), color]]
+	var head := [[Lang.t(Gas.of(g.x, "name")), color]]
 	if now:
 		head.append([": %d/%d" % [g.y, Gas.MAX], Palette.DIM])
 	var out := [head]
 	if not Gas.of(g.x, "blocks"):
-		out.append([["시야 막음: 없음", Palette.DIM]])
+		out.append([[Lang.t("시야 막음: 없음"), Palette.DIM]])
 	elif not now:
-		out.append([["시야 막음: %d 이상" % Gas.OPAQUE, Palette.DIM]])
+		out.append([[Lang.t("시야 막음: %d 이상") % Gas.OPAQUE, Palette.DIM]])
 	elif g.y >= Gas.OPAQUE:
-		out.append([["시야 막음.", Palette.DIM]])
-	out.append([["줄어듦: 초당 %d%%" % Gas.of(g.x, "decay"), Palette.DIM]])
+		out.append([[Lang.t("시야 막음."), Palette.DIM]])
+	out.append([[Lang.t("줄어듦: 초당 %d%%") % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:
 		out.append(_amount("초당 피해: ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
-		out.append([["북 적심: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]])
+		out.append([[Lang.t("북 적심: %d초 소리 없음") % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
-		out.append([["냄새: 지움", Palette.DIM]])
+		out.append([[Lang.t("냄새: 지움"), Palette.DIM]])
 	return out
 
 
@@ -628,10 +656,10 @@ static func _fire_damage(fierce: bool) -> int:
 ## A burning tile: time left, harm, light and noise.
 static func _burning(left: int, fierce: bool) -> Array:
 	return [
-		[["%s: %d초 남음" % ["맹렬한 불" if fierce else "불타는 중", left], Palette.HURT]],
+		[[Lang.t("%s: %d초 남음") % [Lang.t("맹렬한 불" if fierce else "불타는 중"), left], Palette.HURT]],
 		_amount("초당 피해: ", _fire_damage(fierce)),
-		[["빛: %d칸" % Light.FIRE_RADIUS, Palette.DIM]],
-		[["소음: %d" % World.CRACKLE, Palette.DIM]],
+		[[Lang.t("빛: %d칸") % Light.FIRE_RADIUS, Palette.DIM]],
+		[[Lang.t("소음: %d") % World.CRACKLE, Palette.DIM]],
 	]
 
 
@@ -639,25 +667,25 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 	var i := Grid.index(p)
 	if w.seen[i] == 0:
 		if w.dim[i] == 1:
-			return [["안 보임: %s" % ("대숲" if w.hides(p) else "어둠"), Palette.DIM]]
-		return [["안 보임.", Palette.DIM]]
+			return [[Lang.t("안 보임: %s") % Lang.t("대숲" if w.hides(p) else "어둠"), Palette.DIM]]
+		return [[Lang.t("안 보임."), Palette.DIM]]
 	return _hidden(w, p)
 
 
 ## Whether heaven would see Miho standing on p.
 static func _hidden(w: World, p: Vector2i) -> Array:
 	if w.hides(p):
-		return [["대숲 속: 바로 옆에서만 보임", Palette.SIDE[0]]]
+		return [[Lang.t("대숲 속: 바로 옆에서만 보임"), Palette.SIDE[0]]]
 	if w.lit(p):
-		return [["밝음.", Palette.ALERT[1]]]
+		return [[Lang.t("밝음."), Palette.ALERT[1]]]
 	var reach: int = World.NIGHT[Actor.HEAVEN]
-	return [["어두움: %d칸 안에서만 보임" % reach, Palette.SIDE[0]]]
+	return [[Lang.t("어두움: %d칸 안에서만 보임") % reach, Palette.SIDE[0]]]
 
 
 static func _tails(w: World) -> Array:
 	return [
-		[["꼬리: %d/%d" % [w.tails, w.max_tails()], Palette.SIDE[0]]],
-		[["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]],
+		[[Lang.t("꼬리: %d/%d") % [w.tails, w.max_tails()], Palette.SIDE[0]]],
+		[[Lang.t("회복: %d초마다 1") % World.TAIL_REGROW, Palette.DIM]],
 	]
 
 
@@ -679,13 +707,16 @@ static func ahead(w: World, forecasts: Dictionary, p: Vector2i) -> Array:
 	var f: Forecast = forecasts.get(d) if Grid.cheb(p, w.player().pos) <= 1 else null
 	if f == null:
 		return []
-	var how := "대기 시" if d == Vector2i.ZERO else "이 칸 이동 시"
+	var wait := d == Vector2i.ZERO
 	var lines := []
 	if f.hurt_me() > 0:
-		lines.append([[how + " 피해: %d" % f.hurt_me(), Palette.HURT]])
+		var hurt := Lang.t("대기 시 피해: %d" if wait else "이 칸 이동 시 피해: %d")
+		lines.append([[hurt % f.hurt_me(), Palette.HURT]])
 	if f.drops_me():
-		lines.append([[how + " 추락: %d층" % f.after.depth, Palette.HURT]])
+		var drop := Lang.t("대기 시 추락: %d층" if wait else "이 칸 이동 시 추락: %d층")
+		lines.append([[drop % f.after.depth, Palette.HURT]])
 	if not f.noticed.is_empty():
-		var names := f.noticed.keys().map(func(id): return f.after.actor(id).info().name)
-		lines.append([[how + " 들킴: " + ", ".join(names), Palette.ALERT[2]]])
+		var names := f.noticed.keys().map(func(id): return Lang.t(f.after.actor(id).info().name))
+		var noticed := Lang.t("대기 시 들킴: %s" if wait else "이 칸 이동 시 들킴: %s")
+		lines.append([[noticed % ", ".join(names), Palette.ALERT[2]]])
 	return lines

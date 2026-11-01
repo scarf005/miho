@@ -21,7 +21,17 @@ const MOUSE := [
 ]
 const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-7 반경), Esc 끝"]
 const OPTIONS := [
-	&"volume", &"music", &"crt", &"zoom", &"speed", &"codex", &"keys", &"restart", &"quit", &"close"
+	&"volume",
+	&"music",
+	&"crt",
+	&"zoom",
+	&"speed",
+	&"language",
+	&"codex",
+	&"keys",
+	&"restart",
+	&"quit",
+	&"close"
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
@@ -29,6 +39,7 @@ const OPTION_NAMES := {
 	&"crt": "CRT 효과",
 	&"zoom": "화면 크기",
 	&"speed": "움직임 속도",
+	&"language": "언어",
 	&"replay": "명장면 다시보기",
 	&"codex": "도감",
 	&"keys": "키 설정",
@@ -92,20 +103,22 @@ func _enter(p: StringName) -> void:
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
-	var out := {title = "도움말", rows = _help()}
+	var out := {title = Lang.t("도움말"), rows = _help()}
 	match page:
 		&"options":
 			out = {
-				title = "설정", rows = _options(), detail = [[["시드: %d" % seed_value, Palette.DIM]]]
+				title = Lang.t("설정"),
+				rows = _options(),
+				detail = [[[Lang.t("시드: %d") % seed_value, Palette.DIM]]]
 			}
 		&"keys":
-			out = {title = "키 설정", rows = _keys()}
+			out = {title = Lang.t("키 설정"), rows = _keys()}
 		&"spells":
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
-			out = {title = "주문서", rows = _spells(list), detail = detail}
+			out = {title = Lang.t("주문서"), rows = _spells(list), detail = detail}
 		&"log":
-			out = {title = "기록", rows = log_rows}
+			out = {title = Lang.t("기록"), rows = log_rows}
 		&"codex":
 			return codex.panel()
 	out.merge({selected = selected, top = top, hover = hovered})
@@ -200,12 +213,14 @@ func _spells(list: Array[Spell]) -> Array:
 	for s in list:
 		var row := [[slot_key(settings.spells, s.key()), Palette.SIDE[0]]]
 		for k in s.slots.size():
-			row.append([Cards.GLYPH[s.slots[k]], Palette.card(s.slots[k]), 4.0 + k])
-		row.append(["꼬리 %d" % s.cost(), Palette.DIM, 10.0])
-		row.append([s.title(), Palette.TEXT, 14.0])
+			row.append(
+				[Lang.t(Cards.GLYPH[s.slots[k]], "talisman"), Palette.card(s.slots[k]), 4.0 + k]
+			)
+		row.append([Lang.t("꼬리 %d") % s.cost(), Palette.DIM, 10.0])
+		row.append([s.shown(), Palette.TEXT, 14.0])
 		rows.append(row)
 	if rows.is_empty():
-		rows.append([["줄에 든 부적도, 저장한 주문도 없다", Palette.DIM]])
+		rows.append([[Lang.t("줄에 든 부적도, 저장한 주문도 없다"), Palette.DIM]])
 	return rows
 
 
@@ -301,6 +316,12 @@ func _change(step: int) -> StringName:
 			settings.zoom = _cycle(Settings.ZOOMS, settings.zoom, step)
 		&"speed":
 			settings.speed = _cycle(Settings.SPEEDS, settings.speed, step)
+		&"language":
+			var codes := Lang.NAMES.keys()
+			settings.language = codes[posmod(
+				codes.find(StringName(settings.language)) + step, codes.size()
+			)]
+			settings.apply_language()
 		&"replay":
 			settings.replay = not settings.replay
 		_:
@@ -372,16 +393,17 @@ static func _nav(e: InputEventKey) -> StringName:
 
 func _options() -> Array:
 	var values := {
-		&"volume": str(settings.volume) if settings.volume > 0 else "끔",
-		&"music": str(settings.music) if settings.music > 0 else "끔",
+		&"volume": str(settings.volume) if settings.volume > 0 else Lang.t("끔"),
+		&"music": str(settings.music) if settings.music > 0 else Lang.t("끔"),
 		&"crt": _on(settings.crt),
-		&"zoom": "맞춤" if settings.zoom == 0.0 else str(settings.zoom),
+		&"zoom": Lang.t("맞춤") if settings.zoom == 0.0 else str(settings.zoom),
+		&"language": Lang.NAMES[StringName(settings.language)],
 		&"speed": "%dx" % int(settings.speed),
 		&"replay": _on(settings.replay),
 	}
 	var rows := []
 	for o in OPTIONS:
-		var row := [[OPTION_NAMES[o], Palette.TEXT]]
+		var row := [[Lang.t(OPTION_NAMES[o]), Palette.TEXT]]
 		if values.has(o):
 			row.append([values[o], Palette.SIDE[0], VALUE_COL])
 		rows.append(row)
@@ -389,7 +411,7 @@ func _options() -> Array:
 
 
 static func _on(v: bool) -> String:
-	return "켬" if v else "끔"
+	return Lang.t("켬") if v else Lang.t("끔")
 
 
 func _keys() -> Array:
@@ -398,9 +420,11 @@ func _keys() -> Array:
 		var action: StringName = _actions()[k]
 		var keys := ", ".join(Keys.keys_of(action).map(Keys.label))
 		if waiting and k == selected:
-			keys = "키를 누르세요"
-		rows.append([[Keys.ACTIONS[action][0], Palette.TEXT], [keys, Palette.SIDE[0], VALUE_COL]])
-	rows.append([["모두 기본값", Palette.TEXT]])
+			keys = Lang.t("키를 누르세요")
+		rows.append(
+			[[Lang.t(Keys.ACTIONS[action][0]), Palette.TEXT], [keys, Palette.SIDE[0], VALUE_COL]]
+		)
+	rows.append([[Lang.t("모두 기본값"), Palette.TEXT]])
 	return rows
 
 
@@ -410,17 +434,17 @@ static func _help() -> Array:
 	for action in Keys.ACTIONS:
 		if action.begins_with("pick_") and action != &"pick_1":
 			continue
-		var name: String = Keys.ACTIONS[action][0]
+		var name: String = Lang.t(Keys.ACTIONS[action][0])
 		var keys := Keys.keys_of(action).map(Keys.label)
 		var sep := ", "
 		if action == &"pick_1":
 			sep = " "
-			name = "부적 고르기"
+			name = Lang.t("부적 고르기")
 			keys = []
 			for i in range(1, Cards.ALL.size() + 1):
 				keys.append("/".join(Keys.keys_of(StringName("pick_%d" % i)).map(Keys.label)))
 		rows.append([[name, Palette.TEXT], [sep.join(keys), Palette.SIDE[0], VALUE_COL]])
-	rows.append([[LOOK[0], Palette.TEXT], [LOOK[1], Palette.DIM, VALUE_COL]])
+	rows.append([[Lang.t(LOOK[0]), Palette.TEXT], [Lang.t(LOOK[1]), Palette.DIM, VALUE_COL]])
 	for m in MOUSE:
-		rows.append([[m[0], Palette.TEXT], [m[1], Palette.DIM, VALUE_COL]])
+		rows.append([[Lang.t(m[0]), Palette.TEXT], [Lang.t(m[1]), Palette.DIM, VALUE_COL]])
 	return rows

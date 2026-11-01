@@ -280,7 +280,7 @@ func test_the_detail_follows_the_selected_entry_and_the_status_tab_tells_each_st
 	for key in Status.NAME:
 		assert_has(names, Status.NAME[key])
 		var text := _text(Codex.detail(_entry(tab, Status.NAME[key])))
-		for does in SpellInfo.STATUS_DOES[key]:
+		for does in SpellInfo.status_does(key):
 			assert_string_contains(text, does)
 	assert_eq(panel.aside[0][0][0], names[0], "the detail opens on the first status")
 	menu.key(_press("Down"))
@@ -524,9 +524,9 @@ func test_the_codex_opened_from_the_options_goes_back_to_them() -> void:
 	assert_eq(menu.page, &"options")
 
 
-func test_the_options_list_the_codex_between_the_replay_and_the_keys() -> void:
+func test_the_options_list_the_codex_between_the_language_and_the_keys() -> void:
 	var at := Menu.OPTIONS.find(&"codex")
-	assert_eq(Menu.OPTIONS[at - 1], &"speed")
+	assert_eq(Menu.OPTIONS[at - 1], &"language")
 	assert_eq(Menu.OPTIONS[at + 1], &"keys")
 	var menu := Menu.new()
 	menu.open(&"options")

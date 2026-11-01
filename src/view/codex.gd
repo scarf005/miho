@@ -12,6 +12,7 @@ extends RefCounted
 
 const TABS := ["적", "주문", "조합", "아이템", "지형지물", "상태이상", "용어"]
 ## The cell where the detail starts.
+## Where the detail starts at least; a name too long for the list pushes it right.
 const SIDE_X := 13.0
 const ME := Vector2i(4, 8)
 const AT := Vector2i(5, 8)
@@ -60,7 +61,11 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 			for kind in foes():
 				var spec := Bestiary.info(kind)
 				var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
-				out.append(_entry(spec.glyph, Palette.KIND[kind], spec.name, lines))
+				out.append(
+					_entry(
+						Lang.t(spec.glyph, "creature"), Palette.KIND[kind], Lang.t(spec.name), lines
+					)
+				)
 		1:
 			for c in Cards.FORMS + Cards.ELEMENTS:
 				out.append(_talisman(c))
@@ -68,29 +73,42 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				var s := Spell.make(SpellInfo.RECIPE[kind])
 				var color := Palette.shot_color(s, Actor.FOX)
 				out.append(
-					_entry(Palette.shot_glyph(s), color, Spell.SHAPE_NAME[kind], _shape(kind))
+					_entry(
+						Palette.shot_glyph(s), color, Lang.t(Spell.SHAPE_NAME[kind]), _shape(kind)
+					)
 				)
-			out.append(_entry(":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY)))
+			out.append(_entry(":", Palette.TEXT, Lang.t(SpellInfo.SPRAY_NAME), _shape(Spell.SPRAY)))
 			for cards in SpellInfo.GUNS:
 				var s := Spell.make(cards)
 				var lines := func(): return SpellInfo.spell(s)
 				out.append(
 					_entry(
-						Palette.shot_glyph(s), Palette.shot_color(s, Actor.FOX), s.title(), lines
+						Palette.shot_glyph(s), Palette.shot_color(s, Actor.FOX), s.shown(), lines
 					)
 				)
 			for kind in Guise.RECIPE:
 				var s := Spell.make(Guise.RECIPE[kind])
 				var lines := func(): return SpellInfo.own(kind)
-				out.append(_entry(",", Palette.card(s.slots.back()), Guise.NAME[kind], lines))
+				out.append(
+					_entry(",", Palette.card(s.slots.back()), Lang.t(Guise.NAME[kind]), lines)
+				)
 		2:
 			for c in Cards.compounds():
 				var lines := func(): return SpellInfo.combo(c)
-				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines))
+				out.append(
+					_entry(
+						Lang.t(Cards.GLYPH[c], "talisman"),
+						Palette.card(c),
+						Lang.t(Cards.NAME[c]),
+						lines
+					)
+				)
 		3:
-			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir))
-			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach))
-			out.append(_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll))
+			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], Lang.t("영약"), _elixir))
+			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], Lang.t("복숭아"), _peach))
+			out.append(
+				_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], Lang.t("주문서", "item"), _scroll)
+			)
 			for c in Cards.ELEMENTS:
 				out.append(_talisman(c))
 		4:
@@ -98,23 +116,25 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				if Tiles.of(t, "name") != "":
 					var tile := func(w: World): w.set_tile(AT, t)
 					var glyph: Array = Palette.TILES[t]
-					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile))
+					out.append(_feature(glyph[0], glyph[1], Lang.t(Tiles.of(t, "name")), tile))
 			out.append_array(_extras())
 		5:
 			for key in Status.NAME:
 				var glyph: Array = Palette.STATUS[key]
 				out.append(
-					_entry(glyph[0], glyph[1], Status.NAME[key], Info.status_facts.bind(key))
+					_entry(
+						glyph[0], glyph[1], Lang.t(Status.NAME[key]), Info.status_facts.bind(key)
+					)
 				)
 			for name: String in Info.CONDITIONS:
-				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name)))
+				out.append(_entry("·", Palette.TEXT, Lang.t(name), Info.condition_facts.bind(name)))
 		6:
 			var terms := Info.glossary()
 			for term: String in terms:
 				var lines := func():
 					var rules: Array = terms[term].map(func(r): return [[r, Palette.DIM]])
-					return [[[term + ".", Palette.TEXT]]] + rules
-				out.append(_entry("·", Palette.TEXT, term, lines))
+					return [[[Lang.t(term) + ".", Palette.TEXT]]] + rules
+				out.append(_entry("·", Palette.TEXT, Lang.t(term), lines))
 	return out
 
 
@@ -178,15 +198,15 @@ func panel() -> Dictionary:
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
 	var shown := lines.slice(scroll, scroll + fits).map(_legible)
 	return {
-		title = "도감",
-		tabs = TABS,
+		title = Lang.t("도감"),
+		tabs = TABS.map(Lang.t),
 		tab = tab,
 		rows = rows,
 		selected = selected,
 		top = top,
 		hover = hover,
 		aside = shown,
-		aside_x = SIDE_X,
+		aside_x = _side_x(list),
 		opaque = true,
 		aside_up = scroll > 0,
 		aside_down = scroll + fits < lines.size(),
@@ -249,7 +269,21 @@ func go(t: int) -> void:
 
 ## The detail of the selected entry, cut to the room.
 func _lines() -> Array:
-	return flow(detail(entries(tab, rank)[selected]), room.x - SIDE_X - 1.0)
+	var list := entries(tab, rank)
+	return flow(detail(list[selected]), room.x - _side_x(list) - 1.0)
+
+
+## The column the detail starts at: after the longest name of `list`.
+static func _side_x(list: Array) -> float:
+	return maxf(
+		SIDE_X,
+		(
+			5.0
+			+ list.reduce(
+				func(n: float, e: Dictionary) -> float: return maxf(n, Term._cells(e.name)), 0.0
+			)
+		)
+	)
 
 
 ## Lines of the detail, and rows of the list, that fit.
@@ -263,7 +297,12 @@ static func _entry(glyph: String, color: Color, name: String, lines: Callable) -
 
 static func _talisman(c: StringName) -> Dictionary:
 	var lines := func(): return SpellInfo.card(c, null)
-	return _entry(Cards.GLYPH[c], Palette.CARD[c], Cards.NAME[c] + " 부적", lines)
+	return _entry(
+		Lang.t(Cards.GLYPH[c], "talisman"),
+		Palette.CARD[c],
+		Lang.t("%s 부적") % Lang.t(Cards.NAME[c]),
+		lines
+	)
 
 
 static func _shape(kind: StringName) -> Callable:
@@ -291,21 +330,23 @@ static func _mark(glyph: String, color: Color, name: String, change: Callable) -
 ## The stairs, then what lies on a plain floor tile.
 static func _extras() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], "계단", _stairs))
+	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], Lang.t("계단"), _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
-	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire))
+	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], Lang.t("불타는 칸"), fire))
 	var fierce := func(w: World):
 		w.set_tile(AT, World.STRAW)
 		w.burning[AT] = World.BURN_ROUNDS
-	out.append(_mark(Palette.FIERCE_BURNING[0], Palette.FIERCE_BURNING[1], "맹렬한 불", fierce))
+	out.append(_mark(Palette.FIERCE_BURNING[0], Palette.FIERCE_BURNING[1], Lang.t("맹렬한 불"), fierce))
 	for kind in Compounds.HOT.size():
 		var heat := func(w: World): w.hot[AT] = Vector2i(kind, Compounds.HOT_ROUNDS)
-		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Compounds.HOT[kind].name, heat))
+		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Lang.t(Compounds.HOT[kind].name), heat))
 	for kind in Gas.ROWS:
 		var gas := func(w: World): Gas.put(w, AT, kind, Gas.MAX)
-		out.append(_mark(Palette.GAS[kind][0], Palette.GAS[kind][1], Gas.of(kind, "name"), gas))
-	var label: String = Notice.LABEL[&"body"]
-	var body := func(): return [[[label, Palette.BODY[1]]], [[Info.TRACE, Palette.DIM]]]
+		out.append(
+			_mark(Palette.GAS[kind][0], Palette.GAS[kind][1], Lang.t(Gas.of(kind, "name")), gas)
+		)
+	var label := Lang.t(Notice.LABEL[&"body"])
+	var body := func(): return [[[label, Palette.BODY[1]]], [[Lang.t(Info.TRACE), Palette.DIM]]]
 	out.append(_entry(Palette.BODY[0], Palette.BODY[1], label, body))
 	return out
 

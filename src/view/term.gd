@@ -668,7 +668,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		draw_rect(Rect2(cell * CELL, CELL), Color(0, 0, 0, 0.55))
 		if tints.has(a.pos):
 			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
-		_glyph(cell, Bestiary.info(Guise.looks(a)).glyph, c)
+		_glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)
 		for s: Dictionary in shots.values():
 			if s.pos == a.pos:
 				var glow := Palette.shot_color(s.spell, s.faction)
@@ -707,13 +707,13 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 				Rect2(Vector2(0, row) * CELL, Vector2(MAP.x, SIDE_ROWS) * CELL),
 				Color(Palette.TEXT, 0.12)
 			)
-		_glyph(Vector2(0, row), a.info().glyph, Palette.KIND[a.kind])
-		_text(Vector2(1.5, row), a.info().name, Palette.KIND[a.kind])
+		_glyph(Vector2(0, row), Lang.t(a.info().glyph, "creature"), Palette.KIND[a.kind])
+		_text(Vector2(1.5, row), Lang.t(a.info().name), Palette.KIND[a.kind])
 		_pips(Vector2(0, row + 1), a.hp, a.max_hp, Palette.HURT, MAP.x - 1)
 		_status(Vector2(MAP.x - 1, row + 1), a)
-		var doing: String = Info.state(a) if a.blind <= 0 else "눈멂"
+		var doing: String = Info.state(a) if a.blind <= 0 else Lang.t("눈멂")
 		if a.fighting() and a.blind <= 0:
-			doing = "싸우는 중"
+			doing = Lang.t("싸우는 중")
 		var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.alert, 1)])
 		var plans := a.intent.map(func(p): return [Spell.make(p.cards).slots, p.dir])
 		var x := _cells(doing) + 0.5
@@ -725,7 +725,9 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 				dx += _run(Vector2(dx, row + 2), run)
 		for plan: Array in plans:
 			for slot: StringName in plan[0]:
-				_glyph(Vector2(x, row + 2), Cards.GLYPH[slot], Palette.card(slot))
+				_glyph(
+					Vector2(x, row + 2), Lang.t(Cards.GLYPH[slot], "talisman"), Palette.card(slot)
+				)
 				x += 1
 			_glyph(Vector2(x, row + 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
 			x += 1

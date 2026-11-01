@@ -873,7 +873,8 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 func _strike(s: Shot, a: Actor) -> void:
 	var spell := s.spell
 	var at := a.pos
-	emit({t = &"hit", shot = s.id, id = a.id, at = at, by = s.caster, title = spell.title()})
+	var hit := {t = &"hit", shot = s.id, id = a.id, at = at, by = s.caster}
+	emit(hit.merged({title = spell.title(), spell = spell}))
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
 		return

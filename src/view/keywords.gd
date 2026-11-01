@@ -12,13 +12,11 @@ extends RefCounted
 const HARM := ["묶임", "기절", "눈멂"]
 const BOON := ["둔갑"]
 
-static var _words := _table()
-static var _find := RegEx.create_from_string(
-	"(?<![가-힣A-Za-z0-9])(%s)(?![가-힣A-Za-z0-9])" % "|".join(PackedStringArray(_words.keys()))
-)
+## language -> {words: word -> colours, find: the RegEx for them}, made when first needed.
+static var _tables := {}
 
 
-## word -> [text colour] or [text colour, background colour].
+## The Korean word -> [text colour] or [text colour, background colour].
 static func _table() -> Dictionary:
 	var out := {"인화성": [Palette.FIERCE_TEXT, Palette.FIERCE_BACK], "가연성": [Palette.FLAMMABLE]}
 	for word: String in Status.NAME.values() + HARM:
@@ -28,14 +26,38 @@ static func _table() -> Dictionary:
 	return out
 
 
+## The words and the pattern that finds them in the language shown. English
+## words match in any case.
+static func _for() -> Dictionary:
+	var code := Lang.active()
+	if not _tables.has(code):
+		var words := {}
+		var table := _table()
+		for word: String in table:
+			words[_key(Lang.t(word))] = table[word]
+		var keys := Array(words.keys())
+		keys.sort_custom(func(a: String, b: String): return a.length() > b.length())
+		var edge := "[가-힣A-Za-z0-9]"  # i18n: keep
+		var find := "(?<!%s)(%s)(?!%s)" % [edge, "|".join(PackedStringArray(keys)), edge]
+		_tables[code] = {
+			words = words, find = RegEx.create_from_string(("" if code == &"ko" else "(?i)") + find)
+		}
+	return _tables[code]
+
+
+static func _key(word: String) -> String:
+	return word if Lang.active() == &"ko" else word.to_lower()
+
+
 ## `text` as runs of `base` colour with each known word in its own.
 static func runs(text: String, base: Color) -> Array:
 	var out := []
 	var at := 0
-	for m in _find.search_all(text):
+	var shown := _for()
+	for m in shown.find.search_all(text):
 		if m.get_start() > at:
 			out.append([text.substr(at, m.get_start() - at), base])
-		out.append([m.get_string()] + _words[m.get_string()])
+		out.append([m.get_string()] + shown.words[_key(m.get_string())])
 		at = m.get_end()
 	if at < text.length() or out.is_empty():
 		out.append([text.substr(at), base])
@@ -50,8 +72,8 @@ static func paint(line: Array) -> Array:
 		var parts := []
 		if plain:
 			parts = runs(run[0], run[1])
-		elif _words.has(run[0]):
-			parts = [[run[0]] + _words[run[0]]]
+		elif _for().words.has(_key(run[0])):
+			parts = [[run[0]] + _for().words[_key(run[0])]]
 		if parts.is_empty():
 			out.append(run)
 			continue
