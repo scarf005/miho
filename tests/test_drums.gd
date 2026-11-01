@@ -252,7 +252,7 @@ func test_hovering_a_drum_shows_every_value() -> void:
 	w.sense()
 	var dry := Info.plain(Info.terrain(w, DRUM_AT))
 	assert_string_contains(dry, "북 ♥")
-	assert_string_contains(dry, "소리: 칠 때 층 전체")
+	assert_string_contains(dry, "칠 때 소리: 층 전체")
 	assert_false(dry.contains("둥"), dry)
 	assert_string_contains(dry, "걸어서 %d칸" % Drums.REACH)
 	assert_string_contains(dry, "영리한 적")

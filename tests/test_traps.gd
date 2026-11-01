@@ -247,7 +247,7 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	for kind in KINDS:
 		assert_true(text[kind].split("\n").has("함정."), text[kind])
 	assert_has(Info.glossary()["함정"], "드러남: 밝은 칸이나 %d칸 안" % Traps.REACH)
-	assert_has(Info.glossary()["함정"], "적: 피해 감")
+	assert_has(Info.glossary()["함정"], "적: 돌아감")
 
 
 func _hover(w: World, kind: int) -> Array:

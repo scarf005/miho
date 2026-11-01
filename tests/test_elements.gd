@@ -462,10 +462,10 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 		[
 			[FOX, METAL, METAL],
 			[
-				"피해: 발마다 %d" % (Elements.BULLET + 1),
+				"발당 피해: %d" % (Elements.BULLET + 1),
 				"초당 %d칸" % Spell.BULLET_SPEED,
 				"빛: 없음\n쏠 때 빛: 미호 칸",
-				"쓸 때 %d칸" % Spray.GUN_LOUD,
+				"소리: %d칸" % Spray.GUN_LOUD,
 			]
 		],
 		[
@@ -473,7 +473,7 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 			[
 				"피해: +%d" % Elements.CANNON,
 				"밀침: %d칸" % Elements.CANNON_PUSH,
-				"쓸 때 %d칸" % Elements.CANNON_LOUD,
+				"소리: %d칸" % Elements.CANNON_LOUD,
 				"쏠 때 빛: 미호 칸",
 			]
 		],

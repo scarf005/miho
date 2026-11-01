@@ -209,15 +209,15 @@ func test_a_courtyard_is_lit_by_the_moon_in_a_dark_hall_and_walkable() -> void:
 func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 	var told := {
 		World.SCREEN:
-		["막음: 길, 시야", "타격: 쓰러짐", "소리: 부딪칠 때 %d칸" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
-		World.JAR: ["막음: 길", "타격: 깨짐", "소리: 부딪칠 때 %d칸" % Tiles.of(World.JAR, "hit")[0]],
+		["막음: 길, 시야", "타격: 쓰러짐", "부딪칠 때 소리: %d칸" % Tiles.of(World.SCREEN, "hit")[0], "가연성"],
+		World.JAR: ["막음: 길", "타격: 깨짐", "부딪칠 때 소리: %d칸" % Tiles.of(World.JAR, "hit")[0]],
 		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
 			"향 연기 양: %d까지" % Gas.VENT_LEVEL,
 			"이 칸과 옆 4칸",
 			": %d초\n" % Compounds.HOT_ROUNDS,
-			"피해: 매 초 %d" % Compounds.HOT[Compounds.LAVA].harm,
+			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
 			"옆 가연성 칸에 불",
 		],
 		World.COURTYARD: ["달빛에 드러남."],
@@ -239,7 +239,7 @@ func test_the_hover_of_incense_says_it_does_not_block_sight_and_erases_the_scent
 	assert_string_contains(text, "향 연기")
 	assert_string_contains(text, "시야 막음: 없음")
 	assert_string_contains(text, "냄새: 지움")
-	assert_string_contains(text, "매 초 %d%%" % Gas.of(Gas.INCENSE, "decay"))
+	assert_string_contains(text, "초당 %d%%" % Gas.of(Gas.INCENSE, "decay"))
 
 
 func test_the_log_tells_each_piece_breaking_where_miho_sees_it() -> void:

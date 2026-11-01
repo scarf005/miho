@@ -315,7 +315,7 @@ func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
 	var log := Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "도깨비에게 불이 붙었다")
 	var text := Info.plain(Info.creature(w, foe))
-	var tags := "불붙음: %d초\n  피해: 매 초 %d\n  빛: %d칸"
+	var tags := "불붙음: %d초\n  초당 피해: %d\n  빛: %d칸"
 	assert_string_contains(text, tags % [Status.ALIGHT - 1, World.FIRE_DAMAGE, Light.FIRE_RADIUS])
 	before = w.clone()
 	events = w.act(WAIT)
