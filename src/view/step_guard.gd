@@ -12,6 +12,8 @@ extends RefCounted
 var asking := Vector2i.ZERO
 ## Ids of the creatures in sight at the last fresh key press.
 var sighted := {}
+## The key that last answered the prompt: its repeats do nothing.
+var answered := KEY_NONE
 
 
 ## Whether stepping `d`, forecast as `f`, is onto a found plate, fire she sees or a
@@ -21,8 +23,29 @@ static func danger(w: World, d: Vector2i, f: Forecast) -> bool:
 	if f == null:
 		return false
 	var to := w.player().pos + d
+	var foe := w.actor_at(to)
+	if foe != null and Hat.shown(w, foe):
+		return false
 	var burns := w.seen[Grid.index(to)] == 1 and w.burning.has(to)
 	return f.drops_me() or burns or Tiles.of(w.tile(to), "trap")
+
+
+## How a key press `action` answers the prompt: &"yes", &"no", &"ignore" for one
+## that does nothing, or &"" when it is no answer and goes on as usual. Y and N
+## answer whatever their move keys mean; the prompt's own direction goes on and
+## steps; a bare modifier leaves the prompt up.
+func reply(event: InputEventKey, action: StringName) -> StringName:
+	if event.is_echo():
+		return &"ignore" if asking != Vector2i.ZERO or event.keycode == answered else &""
+	answered = KEY_NONE
+	if asking == Vector2i.ZERO:
+		return &""
+	if event.keycode in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:
+		return &"ignore"
+	if event.keycode != KEY_Y and event.keycode != KEY_N and Keys.MOVES.get(action) == asking:
+		return &""
+	answered = event.keycode
+	return &"yes" if event.keycode == KEY_Y else &"no"
 
 
 ## What is asked before stepping `d`; the keys answer it unless `touch`.

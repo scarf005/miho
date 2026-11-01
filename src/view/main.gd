@@ -309,16 +309,20 @@ func _restart() -> void:
 ## Moves repeat while their key is held; other actions take only fresh presses.
 ## Repeats that arrive while a round plays are dropped, so none pile up. A fresh
 ## press notes the creatures in sight (a repeat stops once another comes into
-## sight) and Y answers a step prompt.
+## sight), and StepGuard.reply reads an answer to a step prompt.
 func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
 	held = event.is_echo()
 	if not held:
 		guard.sighted = Travel.in_sight(world)
-	if event.keycode == KEY_Y and not held and guard.asking != Vector2i.ZERO:
-		_move(guard.asking)
-	elif not held or Keys.MOVES.has(action) and not guard.startled(world):
-		_do(action, event.shift_pressed)
+	match guard.reply(event, action):
+		&"yes":
+			_move(guard.asking)
+		&"no":
+			_unask()
+		&"":
+			if not held or Keys.MOVES.has(action) and not guard.startled(world):
+				_do(action, event.shift_pressed)
 	held = false
 
 
