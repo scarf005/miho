@@ -63,6 +63,8 @@ const DELAY := {
 	&"drum": 0.3,
 	&"trap": 0.2,
 }
+## Cells each character takes, measured once (_cells).
+static var _widths := {}
 
 var world: World
 var picked: Array[StringName] = []
@@ -922,11 +924,15 @@ func _heart(at: Vector2, full: bool, color: Color) -> void:
 				draw_rect(Rect2((from + Vector2(x, y) * px).round(), Vector2(px, px)), color)
 
 
-## Cells a string takes: Hangul is two halves wide, ASCII one half.
+## Cells a string takes as the font draws it, each character rounded up to a
+## half (× and ° a half, Hangul a whole); ♥ and ♡ are drawn as hearts a cell wide.
 static func _cells(s: String) -> float:
 	var n := 0.0
 	for c in s:
-		n += 1.0 if c.unicode_at(0) > 0x7E else 0.5
+		if not _widths.has(c):
+			var px := Fonts.pixel().get_string_size(c, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE).x
+			_widths[c] = 1.0 if c in ["♥", "♡"] else maxf(0.5, ceilf(px / CELL.x * 2.0) / 2.0)
+		n += _widths[c]
 	return n
 
 
