@@ -101,7 +101,7 @@ func test_a_held_arrow_repeats_in_the_codex_the_game_menu_and_the_key_page() -> 
 func test_wrap_page_and_ends_work_on_the_game_menu() -> void:
 	var m := _main(10)
 	var last := Menu.OPTIONS.size() - 1
-	var page := Term.list_fits(10, 1)  # under the seed line
+	var page := Term.list_fits(10, 0)
 	_key(m, "Escape")
 	_key(m, "Up")
 	assert_eq(m.term.panel.selected, last, "Up from the first row wraps")
