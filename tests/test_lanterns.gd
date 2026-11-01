@@ -149,20 +149,21 @@ func test_bumping_a_lantern_twice_puts_it_out_then_breaks_it_into_rubble_she_can
 	assert_eq(w.player().pos, at, "rubble is walked over")
 
 
-func test_an_orb_puts_a_lit_lantern_out_and_breaks_a_dark_one() -> void:
+func test_an_orb_breaks_a_lit_lantern_outright_so_no_one_relights_it() -> void:
 	var w := _world()
 	var at := Vector2i(10, 8)
 	_put(w, at, World.LANTERN)
 	var events := w.act(_cast([ORB], E))
 	events.append_array(w.act(WAIT))
 	events.append_array(w.act(WAIT))
-	assert_eq(w.tile(at), World.LANTERN_OUT)
-	events.append_array(w.act(_cast([ORB], E)))
-	events.append_array(w.act(WAIT))
-	events.append_array(w.act(WAIT))
 	assert_eq(w.tile(at), World.LANTERN_BROKEN)
 	var smashed := events.filter(func(e): return e.t == &"smash")
-	assert_eq(smashed.map(func(e): return e.was), [World.LANTERN, World.LANTERN_OUT])
+	assert_eq(smashed.map(func(e): return e.was), [World.LANTERN])
+	_put(w, at, World.LANTERN_OUT)
+	w.act(_cast([ORB], E))
+	w.act(WAIT)
+	w.act(WAIT)
+	assert_eq(w.tile(at), World.LANTERN_BROKEN, "and a dark one")
 	w.act(_cast([ORB], E))
 	w.act(WAIT)
 	w.act(WAIT)
