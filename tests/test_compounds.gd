@@ -208,6 +208,7 @@ func test_thorns_grow_prick_and_hurt_whoever_steps_onto_them() -> void:
 	assert_eq(w.tile(ME + E), World.THORNS)
 	assert_eq(w.tile(foe.pos), World.THORNS, "under the creature too")
 	assert_eq(w.opaque(ME + E), false, "sight goes through")
+	foe.stunned = 9
 	var me := w.player()
 	var hp := me.hp
 	var before := w.clone()

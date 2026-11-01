@@ -191,7 +191,7 @@ func test_tab_when_badly_hurt_refuses_even_with_a_creature_next_to_her() -> void
 
 func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
 	var m := _main()
-	var sleeper := _foe(m.world, Vector2i(8, 8))
+	var sleeper := FloorGen.spawn(m.world, &"haetae", Vector2i(8, 8))
 	sleeper.home = sleeper.pos
 	sleeper.alert = Actor.REST
 	m.world.sense()

@@ -156,6 +156,7 @@ func test_any_hurt_with_no_projectile_makes_a_resting_creature_look_around_whate
 
 func test_a_claw_makes_the_creature_wary_for_thirty_rounds() -> void:
 	var w := _world()
+	w.player().hp = 99
 	var foe := _foe(w, DULL, ME + E)
 	foe.hp = 9
 	foe.alert = Actor.HUNT
