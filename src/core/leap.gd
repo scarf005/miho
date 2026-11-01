@@ -52,6 +52,8 @@ static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 
 static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	var to := landing(w, a.pos, dir, spell.leap())
+	if a.rooted > 0 or to == a.pos:
+		return
 	var depth := w.depth
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
 	w.move(a, to)
