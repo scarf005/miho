@@ -449,9 +449,9 @@ func _draw() -> void:
 	var me := world.player()
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
 	_draw_map(light, me_pos)
-	_draw_telegraphs(actors)
+	TermMarks.telegraphs(self, actors)
 	if not _animating:
-		_draw_paths()
+		TermMarks.paths(self)
 		for l: Array in lines:
 			if _shown(l[0]) and _shown(l[1]):
 				var a := cell_centre(l[0])
@@ -596,52 +596,6 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 		c.g * clampf(floor_level + l.y, 0.0, 1.6),
 		c.b * clampf(floor_level + l.z, 0.0, 1.6)
 	)
-
-
-## A charging creature's line for each spell (a spray's tiles), so every incoming
-## spell is seen a round early. One running to a drum shows none: its info says so.
-func _draw_telegraphs(actors: Dictionary) -> void:
-	for id in actors:
-		var a: Actor = actors[id]
-		if a.faction == Actor.FOX or not _revealed(a.pos):
-			continue
-		for plan in a.intent:
-			var spell := Spell.make(plan.cards)
-			var ray := Forecast.ray(world, a.pos, plan.dir)
-			if spell.shape == Spell.SPRAY:
-				ray = Spray.cover(world, a, spell, plan.dir)
-			elif not spell.orb:
-				ray = ray.slice(0, Spell.RANGE)
-			for k in ray.size():
-				if not _shown(ray[k]):
-					continue
-				var pulse := 0.5 + 0.5 * sin(_time * 8.0 - k * 0.6)
-				var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
-				draw_rect(Rect2(_cell(ray[k]) * CELL, CELL), c)
-			if not ray.is_empty() and _shown(a.pos + plan.dir):
-				_glyph(_cell(a.pos + plan.dir), Palette.BOLT[plan.dir], Palette.SIDE[1])
-
-
-## Where each projectile in sight flies next, over tiles Miho knows: an orb
-## to the wall, a wisp to the end of its range, a homing orb one tile ahead.
-func _draw_paths() -> void:
-	for s in world.shots:
-		if s.dir == Vector2i.ZERO or not _revealed(s.pos):
-			continue
-		var ray := Forecast.ray(world, s.pos, s.dir)
-		if s.turn > 0:
-			ray = ray.slice(0, 1)
-		elif not s.spell.orb:
-			ray = ray.slice(0, maxi(0, Spell.RANGE - s.flown))
-		var c := Palette.shot_color(s.spell, s.faction)
-		for k in ray.size():
-			var p := ray[k]
-			if world.known[Grid.index(p)] == 0:
-				break
-			if _shown(p):
-				draw_rect(Rect2(_cell(p) * CELL, CELL), Color(c, 0.22 - 0.1 * k / ray.size()))
-				if k == 0:
-					_glyph(_cell(p), Palette.BOLT[s.dir], Color(c, 0.8))
 
 
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
