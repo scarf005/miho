@@ -49,6 +49,8 @@ static func of(before: World, after: World, events: Array) -> Array:
 		if f.t == &"noise":
 			out.append([["멀리서 ", TEXT], [f.word, Palette.SOUND], [" 소리를 들었다", TEXT]])
 			continue
+		if f.t == &"gas" and last.get("t") == &"gas" and last.kind == f.kind:
+			continue
 		var line := _line(before, after, f, last)
 		if f.t != &"hurt":
 			last = f
@@ -122,7 +124,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var healed := [["체력을 ", TEXT], ["1", Palette.HURT], [" 회복했다", TEXT]]
 			if e.get("grew", false):
 				healed = [["최대 체력이 ", TEXT], ["1", Palette.HURT], [" 늘었다", TEXT]]
-			return healed if last.get("t") == &"ascend" else [["복숭아를 먹었다. ", TEXT]] + healed
+			var plain: bool = last.get("t") == &"ascend" or e.get("spell", false)
+			return healed if plain else [["복숭아를 먹었다. ", TEXT]] + healed
 		&"blind":
 			return _subject(before, after, id, "의") + [["눈이 멀었다", TEXT]]
 		&"root":

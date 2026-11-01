@@ -22,11 +22,12 @@ extends RefCounted
 ## walls and bridges. They reach the nearest creatures the caster sees within
 ## ROOT_REACH steps (ROOT_COUNT of them, 0 for all) and root them ROOT_ROUNDS.
 ## A compound in the first slot has its own shape (SHAPE), one tile bigger for
-## every copy past the first, and its own effect (Compounds). Every other
-## compound in the spell adds its effect there, and every lone element its
-## plain effect on each tile and creature it covers: 불 sets what burns
-## alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots, 쇠
-## hurts 1 for each 쇠 (Elements.strike does the creature part).
+## every copy past the first, and its own effect (Compounds). Those that act
+## round the caster, on all she sees or on roots go every way (`radial`).
+## Every other compound in the spell adds its effect there, and every lone
+## element its plain effect on each tile and creature it covers: 불 sets what
+## burns alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots,
+## 쇠 hurts 1 for each 쇠 (Elements.strike does the creature part).
 
 const FAN := [1, 2, 4]
 const JET := [4, 6, 8]
@@ -54,9 +55,19 @@ const BORE := &"bore"
 const BREACH := &"breach"
 ## Tiles across the line, where a wooden wall can grow.
 const ACROSS := &"across"
+## Every tile within a radius of the caster, walls and all.
+const AROUND := &"around"
+## The tiles of the creatures the caster sees, and her own tile if the third
+## entry is there.
+const SIGHT := &"sight"
+## The roots of a lone 나무 at its third level.
+const ROOTS := &"roots"
+## A line that goes through creatures.
+const STRIKE := &"strike"
 ## compound -> [shape, size, more]: a fan's radius, a line's length, how far
-## ahead a cleave looks for a wall; for a burst how far ahead it lands and its
-## radius, for tiles across the line how far ahead they lie and how many.
+## ahead a cleave looks for a wall, a radius round the caster; for a burst how
+## far ahead it lands and its radius, for tiles across the line how far ahead
+## they lie and how many.
 const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
 	&"lava": [LINE, 4],
@@ -77,7 +88,22 @@ const SHAPE := {
 	&"quench": [LINE, 5],
 	&"charthorn": [FAN_SHAPE, 3],
 	&"palisade": [ACROSS, 2, 3],
+	&"beacon": [BURST, 6, 1],
+	&"ironrain": [BURST, 4, 2],
+	&"ironroot": [ROOTS, 0],
+	&"magpie": [LINE, 8],
+	&"mist": [AROUND, 4],
+	&"sinkhole": [BURST, 3, 1],
+	&"newmoon": [AROUND, 8],
+	&"discord": [SIGHT, 0],
+	&"thunder": [STRIKE, 8],
+	&"stillness": [AROUND, 6],
+	Cards.SAMSARA: [SIGHT, 0, true],
+	Cards.CONQUEST: [SIGHT, 0],
+	Cards.DRAGON: [AROUND, 4],
 }
+## The compounds whose spray is heard Compounds.BOOM tiles from the caster.
+const BOOMS := [&"thunder", Cards.CONQUEST, Cards.DRAGON]
 ## What a lone element's spray is called, by level.
 const NAME := {
 	Cards.FIRE: ["불길", "불길", "불길"],
@@ -99,10 +125,13 @@ static func called(spell: Spell) -> String:
 	return NAME[spell.slots[0]][level - 1] if level > 0 else ""
 
 
-## How far the cast is heard: anything with 물, roots and 벽 가르기 are
-## silent, guns, quakes and anything else with 쇠 or 흙 loud, fire hushed.
+## How far the cast is heard: anything with 물, roots, 벽 가르기 and 봉화 (which
+## is heard where it lands) are silent, the BOOMS loud, guns, quakes and
+## anything else with 쇠 or 흙 loud, fire hushed.
 static func noise(spell: Spell) -> int:
-	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"split"]:
+	if spell.slots[0] in BOOMS:
+		return Compounds.BOOM
+	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"split", &"beacon"]:
 		return 0
 	if spell.holds(Cards.METAL) or spell.holds(Cards.EARTH):
 		return GUN_LOUD
@@ -132,7 +161,8 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	var level := spell.level()
 	var lead := spell.slots[0]
 	# A quake and roots go every way: struck creatures cannot tell a line.
-	s.dir = Vector2i.ZERO if level > 0 and lead in [Cards.EARTH, Cards.WOOD] else dir
+	var every_way := lead in [Cards.EARTH, Cards.WOOD] if level > 0 else radial(lead)
+	s.dir = Vector2i.ZERO if every_way else dir
 	var tiles := cover(w, caster, spell, dir)
 	w.emit(
 		{
@@ -209,6 +239,15 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return square(w, landing(w, from, dir, shape[1]), shape[2] + spell.extra(lead))
 		BREACH:
 			return square(w, landing(w, from, dir, shape[1]), shape[2] + spell.extra(lead), true)
+		AROUND:
+			return square(w, from, n, true)
+		SIGHT:
+			return sighted(w, caster, shape.size() > 2)
+		ROOTS:
+			var deepest := Spell.MAX_LEVEL
+			return _paths(w, caster, rooted(w, caster, deepest), ROOT_REACH[deepest - 1])
+		STRIKE:
+			return line(w, from, dir, n, true, 0)
 		ACROSS:
 			var mid := landing(w, from, dir, shape[1])
 			return Elements.growable(w, Elements.across(mid, dir, shape[2] + spell.extra(lead)))
@@ -222,7 +261,7 @@ static func carried(
 	match SHAPE[c][0]:
 		CLEAVE:
 			return cleave(w, at, dir, r)
-		BREACH:
+		BREACH, AROUND:
 			return square(w, at, r, true)
 		ACROSS:
 			return Elements.growable(w, square(w, at, r))
@@ -354,15 +393,33 @@ static func cleave(w: World, from: Vector2i, dir: Vector2i, n: int) -> Array[Vec
 	return out
 
 
+## The foes `caster` sees.
+static func seen_foes(w: World, caster: Actor) -> Array[Actor]:
+	var out: Array[Actor] = []
+	for a in w.actors:
+		if a.alive() and a.faction != caster.faction and Hat.sees(w, caster, a):
+			out.append(a)
+	return out
+
+
+## The tiles the foes `caster` sees stand on, and its own first if `own`.
+static func sighted(w: World, caster: Actor, own: bool) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if own:
+		out.append(caster.pos)
+	for a in seen_foes(w, caster):
+		out.append(a.pos)
+	return out
+
+
 ## The creatures roots of `level` reach from `caster`: its foes it sees within
 ## reach underground, nearest first by (steps, id).
 static func rooted(w: World, caster: Actor, level: int) -> Array[Actor]:
 	var dist: PackedInt32Array = _search(w, caster, ROOT_REACH[level - 1]).dist
 	var foes: Array[Actor] = []
-	for a in w.actors:
-		if a.alive() and a.faction != caster.faction and Hat.sees(w, caster, a):
-			if dist[Grid.index(a.pos)] > 0:
-				foes.append(a)
+	for a in seen_foes(w, caster):
+		if dist[Grid.index(a.pos)] > 0:
+			foes.append(a)
 	var steps := func(a: Actor) -> Array: return [dist[Grid.index(a.pos)], a.id]
 	foes.sort_custom(func(a, b): return steps.call(a) < steps.call(b))
 	var n: int = ROOT_COUNT[level - 1]
@@ -399,9 +456,11 @@ static func on(w: World, s: Shot, tiles: Array[Vector2i]) -> Array[Actor]:
 	return out
 
 
-## The creatures, the farthest along `dir` first, so those behind have room.
-static func farthest_first(foes: Array[Actor], dir: Vector2i) -> Array[Actor]:
-	var along := func(a: Actor) -> int: return a.pos.x * dir.x + a.pos.y * dir.y
+## The creatures, the farthest along `dir` first, so those behind have room;
+## with no line, the farthest from `from`.
+static func farthest_first(foes: Array[Actor], dir: Vector2i, from: Vector2i) -> Array[Actor]:
+	var along := func(a: Actor) -> int:
+		return a.pos.x * dir.x + a.pos.y * dir.y if dir != Vector2i.ZERO else Grid.cheb(from, a.pos)
 	foes.sort_custom(func(a, b): return [-along.call(a), a.id] < [-along.call(b), b.id])
 	return foes
 
@@ -478,15 +537,36 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 			Terrain.hit(w, p)
 
 
+## Whether compound `c` goes every way, with no line to tell a creature by.
+static func radial(c: StringName) -> bool:
+	return SHAPE[c][0] in [AROUND, SIGHT, ROOTS]
+
+
+## Where a compound spray is centred: where a burst lands, the caster for one
+## round her, over all she sees or underground, else where its line ends.
+static func centre(w: World, s: Shot, tiles: Array[Vector2i]) -> Vector2i:
+	var shape: Array = SHAPE[s.spell.slots[0]]
+	match shape[0]:
+		BURST, BREACH:
+			return landing(w, s.origin, s.dir, shape[1])
+		AROUND, SIGHT, ROOTS:
+			return s.origin
+	return tiles.back()
+
+
 ## A compound's spray: each compound's effect (Compounds), then each lone
 ## element's plain effect, on every tile and creature.
 static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 	if tiles.is_empty():
 		return
 	var spell := s.spell
+	var at := centre(w, s, tiles)
+	if spell.gun():
+		w.flares.append(s.origin)
+		w._changed()
 	for c in spell.compounds():
-		Compounds.ground(w, c, tiles)
-		Compounds.tip(w, c, tiles.back())
+		Compounds.ground(w, s, c, tiles)
+		Compounds.tip(w, s, c, at)
 	for p in tiles:
 		if spell.has(Cards.FIRE):
 			w.ignite(p)
@@ -494,11 +574,13 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			Terrain.wash(w, p)
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
 			Terrain.hit(w, p)
-	for a in farthest_first(on(w, s, tiles), s.dir):
+	for a in farthest_first(on(w, s, tiles), s.dir, at):
 		if not reaches(w, s, a):
 			continue
 		for c in spell.compounds():
-			Compounds.strike(w, s, c, a)
+			Compounds.strike(w, s, c, a, at)
+		if Compounds.calm(spell):
+			continue
 		if a.alive() and Elements.strike(w, s, a, spell.count(Cards.METAL)):
 			if spell.has(Cards.WATER) and a.alive():
 				w.push(a, s.dir, 1 + spell.extra(Cards.WATER))

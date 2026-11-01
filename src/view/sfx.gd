@@ -93,6 +93,8 @@ const LEVEL := {
 	&"relight": -8.0,
 	&"ignite": -10.0,
 }
+## The sound of a tile that forms where a compound reaches; the others are silent.
+const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}
 const WORDS := {
 	"탁": &"step",
 	"휙": &"foxfire",
@@ -275,6 +277,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"root"
 		&"stun":
 			return &"stun"
+		&"become":
+			return BECOME.get(e.get("tile", -1), &"")
 		&"gas":
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask", &"dry", &"quench", &"thaw":
