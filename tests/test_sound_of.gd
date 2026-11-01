@@ -170,6 +170,60 @@ func test_a_compound_cast_on_empty_ground_is_heard() -> void:
 		assert_false(_heard(before, w).all(func(n): return n == &""), c)
 
 
+func test_every_spell_makes_a_sound_when_cast_and_each_sound_has_a_file() -> void:
+	for lead: StringName in Cards.ELEMENTS + Cards.compounds():
+		for form: Array in [[], [Cards.FOX], [Cards.ORB]]:
+			var cards := form + Cards.made_of(lead)
+			var spell := Spell.make(cards)
+			if spell == null or spell.shape == Spell.LEAP:
+				continue
+			var sounds := Sfx.sounds_of({t = &"cast", cards = cards})
+			assert_false(sounds.is_empty(), spell.key())
+			for n in sounds:
+				assert_has(Sfx.NAMES, n)
+
+
+func test_armour_piercing_rounds_and_cannonballs_fire_a_cannon() -> void:
+	var pierce := [Cards.FOX, Cards.METAL, Cards.METAL]
+	assert_eq(Sfx.sound_of({t = &"cast", cards = pierce}), &"cannon")
+	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.ORB, Cards.METAL]}), &"cannon")
+	assert_eq(Sfx.sound_of({t = &"hit", cards = pierce}), &"clang", "metal on metal")
+
+
+func test_a_mortar_thumps_and_its_burst_is_the_explosion() -> void:
+	var cards := [Cards.ORB] + Cards.made_of(&"shrapnel")
+	assert_true(Spell.make(cards).mortar())
+	assert_eq(Sfx.sound_of({t = &"cast", cards = cards}), &"mortar")
+	assert_eq(Sfx.sounds_of({t = &"burst", cards = cards}), [])
+	assert_eq(Sfx.sound_of({t = &"splash", cards = cards}), &"explosion")
+
+
+func test_a_lone_bullet_cracks_and_a_second_metal_sprays_wider() -> void:
+	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.METAL]}), &"pistol")
+	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.METAL, Cards.METAL]}), &"shotgun")
+	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.FOX, Cards.METAL]}), &"pistol")
+
+
+func test_more_orbs_cast_and_strike_heavier_than_a_lone_orb() -> void:
+	var lone := [Cards.ORB]
+	for n in range(3, 6):
+		var cards := []
+		cards.resize(n)
+		cards.fill(Cards.ORB)
+		assert_ne(
+			Sfx.sound_of({t = &"cast", cards = cards}), Sfx.sound_of({t = &"cast", cards = lone})
+		)
+		assert_ne(Sfx.sounds_of({t = &"burst", cards = cards}), [&"blast"], str(n))
+	var five := [Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB]
+	assert_has(Sfx.sounds_of({t = &"burst", cards = five}), &"explosion")
+	assert_eq(Sfx.sounds_of({t = &"burst", cards = lone}), [&"blast"])
+
+
+func test_a_projectile_carries_the_sound_of_its_element() -> void:
+	assert_eq(Sfx.sounds_of({t = &"cast", cards = [Cards.ORB, Cards.FIRE]}), [&"orb", &"flame"])
+	assert_eq(Sfx.sounds_of({t = &"cast", cards = [Cards.FOX, Cards.WATER]}), [&"foxfire", &"jet"])
+
+
 func test_every_event_in_the_list_makes_its_sound() -> void:
 	for pair in SOUNDS:
 		assert_eq(Sfx.sound_of(pair[0]), pair[1], str(pair[0]))
