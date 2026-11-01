@@ -7,7 +7,8 @@ extends RefCounted
 ## less the lines about how it stands now (state, sight, light): a creature
 ## from `foe`, a feature of the floor on the tile AT of a stand-in world
 ## (`stage`, an unlit hall with Miho at ME). The entries come from the data
-## tables, so a new kind appears with no change here.
+## tables, so a new kind appears with no change here. Beside the detail, an entry with
+## a scene (CodexScene) plays it (CodexSim) where the screen has room.
 ## `key` returns &"close" or nothing.
 
 const TABS := ["적", "주문", "조합", "아이템", "지형지물", "상태이상", "용어"]
@@ -60,7 +61,7 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 			for kind in foes():
 				var spec := Bestiary.info(kind)
 				var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
-				out.append(_entry(spec.glyph, Palette.KIND[kind], spec.name, lines))
+				out.append(_entry(spec.glyph, Palette.KIND[kind], spec.name, lines, kind))
 		1:
 			for c in Cards.FORMS + Cards.ELEMENTS:
 				out.append(_talisman(c))
@@ -68,29 +69,54 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				var s := Spell.make(SpellInfo.RECIPE[kind])
 				var color := Palette.shot_color(s, Actor.FOX)
 				out.append(
-					_entry(Palette.shot_glyph(s), color, Spell.SHAPE_NAME[kind], _shape(kind))
+					_entry(
+						Palette.shot_glyph(s),
+						color,
+						Spell.SHAPE_NAME[kind],
+						_shape(kind),
+						kind,
+						s.cards
+					)
 				)
-			out.append(_entry(":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY)))
+			out.append(
+				_entry(
+					":",
+					Palette.TEXT,
+					SpellInfo.SPRAY_NAME,
+					_shape(Spell.SPRAY),
+					Spell.SPRAY,
+					[Cards.FIRE]
+				)
+			)
 			for cards in SpellInfo.GUNS:
 				var s := Spell.make(cards)
 				var lines := func(): return SpellInfo.spell(s)
 				out.append(
 					_entry(
-						Palette.shot_glyph(s), Palette.shot_color(s, Actor.FOX), s.title(), lines
+						Palette.shot_glyph(s),
+						Palette.shot_color(s, Actor.FOX),
+						s.title(),
+						lines,
+						StringName(s.key()),
+						s.cards
 					)
 				)
 			for kind in Guise.RECIPE:
 				var s := Spell.make(Guise.RECIPE[kind])
 				var lines := func(): return SpellInfo.own(kind)
-				out.append(_entry(",", Palette.card(s.slots.back()), Guise.NAME[kind], lines))
+				var color := Palette.card(s.slots.back())
+				out.append(_entry(",", color, Guise.NAME[kind], lines, kind, s.cards))
 		2:
 			for c in Cards.compounds():
 				var lines := func(): return SpellInfo.combo(c)
-				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines))
+				var cards := Cards.made_of(c)
+				out.append(_entry(Cards.GLYPH[c], Palette.card(c), Cards.NAME[c], lines, c, cards))
 		3:
-			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir))
-			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach))
-			out.append(_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll))
+			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
+			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))
+			out.append(
+				_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll, &"scroll")
+			)
 			for c in Cards.ELEMENTS:
 				out.append(_talisman(c))
 		4:
@@ -98,16 +124,15 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				if Tiles.of(t, "name") != "":
 					var tile := func(w: World): w.set_tile(AT, t)
 					var glyph: Array = Palette.TILES[t]
-					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile))
+					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
 			out.append_array(_extras())
 		5:
 			for key in Status.NAME:
 				var glyph: Array = Palette.STATUS[key]
-				out.append(
-					_entry(glyph[0], glyph[1], Status.NAME[key], Info.status_facts.bind(key))
-				)
+				var lines := Info.status_facts.bind(key)
+				out.append(_entry(glyph[0], glyph[1], Status.NAME[key], lines, key))
 			for name: String in Info.CONDITIONS:
-				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name)))
+				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name), name))
 		6:
 			for term: String in Info.glossary():
 				out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
@@ -186,7 +211,17 @@ func panel() -> Dictionary:
 		opaque = true,
 		aside_up = scroll > 0,
 		aside_down = scroll + fits < lines.size(),
+		example = _example(list[selected]),
 	}
+
+
+## The example beside `entry`, the selected one (CodexSim): empty when it has none or
+## the screen has no room for one. A creature's reads as its entry does, at `rank`.
+func _example(entry: Dictionary) -> Dictionary:
+	var k := CodexSim.scale_for(room)
+	if entry.scene.is_empty() or k == 0.0:
+		return {}
+	return {entry = [tab, selected], scene = entry.scene, rank = rank if tab == 0 else 0, scale = k}
 
 
 ## A line with the dim runs in plain text colour, so a whole page reads.
@@ -250,7 +285,10 @@ func go(t: int) -> void:
 
 ## The detail of the selected entry, cut to the room.
 func _lines() -> Array:
-	return flow(detail(entries(tab, rank)[selected]), room.x - SIDE_X - 1.0)
+	var entry: Dictionary = entries(tab, rank)[selected]
+	var example := _example(entry)
+	var taken: float = 0.0 if example.is_empty() else CodexSim.beside(example.scale)
+	return flow(detail(entry), room.x - SIDE_X - 1.0 - taken)
 
 
 ## Rows of the list that fit.
@@ -263,13 +301,17 @@ func _lines_fit() -> int:
 	return PanelView.lines_fit(room.y, 0)
 
 
-static func _entry(glyph: String, color: Color, name: String, lines: Callable) -> Dictionary:
-	return {glyph = glyph, color = color, name = name, lines = lines}
+## An entry, its example the row `key` of CodexScene.
+static func _entry(
+	glyph: String, color: Color, name: String, lines: Callable, key: Variant = null, cards := []
+) -> Dictionary:
+	var scene := CodexScene.of(key, cards)
+	return {glyph = glyph, color = color, name = name, lines = lines, scene = scene}
 
 
 static func _talisman(c: StringName) -> Dictionary:
 	var lines := func(): return SpellInfo.card(c, null)
-	return _entry(Cards.GLYPH[c], Palette.CARD[c], Cards.NAME[c] + " 부적", lines)
+	return _entry(Cards.GLYPH[c], Palette.CARD[c], Cards.NAME[c] + " 부적", lines, c, [c])
 
 
 static func _shape(kind: StringName) -> Callable:
@@ -277,8 +319,10 @@ static func _shape(kind: StringName) -> Callable:
 
 
 ## A feature of the floor: the hover over tile AT after `change` has set it up.
-static func _feature(glyph: String, color: Color, name: String, change: Callable) -> Dictionary:
-	return _entry(glyph, color, name, func(): return _ground(change))
+static func _feature(
+	glyph: String, color: Color, name: String, change: Callable, key: Variant = null
+) -> Dictionary:
+	return _entry(glyph, color, name, func(): return _ground(change), key)
 
 
 static func _ground(change: Callable) -> Array:
@@ -290,8 +334,10 @@ static func _ground(change: Callable) -> Array:
 
 ## Like `_feature`, for what lies on a plain floor tile (fire, hot ground, gas):
 ## the hover's floor name line is left out, as the mark's own lines say what it is.
-static func _mark(glyph: String, color: Color, name: String, change: Callable) -> Dictionary:
-	return _entry(glyph, color, name, func(): return _ground(change).slice(1))
+static func _mark(
+	glyph: String, color: Color, name: String, change: Callable, key: StringName
+) -> Dictionary:
+	return _entry(glyph, color, name, func(): return _ground(change).slice(1), key)
 
 
 ## The stairs, then what lies on a plain floor tile.
@@ -299,20 +345,24 @@ static func _extras() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], "계단", _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
-	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire))
+	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire, &"burning"))
 	var fierce := func(w: World):
 		w.set_tile(AT, World.STRAW)
 		w.burning[AT] = World.BURN_ROUNDS
-	out.append(_mark(Palette.FIERCE_BURNING[0], Palette.FIERCE_BURNING[1], "맹렬한 불", fierce))
+	var flame: Array = Palette.FIERCE_BURNING
+	out.append(_mark(flame[0], flame[1], "맹렬한 불", fierce, &"fierce"))
 	for kind in Compounds.HOT.size():
 		var heat := func(w: World): w.hot[AT] = Vector2i(kind, Compounds.HOT_ROUNDS)
-		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Compounds.HOT[kind].name, heat))
+		var row := StringName("hot%d" % kind)
+		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Compounds.HOT[kind].name, heat, row))
 	for kind in Gas.ROWS:
 		var gas := func(w: World): Gas.put(w, AT, kind, Gas.MAX)
-		out.append(_mark(Palette.GAS[kind][0], Palette.GAS[kind][1], Gas.of(kind, "name"), gas))
+		var look: Array = Palette.GAS[kind]
+		var row := StringName("gas%d" % kind)
+		out.append(_mark(look[0], look[1], Gas.of(kind, "name"), gas, row))
 	var label: String = Notice.LABEL[&"body"]
 	var body := func(): return [[[label, Palette.BODY[1]]], [[Info.TRACE, Palette.DIM]]]
-	out.append(_entry(Palette.BODY[0], Palette.BODY[1], label, body))
+	out.append(_entry(Palette.BODY[0], Palette.BODY[1], label, body, &"body"))
 	return out
 
 

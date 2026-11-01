@@ -12,6 +12,8 @@ extends Control
 signal shown(e: Dictionary, at: Vector2)
 ## The world is on screen as it stands, after a round or a change.
 signal settled(w: World)
+## The full-screen list changed or closed (empty).
+signal panel_set(shown: Dictionary)
 
 const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
@@ -86,6 +88,7 @@ var panel := {}:
 	set(v):
 		panel = Keywords.panel(v)
 		hint = []
+		panel_set.emit(panel)
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
@@ -463,6 +466,16 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Palette.VOID)
 	if world == null:
 		return
+	# An opaque panel covers the whole game.
+	if not panel.get("opaque", false):
+		_draw_game()
+	if not panel.is_empty():
+		PanelView.draw(self)
+	if not hint.is_empty():
+		_draw_box(hint, Vector2i(hint_at) - side + cam)
+
+
+func _draw_game() -> void:
 	var light := _field()
 	var actors := _actors if _animating else _world_actors()
 	var me := world.player()
@@ -508,10 +521,6 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
 	for r: Array in _banner_rows():
 		_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
-	if not panel.is_empty():
-		PanelView.draw(self)
-	if not hint.is_empty():
-		_draw_box(hint, Vector2i(hint_at) - side + cam)
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines

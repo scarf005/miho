@@ -124,6 +124,7 @@ func _ready() -> void:
 	term.add_child(sfx)
 	term.shown.connect(sfx.on_event)
 	term.settled.connect(func(w: World) -> void: sfx.watch(w, term.cell_centre))
+	term.add_child(CodexSim.new())
 	var crt := CanvasLayer.new()
 	crt.layer = 10
 	glass = ColorRect.new()
