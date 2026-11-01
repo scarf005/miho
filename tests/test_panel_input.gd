@@ -101,10 +101,11 @@ func test_a_held_arrow_repeats_in_the_codex_the_game_menu_and_the_key_page() -> 
 func test_wrap_page_and_ends_work_on_the_game_menu() -> void:
 	var m := _main(10)
 	var last := Menu.OPTIONS.size() - 1
+	var page := Term.list_fits(10, 1)  # under the seed line
 	_key(m, "Escape")
 	_key(m, "Up")
 	assert_eq(m.term.panel.selected, last, "Up from the first row wraps")
-	assert_eq(m.term.panel.top, last - 5, "and the row is in view")
+	assert_eq(m.term.panel.top, last - page + 1, "and the row is in view")
 	_key(m, "Down")
 	assert_eq(m.term.panel.selected, 0, "Down from the last row wraps")
 	assert_eq(m.term.panel.top, 0)
@@ -113,11 +114,12 @@ func test_wrap_page_and_ends_work_on_the_game_menu() -> void:
 	_key(m, "Home")
 	assert_eq(m.term.panel.selected, 0)
 	_key(m, "PageDown")
-	assert_eq(m.term.panel.selected, 6, "a page is the rows shown")
-	_key(m, "PageDown", true)
+	assert_eq(m.term.panel.selected, page, "a page is the rows shown")
+	for i in last / page:
+		_key(m, "PageDown", true)
 	assert_eq(m.term.panel.selected, last, "a page past the end stops there")
-	_key(m, "PageUp", true)
-	_key(m, "PageUp", true)
+	for i in last / page + 1:
+		_key(m, "PageUp", true)
 	assert_eq(m.term.panel.selected, 0)
 
 
