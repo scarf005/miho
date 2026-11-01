@@ -117,8 +117,12 @@ static func exit(w: World) -> Vector2i:
 ## The step exploring takes: towards the nearest peach or scroll she knows of (DCSS
 ## explore_greedy), else the nearest unexplored edge, or once everything
 ## reachable is known, towards the exit, stopping beside it so leaving the
-## storey stays Miho's own choice. Zero when there is nowhere to go.
+## storey stays Miho's own choice. Zero when there is nowhere to go, or while an
+## awake creature is in sight (`watched`): its tile and the ground it blocks change
+## with every round, which turns the walk back and forth between two tiles.
 static func explore_step(w: World, found: Dictionary) -> Vector2i:
+	if watched(w):
+		return Vector2i.ZERO
 	var path := route(found, _nearest(found, w.peaches + Scrolls.spots(w)))
 	if path.is_empty():
 		path = route(found, frontier(w, found))
