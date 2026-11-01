@@ -320,7 +320,14 @@ func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
 	var w := _hall()
 	var at := w.player().pos + Vector2i(1, 0)
 	var orb := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
-	assert_string_contains(orb, "피해: 1\n  %d칸 이상 날아간 뒤 피해: 2" % Spell.MOMENTUM)
+	var cast := Spell.make(Bestiary.casts(&"jangseung", 1)[0])
+	assert_string_contains(
+		orb,
+		(
+			"피해: %d\n  %d칸 이상 날아간 뒤 피해: %d"
+			% [cast.damage(0), Spell.MOMENTUM, cast.damage(Spell.MOMENTUM)]
+		)
+	)
 	var orb_spell := Spell.make([Cards.ORB])
 	var noise := [orb_spell.cast_noise(), orb_spell.burst_noise()]
 	assert_string_contains(orb, "소음: %d\n  충돌 소음: %d" % noise)

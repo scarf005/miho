@@ -22,11 +22,18 @@ var bank := 0
 var flown := 0
 var host := 0
 var pierced := false
+## Rounds it has flown (World._shots_phase): an orb gains Spell.accel a round.
+var age := 0
 
 
 ## Tiles between the caster and this shot, which sets orb damage.
 func distance() -> int:
 	return Grid.cheb(origin, pos)
+
+
+## Tiles it flies this round: its spell's speed, and the acceleration of every round past.
+func pace() -> int:
+	return spell.speed() + spell.accel() * age
 
 
 func clone() -> Shot:
@@ -46,4 +53,5 @@ func clone() -> Shot:
 	s.flown = flown
 	s.host = host
 	s.pierced = pierced
+	s.age = age
 	return s

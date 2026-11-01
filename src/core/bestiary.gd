@@ -70,6 +70,8 @@ const HEALTH := {
 	&"eodeopsini": [3, 4, 4, 4, 4],
 	&"dueoksini": [6, 7, 9, 11, 12],
 }
+## Copies of 구 a creature's orb has beyond its rank (`tiered`).
+const ORB_EXTRA := 1
 const PICKS := 3
 const DOUBLES := 4
 ## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
@@ -449,11 +451,30 @@ static func rank(depth: int) -> int:
 	return mini((depth + 1) / 2, RANKS)
 
 
-## Every spell a creature of `kind` casts at rank `r`.
+## Every spell a creature of `kind` casts at rank `r`, its orbs in the tier of
+## the rank (`tiered`).
 static func casts(kind: StringName, r: int) -> Array:
 	var out: Array = info(kind).get("casts", [])
 	for k in range(2, r + 1):
 		out = info(kind).get("ranks", {}).get(k, out)
+	return out.map(func(cast): return tiered(cast, r))
+
+
+## `cast` with its 구 as many copies as rank `r` and ORB_EXTRA make, no more
+## than the five slots of a spell leave room for (Spell.MAX_SLOTS): the orb
+## tier follows the storey.
+static func tiered(cast: Array, r: int) -> Array:
+	var orbs := cast.count(ORB)
+	if orbs == 0:
+		return cast
+	var n := clampi(r + ORB_EXTRA, 1, Spell.MAX_SLOTS - (cast.size() - orbs))
+	var out := []
+	for c in cast:
+		if c != ORB:
+			out.append(c)
+		elif not out.has(ORB):
+			for i in n:
+				out.append(ORB)
 	return out
 
 
