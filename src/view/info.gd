@@ -427,7 +427,7 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 ## Whether a drum would sound: wet ones are silent, for how long.
 static func _drum_line(w: World, p: Vector2i) -> Array:
 	if w.wet.has(p):
-		return [[["젖음: %d초" % w.wet[p], Palette.SIDE[0]]], [["소리: 없음", Palette.SIDE[0]]]]
+		return [[["젖음: %d초" % w.wet[p], Palette.SIDE[0]]], [["소음: 없음", Palette.SIDE[0]]]]
 	return [[["젖으면: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]]]
 
 
@@ -452,11 +452,11 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("곁 초당 피해: %d" % World.FIRE_DAMAGE)
 		World.DOOR:
 			out.append("막음: 시야")
-			out.append("여닫을 때 소리: %d칸" % Terrain.SLIDE)
+			out.append("여닫을 때 소음: %d" % Terrain.SLIDE)
 		World.DOOR_OPEN:
-			out.append("여닫을 때 소리: %d칸" % Terrain.SLIDE)
+			out.append("여닫을 때 소음: %d" % Terrain.SLIDE)
 		World.DRUM:
-			out.append("칠 때 소리: 층 전체")
+			out.append("칠 때 소음: 층 전체")
 			out.append("들은 적: 친 적이 미호를 마지막으로 본 곳을 수색")
 			out.append("치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안" % Drums.REACH)
 			out.append("찢어짐: 구슬, 부딪침")
@@ -496,7 +496,7 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.COURTYARD:
 			out.append("달빛에 드러남.")
 		World.BOARD_ROTTEN:
-			out.append("소리: %d칸" % Terrain.CRACK)
+			out.append("소음: %d" % Terrain.CRACK)
 		World.STATUE:
 			out.append("막음: 길")
 		World.POND:
@@ -529,11 +529,11 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		out.append("함정.")
 	if Terrain.wall(t) and breakable:
 		out.append("부서짐: 구슬")
-		out.append("부서질 때 소리: %d칸" % World.THUD)
+		out.append("부서질 때 소음: %d" % World.THUD)
 	elif Terrain.wall(t):
 		out.append("부술 수 없음.")
 	if Terrain.knockable(t) and t != World.DRUM:
-		out.append("부딪칠 때 소리: %d칸" % Tiles.of(t, "hit")[0])
+		out.append("부딪칠 때 소음: %d" % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
 	if tread[0] > 0:
 		out.append("발소리: %d칸" % tread[0])
@@ -582,7 +582,7 @@ static func _burning(left: int) -> Array:
 		[["불타는 중: %d초 남음" % left, Palette.HURT]],
 		_amount("초당 피해: ", World.FIRE_DAMAGE),
 		[["빛: %d칸" % Light.FIRE_RADIUS, Palette.DIM]],
-		[["소리: %d칸" % World.CRACKLE, Palette.DIM]],
+		[["소음: %d" % World.CRACKLE, Palette.DIM]],
 	]
 
 

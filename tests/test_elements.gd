@@ -458,14 +458,14 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
 		[[FOX, FIRE], ["불: 지나간 자리", "불붙음: %d초" % Status.ALIGHT]],
 		[[ORB, FIRE, FIRE], ["폭발: 주위 8칸, 피해 %d" % (World.FIRE_DAMAGE + 1), "피해: +1"]],
-		[[ORB, WATER], ["끔: 멈춘 곳 3×3 등불, 불", "소리: 없음"]],
+		[[ORB, WATER], ["끔: 멈춘 곳 3×3 등불, 불", "소음: 없음"]],
 		[
 			[FOX, METAL, METAL],
 			[
 				"발당 피해: %d" % (Elements.BULLET + 1),
 				"초당 %d칸" % Spell.BULLET_SPEED,
 				"빛: 없음\n쏠 때 빛: 미호 칸",
-				"소리: %d칸" % Spray.GUN_LOUD,
+				"소음: %d" % Spray.GUN_LOUD,
 			]
 		],
 		[
@@ -473,12 +473,12 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 			[
 				"피해: +%d" % Elements.CANNON,
 				"밀침: %d칸" % Elements.CANNON_PUSH,
-				"소리: %d칸" % Elements.CANNON_LOUD,
+				"소음: %d" % Elements.CANNON_LOUD,
 				"쏠 때 빛: 미호 칸",
 			]
 		],
-		[[FOX, EARTH, EARTH], ["기절: %d초" % (Elements.STUN + 1), "소리: 멈춘 곳에서 %d칸" % World.THUD]],
-		[[ORB, EARTH], ["벽: 한 번에 부숨", "소리: 멈춘 곳에서 %d칸" % World.THUD]],
+		[[FOX, EARTH, EARTH], ["기절: %d초" % (Elements.STUN + 1), "소음: 멈춘 곳에서 %d" % World.THUD]],
+		[[ORB, EARTH], ["벽: 한 번에 부숨", "소음: 멈춘 곳에서 %d" % World.THUD]],
 		[[FOX, WOOD], ["묶음: %d초" % Elements.ROOT]],
 		[[ORB, WOOD, WOOD], ["나무벽: 멈춘 곳에 직각으로 %d칸" % (Elements.WALL + 1), "나무벽 체력: 1"]],
 	]

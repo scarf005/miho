@@ -165,19 +165,16 @@ func test_a_spray_preview_equals_the_round() -> void:
 
 func test_hover_tells_every_number_of_every_spray() -> void:
 	var rows := {
-		[FIRE]: ["불 불길 · 꼬리: 1", "반지름 1", "불: 가연성 칸\n", "켬: 꺼진 등불", "소리: 2칸"],
-		[FIRE, FIRE]: ["반지름 2", "켬: 꺼진 등불"],
-		[FIRE, FIRE, FIRE]: ["반지름 4", "초당 피해: %d" % World.FIRE_DAMAGE, "번짐: 늘"],
-		[WATER]: ["모양: 곧게 4칸\n멈춤: 첫 적", "밀침: 1칸", "소리: 없음"],
+		[WATER]: ["모양: 곧게 4칸\n멈춤: 첫 적", "밀침: 1칸", "소음: 없음"],
 		[WATER, WATER]: ["곧게 6칸", "밀침: 2칸"],
 		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n꿰뚫음: 적", "밀침: 3칸"],
-		[METAL]: ["모양: 권총, 곧게 7칸\n멈춤: 첫 적", "피해: 1\n", "쏠 때 빛: 미호 칸", "9칸"],
+		[METAL]: ["모양: 권총, 곧게 7칸\n멈춤: 첫 적", "피해: 1\n", "쏠 때 빛: 미호 칸", "소음: %d" % Spray.GUN_LOUD],
 		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적 피해: 2"],
 		[METAL, METAL, METAL]: ["모양: 철갑탄, 곧게 8칸", "벽 하나", "피해: 2"],
-		[EARTH]: ["둘레 1칸", "기절: 1초", "9칸"],
+		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
 		[EARTH, EARTH]: ["둘레 2칸", "벽: 금"],
 		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "금 간 벽: 무너짐"],
-		[WOOD]: ["거리: 4걸음", "적 1명", "묶음: 2초", "소리: 없음"],
+		[WOOD]: ["거리: 4걸음", "적 1명", "묶음: 2초", "소음: 없음"],
 		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶음: 3초"],
 		[WOOD, WOOD, WOOD]: ["거리: 8걸음", "적 모두", "묶음: 4초"],
 		[WATER, FIRE]:
@@ -186,11 +183,11 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			"3칸 앞 3×3",
 			"증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX],
 			"초당 피해: %d" % Gas.of(Gas.STEAM, "harm"),
-			"소리: 없음",
+			"소음: 없음",
 		],
 		[WATER, FIRE, WATER, FIRE]: ["증기×2", "3칸 앞 5×5"],
 		[METAL, WOOD]: ["가시", "반지름 2", "피해: %d\n지날 때 피해: %d" % [Compounds.THORN, Compounds.THORN]],
-		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽: 소리 없이 무너짐", "소리: 없음"],
+		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽: 소리 없이 무너짐", "소음: 없음"],
 		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
 		[FIRE, EARTH]:
 		[
@@ -204,8 +201,9 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			"뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.MOLTEN].harm,
 		],
-		[WOOD, FIRE]: ["들불", "반지름 3", "번짐: 늘", "소리: %d칸" % Spray.HUSH],
-		[EARTH, METAL]: ["유탄", "3칸 앞 3×3", "피해: %d" % Compounds.SHRAPNEL, "%d칸" % Spray.GUN_LOUD],
+		[WOOD, FIRE]: ["들불", "반지름 3", "번짐: 늘", "소음: %d" % Spray.HUSH],
+		[EARTH, METAL]:
+		["유탄", "3칸 앞 3×3", "피해: %d" % Compounds.SHRAPNEL, "소음: %d" % Spray.GUN_LOUD],
 		[METAL, WATER]: ["서리", "곧게 4칸", "얼어붙음: %d초" % Compounds.FROST, "연못: 얼음이 됨"],
 		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "묶음: %d초" % Compounds.RAIN, "끔: 불, 등불"],
 		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "걸음: %d초\n발소리: 없음" % Compounds.MUD],
@@ -220,8 +218,21 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			assert_string_contains(text, part)
 	var card := Info.plain(SpellInfo.card(FIRE, Spell.make([FIRE, FIRE])))
 	assert_true(card.begins_with("불 부적 · 꼬리: 1"), card)
-	assert_string_contains(card, "반지름 1")
+	assert_string_contains(card, "간격: 1")
 	assert_string_contains(card, "넣으면: 불길 · 꼬리: 2")
+
+
+func test_a_flame_hover_tells_gap_shape_noise_harm_and_what_catches_fire() -> void:
+	for level in range(1, 4):
+		var s := Spell.make(range(level).map(func(_i): return FIRE))
+		var rows := Info.plain(SpellInfo.spell(s)).split("\n")
+		assert_eq(rows.size(), 6, "title and five lines")
+		assert_eq(rows[0].split(" · ")[0], "불길")
+		assert_eq(rows[1], "간격: %d" % Spray.FAN[level - 1])
+		assert_eq(rows[3], "소음: %d" % s.cast_noise())
+		assert_eq(rows[4], "피해: 0")
+		assert_eq(rows[5].contains("대상"), level >= 3, "creatures catch fire from level 3")
+		assert_eq(rows[5].contains("칸은"), level < 3, "tiles only below it")
 
 
 func test_the_log_tells_the_harm_a_spray_deals() -> void:
