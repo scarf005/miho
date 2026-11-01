@@ -141,6 +141,47 @@ func test_a_piercing_wisp_stops_at_a_wall_with_a_wall_behind_it() -> void:
 	assert_false(w.shots.any(func(s): return s.pos.x > ME.x + 1), "it hovers short of the walls")
 
 
+func test_a_piercing_wisp_fired_at_a_wall_beside_miho_goes_through_it() -> void:
+	for dir: Vector2i in [E, Vector2i(1, -1)]:
+		var w := _world()
+		_put(w, dir.x, dir.y, World.WALL)
+		var behind := _post(w, dir.x * 2, dir.y * 2)
+		var cast := _cast([FOX, METAL, METAL], dir)
+		assert_true(w.can(cast), str(dir))
+		var events := w.act(cast)
+		assert_eq(_hurts(events, behind), [Elements.BULLET + 1], str(dir))
+		assert_eq(w.tile(ME + dir), World.WALL, "it goes through, it does not break")
+
+
+func test_only_a_piercing_wisp_with_open_air_behind_the_wall_is_fired_at_a_wall_beside_miho(
+) -> void:
+	var w := _world()
+	_put(w, 1, 0, World.WALL)
+	assert_false(w.can(_cast([FOX])), "a wisp")
+	assert_false(w.can(_cast([FOX, METAL])), "a bullet")
+	_put(w, 2, 0, World.WALL)
+	assert_false(w.can(_cast([FOX, METAL, METAL])), "a wall behind it")
+	var edge := _world()
+	edge.player().pos = Vector2i(ME.x, 1)
+	assert_false(edge.can(_cast([FOX, METAL, METAL], Vector2i(0, -1))), "the map's edge behind it")
+
+
+func test_the_preview_of_a_piercing_wisp_through_a_wall_beside_miho_equals_the_round() -> void:
+	var w := _world()
+	_put(w, 1, 0, World.WALL)
+	_post(w, 2)
+	w.sense()
+	w.seen[Grid.index(ME + E * 2)] = 1
+	var f := Forecast.of(w, _cast([FOX, METAL, METAL]))
+	var events := w.act(_cast([FOX, METAL, METAL]))
+	var harm := {}
+	for e in events.filter(func(e): return e.t == &"hurt"):
+		harm[e.id] = harm.get(e.id, 0) + e.n
+	assert_eq(harm.size(), 1)
+	assert_eq(f.harm, harm)
+	assert_eq(f.after.shots.map(func(s): return s.pos), w.shots.map(func(s): return s.pos))
+
+
 func test_a_piercing_wisp_stays_pierced_in_a_clone() -> void:
 	var w := _world()
 	_put(w, 3, 0, World.WALL)
