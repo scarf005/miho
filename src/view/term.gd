@@ -19,6 +19,8 @@ const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
 ## Screen rows each creature takes in the sidebar, and its state there.
 const SIDE_ROWS := 3
+## Cells a popup starts above its tile, so the creature it is about stays in view.
+const POPUP_ABOVE := 0.6
 ## Tiles of tail drawn behind a projectile.
 const TRAIL := 4
 const SIZE := 32
@@ -510,7 +512,7 @@ func _draw_game() -> void:
 			continue
 		var k: float = (_time - p.born) / p.life
 		var c: Color = p.color
-		var at := _cell(p.at) + Vector2(0, -0.6 * k)
+		var at := _cell(p.at) + Vector2(0, -POPUP_ABOVE - 0.6 * k)
 		if p.text.length() == 1:
 			_glyph(at, p.text, Color(c, 1.0 - k * k))
 		else:
