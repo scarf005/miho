@@ -318,7 +318,7 @@ func test_miho_falling_through_a_plate_is_told_in_the_log() -> void:
 	w.act({t = &"move", dir = E})
 	var lines := _lines(before, w, w.events)
 	assert_eq(lines[0], "허방다리를 밟았다")
-	assert_eq(lines[1], "하늘로 떨어져 3층으로 내려왔다")
+	assert_eq(lines[1], "하늘로 떨어져 %d층으로 내려왔다" % w.depth, "on through any sky below")
 
 
 func test_the_fire_plate_is_told_with_the_fire_it_lights() -> void:
