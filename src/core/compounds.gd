@@ -1,13 +1,15 @@
 class_name Compounds
 extends RefCounted
-## What each of the ten compounds (Cards.PAIRS) does where it reaches. A spray
+## What each compound (Cards.PAIRS, Cards.TRIPLES) does where it reaches. A spray
 ## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
-## on the 3x3 round where the projectile ends (벽 가르기 on the first wall ahead
-## of it and that wall's neighbours across its line), the creature it struck
-## there among them. Each copy past the first reaches one tile farther: a
-## spray's fan, line, square or cleave (Spray.cover), the square round where a
-## projectile ends. Other slots in a spray add their own plain effect where it
-## reaches (Spray).
+## on the 3x3 round where the projectile ends (Spray.carried; 벽 가르기 on the
+## first wall ahead of it and that wall's neighbours across its line), the
+## creature it struck there among them. Each copy past the first reaches one
+## tile farther: a spray's fan, line, square or cleave (Spray.cover), the square
+## round where a projectile ends. Other slots in a spray add their own plain
+## effect where it reaches (Spray). To add a compound: its tables in Cards, its
+## shape in Spray.SHAPE, its cases in `ground`, `tip` and `strike` here, its
+## lines in SpellInfo.compound.
 ##
 ## 상생, one grows the other:
 ## 들불 sets what burns alight, and the creatures it reaches (Status), and
@@ -31,6 +33,19 @@ extends RefCounted
 ## 벽 가르기 brings every breakable wall it reaches down to rubble, silently.
 ## 진흙 douses, then turns open ground to mud (World.MUD): a step onto it takes
 ## MUD rounds (the creature is rooted till then) and makes no sound.
+## 3단, of three elements:
+## 화산 leaves hot ground, sets what burns alight and the creatures it reaches.
+## 용광로 leaves hot iron and fells the wall at the end of its line.
+## 우박 hurts each creature it reaches for HAIL, then freezes it FROST rounds.
+## 서리꽃 grows thorns, freezes ponds and roots each creature BLOOM rounds.
+## 늪 fells every breakable wall it reaches, turns the ground to mud and roots
+## each creature SWAMP rounds.
+## 간헐천 lays steam and pushes each creature GEYSER tiles along its line.
+## 담금질 leaves hot iron, hurts the creature it reaches for QUENCH, QUENCH_WET
+## when wet, and lays steam where it ends.
+## 숯가시 grows thorns and sets what burns alight, pricks each creature for THORN
+## and sets it alight.
+## 목책 grows a wooden wall (Elements.grow).
 ## Open ground is walkable, not a door, a skybridge or water, not the stairs,
 ## the elixir or a peach, and not burning.
 
@@ -45,16 +60,22 @@ const RAIN := 3
 const STEAM := Gas.MAX
 const THORN := 1
 const MUD := 2
+const HAIL := 1
+const BLOOM := 2
+const SWAMP := 3
+const GEYSER := 2
+const QUENCH := 2
+const QUENCH_WET := 4
 
 
 ## `s` carries its compounds to `at`, where it ends.
 static func land(w: World, s: Shot, at: Vector2i) -> void:
 	var struck := w.actor_at(at)
 	for c in s.spell.compounds():
-		var r := 1 + s.spell.extra(c)
-		var tiles := Spray.cleave(w, at, s.dir, r) if c == &"split" else Spray.square(w, at, r)
+		var tiles := Spray.carried(w, c, at, s.dir, 1 + s.spell.extra(c))
 		ground(w, c, tiles)
-		for a in Spray.on(w, s, tiles):
+		tip(w, c, at)
+		for a in Spray.farthest_first(Spray.on(w, s, tiles), s.dir):
 			if a == struck or Spray.reaches(w, s, a):
 				strike(w, s, c, a)
 				if a != struck and a.alive():
@@ -89,10 +110,40 @@ static func ground(w: World, c: StringName, tiles: Array[Vector2i]) -> void:
 			for p in tiles:
 				Terrain.wash(w, p)
 			_become(w, tiles.filter(func(p): return _open(w, p)), World.MUD)
+		&"volcano":
+			heat(w, tiles, LAVA)
+			_kindle(w, tiles)
+		&"furnace":
+			heat(w, tiles, MOLTEN)
+			_split(w, tiles)
+		&"frostbloom":
+			ground(w, &"thorn", tiles)
+			ground(w, &"frost", tiles)
+		&"swamp":
+			_split(w, tiles)
+			ground(w, &"mud", tiles)
+		&"geyser":
+			ground(w, &"steam", tiles)
+		&"quench":
+			heat(w, tiles, MOLTEN)
+		&"charthorn":
+			ground(w, &"thorn", tiles)
+			_kindle(w, tiles)
+		&"palisade":
+			Elements.grow(w, tiles)
+
+
+## What compound `c` does on `end`, the last tile of its spray or where the
+## projectile carrying it ends.
+static func tip(w: World, c: StringName, end: Vector2i) -> void:
+	if c == &"quench":
+		Gas.add(w, end, Gas.STEAM, STEAM)
 
 
 ## What compound `c` does to creature `a` it reaches.
 static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
+	if not a.alive():
+		return
 	match c:
 		&"wildfire":
 			Status.ignite(w, a, true)
@@ -104,6 +155,24 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor) -> void:
 			Elements.root(w, a, RAIN)
 		&"thorn":
 			Elements.harm(w, s, a, THORN)
+		&"volcano":
+			Status.ignite(w, a)
+		&"hail":
+			Elements.harm(w, s, a, HAIL)
+			if a.alive():
+				Status.freeze(w, a, FROST)
+		&"frostbloom":
+			Elements.root(w, a, BLOOM)
+		&"swamp":
+			Elements.root(w, a, SWAMP)
+		&"geyser":
+			w.push(a, s.dir, GEYSER)
+		&"quench":
+			Elements.harm(w, s, a, QUENCH_WET if a.wet > 0 else QUENCH)
+		&"charthorn":
+			Elements.harm(w, s, a, THORN)
+			if a.alive():
+				Status.ignite(w, a)
 
 
 ## `a` has stepped onto `to`: thorns prick it, mud holds it.
@@ -173,6 +242,12 @@ static func _become(w: World, tiles: Array, to: int) -> void:
 			changed.append(p)
 	if not changed.is_empty():
 		w.emit({t = &"become", at = changed[0], tiles = changed, tile = to})
+
+
+## What burns on `tiles` catches fire.
+static func _kindle(w: World, tiles: Array[Vector2i]) -> void:
+	for p in tiles:
+		w.ignite(p)
 
 
 ## Each breakable wall on `tiles` takes one hit, then those still standing

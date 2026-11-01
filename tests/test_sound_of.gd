@@ -152,6 +152,20 @@ func _heard(before: World, after: World) -> Array:
 	return out
 
 
+func test_a_compound_cast_on_empty_ground_is_heard() -> void:
+	for c: StringName in Cards.PAIRS.keys() + Cards.TRIPLES.keys():
+		if c == Cards.VAULT:
+			continue
+		var w := _world()
+		w.tails = 9
+		w.cards.assign(Cards.ALL)
+		w.set_tile(w.player().pos + Vector2i(0, -2), World.LANTERN)
+		w.sense()
+		var before := w.clone()
+		w.act({t = &"cast", spells = [{cards = Cards.made_of(c), dir = E}]})
+		assert_false(_heard(before, w).all(func(n): return n == &""), c)
+
+
 func test_every_event_in_the_list_makes_its_sound() -> void:
 	for pair in SOUNDS:
 		assert_eq(Sfx.sound_of(pair[0]), pair[1], str(pair[0]))

@@ -3,10 +3,9 @@ extends RefCounted
 ## A spell is a queue of up to MAX_SLOTS talisman slots, filled card by card.
 ## A card of the same talisman again stacks; an element merges with the first
 ## slot it can join (Cards.join): a different element into their compound
-## (Cards.PAIRS), one slot worth two cards, or a compound of two other
-## elements of its 상생 chain into the 3단 compound (Cards.TRIPLES), one slot
-## worth three. A spell of 1 to 5 cards costs COST tails, and each card past
-## five two more.
+## (Cards.PAIRS), one slot worth two cards, or a pair and a third element into
+## the 3단 compound of the three (Cards.TRIPLES), one slot worth three. A spell
+## of 1 to 5 cards costs COST tails, and each card past five two more.
 ## Every spell is hurled along one of eight lines, and grows with the cards it
 ## holds: one card is power 1.
 ## The shape is read top down: 도약 (Cards.VAULT) leading the queue leaps
@@ -29,7 +28,7 @@ extends RefCounted
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball.
 ## A compound is an element of its own (Compounds): it does not count as its
-## two elements, but for what a creature is weak to or eats (`holds`).
+## elements, but for what a creature is weak to or eats (`holds`).
 
 const MAX_SLOTS := 5
 ## Tails a spell of 1 to 5 cards costs.
@@ -187,7 +186,7 @@ func holds(element: StringName) -> bool:
 func compounds() -> Array[StringName]:
 	var out: Array[StringName] = []
 	for slot in slots:
-		if Cards.PAIRS.has(slot) and not out.has(slot):
+		if Cards.parts(slot).size() > 1 and not out.has(slot):
 			out.append(slot)
 	return out
 
