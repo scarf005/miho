@@ -15,6 +15,8 @@ const STATE := {
 	"?": "수색하고 있다",
 	"x": "눈이 멀어 있다",
 }
+## How a creature is told to be freed of what held it, by event.
+const FREED := {&"unroot": "풀려났다", &"unstun": "정신을 차렸다", &"unblind": "다시 볼 수 있게 되었다"}
 
 ## {runs, text, round, n}
 var lines: Array[Dictionary] = []
@@ -151,7 +153,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"blind":
 			return _subject(before, after, id, "의") + [_ill(after, id, "눈이 멀었다")]
 		&"root":
-			return _subject(before, after, id) + [_ill(after, id, "덩굴에 묶였다")]
+			var by: String = Tiles.of(e.tile, "name") if e.has("tile") else "덩굴"
+			return _subject(before, after, id) + [_ill(after, id, by + "에 묶였다")]
+		&"unroot", &"unstun", &"unblind":
+			return _who(before, after, id, "이", "가") + [[" " + FREED[e.t], TEXT]]
 		&"stun":
 			return _subject(before, after, id) + [_ill(after, id, "기절했다")]
 		&"push":

@@ -472,8 +472,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	var me := player()
 	_regrow()
 	var alight := burning.keys()
-	if me.stunned > 0:
-		me.stunned -= 1
+	Status.lapse(self, me, &"stunned")
 	match action.t:
 		&"move":
 			var to: Vector2i = me.pos + action.dir
@@ -852,6 +851,8 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
 	Guise.hurt(self, a)
 	if a.alive():
+		if shatter:
+			emit({t = &"thaw", id = a.id, at = a.pos})
 		if a.faction == Actor.HEAVEN:
 			noise(a.pos, CRY, "끽", true, a.id)
 			Mind.hurt(a)
@@ -907,8 +908,8 @@ func _end_round() -> void:
 	for a in actors:
 		if a.alive():
 			a.cooldown = maxi(0, a.cooldown - 1)
-			a.rooted = maxi(0, a.rooted - 1)
-			a.blind = maxi(0, a.blind - 1)
+			Status.lapse(self, a, &"rooted")
+			Status.lapse(self, a, &"blind")
 			a.wary = maxi(0, a.wary - 1)
 			a.grudge = maxi(0, a.grudge - 1)
 	for s in shots:

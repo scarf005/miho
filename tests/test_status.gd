@@ -419,3 +419,86 @@ func test_the_hover_and_the_log_tell_of_ice() -> void:
 	before = w.clone()
 	events = w.act(_cast([ORB]))
 	assert_has(Messages.of(before, w, events).map(Messages.plain), "장승에게 피해를 2 주었다")
+
+
+## What Miho's log says of the round from `before` to `w`.
+func _told(before: World, w: World, events: Array) -> Array:
+	return Messages.of(before, w, events).map(Messages.plain)
+
+
+func test_the_log_tells_when_each_hold_on_a_creature_lets_go() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	foe.rooted = 1
+	foe.stunned = 1
+	foe.blind = 1
+	var before := w.clone()
+	var events := w.act(WAIT)
+	assert_eq(_told(before, w, events), ["장승이 정신을 차렸다", "장승이 풀려났다", "장승이 다시 볼 수 있게 되었다"])
+	assert_eq(_of(w.act(WAIT), &"unroot").size(), 0, "told once")
+
+
+func test_miho_is_told_by_name_when_she_is_free_again() -> void:
+	var w := _world()
+	w.player().stunned = 1
+	w.player().rooted = 2
+	var before := w.clone()
+	assert_eq(_told(before, w, w.act(WAIT)), ["미호가 정신을 차렸다"])
+	before = w.clone()
+	assert_eq(_told(before, w, w.act(WAIT)), ["미호가 풀려났다"])
+
+
+func test_mud_roots_for_its_rounds_and_the_log_tells_both_ends() -> void:
+	var w := _world()
+	_put(w, ME + E, World.MUD)
+	var before := w.clone()
+	assert_eq(_told(before, w, w.act({t = &"move", dir = E})), ["진흙에 묶였다"])
+	var lines := []
+	for i in Compounds.MUD:
+		before = w.clone()
+		lines.append_array(_told(before, w, w.act(WAIT)))
+	assert_eq(lines, ["미호가 풀려났다"])
+
+
+func test_ice_that_melts_with_its_hold_tells_one_line() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.freeze(w, foe, Compounds.FROST)
+	var lines := []
+	for i in Compounds.FROST:
+		var before := w.clone()
+		lines.append_array(_told(before, w, w.act(WAIT)))
+	assert_eq(lines, ["장승이 녹았다"])
+
+
+func test_a_blow_that_breaks_the_ice_tells_that_it_melted() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.freeze(w, foe, Compounds.FROST)
+	var before := w.clone()
+	w.events = []
+	w.hurt(foe, 1)
+	assert_eq(_of(w.events, &"thaw").size(), 1)
+	assert_eq(_told(before, w, w.events).slice(0, 2), ["장승이 피해를 2 입었다", "장승이 녹았다"])
+
+
+func test_frost_on_a_wet_creature_tells_that_it_dried() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Status.soak(w, foe)
+	var before := w.clone()
+	var events := w.act(_cast(FROST))
+	assert_eq(_told(before, w, events).slice(0, 2), ["장승이 말랐다", "장승이 얼어붙었다"])
+
+
+func test_a_new_storey_frees_miho_and_says_so() -> void:
+	var w := World.create(1)
+	var me := w.player()
+	me.rooted = 2
+	me.stunned = 2
+	me.pos = w.stairs
+	w.arrive(me)
+	assert_eq(w.depth, 2)
+	assert_eq([me.rooted, me.stunned], [0, 0])
+	assert_eq(_of(w.events, &"unroot").size(), 1)
+	assert_eq(_of(w.events, &"unstun").size(), 1)

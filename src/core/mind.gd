@@ -40,7 +40,7 @@ static func heaven_phase(w: World) -> void:
 		a.acted += 1
 		_regrow(a)
 		if a.stunned > 0:
-			a.stunned -= 1
+			Status.lapse(w, a, &"stunned")
 			continue
 		perceive(w, a)
 		if not a.intent.is_empty():

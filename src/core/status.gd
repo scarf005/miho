@@ -30,6 +30,8 @@ const SPLASH_WORD := "철벅"
 const ALIGHT := 3
 ## What each status is called, by its key (`of`).
 const NAME := {&"wet": "젖음", &"alight": "불붙음", &"frozen": "얼어붙음"}
+## The event that tells each condition besides a status ends, by Actor field.
+const ENDS := {&"rooted": &"unroot", &"stunned": &"unstun", &"blind": &"unblind"}
 
 
 ## The status `a` holds, by key, or empty.
@@ -91,6 +93,7 @@ static func freeze(w: World, a: Actor, n: int) -> void:
 	if a.wet > 0:
 		a.wet = 0
 		n *= 2
+		w.emit({t = &"dry", id = a.id, at = a.pos})
 	if a.alight > 0:
 		_quench(w, a)
 	a.frozen = maxi(a.frozen, n)
@@ -112,6 +115,29 @@ static func shatter(a: Actor) -> bool:
 ## and the word for it: a wet one splashes.
 static func tread(a: Actor, tread_of: Array) -> Array:
 	return [maxi(tread_of[0], SPLASH), SPLASH_WORD] if a.wet > 0 else tread_of
+
+
+## `a`'s condition `key` (an Actor field in ENDS) runs down a round; its end is
+## told, unless the ice that held `a` melted in the same round (`thaw` tells it).
+static func lapse(w: World, a: Actor, key: StringName) -> void:
+	var left: int = a.get(key)
+	if left <= 0:
+		return
+	a.set(key, left - 1)
+	if (
+		left > 1
+		or (key == &"rooted" and w.events.any(func(e): return e.t == &"thaw" and e.id == a.id))
+	):
+		return
+	w.emit({t = ENDS[key], id = a.id, at = a.pos})
+
+
+## `a` is let go of every condition in ENDS at once, as on a new storey.
+static func release(w: World, a: Actor) -> void:
+	for key in ENDS:
+		if a.get(key) > 0:
+			a.set(key, 0)
+			w.emit({t = ENDS[key], id = a.id, at = a.pos})
 
 
 ## The end of a round: whoever was alight before this round burns, and each

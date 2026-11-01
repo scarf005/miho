@@ -61,10 +61,8 @@ static func enter(w: World, depth: int) -> void:
 	w.actors.assign(kept.actors.map(func(a): return a.clone()))
 	var spot := FloorGen.nearest_free(w, w.start)
 	w.actors.push_front(me)
+	Status.release(w, me)
 	me.pos = spot if spot.x >= 0 else w.start
-	me.rooted = 0
-	me.stunned = 0
-	me.blind = 0
 	w._changed()
 
 

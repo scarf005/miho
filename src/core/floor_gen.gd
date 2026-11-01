@@ -221,9 +221,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.known = PackedByteArray()
 	w.seen = PackedByteArray()
 	w.dim = PackedByteArray()
-	me.rooted = 0
-	me.stunned = 0
-	me.blind = 0
+	Status.release(w, me)
 	var goal := Rect2i()
 	for attempt in 100:
 		goal = _carve(w, skeleton).goal
