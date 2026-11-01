@@ -22,6 +22,8 @@ extends Node
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or
 ## with a queue click anywhere to hurl that way; click a talisman to queue it;
 ## right-click clears.
+## A step onto a plate found, fire or a drop asks first, and a held key stops when a
+## creature comes into sight (StepGuard). Erasing the run asks first as well.
 ## The run is saved after every round (SaveGame) and the title continues it; a
 ## run that ends leaves no save.
 
@@ -32,6 +34,13 @@ const LOG_ROWS := 3
 const LOG_FADE := 5
 ## Tiles a cursor moves in look mode with Shift.
 const LOOK_FAR := 5
+## What the title asks before it erases the run on disk.
+const ERASE := "이어하던 판을 지우고 새로 시작할까?"
+## Why exploring or resting does not start.
+const WATCHED := {
+	&"explore": "깨어 있는 적이 보여서 탐험할 수 없다",
+	&"rest": "깨어 있는 적이 보여서 쉴 수 없다",
+}
 ## Time per frame spent replaying a saved run on Continue; the rest draws the count.
 const REPLAY_BUDGET_MS := 40
 
@@ -55,6 +64,12 @@ var hover_slot := -1
 var looking := false
 ## Several open doors are next to Miho: the next direction key shuts that one.
 var shutting := false
+## The step prompt and the sight of a held key (StepGuard), and whether the key
+## being handled is a repeat of a held one.
+var guard := StepGuard.new()
+var held := false
+## The title asks whether to erase the run on disk for a new one.
+var erasing := false
 ## A talisman or saved spell was just refused: the next direction or tile is
 ## eaten, so the press meant to hurl it does not walk Miho instead.
 var refused := false
@@ -127,17 +142,26 @@ func _ready() -> void:
 
 
 ## The title screen, offering to continue the run on disk if there is one.
-func _show_title() -> void:
+func _show_title(asking := false) -> void:
 	pending = SaveGame.load_from(save_path)
 	state = &"title"
-	term.banner_lines = [
-		"미호",
-		"천상누각 꼭대기에 사람이 되는 영약이 있다",
-		touch.say(
-			"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
-			"화면을 눌러 시작" if pending == null else ""
-		),
-	]
+	erasing = asking and pending != null
+	var line := touch.say(
+		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
+		"화면을 눌러 시작" if pending == null else ""
+	)
+	if erasing:
+		line = touch.say(ERASE + " Y/N", ERASE)
+	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", line]
+
+
+## The title's new run: with a run on disk it asks once, then erases it.
+func _new_game() -> void:
+	if state == &"title" and pending != null and not erasing:
+		sfx.play(&"warn")
+		_show_title(true)
+	else:
+		_restart()
 
 
 ## Puts the settings into effect.
@@ -203,11 +227,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		_panel_input(event)
 	elif menu.debug.asking():
 		menu.debug.pick(self, event)
+	elif state == &"title" and erasing:
+		if event is InputEventKey and event.keycode == KEY_Y:
+			_restart()
+		else:
+			_show_title()
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
 		if event is InputEventKey and event.keycode == KEY_N:
-			_restart()
+			_new_game()
 		elif Keys.action_of(event) == &"confirm" or _left_click(event):
 			_continue()
 	elif state == &"title":
@@ -280,17 +309,27 @@ func _restart() -> void:
 
 
 ## Moves repeat while their key is held; other actions take only fresh presses.
-## Repeats that arrive while a round plays are dropped, so none pile up.
+## Repeats that arrive while a round plays are dropped, so none pile up. A fresh
+## press notes the creatures in sight (a repeat stops once another comes into
+## sight) and Y answers a step prompt.
 func _key(event: InputEventKey) -> void:
 	var action := Keys.action_of(event)
-	if not event.is_echo() or Keys.MOVES.has(action):
+	held = event.is_echo()
+	if not held:
+		guard.sighted = Travel.in_sight(world)
+	if event.keycode == KEY_Y and not held and guard.asking != Vector2i.ZERO:
+		_move(guard.asking)
+	elif not held or Keys.MOVES.has(action) and not guard.startled(world):
 		_do(action, event.shift_pressed)
+	held = false
 
 
 ## What a key means, or a button of the touch screen: `action` is a Keys action,
 ## `shift` holds a spell with a direction.
 func _do(action: StringName, shift: bool) -> void:
 	var eat := _eats_move()
+	if Keys.MOVES.get(action) != guard.asking:
+		_unask()
 	if shutting:
 		shutting = false
 		if Keys.MOVES.has(action):
@@ -320,8 +359,8 @@ func _do(action: StringName, shift: bool) -> void:
 		_open(&"options")
 	elif action == &"stairs":
 		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
-	elif action == &"explore" and Travel.watched(world):
-		_say("깨어 있는 적이 보여서 탐험할 수 없다")
+	elif action in WATCHED and Travel.watched(world):
+		_say(WATCHED[action])
 		sfx.play(&"click")
 	elif action == &"explore":
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
@@ -359,6 +398,8 @@ func _click(event: InputEventMouseButton) -> void:
 	looking = false
 	shutting = false
 	var eat := _eats_move()
+	if not Grid.inside(hover) or hover - world.player().pos != guard.asking:
+		_unask()
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_clear()
 		return
@@ -391,7 +432,7 @@ func _use_tile(tile: Vector2i, hold: bool) -> void:
 	if not picked.is_empty():
 		_direction(Grid.nearest_dir(tile - me), hold)
 	elif Grid.cheb(tile, me) == 1:
-		_act({t = &"move", dir = tile - me})
+		_move(tile - me)
 	else:
 		_journey(func(): return _step_on(_path_to(tile)), _walled_in(tile, ""))
 
@@ -591,7 +632,7 @@ func _direction(d: Vector2i, hold: bool) -> void:
 		if not staged.is_empty() and not hold:
 			_act({t = &"cast", spells = staged.duplicate()})
 		elif staged.is_empty():
-			_act({t = &"move", dir = d})
+			_move(d)
 		return
 	var why := Guise.why(world.player(), Spell.make(picked)) if d == Vector2i.ZERO else ""
 	if why != "":
@@ -615,11 +656,33 @@ func _direction(d: Vector2i, hold: bool) -> void:
 # --- turns ----------------------------------------------------------------------
 
 
+## A step. Onto a found plate, fire or a drop it asks first (StepGuard): the same
+## step again, or Y, takes it; a held key never does.
+func _move(d: Vector2i) -> void:
+	if StepGuard.danger(world, d, ahead.get(d)) and (held or guard.asking != d):
+		if not held:
+			guard.asking = d
+			_show_log()
+			var ask := StepGuard.question(world, d, touch.enabled)
+			term.log_lines.append([[[ask, Palette.TEXT]], 1.0])
+			sfx.play(&"warn")
+		return
+	_act({t = &"move", dir = d})
+
+
+## Drops the step prompt, if one is up.
+func _unask() -> void:
+	if guard.asking != Vector2i.ZERO:
+		guard.asking = Vector2i.ZERO
+		_show_log()
+
+
 ## Plays one round and returns its events (none when the action is not allowed).
 func _act(action: Dictionary) -> Array:
 	if not world.can(action):
 		sfx.play(&"click")
 		return []
+	guard.asking = Vector2i.ZERO
 	busy = true
 	term.tints = {}
 	term.marks = {}
@@ -848,6 +911,8 @@ func _panel_input(event: InputEvent) -> void:
 			_close()
 			_restart()
 			return
+		&"ask":
+			sfx.play(&"warn")
 		&"seed":
 			_copy_seed()
 		&"quit":
@@ -881,6 +946,7 @@ func _close() -> void:
 func _forecast() -> void:
 	if world == null:
 		return
+	_unask()
 	known = world.known_clone()
 	var me := world.player().pos
 	zone = excluded.tiles(world)
@@ -906,77 +972,7 @@ func _forecast() -> void:
 	_refresh()
 
 
-## Under the pointer: what is there, the tiles a creature there sees, what the
-## spell in hand would do hurled that way (each aim forecast once), or with
-## nothing in hand the walk a click there would take.
+## Under the pointer: what is there and what a click or a spell would do (Preview).
 func _refresh() -> void:
-	if world == null:
-		return
-	_inspect()
-	term.debug = DebugView.view(world) if debugging else {}
-	term.zone = zone
-	term.picked = picked
-	term.staged = staged
-	var tints := reach.duplicate()
-	var marks := {}
-	term.lines = []
-	var me := world.player().pos
-	for d: Vector2i in ahead:
-		var f: Forecast = ahead[d]
-		if f.drops_me():
-			marks[me + d] = ["▼", Palette.HURT]
-		elif f.hurt_me() > 0:
-			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
-		elif not f.noticed.is_empty():
-			tints[me + d] = Color(Palette.ALERT[2], 0.3)
-	if not reach.is_empty() and Grid.inside(hover) and hover != me:
-		var aim := Grid.nearest_dir(hover - me)
-		if not aims.has(aim):
-			var spells := staged.duplicate()
-			spells.append({cards = picked.duplicate(), dir = aim})
-			aims[aim] = Forecast.of(world, {t = &"cast", spells = spells})
-		AimView.paint(aims[aim], world, known, term, tints, marks)
-	elif (
-		picked.is_empty() and staged.is_empty() and Grid.inside(hover) and Grid.cheb(hover, me) > 1
-	):
-		for p in _path_to(hover):
-			tints[p] = Color(Palette.TEXT, 0.12)
-	var a := world.actor_at(hover) if Grid.inside(hover) else null
-	if a != null and a.faction != Actor.FOX and Hat.shown(world, a):
-		var view := known.view_of(a)
-		for i in view.size():
-			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
-				tints[Grid.at(i)] = Color(Palette.SIDE[1], 0.3)
-	if hover_status or hover == me:
-		for i in world.seen.size():
-			if world.seen[i] == 1 and not tints.has(Grid.at(i)):
-				tints[Grid.at(i)] = Color(Palette.SIDE[0], 0.2)
-	for b in world.actors:
-		if Fight.sneakable(world, b):
-			tints[b.pos] = Color(Palette.ALERT[1], 0.35)
-	term.tints = tints
-	term.marks = marks
-
-
-func _inspect() -> void:
-	term.info = []
-	term.cursor = Vector2i(-1, -1)
-	if state != &"play" or not term.hint.is_empty():
-		return
-	term.cursor = hover
-	if hover_slot >= 0:
-		term.info = SpellInfo.slot(Spell.make(picked), hover_slot)
-	elif hover_spell != "":
-		term.info = SpellInfo.spell(Spell.from_key(hover_spell))
-	elif hover_card != &"":
-		term.info = SpellInfo.hovered(hover_card, picked)
-	elif hover_status:
-		term.info = Info.creature(known, known.player())
-	else:
-		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
-		term.info = (
-			menu.debug.head()
-			+ lines
-			+ excluded.lines(hover, zone)
-			+ Info.ahead(world, ahead, hover)
-		)
+	if world != null:
+		Preview.paint(self)

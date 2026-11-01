@@ -92,10 +92,53 @@ func test_options_step_and_wrap() -> void:
 	menu.key(_press("Right"))
 	assert_false(menu.settings.crt)
 	_select(menu, &"restart")
+	menu.use()
 	assert_eq(menu.use(), &"restart")
 	_select(menu, &"close")
 	assert_eq(menu.use(), &"close")
 	assert_eq(menu.key(_press("Escape")), &"close")
+
+
+func _restart_label(menu: Menu) -> String:
+	return menu.panel().rows[Menu.OPTIONS.find(&"restart")][0][0]
+
+
+func test_the_first_use_of_the_restart_row_asks_and_the_second_acts() -> void:
+	var menu := Menu.new()
+	menu.open(&"options")
+	_select(menu, &"restart")
+	var name := _restart_label(menu)
+	assert_eq(menu.key(_press("Enter")), &"ask")
+	assert_ne(_restart_label(menu), name, "the row asks")
+	assert_eq(menu.key(_press("Enter")), &"restart")
+
+
+func test_moving_off_the_restart_row_or_esc_takes_the_question_back() -> void:
+	var menu := Menu.new()
+	menu.open(&"options")
+	_select(menu, &"restart")
+	var name := _restart_label(menu)
+	menu.use()
+	menu.key(_press("Down"))
+	assert_eq(_restart_label(menu), name)
+	menu.key(_press("Up"))
+	assert_eq(_restart_label(menu), name, "coming back does not bring the question back")
+	assert_eq(menu.use(), &"ask")
+	assert_eq(menu.key(_press("Escape")), &"", "Esc takes it back and leaves the page open")
+	assert_eq(_restart_label(menu), name)
+	assert_eq(menu.use(), &"ask", "and the next use asks again")
+
+
+func test_a_click_on_another_row_takes_the_restart_question_back() -> void:
+	var menu := Menu.new()
+	menu.open(&"options")
+	_select(menu, &"restart")
+	var name := _restart_label(menu)
+	var row := Menu.OPTIONS.find(&"restart")
+	assert_eq(menu.click(row, -1), &"ask")
+	assert_eq(menu.click(Menu.OPTIONS.find(&"crt"), -1), &"changed", "another row is used")
+	assert_eq(_restart_label(menu), name)
+	assert_eq(menu.click(row, -1), &"ask")
 
 
 func test_the_seed_is_a_row_of_the_options_that_enter_asks_to_copy() -> void:

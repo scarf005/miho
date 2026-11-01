@@ -10,7 +10,8 @@ extends RefCounted
 ## moves as ListNav says, scrolls with the wheel, lights the row under the
 ## pointer, and a click selects it.
 ## `key`, `use`, `click` and `back` return what the game should do: &"close",
-## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
+## &"changed" (settings or keys changed), &"ask" (처음부터 asks for a second use),
+## &"restart", &"quit" (save and end the
 ## game), &"seed" (copy the seed), &"cast" (pick `chosen`), or nothing.
 
 const VALUE_COL := 18.0
@@ -50,6 +51,7 @@ const OPTION_NAMES := {
 	&"quit": "저장하고 끝내기",
 	&"close": "계속",
 }
+const RESTART_SURE := "정말 처음부터 시작할까?"
 const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
 
 var settings := Settings.new()
@@ -58,7 +60,13 @@ var settings := Settings.new()
 var seed_value := 0
 var copied := false
 var page := &""
-var selected := 0
+var selected := 0:
+	set(row):
+		confirming = confirming and row == selected
+		selected = row
+## 처음부터 was used once and waits for a second use; leaving the row or Esc
+## takes it back.
+var confirming := false
 ## The first row shown, and the row the pointer is over (-1 for none).
 var top := 0
 var hovered := -1
@@ -84,6 +92,7 @@ var origin_row := 0
 ## Opens a page, `size` the screen in cells when it changes.
 func open(p: StringName, size := Vector2i.ZERO) -> void:
 	page = p
+	confirming = false
 	selected = 0
 	top = 0
 	hovered = -1
@@ -304,6 +313,9 @@ func _use_option() -> StringName:
 		&"keys", &"codex", &"cheat":
 			_enter(row)
 			return &""
+		&"restart" when not confirming:
+			confirming = true
+			return &"ask"
 		&"restart", &"quit", &"close":
 			return row
 		&"seed":
@@ -323,6 +335,9 @@ func _use_key_row() -> StringName:
 ## Esc: a page opened from another goes back to it, on the row it was opened
 ## from; others close.
 func back() -> StringName:
+	if confirming:
+		confirming = false
+		return &""
 	if origin == &"":
 		return &"close"
 	var from := origin
@@ -429,7 +444,9 @@ func _options() -> Array:
 	}
 	var rows := []
 	for o in OPTIONS:
-		var row := [[OPTION_NAMES[o], Palette.TEXT]]
+		var row := [
+			[RESTART_SURE if o == &"restart" and confirming else OPTION_NAMES[o], Palette.TEXT]
+		]
 		if values.has(o):
 			row.append([values[o], Palette.SIDE[0], VALUE_COL])
 		rows.append(row)
