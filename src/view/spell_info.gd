@@ -13,9 +13,9 @@ const RECIPE := {
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
 }
-## The label of the harm a projectile does after it has flown MOMENTUM tiles.
 ## The label of the tiles a second an orb gains each round it flies.
 const ACCEL := "가속"
+## The label of the harm a projectile does after it has flown MOMENTUM tiles.
 const FAR := "%d칸 이상 날아간 뒤 피해"
 ## The label of the blast harm after MOMENTUM tiles.
 const FAR_BLAST := "%d칸 이상 날아간 뒤 폭발 피해"
