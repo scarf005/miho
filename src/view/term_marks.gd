@@ -4,7 +4,8 @@ extends RefCounted
 
 
 ## A charging creature's line for each spell (a spray's tiles), so every incoming
-## spell is seen a round early. One running to a drum shows none: its info says so.
+## spell is seen a round early; its edge has the caster's colour, so a line is told
+## from another's and from fire. One running to a drum shows none: its info says so.
 static func telegraphs(t: Term, actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
@@ -24,9 +25,11 @@ static func telegraphs(t: Term, actors: Dictionary) -> void:
 					continue
 				var pulse := 0.5 + 0.5 * sin(t._time * 8.0 - k * 0.6)
 				var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
-				t.draw_rect(Rect2(t._cell(ray[k]) * Term.CELL, Term.CELL), c)
+				var tile := Rect2(t._cell(ray[k]) * Term.CELL, Term.CELL)
+				t.draw_rect(tile, c)
+				t.draw_rect(tile, Palette.KIND[a.kind], false, 1.0)
 			if not ray.is_empty() and t._shown(a.pos + plan.dir):
-				t._glyph(t._cell(a.pos + plan.dir), Palette.BOLT[plan.dir], Palette.SIDE[1])
+				t._glyph(t._cell(a.pos + plan.dir), Palette.BOLT[plan.dir], Palette.KIND[a.kind])
 
 
 ## Where each projectile in sight flies next, over tiles Miho knows: an orb

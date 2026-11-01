@@ -2,7 +2,8 @@ class_name CreatureCard
 extends RefCounted
 ## One creature in sight, as the sidebar and the touch screen's strip list it:
 ## glyph and name, hearts and status, then what it is doing and the spells it
-## charges, aimed (alone when both do not fit). SIDE_ROWS rows tall.
+## charges by name, or by talisman when the names do not fit, with where they aim
+## (alone when both do not fit). SIDE_ROWS rows tall.
 
 
 ## Draws creature `a` with its top-left at cell `at`, `width` cells wide.
@@ -20,17 +21,25 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 	if a.fighting() and a.blind <= 0:
 		doing = "싸우는 중"
 	var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.alert, 1)])
-	var plans := a.intent.map(func(p): return [Spell.make(p.cards).slots, p.dir])
+	var plans: Array = a.intent.map(func(p): return [Spell.make(p.cards), p.dir])
+	var named := func(p: Array) -> float: return t._cells(p[0].title()) + 1.5
+	var wide: float = plans.reduce(func(n, p): return n + named.call(p), 0.0)
 	var x := t._cells(doing) + 0.5
-	if x + plans.reduce(func(n, p): return n + p[0].size() + 1, 0) > width:
+	if x + wide > width:
 		x = 0.0
 	else:
 		var dx := 0.0
 		for run: Array in doing_runs:
 			dx += t._run(at + Vector2(dx, 2), run)
+	var fits: bool = x + wide <= width
 	for plan: Array in plans:
-		for slot: StringName in plan[0]:
-			t._glyph(at + Vector2(x, 2), Cards.GLYPH[slot], Palette.card(slot))
-			x += 1
+		var spell: Spell = plan[0]
+		if fits:
+			t._text(at + Vector2(x, 2), spell.title(), Palette.card(spell.slots.back()))
+			x += named.call(plan) - 1.5
+		else:
+			for slot: StringName in spell.slots:
+				t._glyph(at + Vector2(x, 2), Cards.GLYPH[slot], Palette.card(slot))
+				x += 1
 		t._glyph(at + Vector2(x, 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
-		x += 1
+		x += 1.5 if fits else 1.0
