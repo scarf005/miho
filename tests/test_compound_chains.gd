@@ -523,14 +523,14 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
 			"불: 가연성 칸",
 			"불붙음: %d초" % Status.ALIGHT,
-			"소리: 쓸 때 %d칸" % Spray.GUN_LOUD,
+			"소리: %d칸" % Spray.GUN_LOUD,
 		],
 		&"furnace": ["용광로 · 꼬리: 3", "모양: 곧게 6칸", "뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS, "끝 벽: 무너짐"],
 		&"hail":
 		[
 			"우박 · 꼬리: 3",
 			"모양: 3칸 앞 5×5",
-			"피해: 적마다 %d" % Compounds.HAIL,
+			"피해: %d" % Compounds.HAIL,
 			"얼어붙음: %d초" % Compounds.FROST,
 			"소리: 없음",
 		],
@@ -564,7 +564,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 		[
 			"숯가시 · 꼬리: 3",
 			"반지름 3",
-			"피해: 적마다 %d" % Compounds.THORN,
+			"피해: %d" % Compounds.THORN,
 			"불: 가연성 칸",
 			"불붙음: %d초" % Status.ALIGHT
 		],
@@ -581,7 +581,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			assert_false(line.ends_with("다"), "no sentences: " + line)
 	var carried := Info.plain(SpellInfo.spell(Spell.make([ORB] + _made(&"hail"))))
 	assert_string_contains(carried, "우박: 멈춘 곳 3×3")
-	assert_string_contains(carried, "피해: 적마다 %d" % Compounds.HAIL)
+	assert_string_contains(carried, "피해: %d" % Compounds.HAIL)
 
 
 func test_a_self_cast_stays_with_a_lone_guise_and_shadow() -> void:

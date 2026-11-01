@@ -114,7 +114,7 @@ func test_every_compound_is_listed_with_its_parts() -> void:
 		var tails := "꼬리: %d" % Spell.price(parts.size())
 		assert_eq(text.count(tails), 1, "one head line: " + text)
 		assert_true(
-			text.get_slice("\n", 1).split(" ")[0] in ["모양:", "노림:"],
+			text.get_slice("\n", 1).split(" ")[0] in ["모양:", "대상:"],
 			"the head line is followed by the shape or the target"
 		)
 
@@ -177,7 +177,7 @@ func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen()
 		assert_true(names.has(spec.name), spec.name)
 	for kind in Gas.ROWS:
 		assert_true(names.has(Gas.of(kind, "name")), str(kind))
-	assert_string_contains(_text(Codex.detail(_entry(4, "불타는 칸"))), "피해: 매 초")
+	assert_string_contains(_text(Codex.detail(_entry(4, "불타는 칸"))), "초당 피해:")
 	assert_string_contains(_text(Codex.detail(_entry(4, "증기"))), "시야 막음")
 	assert_string_contains(_text(Codex.detail(_entry(4, "쓰러진 몸"))), Info.TRACE)
 	assert_string_contains(_text(Codex.detail(_entry(4, "뜨거운 땅"))), "초 남음")
