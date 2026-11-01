@@ -62,7 +62,7 @@ func panel() -> Dictionary:
 
 
 func _fits() -> int:
-	return Term.list_fits(room.y, 0)
+	return PanelView.fits(room.y, 0)
 
 
 func _rows() -> Array:
