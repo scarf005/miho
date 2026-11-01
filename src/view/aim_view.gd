@@ -3,8 +3,8 @@ extends RefCounted
 ## The aim preview: a forecast cast drawn into the term's tints, marks and
 ## lines. It shows the tiles each projectile crosses or each spray covers, the
 ## line a leap takes with Miho where it lands (or where a swap takes her this
-## round), a line from Miho to the
-## creature each homing one chases, the harm each creature takes, the wooden
+## round), a line from the tile each homing one leaves on to the
+## creature it chases, the harm each creature takes, the wooden
 ## walls that grow and the ground compounds change. `known` is what Miho
 ## knows of `world` (World.known_clone), which the forecast ran on.
 
@@ -22,7 +22,8 @@ static func paint(
 		if target != null and path.faction == Actor.FOX and cast_now:
 			var k: int = aimed.get(target.id, 0)
 			aimed[target.id] = k + 1
-			term.lines.append([path.tiles[0], target.pos, Color(Palette.SIDE[0], 0.7), k])
+			var from: Vector2i = path.tiles[mini(1, path.tiles.size() - 1)]
+			term.lines.append([from, target.pos, Color(Palette.SIDE[0], 0.7), k])
 	for e in f.sprays:
 		var color := Palette.card(Spell.make(e.cards).slots[0])
 		for p: Vector2i in e.tiles:

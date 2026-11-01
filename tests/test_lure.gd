@@ -80,6 +80,9 @@ func test_a_lone_wisp_with_nothing_to_chase_yelps_every_second_round_it_hovers()
 
 func test_each_fox_past_the_first_is_heard_two_tiles_farther_and_one_tile_yelps_once() -> void:
 	var w := _world()
+	for d in Grid.DIRS:
+		if d != E:
+			w.set_tile(ME + d, World.WALL)
 	w.act(_cast([FOX, FOX]))
 	var yelps := _yelps(w.act(WAIT))
 	assert_eq(yelps.size(), 1, "two wisps on one tile")
@@ -118,7 +121,7 @@ func test_the_forecast_hears_the_yelp_the_round_does() -> void:
 	w.act(_cast([FOX, FOX, FOX]))
 	var f := Forecast.of(w, WAIT)
 	var told := _yelps(f.events).map(func(e): return [e.at, e.loud])
-	assert_eq(told.size(), 1)
+	assert_eq(told.size(), 3, "each wisp on its own tile")
 	assert_eq(told, _yelps(w.act(WAIT)).map(func(e): return [e.at, e.loud]))
 
 

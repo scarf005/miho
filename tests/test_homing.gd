@@ -301,3 +301,27 @@ func test_the_forecast_shows_the_tile_each_wisp_of_a_cast_leaves_on() -> void:
 	var starts := _starts(events)
 	assert_eq(starts, [me + E, me + Vector2i(1, -1), me + Vector2i(1, 1), me + Vector2i(0, -1)])
 	assert_eq(f.paths.values().map(func(p): return p.tiles[1]), starts)
+
+
+func test_a_wisp_off_the_aimed_line_turns_on_its_tile_to_a_creature_close_by() -> void:
+	var w := _world()
+	var foe := _foe(w, &"jangseung", Vector2i(6, 8))
+	var events := w.act(_cast([FOX, FOX]))
+	assert_eq(_starts(events)[1], w.player().pos + Vector2i(1, -1))
+	assert_eq(foe.hp, foe.max_hp - 2, "both strike in the round of the cast")
+
+
+func test_a_wisp_off_the_aimed_line_never_turns_back_at_miho() -> void:
+	var w := _world()
+	var me := w.player()
+	for x in [-1, 0, 1]:
+		_put(w, me.pos + Vector2i(x, -1), World.WALL)
+		_put(w, me.pos + Vector2i(x, 1), World.WALL)
+	_foe(w, &"jangseung", Vector2i(9, 8))
+	_put(w, Vector2i(9, 10), World.LANTERN)
+	var events := w.act(_cast([FOX, FOX]))
+	for i in 3:
+		events += w.act(WAIT)
+	assert_eq(_starts(events), [me.pos + E, me.pos - E])
+	assert_false(events.any(func(e): return e.t == &"hit" and e.id == me.id))
+	assert_eq(me.hp, me.max_hp)

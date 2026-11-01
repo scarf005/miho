@@ -730,8 +730,15 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	if spell.gun():
 		flares.append(caster.pos)
 	noise(caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id)
-	for target in Homing.targets(self, caster, spell):
-		_step(_spawn(caster, spell, dir, target))
+	var targets := Homing.targets(self, caster, spell)
+	var heads := Homing.headings(self, caster, dir, targets)
+	for i in heads.size():
+		var s := _spawn(caster, spell, heads[i], targets[i])
+		if heads[i] == dir:
+			_step(s)
+		else:
+			_fly(s, s.pos + s.dir)
+			s.dir = Homing.facing(self, s)
 
 
 func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:

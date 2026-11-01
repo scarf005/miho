@@ -10,6 +10,14 @@ extends RefCounted
 ## go to the nearest. A projectile whose creature has fallen, or that had none,
 ## takes the nearest foe it sees from where it is; others keep theirs.
 ##
+## Each wisp of a cast leaves the caster on a tile of its own next to it, as
+## DCSS foxfire (spl-summoning.cc cast_foxfire): the first on the aimed one;
+## each after it on the free tile left (open, no creature) nearest its
+## creature, in TURNS order on a tie or with no creature; once none is left,
+## on the aimed one. A wisp off the aimed line flies straight to its tile and
+## faces its creature there, never back at its caster; with none it flies on
+## away from the caster.
+##
 ## Each tile, a breadth-first search from the creature over the tiles a
 ## projectile may fly through (Masks.fly) gives the distance of every tile to
 ## it, and the projectile takes the neighbour one tile nearer, within its turn:
@@ -50,6 +58,38 @@ static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
 	for k in range(i, out.size()):
 		out[k] = foes[0].id
 	return out
+
+
+## The direction each projectile `caster` casts towards `dir` leaves it in, for
+## the creatures `targets` it goes for.
+static func headings(
+	w: World, caster: Actor, dir: Vector2i, targets: Array[int]
+) -> Array[Vector2i]:
+	var free: Array[Vector2i] = []
+	var i := maxi(0, Grid.DIRS.find(dir))
+	for k: int in TURNS.slice(1):
+		var p: Vector2i = caster.pos + Grid.DIRS[(i + k + 8) % 8]
+		if w.open_air(p) and w.actor_at(p) == null:
+			free.append(p)
+	var out: Array[Vector2i] = [dir]
+	for n in range(1, targets.size()):
+		var t := w.actor(targets[n])
+		var best := 0
+		for j in free.size():
+			if t != null and Grid.cheb(free[j], t.pos) < Grid.cheb(free[best], t.pos):
+				best = j
+		out.append(free.pop_at(best) - caster.pos if not free.is_empty() else dir)
+	return out
+
+
+## The way a wisp that has just reached its own tile faces: towards its
+## creature, but never back at its caster's tile.
+static func facing(w: World, s: Shot) -> Vector2i:
+	var t := w.actor(s.target)
+	if t == null or not t.alive():
+		return s.dir
+	var d := Grid.nearest_dir(t.pos - s.pos)
+	return s.dir if s.pos + d == s.origin else d
 
 
 static func _closer(from: Vector2i, a: Actor, b: Actor) -> bool:
