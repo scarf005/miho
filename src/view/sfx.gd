@@ -44,6 +44,7 @@ const NAMES := [
 	&"creak",
 	&"warn",
 	&"shatter",
+	&"tear",
 ]
 ## Events heard the same wherever they happen. `spot` is the view's own event:
 ## Miho sees something useful for the first time.
@@ -106,7 +107,7 @@ const WORDS := {
 	"드르륵": &"door",
 	"둥": &"blast",
 	"댕": &"gong",
-	"찌익": &"clash",
+	"찌익": &"tear",
 	"타닥": &"burn",
 	"캥": &"foxfire",
 }
