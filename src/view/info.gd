@@ -304,7 +304,8 @@ static func _casts(a: Actor) -> Array:
 
 
 ## The elements of a spell its title does not tell (SpellInfo.elements), harm,
-## the burst of a fire orb and noise of a spell, one short line each; a spray's
+## a homing orb's turn, the burst of a fire orb and noise of a spell, one short
+## line each; a spray's
 ## shape and effect (SpellInfo._spray) in place of the harm and burst.
 static func _spell_details(s: Spell) -> Array[String]:
 	if s.shape == Spell.SPRAY:
@@ -317,6 +318,8 @@ static func _spell_details(s: Spell) -> Array[String]:
 	var out: Array[String] = ["피해: %d" % near if near > 0 else "피해: 없음"]
 	if far > near:
 		out.append("%d칸 이상 날면 피해: %d" % [Spell.MOMENTUM, far])
+	if s.homing():
+		out.append("꺾임: 한 칸에 " + SpellInfo._turn(s.turn()))
 	if SpellInfo.elements(s) != "":
 		out.push_front("원소: " + SpellInfo.elements(s))
 	if s.orb and s.has(Cards.FIRE):

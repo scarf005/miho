@@ -75,7 +75,7 @@ const KINDS := {
 		{
 			2: [[FOX], [FOX, FOX]],
 			3: [[FOX], [FOX, FOX], [FOX, ORB]],
-			5: [[FOX], [FOX, FOX, FOX], [FOX, ORB]],
+			5: [[FOX], [FOX, FOX], [FOX, FOX, FOX, ORB]],
 		},
 		spell_name = "도깨비불",
 		cd = 3,
@@ -177,7 +177,7 @@ const KINDS := {
 		{
 			2: [[ORB], [FOX, FOX]],
 			3: [[ORB], [FOX, FOX], [FOX, ORB]],
-			5: [[ORB], [FOX, FOX, FOX], [FOX, ORB]],
+			5: [[ORB], [FOX, FOX], [FOX, FOX, FOX, ORB]],
 		},
 		cd = 3,
 		move = &"align",
