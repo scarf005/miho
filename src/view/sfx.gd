@@ -53,6 +53,73 @@ const NAMES := [
 	&"omen",
 	&"die",
 	&"scream",
+	&"cannon",
+	&"mortar",
+	&"explosion",
+	&"pistol",
+	&"shotgun",
+	&"grenade",
+	&"clang",
+	&"flame",
+	&"jet",
+	&"ice",
+	&"thunder",
+	&"rumble",
+	&"thorn",
+	&"orb3",
+	&"orb4",
+	&"orb5",
+]
+## The events a spell's own sounds come from (`_spell_sounds`).
+const SPELL_EVENTS := [&"cast", &"hit", &"burst", &"splash"]
+## What a spell's element or compound sounds like: its spray, and the sound a
+## projectile carries on top of its own. 쇠 is a gun, told by its form (`_cast`).
+const SLOT := {
+	Cards.FIRE: &"flame",
+	Cards.WATER: &"jet",
+	Cards.WOOD: &"creak",
+	Cards.EARTH: &"rumble",
+	&"wildfire": &"flame",
+	&"lava": &"rumble",
+	&"shrapnel": &"grenade",
+	&"frost": &"ice",
+	&"rain": &"jet",
+	&"steam": &"hiss",
+	&"molten": &"flame",
+	&"thorn": &"thorn",
+	&"split": &"rumble",
+	&"mud": &"splash",
+	&"volcano": &"flame",
+	&"furnace": &"flame",
+	&"hail": &"ice",
+	&"frostbloom": &"ice",
+	&"swamp": &"splash",
+	&"geyser": &"jet",
+	&"quench": &"hiss",
+	&"charthorn": &"thorn",
+	&"palisade": &"thorn",
+	&"beacon": &"flame",
+	&"ironrain": &"grenade",
+	&"ironroot": &"thorn",
+	&"magpie": &"creak",
+	&"mist": &"jet",
+	&"sinkhole": &"rumble",
+	&"newmoon": &"rumble",
+	&"discord": &"charge",
+	&"thunder": &"thunder",
+	&"stillness": &"hiss",
+	Cards.SAMSARA: &"card",
+	Cards.CONQUEST: &"explosion",
+	Cards.DRAGON: &"thunder",
+}
+## An orb's cast sound by its 구 count, and what it strikes with.
+const ORB_CAST := [&"orb", &"orb", &"orb3", &"orb4", &"orb5"]
+const ORB_HIT := [
+	[&"blast"],
+	[&"blast"],
+	[&"blast", &"rumble"],
+	[&"explosion"],
+	[&"explosion", &"rumble"],
 ]
 ## Events heard the same wherever they happen. `spot` is the view's own event:
 ## Miho sees something useful for the first time.
@@ -234,14 +301,75 @@ static func level_of(e: Dictionary) -> float:
 	return db + STEP_DB * mini(e.loud, STEP_TILES) if e.t == &"move" else db
 
 
-## Every sound an event makes: its own, and the bright chime when a peach
-## raises the most health.
+## Every sound an event makes: its own, the layers of a spell's cast and
+## impact, and the bright chime when a peach raises the most health.
 static func sounds_of(e: Dictionary) -> Array[StringName]:
+	if e.t in SPELL_EVENTS:
+		return _spell_sounds(e)
 	var out: Array[StringName] = []
 	if sound_of(e) != &"":
 		out.append(sound_of(e))
 	if e.t == &"heal" and e.get("grew", false):
 		out.append(&"find")
+	return out
+
+
+## The sounds a spell makes where it is cast and where it strikes, heaviest
+## first: none for a spray's hit (its cast is heard), a leap, or a 비격진's
+## strike (its burst is heard). A projectile adds the sound of the element it
+## carries. 쇠 makes a gun: a bullet cracks and hits metal, 철갑탄 and a
+## cannonball fire a cannon, and a 비격진 a mortar that bursts in an explosion.
+static func _spell_sounds(e: Dictionary) -> Array[StringName]:
+	var out: Array[StringName] = []
+	var spell := Spell.make(e.get("cards", []))
+	var cast: bool = e.t == &"cast"
+	if e.get("spray", false) or (spell != null and spell.shape == Spell.LEAP):
+		return out
+	if spell == null:
+		out.append(&"foxfire" if cast else &"blast")
+	elif e.t == &"splash":
+		out.append(&"explosion" if spell.mortar() else &"flame")
+	elif spell.shape == Spell.SPRAY:
+		out.append(_gun(spell) if spell.slots[0] == Cards.METAL else SLOT.get(spell.slots[0], &""))
+	elif cast:
+		out.append_array(_cast(spell))
+	elif not spell.mortar():
+		out.append_array(_impact(spell))
+	out.assign(out.filter(func(n): return n != &""))
+	return out
+
+
+static func _gun(spell: Spell) -> StringName:
+	return &"pistol" if spell.level() < 2 else &"shotgun"
+
+
+## A projectile's cast sound, and the sound of its first element on top.
+static func _cast(spell: Spell) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if spell.mortar():
+		return [&"mortar"]
+	if spell.pierces() or (spell.orb and spell.has(Cards.METAL)):
+		out.append(&"cannon")
+	elif spell.has(Cards.METAL):
+		out.append(&"pistol")
+	else:
+		out.append(ORB_CAST[spell.count(Cards.ORB) - 1] if spell.orb else &"foxfire")
+	for slot in spell.elements():
+		if SLOT.has(slot):
+			out.append(SLOT[slot])
+			break
+	return out
+
+
+## What a projectile sounds like where it strikes a creature or a wall.
+static func _impact(spell: Spell) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if spell.orb:
+		out.assign(ORB_HIT[spell.count(Cards.ORB) - 1])
+	elif not spell.has(Cards.METAL):
+		out.append(&"blast")
+	if spell.has(Cards.METAL):
+		out.append(&"clang")
 	return out
 
 
@@ -256,13 +384,11 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"foxfire"
 		&"crumble":
 			return &"fall"
-		&"cast":
-			var spell := Spell.make(e.cards)
-			if spell != null and spell.shape == Spell.LEAP:
-				return &""
-			return &"orb" if e.cards.has(Cards.ORB) else &"foxfire"
-		&"hit", &"burst", &"splash", &"blast":
-			return &"" if e.get("spray", false) else &"blast"
+		&"cast", &"hit", &"burst", &"splash":
+			var sounds := _spell_sounds(e)
+			return &"" if sounds.is_empty() else sounds[0]
+		&"blast":
+			return &"blast"
 		&"drum":
 			return &"" if e.wet else &"drum"
 		&"smash":
