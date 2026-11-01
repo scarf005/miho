@@ -452,8 +452,8 @@ func can(action: Dictionary) -> bool:
 	return false
 
 
-## A step onto a free tile (a closed door slides open instead), claws at a
-## creature next to Miho, or a knock at a lantern or window.
+## A step onto a free tile, even one a shot flies through (a closed door slides
+## open instead), claws at a creature next to Miho, or a knock at a lantern or window.
 func _can_move(dir: Vector2i) -> bool:
 	var me := player()
 	var to := me.pos + dir
@@ -462,7 +462,7 @@ func _can_move(dir: Vector2i) -> bool:
 	var foe := actor_at(to)
 	if foe != null:
 		return foe.faction != me.faction
-	return Terrain.knockable(tile(to)) or (me.rooted <= 0 and vacant(to))
+	return Terrain.knockable(tile(to)) or (me.rooted <= 0 and open_floor(to))
 
 
 ## An open door next to Miho with nothing in it.
