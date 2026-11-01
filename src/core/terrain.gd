@@ -31,6 +31,9 @@ extends RefCounted
 ##
 ## Reeds block sight until a creature steps onto them: they lie flat. A pillar
 ## blocks walking, sight and light, and never breaks.
+##
+## A plank (`plank`) is 마루 with sky on two opposite sides, the way of a bridge: it
+## burns away to the sky, and whoever stands on it then falls (Fall).
 
 ## How far a sliding door is heard.
 const SLIDE := 3
@@ -72,6 +75,17 @@ static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	var sound: Array = Tiles.of(w.tile(at), "hit")
 	hit(w, at)
 	w.noise(at, sound[0], sound[1], true, me.id)
+
+
+## Whether `p` is a plank: 마루 with sky on two opposite sides.
+static func plank(w: World, p: Vector2i) -> bool:
+	return (
+		w.tile(p) == World.BOARD
+		and (
+			(w.tile(p + Vector2i.UP) == World.SKY and w.tile(p + Vector2i.DOWN) == World.SKY)
+			or (w.tile(p + Vector2i.LEFT) == World.SKY and w.tile(p + Vector2i.RIGHT) == World.SKY)
+		)
+	)
 
 
 ## A creature steps off the tile at `at`: a rotten board gives way to the sky, with a
@@ -197,12 +211,15 @@ static func relight_beside(w: World, a: Actor) -> bool:
 ## Each burning tile crackles, burns and dries whoever stands in it (unless it
 ## eats fire, or burns already: Status) if it was already alight when the
 ## round began (`alight`), may set each
-## flammable neighbour alight (a wild one always does), and burns down to ash.
+## flammable neighbour alight (a wild one always does), and burns down to ash; a
+## plank gives way to the sky with a crack heard CRACK tiles, last of all, since Miho
+## may fall a storey with it.
 static func burn(w: World, alight: Array) -> void:
 	if w.outcome != &"":
 		return
 	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var caught: Array[Vector2i] = []
+	var gone := {}
 	for p: Vector2i in w.burning.keys():
 		w.noise(p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
@@ -222,8 +239,19 @@ static func burn(w: World, alight: Array) -> void:
 		if w.burning[p] <= 0:
 			w.burning.erase(p)
 			w.wild.erase(p)
+			if plank(w, p):
+				gone[p] = true
+				continue
 			w.set_tile(p, Tiles.of(w.tile(p), "burns_to"))
 			Notice.record(w, &"ash", p)
 			w.emit({t = &"burnout", at = p})
 	for p in caught:
 		w.ignite(p)
+	for p: Vector2i in gone:
+		w.set_tile(p, World.SKY)
+		w.emit({t = &"crumble", at = p, was = World.BOARD})
+		w.noise(p, CRACK, "우지끈", true, 0)
+	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))
+	falling.reverse()
+	for a: Actor in falling:
+		Fall.drop(w, a, a.pos)
