@@ -117,10 +117,11 @@ static func spots(w: World) -> Array[Vector2i]:
 	return out
 
 
-## Miho has come onto her tile: she eats the kimchi there, once.
+## Miho has come onto her tile: she eats the kimchi there, once, unless she is at
+## full health, when it stays for later.
 static func arrive(w: World, me: Actor) -> void:
 	for site: Dictionary in w.sites.duplicate():
-		if site.kind == KIMCHI and site.at == me.pos:
+		if site.kind == KIMCHI and site.at == me.pos and me.hp < me.max_hp:
 			w.sites.erase(site)
 			var healed := mini(World.HEAL, me.max_hp - me.hp)
 			me.hp += healed

@@ -213,20 +213,20 @@ func test_kimchi_heals_one_and_is_eaten() -> void:
 	assert_true(Jars.spots(w).is_empty())
 
 
-func test_kimchi_never_heals_above_the_maximum_and_never_raises_it() -> void:
+func test_kimchi_stays_while_she_is_at_full_health_and_she_keeps_her_scent() -> void:
 	var w := _kimchi(3)
 	w.act({t = &"move", dir = E})
 	assert_eq([w.player().hp, w.player().max_hp], [3, 3])
-	assert_true(Jars.spots(w).is_empty(), "it is still eaten")
-	assert_false(w.events.any(func(e): return e.t == &"heal" and e.n > 0))
+	assert_eq(Jars.spots(w), [AT] as Array[Vector2i], "it stays for later")
+	assert_eq(w.pungent, 0)
+	assert_false(w.events.any(func(e): return e.t == &"heal"))
 
 
-func test_a_log_line_tells_a_heal_only_when_kimchi_healed() -> void:
-	for hp in [2, 3]:
-		var w := _kimchi(hp)
-		var events := w.act({t = &"move", dir = E})
-		var text := "\n".join(Messages.of(w, w, events).map(Messages.plain))
-		assert_eq(text.contains("회복"), hp < 3, "hp %d" % hp)
+func test_a_hurt_miho_never_goes_above_the_maximum() -> void:
+	var w := _kimchi(2)
+	w.player().max_hp = 2 + World.HEAL
+	w.act({t = &"move", dir = E})
+	assert_eq(w.player().hp, w.player().max_hp)
 
 
 func test_kimchi_makes_her_scent_strong_for_a_number_of_rounds() -> void:
