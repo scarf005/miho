@@ -12,7 +12,7 @@ extends RefCounted
 ## tile within its reach (Chebyshev, walls or not) caught fire or had its
 ## lantern lit (`tick`).
 ##
-## 둔갑 (GUISE: 목+토, the 벽 가르기 slot, and any number of 목): she takes the
+## 둔갑 (GUISE: 목+토, the 균열 slot, and any number of 목): she takes the
 ## form of the last creature of heaven that fell (Actor.prey; any fall, as for
 ## the tail it gives back) for ROUNDS rounds and PER_WOOD more for every 목;
 ## with none fallen yet it is refused with NO_PREY. A creature of heaven that
@@ -54,7 +54,7 @@ static func kind(spell: Spell) -> StringName:
 		and spell.slots.all(func(c): return c in [Cards.FOX, Cards.WATER])
 	):
 		return SHADOW
-	if spell.count(&"split") == 1 and spell.slots.all(func(c): return c in [&"split", Cards.WOOD]):
+	if spell.count(&"rift") == 1 and spell.slots.all(func(c): return c in [&"rift", Cards.WOOD]):
 		return GUISE
 	return &""
 

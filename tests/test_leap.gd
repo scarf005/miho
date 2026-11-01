@@ -105,9 +105,9 @@ func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_i
 	assert_null(two.rest(), "the 목 is reach, not roots")
 	assert_eq(Spell.make(LEAP + [WOOD, WOOD]).leap(), 5)
 	var split := Spell.make(LEAP + [WOOD, Cards.EARTH])
-	assert_eq(split.slots, [VAULT, &"split"] as Array[StringName])
+	assert_eq(split.slots, [VAULT, &"rift"] as Array[StringName])
 	assert_eq(split.leap(), 3, "a 목 merged into a compound adds no reach")
-	assert_eq(split.rest().slots, [&"split"] as Array[StringName])
+	assert_eq(split.rest().slots, [&"rift"] as Array[StringName])
 
 
 func test_an_element_joins_the_leap_only_when_it_is_the_last_slot() -> void:
@@ -123,7 +123,7 @@ func test_an_element_joins_the_leap_only_when_it_is_the_last_slot() -> void:
 	)
 	assert_eq(
 		Spell.make(LEAP + [WOOD, Cards.EARTH]).slots,
-		[VAULT, &"split"] as Array[StringName],
+		[VAULT, &"rift"] as Array[StringName],
 		"not last, it joins the slot after"
 	)
 

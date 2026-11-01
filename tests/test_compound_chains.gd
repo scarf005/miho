@@ -18,7 +18,7 @@ const ME := Vector2i(20, 12)
 const HIGH := [
 	&"beacon",
 	&"ironrain",
-	&"ironroot",
+	&"bind",
 	&"magpie",
 	&"mist",
 	&"sinkhole",

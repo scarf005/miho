@@ -2,7 +2,7 @@ class_name Compounds
 extends RefCounted
 ## What each compound (Cards.compounds) does where it reaches. A spray
 ## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
-## on the 3x3 round where the projectile ends (Spray.carried; 벽 가르기 on the
+## on the 3x3 round where the projectile ends (Spray.carried; 균열 on the
 ## first wall ahead of it and that wall's neighbours across its line), the
 ## creature it struck there among them. Each copy past the first, and each lone
 ## element that feeds a 상생 pair (Spell.grown), reaches one tile farther: a
@@ -35,7 +35,7 @@ extends RefCounted
 ## 가시 grows thorns (World.THORNS) on open ground and pricks each creature it
 ## reaches for THORN. Whoever steps onto thorns takes THORN; they let sight
 ## through and burn.
-## 벽 가르기 brings every breakable wall it reaches down to rubble, silently.
+## 균열 brings every breakable wall it reaches down to rubble, silently.
 ## 진흙 douses, then turns open ground to mud (World.MUD): a step onto it takes
 ## MUD rounds (the creature is rooted till then) and makes no sound.
 ## 3단, of three elements:
@@ -55,7 +55,7 @@ extends RefCounted
 ## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
 ## where it relights every dark lantern the caster sees.
 ## 쇳비 leaves hot iron and lays steam.
-## 철뿌리 hurts each creature IRONROOT_HARM and roots it IRONROOT rounds.
+## 속박 hurts each creature BIND_HARM and roots it BIND rounds.
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
 ## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs
@@ -97,8 +97,8 @@ const QUENCH := 2
 const QUENCH_WET := 4
 const BOOM := 12
 const BEACON_WORD := "화르륵"
-const IRONROOT := 4
-const IRONROOT_HARM := 1
+const BIND := 4
+const BIND_HARM := 1
 const THUNDER := 3
 const THUNDER_STUN := 2
 const SAMSARA_STUN := 2
@@ -157,7 +157,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 				Gas.add(w, p, Gas.STEAM, STEAM)
 		&"thorn":
 			_become(w, tiles.filter(func(p): return _open(w, p)), World.THORNS)
-		&"split":
+		&"rift":
 			_split(w, tiles)
 		&"mud":
 			for p in tiles:
@@ -262,10 +262,10 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 				Status.ignite(w, a)
 		&"beacon":
 			strike(w, s, &"wildfire", a, at)
-		&"ironroot":
-			Elements.harm(w, s, a, IRONROOT_HARM)
+		&"bind":
+			Elements.harm(w, s, a, BIND_HARM)
 			if a.alive():
-				Elements.root(w, a, IRONROOT)
+				Elements.root(w, a, BIND)
 		&"sinkhole":
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)

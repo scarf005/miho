@@ -231,7 +231,7 @@ static func _spray(s: Spell) -> Array:
 			return out
 	var who := "모두" if Spray.ROOT_COUNT[i] == 0 else "%d명" % Spray.ROOT_COUNT[i]
 	return [
-		_line("모양", "땅속 뿌리"),
+		_line("모양", "땅속 덩굴"),
 		_line("거리", "%d걸음" % Spray.ROOT_REACH[i]),
 		_line("대상", "보이는 가까운 적 " + who),
 		_line("묶임", "%d초" % Spray.ROOT_ROUNDS[i], color),
@@ -300,7 +300,7 @@ static func _form(s: Spell) -> Array:
 		Spray.ROOTS:
 			var deepest := Spray.ROOTS_LEVEL - 1
 			return [
-				["모양", "땅속 뿌리"],
+				["모양", "땅속 덩굴"],
 				["거리", "%d걸음" % Spray.ROOT_REACH[deepest]],
 				["대상", "보이는 적 모두"],
 			]
@@ -346,7 +346,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				[name, "생김"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
-		&"split":
+		&"rift":
 			return [["벽", "소음 없이 무너짐"]]
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
@@ -372,7 +372,7 @@ static func compound(c: StringName) -> Array:
 				["묶임", "%d초" % Compounds.BLOOM],
 			]
 		&"swamp":
-			return compound(&"split") + compound(&"mud") + [["묶임", "%d초" % Compounds.SWAMP]]
+			return compound(&"rift") + compound(&"mud") + [["묶임", "%d초" % Compounds.SWAMP]]
 		&"geyser":
 			return [["밀침", "%d칸" % Compounds.GEYSER]] + compound(&"steam")
 		&"quench":
@@ -396,8 +396,8 @@ static func compound(c: StringName) -> Array:
 		&"ironrain":
 			var steam: Array = compound(&"steam")
 			return hot.call(Compounds.MOLTEN) + [steam[0], ["증기 초당 피해", steam[1][1]], SOAK]
-		&"ironroot":
-			return [["묶임", "%d초" % Compounds.IRONROOT], ["피해", "%d" % Compounds.IRONROOT_HARM]]
+		&"bind":
+			return [["묶임", "%d초" % Compounds.BIND], ["피해", "%d" % Compounds.BIND_HARM]]
 		&"magpie":
 			return [[_names(CROSSED), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
@@ -448,7 +448,7 @@ static func _mortar(s: Spell) -> Array:
 ## Where a compound carried on a projectile reaches.
 static func _carried(s: Spell, c: StringName) -> String:
 	var r := Compounds.reach(s, c)
-	if c == &"split":
+	if c == &"rift":
 		return "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆" % r
 	return "멈춘 곳 " + _square(r)
 

@@ -57,7 +57,7 @@ const QUAKE_STUN := [1, 1, 2, 2, 3]
 const ROOT_REACH := [4, 6, 8, 10, 12]
 const ROOT_COUNT := [1, 2, 0, 0, 0]
 const ROOT_ROUNDS := [2, 3, 4, 5, 6]
-## The level of 철뿌리's roots, which grow no deeper with more 나무.
+## The level of 속박's roots, which grow no deeper with more 나무.
 const ROOTS_LEVEL := 3
 ## How far a fan of fire, or 들불, is heard.
 const HUSH := 2
@@ -95,7 +95,7 @@ const SHAPE := {
 	&"steam": [BURST, 3, 1],
 	&"mud": [BURST, 2, 1],
 	&"thorn": [FAN_SHAPE, 2],
-	&"split": [CLEAVE, 3],
+	&"rift": [CLEAVE, 3],
 	&"volcano": [BURST, 3, 2],
 	&"furnace": [BORE, 6],
 	&"hail": [BURST, 3, 2],
@@ -107,7 +107,7 @@ const SHAPE := {
 	&"palisade": [ACROSS, 2, 3],
 	&"beacon": [BURST, 6, 1],
 	&"ironrain": [BURST, 4, 2],
-	&"ironroot": [ROOTS, 0],
+	&"bind": [ROOTS, 0],
 	&"magpie": [LINE, 8],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],
@@ -126,8 +126,8 @@ const NAME := {
 	Cards.FIRE: ["불길", "불길", "불길", "불길", "불길"],
 	Cards.WATER: ["물줄기", "물줄기", "물줄기", "물줄기", "물줄기"],
 	Cards.METAL: ["권총", "산탄", "산탄", "산탄", "산탄"],
-	Cards.EARTH: ["땅울림", "땅울림", "땅울림", "땅울림", "땅울림"],
-	Cards.WOOD: ["뿌리", "뿌리", "뿌리", "뿌리", "뿌리"],
+	Cards.EARTH: ["지진", "지진", "지진", "지진", "지진"],
+	Cards.WOOD: ["덩굴", "덩굴", "덩굴", "덩굴", "덩굴"],
 }
 
 ## Tiles roots grow under: ground, not bridges.
@@ -142,13 +142,13 @@ static func called(spell: Spell) -> String:
 	return NAME[spell.slots[0]][level - 1] if level > 0 else ""
 
 
-## How far the cast is heard: anything with 물, roots, 벽 가르기 and 봉화 (which
+## How far the cast is heard: anything with 물, roots, 균열 and 봉화 (which
 ## is heard where it lands) are silent, the BOOMS loud, guns, quakes and
 ## anything else with 쇠 or 흙 loud, fire hushed.
 static func noise(spell: Spell) -> int:
 	if spell.slots[0] in BOOMS:
 		return Compounds.BOOM
-	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"split", &"beacon"]:
+	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"rift", &"beacon"]:
 		return 0
 	if spell.holds(Cards.METAL) or spell.holds(Cards.EARTH):
 		return GUN_LOUD

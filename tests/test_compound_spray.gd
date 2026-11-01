@@ -75,7 +75,7 @@ func test_every_compound_has_its_shape() -> void:
 	for c in [[FIRE, EARTH], [METAL, WATER], [FIRE, METAL]]:
 		assert_eq(_cover(w, c), Spray.line(w, ME, E, 4, false), str(c))
 		assert_eq(_cover(w, c).size(), 4)
-	assert_true(_cover(w, [WOOD, EARTH]).is_empty(), "벽 가르기 with no wall near")
+	assert_true(_cover(w, [WOOD, EARTH]).is_empty(), "균열 with no wall near")
 	assert_eq(Spray.square(w, ME).size(), 9)
 
 

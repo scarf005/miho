@@ -202,15 +202,15 @@ func test_ironrain_leaves_hot_iron_and_steam_over_a_5x5() -> void:
 	assert_false(w.hot.has(ME + E), "short of it")
 
 
-func test_ironroot_roots_and_hurts_the_foes_in_reach_and_leaves_the_far_ones() -> void:
+func test_bind_roots_and_hurts_the_foes_in_reach_and_leaves_the_far_ones() -> void:
 	var w := _world()
 	var near := _post(w, ME + E * 3)
 	var side := _post(w, ME + Vector2i(-4, 3))
 	var far := _post(w, ME + Vector2i(15, 0))
-	w.act(_cast(_made(&"ironroot")))
+	w.act(_cast(_made(&"bind")))
 	for foe in [near, side]:
-		assert_eq(foe.hp, foe.max_hp - Compounds.IRONROOT_HARM)
-		assert_eq(foe.rooted, Compounds.IRONROOT - 1)
+		assert_eq(foe.hp, foe.max_hp - Compounds.BIND_HARM)
+		assert_eq(foe.rooted, Compounds.BIND - 1)
 	assert_eq([far.hp, far.rooted], [far.max_hp, 0], "past eight steps")
 
 
