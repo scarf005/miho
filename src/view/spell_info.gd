@@ -165,10 +165,10 @@ static func _spray(s: Spell) -> Array:
 	match c:
 		Cards.FIRE:
 			var out := _lines(_fan(Spray.FAN[i])) + [_line("불", "가연성 칸", color)]
-			if level >= 2:
+			out.append(_line("켬", "꺼진 등불", color))
+			if level >= 3:
 				out.append(_line(ALIGHT_ON[0], ALIGHT_ON[1], color))
 				out.append(_line("피해", "다음 초부터 매 초 %d" % World.FIRE_DAMAGE, Palette.HURT))
-			if level >= 3:
 				out.append(_line("번짐", "늘", color))
 			return out
 		Cards.WATER:
@@ -238,7 +238,7 @@ static func _compound(s: Spell) -> Array:
 	for c in s.compounds():
 		lines.append_array(_lines(compound(c), Palette.card(c)))
 	var plain := {
-		Cards.FIRE: [["불", "가연성 칸, 나무 적"]],
+		Cards.FIRE: [["불", "가연성 칸, 나무 적"], ["켬", "꺼진 등불"]],
 		Cards.WATER: [["끔", "불, 등불"], ["밀침", "%d칸" % (1 + s.extra(Cards.WATER))]],
 		Cards.WOOD: [["묶음", "%d초" % (Elements.ROOT + s.extra(Cards.WOOD))]],
 		Cards.METAL: [["피해", "%d" % s.count(Cards.METAL)]],

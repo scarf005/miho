@@ -117,7 +117,7 @@ func test_a_creature_still_sees_her_from_the_next_tile_but_not_from_afar() -> vo
 
 func test_a_fire_lit_in_the_dark_ends_the_shadow() -> void:
 	var w := _world()
-	w.set_tile(ME + Vector2i(2, 0), World.GRASS)
+	w.set_tile(ME + Vector2i(1, 0), World.GRASS)
 	w.act(_self([FOX, WATER]))
 	var id := _shadow(w).id
 	var before := w.clone()

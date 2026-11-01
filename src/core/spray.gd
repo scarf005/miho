@@ -4,9 +4,9 @@ extends RefCounted
 ## cast, with no projectile, and emits one `spray` event with them. Its first
 ## slot sets the shape. A lone element has its own gimmick, one level up for
 ## every copy (Spell.level, up to 3):
-## 불 a 90° fan over the tiles the caster sees (radius FAN): level 1 sets what
-## burns alight, level 2 also the creatures in it (Status), and at
-## level 3 the fire always spreads.
+## 불 a 90° fan over the tiles the caster sees (radius FAN): levels 1 and 2 set
+## what burns alight, level 3 also the creatures in it (Status), and the fire
+## always spreads. Any spray of fire relights the dark lanterns it reaches.
 ## 물 a jet along the line (JET tiles) up to the first creature, which it
 ## pushes PUSH tiles (World.push); level 3 goes on through and pushes every
 ## creature on it. It douses fire and lanterns, wets drums, washes scent away.
@@ -28,7 +28,7 @@ extends RefCounted
 ## alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots, 쇠
 ## hurts 1 for each 쇠 (Elements.strike does the creature part).
 
-const FAN := [2, 3, 4]
+const FAN := [1, 2, 4]
 const JET := [4, 6, 8]
 const PUSH := [1, 2, 3]
 const GUN_LOUD := 9
@@ -128,6 +128,8 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		}
 	)
 	w.noise(caster.pos, noise(spell), _word(spell), caster.faction == Actor.FOX, caster.id)
+	if Terrain.lights(spell):
+		_relight(w, caster, tiles)
 	if level == 0:
 		_compound(w, s, tiles)
 		return
@@ -145,6 +147,16 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 				if reaches(w, s, a):
 					Elements.root(w, a, ROOT_ROUNDS[level - 1])
 					Mind.struck(w, a, s)
+
+
+## Relights the dark lanterns the caster sees on or next to the tiles covered:
+## a lantern stops a spray, so it is never among them when a line ends at it.
+static func _relight(w: World, caster: Actor, tiles: Array[Vector2i]) -> void:
+	var view := w.fov(caster.pos)
+	for p in tiles:
+		for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
+			if Grid.inside(p + d) and view[Grid.index(p + d)] == 1:
+				Terrain.relight(w, p + d)
 
 
 ## The tiles the spray covers.
@@ -357,11 +369,11 @@ static func _tell(w: World, s: Shot, a: Actor) -> void:
 static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for p in tiles:
 		w.ignite(p, false, level >= 3)
-	if level < 2:
+	if level < 3:
 		return
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
-			Status.ignite(w, a, level >= 3)
+			Status.ignite(w, a, true)
 			Mind.struck(w, a, s)
 
 

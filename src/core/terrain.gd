@@ -112,9 +112,12 @@ static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;
 ## one of 흙 or 쇠 hits a wall till it falls (Elements.fells). A wall thuds and
-## a window clangs. A lantern breaks outright, so no one can light it again.
+## a window clangs. A lantern breaks outright, so no one can light it again,
+## but an orb of fire lights a dark one instead.
 static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
-	if not s.spell.has(Cards.WATER) and w.tile(at) == struck and breakable(w, at):
+	if lights(s.spell) and struck == World.LANTERN_OUT:
+		relight(w, at)
+	elif not s.spell.has(Cards.WATER) and w.tile(at) == struck and breakable(w, at):
 		hit(w, at, World.LANTERN_BROKEN if lantern(struck) else -1)
 		while Elements.fells(s.spell) and wall(w.tile(at)) and breakable(w, at):
 			hit(w, at)
@@ -135,14 +138,25 @@ static func hit(w: World, at: Vector2i, to := -1) -> void:
 	Structures.broke(w, was, at)
 
 
+## Whether a spell lights what it reaches: any with fire, but steam.
+static func lights(spell: Spell) -> bool:
+	return spell.holds(Cards.FIRE) and not spell.holds(Cards.WATER)
+
+
+## Lights the lantern at `p` if it is dark.
+static func relight(w: World, p: Vector2i) -> void:
+	if w.tile(p) == World.LANTERN_OUT:
+		w.set_tile(p, World.LANTERN)
+		w.emit({t = &"relight", at = p})
+
+
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,
 ## and water douses lit lanterns and flames and washes away Miho's scent there.
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
 		var p := at + d
-		if s.spell.has(Cards.FIRE) and w.tile(p) == World.LANTERN_OUT and p != struck:
-			w.set_tile(p, World.LANTERN)
-			w.emit({t = &"relight", at = p})
+		if lights(s.spell) and p != struck:
+			relight(w, p)
 		if s.spell.has(Cards.WATER):
 			wash(w, p)
 

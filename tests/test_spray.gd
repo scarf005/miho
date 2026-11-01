@@ -110,21 +110,21 @@ func test_a_fire_fan_stops_at_a_wall() -> void:
 
 func test_one_fire_lights_only_what_burns_and_harms_no_one() -> void:
 	var w := _world()
-	_put(w, ME + Vector2i(2, 1), World.BAMBOO)
-	var foe := _post(w, ME + Vector2i(2, 0))
+	_put(w, ME + Vector2i(1, 1), World.BAMBOO)
+	var foe := _post(w, ME + Vector2i(1, 0))
 	var events := w.act(_cast([FIRE]))
 	assert_eq(_of(events, &"spray").size(), 1)
-	assert_true(w.burning.has(ME + Vector2i(2, 1)), "bamboo burns")
+	assert_true(w.burning.has(ME + Vector2i(1, 1)), "bamboo burns")
 	assert_false(w.burning.has(foe.pos), "the floor under the creature does not")
 	assert_eq(foe.hp, foe.max_hp)
 	assert_true(_of(events, &"hit").is_empty())
 
 
-func test_two_fires_set_the_creatures_in_the_fan_alight() -> void:
+func test_three_fires_set_the_creatures_in_the_fan_alight() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(3, 1))
-	w.act(_cast([FIRE, FIRE]))
-	assert_gt(foe.alight, 0, "radius 3 reaches it")
+	w.act(_cast([FIRE, FIRE, FIRE]))
+	assert_gt(foe.alight, 0, "radius 4 reaches it")
 	assert_eq(foe.hp, foe.max_hp, "and it burns from the next round")
 	w.act(WAIT)
 	assert_eq(foe.hp, foe.max_hp - World.FIRE_DAMAGE)

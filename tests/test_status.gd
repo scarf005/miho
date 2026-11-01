@@ -309,7 +309,7 @@ func test_fire_that_does_not_harm_wood_still_sets_it_alight() -> void:
 
 
 func test_the_preview_shows_who_catches_alight() -> void:
-	for q in [[FOX, FIRE], [FIRE, FIRE], [Cards.WOOD, FIRE], [ORB, FIRE]]:
+	for q in [[FOX, FIRE], [FIRE, FIRE, FIRE], [Cards.WOOD, FIRE], [ORB, FIRE]]:
 		var w := _world()
 		_post(w, ME + E * 2, &"cheonha")
 		_post(w, ME + Vector2i(2, 1))
@@ -372,7 +372,7 @@ func test_fire_thaws_a_frozen_creature_instead_of_setting_it_alight() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2)
 	Status.freeze(w, foe, Compounds.FROST)
-	var events := w.act(_cast([FIRE, FIRE]))
+	var events := w.act(_cast([FIRE, FIRE, FIRE]))
 	assert_eq(_of(events, &"thaw").size(), 1)
 	assert_eq([foe.frozen, foe.rooted, foe.alight], [0, 0, 0])
 
@@ -416,7 +416,7 @@ func test_the_preview_shows_the_ice_and_its_doubled_harm() -> void:
 	w = _world()
 	Status.soak(w, _post(w, ME + E * 2))
 	_forecast_is_the_round(w, _cast(FROST))
-	_forecast_is_the_round(w, _cast([FIRE, FIRE]))
+	_forecast_is_the_round(w, _cast([FIRE, FIRE, FIRE]))
 
 
 func test_the_hover_and_the_log_tell_of_ice() -> void:

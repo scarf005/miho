@@ -199,7 +199,7 @@ func test_fire_relights_a_dark_lantern_but_not_rubble() -> void:
 	orb.act(_cast([ORB, Cards.FIRE], E))
 	orb.act(WAIT)
 	orb.act(WAIT)
-	assert_eq(orb.tile(Vector2i(10, 8)), World.LANTERN_BROKEN, "struck, not relit")
+	assert_eq(orb.tile(Vector2i(10, 8)), World.LANTERN, "fire lights what it strikes")
 
 
 func test_a_searcher_relights_a_dark_lantern_but_not_rubble() -> void:
