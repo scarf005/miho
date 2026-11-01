@@ -188,12 +188,10 @@ func test_a_clone_keeps_the_site() -> void:
 # --- what the hover says -----------------------------------------------------
 
 
-func test_hovering_the_beast_tells_what_its_fall_brings() -> void:
+func test_hovering_the_beast_keeps_what_its_fall_brings_a_secret() -> void:
 	var w := _floor()
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	w.seen = w.known.duplicate()
-	assert_string_contains(Info.plain(Info.creature(w, _beast(w))), "처치: 꼬리 모두 회복")
-	var plain := FloorGen.spawn(w, &"haetae", Vector2i(5, 7))
-	assert_false(Info.plain(Info.creature(w, plain)).contains("꼬리 모두"))
+	assert_false(Info.plain(Info.creature(w, _beast(w))).contains("꼬리 모두"))
 	assert_string_contains(Info.plain(Info.terrain(w, Vector2i(14, 7))), "발소리: 3칸")

@@ -268,14 +268,14 @@ func test_the_preview_of_a_water_jet_equals_the_round() -> void:
 # --- what the hover says -----------------------------------------------------
 
 
-func test_hovering_the_veil_tells_the_harm_and_how_to_put_it_out() -> void:
+func test_hovering_the_veil_tells_the_harm_but_not_how_to_put_it_out() -> void:
 	var w := _world()
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, Vector2i(LINE_X, 12)))
 	assert_string_contains(text, "도깨비불 장막")
 	assert_string_contains(text, "곁 피해: 매 초 %d" % World.FIRE_DAMAGE)
-	assert_string_contains(text, "물: 재가 됨\n서리: 얼음이 됨")
+	assert_false(text.contains("재가 됨") or text.contains("얼음이 됨"), text)
 	assert_string_contains(text, "빛: %d칸" % Light.LANTERN_RADIUS)
 
 
@@ -293,7 +293,7 @@ func test_a_creature_beside_the_veil_says_so_on_hover() -> void:
 func test_the_codex_lists_the_veil_by_what_it_is() -> void:
 	var entry := Codex.entries(4).filter(func(e): return e.name == "도깨비불 장막")
 	assert_eq(entry.size(), 1)
-	assert_string_contains(Info.plain(Codex.detail(entry[0])), "물: 재가 됨\n서리: 얼음이 됨")
+	assert_string_contains(Info.plain(Codex.detail(entry[0])), "곁 피해: 매 초 %d" % World.FIRE_DAMAGE)
 
 
 func test_travel_will_not_walk_beside_the_veil() -> void:

@@ -226,16 +226,13 @@ func test_a_push_onto_the_stand_gives_it_too() -> void:
 # --- what the hover says -----------------------------------------------------
 
 
-func test_hovering_the_stand_names_the_talisman_it_gives() -> void:
+func test_hovering_the_stand_keeps_what_it_gives_a_secret() -> void:
 	var w := _yard(Cards.FIRE)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, STAND))
 	assert_string_contains(text, "부적 단")
-	assert_string_contains(text, "밟으면: 아직 없는 원소 부적 하나\n횟수: 한 번")
-	assert_string_contains(text, "얻는 부적: 불")
-	w.cards.assign(Cards.ALL)
-	assert_string_contains(Info.plain(Info.terrain(w, STAND)), "얻는 부적: 없음")
+	assert_false(text.contains("밟으면") or text.contains("얻는 부적"), text)
 
 
 func test_hovering_the_guard_says_it_does_not_sleep() -> void:

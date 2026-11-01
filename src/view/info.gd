@@ -49,7 +49,7 @@ static func at(w: World, p: Vector2i) -> Array:
 static func creature(w: World, a: Actor) -> Array:
 	if a.faction == Actor.FOX:
 		return _miho(w, a, _head(a))
-	return _profile(a) + _situation(w, a) + _site_lines(w, a) + _arms(a, w.cards)
+	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
 
 
 ## What a creature is, whatever its state: the 도감's text. `held` are the
@@ -368,7 +368,6 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력: +%d" % World.HEAL, "가득 찼을 때 최대 체력: +%d" % World.HEAL]
-	notes.append_array(_sites(w, p))
 	var head := [[name, Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])
@@ -419,27 +418,6 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 	return [[["젖으면: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]]]
 
 
-## What the creature's fall would bring in an event room (Creak).
-static func _site_lines(w: World, a: Actor) -> Array:
-	var out := []
-	for site: Dictionary in w.sites:
-		if site.kind == &"creak" and site.id == a.id:
-			out.append([["처치: 꼬리 모두 회복", Palette.TEXT]])
-	return out
-
-
-## How the event room whose tile p is stands now (EventRooms).
-static func _sites(w: World, p: Vector2i) -> Array[String]:
-	var out: Array[String] = []
-	for site: Dictionary in w.sites:
-		if site.at == p and site.kind == &"altar":
-			out.append("쓰러진 생물: %d/%d" % [site.fallen, Altar.NEED])
-		if site.at == p and site.kind == &"yard":
-			var card := Yard.prize(w, site)
-			out.append("얻는 부적: %s" % (Cards.NAME[card] if card != &"" else "없음"))
-	return out
-
-
 ## What a kind of tile does, an `이름: 값` line or a tag each; numbers from the
 ## rules, a shared rule as its glossary tag.
 static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
@@ -447,10 +425,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	match t:
 		World.ALTAR:
 			out.append("막음: 길, 주문")
-			out.append("타오름: 주위 %d칸 안에서 하늘의 생물 %d번 쓰러짐" % [Altar.REACH, Altar.NEED])
-			out.append("추락: 쓰러짐으로 셈")
-			out.append("타오르면: 꼬리 모두 회복")
-			out.append("타오르면: 이 층에서 꼬리 +1")
 		World.ALTAR_LIT:
 			out.append("막음: 길, 주문")
 			out.append("빛: %d칸" % Light.SOUL_RADIUS)
@@ -459,18 +433,10 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 			out.append("부술 수 없음.")
 			out.append("꺼지지 않음.")
 			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
-		World.TALISMAN:
-			out.append("밟으면: 아직 없는 원소 부적 하나")
-			out.append("횟수: 한 번")
-		World.SHELF:
-			out.append("밟으면: 이 층의 지도")
-			out.append("횟수: 서고에서 한 번")
 		World.VEIL:
 			out.append("막음: 길, 주문")
 			out.append("빛: %d칸" % Light.LANTERN_RADIUS)
 			out.append("곁 피해: 매 초 %d" % World.FIRE_DAMAGE)
-			out.append("물: 재가 됨")
-			out.append("서리: 얼음이 됨")
 		World.DOOR:
 			out.append("막음: 시야")
 			out.append("소리: 여닫을 때 %d칸" % Terrain.SLIDE)
@@ -517,11 +483,9 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		World.COURTYARD:
 			out.append("달빛에 드러남.")
 		World.BOARD_ROTTEN:
-			out.append("벗어난 뒤: 하늘")
 			out.append("소리: %d칸" % Terrain.CRACK)
 		World.STATUE:
 			out.append("막음: 길")
-			out.append("깨어남: %s, %d칸 안" % [Bestiary.info(Statues.KIND).name, Statues.REACH])
 		World.POND:
 			out.append("넘어감: 주문, 멀리뛰기만")
 		World.SKY:
@@ -553,8 +517,6 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 	if Terrain.wall(t) and breakable:
 		out.append("부서짐: 구슬")
 		out.append("부서질 때 소리: %d칸" % World.THUD)
-		if Tiles.of(t, "breaks_to") != World.RUBBLE:
-			out.append("%s, %s 구슬: 한 번에 무너짐" % [Cards.NAME[Cards.EARTH], Cards.NAME[Cards.METAL]])
 	elif Terrain.wall(t):
 		out.append("부술 수 없음.")
 	if Terrain.knockable(t) and t != World.DRUM:
@@ -596,9 +558,6 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append(_amount("피해: 매 초 ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
 		out.append([["북 적심: %d초 소리 없음" % Drums.WET_ROUNDS, Palette.DIM]])
-	if Gas.of(g.x, "explodes"):
-		out.append(_amount("폭발 피해: ", Gas.BLAST))
-		out.append([["폭발 범위: 이어진 구름 전체", Palette.DIM]])
 	if Gas.of(g.x, "erases"):
 		out.append([["냄새: 지움", Palette.DIM]])
 	return out

@@ -256,6 +256,8 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 			assert_string_contains(text, part)
 	var ash := _seen_tile(w, World.ASH)
 	assert_false(Info.plain(Info.terrain(w, ash)).contains("가연성"), "ash does not burn again")
+	var wall := Info.plain(Info.terrain(w, _seen_tile(w, World.WALL)))
+	assert_false(wall.contains("한 번에"), "the spell tells what breaks a wall at once")
 	var glossary := "\n".join(Info.glossary()["가연성"])
 	assert_string_contains(glossary, "탐: %d초\n그 뒤: 재" % World.BURN_ROUNDS)
 	assert_string_contains(glossary, "초당 %d%%" % roundi(Tiles.DEFAULT.spread * 100))

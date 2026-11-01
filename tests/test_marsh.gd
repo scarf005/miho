@@ -95,9 +95,9 @@ func test_a_burning_tile_beside_the_cloud_sets_it_off_in_the_round_the_gas_reach
 	assert_false(w.gas.has(AT))
 
 
-func test_the_hover_of_the_gas_gives_the_blast() -> void:
+func test_the_hover_of_the_gas_keeps_the_blast_a_secret() -> void:
 	var w := _world()
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "늪 가스")
-	assert_string_contains(text, "폭발 피해: %d" % Gas.BLAST)
+	assert_false(text.contains("폭발"), text)
 	assert_string_contains(text, "시야 막음: 없음")

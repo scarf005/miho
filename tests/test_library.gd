@@ -197,13 +197,13 @@ func test_boards_straw_and_shelves_burn_and_catch_fire_more_readily_than_grass()
 # --- what the hover says -----------------------------------------------------
 
 
-func test_hovering_a_shelf_tells_what_reading_it_does() -> void:
+func test_hovering_a_shelf_keeps_what_reading_it_does_a_secret() -> void:
 	var w := _library()
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	var text := Info.plain(Info.terrain(w, Vector2i(SHELVES[0], ROOM.position.y)))
 	assert_string_contains(text, "두루마리 서가")
-	assert_string_contains(text, "밟으면: 이 층의 지도\n횟수: 서고에서 한 번")
+	assert_false(text.contains("밟으면") or text.contains("지도"), text)
 
 
 func test_the_codex_lists_both_shelves_by_what_they_are() -> void:
