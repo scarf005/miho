@@ -195,7 +195,7 @@ static func _shot(k: World, s: Shot) -> String:
 			s.spell.title(),
 			NAMES.get(s.dir, "none"),
 			s.spell.damage(s.distance()),
-			s.spell.speed() if s.dir != Vector2i.ZERO else 0
+			s.pace() if s.dir != Vector2i.ZERO else 0
 		]
 	)
 	var t := k.actor(s.target)

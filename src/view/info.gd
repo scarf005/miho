@@ -427,7 +427,12 @@ static func _spell_details(s: Spell) -> Array[String]:
 		out.append("회전: 칸당 " + SpellInfo._turn(s.turn()))
 	if SpellInfo.elements(s) != "":
 		out.push_front("원소: " + SpellInfo.elements(s))
-	if s.orb and s.has(Cards.FIRE):
+	if s.accel() > 0:
+		out.append("%s: 초당 %d칸" % [SpellInfo.ACCEL, s.accel()])
+	if s.edged():
+		for part: Array in SpellInfo.blast(s):
+			out.append("%s: %s" % part)
+	elif s.orb and s.has(Cards.FIRE):
 		out.append("폭발 피해: %d" % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
 	for c in s.compounds():
 		for part: Array in SpellInfo.compound(c):

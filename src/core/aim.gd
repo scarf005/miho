@@ -108,7 +108,7 @@ static func _departs(w: World, a: Actor, plan: Dictionary) -> Array:
 	var spell := Spell.make(plan.cards)
 	if spell.shape == Spell.SPRAY:
 		return []
-	var heads := Homing.headings(w, a, plan.dir, Homing.targets(w, a, spell))
+	var heads := Homing.headings(w, a, spell, plan.dir, Homing.targets(w, a, spell, plan.dir))
 	return heads.map(func(h): return a.pos + h)
 
 

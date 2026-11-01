@@ -9,7 +9,8 @@ extends RefCounted
 ## a copy. Both set alight what burns where they fly and end.
 ## 물: silent. Where it ends it douses lanterns and fire in the 3x3 round it,
 ## the struck creature's tile among them (Terrain.touch). A wisp of it carries
-## darkness.
+## darkness. An orb of it pushes the creature it strikes Spray.PLAIN_PUSH tiles
+## (World.push), a tile more a copy.
 ## 쇠: a gun. A wisp is a bullet: BULLET harm, Spell.BULLET_SPEED, no light,
 ## heard Spray.GUN_LOUD. An orb is a cannonball: CANNON more harm, it pushes
 ## the creature it strikes CANNON_PUSH tiles (World.push), but for a 비격진,
@@ -50,6 +51,8 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	if a.alive():
 		if spell.orb and spell.has(Cards.METAL) and not spell.mortar():
 			w.push(a, s.dir, CANNON_PUSH)
+		if spell.orb and spell.has(Cards.WATER) and a.alive():
+			w.push(a, s.dir, Spray.PLAIN_PUSH + spell.extra(Cards.WATER))
 		if not spell.orb and spell.has(Cards.WOOD):
 			root(w, a, ROOT + spell.extra(Cards.WOOD))
 		if not spell.orb and spell.has(Cards.EARTH):
@@ -88,11 +91,14 @@ static func stun(w: World, a: Actor, rounds: int) -> void:
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
 
 
-## A fire orb bursts at `at`: each of the eight tiles round it catches fire,
-## each creature there but `center` that does not eat it is hurt for
-## World.FIRE_DAMAGE and a copy more (twice over when weak) and, if wooden,
-## burns, and each wisp there goes out.
+## An orb that blasts (Spell.blasts) ends at `at`: each creature in the eight
+## tiles round it but `center` that does not eat it is hurt for Spell.blast
+## (twice over when weak). A fire orb also sets those tiles alight, burns the
+## wooden creatures there and puts out each wisp.
 static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
+	var spell := s.spell
+	var fire := spell.has(Cards.FIRE)
+	var n := spell.blast(spell.damage(Grid.cheb(s.origin, at)))
 	w.emit(
 		{
 			t = &"splash",
@@ -105,21 +111,20 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 	)
 	for d in Grid.DIRS:
 		var p := at + d
-		w.ignite(p)
+		if fire:
+			w.ignite(p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
-			if Bestiary.absorbs(b.kind, s.spell):
+			if Bestiary.absorbs(b.kind, spell):
 				w.emit({t = &"absorb", id = b.id, at = p})
 			else:
-				var weak := Bestiary.weak(b.kind, s.spell)
-				w.hurt(
-					b, (World.FIRE_DAMAGE + s.spell.extra(Cards.FIRE)) * (WEAK if weak else 1), weak
-				)
-				if Bestiary.burns(b.kind):
+				var weak := Bestiary.weak(b.kind, spell)
+				w.hurt(b, n * (WEAK if weak else 1), weak)
+				if fire and Bestiary.burns(b.kind):
 					Status.ignite(w, b)
 			Mind.struck(w, b, s)
 		var o := w.shot_at(p, s)
-		if o != null and not o.spell.orb:
+		if fire and o != null and not o.spell.orb:
 			o.gone = true
 			w._changed()
 			w.emit({t = &"snuff", shot = o.id, at = p})

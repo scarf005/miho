@@ -67,7 +67,8 @@ func test_the_first_rank_keeps_every_kind_as_it_was() -> void:
 	for kind in Codex.foes():
 		var a := FloorGen.spawn(_world(2), kind, Vector2i(20, 8))
 		assert_eq(a.rank, 1, kind)
-		assert_eq(a.repertoire(), Bestiary.info(kind).get("casts", []), kind)
+		var first: Array = Bestiary.info(kind).get("casts", [])
+		assert_eq(a.repertoire(), first.map(func(cast): return Bestiary.tiered(cast, 1)), kind)
 
 
 func _health(kind: StringName) -> Array:

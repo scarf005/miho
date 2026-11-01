@@ -137,7 +137,8 @@ func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 	var events := w.act(WAIT)
 	assert_eq(watcher.alert, Actor.HUNT)
 	assert_has(_types(events), &"notice")
-	assert_eq(watcher.intent.map(func(p): return p.cards), [[ORB]], "it sees her and charges")
+	var charged := Bestiary.casts(&"jangseung", watcher.rank)
+	assert_eq(watcher.intent.map(func(p): return p.cards), charged, "it sees her and charges")
 	var close := _world(Vector2i(7, 8))
 	var other := _lookout(close, &"jangseung", Vector2i(8, 8))
 	close.act(WAIT)
@@ -291,7 +292,9 @@ func test_a_hunter_telegraphs_its_orb_and_a_side_step_dodges_it() -> void:
 		w.act(WAIT if stay else {t = &"move", dir = N})
 		w.act(WAIT)
 		w.act(WAIT)
-		assert_eq(w.player().hp, 1 if stay else 3, "an orb from five tiles hits for 2")
+		var orb := Spell.make(Bestiary.casts(&"jangseung", 1)[0])
+		var left := maxi(0, 3 - orb.damage(5))
+		assert_eq(w.player().hp, left if stay else 3, "an orb from five tiles hits for its tier")
 
 
 func test_a_blind_hunter_cannot_strike_back_and_takes_a_plain_claw() -> void:

@@ -687,11 +687,15 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	if spell.gun():
 		flares.append(caster.pos)
 	noise(caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id)
-	var targets := Homing.targets(self, caster, spell)
-	var heads := Homing.headings(self, caster, dir, targets)
+	var targets := Homing.targets(self, caster, spell, dir)
+	var heads := Homing.headings(self, caster, spell, dir, targets)
 	for i in heads.size():
 		var s := _spawn(caster, spell, heads[i], targets[i])
-		if heads[i] == dir:
+		if spell.orb:
+			# An orb that leaves on the line of one before it trails it from the caster.
+			if not heads.slice(0, i).has(heads[i]):
+				_step(s)
+		elif heads[i] == dir:
 			_step(s)
 		else:
 			_fly(s, s.pos + s.dir)
@@ -726,10 +730,16 @@ func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 
 
 func _shots_phase() -> void:
-	for sub in Spell.BULLET_SPEED:
+	var top := Spell.BULLET_SPEED
+	for s: Shot in shots:
+		top = maxi(top, s.pace())
+	for sub in top:
 		for s: Shot in shots.duplicate():
-			if not s.gone and sub < s.spell.speed() and s.dir != Vector2i.ZERO and not rides(s):
+			if not s.gone and sub < s.pace() and s.dir != Vector2i.ZERO and not rides(s):
 				_step(s)
+	for s: Shot in shots:
+		if not s.gone and s.dir != Vector2i.ZERO and not rides(s):
+			s.age += 1
 	_prune()
 
 
@@ -804,7 +814,7 @@ func _burst(s: Shot) -> void:
 	s.gone = true
 	_changed()
 	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
-	if s.spell.has(Cards.FIRE):
+	if s.spell.blasts():
 		Elements.splash(self, s, s.pos, null)
 	_effects(s, s.pos, s.pos + s.dir)
 
@@ -843,7 +853,7 @@ func _strike(s: Shot, a: Actor) -> void:
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
 		return
-	if spell.orb and spell.has(Cards.FIRE):
+	if spell.blasts():
 		Elements.splash(self, s, at, a)
 	_effects(s, at)
 	if not spell.orb and not spell.gun():

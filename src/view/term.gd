@@ -347,10 +347,13 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"trap":
 			_flash(at, Color(Palette.TILES[e.kind][1], 0.6))
 		&"splash":
+			var glow: Color = (
+				Palette.BURNING[1] if Spell.make(e.cards).has(Cards.FIRE) else Color.WHITE
+			)
 			_flash(at, Color(1.0, 0.95, 0.7, 0.95))
 			for d in Grid.DIRS:
-				_flash(at + d, Color(Palette.BURNING[1], 0.85), 0.07)
-			_flash(at, Color(Palette.BURNING[1], 0.9), 0.14)
+				_flash(at + d, Color(glow, 0.85), 0.07)
+			_flash(at, Color(glow, 0.9), 0.14)
 		&"die":
 			_actors.erase(e.id)
 		&"spray":

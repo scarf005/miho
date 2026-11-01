@@ -7,7 +7,11 @@ extends RefCounted
 ## At the cast the caster's foes in its sight line up by (distance, id). A
 ## homing orb takes the nearest. Wisps fill each foe in turn up to what its
 ## health needs (harmless wisps all take the nearest), and the wisps left over
-## go to the nearest. A projectile whose creature has fallen, or that had none,
+## go to the nearest. The orbs of a cast of several (Spell.shots) spread among
+## the foes within an arc round the cast line instead (`spread`), each leaving
+## straight at its own (`headings`), one on the line of another trailing it;
+## wisps keep their own way, which reads health and not the line. A projectile
+## whose creature has fallen, or that had none,
 ## takes the nearest foe it sees from where it is; others keep theirs.
 ##
 ## Each wisp of a cast leaves the caster on a tile of its own next to it, as
@@ -32,13 +36,22 @@ extends RefCounted
 
 ## Turns tried, in steps of Spell.TURN_STEP from the heading.
 const TURNS := [0, -1, 1, -2, 2, -3, 3, 4]
+## The arcs, in degrees across the line of a cast, that the orbs of one cast
+## spread among (`spread`): the narrowest that holds as many creatures as it
+## has orbs, else the widest.
+const ARCS := [30, 45, 90, 120, 180]
+## Degrees of slack, so a creature exactly on the edge of an arc is inside it.
+const ARC_SLACK := 0.001
 
 
-## The creature id each projectile of `spell` cast by `caster` goes for, 0 for none.
-static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
+## The creature id each projectile of `spell` cast by `caster` along `dir` goes
+## for, 0 for none. The orbs of a cast of several spread among the creatures in
+## an arc round `dir` (`spread`).
+static func targets(w: World, caster: Actor, spell: Spell, dir := Vector2i.ZERO) -> Array[int]:
 	var out: Array[int] = []
 	out.resize(spell.shots())
-	if spell.turn() == 0:
+	var twins := spell.orb and out.size() > 1
+	if spell.turn() == 0 and not twins:
 		return out
 	var rival := caster.rival if caster.fighting() else 0
 	var foes := w.actors.filter(
@@ -49,6 +62,8 @@ static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
 	foes.sort_custom(func(a, b): return _closer(caster.pos, a, b))
 	if foes.is_empty():
 		return out
+	if twins:
+		return spread(caster, foes, dir, out.size())
 	var i := 0
 	for a: Actor in foes:
 		var need := ceili(float(a.hp) / maxi(1, spell.damage(0)))
@@ -60,11 +75,42 @@ static func targets(w: World, caster: Actor, spell: Spell) -> Array[int]:
 	return out
 
 
+## The creature id each of `n` orbs goes for: the creatures of `foes` (nearest
+## first) within the narrowest of ARCS round `dir` that holds `n` of them, one
+## orb each in turn; none when no creature lies in the widest arc.
+static func spread(caster: Actor, foes: Array, dir: Vector2i, n: int) -> Array[int]:
+	var aim := dir if dir != Vector2i.ZERO else Grid.nearest_dir(foes[0].pos - caster.pos)
+	var inside := []
+	for arc: int in ARCS:
+		inside = foes.filter(func(a): return _off(caster.pos, aim, a.pos) <= arc / 2.0 + ARC_SLACK)
+		if inside.size() >= n:
+			break
+	var out: Array[int] = []
+	out.resize(n)
+	if not inside.is_empty():
+		for i in n:
+			out[i] = inside[i % inside.size()].id
+	return out
+
+
+## Degrees between the line `aim` and the direction from `from` to `p`.
+static func _off(from: Vector2i, aim: Vector2i, p: Vector2i) -> float:
+	return absf(rad_to_deg(Vector2(aim).angle_to(Vector2(p - from))))
+
+
 ## The direction each projectile `caster` casts towards `dir` leaves it in, for
-## the creatures `targets` it goes for.
+## the creatures `targets` it goes for. The orbs of a cast of several leave
+## straight at their creatures (the first of a line first, the rest trailing it),
+## on `dir` for one with none.
 static func headings(
-	w: World, caster: Actor, dir: Vector2i, targets: Array[int]
+	w: World, caster: Actor, spell: Spell, dir: Vector2i, targets: Array[int]
 ) -> Array[Vector2i]:
+	if spell.orb and spell.shots() > 1:
+		var lines: Array[Vector2i] = []
+		for id in targets:
+			var t := w.actor(id)
+			lines.append(Grid.nearest_dir(t.pos - caster.pos) if t != null else dir)
+		return lines
 	var free: Array[Vector2i] = []
 	var i := maxi(0, Grid.DIRS.find(dir))
 	for k: int in TURNS.slice(1):

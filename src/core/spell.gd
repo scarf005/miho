@@ -19,6 +19,11 @@ extends RefCounted
 ## a loud straight orb, 1 damage for every 구 and 1 more after a run-up (DCSS
 ## mon-project.cc iood_damage); 여 alone a wisp for every 여 (one with 도약),
 ## each hitting for 1 (a lone 여 for none), turning WISP_TURN for every 여.
+## From three 구 an orb gains speed every round it flies (`accel`, Shot.pace)
+## and where it ends blasts the eight tiles round it (`blast`, Elements.splash);
+## four make a cast of two orbs that spread among the creatures in sight
+## (Homing.spread), five blast the full harm of the centre. 구 with 수 pushes the
+## creature it strikes (Elements.strike).
 ## Homing projectiles chase a creature (Homing). A wisp flies up to RANGE
 ## tiles, chasing or not, and where it stops, at a wall or the end of its
 ## range, it hovers WISP_LIFE rounds, lights its surroundings and flies no
@@ -61,6 +66,19 @@ const LEAP_PER_WOOD := 1
 ## first adds.
 const DARK_RADIUS := 3
 const DARK_PER_WATER := 1
+
+## Copies of 구 from which an orb gains speed (ORB_ACCEL) and its end blasts the
+## eight tiles round it (`edge`); from TWIN_TIER one cast hurls TWINS orbs.
+const BLAST_TIER := 3
+const TWIN_TIER := 4
+const TWINS := 2
+## The copies of 구 from which the blast hurts half the harm at its centre, and all of it.
+const HALF_TIER := 4
+const FULL_TIER := 5
+## What a blast hurts each creature round it from BLAST_TIER, before it reaches HALF_TIER.
+const BLAST_HARM := 1
+## Tiles a second an orb gains each round it flies (Shot.pace), by copies of 구.
+const ORB_ACCEL := [0, 0, 0, 1, 2, 3]
 
 const LEAP := &"leap"
 const HOMING := &"homing"
@@ -290,6 +308,40 @@ static func price(n: int) -> int:
 	return 0 if n <= 0 else COST[mini(n, COST.size()) - 1] + COST_EXTRA * maxi(0, n - COST.size())
 
 
+## Copies of 구 that count, up to the last row of ORB_ACCEL.
+func tier() -> int:
+	return mini(count(Cards.ORB), ORB_ACCEL.size() - 1)
+
+
+## Tiles a second the orb gains each round it flies.
+func accel() -> int:
+	return ORB_ACCEL[tier()]
+
+
+## Whether the orb has BLAST_TIER copies of 구 or more.
+func edged() -> bool:
+	return orb and tier() >= BLAST_TIER
+
+
+## Whether where the orb ends hurts the eight tiles round it: a fire orb, or
+## from BLAST_TIER copies of 구.
+func blasts() -> bool:
+	return edged() or orb and has(Cards.FIRE)
+
+
+## What each creature round where an orb ends is hurt for, before weakness, when
+## its centre is hurt for `centre`: a fire orb's World.FIRE_DAMAGE and a copy
+## more, and from BLAST_TIER copies of 구 BLAST_HARM, from HALF_TIER half of
+## `centre` rounded up, from FULL_TIER all of it.
+func blast(centre: int) -> int:
+	var fire := World.FIRE_DAMAGE + extra(Cards.FIRE) if orb and has(Cards.FIRE) else 0
+	if not edged():
+		return fire
+	if tier() >= FULL_TIER:
+		return fire + centre
+	return fire + (ceili(centre / 2.0) if tier() >= HALF_TIER else BLAST_HARM)
+
+
 func speed() -> int:
 	if orb:
 		return mini(ORB_SPEED + count(Cards.ORB) - 1, BULLET_SPEED)
@@ -326,8 +378,11 @@ func life() -> int:
 	return HOMING_LIFE if homing() else 0
 
 
-## Projectiles one cast hurls: a wisp per 여, else one.
+## Projectiles one cast hurls: a wisp per 여, TWINS orbs from TWIN_TIER copies
+## of 구 (they spread among the creatures in sight: Homing.spread), else one.
 func shots() -> int:
+	if orb and tier() == TWIN_TIER and not swaps():
+		return TWINS
 	return count(Cards.FOX) if shape == WISP and not swaps() else 1
 
 

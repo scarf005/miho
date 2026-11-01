@@ -331,7 +331,7 @@ static func _spell_sounds(e: Dictionary) -> Array[StringName]:
 	if spell == null:
 		out.append(&"foxfire" if cast else &"blast")
 	elif e.t == &"splash":
-		out.append(&"explosion" if spell.mortar() else &"flame")
+		out.append(&"explosion" if spell.mortar() else (&"flame" if spell.has(Cards.FIRE) else &""))
 	elif spell.shape == Spell.SPRAY:
 		out.append(_gun(spell) if spell.slots[0] == Cards.METAL else SLOT.get(spell.slots[0], &""))
 	elif cast:
