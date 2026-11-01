@@ -17,6 +17,8 @@ extends RefCounted
 ## 흩어진 정자 (scattered): Scattered.
 ## 연못 정원 (garden): PondGarden.
 ## 겹누각 (keep): Keep. 겹누각 성채 (citadel): Keep.citadel.
+## 무너진 정자 (ruin): a broken building on one side of the map, scattered pavilions on the
+## other, bridges between them.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -29,9 +31,16 @@ const BROKEN := &"broken"
 const SCATTERED := &"scattered"
 const GARDEN := &"garden"
 const KEEP := &"keep"
+const RUIN := &"ruin"
 const CITADEL := &"citadel"
-## What a storey may be built on; `pick` draws from it.
-const ALL: Array[StringName] = [PAVILIONS, RING, AVENUE, TOWERS]
+## What a storey may be built on.
+const ALL: Array[StringName] = [
+	PAVILIONS, RING, AVENUE, TOWERS, BROKEN, SCATTERED, GARDEN, KEEP, RUIN, CITADEL
+]
+## The skeleton of each storey, from the first; a seed varies its shape.
+const STOREYS: Array[StringName] = [
+	AVENUE, RING, GARDEN, SCATTERED, BROKEN, TOWERS, KEEP, RUIN, CITADEL
+]
 ## The skeletons with one way to the exit: no two routes are asked of them.
 const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
@@ -66,12 +75,15 @@ const TOWER_FLOOR := Vector2i(5, 9)
 const TOWER_LANDINGS := 2
 ## How many rows apart the middles of the start room and the exit room are at least.
 const TOWER_ENDS := 9
+## How wide a ruin's building is (least, most), and how far from the map's north and
+## south edges it stands.
+const RUIN_HALL := Vector2i(22, 27)
+const RUIN_Y := Vector2i(1, 3)
 
 
-## The skeleton of the storey being built. A table of skeletons by storey replaces
-## this draw once every skeleton exists.
+## The skeleton of the storey being built.
 static func pick(w: World) -> StringName:
-	return ALL[w.rng.randi_range(0, ALL.size() - 1)]
+	return STOREYS[w.depth - 1]
 
 
 ## Draws a storey on `skeleton`.
@@ -91,6 +103,8 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return PondGarden.draw(w)
 		KEEP:
 			return Keep.draw(w)
+		RUIN:
+			return _ruin(w)
 		CITADEL:
 			return Keep.citadel(w)
 	return FloorGen.pavilions(w)
@@ -129,6 +143,29 @@ static func far_ends(w: World) -> Rect2i:
 			_first(w, home)
 			return goal
 	return Rect2i()
+
+
+## The ruin: a broken building on one side, scattered pavilions on the other, bridges
+## across; holes come last, so that they keep clear of the bridges.
+static func _ruin(w: World) -> Dictionary:
+	var wide := w.rng.randi_range(RUIN_HALL.x, RUIN_HALL.y)
+	var on_west := w.rng.randf() < 0.5
+	var top := w.rng.randi_range(RUIN_Y.x, RUIN_Y.y)
+	var tall := Grid.H - top - w.rng.randi_range(RUIN_Y.x, RUIN_Y.y)
+	var hall := Rect2i(1 if on_west else Grid.W - 1 - wide, top, wide, tall)
+	var from := hall.end.x + 1 if on_west else 1
+	var field := Rect2i(from, 1, Grid.W - 2 - wide - 1, Grid.H - 2)
+	var galleries := BrokenFloor.raise(w, hall)
+	FloorGen._doorways(w, galleries)
+	var blocks := Scattered.plant(w, field)
+	var plan := {spots = [], links = [], goal = Rect2i()}
+	blocks.append(hall)
+	Scattered.join(w, blocks, plan.links)
+	plan.sealed = FloorGen._loops(w, FloorGen._doorways(w, galleries), plan.links)
+	BrokenFloor.tear(w, hall)
+	if not planks(w).is_empty():
+		plan.goal = far_ends(w)
+	return plan
 
 
 ## Whether the walk from the middle of `home` to the middle of `goal` has two routes

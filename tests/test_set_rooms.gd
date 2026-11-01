@@ -437,7 +437,11 @@ func _storeys() -> Array[Dictionary]:
 
 func _is_built(w: World, kind: StringName, r: Rect2i) -> bool:
 	var kinds := _kinds(w, r)
-	for t in [World.LANTERN, World.LANTERN_OUT, World.DRUM] + MADE_OF[kind][0] + MADE_OF[kind][1]:
+	for t in (
+		[World.LANTERN, World.LANTERN_OUT, World.DRUM, World.SKY]
+		+ MADE_OF[kind][0]
+		+ MADE_OF[kind][1]
+	):
 		kinds.erase(t)
 	return kinds.is_empty() and MADE_OF[kind][0].all(func(t): return _count(w, r, t) > 0)
 

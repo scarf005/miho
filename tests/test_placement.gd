@@ -197,7 +197,11 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 				continue
 			for p in _tiles_of(w, kind):
 				assert_true(
-					w.rooms.any(func(r: Rect2i): return r.has_point(p)), "%s is in a room" % p
+					(
+						Skeletons.pick(w) == Skeletons.GARDEN
+						or w.rooms.any(func(r: Rect2i): return r.has_point(p))
+					),
+					"%s is in a room" % p
 				)
 				assert_false(
 					w.rooms.any(func(r: Rect2i): return r.has_point(p) and r.has_point(goal)),

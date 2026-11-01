@@ -16,6 +16,7 @@ func before_all() -> void:
 		Skeletons.SCATTERED,
 		Skeletons.GARDEN,
 		Skeletons.KEEP,
+		Skeletons.RUIN,
 		Skeletons.CITADEL,
 	]:
 		_built[kind] = []
@@ -77,11 +78,36 @@ func _blocks(w: World) -> int:
 	return count
 
 
+# --- the run ------------------------------------------------------------------
+
+
+func test_a_run_walks_nine_different_places_and_a_seed_varies_only_their_shape() -> void:
+	var w := World.new()
+	var places := {}
+	for depth in range(1, World.FLOORS + 1):
+		w.depth = depth
+		var state := w.rng.state
+		var place := Skeletons.pick(w)
+		assert_eq(w.rng.state, state, "the storey decides, not the draw")
+		assert_false(places.has(place), str(depth))
+		places[place] = true
+
+
+func test_the_old_pavilions_are_no_storey_of_a_run_and_every_other_skeleton_is() -> void:
+	var w := World.new()
+	var used := {}
+	for depth in range(1, World.FLOORS + 1):
+		w.depth = depth
+		used[Skeletons.pick(w)] = true
+	for kind in Skeletons.ALL:
+		assert_eq(used.has(kind), kind != Skeletons.PAVILIONS, kind)
+
+
 # --- the broken building --------------------------------------------------------
 
 
 func test_the_broken_building_has_holes_in_its_floor_but_none_in_a_rooms_middle() -> void:
-	for kind: StringName in [Skeletons.BROKEN]:
+	for kind: StringName in [Skeletons.BROKEN, Skeletons.RUIN]:
 		for w: World in _built[kind]:
 			assert_gte(_sky_by_floor(w), 20, _label(w))
 			for r: Rect2i in w.rooms:
@@ -112,7 +138,7 @@ func test_the_scattered_storey_has_eight_to_twelve_pavilions_joined_by_bridges()
 
 
 func test_every_storey_of_bridges_has_planks_and_the_exit_stays_in_reach_once_they_burn() -> void:
-	for kind: StringName in [Skeletons.SCATTERED]:
+	for kind: StringName in [Skeletons.SCATTERED, Skeletons.RUIN]:
 		for w: World in _built[kind]:
 			var planks := Skeletons.planks(w)
 			assert_false(planks.is_empty(), _label(w))
@@ -259,3 +285,56 @@ func test_the_boss_of_the_citadel_stands_with_the_elixir() -> void:
 		assert_eq(boss.size(), 1, _label(w))
 		var keep := FloorGen.room_at(w, w.elixir)
 		assert_true(keep.has_point(boss[0].pos), _label(w))
+
+
+# --- falling through the sky ------------------------------------------------------
+
+
+## A run on `seed_value` built by the table up to `depth`, each storey left behind.
+func _run(seed_value: int, depth: int) -> World:
+	var w := World.create(seed_value)
+	for d in range(1, depth):
+		Storeys.leave(w)
+		Storeys.enter(w, d + 1)
+	return w
+
+
+func test_a_fall_through_a_hole_chains_through_sky_below_and_lands_on_something_to_stand_on(
+) -> void:
+	var chained := 0
+	for seed_value in 4:
+		var top := _run(seed_value, 5)
+		for i in top.tiles.size():
+			if top.tiles[i] != World.SKY or i % 7 != 0:
+				continue
+			var w := top.clone()
+			var me := w.player()
+			me.hp = 100
+			me.max_hp = 100
+			Fall.drop(w, me, Grid.at(i))
+			var fell := 5 - w.depth
+			assert_gt(fell, 0, str(Grid.at(i)))
+			assert_eq(me.hp, 100 - fell * Fall.DAMAGE)
+			assert_true(w.open_floor(me.pos), "%d %s" % [w.depth, me.pos])
+			for between in range(w.depth + 1, 5):
+				assert_eq(w.storeys[between].tiles[i], World.SKY, "sky all the way down")
+			chained += 1 if fell > 1 else 0
+	assert_gt(chained, 0, "some falls go through more than one storey")
+
+
+func test_the_court_of_the_ring_on_the_second_storey_drops_to_the_first() -> void:
+	for seed_value in 4:
+		var top := _run(seed_value, 3)
+		var ring: PackedByteArray = top.storeys[2].tiles
+		var w := top.clone()
+		var me := w.player()
+		me.hp = 100
+		me.max_hp = 100
+		var into := Vector2i(-1, -1)
+		for i in ring.size():
+			if ring[i] == World.SKY and top.tiles[i] == World.SKY and Grid.at(i).x > 10:
+				into = Grid.at(i)
+		Fall.drop(w, me, into)
+		assert_eq(w.depth, 1, str(into))
+		assert_eq(me.hp, 100 - 2 * Fall.DAMAGE)
+		assert_true(w.open_floor(me.pos))
