@@ -125,11 +125,11 @@ func test_a_tile_in_sight_tells_its_gas_from_the_rules() -> void:
 	var text := Info.plain(Info.terrain(w, at))
 	assert_string_contains(text, "안개: 2/%d" % Gas.MAX)
 	assert_false(text.contains("시야 막음"), "thin gas leaves sight open")
-	assert_string_contains(text, "줄어듦: 초당 %d%%" % Gas.of(Gas.FOG, "decay"))
+	assert_string_contains(text, "감소: 초당 %d%%" % Gas.of(Gas.FOG, "decay"))
 	assert_false(text.contains("피해"), text)
 	Gas.put(w, at, Gas.FOG, 1)
 	w.sense()
-	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개: 3/%d\n시야 막음." % Gas.MAX)
+	assert_string_contains(Info.plain(Info.terrain(w, at)), "안개: 3/%d\n시야를 막음." % Gas.MAX)
 
 
 func test_steam_tells_its_harm_decay_and_wetting() -> void:
@@ -139,9 +139,9 @@ func test_steam_tells_its_harm_decay_and_wetting() -> void:
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
 	assert_string_contains(text, "증기: 4/%d" % Gas.MAX)
-	assert_string_contains(text, "줄어듦: 초당 %d%%" % Gas.of(Gas.STEAM, "decay"))
+	assert_string_contains(text, "감소: 초당 %d%%" % Gas.of(Gas.STEAM, "decay"))
 	assert_string_contains(text, "초당 피해: %d" % Gas.of(Gas.STEAM, "harm"))
-	assert_string_contains(text, "북 적심: %d초 소리 없음" % Drums.WET_ROUNDS)
+	assert_string_contains(text, "북 젖음: %d초 소음 없음" % Drums.WET_ROUNDS)
 
 
 func test_smoke_tells_its_decay() -> void:
@@ -151,7 +151,7 @@ func test_smoke_tells_its_decay() -> void:
 	w.sense()
 	var text := Info.plain(Info.terrain(w, at))
 	assert_string_contains(text, "연기: 5/%d" % Gas.MAX)
-	assert_string_contains(text, "줄어듦: 초당 %d%%" % Gas.of(Gas.SMOKE, "decay"))
+	assert_string_contains(text, "감소: 초당 %d%%" % Gas.of(Gas.SMOKE, "decay"))
 
 
 func test_a_remembered_tile_does_not_tell_gas() -> void:
@@ -198,4 +198,4 @@ func test_a_vent_pond_tells_what_it_breathes_and_up_to_what_amount() -> void:
 	assert_false(Info.plain(Info.terrain(w, at)).contains("뿜는 기체"))
 	w.vents[at] = Gas.FOG
 	var text := Info.plain(Info.terrain(w, at))
-	assert_string_contains(text, "뿜는 기체: 안개\n  양: %d까지" % Gas.VENT_LEVEL)
+	assert_string_contains(text, "뿜는 기체: 안개\n  최대 양: %d" % Gas.VENT_LEVEL)

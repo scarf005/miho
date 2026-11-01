@@ -285,8 +285,7 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 			w.emit({t = &"prick", id = a.id, at = to})
 			w.hurt(a, THORN)
 		World.MUD:
-			a.rooted = maxi(a.rooted, MUD)
-			w.emit({t = &"root", id = a.id, at = to, rounds = MUD, tile = World.MUD})
+			Elements.root(w, a, MUD)
 
 
 ## A round of hot ground: it sears whoever stands on it and cools by a round.
@@ -415,6 +414,7 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 		w.hot.erase(p)
 		w.traps.erase(p)
 	_become(w, gone, World.SKY)
+	Scrolls.displace(w, gone)
 
 
 ## Whether Miho can walk to the stairs (the elixir where there are none) with

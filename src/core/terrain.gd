@@ -63,10 +63,16 @@ static func breakable(w: World, at: Vector2i) -> bool:
 
 
 ## An orb can be hurled at any open tile and at a breakable lantern or wall
-## right next to the caster, which it strikes where it stands; a spray goes
+## right next to the caster, which it strikes where it stands; a piercing wisp
+## at a wall with open air behind it along `dir` (Elements.bore); a spray goes
 ## any way.
-static func throwable(w: World, spell: Spell, at: Vector2i) -> bool:
-	return spell.shape == Spell.SPRAY or w.open_air(at) or (spell.orb and breakable(w, at))
+static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bool:
+	return (
+		spell.shape == Spell.SPRAY
+		or w.open_air(at)
+		or (spell.orb and breakable(w, at))
+		or (spell.pierces() and wall(w.tile(at)) and w.open_air(at + dir))
+	)
 
 
 ## Miho walks into a lantern, window, drum or piece of furniture: a hit, with the
@@ -95,6 +101,7 @@ static func crumble(w: World, by: Actor, at: Vector2i) -> void:
 	var gone: int = Tiles.of(was, "crumbles")
 	if gone >= 0:
 		w.set_tile(at, gone)
+		Scrolls.displace(w, [at])
 		w.emit({t = &"crumble", at = at, was = was})
 		w.noise(at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
 
@@ -171,7 +178,7 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 		var p := at + d
 		if lights(s.spell) and p != struck:
 			relight(w, p)
-		if s.spell.has(Cards.WATER):
+		if s.spell.has(Cards.WATER) and Grid.inside(p):
 			wash(w, p)
 
 
@@ -189,7 +196,7 @@ static func wash(w: World, p: Vector2i) -> void:
 	if (
 		o != null
 		and o.spell.shape == Spell.WISP
-		and not (o.spell.has(Cards.METAL) or o.spell.has(Cards.WATER))
+		and not (o.spell.holds(Cards.METAL) or o.spell.holds(Cards.WATER))
 	):
 		o.gone = true
 		w._changed()
@@ -265,11 +272,13 @@ static func burn(w: World, alight: Array) -> void:
 	for q in again:
 		caught.append_array(_catch(w, q))
 	for p in caught:
-		w.ignite(p)
+		if not gone.has(p):
+			w.ignite(p)
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})
 		w.noise(p, CRACK, "우지끈", true, 0)
+	Scrolls.displace(w, gone.keys())
 	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))
 	falling.reverse()
 	for a: Actor in falling:

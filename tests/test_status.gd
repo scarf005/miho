@@ -452,7 +452,7 @@ func test_mud_roots_for_its_rounds_and_the_log_tells_both_ends() -> void:
 	var w := _world()
 	_put(w, ME + E, World.MUD)
 	var before := w.clone()
-	assert_eq(_told(before, w, w.act({t = &"move", dir = E})), ["진흙에 묶였다"])
+	assert_eq(_told(before, w, w.act({t = &"move", dir = E})), ["묶였다"])
 	var lines := []
 	for i in Compounds.MUD:
 		before = w.clone()

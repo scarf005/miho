@@ -115,7 +115,7 @@ func test_no_jangseung_sleeps_and_each_sees_miho_beside_it() -> void:
 		assert_false(foe.asleep(), kind)
 		assert_true(w.sees(foe, w.player().pos), kind)
 		assert_false(w.caught_unawares(foe), kind)
-		assert_string_contains(Info.plain(Info.at(w.known_clone(), foe.pos)), "잠들지 않음")
+		assert_string_contains(Info.plain(Info.at(w.known_clone(), foe.pos)), "고정")
 		assert_ne(Info.state(foe), "자는 중", kind)
 
 
@@ -141,13 +141,13 @@ func test_the_hover_and_the_sidebar_call_a_sleeper_asleep_and_agree_with_its_sig
 	w.sense()
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "자는 중")
-	assert_string_contains(text, "미호를 못 본다.")
+	assert_string_contains(text, "미호를 볼 수 없음")
 	assert_string_contains(text, "기습 피해: 3")
 	assert_eq(Info.state(foe), "자는 중")
 	foe.alert = Actor.SEARCH
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "수색 중")
-	assert_string_contains(text, "미호를 본다.")
+	assert_string_contains(text, "미호를 볼 수 있음")
 	assert_false(text.contains("기습"), text)
 
 
@@ -164,7 +164,7 @@ func test_an_awake_resting_creature_reads_by_what_it_does() -> void:
 		w.sense()
 		var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 		assert_string_contains(text, Info.state(foe))
-		assert_string_contains(text, "미호를 본다.")
+		assert_string_contains(text, "미호를 볼 수 있음")
 
 
 func test_the_forecast_notices_an_awake_creature_but_not_a_sleeper() -> void:

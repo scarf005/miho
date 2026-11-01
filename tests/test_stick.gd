@@ -186,7 +186,7 @@ func test_the_forecast_keeps_the_creature_a_wisp_struck_as_its_target() -> void:
 
 func test_a_wisp_tells_it_sticks_and_a_bullet_does_not() -> void:
 	var wisp := Info.plain(SpellInfo.spell(Spell.make([FOX])))
-	assert_string_contains(wisp, "맞히면: 붙어서 %d초" % Spell.WISP_LIFE)
+	assert_string_contains(wisp, "맞히면: %d초 동안 붙음" % Spell.WISP_LIFE)
 	var bullet := Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.METAL])))
 	assert_false(bullet.contains("붙어서"))
 

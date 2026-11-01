@@ -24,26 +24,6 @@ const BIG := 48
 const SMALL := 16
 ## Pixels between the lines of wisps chasing one creature.
 const LINE_GAP := 5.0
-const HEART := [
-	".##...##.",
-	"####.####",
-	"#########",
-	"#########",
-	".#######.",
-	"..#####..",
-	"...###...",
-	"....#...."
-]
-const HEART_EMPTY := [
-	".##...##.",
-	"#..#.#..#",
-	"#...#...#",
-	"#.......#",
-	".#.....#.",
-	"..#...#..",
-	"...#.#...",
-	"....#...."
-]
 const DELAY := {
 	&"move": 0.05,
 	&"spawn": 0.04,
@@ -83,6 +63,12 @@ var zone := {}
 var info: Array = []:
 	set(v):
 		info = Keywords.lines(v)
+## Set by the game: the glossary entry (WordHover) of the word the pointer is
+## over in a panel or the log, and the cell the pointer is in.
+var hint: Array = []:
+	set(v):
+		hint = Keywords.lines(v)
+var hint_at := Vector2.ZERO
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.
 var debug := {}
@@ -99,6 +85,7 @@ var log_lines: Array = []
 var panel := {}:
 	set(v):
 		panel = Keywords.panel(v)
+		hint = []
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
@@ -523,6 +510,8 @@ func _draw() -> void:
 		_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
 	if not panel.is_empty():
 		PanelView.draw(self)
+	if not hint.is_empty():
+		_draw_box(hint, Vector2i(hint_at) - side + cam)
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines
@@ -734,9 +723,13 @@ func _draw_info() -> void:
 	if shown:
 		var r := Rect2(_cell(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
-	if info.is_empty():
-		return
-	var fit := _info_fit(cursor if shown else null)
+	if not info.is_empty():
+		_draw_box(info, cursor if shown else null)
+
+
+## `lines` in a box on the far side of the map from the map tile `p` (null for none).
+func _draw_box(lines: Array, p: Variant) -> void:
+	var fit := _info_fit(p, lines)
 	draw_set_transform(fit.at * CELL, 0.0, Vector2(fit.scale, fit.scale))
 	var box := Rect2(Vector2.ZERO, fit.cells * CELL)
 	draw_rect(box, Color(Palette.VOID, 0.92))
@@ -749,17 +742,17 @@ func _draw_info() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## The layout of `info` (InfoBox) and `at`, the cell of its top-left corner. It
+## The layout of `lines` (InfoBox) and `at`, the cell of its top-left corner. It
 ## lies in the map area, or in the whole width when that would make the text
 ## too small to read, on the far side from the map tile `p` (null for none).
-func _info_fit(p: Variant = null) -> Dictionary:
+func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
 	var v := map_view()
 	var room := Rect2(Vector2(side), Vector2(v))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
-	var fit := InfoBox.layout(info, room.size, least)
+	var fit := InfoBox.layout(lines, room.size, least)
 	if fit.scale < least:
 		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
-		fit = InfoBox.layout(info, room.size, least)
+		fit = InfoBox.layout(lines, room.size, least)
 	var wide: Vector2 = fit.cells * fit.scale
 	var at := Vector2(room.position.x, room.end.y - wide.y)
 	if p != null:
@@ -828,13 +821,7 @@ func _pips(at: Vector2, n: int, of: int, color: Color, room := 6) -> void:
 
 ## A pixel heart filling cell `at`, full or as an outline.
 func _heart(at: Vector2, full: bool, color: Color) -> void:
-	var rows: Array = HEART if full else HEART_EMPTY
-	var px := 3.0
-	var from := at * CELL + (CELL - Vector2(rows[0].length(), rows.size()) * px) / 2.0
-	for y in rows.size():
-		for x in rows[y].length():
-			if rows[y][x] == "#":
-				draw_rect(Rect2((from + Vector2(x, y) * px).round(), Vector2(px, px)), color)
+	Heart.draw(self, at, full, color)
 
 
 ## Cells a string takes as the font draws it, each character rounded up to a

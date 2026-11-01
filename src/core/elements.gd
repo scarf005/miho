@@ -12,8 +12,9 @@ extends RefCounted
 ## darkness.
 ## 쇠: a gun. A wisp is a bullet: BULLET harm, Spell.BULLET_SPEED, no light,
 ## heard Spray.GUN_LOUD. An orb is a cannonball: CANNON more harm, it pushes
-## the creature it strikes CANNON_PUSH tiles (World.push) and fells the wall
-## it strikes, heard CANNON_LOUD. Either lights the caster's tile for the
+## the creature it strikes CANNON_PUSH tiles (World.push), but for a 비격진,
+## which bursts on it, and fells the wall it strikes, heard CANNON_LOUD. Either
+## lights the caster's tile for the
 ## round (World.flares). 1 more harm a copy. A wisp of two 쇠 pierces: it goes
 ## through every creature, hurting each once, and one wall (`bore`,
 ## `pass_through`).
@@ -45,7 +46,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
 		Status.ignite(w, a)
 	if a.alive():
-		if spell.orb and spell.has(Cards.METAL):
+		if spell.orb and spell.has(Cards.METAL) and not spell.mortar():
 			w.push(a, s.dir, CANNON_PUSH)
 		if not spell.orb and spell.has(Cards.WOOD):
 			root(w, a, ROOT + spell.extra(Cards.WOOD))

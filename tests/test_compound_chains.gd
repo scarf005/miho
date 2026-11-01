@@ -519,9 +519,9 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 		[
 			"화산 · 꼬리: 3",
 			"모양: 3칸 앞 5×5",
-			"막히면: 그 앞",
+			"멈춤: 벽 앞, 첫 적",
 			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
-			"불: 가연성 칸",
+			"불타는 칸: 가연성·인화성 칸",
 			"불붙음: %d초" % Status.ALIGHT,
 			"소음: %d" % Spray.GUN_LOUD,
 		],
@@ -535,14 +535,14 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"소음: 없음",
 		],
 		&"frostbloom":
-		["서리꽃 · 꼬리: 3", "반지름 3", "가시덤불: 자람", "연못: 얼음이 됨", "묶음: %d초" % Compounds.BLOOM],
+		["서리꽃 · 꼬리: 3", "반지름 3", "가시덤불: 생김", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
 		&"swamp":
 		[
 			"늪 · 꼬리: 3",
 			"모양: 3칸 앞 5×5",
-			"벽: 소리 없이 무너짐",
+			"벽: 소음 없이 무너짐",
 			"땅: 진흙",
-			"묶음: %d초" % Compounds.SWAMP,
+			"묶임: %d초" % Compounds.SWAMP,
 			"소음: 없음",
 		],
 		&"geyser":
@@ -565,11 +565,11 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"숯가시 · 꼬리: 3",
 			"반지름 3",
 			"피해: %d" % Compounds.THORN,
-			"불: 가연성 칸",
+			"불타는 칸: 가연성·인화성 칸",
 			"불붙음: %d초" % Status.ALIGHT
 		],
 		&"palisade":
-		["목책 · 꼬리: 3", "모양: 2칸 앞 직각 3칸", "나무벽 체력: %d" % Tiles.of(World.WOOD_WALL, "health")],
+		["목책 · 꼬리: 3", "모양: 2칸 앞에서 직각으로 3칸", "나무벽 체력: %d" % Tiles.of(World.WOOD_WALL, "health")],
 	}
 	assert_eq(rows.size(), NEW.size())
 	for c: StringName in rows:

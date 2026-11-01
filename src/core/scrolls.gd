@@ -6,6 +6,7 @@ extends RefCounted
 ## sky, a pond, a wall, the stairs, the elixir, a peach, a plate, another site
 ## or a creature. Miho takes the talisman by coming onto the tile (World.arrive);
 ## creatures, fire and water leave it be. Where no tile can hold it, none drops.
+## Ground that turns to sky under it sends it the same way (`displace`).
 
 
 ## The card of the scroll on p, or &"".
@@ -45,6 +46,22 @@ static func arrive(w: World, me: Actor) -> void:
 			if not w.cards.has(site.card):
 				w.cards.append(site.card)
 				w.emit({t = &"card", card = site.card, at = site.at})
+
+
+## `tiles` have just turned to sky: each scroll and peach on them moves to the
+## tile a scroll would drop on (`_spot`), and is lost where there is none.
+static func displace(w: World, tiles: Array) -> void:
+	for site: Dictionary in w.sites.duplicate():
+		if site.kind == &"scroll" and tiles.has(site.at):
+			site.at = _spot(w, site.at)
+			if site.at.x < 0:
+				w.sites.erase(site)
+	for p: Vector2i in w.peaches.duplicate():
+		if tiles.has(p):
+			w.peaches.erase(p)
+			var at := _spot(w, p)
+			if at.x >= 0:
+				w.peaches.append(at)
 
 
 static func _holds(w: World, p: Vector2i) -> bool:

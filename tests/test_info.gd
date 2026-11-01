@@ -42,7 +42,7 @@ func test_spells_of_the_same_talismans_but_another_form_read_differently() -> vo
 	assert_string_contains(fire_orb, "폭발: 주위 8칸, 피해 2")
 	assert_string_contains(homing, "꼬리: 3")
 	assert_string_contains(homing, "모양: 유도 구슬\n대상: 가장 가까운 적")
-	assert_string_contains(homing, "꺾임: 한 칸에 45°")
+	assert_string_contains(homing, "회전: 칸당 45°")
 	assert_false(fire_orb.contains("가장 가까운 적"))
 
 
@@ -54,17 +54,17 @@ func test_a_spell_tells_every_number() -> void:
 		"꼬리: 5",
 		"모양: 여우불 2발",
 		"발당 피해: 1",
-		"꺾임: 한 칸에 60°",
+		"회전: 칸당 60°",
 		"사거리: 7칸",
-		"떠 있음: 8초",
-		"빠르기: 초당 3칸",
-		"묶음: 3초",
+		"지속 시간: 8초",
+		"속도: 초당 3칸",
+		"묶임: 3초",
 		"빛: 3칸",
 		"소음: 2",
 	]:
 		assert_string_contains(text, part)
 	text = Info.plain(SpellInfo.spell(Spell.make([Cards.ORB, Cards.ORB, Cards.WATER])))
-	assert_string_contains(text, "피해: 2\n4칸 이상 날면 피해: 3")
+	assert_string_contains(text, "피해: 2\n4칸 이상 날아간 뒤 피해: 3")
 	assert_string_contains(text, "빛: 없음")
 	assert_string_contains(text, "소음: 없음")
 
@@ -72,7 +72,7 @@ func test_a_spell_tells_every_number() -> void:
 func test_a_talisman_tells_what_it_does_and_what_the_queue_becomes() -> void:
 	var text := Info.plain(SpellInfo.card(Cards.ORB, Spell.make([Cards.FOX, Cards.ORB])))
 	assert_true(text.begins_with("구슬 부적 · 꼬리: 1"), text)
-	assert_string_contains(text, "피해: 1\n4칸 이상 날면 피해: 2")
+	assert_string_contains(text, "피해: 1\n4칸 이상 날아간 뒤 피해: 2")
 	assert_string_contains(text, "넣으면: 유도 구슬 · 꼬리: 2")
 
 
@@ -100,7 +100,7 @@ func test_a_homing_shot_in_flight_tells_whom_it_chases_and_how_it_turns() -> voi
 	s.turn = s.spell.turn()
 	s.life = 4
 	var text := Info.plain(SpellInfo.shot(w, s))
-	for part in ["미호의 유도 구슬", "피해: 1", "대상: 해태", "꺾임: 90°", "초당 2칸", "남은 시간: 4초"]:
+	for part in ["미호의 유도 구슬", "피해: 1", "대상: 해태", "회전: 90°", "초당 2칸", "남은 시간: 4초"]:
 		assert_string_contains(text, part)
 
 
@@ -177,14 +177,14 @@ func test_every_immunity_is_its_own_line() -> void:
 	var told := {
 		&"bulgae": ["면역: 불 주문, 불타는 칸"],
 		&"bulgasari": ["면역: 불 없는 주문"],
-		&"jangseung": ["면역: 소리"],
+		&"jangseung": ["면역: 소음"],
 		&"dokkaebi": [],
 	}
 	for kind: StringName in told:
 		var lines := Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at))).split("\n")
 		var got := Array(lines).filter(func(l): return l.begins_with("면역"))
 		assert_eq(got, told[kind], str(kind))
-		assert_eq(Array(lines).has("움직이지 않는다."), kind == &"jangseung", str(kind))
+		assert_eq("\n".join(lines).contains("고정"), kind == &"jangseung", str(kind))
 
 
 func test_the_old_trait_words_for_immunity_are_gone() -> void:
@@ -233,14 +233,14 @@ func test_a_remembered_tile_does_not_tell_whether_it_burns_now() -> void:
 	w.seen[Grid.index(p)] = 0
 	var text := Info.plain(Info.terrain(w, p))
 	assert_false(text.contains("불타는 중"), text)
-	assert_string_contains(text, "안 보임.")
+	assert_string_contains(text, "보이지 않음.")
 
 
 func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var w := _hall()
 	var told := {
 		World.LANTERN: ["빛: %d칸" % Light.LANTERN_RADIUS, "부딪칠 때 소음: %d" % World.KNOCK],
-		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새 안 남음."],
+		World.BAMBOO: ["발소리: %d칸" % Tiles.of(World.BAMBOO, "tread")[0], "\n가연성.", "냄새가 남지 않음."],
 		World.BOARD: ["발소리: %d칸" % Tiles.of(World.BOARD, "tread")[0], "\n가연성."],
 		World.GRASS: ["가연성.\n번질 확률: %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
 		World.DOOR: ["\n가연성."],
@@ -259,10 +259,12 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	var wall := Info.plain(Info.terrain(w, _seen_tile(w, World.WALL)))
 	assert_false(wall.contains("한 번에"), "the spell tells what breaks a wall at once")
 	var glossary := "\n".join(Info.glossary()["가연성"])
-	assert_string_contains(glossary, "탐: %d초\n그 뒤: 재" % World.BURN_ROUNDS)
-	assert_string_contains(glossary, "번짐: 초당 1칸\n번질 확률: %d%%" % roundi(Tiles.DEFAULT.spread * 100))
+	assert_string_contains(glossary, "불타는 시간: %d초\n불탄 뒤: 재" % World.BURN_ROUNDS)
+	assert_string_contains(
+		glossary, "번지는 속도: 초당 1칸\n번질 확률: %d%%" % roundi(Tiles.DEFAULT.spread * 100)
+	)
 	var fierce := "\n".join(Info.glossary()["인화성"])
-	assert_string_contains(fierce, "번짐: 초당 2칸\n초당 피해: %d" % World.FIERCE_DAMAGE)
+	assert_string_contains(fierce, "번지는 속도: 초당 2칸\n초당 피해: %d" % World.FIERCE_DAMAGE)
 
 
 func test_stairs_and_peaches_tell_the_health_they_give() -> void:
@@ -318,10 +320,10 @@ func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
 	var w := _hall()
 	var at := w.player().pos + Vector2i(1, 0)
 	var orb := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
-	assert_string_contains(orb, "피해: 1\n  %d칸 이상 날면 피해: 2" % Spell.MOMENTUM)
+	assert_string_contains(orb, "피해: 1\n  %d칸 이상 날아간 뒤 피해: 2" % Spell.MOMENTUM)
 	var orb_spell := Spell.make([Cards.ORB])
 	var noise := [orb_spell.cast_noise(), orb_spell.burst_noise()]
-	assert_string_contains(orb, "소음: %d\n  맞거나 터질 때 소음: %d" % noise)
+	assert_string_contains(orb, "소음: %d\n  충돌 소음: %d" % noise)
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
 	var molten: Dictionary = Compounds.HOT[Compounds.MOLTEN]
 	assert_string_contains(boss, "  %s: %d초" % [molten.name, Compounds.HOT_ROUNDS])
@@ -366,7 +368,7 @@ func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void
 	foe.lost = World.SEARCH_ROUNDS + 3
 	foe.wary = 2
 	foe.cooldown = 99
-	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: 경계 끝까지")
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: 경계가 끝날 때까지")
 	Mind.search(w, foe)
 	assert_eq(foe.alert, Actor.SEARCH, "wary: keeps looking")
 	foe.wary = 0
@@ -380,7 +382,7 @@ func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
 	for t in [World.SKY, World.POND]:
 		w.tiles[Grid.index(p)] = t
 		var text := Info.plain(Info.terrain_facts(w, p))
-		assert_string_contains(text, "넘어감: 주문, 멀리뛰기만")
+		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있음.")
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
 	assert_string_contains(sky, "추락한 적: 사라짐\n층당 추락 피해: 1")

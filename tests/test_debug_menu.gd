@@ -99,7 +99,7 @@ func test_a_toggle_is_played_and_recorded_and_the_row_reads_it() -> void:
 	assert_true(Cheat.on(m.world, &"god"))
 	assert_eq(m.run.actions.back(), {t = &"cheat", cmd = &"god"})
 	await _key(m, "F4")
-	assert_eq(m.term.panel.rows[DebugMenu.COMMANDS.find(&"god")][1][0], "켬")
+	assert_eq(m.term.panel.rows[DebugMenu.COMMANDS.find(&"god")][1][0], "켜짐")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"god"), "it keeps its row")
 
 

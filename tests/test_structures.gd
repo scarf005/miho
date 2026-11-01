@@ -214,13 +214,12 @@ func test_hover_tells_every_rule_of_each_piece_of_furniture() -> void:
 		World.WATER_JAR: ["막음: 길", "타격: 주위 8칸 얕은 물\n타격: 불, 냄새 지움"],
 		World.CENSER:
 		[
-			"향 연기 양: %d까지" % Gas.VENT_LEVEL,
+			"향 연기 최대 양: %d" % Gas.VENT_LEVEL,
 			"이 칸과 옆 4칸",
 			": %d초\n" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
-			"옆 가연성 칸에 불",
+			"옆 가연성·인화성 칸에 불",
 		],
-		World.COURTYARD: ["달빛에 드러남."],
 	}
 	for kind: int in told:
 		var text := _hover(kind)
@@ -238,7 +237,7 @@ func test_the_hover_of_incense_says_it_does_not_block_sight_and_erases_the_scent
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "향 연기")
 	assert_string_contains(text, "시야 막음: 없음")
-	assert_string_contains(text, "냄새: 지움")
+	assert_string_contains(text, "냄새: 지워짐")
 	assert_string_contains(text, "초당 %d%%" % Gas.of(Gas.INCENSE, "decay"))
 
 

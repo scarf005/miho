@@ -13,7 +13,7 @@ const LABEL := {
 	&"door": "부서진 문",
 	&"wall": "부서진 벽",
 	&"ash": "재",
-	&"body": "쓰러진 몸",
+	&"body": "시체",
 }
 ## What a smash leaves: the change kind by the tile that was hit.
 const SMASHED := {
