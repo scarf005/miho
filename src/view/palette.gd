@@ -119,6 +119,10 @@ const CARD := {
 }
 const HURT := Color(1.0, 0.25, 0.2)
 const SOUND := Color(1.0, 0.78, 0.4)
+## The noise bar by band, as DCSS colours it: light grey, yellow, red, light magenta.
+const NOISE := [
+	Color(0.75, 0.75, 0.75), Color(1.0, 0.85, 0.3), Color(1.0, 0.25, 0.2), Color(1.0, 0.5, 1.0)
+]
 const ALERT := [Color(0, 0, 0, 0), Color(1.0, 0.85, 0.3), Color(1.0, 0.25, 0.2)]
 const ALERT_MARK := ["", "?", "!"]
 ## The mark by a fleeing creature, in place of the hunting one.

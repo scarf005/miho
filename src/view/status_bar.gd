@@ -2,9 +2,9 @@ class_name StatusBar
 extends RefCounted
 ## The two rows under the map. The upper one holds Miho's health, her tails
 ## (those the queued spells would spend in yellow), the saved spells by their
-## slot keys, the storey and the time. The lower one holds the talismans by
-## their number keys, the queue of MAX_SLOTS slots (a dim dot where no tail is
-## left for another card) and the queued spell's name.
+## slot keys, the storey and the time. The lower one holds the noise bar, the
+## talismans by their number keys, the queue of MAX_SLOTS slots (a dim dot where
+## no tail is left for another card) and the queued spell's name.
 
 
 static func draw(t: Term) -> void:
@@ -35,6 +35,7 @@ static func draw(t: Term) -> void:
 				Vector2(slot.x + 0.5 + k, row), Cards.GLYPH[spell.slots[k]], c if ready else c * 0.4
 			)
 	row += 1
+	NoiseMeter.draw(t, row)
 	var queued := Spell.make(t.picked)
 	for i in w.cards.size():
 		var card := w.cards[i]

@@ -97,6 +97,8 @@ var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
 var cam := Vector2i.ZERO
+## How far the loudest noise Miho saw in the last round was heard, in tiles (NoiseMeter).
+var noise := 0
 
 var _font: FontFile
 var _vis := PackedByteArray()
@@ -244,6 +246,7 @@ func play(events: Array, before: World, after: World) -> void:
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0:
 			await get_tree().create_timer(wait / speed).timeout
+	noise = NoiseMeter.level(_vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
