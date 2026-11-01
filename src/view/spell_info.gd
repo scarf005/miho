@@ -13,6 +13,8 @@ const RECIPE := {
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
 }
+## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
+const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
 const SWAP := [["바꿔치기", "멈춘 칸으로"], ["맞힌 적", "자리 교환"], ["바꿔치기 소리", "두 자리에서 %d칸" % Leap.SWAP_LOUD]]
 ## The numbers of each status (Status) past its name and time, by key, one
@@ -110,6 +112,9 @@ static func spell(s: Spell) -> Array:
 	if s.has(Cards.WATER):
 		lines.append(_line(SOAK[0], SOAK[1], Palette.CARD[Cards.WATER]))
 	for c in s.compounds():
+		if s.mortar() and c == &"shrapnel":
+			lines.append_array(_lines(_mortar(s), Palette.card(c)))
+			continue
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
 		lines.append_array(_lines(compound(c), Palette.card(c)))
 	if s.swaps():
@@ -397,6 +402,15 @@ static func compound(c: StringName) -> Array:
 	return []
 
 
+## What a 비격진 does where it ends, as [label, value] lines.
+static func _mortar(s: Spell) -> Array:
+	return [
+		["폭발 반지름", "%d" % (1 + s.grown(&"shrapnel"))],
+		["폭발 피해", "%d" % (Compounds.MORTAR + s.count(Cards.METAL))],
+		["폭발 벽", "금"],
+	]
+
+
 ## Where a compound carried on a projectile reaches.
 static func _carried(s: Spell, c: StringName) -> String:
 	var r := 1 + s.grown(c)
@@ -496,6 +510,8 @@ static func _shape(s: Spell) -> Array:
 					else _line("피해", "없음", Palette.HURT)
 				)
 			)
+			if s.pierces():
+				lines.append(_line("꿰뚫음", "모든 적, 벽 하나"))
 			lines.append(_line("꺾임", "한 칸에 " + _turn(s.turn())))
 			if not s.gun():
 				lines.append(_line("맞히면", "붙어서 %d초" % Spell.WISP_LIFE))

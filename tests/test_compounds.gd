@@ -210,6 +210,7 @@ func test_thorns_grow_prick_and_hurt_whoever_steps_onto_them() -> void:
 	assert_eq(w.opaque(ME + E), false, "sight goes through")
 	var me := w.player()
 	var hp := me.hp
+	foe.stunned = 1
 	var before := w.clone()
 	events = w.act({t = &"move", dir = E})
 	assert_eq(me.hp, hp - Compounds.THORN, "a step onto thorns pricks")
