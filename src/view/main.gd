@@ -383,7 +383,7 @@ func _point(screen: Vector2) -> void:
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
 		tile = term.side_at(local)
-	var card := StatusBar.card_at(term, local)
+	var card := StatusBar.talisman_at(term, local)
 	var status := StatusBar.status_at(term, local)
 	var spell := StatusBar.slot_at(term, local) + StatusBar.hand_at(term, local)
 	var slot := StatusBar.queue_at(term, local)
@@ -976,7 +976,7 @@ func _inspect() -> void:
 	elif hover_spell != "":
 		term.info = SpellInfo.spell(Spell.from_key(hover_spell))
 	elif hover_card != &"":
-		term.info = SpellInfo.card(hover_card, Spell.make(picked + [hover_card]))
+		term.info = SpellInfo.hovered(hover_card, picked)
 	elif hover_status:
 		term.info = Info.creature(known, known.player())
 	else:
