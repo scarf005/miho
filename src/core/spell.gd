@@ -33,6 +33,7 @@ extends RefCounted
 const MAX_SLOTS := 5
 const MOMENTUM := 4
 const WISP_SPEED := 3
+## A lone orb; each more in the spell adds one, up to a bullet's.
 const ORB_SPEED := 2
 ## A bullet: a wisp with 쇠. The fastest projectile.
 const BULLET_SPEED := 5
@@ -236,7 +237,7 @@ func cost() -> int:
 
 func speed() -> int:
 	if orb:
-		return ORB_SPEED
+		return mini(ORB_SPEED + count(Cards.ORB) - 1, BULLET_SPEED)
 	return BULLET_SPEED if gun() else WISP_SPEED
 
 
