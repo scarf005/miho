@@ -22,6 +22,8 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
 - 꼬리 and 여우불 are Miho's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
+- One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
+- Every bare tag that carries a rule has an entry in `Info.glossary`, its rule read from the code that applies it. A tag whose rule changes nothing the player does is deleted. A word with an entry shows it on mouse hover in the 도감 detail and the log (Keywords, WordHover).
 
 ## UI conventions
 

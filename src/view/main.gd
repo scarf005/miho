@@ -376,6 +376,7 @@ func _local(screen: Vector2) -> Vector2:
 
 
 func _point(screen: Vector2) -> void:
+	var hinted := not term.hint.is_empty()
 	var local := _local(screen)
 	if overlay != &"":
 		menu.point(term.panel_row_at(local))
@@ -387,8 +388,11 @@ func _point(screen: Vector2) -> void:
 	var status := StatusBar.status_at(term, local)
 	var spell := StatusBar.slot_at(term, local) + StatusBar.hand_at(term, local)
 	var slot := StatusBar.queue_at(term, local)
+	term.hint = WordHover.at(term, local)
+	term.hint_at = local / Term.CELL
 	if (
-		tile != hover
+		hinted == term.hint.is_empty()
+		or tile != hover
 		or card != hover_card
 		or status != hover_status
 		or spell != hover_spell
@@ -968,7 +972,7 @@ func _refresh() -> void:
 func _inspect() -> void:
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
-	if state != &"play":
+	if state != &"play" or not term.hint.is_empty():
 		return
 	term.cursor = hover
 	if hover_slot >= 0:
