@@ -12,9 +12,9 @@ extends RefCounted
 ## foe is weak to, else the first; from Bestiary.DOUBLES on also the next after
 ## it whose projectiles leave on tiles the first one's leave free (`_apart`).
 ## An orb needs a clear line; wisps and homing orbs only the foe in reach; a
-## spray must cover the foe. A creature with tails buys its spells (`_buy`).
+## spray must cover the foe. A creature with mana buys its spells (`_buy`).
 static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
-	if Bestiary.tails(a.kind) > 0:
+	if Bestiary.mana(a.kind) > 0:
 		return _buy(w, a, foe)
 	var plans: Array[Dictionary] = []
 	for cast: Array in _turn(a):
@@ -41,17 +41,17 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	return out
 
 
-## What a creature with tails casts at `foe` (Bestiary tails): the dearest spell
+## What a creature with mana casts at `foe` (Bestiary mana): the dearest spell
 ## it can pay for that reaches the foe, that the foe does not absorb and that is
-## not moot (`_moot`); then, with the tails left, the dearest after it that
+## not moot (`_moot`); then, with the mana left, the dearest after it that
 ## leaves on open tiles of its own (`_apart`).
 static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var first := _dearest(w, a, foe, a.tails, [])
+	var first := _dearest(w, a, foe, a.mana, [])
 	if first.is_empty():
 		return out
 	out.append(first)
-	var left := a.tails - Spell.price(first.cards.size())
+	var left := a.mana - Spell.price(first.cards.size())
 	var taken := _departs(w, a, first)
 	var skip := [first.cards]
 	while true:
@@ -66,15 +66,15 @@ static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	return out
 
 
-## The dearest spell of `a` that costs at most `tails` and is not in `skip`,
+## The dearest spell of `a` that costs at most `mana` and is not in `skip`,
 ## reaching `foe`, as a plan, or empty. Equal prices keep the order of its list.
-static func _dearest(w: World, a: Actor, foe: Actor, tails: int, skip: Array) -> Dictionary:
+static func _dearest(w: World, a: Actor, foe: Actor, mana: int, skip: Array) -> Dictionary:
 	var best := {}
 	var best_price := 0
 	for cast: Array in a.repertoire():
 		var price := Spell.price(cast.size())
 		var spell := Spell.make(cast)
-		if price <= best_price or price > tails or skip.has(cast) or _moot(spell, foe):
+		if price <= best_price or price > mana or skip.has(cast) or _moot(spell, foe):
 			continue
 		if Bestiary.absorbs(foe.kind, spell):
 			continue
@@ -132,11 +132,11 @@ static func kindle(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 
 
 ## Its spells in the order it tries them, from the next in turn: that one
-## alone below Bestiary.PICKS, the lone fire aside (`kindle`). One with tails
+## alone below Bestiary.PICKS, the lone fire aside (`kindle`). One with mana
 ## tries those it can pay for, the cheapest first, and none of 수's darkness.
 static func _turn(a: Actor) -> Array:
 	var list := a.repertoire()
-	if Bestiary.tails(a.kind) > 0:
+	if Bestiary.mana(a.kind) > 0:
 		return _cheap(a, list)
 	if a.rank < Bestiary.PICKS:
 		list = list.filter(func(c): return c != Bestiary.KINDLE)
@@ -151,7 +151,7 @@ static func _turn(a: Actor) -> Array:
 static func _cheap(a: Actor, list: Array) -> Array:
 	var out := []
 	for n in range(1, Spell.MAX_SLOTS + 1):
-		if Spell.price(n) > a.tails:
+		if Spell.price(n) > a.mana:
 			break
 		out.append_array(list.filter(func(c): return c.size() == n and not _dark(c)))
 	return out

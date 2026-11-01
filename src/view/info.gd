@@ -273,25 +273,25 @@ static func _status(a: Actor) -> Array:
 
 
 ## Each spell it casts at its rank, with its cooldown, harm and noise, and how
-## many it casts at once from Bestiary.DOUBLES. One with tails shows its tails and
+## many it casts at once from Bestiary.DOUBLES. One with mana shows its mana and
 ## each spell's price on a line of its own.
 static func _casts(a: Actor) -> Array:
 	var out := []
-	var tailed := Bestiary.tails(a.kind) > 0
-	if tailed:
-		out.append([["꼬리: %d/%d" % [a.tails, Bestiary.tails(a.kind)], Palette.SIDE[0]]])
-		out.append([["회복: %d초마다 1개" % World.TAIL_REGROW, Palette.DIM]])
-	if (a.rank >= Bestiary.DOUBLES or tailed) and a.repertoire().size() > 1:
+	var has_mana := Bestiary.mana(a.kind) > 0
+	if has_mana:
+		out.append([["마력: %d/%d" % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
+		out.append([["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]])
+	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
 		out.append([["동시 주술: 2개", Palette.TEXT]])
 	for cast: Array in a.repertoire():
 		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
 			["주술: ", Palette.TEXT], [spell.title(), Palette.card(spell.slots.back())]
 		]
-		if tailed:
-			line.append([" · 꼬리: %d" % spell.cost(), Palette.DIM])
+		if has_mana:
+			line.append([" · 마력: %d" % spell.cost(), Palette.DIM])
 		out.append(line)
-		if tailed:
+		if has_mana:
 			continue
 		out.append([["  간격: %d초" % a.info().cd, Palette.DIM]])
 		if a.intent.any(func(plan): return Spell.make(plan.cards).key() == spell.key()):
@@ -608,7 +608,7 @@ static func _hidden(w: World, p: Vector2i) -> Array:
 static func _tails(w: World) -> Array:
 	return [
 		[["꼬리: %d/%d" % [w.tails, w.max_tails()], Palette.SIDE[0]]],
-		[["회복: %d초마다 1개" % World.TAIL_REGROW, Palette.DIM]],
+		[["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]],
 	]
 
 

@@ -30,8 +30,8 @@ var wet := 0
 var alight := 0
 var frozen := 0
 var casts := 0
-## The tails it has left to pay for spells with (Bestiary tails).
-var tails := 0
+## The mana it has left to pay for spells with (Bestiary mana).
+var mana := 0
 var acted := 0
 var alert := REST
 ## Where it last saw Miho, or the spot it is searching.
@@ -129,7 +129,7 @@ func clone() -> Actor:
 		"alight",
 		"frozen",
 		"casts",
-		"tails",
+		"mana",
 		"acted",
 		"alert",
 		"target",

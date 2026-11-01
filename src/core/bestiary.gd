@@ -18,10 +18,11 @@ extends RefCounted
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
 ## and `throw`, how many tiles the blow pushes her back (into the sky she falls),
 ## and `root`, how many rounds it roots her (Elements.root).
-## tails: it pays for its spells with tails, as Miho does (Spell.price), in place
-## of waiting `cd` rounds: it regrows one every World.TAIL_REGROW rounds, picks
-## what to cast from any rank on (Aim.at) and casts two at once when it can pay
-## for both. It starts with all of them (Actor.tails).
+## mana: it pays for its spells with mana, at the price of Miho's tails
+## (Spell.price), in place of waiting `cd` rounds. It regrows one every
+## World.TAIL_REGROW rounds, as Miho does her tails, picks what to cast from any
+## rank on (Aim.at) and casts two at once when it can pay for both. It starts
+## with all of it (Actor.mana).
 ## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
 ## tracks: follows Miho's scent while it rests or searches (Mind).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
@@ -54,7 +55,7 @@ const DOUBLES := 4
 ## The lone fire every dokkaebi can cast (Aim.kindle): one tiny fan, no element of
 ## its kind (Bestiary.elements).
 const KINDLE := [Cards.FIRE]
-## Every spell 저승사자 can buy with its tails, at any rank: all five elements,
+## Every spell 저승사자 can buy with its mana, at any rank: all five elements,
 ## one to five cards.
 const REAPER := [
 	[Cards.WOOD],
@@ -346,7 +347,7 @@ const KINDS := {
 		group = &"underworld",
 		hp = 12,
 		melee = {name = "오랏줄", hit = "맞아", damage = 1, root = 2},
-		tails = 9,
+		mana = 9,
 		casts = REAPER,
 		move = &"approach",
 		step = 3,
@@ -389,7 +390,7 @@ const KINDS := {
 		ranks =
 		{
 			4: [[FOX, Cards.WATER], [FOX, FOX, Cards.WATER]],
-			5: [[FOX, Cards.WATER], [FOX, FOX, Cards.WATER], [FOX, ORB, Cards.WATER]],
+			5: [[FOX, Cards.WATER], [FOX, FOX, Cards.WATER], [FOX, FOX, FOX, Cards.WATER]],
 		},
 		cd = 3,
 		move = &"approach",
@@ -459,9 +460,9 @@ static func shouted(word: String) -> bool:
 	return KINDS.values().any(func(k): return k.get("shout", {}).get("word", "") == word)
 
 
-## The tails a creature of `kind` pays its spells with, 0 for one that waits `cd`.
-static func tails(kind: StringName) -> int:
-	return info(kind).get("tails", 0)
+## The mana a creature of `kind` pays its spells with, 0 for one that waits `cd`.
+static func mana(kind: StringName) -> int:
+	return info(kind).get("mana", 0)
 
 
 static func wits(kind: StringName) -> int:

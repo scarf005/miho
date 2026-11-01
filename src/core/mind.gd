@@ -24,8 +24,8 @@ static func heaven_phase(w: World) -> void:
 		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
 			continue
 		a.acted += 1
-		if a.tails < Bestiary.tails(a.kind) and a.acted % World.TAIL_REGROW == 0:
-			a.tails += 1
+		if a.mana < Bestiary.mana(a.kind) and a.acted % World.TAIL_REGROW == 0:
+			a.mana += 1
 		if a.stunned > 0:
 			a.stunned -= 1
 			continue
@@ -290,14 +290,14 @@ static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void
 
 
 ## `a` charges the spells `plans` (Aim), one `charge` event each, paying their
-## tails when it has them.
+## mana when it has some.
 static func _charge(w: World, a: Actor, plans: Array[Dictionary]) -> bool:
 	if plans.is_empty():
 		return false
 	a.intent.assign(plans)
 	for plan in plans:
-		if Bestiary.tails(a.kind) > 0:
-			a.tails -= Spell.price(plan.cards.size())
+		if Bestiary.mana(a.kind) > 0:
+			a.mana -= Spell.price(plan.cards.size())
 		w.emit({t = &"charge", id = a.id, cards = plan.cards.duplicate(), dir = plan.dir})
 	return true
 
