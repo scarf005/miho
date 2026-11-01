@@ -16,6 +16,16 @@ const MOVES := {
 }
 ## Saved-spell slots, in order.
 const SLOTS: Array[StringName] = [&"slot_1", &"slot_2", &"slot_3", &"slot_4", &"slot_5", &"slot_6"]
+## Key names as the player reads them; the font has no arrow glyphs.
+const SHOWN := {
+	"Up": "방향키 위",
+	"Down": "방향키 아래",
+	"Left": "방향키 왼쪽",
+	"Right": "방향키 오른쪽",
+	"Escape": "Esc",
+	"Shift+Period": ">",
+	"Shift+Slash": "?",
+}
 ## action -> [name, default keys]
 const ACTIONS := {
 	&"move_n": ["위로", ["Up", "Kp 8", "K"]],
@@ -58,7 +68,7 @@ const ACTIONS := {
 	&"cheat": ["디버그 명령", ["F4"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
 	&"codex": ["도감", ["Slash"]],
-	&"log": ["지난 메시지", ["Ctrl+P", "P"]],
+	&"log": ["기록", ["Ctrl+P", "P"]],
 	&"restart": ["재시작", ["R"]],
 }
 
@@ -116,6 +126,10 @@ static func action_of(e: InputEvent) -> StringName:
 
 ## A short label for a key: printable keys as their character.
 static func label(key: String) -> String:
+	if SHOWN.has(key):
+		return SHOWN[key]
+	if key.begins_with("Kp "):
+		return "키패드 " + label(key.trim_prefix("Kp "))
 	var code := OS.find_keycode_from_string(key)
 	var bare := code & KEY_CODE_MASK
 	if bare > 32 and bare < 127:

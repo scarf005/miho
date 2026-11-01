@@ -45,7 +45,7 @@ static func draw(t: Term) -> void:
 				Rect2(Vector2(x, row) * Term.CELL, Vector2(2, 1) * Term.CELL),
 				Palette.CARD[card] * 0.45
 			)
-		t._small(Vector2(x, row + 0.05), str(i + 1), Palette.DIM)
+		t._glyph(Vector2(x, row), str(i + 1), Palette.TEXT)
 		t._glyph(Vector2(x + 1, row), Cards.GLYPH[card], Palette.CARD[card])
 	var slots: Array[StringName] = []
 	if queued != null:
