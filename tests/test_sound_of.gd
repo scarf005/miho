@@ -14,7 +14,7 @@ const SOUNDS := [
 	[{t = &"leap"}, &"foxfire"],
 	[{t = &"swap"}, &"foxfire"],
 	[{t = &"crumble"}, &"fall"],
-	[{t = &"spot"}, &"find"],
+	[{t = &"spot"}, &"tick"],
 	[{t = &"cast", cards = [Cards.FOX, Cards.FIRE]}, &"foxfire"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.FIRE]}, &"orb"],
 	[{t = &"cast", cards = [Cards.ORB, Cards.WATER, Cards.WOOD, Cards.FIRE]}, &"orb"],
@@ -42,12 +42,13 @@ const SOUNDS := [
 	[{t = &"card"}, &"card"],
 	[{t = &"scroll"}, &"page"],
 	[{t = &"heal"}, &"card"],
+	[{t = &"heal", peach = true}, &"bite"],
 	[{t = &"altar"}, &"card"],
 	[{t = &"creak"}, &"card"],
 	[{t = &"read"}, &"page"],
 	[{t = &"trap", kind = World.TRAP_ALARM}, &"gong"],
 	[{t = &"trap", kind = World.TRAP_FIRE}, &"trap"],
-	[{t = &"find", kind = World.DOOR}, &"find"],
+	[{t = &"find", kind = World.DOOR}, &"tick"],
 	[{t = &"find", kind = World.TRAP_FIRE}, &"warn"],
 	[{t = &"find", kind = World.TRAP_ALARM}, &"warn"],
 	[{t = &"noise", word = "바스락"}, &"rustle"],
@@ -294,14 +295,35 @@ func test_finding_a_plate_warns() -> void:
 	assert_eq(Sfx.sound_of(finds[0]), &"warn")
 
 
-func test_finding_a_hidden_door_chimes() -> void:
+func test_finding_a_hidden_door_ticks_quietly() -> void:
 	var finds := _finds(
 		func(w):
 			w.tiles[Grid.index(w.player().pos + E)] = World.WALL
 			w.secrets[w.player().pos + E] = true
 	)
 	assert_eq(finds.size(), 1)
-	assert_eq(Sfx.sound_of(finds[0]), &"find")
+	assert_eq(Sfx.sounds_of(finds[0]), [&"tick"])
+
+
+## The heal events of Miho eating a peach at `hp` of 3 health.
+func _eat_peach(hp: int) -> Array:
+	var w := _world()
+	w.player().hp = hp
+	w.peaches.assign([w.player().pos + E])
+	return w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"heal")
+
+
+func test_a_peach_is_bitten_and_chimes_only_when_it_raises_the_most_health() -> void:
+	var hurt := _eat_peach(2)
+	assert_eq(hurt.size(), 1)
+	assert_eq(Sfx.sounds_of(hurt[0]), [&"bite"])
+	var full := _eat_peach(3)
+	assert_eq(full.size(), 1)
+	assert_eq(Sfx.sounds_of(full[0]), [&"bite", &"find"])
+
+
+func test_climbing_the_stairs_heals_with_the_card_sound_and_no_chime() -> void:
+	assert_eq(Sfx.sounds_of({t = &"heal", id = 1, hp = 3}), [&"card"])
 
 
 ## The useful things first seen in Miho's move from tile `from` to tile `to` of the hall.
@@ -344,7 +366,7 @@ func test_a_talisman_stand_and_a_library_are_spotted_but_not_an_altar() -> void:
 	assert_eq(_spotted_on(w, Vector2i(4, 8), Vector2i(18, 8)).size(), 2)
 
 
-func test_the_view_chimes_for_a_spotted_thing_in_the_round_it_comes_into_sight() -> void:
+func test_the_view_ticks_for_a_spotted_thing_in_the_round_it_comes_into_sight() -> void:
 	var w := _world()
 	w.stairs = Vector2i(24, 8)
 	var t: Term = autofree(Term.new())

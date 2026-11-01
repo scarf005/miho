@@ -635,7 +635,7 @@ func arrive(me: Actor) -> bool:
 		var grew := me.hp >= me.max_hp
 		me.max_hp += HEAL if grew else 0
 		me.hp += HEAL
-		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew})
+		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew, peach = true})
 	Scrolls.arrive(self, me)
 	EventRooms.arrive(self, me)
 	return false
