@@ -270,7 +270,8 @@ func play(events: Array, before: World, after: World) -> void:
 	_animating = true
 	var passes := Afterimage.plan(events)
 	for i in events.size():
-		var left := Afterimage.copies(passes.get(i, []), _actors, _time)
+		var veiled := _veiled if debug.is_empty() else {}
+		var left := Afterimage.copies(passes.get(i, []), _actors, _time, veiled)
 		_ghosts.append_array(left.filter(func(g): return _visible(g.at)))
 		var wait := _apply(events[i], _told.get(i, {}))
 		if wait > 0.0 and not _rushed:
@@ -469,9 +470,11 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Palette.VOID)
 	if world == null:
 		return
-	# An opaque panel covers the whole game.
+	# An opaque panel covers the whole game, but for a touch HUD out beside it.
 	if not panel.get("opaque", false):
 		_draw_game()
+	elif bar is TouchHud and not replay:
+		bar.draw(self)
 	if not panel.is_empty():
 		PanelView.draw(self)
 	if not hint.is_empty():

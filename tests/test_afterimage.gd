@@ -88,3 +88,10 @@ func test_a_copy_has_the_glyph_of_the_mover_and_a_missing_mover_leaves_none() ->
 	assert_eq(copies[0].glyph, Bestiary.info(&"miho").glyph)
 	assert_eq(copies[0].born, 2.0)
 	assert_eq(Afterimage.copies([{id = 99, at = ME}], {}, 0.0), [])
+
+
+func test_a_creature_she_cannot_see_leaves_no_copy() -> void:
+	var w := _world()
+	var id := w.player().id
+	var passes := [{id = id, at = ME}]
+	assert_eq(Afterimage.copies(passes, {id: w.player()}, 2.0, {id: true}).size(), 0)

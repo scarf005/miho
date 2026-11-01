@@ -47,11 +47,13 @@ static func _line(from: Vector2i, to: Vector2i) -> Array:
 
 
 ## The copies `passes` leave, as {at, glyph, color, born}, from the creatures
-## in `actors` (id -> Actor), drawn as they look.
-static func copies(passes: Array, actors: Dictionary, born: float) -> Array[Dictionary]:
+## in `actors` (id -> Actor), drawn as they look; none from an id of `hidden`.
+static func copies(
+	passes: Array, actors: Dictionary, born: float, hidden := {}
+) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for p: Dictionary in passes:
-		if actors.has(p.id):
+		if actors.has(p.id) and not hidden.has(p.id):
 			var a: Actor = actors[p.id]
 			var glyph: String = Bestiary.info(Guise.looks(a)).glyph
 			out.append({at = p.at, glyph = glyph, color = Palette.KIND[a.kind], born = born})
