@@ -295,6 +295,19 @@ func test_a_homing_mortar_that_fades_bursts_where_it_stops() -> void:
 	assert_has(kinds, &"splash")
 
 
+func test_a_homing_mortar_that_fades_is_heard_as_loud_as_one_that_strikes() -> void:
+	var w := _world()
+	var cards := [FOX, ORB, EARTH, METAL]
+	var events: Array = w.act(_cast(cards))
+	for i in 12:
+		events = w.act({t = &"wait"})
+		if events.any(func(e): return e.t == &"fade"):
+			break
+	var at: Vector2i = events.filter(func(e): return e.t == &"fade")[0].at
+	var bangs := events.filter(func(e): return e.t == &"noise" and e.at == at)
+	assert_eq(bangs.map(func(e): return e.loud), [Spell.make(cards).burst_noise()])
+
+
 func test_a_mortar_preview_equals_the_round() -> void:
 	var w := _world()
 	_post(w, 3)
