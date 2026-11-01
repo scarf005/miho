@@ -61,6 +61,7 @@ func test_a_wall_stops_the_throw() -> void:
 
 func test_a_throw_into_the_sky_drops_miho_a_storey() -> void:
 	var w := _world()
+	w.rng.seed = 1  # the storey below is built from it; unseeded, it may be sky there too
 	w.tiles[Grid.index(ME - Vector2i(1, 0))] = World.SKY
 	_hunter(w, &"oedari", ME + Vector2i(1, 0))
 	w.act(WAIT)
