@@ -129,8 +129,8 @@ func click(row: int) -> StringName:
 	return _use()
 
 
-func wheel(dir: int) -> void:
-	top = ListNav.scrolled(top, dir * ListNav.WHEEL, _rows().size(), _fits())
+func scroll_by(lines: int) -> void:
+	top = ListNav.scrolled(top, lines, _rows().size(), _fits())
 
 
 ## Esc: a list of its own goes back to the commands, on the row that opened it.

@@ -135,7 +135,7 @@ func panel() -> Dictionary:
 
 ## Rows of the page's list that fit.
 func _fits() -> int:
-	return Term.list_fits(room.y, panel().get("detail", []).size())
+	return PanelView.fits(room.y, panel().get("detail", []).size())
 
 
 ## Handles a key press.
@@ -156,13 +156,7 @@ func key(e: InputEventKey) -> StringName:
 	if page in [&"help", &"log"] and slot == page:
 		out = &"close"
 	elif page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
-		var k := spells()[selected].key()
-		var had: bool = settings.spells.get(slot, "") == k
-		for s in settings.spells.keys():
-			if settings.spells[s] == k:
-				settings.spells.erase(s)
-		if not had:
-			settings.spells[slot] = k
+		save(slot)
 	elif (
 		page == &"keys"
 		and e.keycode in [KEY_DELETE, KEY_BACKSPACE]
@@ -172,6 +166,17 @@ func key(e: InputEventKey) -> StringName:
 	else:
 		out = _move(nav)
 	return out
+
+
+## Saves the selected spell in `slot`, or clears the slot when it holds that spell.
+func save(slot: StringName) -> void:
+	var k := spells()[selected].key()
+	var had: bool = settings.spells.get(slot, "") == k
+	for s in settings.spells.keys():
+		if settings.spells[s] == k:
+			settings.spells.erase(s)
+	if not had:
+		settings.spells[slot] = k
 
 
 ## Menu movement `nav` on the page's list; what the game should do.
@@ -253,20 +258,30 @@ func click(row: int, tab: int) -> StringName:
 			return &""
 		if page == &"cheat":
 			return debug.click(row)
-		selected = row
-		top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
+		select(row)
 		return use() if page in [&"options", &"keys", &"spells"] else &""
 	return &""
 
 
+## Selects row `row` of the page's list, without using it.
+func select(row: int) -> void:
+	selected = row
+	top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
+
+
 ## The wheel turns `dir` notches (1 down) over the detail (`aside`) or the list.
 func wheel(dir: int, aside: bool) -> void:
+	scroll_by(dir * ListNav.WHEEL, aside)
+
+
+## Scrolls `lines` rows of the list, or lines of the 도감's detail.
+func scroll_by(lines: int, aside: bool) -> void:
 	if page == &"codex":
-		codex.wheel(dir, aside)
+		codex.scroll_by(lines, aside)
 	elif page == &"cheat":
-		debug.wheel(dir)
+		debug.scroll_by(lines)
 	else:
-		top = ListNav.scrolled(top, dir * ListNav.WHEEL, panel().rows.size(), _fits())
+		top = ListNav.scrolled(top, lines, panel().rows.size(), _fits())
 
 
 ## Enter on the selected row.

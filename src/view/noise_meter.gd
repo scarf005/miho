@@ -42,11 +42,11 @@ static func at(t: Term) -> Vector2:
 	return Vector2(x, t.rows - (1 if x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS + 0.5 else 3))
 
 
-## Draws the caption and the bar.
-static func draw(t: Term) -> void:
+## Draws the caption and the bar, at `from` (cells) when given, else at `at(t)`.
+static func draw(t: Term, from := Vector2(-1, -1)) -> void:
 	var band_no := band(t.noise)
-	var start := at(t)
-	if start.y < t.rows - 2:
+	var start := at(t) if from.x < 0 else from
+	if from.x < 0 and start.y < t.rows - 2:
 		t.draw_rect(
 			Rect2(start * Term.CELL, Vector2(WIDTH, 1) * Term.CELL), Color(Palette.VOID, 0.85)
 		)
