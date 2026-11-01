@@ -85,6 +85,19 @@ func test_wild_fire_turns_each_plank_it_reaches_to_sky_whatever_the_seed() -> vo
 	assert_gt(far_end_burnt, 0, "the fire runs on to the far end")
 
 
+func test_the_hover_tells_what_a_plank_leaves_when_burnt_and_a_board_on_a_floor_says_nothing(
+) -> void:
+	var w := _world()
+	var floor_board := Vector2i(5, 5)
+	w.set_tile(floor_board, World.BOARD)
+	w.seen.fill(1)
+	var plank_says := Info.plain(Info.terrain_facts(w, AT))
+	var board_says := Info.plain(Info.terrain_facts(w, floor_board))
+	_burn_out(w, AT)
+	assert_string_contains(plank_says, "탄 뒤: %s" % Tiles.of(w.tile(AT), "name"))
+	assert_false(board_says.contains("탄 뒤"), board_says)
+
+
 func test_a_creature_on_a_plank_falls_when_it_gives_way() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", AT)
