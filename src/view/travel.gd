@@ -86,6 +86,18 @@ static func frontier(w: World, found: Dictionary) -> Vector2i:
 	return best
 
 
+## The reachable one of `tiles` fewest steps away, or (-1, -1). Unknown tiles
+## are never reached (search walks known ones only).
+static func _nearest(found: Dictionary, tiles: Array) -> Vector2i:
+	var dist: PackedInt32Array = found.dist
+	var best := Vector2i(-1, -1)
+	for p: Vector2i in tiles:
+		var d := dist[Grid.index(p)]
+		if d > 0 and (best.x < 0 or d < dist[Grid.index(best)]):
+			best = p
+	return best
+
+
 static func _borders_unknown(w: World, p: Vector2i) -> bool:
 	for d in Grid.DIRS:
 		var q := p + d
@@ -102,11 +114,14 @@ static func exit(w: World) -> Vector2i:
 	return Vector2i(-1, -1)
 
 
-## The step exploring takes: towards the nearest unexplored edge, or once
-## everything reachable is known, towards the exit, stopping beside it so
-## leaving the storey stays Miho's own choice. Zero when there is nowhere to go.
+## The step exploring takes: towards the nearest peach she knows of (DCSS
+## explore_greedy), else the nearest unexplored edge, or once everything
+## reachable is known, towards the exit, stopping beside it so leaving the
+## storey stays Miho's own choice. Zero when there is nowhere to go.
 static func explore_step(w: World, found: Dictionary) -> Vector2i:
-	var path := route(found, frontier(w, found))
+	var path := route(found, _nearest(found, w.peaches))
+	if path.is_empty():
+		path = route(found, frontier(w, found))
 	if path.is_empty():
 		path = route(found, exit(w))
 		path.pop_back()
