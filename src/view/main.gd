@@ -190,6 +190,7 @@ func _new_run(seed_value := randi()) -> void:
 	world = World.create(seed_value)
 	run_seed = seed_value
 	run = SaveGame.new(save_path, seed_value)
+	erasing = false
 	kills = 0
 	last_spell = ""
 	excluded.clear()
