@@ -116,13 +116,15 @@ func test_an_orb_smashes_the_lantern_or_closed_door_it_strikes() -> void:
 		var events := w.act(_cast([ORB], E))
 		events.append_array(w.act(WAIT))
 		events.append_array(w.act(WAIT))
-		assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_OUT if t == World.LANTERN else World.FLOOR)
+		assert_eq(
+			w.tile(Vector2i(10, 8)), World.LANTERN_BROKEN if t == World.LANTERN else World.FLOOR
+		)
 		assert_has(_types(events), &"smash")
 		assert_has(_noises(events).map(func(e): return e.word), "쾅", "it bursts loudly")
 		assert_eq(w.shots, [] as Array[Shot])
 
 
-func test_an_orb_cast_at_a_lantern_puts_it_out_however_near() -> void:
+func test_an_orb_cast_at_a_lantern_breaks_it_however_near() -> void:
 	for dist: int in [1, 3, 6]:
 		var w := _world()
 		var lantern := w.player().pos + E * dist
@@ -130,7 +132,7 @@ func test_an_orb_cast_at_a_lantern_puts_it_out_however_near() -> void:
 		w.act(_cast([ORB], E))
 		w.act(WAIT)
 		w.act(WAIT)
-		assert_eq(w.tile(lantern), World.LANTERN_OUT, "lantern %d tiles away" % dist)
+		assert_eq(w.tile(lantern), World.LANTERN_BROKEN, "lantern %d tiles away" % dist)
 
 
 func test_bumping_a_lantern_twice_puts_it_out_then_breaks_it_into_rubble_she_can_cross() -> void:

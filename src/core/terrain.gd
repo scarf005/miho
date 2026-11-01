@@ -112,10 +112,10 @@ static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;
 ## one of 흙 or 쇠 hits a wall till it falls (Elements.fells). A wall thuds and
-## a window clangs.
+## a window clangs. A lantern breaks outright, so no one can light it again.
 static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 	if not s.spell.has(Cards.WATER) and w.tile(at) == struck and breakable(w, at):
-		hit(w, at)
+		hit(w, at, World.LANTERN_BROKEN if lantern(struck) else -1)
 		while Elements.fells(s.spell) and wall(w.tile(at)) and breakable(w, at):
 			hit(w, at)
 		if wall(struck):
@@ -124,13 +124,14 @@ static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 			w.noise(at, World.KNOCK, "쨍", true, s.caster)
 
 
-## Moves the tile one step along `breaks_to`; `was` is the tile it was.
-static func hit(w: World, at: Vector2i) -> void:
+## Moves the tile one step along `breaks_to`, or straight `to` when given; `was`
+## is the tile it was.
+static func hit(w: World, at: Vector2i, to := -1) -> void:
 	var was := w.tile(at)
 	w.burning.erase(at)
-	w.set_tile(at, Tiles.of(was, "breaks_to"))
+	w.set_tile(at, Tiles.of(was, "breaks_to") if to < 0 else to)
 	Notice.smashed(w, was, at)
-	w.emit({t = &"smash", at = at, was = was})
+	w.emit({t = &"smash", at = at, was = was, left = w.tile(at)})
 	Structures.broke(w, was, at)
 
 

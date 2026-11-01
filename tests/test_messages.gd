@@ -112,12 +112,11 @@ func test_repeated_lines_are_counted() -> void:
 
 func test_lanterns_doors_and_fire_are_told() -> void:
 	var w := _world()
-	w.tiles[Grid.index(SEEN)] = World.LANTERN_OUT
-	var out := {t = &"smash", at = SEEN, was = World.LANTERN}
-	assert_eq(_lines(w, [out]), ["등불이 꺼졌다"] as Array[String])
-	w.tiles[Grid.index(SEEN)] = World.LANTERN_BROKEN
-	assert_eq(_lines(w, [out]), ["등불이 부서졌다"] as Array[String], "an orb breaks it outright")
 	w.tiles[Grid.index(SEEN)] = World.LANTERN
+	var out := {t = &"smash", at = SEEN, was = World.LANTERN, left = World.LANTERN_OUT}
+	assert_eq(_lines(w, [out]), ["등불이 꺼졌다"] as Array[String])
+	out.left = World.LANTERN_BROKEN
+	assert_eq(_lines(w, [out]), ["등불이 부서졌다"] as Array[String], "an orb breaks it outright")
 	assert_eq(_lines(w, [{t = &"douse", at = SEEN}]), ["등불이 꺼졌다"] as Array[String])
 	var broken := {t = &"smash", at = SEEN, was = World.LANTERN_OUT}
 	assert_eq(_lines(w, [broken]), ["꺼진 등불이 부서졌다"] as Array[String])

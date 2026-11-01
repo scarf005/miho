@@ -255,7 +255,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return _who(before, after, id, "이", "가") + [[" 등불을 다시 켰다", TEXT]]
 			return [["등불이 다시 켜졌다", TEXT]]
 		&"smash":
-			if e.was == World.LANTERN:
+			if e.was == World.LANTERN and e.left == World.LANTERN_OUT:
 				return [["등불이 꺼졌다", TEXT]]
 			if e.was == World.WALL:
 				return [["벽에 금이 갔다", TEXT]]
