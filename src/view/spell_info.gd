@@ -16,8 +16,12 @@ const RECIPE := {
 ## The label of the harm a projectile does after it has flown MOMENTUM tiles.
 const FAR := "%d칸 이상 날아간 뒤 피해"
 const PIERCE := ["관통", "적 모두, 벽 한 칸"]
-## The guns that are named (Spell.pierces, Spell.mortar), by their talismans.
-const GUNS := [[Cards.FOX, Cards.METAL, Cards.METAL], [Cards.ORB, Cards.EARTH, Cards.METAL]]
+## The guns that are named (Spell.bullet, Spell.pierces, Spell.mortar), by their talismans.
+const GUNS := [
+	[Cards.FOX, Cards.METAL],
+	[Cards.FOX, Cards.METAL, Cards.METAL],
+	[Cards.ORB, Cards.EARTH, Cards.METAL],
+]
 ## What 도약 behind a projectile does (Leap.swap): [label, value] lines.
 const SWAP := [["바꿔치기", "멈춘 칸으로"], ["맞힌 적", "자리 교환"], ["바꿔치기 소음", "두 곳에서 %d" % Leap.SWAP_LOUD]]
 ## The numbers of each status (Status) past its name and time, by key, one

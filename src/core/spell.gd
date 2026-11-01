@@ -28,7 +28,8 @@ extends RefCounted
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball. A
-## wisp with two 쇠 is armour-piercing (`pierces`, 철갑탄); an orb that carries 유탄
+## wisp with one 쇠 is a 탄환, a creature's a 번개 (`bullet`), and with two
+## armour-piercing (`pierces`, 철갑탄); an orb that carries 유탄
 ## is a 비격진 (`mortar`), which bursts where it ends (Compounds).
 ## A compound is an element of its own (Compounds): it does not count as its
 ## elements, but for what a creature is weak to or eats (`holds`).
@@ -64,6 +65,9 @@ const MAX_LEVEL := 5
 ## The 쇠 that make a wisp armour-piercing, and its name.
 const PIERCE_METALS := 2
 const PIERCE_NAME := "철갑탄"
+## A wisp with one 쇠: Miho's, and a creature's (`wisp_name` set).
+const BULLET_NAME := "탄환"
+const BOLT_NAME := "번개"
 ## An orb that carries 유탄, and its name.
 const MORTAR_NAME := "비격진"
 
@@ -254,16 +258,18 @@ func title() -> String:
 	return ("·".join(parts) + " " + form).strip_edges()
 
 
-## The slot and how many of it the name of the shape tells: 철갑탄 and 비격진 are
-## iron by name, every 쇠; 비격진 one 유탄; none for the rest.
+## The slot and how many of it the name of the shape tells: 탄환, 철갑탄 and 비격진
+## are iron by name, every 쇠; 비격진 one 유탄; none for the rest.
 func _named(slot: StringName) -> int:
-	if slot == Cards.METAL and (pierces() or mortar()):
+	if slot == Cards.METAL and (bullet() or pierces() or mortar()):
 		return count(slot)
 	return 1 if mortar() and slot == &"shrapnel" else 0
 
 
-## What its wisps are called.
+## What its wisps are called: a wisp with one 쇠 is a bullet.
 func wisp() -> String:
+	if bullet():
+		return BULLET_NAME if wisp_name == "" else BOLT_NAME
 	return wisp_name if wisp_name != "" else SHAPE_NAME[WISP]
 
 
@@ -294,6 +300,11 @@ func gun() -> bool:
 ## creature it hits, and one wall.
 func pierces() -> bool:
 	return shape == WISP and count(Cards.METAL) >= PIERCE_METALS
+
+
+## A wisp with one 쇠: a bullet (탄환, and a creature's 번개).
+func bullet() -> bool:
+	return shape == WISP and has(Cards.METAL) and not pierces()
 
 
 ## A 비격진: an orb that carries 유탄, which bursts where it ends.
