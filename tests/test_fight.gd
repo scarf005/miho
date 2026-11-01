@@ -100,8 +100,8 @@ func test_the_map_tints_only_the_creatures_her_claws_catch_unawares() -> void:
 	var blind := _foe(m.world, Vector2i(4, 9))
 	blind.blind = 2
 	m.world.sense()
-	assert_false(m._sneakable(seeing))
-	assert_true(m._sneakable(blind))
+	assert_false(Fight.sneakable(m.world, seeing))
+	assert_true(Fight.sneakable(m.world, blind))
 
 
 func test_it_steps_towards_the_nearest_when_none_is_next_to_her() -> void:
@@ -197,19 +197,6 @@ func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() 
 	m.world.sense()
 	m.world.seen[Grid.index(sleeper.pos)] = 1
 	assert_true(sleeper.asleep())
-	assert_true(m._sneakable(sleeper))
+	assert_true(Fight.sneakable(m.world, sleeper))
 	m.world.seen[Grid.index(sleeper.pos)] = 0
-	assert_false(m._sneakable(sleeper))
-
-
-func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
-	var m := _main()
-	var sleeper := _foe(m.world, Vector2i(8, 8))
-	sleeper.home = sleeper.pos
-	sleeper.alert = Actor.REST
-	m.world.sense()
-	m.world.seen[Grid.index(sleeper.pos)] = 1
-	assert_true(sleeper.asleep())
-	assert_true(m._sneakable(sleeper))
-	m.world.seen[Grid.index(sleeper.pos)] = 0
-	assert_false(m._sneakable(sleeper))
+	assert_false(Fight.sneakable(m.world, sleeper))

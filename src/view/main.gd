@@ -955,7 +955,7 @@ func _refresh() -> void:
 			if world.seen[i] == 1 and not tints.has(Grid.at(i)):
 				tints[Grid.at(i)] = Color(Palette.SIDE[0], 0.2)
 	for b in world.actors:
-		if _sneakable(b):
+		if Fight.sneakable(world, b):
 			tints[b.pos] = Color(Palette.ALERT[1], 0.35)
 	term.tints = tints
 	term.marks = marks
@@ -987,14 +987,3 @@ func _zone_lines(p: Vector2i) -> Array:
 	var radius: Variant = excluded.zones.get(p)
 	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
 	return [[[text, Palette.ZONE]]]
-
-
-## A creature next to Miho that her claws would catch unawares (World._claw).
-func _sneakable(a: Actor) -> bool:
-	return (
-		a.alive()
-		and a.faction != Actor.FOX
-		and Grid.cheb(a.pos, world.player().pos) == 1
-		and Hat.shown(world, a)
-		and world.caught_unawares(a)
-	)

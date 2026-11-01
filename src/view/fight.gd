@@ -48,3 +48,16 @@ static func step(w: World) -> Dictionary:
 		if not path.is_empty():
 			return {t = &"move", dir = path[0] - me}
 	return {}
+
+
+## A creature her claws would catch unawares (World._claw): next to Miho, or
+## asleep in sight.
+static func sneakable(w: World, a: Actor) -> bool:
+	var near := Grid.cheb(a.pos, w.player().pos) == 1
+	return (
+		a.alive()
+		and a.faction != Actor.FOX
+		and (near or a.asleep() and w.seen[Grid.index(a.pos)] == 1)
+		and Hat.shown(w, a)
+		and w.caught_unawares(a)
+	)
