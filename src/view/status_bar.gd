@@ -4,7 +4,8 @@ extends RefCounted
 ## (those the queued spells would spend in yellow), the saved spells by their
 ## slot keys, the storey and the time. The lower one holds the talismans by their
 ## number keys, the queue of MAX_SLOTS slots (a dim dot where no tail is left for
-## another card), the queued spell's name and the noise bar.
+## another card), the compounds Miho can make now, the queued spell's name and
+## the noise bar.
 
 
 static func draw(t: Term) -> void:
@@ -57,6 +58,9 @@ static func draw(t: Term) -> void:
 			t._glyph(at, Cards.GLYPH[slots[i]], c)
 		else:
 			t._glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
+	for combo in combos(t):
+		var c := Palette.card(combo.c) if combo.c != &"" else Palette.DIM
+		t._glyph(Vector2(combo.x, row), Cards.GLYPH.get(combo.c, "…"), c)
 	var name := _name(t, queued)
 	var at := title_at(t, name)
 	if at.y < row:
@@ -99,6 +103,41 @@ static func title_at(t: Term, name: String) -> Vector2:
 	if x >= queue_x(t) + Spell.MAX_SLOTS + 0.5:
 		return Vector2(x, t.rows - 1)
 	return Vector2(maxf(0.0, t.cols - t._cells(name)), mini(t.rows - 3, int(bar.y) - 1))
+
+
+## The compounds Miho can make now: all their elements held and the tails for
+## them at her most, in tier order.
+static func makeable(w: World) -> Array:
+	return Cards.compounds().filter(
+		func(c):
+			var parts := Cards.made_of(c)
+			return parts.all(w.cards.has) and Spell.price(parts.size()) <= w.max_tails()
+	)
+
+
+## The compounds drawn after the queue, as {c, x}: as many as fit before the
+## spell's name and the noise bar, the name keeping its place, then {c = &""}
+## for the ones left out.
+static func combos(t: Term) -> Array:
+	var out := []
+	if t.world == null:
+		return out
+	var list := makeable(t.world)
+	var start := queue_x(t) + Spell.MAX_SLOTS + 1.0
+	var end := float(t.cols)
+	var bar := NoiseMeter.at(t)
+	if bar.y == t.rows - 1:
+		end = bar.x - 0.5
+	var name := _name(t, Spell.make(t.picked))
+	if name != "" and title_at(t, name).y == t.rows - 1:
+		end = minf(end, title_at(t, name).x - 1.0)
+	var room := floori(end - start)
+	var shown := list.size() if list.size() <= room else maxi(0, room - 1)
+	for i in shown:
+		out.append({c = list[i], x = start + i})
+	if shown < list.size() and room > 0:
+		out.append({c = &"", x = start + shown})
+	return out
 
 
 ## Saved spells on the upper row: {action, key, x, width}, left to right.
@@ -184,3 +223,20 @@ static func card_at(t: Term, local: Vector2) -> StringName:
 	if c.x < Term.MAP.x or i >= t.world.cards.size():
 		return &""
 	return t.world.cards[i]
+
+
+## The compound under a point in the term's space, or empty.
+static func combo_at(t: Term, local: Vector2) -> StringName:
+	var c := local / Term.CELL
+	if floori(c.y) != t.rows - 1:
+		return &""
+	for combo in combos(t):
+		if c.x >= combo.x and c.x < combo.x + 1.0:
+			return combo.c
+	return &""
+
+
+## The talisman or compound under a point in the term's space, or empty.
+static func talisman_at(t: Term, local: Vector2) -> StringName:
+	var card := card_at(t, local)
+	return card if card != &"" else combo_at(t, local)

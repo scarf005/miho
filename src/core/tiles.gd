@@ -8,6 +8,8 @@ extends RefCounted
 ## walk: creatures can stand here (a closed door counts, for paths: whoever
 ## walks into it opens it). sight, light: it blocks sight, it lets light
 ## through. burns, burns_to: fire can take it, and what it is once burnt.
+## fierce: it burns readily (인화성): its fire is World.FIERCE_DAMAGE a round and
+## spreads two steps a round (Terrain.burn).
 ## breaks_to: what a hit leaves of it (the outermost ring of the map never
 ## breaks). tread: [how far a step onto it is heard, the word for it].
 ## knock: Miho knocks it by walking into it, and `hit` is how far that is heard
@@ -88,12 +90,29 @@ const ROWS := {
 	},
 	World.DRUM_TORN: {name = "찢어진 북", walk = true},
 	World.GRASS: {name = "풀", walk = true, burns = true, spread = 0.15},
-	World.STRAW: {name = "마른 짚", walk = true, burns = true},
+	World.STRAW: {name = "마른 짚", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.REEDS:
-	{name = "갈대", walk = true, sight = true, tread = [2, "바스락"], trample = World.REEDS_FLAT},
-	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true},
+	{
+		name = "갈대",
+		walk = true,
+		sight = true,
+		burns = true,
+		fierce = true,
+		spread = 1.0,
+		tread = [2, "바스락"],
+		trample = World.REEDS_FLAT,
+	},
+	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.LEAVES:
-	{name = "낙엽", walk = true, burns = true, tread = [2, "바스락"], trample = World.FLOOR},
+	{
+		name = "낙엽",
+		walk = true,
+		burns = true,
+		fierce = true,
+		spread = 1.0,
+		tread = [2, "바스락"],
+		trample = World.FLOOR,
+	},
 	World.SHALLOW: {name = "얕은 물", walk = true, tread = [2, "철벅"], douses = true, scentless = true},
 	World.PILLAR: {name = "기둥", sight = true, light = false, gas = false},
 	World.WOOD_WALL:
@@ -119,8 +138,8 @@ const ROWS := {
 	World.VEIL: {name = "도깨비불 장막", opens = true},
 	World.LAMP: {name = "석등"},
 	World.TALISMAN: {name = "부적 단", walk = true},
-	World.SHELF: {name = "두루마리 서가", walk = true, burns = true},
-	World.SHELF_READ: {name = "읽은 서가", walk = true, burns = true},
+	World.SHELF: {name = "두루마리 서가", walk = true, burns = true, fierce = true, spread = 1.0},
+	World.SHELF_READ: {name = "읽은 서가", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.SCREEN:
 	{
 		name = "병풍",
@@ -160,6 +179,7 @@ const DEFAULT := {
 	sight = false,
 	light = true,
 	burns = false,
+	fierce = false,
 	burns_to = World.ASH,
 	breaks_to = -1,
 	tread = [0, "탁"],
@@ -181,6 +201,7 @@ static var walk := _flags("walk")
 static var sight := _flags("sight")
 static var light := _flags("light")
 static var burns := _flags("burns")
+static var fierce := _flags("fierce")
 static var knock := _flags("knock")
 static var wall := _flags("wall")
 static var gas := _flags("gas")

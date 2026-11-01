@@ -66,6 +66,14 @@ static func card(c: StringName, after: Spell) -> Array:
 	return lines
 
 
+## What a talisman on the status rows shows: a compound as in the 도감, else the
+## talisman and what it makes with the queue `picked`.
+static func hovered(c: StringName, picked: Array[StringName]) -> Array:
+	if Cards.compounds().has(c):
+		return combo(c)
+	return card(c, Spell.make(picked + [c]))
+
+
 ## A queue slot: its talisman and its tails, then the whole spell. A lone
 ## plain talisman is the whole spell, so it is named once.
 static func slot(s: Spell, i: int) -> Array:

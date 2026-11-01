@@ -158,10 +158,10 @@ static func flow(lines: Array, width: float) -> Array:
 					var cut := 1
 					while Term._cells(word.left(cut + 1)) <= width:
 						cut += 1
-					out.append(row + [[word.left(cut), run[1]]])
+					out.append(row + [Keywords.piece(run, word.left(cut))])
 					row = []
 					word = word.substr(cut)
-				row.append([word, run[1]])
+				row.append(Keywords.piece(run, word))
 				x += Term._cells(word)
 		out.append(row)
 	return out
@@ -195,7 +195,10 @@ func panel() -> Dictionary:
 
 ## A line with the dim runs in plain text colour, so a whole page reads.
 static func _legible(line: Array) -> Array:
-	return line.map(func(run): return [run[0], Palette.TEXT if run[1] == Palette.DIM else run[1]])
+	return line.map(
+		func(run):
+			return Keywords.piece(run, run[0], Palette.TEXT if run[1] == Palette.DIM else null)
+	)
 
 
 ## Handles a key press that menu movement `nav` names: Left and Right, Tab and
@@ -301,6 +304,10 @@ static func _extras() -> Array[Dictionary]:
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], "계단", _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
 	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire))
+	var fierce := func(w: World):
+		w.set_tile(AT, World.STRAW)
+		w.burning[AT] = World.BURN_ROUNDS
+	out.append(_mark(Palette.FIERCE_BURNING[0], Palette.FIERCE_BURNING[1], "맹렬한 불", fierce))
 	for kind in Compounds.HOT.size():
 		var heat := func(w: World): w.hot[AT] = Vector2i(kind, Compounds.HOT_ROUNDS)
 		out.append(_mark(Palette.HOT[0], Palette.HOT[1], Compounds.HOT[kind].name, heat))

@@ -80,7 +80,9 @@ var replay := false
 var cursor := Vector2i(-1, -1)
 ## Set by the game: the tiles in travel exclusions (tile -> true).
 var zone := {}
-var info: Array = []
+var info: Array = []:
+	set(v):
+		info = Keywords.lines(v)
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.
 var debug := {}
@@ -94,7 +96,9 @@ var log_lines: Array = []
 ## hover}, each row a list of [text, Color] runs, a run optionally starting at a
 ## given column ([text, Color, x]); `top` is the first row shown, `selected` and
 ## `hover` (-1 for none) the rows lit.
-var panel := {}
+var panel := {}:
+	set(v):
+		panel = Keywords.panel(v)
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
@@ -379,9 +383,13 @@ func tile_at(local: Vector2) -> Vector2i:
 	return c if Grid.inside(c) and _shown(c) else Vector2i(-1, -1)
 
 
-## Where the creature listed in the sidebar under a point stands, or (-1, -1).
+## Where the creature listed in the sidebar (or the touch strip) under a point stands, or (-1, -1).
 func side_at(local: Vector2) -> Vector2i:
 	var c := Vector2i((local / CELL).floor())
+	if world != null and bar is TouchHud:
+		var at: Vector2i = bar.creature_at(self, local)
+		if at.x >= 0:
+			return at
 	if world == null or c.x < 0 or c.x >= side.x or c.y < 0 or c.y >= rows - foot:
 		return Vector2i(-1, -1)
 	var list := _side_list(_world_actors(), world.player().pos)
@@ -490,18 +498,52 @@ func _draw() -> void:
 	var v := map_view()
 	if not banner_lines.is_empty():
 		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
-	var top := maxi(0, (v.y - banner_lines.size() * 2) / 2)
-	var y := top
-	for i in banner_lines.size():
-		var color: Color = Palette.KIND[&"miho"] if i == 0 else Palette.TEXT
-		for row: Array in rows_of([[banner_lines[i], color]], cols):
-			var w: float = row.reduce(func(n, r): return n + _cells(r[0]), 0.0)
-			var x := clampf(side.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
-			_text(Vector2(x, y), "".join(row.map(func(r): return r[0])), color)
-			y += 1
-		y += 1
+	for r: Array in _banner_rows():
+		_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
 	if not panel.is_empty():
 		PanelView.draw(self)
+
+
+## Each row of the banner as [line index, text, position in cells]: the lines
+## wrapped to the screen width, one blank row between them, centred over the map.
+func _banner_rows() -> Array:
+	var v := map_view()
+	var rows_of_line := []
+	var height := 0
+	for line in banner_lines:
+		var wrapped: Array = rows_of([[line, Palette.TEXT]], cols).map(
+			func(row): return "".join(row.map(func(r): return r[0]))
+		)
+		rows_of_line.append(wrapped)
+		height += wrapped.size() + 1
+	var out := []
+	var y := maxi(0, (v.y - height) / 2)
+	for i in rows_of_line.size():
+		for text: String in rows_of_line[i]:
+			var w := _cells(text)
+			var x := clampf(side.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
+			out.append([i, text, Vector2(x, y)])
+			y += 1
+		y += 1
+	return out
+
+
+## Where banner line `i` is drawn, in cells.
+func banner_rect(i: int) -> Rect2:
+	var rect := Rect2()
+	for r: Array in _banner_rows():
+		if r[0] == i:
+			var at := Rect2(r[2], Vector2(_cells(r[1]), 1))
+			rect = at if rect.size == Vector2.ZERO else rect.merge(at)
+	return rect
+
+
+## The banner line under a point in this node's space, or -1.
+func banner_at(local: Vector2) -> int:
+	for i in banner_lines.size():
+		if banner_rect(i).has_point(local / CELL):
+			return i
+	return -1
 
 
 func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
@@ -525,9 +567,10 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var fire := _vis[i] == 1 and world.burning.has(p)
 		if fire:
 			var k := _flicker(i * 1.7, true)
-			glyph = Palette.BURNING[0]
-			fg = Color(Palette.BURNING[1] * (0.7 + 0.4 * k), 1.0)
-			bg = Color(Palette.BURNING[2] * k, 1.0)
+			var flame: Array = Palette.FIERCE_BURNING if Tiles.fierce[t] == 1 else Palette.BURNING
+			glyph = flame[0]
+			fg = Color(flame[1] * (0.7 + 0.4 * k), 1.0)
+			bg = Color(flame[2] * k, 1.0)
 		var hot := not fire and _vis[i] == 1 and world.hot.has(p)
 		if hot:
 			glyph = Palette.HOT[0]
@@ -694,45 +737,19 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			_small(at, m[0], m[1])
 
 
-func _side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
+func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
 	var list: Array = actors.values().filter(
 		func(a): return a.faction != Actor.FOX and _revealed(a.pos) and not _hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	return list.slice(0, (rows - foot) / SIDE_ROWS)
+	return list.slice(0, (rows - foot) / SIDE_ROWS if limit < 0 else limit)
 
 
-## Creatures in sight, nearest first, as Brogue lists them: glyph and name, hearts,
-## then what it is doing and the spells it charges, aimed (alone when both do not fit).
+## Creatures in sight, nearest first, as Brogue lists them (CreatureCard).
 func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 	var list := _side_list(actors, me_pos)
 	for k in list.size():
-		var a: Actor = list[k]
-		var row := k * SIDE_ROWS
-		if a.pos == cursor:
-			draw_rect(
-				Rect2(Vector2(0, row) * CELL, Vector2(MAP.x, SIDE_ROWS) * CELL),
-				Color(Palette.TEXT, 0.12)
-			)
-		_glyph(Vector2(0, row), a.info().glyph, Palette.KIND[a.kind])
-		_text(Vector2(1.5, row), a.info().name, Palette.KIND[a.kind])
-		_pips(Vector2(0, row + 1), a.hp, a.max_hp, Palette.HURT, MAP.x - 1)
-		_status(Vector2(MAP.x - 1, row + 1), a)
-		var doing: String = Info.state(a) if a.blind <= 0 else "눈멂"
-		if a.fighting() and a.blind <= 0:
-			doing = "싸우는 중"
-		var plans := a.intent.map(func(p): return [Spell.make(p.cards).slots, p.dir])
-		var x := _cells(doing) + 0.5
-		if x + plans.reduce(func(n, p): return n + p[0].size() + 1, 0) > MAP.x:
-			x = 0.0
-		else:
-			_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
-		for plan: Array in plans:
-			for slot: StringName in plan[0]:
-				_glyph(Vector2(x, row + 2), Cards.GLYPH[slot], Palette.card(slot))
-				x += 1
-			_glyph(Vector2(x, row + 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
-			x += 1
+		CreatureCard.draw(self, list[k], Vector2(0, k * SIDE_ROWS), MAP.x)
 
 
 ## A frame on the tile under the pointer, and what is there in a box on the
@@ -753,8 +770,7 @@ func _draw_info() -> void:
 		for k in column[1].size():
 			var x: float = column[0]
 			for run: Array in column[1][k]:
-				_text(Vector2(x, k), run[0], run[1])
-				x += _cells(run[0])
+				x += _run(Vector2(x, k), run)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -788,8 +804,7 @@ func _draw_log() -> void:
 			draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
 			var x := side.x + 0.5
 			for run: Array in runs:
-				_text(Vector2(x, k), run[0], Color(run[1], alpha))
-				x += _cells(run[0])
+				x += _run(Vector2(x, k), run, alpha)
 			k += 1
 
 
@@ -811,9 +826,19 @@ static func rows_of(runs: Array, width: float) -> Array:
 				x = 0.0
 				word = word.lstrip(" ")
 			if word != "":
-				out[-1].append([word, run[1]])
+				out[-1].append(Keywords.piece(run, word))
 				x += _cells(word)
 	return out
+
+
+## A run at `at`, on its background if it has one, faded to `alpha`; the cells it takes.
+func _run(at: Vector2, run: Array, alpha := 1.0) -> float:
+	var width := _cells(run[0])
+	var back := Keywords.back(run)
+	if back.a > 0.0:
+		draw_rect(Rect2(at * CELL, Vector2(width, 1) * CELL), Color(back, back.a * alpha))
+	_text(at, run[0], Color(run[1], run[1].a * alpha))
+	return width
 
 
 ## Health as hearts, at most `room` of them; more health is written as a number.

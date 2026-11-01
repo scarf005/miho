@@ -10,7 +10,7 @@ extends RefCounted
 ## the row under the pointer, and a click selects it.
 ## `key`, `use`, `click` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"restart", &"quit" (save and end the
-## game), &"cast" (pick `chosen`), or nothing.
+## game), &"seed" (copy the seed), &"cast" (pick `chosen`), or nothing.
 
 const VALUE_COL := 18.0
 const MOUSE := [
@@ -21,7 +21,17 @@ const MOUSE := [
 ]
 const LOOK := ["살피는 중", "방향키로 커서 이동 (Shift는 5칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-7 반경), Esc 끝"]
 const OPTIONS := [
-	&"volume", &"music", &"crt", &"zoom", &"speed", &"codex", &"keys", &"restart", &"quit", &"close"
+	&"volume",
+	&"music",
+	&"crt",
+	&"zoom",
+	&"speed",
+	&"codex",
+	&"keys",
+	&"seed",
+	&"restart",
+	&"quit",
+	&"close"
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
@@ -32,6 +42,7 @@ const OPTION_NAMES := {
 	&"replay": "명장면 다시보기",
 	&"codex": "도감",
 	&"keys": "키 설정",
+	&"seed": "시드",
 	&"restart": "처음부터",
 	&"quit": "저장하고 끝내기",
 	&"close": "계속",
@@ -39,8 +50,10 @@ const OPTION_NAMES := {
 const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
 
 var settings := Settings.new()
-## The seed of the run, shown under the options (DCSS shows it in its version page).
+## The seed of the run, a row of the options (DCSS shows it in its version page),
+## and whether Enter on it copied it since the page opened.
 var seed_value := 0
+var copied := false
 var page := &""
 var selected := 0
 ## The first row shown, and the row the pointer is over (-1 for none).
@@ -70,6 +83,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	top = 0
 	hovered = -1
 	waiting = false
+	copied = false
 	origin = &""
 	if size != Vector2i.ZERO:
 		room = size
@@ -95,9 +109,7 @@ func panel() -> Dictionary:
 	var out := {title = "도움말", rows = _help()}
 	match page:
 		&"options":
-			out = {
-				title = "설정", rows = _options(), detail = [[["시드: %d" % seed_value, Palette.DIM]]]
-			}
+			out = {title = "설정", rows = _options()}
 		&"keys":
 			out = {title = "키 설정", rows = _keys()}
 		&"spells":
@@ -132,13 +144,7 @@ func key(e: InputEventKey) -> StringName:
 	if page in [&"help", &"log"] and slot == page:
 		out = &"close"
 	elif page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
-		var k := spells()[selected].key()
-		var had: bool = settings.spells.get(slot, "") == k
-		for s in settings.spells.keys():
-			if settings.spells[s] == k:
-				settings.spells.erase(s)
-		if not had:
-			settings.spells[slot] = k
+		save(slot)
 	elif (
 		page == &"keys"
 		and e.keycode in [KEY_DELETE, KEY_BACKSPACE]
@@ -148,6 +154,17 @@ func key(e: InputEventKey) -> StringName:
 	else:
 		out = _move(nav)
 	return out
+
+
+## Saves the selected spell in `slot`, or clears the slot when it holds that spell.
+func save(slot: StringName) -> void:
+	var k := spells()[selected].key()
+	var had: bool = settings.spells.get(slot, "") == k
+	for s in settings.spells.keys():
+		if settings.spells[s] == k:
+			settings.spells.erase(s)
+	if not had:
+		settings.spells[slot] = k
 
 
 ## Menu movement `nav` on the page's list; what the game should do.
@@ -226,10 +243,15 @@ func click(row: int, tab: int) -> StringName:
 		if page == &"codex":
 			codex.select(row)
 			return &""
-		selected = row
-		top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
+		select(row)
 		return use() if page in [&"options", &"keys", &"spells"] else &""
 	return &""
+
+
+## Selects row `row` of the page's list, without using it.
+func select(row: int) -> void:
+	selected = row
+	top = ListNav.reveal(top, selected, panel().rows.size(), _fits())
 
 
 ## The wheel turns `dir` notches (1 down) over the detail (`aside`) or the list.
@@ -266,6 +288,9 @@ func _use_option() -> StringName:
 			_enter(row)
 			return &""
 		&"restart", &"quit", &"close":
+			return row
+		&"seed":
+			copied = true
 			return row
 	return _change(1)
 
@@ -383,6 +408,7 @@ func _options() -> Array:
 		&"zoom": "맞춤" if settings.zoom == 0.0 else str(settings.zoom),
 		&"speed": "%dx" % int(settings.speed),
 		&"replay": _on(settings.replay),
+		&"seed": "%d 복사했다" % seed_value if copied else str(seed_value),
 	}
 	var rows := []
 	for o in OPTIONS:

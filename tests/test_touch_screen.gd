@@ -24,11 +24,11 @@ func test_a_tall_phone_puts_the_hud_under_a_map_18_cells_wide() -> void:
 	assert_eq(fmod(p.cw * 3.0, 16.0), 0.0, "cells are whole pixels of the font's grid")
 
 
-func test_a_wide_phone_puts_the_hud_beside_a_map_14_rows_tall() -> void:
+func test_a_wide_phone_puts_the_hud_beside_a_map_16_rows_tall() -> void:
 	var p := Touch.plan(Vector2(844, 390), Vector4.ZERO, 3.0, false)
 	assert_true(p.wide)
 	assert_eq(p.map.end.x, p.hud.position.x)
-	assert_gte(p.map.size.y / (p.cw * Term.CELL.y / Term.CELL.x), 13.0)
+	assert_gte(p.map.size.y / (p.cw * Term.CELL.y / Term.CELL.x), 16.0)
 	assert_gte(p.hud.size.x, 300.0)
 
 

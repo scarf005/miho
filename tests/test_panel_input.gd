@@ -53,6 +53,14 @@ func _codex(m: Node) -> void:
 	m._open(&"codex")
 
 
+func test_f10_opens_the_settings_and_closes_them_for_a_browser_that_keeps_esc() -> void:
+	var m := _main()
+	_key(m, "F10")
+	assert_eq(m.term.panel.title, "설정")
+	_key(m, "F10")
+	assert_true(m.term.panel.is_empty(), "back in the game")
+
+
 func test_the_game_menu_opens_the_codex_and_esc_returns_to_it() -> void:
 	var m := _main()
 	_key(m, "Escape")
@@ -101,7 +109,7 @@ func test_a_held_arrow_repeats_in_the_codex_the_game_menu_and_the_key_page() -> 
 func test_wrap_page_and_ends_work_on_the_game_menu() -> void:
 	var m := _main(10)
 	var last := Menu.OPTIONS.size() - 1
-	var page := PanelView.fits(10, 1)  # under the seed line
+	var page := PanelView.fits(10, 0)
 	_key(m, "Escape")
 	_key(m, "Up")
 	assert_eq(m.term.panel.selected, last, "Up from the first row wraps")

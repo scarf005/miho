@@ -16,7 +16,7 @@ extends Node
 const OFF := Vector2(-1.0e5, -1.0e5)
 ## Cells across the screen in portrait, and rows down it in landscape, in play.
 const COLS_TALL := 18
-const ROWS_WIDE := 14
+const ROWS_WIDE := 16
 ## Cells across the screen on a page.
 const PAGE_COLS_TALL := 27
 const PAGE_COLS_WIDE := 42
@@ -130,10 +130,11 @@ func fit() -> void:
 		_probe()
 	gesture.scale = dpr
 	hud.mode = _mode()
+	hud.page = main.overlay
 	var page: bool = main.overlay != &""
 	var p := plan(main.get_viewport().get_visible_rect().size / dpr, insets, dpr, page)
 	var k: float = p.cw * dpr / Term.CELL.x
-	term.side = Vector2i.ZERO
+	term.side = Vector2i(Term.MAP.x, 0) if p.wide and hud.mode == &"play" else Vector2i.ZERO
 	term.foot = 0
 	term.bar = hud
 	term.readable = LEAST_CELL * dpr
@@ -159,6 +160,7 @@ func _process(_delta: float) -> void:
 	if not enabled:
 		return
 	hud.mode = _mode()
+	hud.page = main.menu.page if main.overlay != &"" else &""
 	tick(_now())
 
 
@@ -183,6 +185,7 @@ func input(event: InputEvent, now := _now()) -> void:
 	var out := []
 	if event is InputEventScreenTouch:
 		_scrolled = 0.0
+		hud.release()
 		out = (
 			gesture.down(event.index, event.position, now)
 			if event.pressed
@@ -241,6 +244,11 @@ func _tap(pos: Vector2) -> void:
 		hud.pressed_at = term._time
 		main.sfx.play(&"click")
 		_press(button)
+	elif main.overlay == &"spells":
+		var row := PanelView.row_at(term, local)
+		if row >= 0:
+			main.menu.select(row)
+			term.panel = main.menu.panel()
 	elif main.overlay != &"":
 		main._panel_input(_click(pos))
 	elif main.state == &"title" and main.pending == null:
@@ -257,6 +265,13 @@ func _press(id: StringName) -> void:
 			main._continue()
 		&"new":
 			main._restart()
+		&"enter":
+			main._panel_input(_key(KEY_ENTER))
+		_ when Keys.SLOTS.has(id) and main.overlay != &"":
+			main.menu.save(id)
+			main.settings.save()
+			main._apply()
+			main.term.panel = main.menu.panel()
 		_:
 			main._do(id, false)
 
@@ -264,9 +279,15 @@ func _press(id: StringName) -> void:
 func _play_tap(pos: Vector2, local: Vector2) -> void:
 	var term: Term = main.term
 	var card := hud.card_at(term, local)
+	var saved := hud.saved_at(term, local)
 	var tile := term.tile_at(local)
-	if hud.cast_at(term, local):
+	if Grid.inside(term.side_at(local)):
+		main._point(pos)
+		frozen = not main.term.info.is_empty()
+	elif hud.cast_at(term, local):
 		main._do(&"confirm", false)
+	elif saved != &"":
+		main._do(saved, false)
 	elif card != &"":
 		main._add(card)
 		main._aim()
@@ -290,7 +311,8 @@ func _hold(pos: Vector2) -> void:
 
 
 func _swipe(dir: Vector2i, from: Vector2) -> void:
-	if hud.area.has_point(main._local(from)):
+	var local: Vector2 = main._local(from)
+	if hud.area.has_point(local) or local.x < main.term.side.x * Term.CELL.x:
 		return
 	if main.overlay != &"":
 		if dir.y == 0:
@@ -302,9 +324,10 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 
 ## A drag over a page scrolls it by the rows it is drawn with.
 func _drag(delta: Vector2, from: Vector2) -> void:
-	if main.overlay == &"":
-		return
 	var term: Term = main.term
+	if main.overlay == &"":
+		hud.scroll(term, main._local(from), delta.x / term.scale.x)
+		return
 	var aside := PanelView.aside_at(term, main._local(from))
 	var row := term.scale.y * Term.CELL.y * (1 if aside else PanelView.stride)
 	_scrolled -= delta.y

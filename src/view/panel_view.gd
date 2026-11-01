@@ -47,8 +47,7 @@ static func draw(t: Term) -> void:
 		var y := rows - detail.size() + k
 		var x := 2.0
 		for run: Array in detail[k]:
-			t._text(Vector2(x, y), run[0], run[1])
-			x += t._cells(run[0])
+			x += t._run(Vector2(x, y), run)
 	if cols >= TAB_COLS or panel.get("tabs", []).is_empty():
 		t._text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
 	var tab_x := _tabs_at(t)
@@ -59,8 +58,7 @@ static func draw(t: Term) -> void:
 	for k in panel.get("aside", []).size():
 		var x := aside_x
 		for run: Array in panel.aside[k]:
-			t._text(Vector2(x, 3 + k), run[0], run[1])
-			x += t._cells(run[0])
+			x += t._run(Vector2(x, 3 + k), run)
 	if panel.get("aside_up", false):
 		t._glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
 	if panel.get("aside_down", false):
@@ -77,9 +75,8 @@ static func draw(t: Term) -> void:
 			)
 		var x := 2.0
 		for run: Array in panel.rows[k]:
-			x = run[2] if run.size() > 2 else x
-			t._text(Vector2(x, y + (stride - 1) / 2.0), run[0], run[1])
-			x += t._cells(run[0])
+			x = Keywords.column(run, x)
+			x += t._run(Vector2(x, y + (stride - 1) / 2.0), run)
 	if shown.x > 0:
 		t._glyph(Vector2(1, 2), "▲", Palette.DIM)
 	if shown.x + shown.y < panel.rows.size():
