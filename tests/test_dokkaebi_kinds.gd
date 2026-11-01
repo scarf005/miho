@@ -200,12 +200,6 @@ func test_the_hover_and_the_doc_say_the_poker_lights_lanterns_when_awake() -> vo
 	assert_string_contains(text, "꺼진 등불을 켬")
 
 
-func test_every_dokkaebi_can_cast_the_lone_fire_at_every_rank() -> void:
-	for kind in Codex.foes().filter(func(k): return Bestiary.info(k).group == &"dokkaebi"):
-		for r in range(1, Bestiary.RANKS + 1):
-			assert_has(Bestiary.casts(kind, r), [Cards.FIRE], "%s rank %d" % [kind, r])
-
-
 func test_the_lone_fire_gives_a_plain_dokkaebi_no_element() -> void:
 	assert_eq(Bestiary.elements(&"oedari"), [] as Array[StringName])
 	assert_eq(Bestiary.weak_to(&"dokkaebi"), [] as Array[StringName])

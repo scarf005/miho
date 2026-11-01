@@ -8,6 +8,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Before you add a tile, status, state or creature field, diff it against the existing table (src/core/tiles.gd, Actor, Info.state). If its rules match an existing entry, reuse that entry. Never add a themed name with the same rules.
 - Level design teaches by arrangement, not by text. A secret or puzzle looks like ordinary terrain. Examples: a plain wall in front of an empty space, or three dark lanterns in a row. Never add an artificial prop whose hover explains the solution.
 - Never add a gameplay limit the user did not ask for: a damage cap, a balance ceiling, or a test that enforces one. A numeric limit a lane needs goes to the user first, in plain words.
+- Write no test that only mirrors a table, a name or a string, or repeats the expression the code uses. Check those with `rg`. Test behaviour.
 
 ## Player-facing text (hover, sidebar, 도감, log)
 

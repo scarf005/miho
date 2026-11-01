@@ -133,14 +133,3 @@ func test_only_miho_s_wisps_are_called_foxfire() -> void:
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 혼불")
 	w.cast(w.player(), own, Vector2i(1, 0))
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "미호의 불 여우불")
-
-
-func test_no_creature_of_heaven_says_foxfire() -> void:
-	for kind in Codex.foes():
-		for r in range(1, Bestiary.RANKS + 1):
-			var text := Info.plain(Info.creature_facts(Codex.foe(kind, r), []))
-			assert_false(text.contains("여우"), "%s rank %d: %s" % [kind, r, text])
-			for cast: Array in Bestiary.casts(kind, r):
-				var s := Bestiary.spell(kind, cast)
-				assert_false(s.title().contains("여우"), "%s %s" % [kind, s.title()])
-				assert_false(Info.plain(SpellInfo.spell(s)).contains("여우"), s.title())
