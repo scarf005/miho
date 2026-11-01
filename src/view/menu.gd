@@ -200,9 +200,9 @@ func _spells(list: Array[Spell]) -> Array:
 	for s in list:
 		var row := [[slot_key(settings.spells, s.key()), Palette.SIDE[0]]]
 		for k in s.slots.size():
-			row.append([Cards.GLYPH[s.slots[k]], Palette.card(s.slots[k]), 2.0 + k])
-		row.append([s.title(), Palette.TEXT, 8.0])
-		row.append(["꼬리 %d" % s.cost(), Palette.DIM, VALUE_COL + 4.0])
+			row.append([Cards.GLYPH[s.slots[k]], Palette.card(s.slots[k]), 4.0 + k])
+		row.append(["꼬리 %d" % s.cost(), Palette.DIM, 10.0])
+		row.append([s.title(), Palette.TEXT, 14.0])
 		rows.append(row)
 	if rows.is_empty():
 		rows.append([["줄에 든 부적도, 저장한 주문도 없다", Palette.DIM]])

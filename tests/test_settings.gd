@@ -52,6 +52,17 @@ func test_the_highlight_replay_is_off_whatever_an_old_file_says_and_has_no_optio
 	assert_false(Menu.OPTIONS.has(&"replay"))
 
 
+func test_a_saved_spell_row_draws_its_key_slots_cost_and_name_apart() -> void:
+	var menu := Menu.new()
+	menu.settings.spells = {&"slot_1": "orb+orb+orb+orb+orb"}
+	var row: Array = menu._spells(menu.spells())[0]
+	var x := 2.0
+	for run: Array in row:
+		var at: float = run[2] if run.size() > 2 else x
+		assert_gte(at, x, run[0])
+		x = at + Term._cells(run[0])
+
+
 func test_missing_or_wrong_values_fall_back_to_defaults() -> void:
 	var c := ConfigFile.new()
 	c.set_value("settings", "volume", 900)
