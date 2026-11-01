@@ -12,14 +12,21 @@ extends RefCounted
 
 const PROTOCOL := "2025-06-18"
 const MAX_ROUNDS := 200
+## The tail costs of a spell of 1 to MAX_SLOTS cards (Spell.COST), and the square
+## round where a compound projectile ends.
+const COSTS := "%d, %d, %d, %d, %d" % Spell.COST
+const SQUARE := "%dx%d" % [2 * Grid.NEAR + 1, 2 * Grid.NEAR + 1]
 const INSTRUCTIONS := (
 	(
 		"Play Miho, a fox climbing a pavilion of %d storeys to drink the elixir on the top one. "
 		% World.FLOORS
 	)
-	+ "She grows a tail on every storey, up to nine. "
+	+ "She grows a tail on every storey, up to %d. " % World.FLOORS
 	+ "Call new_game, then act. Every result shows the map and what Miho knows. "
-	+ "A spell is a queue of talismans, 1 to 5 cards costing 1, 2, 3, 5, 7 tails: "
+	+ (
+		"A spell is a queue of talismans, 1 to %d cards costing %s tails: "
+		% [Spell.MAX_SLOTS, COSTS]
+	)
 	+ "fox or orb hurl projectiles, "
 	+ "elements alone spray at once; more copies make it stronger. "
 	+ "Game text is Korean. Use forecast to check a step or a spell before taking it, "
@@ -45,22 +52,49 @@ const SPELLS := {
 		+ "talisman names (fox, orb, fire, water, wood, metal, earth) or their Korean "
 		+ "names, repeats allowed. A repeat stacks; an element joins the first different element "
 		+ "queued as one compound slot. Water, wood and fire in any order make one leap slot "
-		+ "(도약, 3 cards). A spell fills at most 5 slots. The leap slot only leads a spell: "
-		+ "Miho leaps over sky, ponds and creatures onto the farthest free tile within 3 tiles "
-		+ "plus 1 per wood card right behind it, then casts the rest there. The leap slot last "
+		+ (
+			"(%s, %d cards). A spell fills at most %d slots. The leap slot only leads a spell: "
+			% [Cards.NAME[Cards.VAULT], Cards.TRIPLE, Spell.MAX_SLOTS]
+		)
+		+ (
+			"Miho leaps over sky, ponds and creatures onto the farthest free tile within %d tiles "
+			% (Spell.LEAP_BASE + 1)
+		)
+		+ (
+			"plus %d per wood card right behind it, then casts the rest there. The leap slot last "
+			% Spell.LEAP_PER_WOOD
+		)
 		+ "behind fox or orb swaps: Miho goes where the projectile ends, trading places with a "
 		+ "creature it strikes. With fox or orb it "
 		+ "hurls projectiles; elements alone spray this round, shaped by the first slot "
 		+ "(fire fan, water jet, metal gun, earth quake ring, wood roots; a compound its own "
-		+ "shape and effect, which a projectile carries to the 3x3 where it ends). Metal makes "
+		+ (
+			"shape and effect, which a projectile carries to the %s where it ends). Metal makes "
+			% SQUARE
+		)
 		+ "fox a bullet and orb a cannonball; wood on an orb grows a "
-		+ "wooden wall. A wisp turns 30 degrees a tile per fox and flies at most 7 tiles; "
-		+ "where it stops it hovers 8 rounds, and one of fox alone yelps every second "
-		+ "round, an alarm heaven searches. dir self casts it on Miho: only fox with "
-		+ "water (그림자, a dark wisp on her) or wood with earth (둔갑, the form of the "
-		+ "last creature felled, which creatures not hunting her do not know). The "
-		+ "forecast lists every number. A spell of 1 to 5 cards costs 1, 2, 3, 5, 7 tails, "
-		+ "and each card past five two more; all spells together cost at most the unspent tails."
+		+ (
+			"wooden wall. A wisp turns %d degrees a tile per fox and flies at most %d tiles; "
+			% [Spell.WISP_TURN, Spell.RANGE]
+		)
+		+ (
+			"where it stops it hovers %d rounds, and one of fox alone yelps every %d rounds, "
+			% [Spell.WISP_LIFE, Lure.EVERY]
+		)
+		+ (
+			"an alarm heaven searches. dir self casts it on Miho: only fox with water (%s, "
+			% Guise.NAME[Guise.SHADOW]
+		)
+		+ (
+			"a dark wisp on her) or wood with earth (%s, the form of the last creature felled, "
+			% Guise.NAME[Guise.GUISE]
+		)
+		+ "which creatures not hunting her do not know). The forecast lists every number. "
+		+ (
+			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "
+			% [Spell.MAX_SLOTS, COSTS, Spell.MAX_SLOTS, Spell.COST_EXTRA]
+		)
+		+ "all spells together cost at most the unspent tails."
 	),
 	items =
 	{
@@ -100,7 +134,10 @@ const TOOLS := [
 			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern or window, "
 			+ "or slides a closed door open (Miho stays put); close shuts the open door in dir; "
 			+ "wait passes a round; cast hurls spells. explore, rest (until the tails regrow), "
-			+ "stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to 200, "
+			+ (
+				"stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to %d, "
+				% MAX_ROUNDS
+			)
 			+ "and stop when a step would harm Miho or get her noticed, fire is next to the step, "
 			+ "or something happens. An illegal action is refused and changes nothing."
 		),
@@ -382,7 +419,7 @@ func _refusal(action: Dictionary) -> String:
 		return "There is no open door with nothing in it in that direction."
 	return (
 		"That cast is not allowed: each spell needs talismans Miho holds, "
-		+ "filling at most 5 slots, "
+		+ ("filling at most %d slots, " % Spell.MAX_SLOTS)
 		+ (
 			"its own open direction (self only for fox with water, or wood with earth "
 			+ "once a creature has fallen), "

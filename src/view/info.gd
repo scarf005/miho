@@ -17,7 +17,7 @@ const TRACE := "흔적."
 const CONDITIONS := {
 	"묶임": ["움직일 수 없음."],
 	"기절": ["움직일 수도, 주문을 쓸 수도 없음.", "모으던 주문: 취소"],
-	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색 끝: 경계가 끝난 뒤", "어두운 곳 시야: +1칸"],
+	"경계": ["시간: %d초" % World.WARY_ROUNDS, "수색 끝: 경계가 끝난 뒤", "어두운 곳 시야: +%d칸" % World.WARY_SIGHT],
 }
 
 
@@ -27,12 +27,20 @@ static func glossary() -> Dictionary:
 	var spread := roundi(Tiles.DEFAULT.spread * 100)
 	var burn := "불타는 시간: %d초" % World.BURN_ROUNDS
 	var night: int = World.NIGHT[Actor.HEAVEN]
+	var scentless := Tiles.ROWS.keys().filter(func(t): return Tiles.of(t, "scentless"))
+	var no_scent := ", ".join(scentless.map(func(t): return Tiles.of(t, "name")) + ["불타는 칸"])
 	return {
-		"가연성": [burn, "불탄 뒤: 재", "번지는 속도: 초당 1칸", "번질 확률: %d%%" % spread],
-		"인화성": [burn, "불탄 뒤: 재", "번지는 속도: 초당 2칸", "초당 피해: %d" % World.FIERCE_DAMAGE],
+		"가연성": [burn, "불탄 뒤: 재", "번지는 속도: 초당 %d칸" % Terrain.SPREAD_STEPS, "번질 확률: %d%%" % spread],
+		"인화성":
+		[
+			burn,
+			"불탄 뒤: 재",
+			"번지는 속도: 초당 %d칸" % Terrain.FIERCE_STEPS,
+			"초당 피해: %d" % World.FIERCE_DAMAGE
+		],
 		"함정": ["발견: 밝은 칸이나 %d칸 안" % Traps.REACH, "적은 밟지 않음."],
 		"흔적": ["수색하는 적: 추격 중이 아닌 적", "횟수: 적마다 한 번"],
-		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
+		"약점": ["피해: ×%d" % Elements.WEAK, "대상: 그 원소가 든 주문"],
 		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
 		"영리함": ["주문을 보면: 쏜 곳을 수색", "북 치기: 추격 중 걸어서 %d칸 안" % Drums.REACH],
 		"교활함":
@@ -51,7 +59,7 @@ static func glossary() -> Dictionary:
 		"어두움":
 		[
 			"적에게 보임: %d칸 안" % night,
-			"경계한 적: %d칸 안" % (night + 1),
+			"경계한 적: %d칸 안" % (night + World.WARY_SIGHT),
 			"미호가 보는 거리: %d칸" % World.NIGHT[Actor.FOX],
 		],
 		"외침": ["시작: 추격을 시작할 때", "들은 적: 추격 중이 아니면 미호를 본 곳을 수색", "듣지 못하는 적: 소음 면역"],
@@ -81,7 +89,7 @@ static func glossary() -> Dictionary:
 		[
 			"남김: 미호가 선 칸",
 			"남는 시간: %d초" % Scent.TRAIL_AGE,
-			"안 남는 칸: 대숲, 얕은 물, 불타는 칸",
+			"안 남는 칸: " + no_scent,
 			"지워짐: 물 주문, 안개비, 고요, 향 연기",
 		],
 	}
@@ -98,7 +106,7 @@ static func status_facts(key: StringName) -> Array:
 	var time := {&"wet": Status.WET, &"alight": Status.ALIGHT, &"frozen": Compounds.FROST}
 	var lines: Array = ["시간: %d초" % time[key]]
 	if key == &"frozen":
-		lines.append("젖은 적 시간: %d초" % (2 * Compounds.FROST))
+		lines.append("젖은 적 시간: %d초" % (Status.FROZEN_WET * Compounds.FROST))
 	lines.append_array(SpellInfo.STATUS_DOES[key])
 	return [[[Status.NAME[key], Palette.STATUS[key][1]]]] + _tags(lines)
 
@@ -365,9 +373,9 @@ static func _casts(a: Actor) -> Array:
 	var has_mana := Bestiary.mana(a.kind) > 0
 	if has_mana:
 		out.append([["마력: %d/%d" % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
-		out.append([["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]])
+		out.append([_regrows()])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
-		out.append([["동시 주술: 2개", Palette.TEXT]])
+		out.append([["동시 주술: %d개" % Aim.CASTS, Palette.TEXT]])
 	for cast: Array in a.repertoire():
 		var spell := Bestiary.spell(a.kind, cast)
 		var line: Array = [
@@ -570,13 +578,13 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append("타격: 깨짐")
 		World.WATER_JAR:
 			out.append("막음: 길")
-			out.append("타격: 주위 8칸 얕은 물")
+			out.append("타격: 주위 %d칸 %s" % [Grid.DIRS.size(), Tiles.of(World.SHALLOW, "name")])
 			out.append("타격: 불, 냄새 지움")
 		World.CENSER:
 			out.append("막음: 길")
 			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
 			out.append("%s 최대 양: %d" % [Gas.of(Gas.INCENSE, "name"), Gas.VENT_LEVEL])
-			out.append("타격: %s, 이 칸과 옆 4칸" % coals.name)
+			out.append("타격: %s, 이 칸과 옆 %d칸" % [coals.name, Placement.SIDES.size()])
 			out.append("타격: 옆 가연성·인화성 칸에 불")
 			out.append("%s: %d초" % [coals.name, Compounds.HOT_ROUNDS])
 			out.append("%s 초당 피해: %d" % [coals.name, coals.harm])
@@ -585,9 +593,9 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		World.STATUE:
 			out.append("막음: 길")
 		World.POND:
-			out.append("주문과 멀리뛰기로만 건널 수 있음.")
+			out.append("주문과 %s로만 건널 수 있음." % Spell.SHAPE_NAME[Spell.LEAP])
 		World.SKY:
-			out.append("주문과 멀리뛰기로만 건널 수 있음.")
+			out.append("주문과 %s로만 건널 수 있음." % Spell.SHAPE_NAME[Spell.LEAP])
 			out.append("추락한 적: 사라짐")
 			out.append("층당 추락 피해: %d" % Fall.DAMAGE)
 		World.WINDOW:
@@ -682,7 +690,12 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 	var i := Grid.index(p)
 	if w.seen[i] == 0:
 		if w.dim[i] == 1:
-			return [["보이지 않음: %s" % ("대숲" if w.hides(p) else "어둠"), Palette.DIM]]
+			return [
+				[
+					"보이지 않음: %s" % (Tiles.of(World.BAMBOO, "name") if w.hides(p) else "어둠"),
+					Palette.DIM
+				]
+			]
 		return [["보이지 않음.", Palette.DIM]]
 	return _hidden(w, p)
 
@@ -690,17 +703,22 @@ static func _light_line(w: World, p: Vector2i) -> Array:
 ## Whether heaven would see Miho standing on p.
 static func _hidden(w: World, p: Vector2i) -> Array:
 	if w.hides(p):
-		return [["대숲 속: 바로 옆에서만 보임", Palette.SIDE[0]]]
+		return [[Tiles.of(World.BAMBOO, "name") + " 속: 바로 옆에서만 보임", Palette.SIDE[0]]]
 	if w.lit(p):
 		return [["밝음.", Palette.ALERT[1]]]
 	var reach: int = World.NIGHT[Actor.HEAVEN]
 	return [["어두움: %d칸 안에서만 보임" % reach, Palette.SIDE[0]]]
 
 
+## The run telling how fast tails, or mana, grow back.
+static func _regrows() -> Array:
+	return ["회복: %d초마다 %d" % [World.TAIL_REGROW, World.TAIL_REGROWN], Palette.DIM]
+
+
 static func _tails(w: World) -> Array:
 	return [
 		[["꼬리: %d/%d" % [w.tails, w.max_tails()], Palette.SIDE[0]]],
-		[["회복: %d초마다 1" % World.TAIL_REGROW, Palette.DIM]],
+		[_regrows()],
 	]
 
 
