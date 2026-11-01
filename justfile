@@ -95,6 +95,11 @@ event-rooms seeds="200": rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/event_rooms.gd -- {{ seeds }}
 
+# Print each storey's faults, event and set room rates and build time over N seeds, on one skeleton if named.
+maps seeds="100" skeleton="": rust
+    {{ godot }} --headless --path . --import
+    {{ godot }} --headless --path . -s tools/maps.gd -- {{ seeds }} {{ skeleton }}
+
 # Print Miho's power against each depth's creatures as Markdown; measures on N processes (about 40 min on 7).
 power procs="7": rust
     #!/usr/bin/env bash
