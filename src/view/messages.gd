@@ -199,6 +199,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var what := "열었다" if e.t == &"open" else "닫았다"
 			if id == after.player().id:
 				return [["문을 " + what, TEXT]]
+			if not _in_sight(before, after, id):
+				return [["문이 열렸다" if e.t == &"open" else "문이 닫혔다", TEXT]]
 			return _who(before, after, id, "이", "가") + [[" 문을 " + what, TEXT]]
 		&"drum":
 			var who := _who(before, after, id, "이", "가")
@@ -329,11 +331,20 @@ static func _subject(before: World, after: World, id: int, particle := "") -> Ar
 	return _who(before, after, id, p[0], p[1]) + [[" ", TEXT]]
 
 
+## Whether Miho saw the creature at the start or the end of the round.
+static func _in_sight(before: World, after: World, id: int) -> bool:
+	for w: World in [before, after]:
+		var a := w.actor(id)
+		if a != null and Hat.shown(w, a):
+			return true
+	return false
+
+
 ## A creature's name in its colour, then the particle that fits it: `closed`
-## after a final consonant, `open` after a vowel.
+## after a final consonant, `open` after a vowel. One out of her sight is 무언가.
 static func _who(before: World, after: World, id: int, closed: String, open: String) -> Array:
 	var a := _actor(before, after, id)
-	if a != null:
+	if a != null and (id == after.player().id or _in_sight(before, after, id)):
 		var name: String = a.info().name
 		return [[name, Palette.KIND[a.kind]], [_particle(name, closed, open), TEXT]]
 	return [["무언가", TEXT], [_particle("무언가", closed, open), TEXT]]
