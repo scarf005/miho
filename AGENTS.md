@@ -13,7 +13,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 ## Player-facing text (hover, sidebar, 도감, log)
 
 - Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소음: 3`, `가연성.`, `면역: 불`.
-- A status a spell causes is one line with the status word coloured: `닿은 대상은 불이 붙는다`. The status has its entry in the 도감 상태이상 tab.
+- A status a spell causes is one line with the status word coloured. The status has its entry in the 도감 상태이상 tab.
 - A lone spray goes by its name alone: `불길`, never `불 불길`. Label words are plain Korean game words: `대상`, never `노림`.
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`), and do not write `당신`.
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
