@@ -427,11 +427,11 @@ func test_a_burning_tile_burns_whoever_stands_in_it_for_fire_damage() -> void:
 	var foe := _foe(w, &"jangseung", Vector2i(5, 8))
 	w.act(WAIT)
 	assert_eq(foe.hp, 3 - World.FIRE_DAMAGE)
-	var me := w.player()
-	me.pos = Vector2i(8, 8)
-	_put(w, me.pos, World.BOARD)
-	w.burning[me.pos] = World.BURN_ROUNDS
-	w.act(WAIT)
+	var quiet := _world()
+	var me := quiet.player()
+	_put(quiet, me.pos, World.BOARD)
+	quiet.burning[me.pos] = World.BURN_ROUNDS
+	quiet.act(WAIT)
 	assert_eq(me.hp, 3 - World.FIRE_DAMAGE, "Miho burns for as much")
 
 
