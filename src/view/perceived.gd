@@ -102,6 +102,7 @@ static func spotted(before: World, after: World) -> Array[Vector2i]:
 	var things: Array[Vector2i] = [after.stairs, after.elixir]
 	things.append_array(after.peaches)
 	things.append_array(Scrolls.spots(after))
+	things.append_array(Jars.spots(after))
 	for site: Dictionary in after.sites:
 		if site.kind in [&"yard", &"library"]:
 			things.append(site.at)
@@ -145,7 +146,14 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 				at = at, text = Cards.GLYPH[fact.card], color = Palette.CARD[fact.card], life = 1.6
 			}
 		&"heal":
-			return {at = at, text = "+1", color = Palette.PEACH[1], life = 0.9}
+			if fact.get("n", World.HEAL) <= 0:
+				return {}
+			return {
+				at = at,
+				text = "+%d" % fact.get("n", World.HEAL),
+				color = Palette.PEACH[1],
+				life = 0.9
+			}
 		&"noise", &"shout":
 			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
 		&"find":

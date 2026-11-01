@@ -114,6 +114,8 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 		3:
 			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
 			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))
+			var kimchi := Jars.name_of(Jars.KIMCHI)
+			out.append(_feature(Palette.KIMCHI[0], Palette.KIMCHI[1], kimchi, _kimchi, Jars.KIMCHI))
 			out.append(
 				_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll, &"scroll")
 			)
@@ -125,6 +127,8 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 					var tile := func(w: World): w.set_tile(AT, t)
 					var glyph: Array = Palette.TILES[t]
 					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
+					if t == World.JAR:
+						out.back().lines = func(): return _ground(tile) + Info.jar_facts()
 			out.append_array(_extras())
 		5:
 			for key in Status.NAME:
@@ -376,6 +380,10 @@ static func _elixir(w: World) -> void:
 
 static func _peach(w: World) -> void:
 	w.peaches.append(AT)
+
+
+static func _kimchi(w: World) -> void:
+	w.sites.append({kind = Jars.KIMCHI, at = AT})
 
 
 static func _scroll(w: World) -> void:

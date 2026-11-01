@@ -103,10 +103,29 @@ static func glossary() -> Dictionary:
 		[
 			"남김: 미호가 선 칸",
 			"남는 시간: %d초" % Scent.TRAIL_AGE,
+			"진한 냄새 남는 시간: %d초" % (Scent.TRAIL_AGE + Scent.STRONG_EXTRA),
 			"안 남는 칸: " + no_scent,
 			"지워짐: 물 주문, 안개비, 고요, 향 연기",
 		],
 	}
+
+
+## The lines a jar's entry adds in the 도감: each thing it can hold with its chance
+## (Jars.chances) and what it does. The hover over a jar does not tell them.
+static func jar_facts() -> Array:
+	var does := {
+		&"empty": "",
+		&"water": ", 주위 %d칸 %s, 불과 냄새 지움" % [Grid.DIRS.size(), Tiles.of(World.SHALLOW, "name")],
+		Jars.KIMCHI: ", 체력 +%d 아이템" % World.HEAL,
+		&"effigy": ", 보이는 가장 가까운 적 피해 %d" % Jars.EFFIGY_HARM,
+		&"scarecrow": ", 보는 적이 이 칸 수색",
+	}
+	var chances := Jars.chances()
+	var out := []
+	for k in Jars.ROWS.size():
+		var row: Dictionary = Jars.ROWS[k]
+		out.append([["%s: %d%%%s" % [row.name, chances[k], does[row.id]], Palette.DIM]])
+	return out
 
 
 ## A glossary term as the 도감 tells it: the tag, then its rules.
@@ -504,6 +523,11 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	elif w.peaches.has(p):
 		name = "복숭아"
 		notes = ["체력: +%d" % World.HEAL, "가득 찼을 때 최대 체력: +%d" % World.HEAL]
+	elif Jars.spots(w).has(p):
+		name = Jars.name_of(Jars.KIMCHI)
+		notes = [
+			"체력: +%d" % World.HEAL, "최대 체력: 오르지 않음", "먹은 뒤 냄새: %d초 동안 진함" % Jars.PUNGENT_ROUNDS
+		]
 	elif Scrolls.card_at(w, p) != &"":
 		name = Cards.NAME[Scrolls.card_at(w, p)] + " 주문서"
 	var head := [[name, Palette.TEXT]]
@@ -606,10 +630,6 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		World.JAR:
 			out.append("막음: 길")
 			out.append("타격: 깨짐")
-		World.WATER_JAR:
-			out.append("막음: 길")
-			out.append("타격: 주위 %d칸 %s" % [Grid.DIRS.size(), Tiles.of(World.SHALLOW, "name")])
-			out.append("타격: 불, 냄새 지움")
 		World.CENSER:
 			out.append("막음: 길")
 			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]

@@ -150,6 +150,7 @@ const LEVEL := {
 	&"noise": -8.0,
 	&"push": -4.0,
 	&"smash": -4.0,
+	&"jar": -4.0,
 	&"douse": -4.0,
 	&"scald": -4.0,
 	&"grow": -2.0,
@@ -167,6 +168,13 @@ const LEVEL := {
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
+}
+## The sound of what a jar holds when it breaks (Jars): a spill, a find, a tear, a fall of straw.
+const JAR_SOUNDS := {
+	&"water": &"splash",
+	Jars.KIMCHI: &"tick",
+	&"effigy": &"tear",
+	&"scarecrow": &"rustle",
 }
 ## The sound of a tile that forms where a compound reaches; the others are silent.
 const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}
@@ -405,7 +413,9 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"absorb":
 			return &"absorb"
 		&"heal":
-			return &"bite" if e.get("peach", false) else &"card"
+			return &"bite" if e.get("peach", false) or e.get("kimchi", false) else &"card"
+		&"jar":
+			return JAR_SOUNDS[e.what]
 		&"grow", &"card", &"altar", &"creak":
 			return &"card"
 		&"read", &"scroll":

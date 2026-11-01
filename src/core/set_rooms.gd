@@ -67,7 +67,6 @@ const CLEARED: Array[int] = [
 	World.PILLAR,
 	World.SCREEN,
 	World.JAR,
-	World.WATER_JAR,
 	World.CENSER,
 	World.COURTYARD,
 ]
