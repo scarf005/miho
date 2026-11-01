@@ -977,13 +977,5 @@ func _inspect() -> void:
 		term.info = Info.creature(known, known.player())
 	else:
 		var lines := DebugView.at(world, hover) if debugging else Info.at(known, hover)
-		term.info = lines + _zone_lines(hover) + Info.ahead(world, ahead, hover)
+		term.info = lines + excluded.lines(hover, zone) + Info.ahead(world, ahead, hover)
 
-
-## Says a tile is in a travel exclusion, and the radius at its centre.
-func _zone_lines(p: Vector2i) -> Array:
-	if not zone.has(p):
-		return []
-	var radius: Variant = excluded.zones.get(p)
-	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
-	return [[[text, Palette.ZONE]]]
