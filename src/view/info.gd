@@ -26,7 +26,20 @@ const CONDITIONS := {
 static func glossary() -> Dictionary:
 	var spread := roundi(Tiles.DEFAULT.spread * 100)
 	return {
-		"가연성": ["탐: %d초" % World.BURN_ROUNDS, "그 뒤: 재", "번짐: 이웃으로 초당 %d%%" % spread],
+		"가연성":
+		[
+			"탐: %d초" % World.BURN_ROUNDS,
+			"그 뒤: 재",
+			"번짐: 초당 1칸",
+			"번질 확률: %d%%" % spread,
+		],
+		"인화성":
+		[
+			"탐: %d초" % World.BURN_ROUNDS,
+			"그 뒤: 재",
+			"번짐: 초당 2칸",
+			"초당 피해: %d" % World.FIERCE_DAMAGE,
+		],
 		"함정": ["드러남: 밝은 칸이나 %d칸 안" % Traps.REACH, "적: 돌아감"],
 		"흔적": ["수색: 처음 본 적", "제외: 추격 중인 적"],
 		"약점": ["피해: ×2", "대상: 그 원소가 든 주문"],
@@ -190,7 +203,7 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	lines.append_array(_conditions(w, a))
 	if a.guise > 0:
 		var form: String = Bestiary.info(a.form).name
-		lines.append([["둔갑: " + form, Palette.SIDE[0]]])
+		lines.append([["둔갑", Palette.TEXT], [": " + form, Palette.SIDE[0]]])
 		lines.append([["  남은 시간: %d초" % a.guise, Palette.SIDE[0]]])
 		lines.append([["적 옆: %d/%d초" % [a.beside, Guise.BESIDE], Palette.DIM]])
 	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
@@ -267,8 +280,10 @@ static func _conditions(w: World, a: Actor) -> Array:
 		and a.alight <= 0
 		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
 	):
-		out.append([["불타는 칸 위: %d초" % w.burning[a.pos], Palette.TEXT]])
-		out.append(_amount("  초당 피해: ", World.FIRE_DAMAGE))
+		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
+		var fire := "맹렬한 불" if fierce else "불타는 칸"
+		out.append([["%s 위: %d초" % [fire, w.burning[a.pos]], Palette.TEXT]])
+		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
 	if (
 		Veil.scorches(w, a.pos)
 		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
@@ -416,7 +431,7 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	for note in notes:
 		lines.append([[note, Palette.DIM]])
 	if burns:
-		lines.append_array(_burning(w.burning[p]))
+		lines.append_array(_burning(w.burning[p], Tiles.fierce[t] == 1))
 	if w.hot.has(p) and w.seen[Grid.index(p)] == 1:
 		var h: Vector2i = w.hot[p]
 		var spec: Dictionary = Compounds.HOT[h.x]
@@ -571,8 +586,9 @@ static func _notes(t: int, breakable: bool, burns: bool) -> Array[String]:
 		out.append("불 안 붙음.")
 	if Tiles.burns[t] == 1 and not burns:
 		var spread := roundi(Tiles.of(t, "spread") * 100)
-		var own := spread != roundi(Tiles.DEFAULT.spread * 100)
-		out.append("가연성: 이웃으로 초당 %d%%" % spread if own else "가연성.")
+		out.append("인화성." if Tiles.fierce[t] == 1 else "가연성.")
+		if Tiles.fierce[t] == 0 and spread != roundi(Tiles.DEFAULT.spread * 100):
+			out.append("번질 확률: %d%%" % spread)
 	return out
 
 
@@ -604,11 +620,16 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	return out
 
 
+## What a round on a burning tile costs, fierce (Tiles.fierce) or not.
+static func _fire_damage(fierce: bool) -> int:
+	return World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE
+
+
 ## A burning tile: time left, harm, light and noise.
-static func _burning(left: int) -> Array:
+static func _burning(left: int, fierce: bool) -> Array:
 	return [
-		[["불타는 중: %d초 남음" % left, Palette.HURT]],
-		_amount("초당 피해: ", World.FIRE_DAMAGE),
+		[["%s: %d초 남음" % ["맹렬한 불" if fierce else "불타는 중", left], Palette.HURT]],
+		_amount("초당 피해: ", _fire_damage(fierce)),
 		[["빛: %d칸" % Light.FIRE_RADIUS, Palette.DIM]],
 		[["소음: %d" % World.CRACKLE, Palette.DIM]],
 	]

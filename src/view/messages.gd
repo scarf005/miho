@@ -33,7 +33,9 @@ func add(runs: Array, round_no: int) -> void:
 
 ## The line as shown, with its count.
 static func shown(line: Dictionary) -> Array:
-	return line.runs if line.n == 1 else line.runs + [[" x%d" % line.n, Palette.DIM]]
+	return Keywords.paint(
+		line.runs if line.n == 1 else line.runs + [[" x%d" % line.n, Palette.DIM]]
+	)
 
 
 ## A line's text without its colours.
@@ -87,7 +89,11 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"notice":
 			return _who(before, after, id, "에게", "에게") + [[" 들켰다", TEXT]]
 		&"state":
-			return _subject(before, after, id) + [[STATE[e.mark], TEXT]]
+			var mark: String = STATE[e.mark]
+			return (
+				_subject(before, after, id)
+				+ [_ill(after, id, mark) if e.mark == "x" else [mark, TEXT]]
+			)
 		&"claw":
 			return _harm_to(before, after, e.target, e.n)
 		&"melee":
@@ -143,11 +149,11 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var plain: bool = last.get("t") == &"ascend" or e.get("spell", false)
 			return healed if plain else [["복숭아를 먹었다. ", TEXT]] + healed
 		&"blind":
-			return _subject(before, after, id, "의") + [["눈이 멀었다", TEXT]]
+			return _subject(before, after, id, "의") + [_ill(after, id, "눈이 멀었다")]
 		&"root":
-			return _subject(before, after, id) + [["덩굴에 묶였다", TEXT]]
+			return _subject(before, after, id) + [_ill(after, id, "덩굴에 묶였다")]
 		&"stun":
-			return _subject(before, after, id) + [["기절했다", TEXT]]
+			return _subject(before, after, id) + [_ill(after, id, "기절했다")]
 		&"push":
 			return _subject(before, after, id) + [["밀려났다", TEXT]]
 		&"leap":
@@ -159,13 +165,13 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"sprout":
 			return _named(Tiles.of(World.WOOD_WALL, "name"), "이", "가") + [[" 자랐다", TEXT]]
 		&"freeze":
-			return _subject(before, after, id) + [["얼어붙었다", TEXT]]
+			return _subject(before, after, id) + [_ill(after, id, "얼어붙었다")]
 		&"wet":
-			return _subject(before, after, id) + [["젖었다", TEXT]]
+			return _subject(before, after, id) + [_ill(after, id, "젖었다")]
 		&"dry":
 			return _subject(before, after, id) + [["말랐다", TEXT]]
 		&"alight":
-			return _who(before, after, id, "에게", "에게") + [[" 불이 붙었다", Palette.BURNING[1]]]
+			return _who(before, after, id, "에게", "에게") + [_ill(after, id, " 불이 붙었다")]
 		&"quench":
 			return _who(before, after, id, "의", "의") + [[" 불이 꺼졌다", TEXT]]
 		&"thaw":
@@ -210,7 +216,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return [["여우불이 ", TEXT], [Lure.WORD, Palette.SOUND], [" 울었다", TEXT]]
 		&"guise":
 			var form: String = Bestiary.info(e.kind).name
-			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", TEXT]]
+			return [[form, Palette.KIND[e.kind]], ["의 모습으로 둔갑했다", Palette.GOOD]]
 		&"unmask":
 			return [["둔갑이 풀렸다", TEXT]]
 		&"fade":
@@ -265,7 +271,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"won":
 			return [["영약을 마시고 ", TEXT], ["사람이 되었다", Palette.KIND[&"miho"]]]
 		&"ignite":
-			return _tile(before, e.at, "에", "에") + [[" 불이 붙었다", Palette.BURNING[1]]]
+			var fierce := Tiles.fierce[before.tile(e.at)] == 1
+			var flame: Array = Palette.FIERCE_BURNING if fierce else Palette.BURNING
+			var burn := " 맹렬한 불이 붙었다" if fierce else " 불이 붙었다"
+			return _tile(before, e.at, "에", "에") + [[burn, flame[1]]]
 		&"burnout":
 			if Tiles.burns[before.tile(e.at)] == 0:
 				return []
@@ -304,7 +313,8 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 	if last.get("target", -1) == id:
 		return []
 	if last.get("t") == &"burn" and last.id == id:
-		return _subject(before, after, id) + [["불에 타 ", TEXT]] + _took(e.n)
+		var fire := "맹렬한 불에 타 " if last.get("fierce", false) else "불에 타 "
+		return _subject(before, after, id) + [[fire, TEXT]] + _took(e.n)
 	if last.get("t") == &"scald" and last.id == id:
 		var gas := [[Gas.of(last.kind, "name"), Palette.GAS[last.kind][1]], ["에 데어 ", TEXT]]
 		return _subject(before, after, id) + gas + _took(e.n)
@@ -338,6 +348,12 @@ static func _harm_to(before: World, after: World, id: int, n: int) -> Array:
 		_who(before, after, id, "에게", "에게")
 		+ [[" 피해를 ", TEXT], [str(n), Palette.HURT], [" 주었다", TEXT]]
 	)
+
+
+## A status that harms its holder, as a run: Miho's in BAD, another creature's
+## plainer (BAD_FOE), which Miho is glad of.
+static func _ill(after: World, id: int, text: String) -> Array:
+	return [text, Palette.BAD if id == after.player().id else Palette.BAD_FOE]
 
 
 static func _took(n: int) -> Array:

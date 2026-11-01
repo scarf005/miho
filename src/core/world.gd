@@ -54,7 +54,9 @@ extends RefCounted
 ## ends, and around a fire orb's burst. A burning tile lights its surroundings,
 ## crackles (an alarm), hides nothing, burns whoever stands in it each round
 ## for FIRE_DAMAGE and may spread to each flammable neighbour; after BURN_ROUNDS
-## it is ash. Fire hurts those who stay in it: a tile set alight during a round
+## it is ash. Fire on a fierce tile (straw, leaves, reeds, shelves) is worse: it
+## burns for FIERCE_DAMAGE, and a fierce tile it catches spreads once more in the
+## same round. Fire hurts those who stay in it: a tile set alight during a round
 ## burns nobody until the next round, so a creature it caught can step off. A
 ## fire orb's burst hurts every creature around it for FIRE_DAMAGE at once
 ## too (twice that to one weak to fire). Heaven walks around fire; water douses it.
@@ -98,6 +100,8 @@ const THUD := 9
 const KNOCK := 4
 const BURN_ROUNDS := 3
 const FIRE_DAMAGE := 2
+## What fire on a fierce tile (Tiles.fierce) burns for each round.
+const FIERCE_DAMAGE := 3
 const HEAL := 1
 const CRACKLE := 3
 

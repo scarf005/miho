@@ -64,8 +64,8 @@ func test_fire_takes_each_kind_at_its_own_chance() -> void:
 	assert_lt(_catch_rate(World.GRASS), _catch_rate(World.STRAW) / 2, "grass burns slower")
 
 
-func test_fire_never_takes_shallow_water_reeds_or_a_pillar() -> void:
-	for kind in [World.SHALLOW, World.REEDS, World.REEDS_FLAT, World.PILLAR]:
+func test_fire_never_takes_shallow_water_or_a_pillar() -> void:
+	for kind in [World.SHALLOW, World.PILLAR]:
 		assert_eq(_catch_rate(kind), 0.0, str(kind))
 
 
@@ -224,15 +224,15 @@ func _hover(kind: int) -> String:
 
 
 func test_hover_tells_every_rule_of_each_kind_from_the_table() -> void:
-	var burn := "\n가연성."
-	var grass := "\n가연성: 이웃으로 초당 %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)
+	var burn := "\n인화성."
+	var grass := "\n가연성.\n번질 확률: %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)
 	var rustle := "발소리: %d칸" % Tiles.of(World.LEAVES, "tread")[0]
 	var splash := "발소리: %d칸" % Tiles.of(World.SHALLOW, "tread")[0]
 	var told := {
 		World.GRASS: [grass],
 		World.STRAW: [burn],
 		World.LEAVES: [burn, rustle],
-		World.REEDS: ["막음: 시야\n밟으면: 쓰러짐", rustle],
+		World.REEDS: ["막음: 시야\n밟으면: 쓰러짐", rustle, burn],
 		World.SHALLOW: [splash, "냄새 안 남음.", "불 안 붙음."],
 		World.PILLAR: ["막음: 길, 시야, 빛", "부술 수 없음."],
 	}

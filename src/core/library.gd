@@ -3,9 +3,9 @@ extends RefCounted
 ## 서고: a dark room behind closed doors, floored with boards and dry straw,
 ## with scroll shelves (World.SHELF) along its top wall. Stepping onto a shelf
 ## reads the scrolls: the storey's whole map becomes known, once. The room
-## burns easily: boards, straw and shelves all take fire from a neighbour at
-## the usual rate (Tiles.spread), far readier than grass, and a shelf that burns
-## first is lost.
+## burns easily: boards take fire from a neighbour at the usual rate
+## (Tiles.spread), and straw and shelves, which are fierce (Tiles.fierce), at once;
+## all far readier than grass, and a shelf that burns first is lost.
 
 ## The room's least size.
 const LEAST := Vector2i(5, 3)

@@ -80,7 +80,9 @@ var replay := false
 var cursor := Vector2i(-1, -1)
 ## Set by the game: the tiles in travel exclusions (tile -> true).
 var zone := {}
-var info: Array = []
+var info: Array = []:
+	set(v):
+		info = Keywords.lines(v)
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.
 var debug := {}
@@ -94,7 +96,9 @@ var log_lines: Array = []
 ## hover}, each row a list of [text, Color] runs, a run optionally starting at a
 ## given column ([text, Color, x]); `top` is the first row shown, `selected` and
 ## `hover` (-1 for none) the rows lit.
-var panel := {}
+var panel := {}:
+	set(v):
+		panel = Keywords.panel(v)
 var cols := 40
 var rows := 18
 ## The map tile drawn at the map area's top-left; negative centres a small map.
@@ -513,9 +517,10 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var fire := _vis[i] == 1 and world.burning.has(p)
 		if fire:
 			var k := _flicker(i * 1.7, true)
-			glyph = Palette.BURNING[0]
-			fg = Color(Palette.BURNING[1] * (0.7 + 0.4 * k), 1.0)
-			bg = Color(Palette.BURNING[2] * k, 1.0)
+			var flame: Array = Palette.FIERCE_BURNING if Tiles.fierce[t] == 1 else Palette.BURNING
+			glyph = flame[0]
+			fg = Color(flame[1] * (0.7 + 0.4 * k), 1.0)
+			bg = Color(flame[2] * k, 1.0)
 		var hot := not fire and _vis[i] == 1 and world.hot.has(p)
 		if hot:
 			glyph = Palette.HOT[0]
@@ -709,12 +714,15 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 		var doing: String = Info.state(a) if a.blind <= 0 else "눈멂"
 		if a.fighting() and a.blind <= 0:
 			doing = "싸우는 중"
+		var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.alert, 1)])
 		var plans := a.intent.map(func(p): return [Spell.make(p.cards).slots, p.dir])
 		var x := _cells(doing) + 0.5
 		if x + plans.reduce(func(n, p): return n + p[0].size() + 1, 0) > MAP.x:
 			x = 0.0
 		else:
-			_text(Vector2(0, row + 2), doing, Palette.ALERT[maxi(a.alert, 1)])
+			var dx := 0.0
+			for run: Array in doing_runs:
+				dx += _run(Vector2(dx, row + 2), run)
 		for plan: Array in plans:
 			for slot: StringName in plan[0]:
 				_glyph(Vector2(x, row + 2), Cards.GLYPH[slot], Palette.card(slot))
@@ -741,8 +749,7 @@ func _draw_info() -> void:
 		for k in column[1].size():
 			var x: float = column[0]
 			for run: Array in column[1][k]:
-				_text(Vector2(x, k), run[0], run[1])
-				x += _cells(run[0])
+				x += _run(Vector2(x, k), run)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -776,8 +783,7 @@ func _draw_log() -> void:
 			draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
 			var x := MAP.x + 0.5
 			for run: Array in runs:
-				_text(Vector2(x, k), run[0], Color(run[1], alpha))
-				x += _cells(run[0])
+				x += _run(Vector2(x, k), run, alpha)
 			k += 1
 
 
@@ -799,7 +805,7 @@ static func rows_of(runs: Array, width: float) -> Array:
 				x = 0.0
 				word = word.lstrip(" ")
 			if word != "":
-				out[-1].append([word, run[1]])
+				out[-1].append(Keywords.piece(run, word))
 				x += _cells(word)
 	return out
 
@@ -825,8 +831,7 @@ func _draw_panel() -> void:
 		var y := rows - detail.size() + k
 		var x := 2.0
 		for run: Array in detail[k]:
-			_text(Vector2(x, y), run[0], run[1])
-			x += _cells(run[0])
+			x += _run(Vector2(x, y), run)
 	_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
 	var tab_x := 6.0
 	for k in panel.get("tabs", []).size():
@@ -836,8 +841,7 @@ func _draw_panel() -> void:
 	for k in panel.get("aside", []).size():
 		var x := aside_x
 		for run: Array in panel.aside[k]:
-			_text(Vector2(x, 3 + k), run[0], run[1])
-			x += _cells(run[0])
+			x += _run(Vector2(x, 3 + k), run)
 	if panel.get("aside_up", false):
 		_glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
 	if panel.get("aside_down", false):
@@ -852,9 +856,8 @@ func _draw_panel() -> void:
 			)
 		var x := 2.0
 		for run: Array in panel.rows[k]:
-			x = run[2] if run.size() > 2 else x
-			_text(Vector2(x, y), run[0], run[1])
-			x += _cells(run[0])
+			x = Keywords.column(run, x)
+			x += _run(Vector2(x, y), run)
 	if span.x > 0:
 		_glyph(Vector2(1, 2), "▲", Palette.DIM)
 	if span.x + span.y < panel.rows.size():
@@ -885,6 +888,16 @@ func panel_tab_at(local: Vector2) -> int:
 ## Whether a point in this node's space is over the panel's detail.
 func panel_aside_at(local: Vector2) -> bool:
 	return not panel.is_empty() and local.x / CELL.x >= panel.get("aside_x", cols)
+
+
+## A run at `at`, on its background if it has one, faded to `alpha`; the cells it takes.
+func _run(at: Vector2, run: Array, alpha := 1.0) -> float:
+	var width := _cells(run[0])
+	var back := Keywords.back(run)
+	if back.a > 0.0:
+		draw_rect(Rect2(at * CELL, Vector2(width, 1) * CELL), Color(back, back.a * alpha))
+	_text(at, run[0], Color(run[1], run[1].a * alpha))
+	return width
 
 
 ## Health as hearts, at most `room` of them; more health is written as a number.
