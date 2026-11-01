@@ -2,7 +2,7 @@ extends GutTest
 ## A run is kept as its seed and actions, and plays back to the same world.
 
 const PATH := "user://test_save.cfg"
-const SEED := 112
+const SEED := 114
 
 
 func after_each() -> void:

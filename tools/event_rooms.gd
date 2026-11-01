@@ -94,7 +94,7 @@ static func measure(seeds: int) -> Dictionary:
 		out[name] = {storeys = 0, present = 0, solvable = 0, stuck = []}
 	for seed_value in seeds:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
+			var w := World.create(seed_value * World.FLOORS + depth)
 			w.depth = depth
 			FloorGen.build(w)
 			for name: String in kinds_:

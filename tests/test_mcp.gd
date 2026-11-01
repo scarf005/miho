@@ -176,7 +176,7 @@ func test_rest_waits_until_the_tails_regrow() -> void:
 
 
 func test_travel_walks_to_a_known_tile() -> void:
-	var tools := _game()
+	var tools := _game(2)
 	var dist: PackedInt32Array = Travel.search(tools.world).dist
 	var goal := Grid.at(dist.find(2))
 	assert_true(Travel.walkable(tools.world, goal))
