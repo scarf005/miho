@@ -763,17 +763,23 @@ func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
 
 
 func _draw_log() -> void:
-	var k := 0
+	for r: Array in log_rows():
+		var width: float = r[2].reduce(func(n, run): return n + _cells(run[0]), 0.0)
+		var box := Rect2(Vector2(side.x, r[0]) * CELL, Vector2(width + 1.0, 1) * CELL)
+		draw_rect(box, Color(Palette.VOID, 0.7 * r[3]))
+		var x: float = r[1]
+		for run: Array in r[2]:
+			x += _run(Vector2(x, r[0]), run, r[3])
+
+
+## The log as it is drawn, [screen row, column of the first run, runs, alpha] for
+## each row; the pointer's word hover (WordHover) reads the same rows.
+func log_rows() -> Array:
+	var out := []
 	for line: Array in log_lines:
-		var alpha: float = line[1]
 		for runs: Array in rows_of(line[0], cols - side.x - 1.0):
-			var width: float = runs.reduce(func(n, r): return n + _cells(r[0]), 0.0)
-			var box := Rect2(Vector2(side.x, k) * CELL, Vector2(width + 1.0, 1) * CELL)
-			draw_rect(box, Color(Palette.VOID, 0.7 * alpha))
-			var x := side.x + 0.5
-			for run: Array in runs:
-				x += _run(Vector2(x, k), run, alpha)
-			k += 1
+			out.append([out.size(), side.x + 0.5, runs, line[1]])
+	return out
 
 
 ## Coloured runs broken into rows no wider than `width` cells, at the spaces;

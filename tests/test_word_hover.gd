@@ -83,3 +83,42 @@ func test_the_entry_is_gone_when_the_panel_under_the_pointer_changes() -> void:
 	assert_false(t.hint.is_empty())
 	t.panel = {}
 	assert_true(t.hint.is_empty())
+
+
+func test_the_log_is_pointed_at_where_it_is_drawn_in_a_portrait_screen() -> void:
+	var t := _term()
+	t.cols = 10
+	t.side = Vector2i.ZERO
+	t.log_lines = [[[["가나다라마바사 ", Palette.TEXT], ["묶임", Palette.BAD]], 1.0]]
+	assert_eq(_head(WordHover.at(t, _over(1.0, 1))), "묶임", "the word wrapped to the next row")
+	assert_eq(WordHover.at(t, _over(Term.MAP.x + 1.0, 1)), [], "not shifted by the sidebar")
+
+
+func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -> void:
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	add_child_autofree(m)
+	m._new_run(3)
+	m.state = &"play"
+	m.glass.visible = false
+	m.term.banner_lines.clear()
+	m.world.act({t = &"cheat", cmd = &"reveal"})
+	m.term.show_world(m.world)
+	m._forecast()
+	var row: int = -m.term.cam.y + 1
+	m.term.log_lines = []
+	for i in row:
+		m.term.log_lines.append([[["·", Palette.TEXT]], 1.0])
+	m.term.log_lines.append([[["미호가 불붙음 상태다", Palette.TEXT]], 1.0])
+	var local := _over(Term.MAP.x + 0.5 + Term._cells("미호가 ") + 0.5, row)
+	var move := InputEventMouseMotion.new()
+	move.position = m.term.get_global_transform() * local
+	m._unhandled_input(move)
+	assert_false(m.term.hint.is_empty(), "the word shows its entry")
+	var wait := Keys.event("Period")
+	wait.pressed = true
+	m._unhandled_input(wait)
+	await wait_until(func(): return not m.busy, 5)
+	assert_eq(m.term.log_lines, [], "the line is gone")
+	assert_true(m.term.hint.is_empty(), "so is its entry")
+	assert_false(m.term.info.is_empty(), "the tile under the pointer shows again")

@@ -864,6 +864,11 @@ func _show_log() -> void:
 	term.log_lines = []
 	for k in recent.size():
 		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
+	# The line the pointer's word hover came from may be gone or have moved.
+	var hinted := not term.hint.is_empty()
+	term.hint = WordHover.at(term, term.hint_at * Term.CELL)
+	if hinted == term.hint.is_empty() and not busy:
+		_refresh()
 
 
 ## Shows a full-screen panel: a Menu page.
