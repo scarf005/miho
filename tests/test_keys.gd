@@ -28,6 +28,17 @@ func test_shift_with_a_direction_still_moves() -> void:
 	assert_eq(Keys.action_of(_press("Shift+Kp 3")), &"move_se")
 
 
+func test_the_left_ctrl_key_alone_takes_back_one_spell() -> void:
+	for held in [false, true]:
+		var e := InputEventKey.new()
+		e.keycode = KEY_CTRL
+		e.location = KEY_LOCATION_LEFT
+		e.ctrl_pressed = held
+		e.pressed = true
+		assert_eq(Keys.action_of(e), &"unpick", "ctrl_pressed %s" % held)
+	assert_eq(Keys.action_of(_press("Ctrl+P")), &"log")
+
+
 func test_an_unbound_key_means_nothing() -> void:
 	assert_eq(Keys.action_of(_press("F12")), &"")
 	assert_eq(Keys.action_of(_press("Shift+X")), &"")
