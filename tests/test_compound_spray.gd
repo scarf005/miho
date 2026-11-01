@@ -234,3 +234,12 @@ func test_the_log_tells_the_harm_a_spray_deals() -> void:
 	var events := w.act(_cast([METAL]))
 	var lines: Array = Messages.of(before, w, events).map(Messages.plain)
 	assert_has(lines, "%s에게 피해를 1 주었다" % foe.info().name)
+
+
+func test_a_compound_s_parts_show_in_their_own_colours() -> void:
+	var head: Array = SpellInfo.combo(&"wildfire")[0]
+	var colour := {}
+	for run: Array in head:
+		colour[run[0]] = run[1]
+	assert_eq(colour["나무"], Palette.CARD[Cards.WOOD])
+	assert_eq(colour["+불"], Palette.CARD[Cards.FIRE])

@@ -37,10 +37,15 @@ static func shape(kind: StringName) -> Array:
 
 ## The talismans a spell is made of: "만드는 법: 물+나무+불".
 static func _recipe(s: Spell) -> Array:
-	var made := [["만드는 법: ", LABEL]]
-	for i in s.cards.size():
-		made.append([("+" if i > 0 else "") + Cards.NAME[s.cards[i]], Palette.card(s.cards[i])])
-	return made
+	return [["만드는 법: ", LABEL]] + _recipe_runs(s.cards)
+
+
+## Talismans joined by "+", each in its colour.
+static func _recipe_runs(cards: Array) -> Array:
+	var runs := []
+	for i in cards.size():
+		runs.append([("+" if i > 0 else "") + Cards.NAME[cards[i]], Palette.card(cards[i])])
+	return runs
 
 
 ## A talisman, and what the queue becomes with it (null when it does not fit).
@@ -73,9 +78,9 @@ static func combo(c: StringName) -> Array:
 static func _slot_head(s: Spell, i: int) -> Array:
 	var c := s.slots[i]
 	var parts := Cards.made_of(c)
-	var head := [[Cards.NAME[c], Palette.card(c)], [" · 꼬리: %d" % parts.size(), LABEL]]
+	var head := [[Cards.NAME[c], Palette.card(c)], [" · 꼬리: %d" % Spell.price(parts.size()), LABEL]]
 	if parts.size() > 1:
-		head.append([" · " + "+".join(parts.map(func(e): return Cards.NAME[e])), LABEL])
+		head += [[" · ", LABEL]] + _recipe_runs(parts)
 	return head
 
 
