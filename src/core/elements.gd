@@ -91,7 +91,16 @@ static func stun(w: World, a: Actor, rounds: int) -> void:
 ## World.FIRE_DAMAGE and a copy more (twice over when weak) and, if wooden,
 ## burns, and each wisp there goes out.
 static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
-	w.emit({t = &"splash", at = at, faction = s.faction, by = s.caster, title = s.spell.title()})
+	w.emit(
+		{
+			t = &"splash",
+			at = at,
+			faction = s.faction,
+			by = s.caster,
+			title = s.spell.title(),
+			cards = s.spell.cards
+		}
+	)
 	for d in Grid.DIRS:
 		var p := at + d
 		w.ignite(p)
@@ -136,6 +145,7 @@ static func pass_through(w: World, s: Shot, a: Actor) -> bool:
 			at = a.pos,
 			by = s.caster,
 			title = title,
+			cards = s.spell.cards,
 			through = true
 		}
 	)

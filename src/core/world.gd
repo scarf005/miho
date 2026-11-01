@@ -796,7 +796,7 @@ func _land(s: Shot) -> void:
 
 
 func _burst(s: Shot) -> void:
-	emit({t = &"burst", shot = s.id, at = s.pos})
+	emit({t = &"burst", shot = s.id, at = s.pos, cards = s.spell.cards})
 	s.gone = true
 	_changed()
 	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
@@ -825,7 +825,17 @@ func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 func _strike(s: Shot, a: Actor) -> void:
 	var spell := s.spell
 	var at := a.pos
-	emit({t = &"hit", shot = s.id, id = a.id, at = at, by = s.caster, title = spell.title()})
+	emit(
+		{
+			t = &"hit",
+			shot = s.id,
+			id = a.id,
+			at = at,
+			by = s.caster,
+			title = spell.title(),
+			cards = spell.cards
+		}
+	)
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)
 	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))):
 		return

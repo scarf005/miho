@@ -3,12 +3,12 @@
 shader_type canvas_item;
 
 uniform sampler2D screen : hint_screen_texture, filter_linear;
-uniform float curve = 0.06;
+uniform float curve = 0.02;
 uniform float fringe = 0.0006;
-uniform float glow = 0.55;
-uniform float scan = 0.28;
-uniform float grille = 0.12;
-uniform float rim = 0.35;
+uniform float glow = 0.35;
+uniform float scan = 0.18;
+uniform float grille = 0.08;
+uniform float rim = 0.15;
 uniform float lines = 360.0;
 
 vec3 blur(vec2 uv, vec2 px) {

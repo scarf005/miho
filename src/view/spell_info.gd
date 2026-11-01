@@ -189,7 +189,7 @@ static func _spray(s: Spell) -> Array:
 	match c:
 		Cards.FIRE:
 			return [
-				_line("간격", "%d" % Spray.FAN[i]),
+				_line("범위", "%d칸" % Spray.FAN[i]),
 				_line("모양", "부채꼴 90°"),
 				_line("소음", _noise(s.cast_noise())),
 				_line("피해", "0", Palette.HURT),

@@ -51,10 +51,12 @@ func test_keys_read_back_as_they_were_bound() -> void:
 
 
 func test_labels_show_printable_keys_as_characters() -> void:
-	assert_eq(Keys.label("Shift+Period"), "Shift+.")
+	assert_eq(Keys.label("Shift+Period"), ">")
 	assert_eq(Keys.label("K"), "K")
-	assert_eq(Keys.label("Kp 8"), "Kp 8")
-	assert_eq(Keys.label("Escape"), "Escape")
+	assert_eq(Keys.label("Kp 8"), "키패드 8")
+	assert_eq(Keys.label("Kp Period"), "키패드 .")
+	assert_eq(Keys.label("Shift+V"), "Shift+V")
+	assert_eq(Keys.label("Escape"), "Esc")
 
 
 func test_default_keys_follow_roguelike_conventions() -> void:
