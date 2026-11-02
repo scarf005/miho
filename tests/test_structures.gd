@@ -132,6 +132,13 @@ func test_incense_does_not_block_sight_however_thick() -> void:
 	assert_true(w.opaque(AT + E), "fog still does")
 
 
+func test_smoke_erases_the_scent_miho_leaves_in_it() -> void:
+	var w := _world()
+	Gas.put(w, AT, Gas.SMOKE, Gas.MAX)
+	w.act({t = &"move", dir = E})
+	assert_eq(w.scent[Grid.index(AT)], 0)
+
+
 func test_incense_erases_the_scent_miho_leaves_in_it() -> void:
 	var w := _world()
 	Gas.put(w, AT, Gas.INCENSE, Gas.MAX)

@@ -2773,8 +2773,8 @@ msgstr "Duration"
 msgid "지워짐"
 msgstr "Erased"
 
-msgid "지워짐: 물 주문, 안개비, 고요, 향 연기"
-msgstr "Erased by: water spells, Drizzle, Stillness, incense smoke"
+msgid "지워짐: 물 주문, 안개비, 고요, 향 연기, 연기"
+msgstr "Erased by: water spells, Drizzle, Stillness, incense smoke, smoke"
 
 msgid "지진"
 msgstr "Earthquake"

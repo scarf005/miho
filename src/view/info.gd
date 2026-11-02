@@ -115,7 +115,7 @@ static func glossary() -> Dictionary:
 			Lang.t("남는 시간: %d초") % Scent.TRAIL_AGE,
 			Lang.t("진한 냄새 남는 시간: %d초") % (Scent.TRAIL_AGE + Scent.STRONG_EXTRA),
 			Lang.t("안 남는 칸: %s") % no_scent,
-			"지워짐: 물 주문, 안개비, 고요, 향 연기",
+			"지워짐: 물 주문, 안개비, 고요, 향 연기, 연기",
 		],
 	}
 

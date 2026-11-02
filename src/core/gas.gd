@@ -34,7 +34,7 @@ const MARSH := 4
 const ROWS := {
 	FOG: {name = "안개", decay = 20},
 	STEAM: {name = "증기", decay = 50, harm = 1, wets = true},
-	SMOKE: {name = "연기", decay = 50},
+	SMOKE: {name = "연기", decay = 50, erases = true},
 	INCENSE: {name = "향 연기", decay = 20, blocks = false, erases = true},
 	MARSH: {name = "늪 가스", decay = 20, blocks = false, explodes = true},
 }
