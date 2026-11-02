@@ -97,18 +97,18 @@ static func glossary() -> Dictionary:
 		],
 		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
-		"둔함": ["주문을 보면: 날아가는 칸을 수색", "둔갑을 봐도: 속음"],
+		"둔함": ["주문을 보면: 날아가는 칸을 수색", "둔갑하는 걸 봐도: 속음"],
 		"영리함":
 		[
 			"주문을 보면: 쏜 곳을 수색",
-			"둔갑을 보면: 추격 시작",
+			"둔갑하는 걸 보면: 추격",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
 			SUSPECTS
 		],
 		"교활함":
 		[
 			"주문을 보면: 쏜 곳에서 추격",
-			"둔갑을 보면: 추격 시작",
+			"둔갑하는 걸 보면: 추격",
 			"둔갑: 속지 않음",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
 			"여우불 소음: 던진 곳을 수색",
@@ -237,7 +237,7 @@ static func condition_facts(name: String) -> Array:
 		lines.append_array(nature(Guise.FLAME_KIND))
 	lines.append_array(_tags(CONDITIONS[name]))
 	if name == Guise.NAME[Guise.GUISE]:
-		lines.append([[Lang.t("둔갑을 보면 추격: %s") % alarmed(), Palette.TEXT]])
+		lines.append([[Lang.t("둔갑하는 걸 보면 추격: %s") % alarmed(), Palette.TEXT]])
 	return lines
 
 
