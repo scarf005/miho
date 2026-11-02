@@ -317,7 +317,7 @@ static func _arms(a: Actor, held: Array) -> Array:
 	if not spec.get("shout", {}).is_empty():
 		lines.append([[Lang.t("말할 수 있다."), Palette.DIM]])
 	if spec.get("hat", false):
-		lines.append([[Lang.t("보임: %d칸 안, 도깨비불 붙음") % Hat.REACH, Palette.DIM]])
+		lines.append([[Lang.t("은신."), Palette.DIM]])
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		lines.append(

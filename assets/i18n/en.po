@@ -2652,6 +2652,9 @@ msgstr "Cannot go past a danger zone"
 
 msgid "은신"
 msgstr "Cloak"
+msgid "은신."
+msgstr "Cloak."
+
 
 msgid "이 칸으로 이동할 때 들킴: %s"
 msgstr "Noticed when moving here: %s"
