@@ -31,32 +31,34 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 		if i == 0:
 			w.emit({t = &"push", id = a.id, at = a.pos})
 		w.move(a, to)
-		if a.faction == Actor.FOX and w.arrive(a):
+		if a.is_miho() and w.arrive(a):
 			return
 		if not a.alive() or w.depth != depth:
 			return
 
 
-## `a` falls from its tile into the sky at `into`: a creature of heaven is gone,
-## Miho drops a storey (nothing happens to her on the first).
+## `a` falls from its tile into the sky at `into`: Miho drops a storey (nothing
+## happens to her on the first), and any other creature is gone. An ally does not
+## come along.
 static func drop(w: World, a: Actor, into: Vector2i) -> void:
-	if a.faction == Actor.HEAVEN:
+	if not a.is_miho():
 		_lose(w, a, into)
 	elif w.depth > 1:
 		_drop(w, a, into)
 
 
-## A creature of heaven falls from the edge at `into`.
+## A creature falls from the edge at `into`; one of heaven gives what a fall does.
 static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 	a.hp = 0
-	w.player().prey = a.kind
 	a.intent.clear()
 	Mind.forget(w, a)
 	w.emit({t = &"fall", id = a.id, from = a.pos, at = into})
-	w.emit({t = &"die", id = a.id, at = a.pos})
-	w.tails = mini(w.max_tails(), w.tails + 1)
-	w.emit({t = &"soul", id = a.id, at = a.pos})
-	Scrolls.drop(w, a)
+	w.emit({t = &"die", id = a.id, at = a.pos, foe = not a.ally()})
+	if not a.ally():
+		w.player().prey = a.kind
+		w.tails = mini(w.max_tails(), w.tails + 1)
+		w.emit({t = &"soul", id = a.id, at = a.pos})
+		Scrolls.drop(w, a)
 	w._changed()
 
 

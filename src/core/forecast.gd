@@ -25,6 +25,8 @@ var deaths := {}
 var noticed := {}
 ## actor id -> true when it falls out of the sky this round (Miho: to a lower storey)
 var falls := {}
+## Tiles a creature of Miho's side steps out onto this round (Mind.enlist).
+var allies: Array[Vector2i] = []
 ## Tiles where a wooden wall grows this round (Elements.sprout).
 var sprouts: Array[Vector2i] = []
 ## Tiles a compound or an element turns to another kind this round: position -> tile kind,
@@ -81,6 +83,8 @@ func read(round_events: Array[Dictionary]) -> void:
 				noticed[e.id] = true
 			&"fall":
 				falls[e.id] = true
+			&"ally":
+				allies.append(e.at)
 			&"sprout":
 				sprouts.append_array(e.tiles)
 			&"become":

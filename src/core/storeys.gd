@@ -5,8 +5,13 @@ extends RefCounted
 ## rooms, what she knew of the map and the storey's clock. Coming back by the
 ## stairs or by a fall finds the storey so; nothing happens on a storey she is
 ## not on. Projectiles in flight and scent are not kept, and her 그림자 rides on
-## with her. A kept storey is never changed, so World.clone shares them.
+## with her. A kept storey is never changed, so World.clone shares them. An ally
+## by her when she takes the stairs comes along (`followers`, DCSS _tag_follower_at),
+## and any other stays there as a creature does.
 
+## How near the stairs an ally stands to come along. She climbs on the step itself, so
+## one right behind her is this far off when the step ends.
+const FOLLOW := 2
 ## The World fields that belong to the storey Miho is on, but its creatures.
 const FIELDS: Array[String] = [
 	"tiles",
@@ -41,6 +46,31 @@ static func leave(w: World) -> void:
 		kept[f] = _copy(w.get(f))
 	kept.actors = w.actors.slice(1).map(func(a): return a.clone())
 	w.storeys[w.depth] = kept
+
+
+## Takes the allies by Miho off the storey (FOLLOW), to `bring` to the next.
+static func followers(w: World) -> Array[Actor]:
+	var me := w.player()
+	var party: Array[Actor] = []
+	party.assign(w.actors.filter(func(a): return a.ally() and Grid.cheb(a.pos, me.pos) <= FOLLOW))
+	w.actors.assign(w.actors.filter(func(a): return not party.has(a)))
+	return party
+
+
+## Puts `party` round Miho, nearest first. One with no room left stays behind for good.
+static func bring(w: World, party: Array[Actor]) -> void:
+	for a in party:
+		var spot := FloorGen.nearest_free(w, w.player().pos)
+		if spot.x < 0:
+			continue
+		a.pos = spot
+		a.home = spot
+		a.post = spot
+		a.rival = 0
+		a.grudge = 0
+		a.intent.clear()
+		w.actors.append(a)
+	w._changed()
 
 
 ## Puts Miho at the start of storey `depth`: the one kept there, or a new one

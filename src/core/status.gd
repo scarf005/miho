@@ -82,7 +82,7 @@ static func ignite(w: World, a: Actor, wild := false) -> void:
 		return
 	if a.alive() and dry(w, a):
 		return
-	if a.faction == Actor.FOX or not a.alive():
+	if a.is_miho() or not a.alive():
 		w.ignite(a.pos, true, wild)
 		return
 	if a.alight <= 0:

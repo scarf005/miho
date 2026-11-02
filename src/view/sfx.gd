@@ -92,6 +92,7 @@ const SLOT := {
 	&"swamp": &"splash",
 	&"hypnosis": &"hiss",
 	&"talon": &"thorn",
+	Cards.BUNSIN: &"foxfire",
 	&"palisade": &"thorn",
 	&"beacon": &"flame",
 	&"magpie": &"creak",
@@ -401,7 +402,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return WORDS.get(e.word, &"step")
 		&"leap":
 			return &"hiss"
-		&"swap":
+		&"swap", &"ally":
 			return &"foxfire"
 		&"crumble":
 			return &"fall"

@@ -140,6 +140,8 @@ static func spell(s: Spell) -> Array:
 	var lines := [head]
 	if Guise.ANYWHERE.has(Guise.kind(s)):
 		return lines + ward(s)
+	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
+		return lines + _does(Cards.BUNSIN)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -169,7 +171,7 @@ static func spell(s: Spell) -> Array:
 		if s.mortar() and c == &"shrapnel":
 			lines.append_array(_lines(_mortar(s), Palette.card(c)))
 			continue
-		if Guise.ANYWHERE.has(c):
+		if Guise.ALONE.has(c):
 			continue
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
 		lines.append_array(_does(c))
@@ -460,6 +462,15 @@ static func compound(c: StringName) -> Array:
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
 		&"hypnosis":
 			return [["잠듦", "맞은 적"], ["면역", Info.NO_SLEEP]]
+		Cards.BUNSIN:
+			var kind := Bestiary.info(c)
+			return [
+				["대상", "옆 빈 칸"],
+				["체력", "%d" % Bestiary.hp(c, 1)],
+				[Lang.t("%s의 꼬리 수") % Lang.t(kind.name), "%d" % Bunsin.TAILS],
+				["발톱 피해", "%d" % kind.melee.damage],
+				["쓰는 주문", Lang.t("마지막에 던진 꼬리 %d개 이하") % Bunsin.TAILS],
+			]
 		&"palisade":
 			return [[Lang.t("%s 체력") % Lang.t(_wall()), "%d" % Tiles.of(World.WOOD_WALL, "health")]]
 		&"beacon":
@@ -546,7 +557,10 @@ static func behind() -> String:
 ## A projectile in flight, from what Miho knows of `w`.
 static func shot(w: World, s: Shot) -> Array:
 	var spell := s.spell
+	var caster := w.actor(s.caster)
 	var side := Lang.t("당신의 " if s.faction == Actor.FOX else "적의 ")
+	if caster != null and caster.ally():
+		side = Lang.t("%s의 ") % Lang.t(caster.info().name)
 	var lines := [
 		[[side, Palette.SIDE[s.faction]], [spell.shown(), Palette.shot_color(spell, s.faction)]]
 	]

@@ -925,4 +925,6 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.max_hp = a.hp
 	a.mana = Bestiary.mana(kind)
 	w.actors.append(a)
+	if not a.info().has("group"):
+		Mind.enlist(w, a)
 	return a

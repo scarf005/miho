@@ -2952,3 +2952,44 @@ msgstr "Turned into {0}"
 
 msgid "{0} 변신이 풀렸다"
 msgstr "Your {0} form ended"
+
+msgid "분신"
+msgstr "Double"
+
+msgctxt "talisman"
+msgid "분"
+msgstr "C"
+
+msgctxt "creature"
+msgid "분"
+msgstr "C"
+
+msgid "아군"
+msgstr "Ally"
+
+msgid "자리 바꿈: 걸어 들어갈 때"
+msgstr "Trades places: when you walk into it"
+
+msgid "함께 올라감: %d칸 안에 있을 때"
+msgstr "Comes upstairs: within %d tiles"
+
+msgid "주문: "
+msgstr "Spell: "
+
+msgid "꼬리"
+msgstr "Tails"
+
+msgid "옆 빈 칸"
+msgstr "Free tile next to you"
+
+msgid "%s의 꼬리 수"
+msgstr "%s's tails"
+
+msgid "쓰는 주문"
+msgstr "Casts"
+
+msgid "마지막에 던진 꼬리 %d개 이하"
+msgstr "The last you threw for at most %d tails"
+
+msgid "%s의 "
+msgstr "%s's "

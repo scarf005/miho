@@ -106,6 +106,7 @@ const BELOW := Color(0.06, 0.07, 0.16)
 const SIDE := [Color(0.5, 0.78, 1.0), Color(1.0, 0.36, 0.26)]
 const KIND := {
 	&"miho": Color(1.0, 0.94, 0.8),
+	Cards.BUNSIN: Color(0.6, 0.85, 1.0),
 	&"dokkaebi": Color(0.95, 0.42, 0.3),
 	&"oedari": Color(0.9, 0.35, 0.55),
 	&"bujigaengi": Color(0.95, 0.62, 0.4),

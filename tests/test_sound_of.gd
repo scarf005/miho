@@ -67,6 +67,7 @@ const SOUNDS := [
 	[{t = &"freeze"}, &"root"],
 	[{t = &"sprout"}, &"root"],
 	[{t = &"guise"}, &"root"],
+	[{t = &"ally"}, &"foxfire"],
 	[{t = &"unmask"}, &"hiss"],
 	[{t = &"talon"}, &"root"],
 	[{t = &"untalon"}, &"tick"],

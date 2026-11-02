@@ -54,6 +54,44 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	return out
 
 
+## The spells `a` charges at `foe` (`at`): an ally holds back one that would catch
+## its own side (DCSS mons_should_fire).
+static func spared(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
+	var plans := at(w, a, foe)
+	if a.ally():
+		plans.assign(plans.filter(func(plan): return not _catches(w, a, plan, foe)))
+	return plans
+
+
+## Whether `plan` of `a` would catch one of its own side: on the tiles a spray covers,
+## on the line to `foe`, or round `foe` where a projectile that blasts or carries a
+## compound ends.
+static func _catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
+	var spell := Spell.make(plan.cards)
+	var tiles: Array[Vector2i] = []
+	if spell.shape == Spell.SPRAY:
+		tiles = Spray.cover(w, a, spell, plan.dir)
+	else:
+		for i in range(1, Grid.cheb(a.pos, foe.pos)):
+			tiles.append(a.pos + plan.dir * i)
+		if spell.blasts() or not spell.compounds().is_empty():
+			tiles.append_array(Spray.square(w, foe.pos, Compounds.REACH, true))
+	return w.actors.any(
+		func(b): return b != a and b.alive() and b.faction == a.faction and tiles.has(b.pos)
+	)
+
+
+## Whether `a` is an ally that can pay for a spell that flies, and so wants room
+## (DCSS _init_servitor sets its range by its shortest spell).
+static func keeps(a: Actor) -> bool:
+	if not a.ally():
+		return false
+	return a.repertoire().any(
+		func(cast):
+			return Spell.price(cast.size()) <= a.mana and Spell.make(cast).shape != Spell.SPRAY
+	)
+
+
 ## What a creature with mana casts at `foe` (Bestiary mana): the dearest spell
 ## it can pay for that reaches the foe, that the foe does not absorb and that is
 ## not moot (`_moot`); then, with the mana left, the dearest after it that
@@ -275,16 +313,15 @@ static func _throw(w: World, a: Actor, spot: Vector2i, list: Array) -> Array[Dic
 	return out
 
 
-## The first step towards the nearest tile 3 to 6 tiles from Miho with a clear
-## line to her: its own tile when it stands on one, or when she stands in the dark,
-## where stepping back would lose sight of her; (-1, -1) when none is reachable.
-static func lineup(w: World, a: Actor, walk: PackedByteArray) -> Vector2i:
-	var me := w.player()
-	if not w.lit(me.pos):
+## The first step towards the nearest tile 3 to 6 tiles from `foe` with a clear
+## line to it: its own tile when it stands on one, or when the foe stands in the dark,
+## where stepping back would lose sight of it; (-1, -1) when none is reachable.
+static func lineup(w: World, a: Actor, walk: PackedByteArray, foe: Actor) -> Vector2i:
+	if not w.lit(foe.pos):
 		return a.pos
 	var good := func(q: Vector2i) -> bool:
-		var r := Grid.cheb(q, me.pos)
-		return r >= 3 and r <= 6 and w.clear_line(q, me.pos)
+		var r := Grid.cheb(q, foe.pos)
+		return r >= 3 and r <= 6 and w.clear_line(q, foe.pos)
 	if good.call(a.pos):
 		return a.pos
 	var found := Grid.search(a.pos, walk)

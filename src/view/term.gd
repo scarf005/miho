@@ -381,6 +381,11 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			_flash(at, Color(glow, 0.9), 0.14)
 		&"die":
 			_actors.erase(e.id)
+		&"ally":
+			if world.actor(e.id) != null:
+				_actors[e.id] = world.actor(e.id).clone()
+				_actors[e.id].pos = at
+			_flash(at, Color(Palette.SIDE[0], 0.9))
 		&"spray":
 			var color := Palette.card(Spell.make(e.cards).slots[0])
 			for p: Vector2i in e.tiles:
@@ -710,12 +715,12 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction != Actor.FOX and not _revealed(a.pos) or not _shown(a.pos) or _hatted(a):
+		if not a.is_miho() and not _revealed(a.pos) or not _shown(a.pos) or _hatted(a):
 			continue
 		var cell := _cell(a.pos)
 		var l := light[Grid.index(a.pos)]
 		var c: Color = Palette.KIND[a.kind]
-		if a.faction != Actor.FOX:
+		if not a.is_miho():
 			c = c * clampf(0.55 + Light.level(l), 0.55, 1.2)
 			c.a = 1.0
 		elif Light.level(l) < Light.LIT:
@@ -744,7 +749,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 
 func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
 	var list: Array = actors.values().filter(
-		func(a): return a.faction != Actor.FOX and _revealed(a.pos) and not _hatted(a)
+		func(a): return not a.is_miho() and _revealed(a.pos) and not _hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
 	return list.slice(0, (rows - foot) / SIDE_ROWS if limit < 0 else limit)

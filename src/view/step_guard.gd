@@ -24,7 +24,7 @@ static func danger(w: World, d: Vector2i, f: Forecast) -> bool:
 		return false
 	var to := w.player().pos + d
 	var foe := w.actor_at(to)
-	if foe != null and Hat.shown(w, foe):
+	if foe != null and foe.faction != w.player().faction and Hat.shown(w, foe):
 		return false
 	var burns := w.seen[Grid.index(to)] == 1 and w.burning.has(to)
 	return f.drops_me() or burns or Tiles.of(w.tile(to), "trap")

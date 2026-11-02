@@ -355,7 +355,7 @@ static func _renew(w: World, s: Shot) -> void:
 	if me == null or not me.alive() or me.hp >= me.max_hp:
 		return
 	me.hp += World.HEAL
-	if me.faction == Actor.FOX:
+	if me.is_miho():
 		w.emit({t = &"heal", id = me.id, hp = me.hp, spell = true})
 
 

@@ -61,6 +61,8 @@ const FLAME_KIND := &"bulgae"
 const FLAME_HARM := 1
 ## The spells that go on her whatever the direction they are cast along.
 const ANYWHERE := [TALON]
+## The spells that take no other slot beside them.
+const ALONE := [TALON, Cards.BUNSIN]
 const NO_PREY := "아직 처치한 적이 없다"
 const MIXED := "다른 부적과 섞을 수 없는 주문이다"
 const BESIDE := 2
@@ -110,9 +112,9 @@ static func kind(spell: Spell) -> StringName:
 	return &""
 
 
-## Whether `spell` holds a talisman that goes alone (ANYWHERE) beside another slot.
+## Whether `spell` holds a talisman that goes alone (ALONE) beside another slot.
 static func mixed(spell: Spell) -> bool:
-	return spell.slots.size() > 1 and spell.slots.any(func(c): return ANYWHERE.has(c))
+	return spell.slots.size() > 1 and spell.slots.any(func(c): return ALONE.has(c))
 
 
 ## Why `a` cannot cast `spell` on itself, or empty when it can.

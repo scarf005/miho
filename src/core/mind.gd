@@ -13,8 +13,30 @@ extends RefCounted
 ##
 ## Bands (DCSS mon-place band): creatures of a group come in bands that follow
 ## their leader while they rest on patrol (`rest`); when it falls they scatter.
+##
+## Allies: a creature of Miho's side other than her (`enlist`, Actor.ally). It takes
+## its turn here with the rest and fights by the same rule of a rival (`_take_on`,
+## `_fight`): it sees foes as a creature does, charges, casts and strikes, and between
+## fights it follows her as a band follows its leader. It hunts nobody and never
+## sleeps. A foe takes on an ally it sees that stands nearer than Miho, so an ally
+## draws fire; a fallen one gives no tail, no form for 둔갑 and no body (World.hurt,
+## Fall). What Miho's spells do to it is what they do to any creature but her
+## (Spray.on), and it holds back a spell that would catch its own side (Aim.spared).
+## Walking into one trades places (Legal.makes_way), and one by her comes along up
+## the stairs (Storeys.followers), as in DCSS (swap_check, _tag_follower_at).
 
 const GRUDGE_ROUNDS := 10
+
+
+## `a` is of Miho's side from now on, in her train, however it came to be.
+static func enlist(w: World, a: Actor) -> void:
+	a.faction = Actor.FOX
+	a.leader = w.player().id
+	a.rival = 0
+	a.grudge = 0
+	a.alert = Actor.REST
+	a.intent.clear()
+	w.emit({t = &"ally", id = a.id, at = a.pos})
 
 
 ## One round of spent mana growing back, as World._regrow does for tails; it
@@ -35,7 +57,7 @@ static func heaven_phase(w: World) -> void:
 	for a in w.actors.duplicate():
 		if w.outcome != &"":
 			return
-		if not a.alive() or a.faction == Actor.FOX or not w.actors.has(a):
+		if not a.alive() or a.is_miho() or not w.actors.has(a):
 			continue
 		a.acted += 1
 		_regrow(a)
@@ -64,8 +86,11 @@ static func heaven_phase(w: World) -> void:
 
 ## Sight first: seeing Miho, and knowing her through any guise (Guise), starts
 ## a hunt; seeing one of her projectiles starts a search or, for a cunning
-## creature, a hunt (see `Bestiary` wits).
+## creature, a hunt (see `Bestiary` wits). An ally looks only for foes (`_take_on`).
 static func perceive(w: World, a: Actor) -> void:
+	_take_on(w, a)
+	if a.ally():
+		return
 	var me := w.player()
 	a.sees_me = Guise.knows(w, a)
 	if a.sees_me or a.info().get("hunts", false):
@@ -78,6 +103,27 @@ static func perceive(w: World, a: Actor) -> void:
 			_heed(w, a, s)
 			return
 	Notice.react(w, a)
+
+
+## `a` takes on the nearest of the other side it sees, by (distance, id), unless
+## that is Miho, whom it hunts as ever. A fight among its own side goes on, and with
+## nobody in sight it goes on walking to where it last saw its rival.
+static func _take_on(w: World, a: Actor) -> void:
+	var rival := w.actor(a.rival) if a.fighting() else null
+	if rival != null and rival.faction == a.faction:
+		return
+	var near: Actor = null
+	for b in w.actors:
+		if b.alive() and b.faction != a.faction and Hat.sees(w, a, b):
+			if near == null or Homing.closer(a.pos, b, near):
+				near = b
+	if near == null:
+		return
+	if not near.is_miho():
+		feud(w, a, near)
+	elif rival != null:
+		a.rival = 0
+		a.grudge = 0
 
 
 ## A projectile of Miho's seen flying: a dull creature searches the spot it
@@ -111,16 +157,16 @@ static func shout(w: World, a: Actor) -> void:
 	w.noise(a.pos, cry.loud, cry.word, true, a.id, a.target)
 
 
-## `a` was struck by `by`: by Miho, it stops fighting; by a living creature
-## of heaven of another group, it fights that one for GRUDGE_ROUNDS.
+## `a` was struck by `by`: by Miho, it stops fighting; by a living ally of hers or
+## a creature of heaven of another group, it fights that one for GRUDGE_ROUNDS.
 static func provoke(w: World, a: Actor, by: Actor) -> void:
 	if a.faction != Actor.HEAVEN or not a.alive() or by == null:
 		return
-	if by.faction == Actor.FOX:
+	if by.is_miho():
 		a.rival = 0
 		a.grudge = 0
 		return
-	if by == a or not by.alive() or Bestiary.allied(a.kind, by.kind):
+	if by == a or not by.alive() or (not by.ally() and Bestiary.allied(a.kind, by.kind)):
 		return
 	feud(w, a, by)
 
@@ -183,13 +229,16 @@ static func _fight(w: World, a: Actor) -> bool:
 	if rival != null and Hat.sees(w, a, rival):
 		a.rival_at = rival.pos
 		var melee: Dictionary = a.info().get("melee", {})
-		if not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1:
+		var near: bool = not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1
+		if near and not a.ally():
 			_melee(w, a, rival, melee)
 			return true
-		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, rival)):
+		if a.cooldown <= 0 and _charge(w, a, Aim.spared(w, a, rival)):
 			return true
-		if a.rooted <= 0:
-			_step_to(w, a, rival.pos, 1)
+		if near:
+			_melee(w, a, rival, melee)
+		elif a.rooted <= 0:
+			_close(w, a, rival)
 		return true
 	if a.rooted > 0 or (a.pos != a.rival_at and _step_to(w, a, a.rival_at)):
 		return true
@@ -197,25 +246,36 @@ static func _fight(w: World, a: Actor) -> bool:
 	return false
 
 
-## The fight is over: it searches where it last saw its rival.
+## `a` goes after `foe`: one whose spell wants room lines up for it (Aim.keeps, DCSS
+## _set_firing_pos), any other walks up to it.
+static func _close(w: World, a: Actor, foe: Actor) -> void:
+	if Aim.keeps(a):
+		_align(w, a, foe)
+	else:
+		_step_to(w, a, foe.pos, 1)
+
+
+## The fight is over: a creature of heaven searches where it last saw its rival, and
+## an ally goes back to her.
 static func _truce(w: World, a: Actor) -> void:
 	a.rival = 0
 	a.grudge = 0
 	w.emit({t = &"truce", id = a.id, at = a.pos})
-	if a.alert != Actor.HUNT:
+	if a.alert != Actor.HUNT and not a.ally():
 		_look(a, a.rival_at)
 
 
 ## A projectile struck `a`. One of Miho's shows it where she stands, so it hunts
 ## her from her tile (the projectile's origin when she is gone), whatever its
-## wits. One of heaven makes it wary, and one of another group makes it fight
-## the caster (`provoke`).
+## wits. One of heaven makes it wary, and one of another group, or of an ally of
+## hers, makes it fight the caster (`provoke`), even one fallen since.
 static func struck(w: World, a: Actor, s: Shot) -> void:
-	provoke(w, a, w.actor(s.caster))
+	var caster := w.actor(s.caster)
+	provoke(w, a, caster)
 	if a.faction != Actor.HEAVEN or not a.alive() or s.faction == a.faction:
 		return
-	var caster := w.actor(s.caster)
-	w.hunt_from(a, caster.pos if caster != null and caster.alive() else s.origin)
+	if caster != null and caster.is_miho():
+		w.hunt_from(a, caster.pos if caster.alive() else s.origin)
 
 
 static func _look(a: Actor, at: Vector2i) -> void:
@@ -309,8 +369,9 @@ static func _follow(w: World, a: Actor) -> bool:
 	var lead := w.actor(a.leader)
 	if not a.following() or lead == null:
 		return false
-	if Grid.cheb(a.pos, lead.pos) > FloorGen.BAND_SPREAD:
-		_step_to(w, a, lead.pos, FloorGen.BAND_SPREAD)
+	var spread := 1 if a.ally() else FloorGen.BAND_SPREAD
+	if Grid.cheb(a.pos, lead.pos) > spread:
+		_step_to(w, a, lead.pos, spread)
 	return true
 
 
@@ -360,7 +421,7 @@ static func _chase(w: World, a: Actor) -> void:
 			if a.acted % 2 == 0:
 				_step_to(w, a, me.pos, 1)
 		&"align":
-			_align(w, a)
+			_align(w, a, me)
 
 
 ## Free tiles, never into fire, onto hot ground or onto a plate.
@@ -410,9 +471,9 @@ static func _drift(w: World, a: Actor) -> void:
 		w.move(a, free[w.rng.randi_range(0, free.size() - 1)])
 
 
-static func _align(w: World, a: Actor) -> void:
-	var to := Aim.lineup(w, a, Masks.walk(w, a, _walkable(w, a)))
+static func _align(w: World, a: Actor, foe: Actor) -> void:
+	var to := Aim.lineup(w, a, Masks.walk(w, a, _walkable(w, a)), foe)
 	if to == Vector2i(-1, -1):
-		_step_to(w, a, w.player().pos, 2)
+		_step_to(w, a, foe.pos, 2)
 	elif to != a.pos:
 		w.move(a, to)

@@ -19,16 +19,24 @@ static func action(w: World, what: Dictionary) -> bool:
 
 
 ## A step onto a free tile, even one a shot flies through (a closed door slides
-## open instead), claws at a creature next to Miho, or a knock at a lantern or window.
+## open instead), claws at a creature next to Miho, a trade of places with an ally
+## (`makes_way`), or a knock at a lantern or window.
 static func move(w: World, dir: Vector2i) -> bool:
 	var me := w.player()
 	var to := me.pos + dir
 	if me.stunned > 0 or Grid.cheb(to, me.pos) != 1:
 		return false
 	var foe := w.actor_at(to)
-	if foe != null:
-		return foe.faction != me.faction
+	if foe != null and foe.faction != me.faction:
+		return true
+	if foe != null and not makes_way(foe):
+		return false
 	return Terrain.knockable(w.tile(to)) or (me.rooted <= 0 and w.open_floor(to))
+
+
+## An ally she can trade places with: as DCSS swap_check, one that is not held fast.
+static func makes_way(a: Actor) -> bool:
+	return a.rooted <= 0 and a.stunned <= 0 and a.info().get("move", &"static") != &"static"
 
 
 ## An open door next to Miho with nothing in it.

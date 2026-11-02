@@ -30,7 +30,7 @@ static func make(w: World, r: Rect2i) -> bool:
 ## of Miho ends the run, and nothing counts then); the last of NEED lights it.
 static func tick(w: World, site: Dictionary) -> void:
 	for e in w.events:
-		if e.t == &"die" and Grid.cheb(e.at, site.at) <= REACH:
+		if e.t == &"die" and e.get("foe", false) and Grid.cheb(e.at, site.at) <= REACH:
 			site.fallen += 1
 	if site.fallen < NEED:
 		return

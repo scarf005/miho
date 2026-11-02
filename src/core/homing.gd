@@ -59,7 +59,7 @@ static func targets(w: World, caster: Actor, spell: Spell, dir := Vector2i.ZERO)
 			var foe: bool = a.id == rival if rival != 0 else a.faction != caster.faction
 			return a.alive() and foe and Hat.sees(w, caster, a)
 	)
-	foes.sort_custom(func(a, b): return _closer(caster.pos, a, b))
+	foes.sort_custom(func(a, b): return closer(caster.pos, a, b))
 	if foes.is_empty():
 		return out
 	if twins:
@@ -138,7 +138,7 @@ static func facing(w: World, s: Shot) -> Vector2i:
 	return s.dir if s.pos + d == s.origin else d
 
 
-static func _closer(from: Vector2i, a: Actor, b: Actor) -> bool:
+static func closer(from: Vector2i, a: Actor, b: Actor) -> bool:
 	return [Grid.cheb(from, a.pos), a.id] < [Grid.cheb(from, b.pos), b.id]
 
 
@@ -177,7 +177,7 @@ static func _nearest(w: World, s: Shot) -> int:
 			and sees(w, s.pos, a.pos)
 			and not Hat.hidden(w, a, s.pos)
 		):
-			if best == null or _closer(s.pos, a, best):
+			if best == null or closer(s.pos, a, best):
 				best = a
 	return best.id if best != null else 0
 

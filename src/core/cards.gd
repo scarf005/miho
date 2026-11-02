@@ -13,7 +13,7 @@ extends RefCounted
 ## orders only (`recipe`).
 ## What a spell meets in a creature is its elements (Spell.nature): a lone
 ## element is itself, a pair is both of its elements, a 3단 or more is what
-## NATURE says, and 최면, 도약, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
+## NATURE says, and 최면, 도약, 분신, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
 ## none. 벼락 is no element but ELECTRIC.
 
 const FOX := &"fox"
@@ -27,6 +27,7 @@ const VAULT := &"vault"
 const SAMSARA := &"samsara"
 const CONQUEST := &"conquest"
 const DRAGON := &"dragon"
+const BUNSIN := &"bunsin"
 
 const ALL: Array[StringName] = [FOX, ORB, FIRE, WATER, WOOD, METAL, EARTH]
 const FORMS: Array[StringName] = [FOX, ORB]
@@ -62,6 +63,7 @@ const TRIPLES := {
 	&"hypnosis": [WATER, FIRE, METAL],
 	&"talon": [FIRE, METAL, WOOD],
 	&"palisade": [METAL, WOOD, EARTH],
+	BUNSIN: [EARTH, WATER, FIRE],
 }
 ## 4단 compound -> its four elements, in the order of their ring.
 const QUADS := {
@@ -120,6 +122,7 @@ const NAME := {
 	&"hypnosis": "최면",
 	&"talon": "쇠발톱",
 	&"palisade": "목책",
+	BUNSIN: "분신",
 	&"beacon": "봉화",
 	&"magpie": "오작교",
 	&"mist": "안개비",
@@ -155,6 +158,7 @@ const GLYPH := {
 	&"hypnosis": "최",
 	&"talon": "발",
 	&"palisade": "책",
+	BUNSIN: "분",
 	&"beacon": "봉",
 	&"magpie": "작",
 	&"mist": "안",

@@ -37,7 +37,9 @@ extends RefCounted
 ## element included (불가사리 dies only in fire). 전기 is never absorbed.
 ## eats: the element whose spells feed it when it stops them: max HP and HP
 ## grow by GROWTH.
-## group: the group of heaven it belongs to (GROUPS).
+## group: the group of heaven it belongs to (GROUPS); a kind with none is of Miho's
+## side (Mind.enlist).
+## tails: true when it is told as she is, its mana as 꼬리 and its spells as 주문.
 ## shout: what it shouts when it starts to hunt Miho, its word and how many
 ## tiles it is heard (Mind.shout); a creature without one is silent.
 ## wits: how well it reads a projectile it sees fly (Mind): 0 dull, 1 sharp, 2
@@ -77,6 +79,7 @@ const HEALTH := {
 	&"gangcheori": [5, 6, 8, 10, 11],
 	&"eodeopsini": [3, 4, 4, 4, 4],
 	&"dueoksini": [6, 7, 9, 11, 12],
+	Cards.BUNSIN: [3, 3, 3, 3, 3],
 }
 ## Copies of 구 a creature's orb has beyond its rank (`tiered`).
 const ORB_EXTRA := 1
@@ -441,6 +444,15 @@ const KINDS := {
 		step = 5,
 		wits = 0,
 		patrol = true,
+	},
+	Cards.BUNSIN:
+	{
+		name = "분신",
+		glyph = "분",
+		melee = {name = "발톱", hit = "긁혀", damage = World.CLAW},
+		mana = Bunsin.TAILS,
+		tails = true,
+		move = &"approach",
 	},
 }
 

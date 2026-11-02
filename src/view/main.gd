@@ -703,7 +703,7 @@ func _act(action: Dictionary) -> Array:
 		excluded.clear()
 		run.exclusions = {}
 	reel.record(before, action, events)
-	kills += events.filter(func(e): return e.t == &"die" and e.id != world.player().id).size()
+	kills += events.filter(func(e): return e.t == &"die" and e.get("foe", false)).size()
 	# Saved before the round plays out, so closing the game at any point keeps it.
 	run.record(action, kills, world.outcome != &"")
 	sfx.listener.position = term.cell_centre(world.player().pos)
@@ -978,10 +978,10 @@ func _forecast() -> void:
 	aims = {}
 	reach = {}
 	var spell := Spell.make(picked)
-	if spell != null and spell.shape == Spell.LEAP:
+	if spell != null and (spell.shape == Spell.LEAP or spell.has(Cards.BUNSIN)):
 		for d in Grid.DIRS:
 			if Leap.open(known, known.player(), spell, d):
-				reach[Leap.landing(known, me, d, spell.leap())] = Color(Palette.SIDE[0], 0.3)
+				reach[Leap.aimed(known, me, d, spell)] = Color(Palette.SIDE[0], 0.3)
 	elif spell != null:
 		for d in Grid.DIRS:
 			for p in Forecast.ray(world, me, d).slice(0, Spell.RANGE):

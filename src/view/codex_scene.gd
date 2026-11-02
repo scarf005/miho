@@ -30,6 +30,8 @@ const SEED := 1
 ## spell does to it stays in sight. Tails pay for any spell in the table.
 const DEPTH := 5
 const TAILS := 9
+## The spell a copy of Miho casts in an example (Bunsin).
+const IMPRINT: Array[StringName] = [Cards.FOX, Cards.FIRE]
 const MIHO_HP := 9
 ## The cooldown of a creature that casts nothing while the example lasts.
 const NEVER := 99
@@ -124,7 +126,7 @@ const TABLE := {
 ## The scene of table row `key`, its cards `cards` unless the row names its own, or
 ## empty when there is no row. A creature with no row of its own hunts Miho as she waits.
 static func of(key: Variant, cards := []) -> Dictionary:
-	var row: Array = TABLE.get(key, [HUNTER, WATCHES] if Bestiary.KINDS.has(key) else [])
+	var row: Array = TABLE.get(key, [HUNTER, WATCHES] if Codex.foes().has(key) else [])
 	if row.is_empty():
 		return {}
 	return {
@@ -173,6 +175,7 @@ static func hall(rank := 0) -> World:
 	me.max_hp = MIHO_HP
 	me.hp = MIHO_HP - World.HEAL
 	me.pos = HALL.position + Vector2i(LEFT + ME, HALL.size.y / 2)
+	me.imprint.assign(IMPRINT)
 	w.start = me.pos
 	w.actors.append(me)
 	return w
@@ -203,7 +206,7 @@ static func actions(scene: Dictionary, rank := 0) -> Array[Dictionary]:
 
 ## Whether the scene is of a creature that casts a homing spell at `rank`.
 static func _homes(scene: Dictionary, rank: int) -> bool:
-	if not Bestiary.KINDS.has(scene.key) or scene.do != WATCHES:
+	if not Codex.foes().has(scene.key) or scene.do != WATCHES:
 		return false
 	var at := rank if rank > 0 else Bestiary.rank(DEPTH)
 	return Bestiary.casts(scene.key, at).any(func(c): return Spell.make(c).turn() > 0)

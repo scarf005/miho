@@ -17,7 +17,7 @@ static func walkable(w: World, p: Vector2i) -> bool:
 		return true
 	var a := w.actor_at(p)
 	var harms := w.burning.has(p) or w.hot.has(p) or Gas.harms(w, p) or Veil.scorches(w, p)
-	return (a == null or a.faction == Actor.FOX) and not harms
+	return (a == null or a.is_miho() or (a.ally() and Legal.makes_way(a))) and not harms
 
 
 ## Whether Miho sees fire on p or next to it.

@@ -11,7 +11,8 @@ extends RefCounted
 ## spell that goes on Miho herself (Guise.ANYWHERE) is cast on her, and she walks up to the
 ## creature. A new spell, or a change to a table, changes the example with no edit.
 
-## Rounds the example waits for the shots of a cast to land, at most.
+## Rounds the example waits for the shots of a cast to land and an ally it raised to
+## fight, at most.
 const WAITS := 8
 ## Tiles east of Miho the creature stands when the spell reaches none on her row.
 const NEAR := 3
@@ -99,7 +100,7 @@ static func _plan(cards: Array) -> Dictionary:
 				lay.hit.append(p - me)
 				far = maxi(far, p.x - me.x) if p.y == me.y else far
 		lay.dx = far if far > 0 else NEAR
-	var kinds := Bestiary.KINDS.keys().filter(func(k): return k != &"miho")
+	var kinds := Codex.foes()
 	var tries := kinds.map(func(k): return {kind = k})
 	tries.append({kind = kinds[0], twin = true})
 	tries.append({kind = kinds[0], wall = BEHIND})
@@ -181,7 +182,7 @@ static func _waits(scene: Dictionary) -> int:
 	var w := CodexScene.build(scene)
 	w.act(CodexScene.actions(scene)[0])
 	var n := 1
-	while not w.shots.is_empty() and n < WAITS:
+	while (not w.shots.is_empty() or w.actors.any(func(a): return a.ally())) and n < WAITS:
 		w.act({t = &"wait"})
 		n += 1
 	return n

@@ -293,7 +293,7 @@ func known_clone() -> World:
 	w.traps = Traps.found(self)
 	w.secrets = {}
 	w.jars = {}
-	w.actors.assign(w.actors.filter(func(a): return a.faction == Actor.FOX or Hat.shown(self, a)))
+	w.actors.assign(w.actors.filter(func(a): return a.is_miho() or Hat.shown(self, a)))
 	w.shots.assign(w.shots.filter(func(s): return seen[Grid.index(s.pos)] == 1))
 	return w
 
@@ -478,7 +478,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 		&"move":
 			var to: Vector2i = me.pos + action.dir
 			var foe := actor_at(to)
-			if foe != null:
+			if foe != null and foe.faction != me.faction:
 				_claw(me, foe)
 			elif Terrain.knockable(tile(to)):
 				Terrain.knock(self, me, to)
@@ -486,6 +486,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				Terrain.open_door(self, me, to)
 			else:
 				var storey := depth
+				if foe != null:
+					move(foe, me.pos)
 				move(me, to)
 				if depth == storey:
 					Scent.lay(self, to)
@@ -607,7 +609,7 @@ func push(a: Actor, dir: Vector2i, n: int) -> void:
 	Fall.push(self, a, dir, n)
 
 
-## Spreads a noise around walls. Miho hears every noise in range but her own;
+## Spreads a noise around walls. Miho hears every noise in range but her side's;
 ## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
 func noise(
 	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
@@ -617,7 +619,8 @@ func noise(
 	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
 	var me := player()
 	var d := dist[Grid.index(me.pos)]
-	var heard_it := by != me.id and d >= 0 and d <= loud
+	var maker := actor(by)
+	var heard_it := (maker == null or maker.faction != me.faction) and d >= 0 and d <= loud
 	if heard_it:
 		heard.append({at = at, word = word})
 	emit({t = &"noise", at = at, word = word, loud = loud, heard = heard_it})
@@ -685,7 +688,8 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
 	caster.casts += 1
-	if Guise.cast(self, caster, spell, dir):
+	Bunsin.learn(caster, spell, dir)
+	if Guise.cast(self, caster, spell, dir) or Bunsin.cast(self, caster, spell, dir):
 		return
 	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
 		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
@@ -889,15 +893,17 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 			noise(a.pos, CRY, "끽", true, a.id)
 			Mind.hurt(a)
 		return
-	emit({t = &"die", id = a.id, at = a.pos})
+	emit({t = &"die", id = a.id, at = a.pos, foe = a.faction == Actor.HEAVEN})
 	a.intent.clear()
 	_changed()
-	if a.faction == Actor.FOX:
+	if a.is_miho():
 		outcome = &"lost"
 		emit({t = &"lost"})
 		return
-	Notice.fallen(self, a)
 	Mind.forget(self, a)
+	if a.ally():
+		return
+	Notice.fallen(self, a)
 	tails = mini(max_tails(), tails + 1)
 	emit({t = &"soul", id = a.id, at = a.pos})
 	Scrolls.drop(self, a)
@@ -970,14 +976,16 @@ func _end_round() -> void:
 func _prune() -> void:
 	var before := shots.size() + actors.size()
 	shots.assign(shots.filter(func(s): return not s.gone))
-	actors.assign(actors.filter(func(a): return a.alive() or a.faction == Actor.FOX))
+	actors.assign(actors.filter(func(a): return a.alive() or a.is_miho()))
 	if shots.size() + actors.size() != before:
 		_changed()
 
 
 func _ascend() -> void:
+	var party := Storeys.followers(self)
 	Storeys.leave(self)
 	Storeys.enter(self, depth + 1)
+	Storeys.bring(self, party)
 	regrow = 0
 	tails = max_tails()
 	_changed()

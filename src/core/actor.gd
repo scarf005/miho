@@ -1,8 +1,8 @@
 class_name Actor
 extends RefCounted
-## A creature on the board. Faction FOX is Miho; HEAVEN is everything else.
-## A heaven creature is resting (asleep, unless it patrols), searching a spot it
-## heard or saw something at, or hunting Miho after it saw her.
+## A creature on the board. Faction FOX is Miho and her allies (Mind.enlist); HEAVEN
+## is everything else. A heaven creature is resting (asleep, unless it patrols),
+## searching a spot it heard or saw something at, or hunting Miho after it saw her.
 
 const FOX := 0
 const HEAVEN := 1
@@ -72,10 +72,22 @@ var beside := 0
 var talon := false
 var cloak := false
 var flame := false
+## The one spell it casts in place of those of its kind (`repertoire`), empty for
+## none. Miho's is the spell her next copy takes (Bunsin.learn).
+var imprint: Array[StringName] = []
 
 
 func alive() -> bool:
 	return hp > 0
+
+
+func is_miho() -> bool:
+	return kind == &"miho"
+
+
+## One of Miho's side but not Miho (Mind.enlist).
+func ally() -> bool:
+	return faction == FOX and not is_miho()
 
 
 ## Resting at its home with its eyes shut: it sees nothing, even the tiles next
@@ -102,10 +114,10 @@ func fighting() -> bool:
 	return rival != 0 and grudge > 0
 
 
-## Resting on a patrol in the train of its leader (Mind.rest). One that does not
-## patrol sleeps at its own home, band or not.
+## Resting in the train of its leader (Mind.rest): one on patrol, or an ally behind
+## Miho. One that does not patrol sleeps at its own home, band or not.
 func following() -> bool:
-	return faction == HEAVEN and leader != 0 and info().get("patrol", false)
+	return leader != 0 and (faction == FOX or info().get("patrol", false))
 
 
 ## Hunting Miho by way of a drum.
@@ -123,9 +135,10 @@ func nature_kind() -> StringName:
 	return Guise.FLAME_KIND if flame else kind
 
 
-## Every spell it casts at its rank (Bestiary.casts).
+## Every spell it casts: the one it was imprinted with, else those of its rank
+## (Bestiary.casts).
 func repertoire() -> Array:
-	return Bestiary.casts(kind, rank)
+	return [imprint] if not imprint.is_empty() else Bestiary.casts(kind, rank)
 
 
 func clone() -> Actor:
@@ -173,4 +186,5 @@ func clone() -> Actor:
 		a.set(p, get(p))
 	a.intent = intent.duplicate(true)
 	a.marked.assign(marked)
+	a.imprint.assign(imprint)
 	return a

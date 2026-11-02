@@ -196,6 +196,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			if last.get("t") == &"fall":
 				return []
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["쓰러졌다", TEXT]])
+		&"ally":
+			return _t("{0}이/가 나타났다", [who])
 		&"fall":
 			if e.has("depth"):
 				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
@@ -437,15 +439,14 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 		)
 	if by == &"prick" and last.id == id:
 		return _sub(before, after, id, "{0}이/가 가시에 찔려 피해를 {1} 입었다", "가시에 찔려 피해를 {0} 입었다", [n])
-	var mine: bool = last.get("faction", -1) == Actor.FOX and last.t in [&"hit", &"splash"]
-	if mine and id != after.player().id:
-		return _harm_to(before, after, id, e.n)
-	var friendly: bool = (
-		last.get("faction", -1) == Actor.HEAVEN
-		and last.t in [&"hit", &"splash"]
-		and last.get("by", id) != id
-		and id != after.player().id
+	var me_id := after.player().id
+	var shot: bool = last.get("t") in [&"hit", &"splash"]
+	var mine: bool = (
+		shot and last.get("faction", -1) == Actor.FOX and last.get("by", me_id) == me_id
 	)
+	if mine and id != me_id:
+		return _harm_to(before, after, id, e.n)
+	var friendly: bool = shot and last.get("by", id) != id and id != me_id
 	if friendly:
 		var args := [_who(before, after, last.by), [_title(last), TEXT], _who(before, after, id), n]
 		return _t("{0}의 {1}에 {2}이/가 피해를 {3} 입었다", args)

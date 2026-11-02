@@ -35,6 +35,8 @@ static func paint(
 		marks[leap[1]] = [Lang.t(Bestiary.info(&"miho").glyph, "creature"), Palette.SIDE[0]]
 	for swap: Array in f.swaps:
 		marks[swap[1]] = [Lang.t(Bestiary.info(&"miho").glyph, "creature"), Palette.SIDE[0]]
+	for p in f.allies:
+		marks[p] = [Lang.t(Bestiary.info(&"miho").glyph, "creature"), Palette.SIDE[0]]
 	for p in f.sprouts:
 		tints[p] = Color(Palette.TILES[World.WOOD_WALL][1], 0.5)
 	for p in f.grounds:

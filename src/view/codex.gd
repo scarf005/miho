@@ -158,9 +158,9 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 	return out
 
 
-## The creatures, as the bestiary lists them, Miho left out.
+## The creatures of heaven, as the bestiary lists them: Miho's side has no group.
 static func foes() -> Array:
-	return Bestiary.KINDS.keys().filter(func(k): return k != &"miho")
+	return Bestiary.KINDS.keys().filter(func(k): return Bestiary.info(k).has("group"))
 
 
 ## A creature of `kind` of rank `at_rank` at full health, unaware.

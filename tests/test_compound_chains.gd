@@ -161,7 +161,7 @@ func test_every_table_chain_runs_along_one_ring_and_has_a_name_and_a_glyph() -> 
 	for c in Cards.NAME:
 		assert_false(glyphs.has(Cards.GLYPH[c]), "one glyph each: " + Cards.GLYPH[c])
 		glyphs[Cards.GLYPH[c]] = true
-	assert_eq(Cards.TRIPLES.size(), 6)
+	assert_eq(Cards.TRIPLES.size(), 7)
 	assert_eq(Cards.QUADS.size(), 8)
 	assert_eq(Cards.FIVES.size(), 3)
 

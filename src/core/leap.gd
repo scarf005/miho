@@ -40,8 +40,8 @@ static func landing(w: World, from: Vector2i, dir: Vector2i, reach: int) -> Vect
 
 
 ## Whether `a` can cast `spell` along `dir`, one of the eight, or on itself
-## with none (Guise): a leap lands somewhere, while `a` is not rooted; anything
-## else is thrown there (Terrain.throwable).
+## with none (Guise): a leap lands somewhere, while `a` is not rooted; a copy has
+## room (Bunsin); anything else is thrown there (Terrain.throwable).
 static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if Guise.mixed(spell):
 		return false
@@ -49,9 +49,17 @@ static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 		return Guise.why(a, spell) == ""
 	if not Grid.DIRS.has(dir):
 		return false
+	if spell.has(Cards.BUNSIN):
+		return Bunsin.open(w, a.pos + dir)
 	if spell.shape != Spell.LEAP:
 		return Terrain.throwable(w, spell, a.pos + dir, dir)
 	return a.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
+
+
+## The one tile `spell` along `d` from `from` ends on, when it names one: the landing
+## of a leap, the tile a copy steps out onto.
+static func aimed(w: World, from: Vector2i, d: Vector2i, spell: Spell) -> Vector2i:
+	return from + d if spell.has(Cards.BUNSIN) else landing(w, from, d, spell.leap())
 
 
 static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
@@ -66,7 +74,7 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	if w.depth != depth or not a.alive():
 		return
 	w.noise(to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
-	if a.faction == Actor.FOX:
+	if a.is_miho():
 		Scent.lay(w, to)
 		if w.arrive(a):
 			return
@@ -96,6 +104,6 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 		return
 	for p in [from, to]:
 		w.noise(p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
-	if me.faction == Actor.FOX:
+	if me.is_miho():
 		Scent.lay(w, to)
 		w.arrive(me)

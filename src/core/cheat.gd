@@ -63,7 +63,7 @@ static func tails(w: World) -> int:
 
 ## Whether `a` takes no harm.
 static func immune(w: World, a: Actor) -> bool:
-	return a.faction == Actor.FOX and on(w, &"god")
+	return a.is_miho() and on(w, &"god")
 
 
 ## With 맵 밝히기 on, every tile is known and seen; called once Miho's sight is worked out.

@@ -9,7 +9,7 @@ extends RefCounted
 static func telegraphs(t: Term, actors: Dictionary) -> void:
 	for id in actors:
 		var a: Actor = actors[id]
-		if a.faction == Actor.FOX or not t._revealed(a.pos):
+		if a.is_miho() or not t._revealed(a.pos):
 			continue
 		for plan in a.intent:
 			var spell := Spell.make(plan.cards)
@@ -24,7 +24,7 @@ static func telegraphs(t: Term, actors: Dictionary) -> void:
 				if not t._shown(ray[k]):
 					continue
 				var pulse := 0.5 + 0.5 * sin(t._time * 8.0 - k * 0.6)
-				var c := Color(Palette.SIDE[1], 0.16 + 0.14 * pulse)
+				var c := Color(Palette.SIDE[a.faction], 0.16 + 0.14 * pulse)
 				var tile := Rect2(t._cell(ray[k]) * Term.CELL, Term.CELL)
 				t.draw_rect(tile, c)
 				t.draw_rect(tile, Palette.KIND[a.kind], false, 1.0)

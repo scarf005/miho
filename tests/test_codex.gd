@@ -36,11 +36,12 @@ func _open() -> Menu:
 	return menu
 
 
-func test_the_foes_are_every_bestiary_kind_but_miho() -> void:
+func test_the_foes_are_the_creatures_of_heaven() -> void:
 	var names := _names(0)
-	assert_eq(names.size(), Bestiary.KINDS.size() - 1)
+	assert_eq(names.size(), Codex.foes().size())
 	for kind in Bestiary.KINDS:
-		assert_eq(names.has(Bestiary.info(kind).name), kind != &"miho", kind)
+		var heaven: bool = Bestiary.info(kind).has("group")
+		assert_eq(names.has(Bestiary.info(kind).name), heaven, kind)
 
 
 ## Every line of `facts` is a line of `hover`, in order.

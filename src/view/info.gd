@@ -12,6 +12,8 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
+## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
+const ALLY := "아군"
 ## The tag of 전기 (Cards.ELECTRIC), told in the glossary.
 const ELECTRIC := "전기"
 ## The state of a sleeper (Actor.asleep), and the tag of a creature that never
@@ -68,6 +70,7 @@ static func glossary() -> Dictionary:
 		scentless.map(func(t): return Lang.t(Tiles.of(t, "name"))) + [Lang.t("불타는 칸")]
 	)
 	return {
+		ALLY: ["자리 바꿈: 걸어 들어갈 때", Lang.t("함께 올라감: %d칸 안에 있을 때") % Storeys.FOLLOW],
 		"가연성":
 		[
 			burn,
@@ -265,7 +268,7 @@ static func shot_at(w: World, p: Vector2i) -> Shot:
 ## conditions, sight, the harm a claw does it now), then what it strikes and
 ## casts with.
 static func creature(w: World, a: Actor) -> Array:
-	if a.faction == Actor.FOX:
+	if a.is_miho():
 		return _miho(w, a, _head(a))
 	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
 
@@ -331,6 +334,8 @@ static func state(a: Actor) -> String:
 ## what her claw does to it.
 static func _situation(w: World, a: Actor) -> Array:
 	var lines := []
+	if a.ally():
+		lines.append([[Lang.t(ALLY) + ".", Palette.SIDE[0]]])
 	lines.append([[state(a), Palette.ALERT[maxi(a.alert, 1)]]])
 	if a.alert == Actor.SEARCH:
 		lines.append([[_search_left(a), Palette.TEXT]])
@@ -341,6 +346,8 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[Lang.t("  남은 시간: %d초") % a.grudge, Palette.ALERT[2]]])
 	if a.drumming():
 		lines.append([[Lang.t("북 치러 가는 중."), Palette.SOUND]])
+	if a.ally():
+		return lines
 	if Guise.knows(w, a):
 		lines.append([[Lang.t("당신을 볼 수 있다"), Palette.HURT]])
 	elif w.sees(a, w.player().pos):
@@ -366,7 +373,8 @@ static func _arms(a: Actor, held: Array) -> Array:
 	var lines := []
 	var traits := _traits(a, Bestiary.elements(a.kind))
 	var tags := traits.filter(func(t): return not t.contains(": "))
-	lines.append(_row(tags.map(func(t): return [[t, Palette.DIM]])))
+	if not tags.is_empty():
+		lines.append(_row(tags.map(func(t): return [[t, Palette.DIM]])))
 	for t: String in traits.filter(func(t): return t.contains(": ")):
 		lines.append([[t, Palette.DIM]])
 	if not spec.get("shout", {}).is_empty():
@@ -560,26 +568,33 @@ static func _status(a: Actor) -> Array:
 static func _casts(a: Actor) -> Array:
 	var out := []
 	var has_mana := Bestiary.mana(a.kind) > 0
+	var own: bool = a.info().get("tails", false)
 	if has_mana:
-		out.append([[Lang.t("마력: %d/%d") % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
+		var left := Lang.t("꼬리: %d/%d" if own else "마력: %d/%d")
+		out.append([[left % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
 		out.append([_regrows()])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
 		out.append([[Lang.t("동시 주술: %d개") % Aim.CASTS, Palette.TEXT]])
 	for group: Array in _by_title(a):
 		var spell: Spell = group[0]
 		var parts: Array = [
-			[[Lang.t("주술: "), Palette.TEXT], [spell.shown(), Palette.card(spell.slots.back())]]
+			[
+				[Lang.t("주문: " if own else "주술: "), Palette.TEXT],
+				[spell.shown(), Palette.card(spell.slots.back())]
+			]
 		]
 		if has_mana:
-			parts.append(SpellInfo._line("마력", _joined(group.map(func(s): return str(s.cost())))))
+			var price := "꼬리" if own else "마력"
+			parts.append(SpellInfo._line(price, _joined(group.map(func(s): return str(s.cost())))))
 		else:
 			parts.append(SpellInfo._line("간격", Lang.t("%d초") % a.info().cd))
+		if own or not has_mana:
 			parts.append_array(_effects(group))
-			var keys := group.map(func(s): return s.key())
-			if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
-				parts.append([[Lang.t("모으는 중"), Palette.HURT]])
-			elif a.cooldown > 0:
-				parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.cooldown))
+		var keys := group.map(func(s): return s.key())
+		if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
+			parts.append([[Lang.t("모으는 중"), Palette.HURT]])
+		elif a.cooldown > 0:
+			parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.cooldown))
 		out.append(_row(parts))
 	return out
 
@@ -617,7 +632,7 @@ static func _joined(values: Array) -> String:
 
 static func _traits(a: Actor, elements: Array) -> Array:
 	var spec := a.info()
-	var out := [Lang.t(WITS[Bestiary.wits(a.kind)])]
+	var out := [] if a.ally() else [Lang.t(WITS[Bestiary.wits(a.kind)])]
 	if spec.get("patrol", false):
 		out.append(Lang.t("순찰"))
 	if spec.get("move", &"static") == &"static":

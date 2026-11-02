@@ -189,7 +189,7 @@ static func _named(m: Node) -> String:
 	if w.seen[i] == 1:
 		var a := w.actor_at(m.hover)
 		if a != null and Hat.shown(w, a):
-			return "" if a.faction == Actor.FOX else Lang.t(a.info().name)
+			return "" if a.is_miho() else Lang.t(a.info().name)
 		var shot := w.shot_at(m.hover)
 		if shot != null:
 			return _spell(shot.spell, shot.faction == Actor.FOX)
