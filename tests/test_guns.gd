@@ -211,17 +211,19 @@ func test_a_mortar_hurts_what_stands_next_to_where_it_ends_and_the_creature_it_s
 	var struck := _post(w, 3)
 	var beside := _post(w, 3, 1)
 	var behind := _post(w, 4)
-	var away := _post(w, 3, 2)
+	var two_off := _post(w, 3, 2)
+	var away := _post(w, 3, 3)
 	var events := w.act(_cast([ORB, EARTH, METAL]))
 	assert_eq(_hurts(events, beside), [Compounds.MORTAR])
 	assert_eq(_hurts(events, behind), [Compounds.MORTAR])
+	assert_eq(_hurts(events, two_off), [Compounds.MORTAR])
 	assert_eq(_hurts(events, struck).count(Compounds.MORTAR), 1, "the burst hurts it once")
-	assert_eq(away.hp, HEALTH, "two tiles from the burst")
+	assert_eq(away.hp, HEALTH, "three tiles from the burst")
 
 
 func test_a_mortar_into_a_wall_bursts_in_front_of_it_and_hits_the_walls_round_it() -> void:
 	var w := _world()
-	for y in range(-2, 3):
+	for y in range(-3, 4):
 		_put(w, 3, y, World.WALL)
 	_put(w, 5, 0, World.WALL)
 	var beside := _post(w, 2, 1)
@@ -229,9 +231,9 @@ func test_a_mortar_into_a_wall_bursts_in_front_of_it_and_hits_the_walls_round_it
 	var events := w.act(_cast([ORB, EARTH, METAL]))
 	assert_eq(_hurts(events, beside), [Compounds.MORTAR])
 	assert_eq(far.hp, HEALTH)
-	for y in range(-1, 2):
+	for y in range(-2, 3):
 		assert_eq(w.tile(ME + Vector2i(3, y)), World.WALL_CRACKED, "walls in reach take a hit")
-	assert_eq(w.tile(ME + Vector2i(3, 2)), World.WALL, "out of reach")
+	assert_eq(w.tile(ME + Vector2i(3, 3)), World.WALL, "out of reach")
 	assert_eq(w.tile(ME + Vector2i(5, 0)), World.WALL)
 
 
@@ -239,11 +241,24 @@ func test_a_mortar_bursts_one_tile_wider_for_every_more_earth() -> void:
 	for more in [0, 1, 2]:
 		var w := _world()
 		_post(w, 3)
-		var in_reach := _post(w, 3, 1 + more)
-		var past := _post(w, 3, 2 + more)
+		var in_reach := _post(w, 3, 2 + more)
+		var past := _post(w, 3, 3 + more)
 		w.act(_cast([ORB, EARTH, METAL] + _n(EARTH, more)))
-		assert_lt(in_reach.hp, HEALTH, "%d more 토 reach radius %d" % [more, 1 + more])
-		assert_eq(past.hp, HEALTH, "%d more 토 stop at radius %d" % [more, 1 + more])
+		assert_lt(in_reach.hp, HEALTH, "%d more 토 reach radius %d" % [more, 2 + more])
+		assert_eq(past.hp, HEALTH, "%d more 토 stop at radius %d" % [more, 2 + more])
+
+
+func test_a_blast_of_plain_orbs_stays_one_tile_round_and_leaves_the_walls_near_it() -> void:
+	var w := _world()
+	_post(w, 3)
+	var beside := _post(w, 3, 1)
+	var two_off := _post(w, 3, 2)
+	_put(w, 3, 3, World.WALL)
+	_put(w, 4, 2, World.WALL)
+	w.act(_cast([ORB, ORB, ORB]))
+	assert_lt(beside.hp, HEALTH)
+	assert_eq(two_off.hp, HEALTH)
+	assert_eq(w.tile(ME + Vector2i(4, 2)), World.WALL)
 
 
 func test_a_mortar_hurts_one_more_for_every_more_metal() -> void:

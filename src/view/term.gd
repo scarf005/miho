@@ -382,13 +382,8 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 		&"ascend":
 			_popups.clear()
 		&"splash":
-			var glow: Color = (
-				Palette.BURNING[1] if Spell.make(e.cards).has(Cards.FIRE) else Color.WHITE
-			)
-			_flash(at, Color(1.0, 0.95, 0.7, 0.95))
-			for d in Grid.DIRS:
-				_flash(at + d, Color(glow, 0.85), 0.07)
-			_flash(at, Color(glow, 0.9), 0.14)
+			for f: Array in Impact.flashes(e):
+				_flash(f[0], f[1], f[2])
 		&"die":
 			_actors.erase(e.id)
 		&"ally":

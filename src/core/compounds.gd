@@ -77,6 +77,8 @@ const HOT := [{name = "뜨거운 땅", harm = 1}, {name = "뜨거운 쇠", harm 
 const HOT_ROUNDS := 3
 const SHRAPNEL := 1
 const MORTAR := 2
+## How far round where it ends a 비격진 bursts, wider than a plain orb's blast (Spell.blast).
+const MORTAR_REACH := 2
 const FROST := 2
 const RAIN := 3
 const STEAM := Gas.MAX
@@ -101,7 +103,8 @@ const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness", &"hypno
 
 ## The radius compound `c` of `spell` reaches round where a projectile ends.
 static func reach(spell: Spell, c: StringName) -> int:
-	return REACH + spell.grown(c)
+	var base := MORTAR_REACH if spell.mortar() and c == &"shrapnel" else REACH
+	return base + spell.grown(c)
 
 
 ## `s` carries its compounds to `at`, where it ends.
@@ -333,7 +336,8 @@ static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
 			by = s.caster,
 			title = s.spell.title(),
 			cards = s.spell.cards,
-			spell = s.spell.tag()
+			spell = s.spell.tag(),
+			r = r
 		}
 	)
 	for p in Spray.square(w, at, r, true):
