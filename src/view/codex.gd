@@ -71,18 +71,8 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 			for c in Cards.FORMS + Cards.ELEMENTS:
 				out.append(_talisman(c))
 			for kind in SpellInfo.RECIPE:
-				var s := Spell.make(SpellInfo.RECIPE[kind])
-				var color := Palette.shot_color(s, Actor.FOX)
-				out.append(
-					_entry(
-						Palette.shot_glyph(s),
-						color,
-						Spell.SHAPE_NAME[kind],
-						_shape(kind),
-						kind,
-						s.cards
-					)
-				)
+				if SpellInfo.RECIPE[kind].size() == 1:
+					out.append(_shape_entry(kind))
 			out.append(
 				_entry(
 					":",
@@ -93,6 +83,11 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 					[Cards.FIRE]
 				)
 			)
+		2:
+			for kind in SpellInfo.RECIPE:
+				var cards: Array = SpellInfo.RECIPE[kind]
+				if cards.size() > 1 and not Cards.TRIPLES.values().has(cards):
+					out.append(_shape_entry(kind))
 			for cards in SpellInfo.GUNS:
 				var s := Spell.make(cards)
 				var lines := func(): return SpellInfo.spell(s)
@@ -107,11 +102,12 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 					)
 				)
 			for kind in Guise.RECIPE:
+				if Cards.compounds().has(kind):
+					continue
 				var s := Spell.make(Guise.RECIPE[kind])
 				var lines := func(): return SpellInfo.own(kind)
 				var color := Palette.card(s.slots.back())
 				out.append(_entry(",", color, Guise.NAME[kind], lines, kind, s.cards))
-		2:
 			for c in Cards.compounds():
 				var lines := func(): return SpellInfo.combo(c)
 				var cards := Cards.made_of(c)
@@ -351,6 +347,18 @@ static func _talisman(c: StringName) -> Dictionary:
 		lines,
 		c,
 		[c]
+	)
+
+
+static func _shape_entry(kind: StringName) -> Dictionary:
+	var s := Spell.make(SpellInfo.RECIPE[kind])
+	return _entry(
+		Palette.shot_glyph(s),
+		Palette.shot_color(s, Actor.FOX),
+		Spell.SHAPE_NAME[kind],
+		_shape(kind),
+		kind,
+		s.cards
 	)
 
 

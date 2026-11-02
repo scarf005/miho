@@ -210,7 +210,7 @@ func test_the_spell_info_tells_what_the_guise_does() -> void:
 	var text := Info.plain(SpellInfo.spell(Spell.make([WOOD, EARTH, WOOD])))
 	for part in ["둔갑", "%d초" % (Guise.ROUNDS + Guise.PER_WOOD), "해제: 적 옆에서 %d초" % Guise.BESIDE]:
 		assert_string_contains(text, part)
-	assert_has(Codex.entries(1).map(func(e): return e.name), Guise.NAME[Guise.GUISE])
+	assert_has(Codex.entries(2).map(func(e): return e.name), Guise.NAME[Guise.GUISE])
 
 
 func _main() -> Node:

@@ -177,7 +177,7 @@ func test_the_spell_info_tells_what_the_shadow_does_on_herself() -> void:
 
 
 func test_the_codex_lists_the_shadow() -> void:
-	var names := Codex.entries(1).map(func(e): return e.name)
+	var names := Codex.entries(2).map(func(e): return e.name)
 	assert_has(names, Guise.NAME[Guise.SHADOW])
 
 

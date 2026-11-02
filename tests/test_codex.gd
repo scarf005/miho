@@ -92,14 +92,14 @@ func test_the_spells_are_the_forms_the_elements_and_the_shapes() -> void:
 	var names := _names(1)
 	for c in Cards.FORMS + Cards.ELEMENTS:
 		assert_true(names.has(Cards.NAME[c] + " 부적"), c)
-	for shape in Spell.SHAPE_NAME.values() + [SpellInfo.SPRAY_NAME]:
+	for shape in [Spell.SHAPE_NAME[Spell.WISP], Spell.SHAPE_NAME[Spell.ORB], SpellInfo.SPRAY_NAME]:
 		assert_true(names.has(shape), shape)
 	var fire := _text(Codex.detail(_entry(1, "불 부적")))
 	assert_eq(fire, _text(SpellInfo.stacked(Cards.FIRE)))
 
 
 func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
-	var homing := _text(Codex.detail(_entry(1, "유도 구슬")))
+	var homing := _text(Codex.detail(_entry(2, "유도 구슬")))
 	assert_string_contains(homing, "만드는 법: 여우불+구슬")
 	assert_string_contains(homing, "가장 가까운 적")
 	assert_string_contains(homing, "회전: 칸당 45°")
@@ -108,7 +108,8 @@ func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
 
 func test_every_compound_is_listed_with_its_parts() -> void:
 	var names := _names(2)
-	assert_eq(names.size(), Cards.compounds().size())
+	assert_true(names.has(Spell.MORTAR_NAME), "a named combination lists there too")
+	assert_true(names.has(Spell.SHAPE_NAME[Spell.HOMING]))
 	for c in Cards.compounds():
 		var text := _text(Codex.detail(_entry(2, Cards.NAME[c])))
 		var parts: Array = Cards.made_of(c).map(func(e): return Cards.NAME[e])
