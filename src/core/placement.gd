@@ -194,23 +194,25 @@ static func count(row: Dictionary, depth: int, rng: RandomNumberGenerator) -> in
 ## The tiles `row` may start on: free tiles of `row.on` in a room but `goal`.
 static func _spots(w: World, row: Dictionary, goal: Rect2i) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
+	var tiles := w.tiles
+	var on: int = row.on
 	for r in w.rooms:
 		if r != goal:
 			for y in range(r.position.y, r.end.y):
 				for x in range(r.position.x, r.end.x):
-					if _free(w, Vector2i(x, y), row):
+					if tiles[y * Grid.W + x] == on and _clear(w, Vector2i(x, y)):
 						out.append(Vector2i(x, y))
 	return out
 
 
 static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
+	return w.tile(p) == row.on and _clear(w, p)
+
+
+## Whether nothing but its kind keeps `p` from a patch: no gas or plate, not a way in or out.
+static func _clear(w: World, p: Vector2i) -> bool:
 	return (
-		w.tile(p) == row.on
-		and not w.gas.has(p)
-		and not w.traps.has(p)
-		and p != w.start
-		and p != w.stairs
-		and p != w.elixir
+		not w.gas.has(p) and not w.traps.has(p) and p != w.start and p != w.stairs and p != w.elixir
 	)
 
 

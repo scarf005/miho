@@ -405,14 +405,22 @@ static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 				part[Grid.index(Vector2i(x, y))] = k
 	var joined := range(parts.size())
 	var spots := []
-	for i in w.tiles.size():
-		var p := Grid.at(i)
-		for d: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
-			if Grid.inside(p - d) and Grid.inside(p + d):
-				var a := part[Grid.index(p - d)]
-				var b := part[Grid.index(p + d)]
-				if a >= 0 and b >= 0 and a != b and w.tiles[i] == World.WALL:
-					spots.append([p, d, a, b])
+	var tiles := w.tiles
+	for i in tiles.size():
+		if tiles[i] != World.WALL:
+			continue
+		var x := i % Grid.W
+		var y := i / Grid.W
+		if x > 0 and x < Grid.W - 1:
+			var a := part[i - 1]
+			var b := part[i + 1]
+			if a >= 0 and b >= 0 and a != b:
+				spots.append([Vector2i(x, y), Vector2i.RIGHT, a, b])
+		if y > 0 and y < Grid.H - 1:
+			var a := part[i - Grid.W]
+			var b := part[i + Grid.W]
+			if a >= 0 and b >= 0 and a != b:
+				spots.append([Vector2i(x, y), Vector2i.DOWN, a, b])
 	var open := Masks.floor_of(w)
 	for k in parts.size():
 		var dist: PackedInt32Array = Grid.search(parts[k].position, open).dist
@@ -593,24 +601,30 @@ static func _bridge(w: World, west: Rect2i, east: Rect2i, y: int) -> void:
 ## room floor behind them, never two side by side and never on the map's outer
 ## ring.
 static func _windows(w: World) -> void:
+	var tiles := w.tiles
+	# Tile offsets of up, down, left, right and the side of each (the two sides are either way).
+	var steps := [-Grid.W, Grid.W, -1, 1]
+	var sides := [-1, -1, -Grid.W, -Grid.W]
 	for y in range(1, Grid.H - 1):
 		for x in range(1, Grid.W - 1):
-			var p := Vector2i(x, y)
-			if w.tile(p) != World.WALL:
+			var i := y * Grid.W + x
+			if tiles[i] != World.WALL:
 				continue
-			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
-				var side := Vector2i(d.y, d.x)
+			for k in 4:
+				var step: int = steps[k]
+				var side: int = sides[k]
 				if (
-					w.tile(p + d) == World.SKY
-					and w.tile(p - d) == World.FLOOR
-					and w.tile(p + side) != World.SKY
-					and w.tile(p - side) != World.SKY
-					and w.tile(p + side) != World.WINDOW
-					and w.tile(p - side) != World.WINDOW
+					tiles[i + step] == World.SKY
+					and tiles[i - step] == World.FLOOR
+					and tiles[i + side] != World.SKY
+					and tiles[i - side] != World.SKY
+					and tiles[i + side] != World.WINDOW
+					and tiles[i - side] != World.WINDOW
 					and w.rng.randf() < WINDOWS
 				):
-					w.tiles[Grid.index(p)] = World.WINDOW
+					tiles[i] = World.WINDOW
 					break
+	w.tiles = tiles
 
 
 static func _fill(w: World, r: Rect2i, t: int) -> void:
@@ -864,14 +878,14 @@ static func _random_spot(w: World, min_dist: int, near := Vector2i(-1, -1)) -> V
 			for x in range(r.position.x, r.end.x):
 				var p := Vector2i(x, y)
 				if (
-					(near.x < 0 or Grid.cheb(p, near) <= BAND_SPREAD)
-					and w.vacant(p)
-					and dist[Grid.index(p)] >= min_dist
+					dist[y * Grid.W + x] >= min_dist
+					and (near.x < 0 or Grid.cheb(p, near) <= BAND_SPREAD)
 					and Grid.cheb(p, w.start) > START_CLEAR
 					and p != w.stairs
 					and p != w.elixir
 					and not w.peaches.has(p)
 					and not w.traps.has(p)
+					and w.vacant(p)
 				):
 					spots.append(p)
 	if spots.is_empty():
