@@ -249,15 +249,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == &"title":
 		_begin()
 	elif state == &"over":
-		if (
-			Keys.action_of(event) == &"restart"
-			or event is InputEventKey and event.keycode == Banner.AGAIN
-		):
-			_new_game()
-		elif Keys.action_of(event) == &"log":
-			_open(&"log")
-		elif _left_click(event) and term.banner_at(_local(event.position)) == Banner.SEED:
-			_copy_seed()
+		Banner.input(self, event)
 	elif event is InputEventKey:
 		_key(event)
 	elif event is InputEventMouseButton and press:

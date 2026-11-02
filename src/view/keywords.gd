@@ -218,3 +218,26 @@ static func word_at(row: Array, x: float, col: float) -> String:
 ## The entry of the word under column `col` of a row, or none.
 static func entry_at(row: Array, x: float, col: float) -> Array:
 	return entry(word_at(row, x, col))
+
+
+## Coloured runs broken into rows no wider than `width` cells, at the spaces;
+## a word wider than that takes a row of its own.
+static func rows_of(runs: Array, width: float) -> Array:
+	var out := [[]]
+	var x := 0.0
+	for run: Array in runs:
+		if x + Term._cells(run[0]) <= width:
+			out[-1].append(run)
+			x += Term._cells(run[0])
+			continue
+		var words: PackedStringArray = run[0].split(" ")
+		for i in words.size():
+			var word: String = (" " if i > 0 else "") + words[i]
+			if x > 0.0 and x + Term._cells(word) > width:
+				out.append([])
+				x = 0.0
+				word = word.lstrip(" ")
+			if word != "":
+				out[-1].append(piece(run, word))
+				x += Term._cells(word)
+	return out

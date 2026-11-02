@@ -107,7 +107,7 @@ func test_the_hover_box_the_dogam_flow_and_the_log_rows_keep_the_background() ->
 	assert_eq(Keywords.back(box.columns[0][1][0][0]), Palette.FIERCE_BACK)
 	var flowed := Codex.flow([line], 3.0)
 	assert_eq(Keywords.back(flowed[0][0]), Palette.FIERCE_BACK)
-	var rows := Term.rows_of([["가 ", Palette.TEXT]] + [line[0]], 3.0)
+	var rows := Keywords.rows_of([["가 ", Palette.TEXT]] + [line[0]], 3.0)
 	assert_eq(Keywords.back(rows.back().back()), Palette.FIERCE_BACK)
 
 

@@ -23,6 +23,16 @@ static func show(m: Node) -> void:
 			m.term.banner_lines[i] = m.touch.say(m.term.banner_lines[i], "")
 
 
+## A press on the ending: a new run, the log, or the seed line copied.
+static func input(m: Node, event: InputEvent) -> void:
+	if Keys.action_of(event) == &"restart" or event is InputEventKey and event.keycode == AGAIN:
+		m._new_game()
+	elif Keys.action_of(event) == &"log":
+		m._open(&"log")
+	elif m._left_click(event) and m.term.banner_at(m._local(event.position)) == SEED:
+		m._copy_seed()
+
+
 ## Asks before the run in play gives way to a new one; Y
 ## answers (a second press of the button on a touch screen).
 static func ask(m: Node) -> void:

@@ -47,10 +47,6 @@ const DELAY := {
 	&"drum": 0.3,
 	&"trap": 0.2,
 }
-## What a shot does where it ends, drawn as it touches; `impacts`.
-const IMPACT := [&"splash", &"sprout", &"become", &"heat"]
-## What starts another shot's or creature's doing, and so ends the look for an impact.
-const NOT_IMPACT := [&"fly", &"hit", &"burst", &"spawn", &"spray", &"cast"]
 ## Cells each character takes, measured once (_cells).
 static var _widths := {}
 
@@ -295,7 +291,7 @@ func play(events: Array, before: World, after: World) -> void:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
 	var passes := Afterimage.plan(events)
-	var impact := impacts(events)
+	var impact := Impact.of(events)
 	var drawn := {}
 	for i in events.size():
 		var veiled := _veiled if debug.is_empty() else {}
@@ -316,26 +312,6 @@ func play(events: Array, before: World, after: World) -> void:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
 	show_world(after)
-
-
-## By the index of each event of a shot touching something, the later events it sets
-## off there. Their pictures and sounds start with the touch, and only the time they
-## hold stays where they come, so what the touch hurts is told at once.
-static func impacts(events: Array) -> Dictionary:
-	var out := {}
-	for i in events.size():
-		if events[i].t not in [&"hit", &"burst"] or events[i].get("through", false):
-			continue
-		for j in range(i + 1, events.size()):
-			if events[j].t in NOT_IMPACT:
-				break
-			if events[j].t in IMPACT and _touches(events[j], events[i].at):
-				out.get_or_add(i, []).append(j)
-	return out
-
-
-static func _touches(e: Dictionary, at: Vector2i) -> bool:
-	return e.at == at or e.get("tiles", []).has(at)
 
 
 ## Finishes the round in progress at once: `play` returns before this does, so
@@ -602,7 +578,7 @@ func _banner_rows() -> Array:
 	var rows_of_line := []
 	var height := 0
 	for line in banner_lines:
-		var wrapped: Array = rows_of([[line, Palette.TEXT]], cols).map(
+		var wrapped: Array = Keywords.rows_of([[line, Palette.TEXT]], cols).map(
 			func(row): return "".join(row.map(func(r): return r[0]))
 		)
 		rows_of_line.append(wrapped)
@@ -885,31 +861,8 @@ func _draw_log() -> void:
 func log_rows() -> Array:
 	var out := []
 	for line: Array in log_lines:
-		for runs: Array in rows_of(line[0], cols - side.x - 1.0):
+		for runs: Array in Keywords.rows_of(line[0], cols - side.x - 1.0):
 			out.append([out.size(), side.x + 0.5, runs, line[1]])
-	return out
-
-
-## Coloured runs broken into rows no wider than `width` cells, at the spaces;
-## a word wider than that takes a row of its own.
-static func rows_of(runs: Array, width: float) -> Array:
-	var out := [[]]
-	var x := 0.0
-	for run: Array in runs:
-		if x + _cells(run[0]) <= width:
-			out[-1].append(run)
-			x += _cells(run[0])
-			continue
-		var words: PackedStringArray = run[0].split(" ")
-		for i in words.size():
-			var word: String = (" " if i > 0 else "") + words[i]
-			if x > 0.0 and x + _cells(word) > width:
-				out.append([])
-				x = 0.0
-				word = word.lstrip(" ")
-			if word != "":
-				out[-1].append(Keywords.piece(run, word))
-				x += _cells(word)
 	return out
 
 
