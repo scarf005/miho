@@ -429,6 +429,11 @@ func _click(event: InputEventMouseButton) -> void:
 	if card != &"":
 		_add(card)
 		return
+	var preset: String = term.bar.preset_at(term, local)
+	if preset != "":
+		_recall(preset)
+		_aim()
+		return
 	if Grid.inside(hover) and not eat:
 		_use_tile(hover, event.shift_pressed)
 

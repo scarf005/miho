@@ -295,6 +295,11 @@ func status_at(t: Term, local: Vector2) -> bool:
 	return not _find(t, local, &"stat").is_empty()
 
 
+## The key of the spell a click under a point fills the queue with, or empty.
+func preset_at(t: Term, local: Vector2) -> String:
+	return slot_at(t, local)
+
+
 ## The key of the saved spell under a point, or empty.
 func slot_at(t: Term, local: Vector2) -> String:
 	for chip in _chips(t):

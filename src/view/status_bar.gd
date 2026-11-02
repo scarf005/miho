@@ -266,6 +266,13 @@ static func combo_at(t: Term, local: Vector2) -> StringName:
 	return &""
 
 
+## The key of the spell a click under a point fills the queue with, or empty: a saved
+## spell's, or a compound's.
+static func preset_at(t: Term, local: Vector2) -> String:
+	var combo := combo_at(t, local)
+	return Spell.make(Cards.recipe(combo)).key() if combo != &"" else slot_at(t, local)
+
+
 ## The talisman or compound under a point in the term's space, or empty.
 static func talisman_at(t: Term, local: Vector2) -> StringName:
 	var card := card_at(t, local)
