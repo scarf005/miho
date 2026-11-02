@@ -51,7 +51,7 @@ static func drop(w: World, a: Actor, into: Vector2i) -> void:
 ## other, who falls, unless a plate has taken Miho off `depth`, the storey of the trade, already.
 static func traded(w: World, a: Actor, b: Actor, depth: int) -> void:
 	for c: Actor in [a, b]:
-		if w.depth == depth and w.tile(c.pos) == World.SKY:
+		if c.alive() and w.depth == depth and w.tile(c.pos) == World.SKY:
 			drop(w, c, c.pos)
 
 

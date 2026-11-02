@@ -546,3 +546,13 @@ func test_after_a_fall_a_trade_does_not_read_the_old_tile_on_the_new_storey() ->
 	w.set_tile(ally.pos, World.SKY)
 	Fall.traded(w, ally, w.player(), w.depth + 1)
 	assert_true(ally.alive())
+
+
+func test_a_creature_a_trap_killed_in_the_trade_does_not_fall_as_well() -> void:
+	var w := _world()
+	var foe := _hunter(w, ME + E)
+	foe.hp = 0
+	w.set_tile(foe.pos, World.SKY)
+	w.tails = 0
+	Fall.traded(w, foe, w.player(), w.depth)
+	assert_eq(w.tails, 0, "no tail for a fall that did not happen")
