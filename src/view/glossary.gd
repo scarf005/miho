@@ -55,6 +55,7 @@ static func rows() -> Dictionary:
 		"영리함":
 		[
 			"주문을 보면: 쏜 곳을 수색",
+			"길 위의 투사체: 돌아서 감",
 			"눈앞에서 둔갑: 추격",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
 			Info.SUSPECTS
@@ -62,6 +63,7 @@ static func rows() -> Dictionary:
 		"교활함":
 		[
 			"주문을 보면: 쏜 곳에서 추격",
+			"길 위의 투사체: 돌아서 감",
 			"눈앞에서 둔갑: 추격",
 			"둔갑: 속지 않음",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,

@@ -431,19 +431,41 @@ static func _chase(w: World, a: Actor) -> void:
 
 
 ## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground or onto a
-## plate it keeps off (Traps.bars).
+## plate it keeps off (Traps.bars). A dull creature takes the tile of a foe's projectile for
+## free (`_blind_to`).
 static func _walkable(w: World, a: Actor) -> Callable:
 	var ground := Bestiary.ground(a.kind)
 	return func(p):
 		return (
 			p == a.pos
 			or (
-				w.vacant(p, ground)
+				(w.vacant(p, ground) or _blind_to(w, a, p, ground))
 				and not w.burning.has(p)
 				and not w.hot.has(p)
 				and not Traps.bars(w, a, p)
 			)
 		)
+
+
+## Whether a dull `a` would walk onto p, free but for a foe's projectile flying there.
+static func _blind_to(w: World, a: Actor, p: Vector2i, ground: PackedByteArray) -> bool:
+	if Bestiary.wits(a.kind) != Bestiary.DULL or ground[w.tile(p)] != 1 or w.actor_at(p) != null:
+		return false
+	var s := w.shot_at(p)
+	return s != null and s.faction != a.faction
+
+
+## `a` steps to `to`, and a foe's projectile flying there strikes it, as if it had flown in.
+static func _walk(w: World, a: Actor, to: Vector2i) -> void:
+	w.move(a, to)
+	var s := w.shot_at(a.pos)
+	if a.pos != to or s == null or s.faction == a.faction or s.dir == Vector2i.ZERO or s.host != 0:
+		return
+	if s.spell.pierces():
+		s.gone = not Elements.pass_through(w, s, a)
+	else:
+		s.gone = true
+		w._strike(s, a)
 
 
 ## One step along a shortest path towards `goal`, stopping `keep` tiles short;
@@ -468,7 +490,7 @@ static func _step_to(w: World, a: Actor, goal: Vector2i, keep := 0) -> bool:
 			best_cost = cost
 	if best == a.pos:
 		return false
-	w.move(a, best)
+	_walk(w, a, best)
 	return true
 
 
@@ -481,7 +503,7 @@ static func _drift(w: World, a: Actor) -> void:
 		if walk.call(a.pos + d):
 			free.append(a.pos + d)
 	if not free.is_empty():
-		w.move(a, free[w.rng.randi_range(0, free.size() - 1)])
+		_walk(w, a, free[w.rng.randi_range(0, free.size() - 1)])
 
 
 static func _align(w: World, a: Actor, foe: Actor) -> void:

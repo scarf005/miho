@@ -3165,3 +3165,6 @@ msgstr "Foes within %d tiles, up to %d times"
 
 msgid "옮겨붙음"
 msgstr "Arcs"
+
+msgid "길 위의 투사체: 돌아서 감"
+msgstr "Projectile in its way: goes round"
