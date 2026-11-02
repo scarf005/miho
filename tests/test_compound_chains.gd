@@ -478,7 +478,6 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 		[
 			"화산 · 꼬리: 3",
 			"모양: 3칸 앞 5×5",
-			"멈춤: 벽 앞, 첫 적",
 			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
 			"불타는 칸: 가연성·인화성 칸",
 			"불붙음: %d초" % Status.ALIGHT,
@@ -494,7 +493,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"소음: 없음",
 		],
 		&"frostbloom":
-		["서리꽃 · 꼬리: 3", "반지름 3", "가시덤불: 생김", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
+		["서리꽃 · 꼬리: 3", "반지름 3", "생성: 가시덤불", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
 		&"swamp":
 		[
 			"늪 · 꼬리: 3",

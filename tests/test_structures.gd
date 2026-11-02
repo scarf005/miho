@@ -225,7 +225,7 @@ func test_the_hover_of_incense_says_it_does_not_block_sight_and_erases_the_scent
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "향 연기")
 	assert_false(text.contains("시야"), text)
-	assert_string_contains(text, "냄새: 지워짐")
+	assert_string_contains(text, "지워짐: 냄새")
 	assert_string_contains(text, "초당 %d%%" % Gas.of(Gas.INCENSE, "decay"))
 
 

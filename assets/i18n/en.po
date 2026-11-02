@@ -1581,12 +1581,6 @@ msgstr "Damage"
 msgid "곧게 %d칸"
 msgstr "Straight, %d tiles"
 
-msgid "멈춤"
-msgstr "Stops at"
-
-msgid "첫 적"
-msgstr "First enemy"
-
 msgid "밀침"
 msgstr "Push"
 
@@ -2257,8 +2251,8 @@ msgstr "Scent left: within %d s"
 msgid "냄새 추적"
 msgstr "Scent tracking"
 
-msgid "냄새: 지워짐"
-msgstr "Scent: erased"
+msgid "지워짐: 냄새"
+msgstr "Erased: scent"
 
 msgid "냄새가 남지 않음."
 msgstr "Leaves no scent."
@@ -2457,9 +2451,6 @@ msgstr "Area"
 
 msgid "범위: 소음 값만큼의 칸, 벽을 돌아서"
 msgstr "Area: as many tiles as the noise value, around walls"
-
-msgid "벽 앞, 첫 적"
-msgstr "In front of a wall, first enemy"
 
 msgid "벽까지 직선"
 msgstr "Straight to a wall"
@@ -2925,8 +2916,8 @@ msgstr "Fell"
 msgid "숯"
 msgstr "Charcoal"
 
-msgid "생김"
-msgstr "Forms"
+msgid "생성"
+msgstr "Creates"
 
 
 msgid "궤적"

@@ -244,14 +244,16 @@ static func _spray(s: Spell) -> Array:
 				[[Lang.t("가연성."), Palette.TEXT]],
 			]
 		Cards.WATER:
-			return [
+			var out := [
 				_line("모양", Lang.t("곧게 %d칸") % Spray.JET[i]),
-				_line("관통", "적") if level >= Spray.THROUGH_LEVEL else _line("멈춤", "첫 적"),
 				_line("밀침", Lang.t("%d칸") % Spray.PUSH[i], color),
 				_line("꺼짐", "불, 등불", color),
 				_line("맞은 북", "젖음", color),
 				_pair(_soak(), color),
 			]
+			if level >= Spray.THROUGH_LEVEL:
+				out.insert(1, _line("관통", "적"))
+			return out
 		Cards.METAL:
 			return _gun(level)
 		Cards.EARTH:
@@ -287,9 +289,7 @@ static func _gun(level: int) -> Array:
 	if level >= Spray.SHOTGUN_LEVEL:
 		var near := _line("바로 옆 적 피해", "%d" % Spray.GUN_NEAR_HARM, Palette.HURT)
 		return _lines(_fan(Spray.shotgun(level), Lang.t(name) + ", ")) + [harm, near]
-	return [
-		_line("모양", Lang.t("%s, 곧게 %d칸") % [Lang.t(name), Spray.PISTOL]), _line("멈춤", "첫 적"), harm
-	]
+	return [_line("모양", Lang.t("%s, 곧게 %d칸") % [Lang.t(name), Spray.PISTOL]), harm]
 
 
 ## A compound's shape, then what each compound in it does, then the plain
@@ -326,13 +326,13 @@ static func _form(s: Spell) -> Array:
 		Spray.FAN_SHAPE:
 			return _fan(n)
 		Spray.LINE, Spray.BORE:
-			return [["모양", Lang.t("곧게 %d칸") % n], ["멈춤", "첫 적"]]
+			return [["모양", Lang.t("곧게 %d칸") % n]]
 		Spray.BURST, Spray.BREACH:
 			var size := _square(shape[2] + s.grown(lead))
-			return [["모양", Lang.t("%d칸 앞 %s") % [shape[1], size]], ["멈춤", "벽 앞, 첫 적"]]
+			return [["모양", Lang.t("%d칸 앞 %s") % [shape[1], size]]]
 		Spray.ACROSS:
 			var wide: int = shape[2] + s.grown(lead)
-			return [["모양", Lang.t("%d칸 앞에서 직각으로 %d칸") % [shape[1], wide]], ["멈춤", "벽 앞, 첫 적"]]
+			return [["모양", Lang.t("%d칸 앞에서 직각으로 %d칸") % [shape[1], wide]]]
 		Spray.AROUND:
 			return [["모양", Lang.t("둘레 %d칸") % n]]
 		Spray.SIGHT:
@@ -395,7 +395,7 @@ static func compound(c: StringName) -> Array:
 		&"thorn":
 			var name: String = Tiles.of(World.THORNS, "name")
 			return [
-				[name, "생김"], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
+				["생성", name], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
 		&"rift":
 			return [["벽", "소음 없이 무너짐"]]
@@ -420,7 +420,7 @@ static func compound(c: StringName) -> Array:
 			]
 		&"frostbloom":
 			return [
-				[Tiles.of(World.THORNS, "name"), "생김"],
+				["생성", Tiles.of(World.THORNS, "name")],
 				["지날 때 피해", "%d" % Compounds.THORN],
 				[
 					Tiles.of(World.POND, "name"),
@@ -446,7 +446,7 @@ static func compound(c: StringName) -> Array:
 			return [[_names(CROSSED), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
 			var name: String = Lang.t("%s 양") % Lang.t(Gas.of(Gas.FOG, "name"))
-			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["냄새", "지워짐"]]
+			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["지워짐", "냄새"]]
 		&"sinkhole":
 			return [
 				["땅", Tiles.of(World.SKY, "name")],
@@ -463,7 +463,7 @@ static func compound(c: StringName) -> Array:
 				["기절", Lang.t("%d초") % Compounds.THUNDER_STUN],
 			]
 		&"stillness":
-			return [["추격 중인 적", "제자리 수색"], ["냄새", "지워짐"]]
+			return [["추격 중인 적", "제자리 수색"], ["지워짐", "냄새"]]
 		Cards.SAMSARA:
 			return [["체력", "+%d" % World.HEAL], ["기절", Lang.t("%d초") % Compounds.SAMSARA_STUN]]
 		Cards.CONQUEST:
@@ -772,7 +772,7 @@ static func _effect(s: Spell, e: StringName) -> Array:
 ## spell that reaches the round where it stops.
 static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 	var changes := {}
-	if e in Terrain.reacting(s):
+	if e in Terrain.reacting(s) and e != Cards.METAL:
 		for t: int in Tiles.ROWS:
 			var change: Variant = Tiles.of(t, "reacts").get(e)
 			if change != null and (at_stop or Spray.holds(s, t)):

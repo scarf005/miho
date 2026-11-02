@@ -254,8 +254,6 @@ func test_the_forecast_of_a_spray_matches_the_round() -> void:
 func test_a_spray_hover_leaves_out_what_its_shape_cannot_reach() -> void:
 	var read := func(picked: Array) -> String:
 		return Info.plain(SpellInfo.spell(Spell.make(picked)))
-	assert_false(read.call([METAL]).contains(Tiles.of(World.WOOD_WALL, "name")), "a pistol's line")
-	assert_true(read.call([METAL, METAL]).contains(Tiles.of(World.WOOD_WALL, "name")), "a fan")
 	assert_false(read.call([WOOD, FIRE, WOOD]).contains("금 간 벽이 됨"), "a fan leaves walls out")
 
 
