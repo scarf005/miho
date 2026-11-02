@@ -39,7 +39,7 @@ func _foe(w: World, at := FOE, kind := &"bulgae") -> Actor:
 
 func _kill(w: World, a: Actor) -> void:
 	w.events = []
-	w.hurt(a, a.hp)
+	Harm.hurt(w, a, a.hp)
 
 
 func _scroll(w: World) -> Dictionary:

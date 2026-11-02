@@ -123,7 +123,7 @@ func test_the_fight_ends_when_the_rival_falls() -> void:
 	var fighter := _creature(w, &"dokkaebi", Vector2i(20, 8))
 	var rival := _creature(w, &"jangseung", Vector2i(21, 8))
 	_provoke(w, fighter, rival)
-	w.hurt(rival, 9)
+	Harm.hurt(w, rival, 9)
 	assert_eq(fighter.rival, 0)
 
 

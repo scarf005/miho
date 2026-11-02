@@ -6,7 +6,7 @@ extends RefCounted
 ## put. The four toggles are kept in World.cheats and copied with it: 무적 (Miho
 ## takes no harm), 꼬리 무제한 (casting spends no tails), 맵 밝히기 (every tile
 ## known and seen) and 적 멈춤 (creatures take no turns). Harming a creature goes
-## by World.hurt, so a death drops its scroll and gives Miho a tail.
+## by Harm.hurt, so a death drops its scroll and gives Miho a tail.
 
 ## What every spell is said to cost the tails Miho may spend while they are free.
 const UNLIMITED := 1000000
@@ -135,7 +135,7 @@ static func handled(w: World, action: Dictionary) -> bool:
 			for a in w.actors.filter(func(a): return a.faction != Actor.FOX):
 				_remove(w, a)
 		&"damage":
-			w.hurt(foe, action.n)
+			Harm.hurt(w, foe, action.n)
 		&"move_foe":
 			_carry(w, foe, action.at)
 			e.merge({kind = foe.kind, at = action.at})

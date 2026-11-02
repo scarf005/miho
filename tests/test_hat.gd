@@ -113,7 +113,7 @@ func test_the_log_tells_nothing_of_a_creature_she_does_not_see() -> void:
 	var a := _hatted(w, FAR)
 	var before := w.clone()
 	w.events = []
-	w.hurt(a, 1)
+	Harm.hurt(w, a, 1)
 	assert_true(Messages.of(before, w, w.events).is_empty())
 	assert_true(Perceived.of(before, w, w.events).facts.is_empty())
 
@@ -123,7 +123,7 @@ func test_the_log_tells_what_happens_to_one_beside_her() -> void:
 	var a := _hatted(w, ME + E)
 	var before := w.clone()
 	w.events = []
-	w.hurt(a, 1)
+	Harm.hurt(w, a, 1)
 	var lines := Messages.of(before, w, w.events).map(func(l): return Messages.plain(l))
 	assert_string_contains(lines[0], "감투 도깨비가 피해를 1 입었다")
 

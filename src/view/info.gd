@@ -252,8 +252,8 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[Lang.t("%s한 당신을 알아볼 수 없다") % Lang.t(Guise.NAME[kind]), Palette.SIDE[0]]])
 	else:
 		lines.append([[Lang.t("당신을 볼 수 없다"), Palette.SIDE[0]]])
-	if w.caught_unawares(a):
-		lines.append(_amount("기습 피해: ", w.claw_harm(w.player(), true, a)))
+	if Harm.caught_unawares(w, a):
+		lines.append(_amount("기습 피해: ", Harm.claw_harm(w.player(), true, a)))
 	return lines
 
 
@@ -348,7 +348,9 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 
 ## What Miho's claws do: plain, and to a creature caught unawares; a line each.
 static func _claws(w: World, a: Actor) -> Array:
-	return [_amount("발톱 피해: ", w.claw_harm(a, false)), _amount("기습 피해: ", w.claw_harm(a, true))]
+	return [
+		_amount("발톱 피해: ", Harm.claw_harm(a, false)), _amount("기습 피해: ", Harm.claw_harm(a, true))
+	]
 
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.

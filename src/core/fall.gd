@@ -125,7 +125,7 @@ static func _drop(w: World, me: Actor, into: Vector2i) -> void:
 	var spot := FloorGen.nearest_free(w, into, Masks.air(w))
 	me.pos = spot if spot.x >= 0 else w.start
 	Storeys.carry(w)
-	w.hurt(me, (top - w.depth) * DAMAGE)
+	Harm.hurt(w, me, (top - w.depth) * DAMAGE)
 	w.tails = mini(w.tails, w.max_tails())
 	w._changed()
 	w.sense()

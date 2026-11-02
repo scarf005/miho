@@ -106,7 +106,7 @@ static func freeze(w: World, a: Actor, n: int) -> void:
 
 
 ## `a` is about to be hurt: true when it is frozen, and the ice breaks, which
-## frees it (World.hurt doubles the harm).
+## frees it (Harm.hurt doubles the harm).
 static func shatter(a: Actor) -> bool:
 	if a.frozen <= 0:
 		return false
@@ -156,7 +156,7 @@ static func tick(w: World) -> void:
 		if a.alive() and a.alight > 0:
 			if not lit.has(a.id):
 				w.emit({t = &"burn", at = a.pos, id = a.id})
-				w.hurt(a, World.FIRE_DAMAGE)
+				Harm.hurt(w, a, World.FIRE_DAMAGE)
 			a.alight -= 1
 			if a.alive() and a.alight == 0:
 				_quench(w, a)

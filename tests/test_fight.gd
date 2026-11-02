@@ -77,7 +77,7 @@ func test_a_claw_is_a_sneak_attack_only_on_an_off_guard_creature_that_does_not_s
 			w.sense()
 			var sneak: bool = blind > 0 and alert == Actor.REST
 			var why := "blind %d, alert %d" % [blind, alert]
-			assert_eq(w.caught_unawares(foe), sneak, why)
+			assert_eq(Harm.caught_unawares(w, foe), sneak, why)
 			var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 			assert_eq(text.contains("기습 피해: 3"), sneak, why)
 			var claw: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"claw")[0]
@@ -89,9 +89,9 @@ func test_a_claw_is_a_sneak_attack_only_on_an_off_guard_creature_that_does_not_s
 func test_an_off_guard_creature_next_to_her_sees_her_even_in_bamboo() -> void:
 	var w := _hall()
 	var foe := _foe(w, Vector2i(5, 8))
-	assert_false(w.caught_unawares(foe))
+	assert_false(Harm.caught_unawares(w, foe))
 	w.tiles[Grid.index(w.player().pos)] = World.BAMBOO
-	assert_false(w.caught_unawares(foe), "bamboo hides her from afar, not from the next tile")
+	assert_false(Harm.caught_unawares(w, foe), "bamboo hides her from afar, not from the next tile")
 
 
 func test_the_map_tints_only_the_creatures_her_claws_catch_unawares() -> void:

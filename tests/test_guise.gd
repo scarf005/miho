@@ -102,7 +102,7 @@ func test_a_creature_that_is_not_hunting_does_not_know_her() -> void:
 	assert_ne(searcher.alert, Actor.HUNT)
 	w.act(WAIT)
 	assert_ne(searcher.alert, Actor.HUNT, "it goes on searching")
-	assert_true(w.caught_unawares(searcher), "her claws catch it unawares")
+	assert_true(Harm.caught_unawares(w, searcher), "her claws catch it unawares")
 
 
 func test_without_the_guise_the_same_creature_hunts_her() -> void:
@@ -120,7 +120,7 @@ func test_a_hunter_is_not_fooled() -> void:
 	w.act(_self(GUISE))
 	assert_true(Guise.knows(w, hunter))
 	assert_true(hunter.sees_me)
-	assert_false(w.caught_unawares(hunter))
+	assert_false(Harm.caught_unawares(w, hunter))
 
 
 func test_a_sharp_creature_that_sees_the_cast_hunts_her_and_is_not_fooled() -> void:
@@ -131,7 +131,7 @@ func test_a_sharp_creature_that_sees_the_cast_hunts_her_and_is_not_fooled() -> v
 	assert_eq(seer.alert, Actor.HUNT)
 	assert_true(Guise.knows(w, seer))
 	assert_false(Guise.fools(seer, w.player()))
-	assert_false(w.caught_unawares(seer))
+	assert_false(Harm.caught_unawares(w, seer))
 	w.act(WAIT)
 	assert_eq(seer.alert, Actor.HUNT, "it keeps hunting")
 
@@ -147,7 +147,7 @@ func test_a_sharp_creature_that_does_not_see_the_cast_is_fooled() -> void:
 	assert_true(w.sees(far, ME), "now it sees her tile")
 	assert_false(Guise.knows(w, far))
 	assert_ne(far.alert, Actor.HUNT, "it takes her for another")
-	assert_true(w.caught_unawares(far))
+	assert_true(Harm.caught_unawares(w, far))
 
 
 func test_a_dull_creature_that_sees_the_cast_is_fooled() -> void:
@@ -222,7 +222,7 @@ func test_casting_a_spell_ends_the_guise() -> void:
 func test_harm_ends_the_guise() -> void:
 	var w := _world()
 	w.act(_self(GUISE))
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_false(w.player().guise)
 	assert_eq(w.events.back().t, &"unmask")
 	assert_eq(w.events.back().why, &"hurt")

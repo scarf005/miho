@@ -107,7 +107,7 @@ func test_the_wisp_hovers_where_its_creature_died_for_the_rest_of_its_life() -> 
 	var foe: Actor = s[1]
 	var wisp: Shot = w.shots[0]
 	var at := foe.pos
-	w.hurt(foe, foe.hp)
+	Harm.hurt(w, foe, foe.hp)
 	w.act(WAIT)
 	assert_false(foe.alive())
 	assert_eq(w.shots.size(), 1)

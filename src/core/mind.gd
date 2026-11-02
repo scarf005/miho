@@ -19,7 +19,7 @@ extends RefCounted
 ## `_fight`): it sees foes as a creature does, charges, casts and strikes, and between
 ## fights it follows her as a band follows its leader. It hunts nobody and never
 ## sleeps. A foe takes on an ally it sees that stands nearer than Miho, so an ally
-## draws fire; a fallen one gives no tail, no form for 둔갑 and no body (World.hurt,
+## draws fire; a fallen one gives no tail, no form for 둔갑 and no body (Harm.hurt,
 ## Fall). What Miho's spells do to it is what they do to any creature but her
 ## (Spray.on), and it holds back a spell that would catch its own side (Aim.spared).
 ## Walking into one trades places (Legal.makes_way), and one by her comes along up
@@ -394,7 +394,7 @@ static func rest(w: World, a: Actor) -> void:
 static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void:
 	w.emit({t = &"melee", id = a.id, target = target.id, at = target.pos, n = melee.damage})
 	Hearing.noise(w, target.pos, 3, "퍽", true, a.id)
-	w.hurt(target, melee.damage)
+	Harm.hurt(w, target, melee.damage)
 	provoke(w, target, a)
 	var seizes: bool = melee.get("pull", false)
 	if melee.get("root", 0) > 0 and target.alive() and not (seizes and target.rooted > 0):

@@ -5,7 +5,7 @@ extends RefCounted
 ## as DCSS Death Channel and Animate Dead raise the dead for their caster. No chance is
 ## involved. It takes the body's tile or the first free one next to it (`spot_of`); with
 ## none free it stays a body and tries again each round she sees it. What falls into the
-## sky leaves no body, and an ally leaves none (World.hurt), so what rises does not rise
+## sky leaves no body, and an ally leaves none (Harm.hurt), so what rises does not rise
 ## again. It stays on the storey it rose on when she leaves (Storeys.followers), and up
 ## when she drops the spell.
 

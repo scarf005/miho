@@ -28,7 +28,7 @@ extends RefCounted
 ##
 ## 쇠발톱 (TALON, the 3단 of 화, 금 and 목): each claw of hers harms TALON_HARM
 ## more, or TALON_ABSORBED more against a creature that absorbs 쇠
-## (World.claw_harm). The spell is silent.
+## (Harm.claw_harm). The spell is silent.
 ##
 ## 은신 (CLOAK: 여 and the 균열 slot of 목+토): she wears the hat of 감투 도깨비
 ## (Hat): a creature knows her only from the next tile or while a wisp of another

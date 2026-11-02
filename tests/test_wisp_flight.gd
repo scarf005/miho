@@ -174,7 +174,7 @@ func test_a_wisp_whose_creature_dies_stays_where_it_was_with_another_in_sight() 
 	w.act({t = &"cast", spells = [{cards = [FOX], dir = E}]})
 	var wisp: Shot = w.shots[0]
 	assert_eq(wisp.host, foe.id)
-	w.hurt(foe, foe.hp)
+	Harm.hurt(w, foe, foe.hp)
 	var events := w.act(WAIT) + w.act(WAIT)
 	assert_eq(_tiles(events), [])
 	assert_eq(wisp.pos, Vector2i(7, 8))

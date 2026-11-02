@@ -461,7 +461,7 @@ func test_a_fallen_ally_gives_nothing_and_the_run_goes_on() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E)
 	w.tails = 1
-	w.hurt(copy, copy.hp)
+	Harm.hurt(w, copy, copy.hp)
 	assert_eq(w.tails, 1)
 	assert_eq(w.player().prey, &"")
 	assert_eq(w.outcome, &"")

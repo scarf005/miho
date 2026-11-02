@@ -60,7 +60,7 @@ func _on() -> World:
 func _fell(w: World, kind: StringName, dx: int) -> Vector2i:
 	var at := ME + E * dx
 	var foe := FloorGen.spawn(w, kind, at)
-	w.hurt(foe, foe.hp)
+	Harm.hurt(w, foe, foe.hp)
 	w._prune()
 	w.sense()
 	return at
@@ -197,7 +197,7 @@ func test_a_fallen_risen_ally_gives_nothing_and_does_not_rise() -> void:
 	var up: Actor = _risen(w)[0]
 	w.tails = 1
 	var prey := w.player().prey
-	w.hurt(up, up.hp)
+	Harm.hurt(w, up, up.hp)
 	assert_eq(w.tails, 1, "no tail")
 	assert_eq(w.player().prey, prey, "no form")
 	assert_true(w.bodies.is_empty(), "no body")

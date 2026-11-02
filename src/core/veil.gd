@@ -90,4 +90,4 @@ static func tick(w: World) -> void:
 			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = a.pos})
 			else:
-				w.hurt(a, World.FIRE_DAMAGE)
+				Harm.hurt(w, a, World.FIRE_DAMAGE)

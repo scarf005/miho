@@ -51,7 +51,7 @@ func test_a_sleeper_next_to_miho_does_not_see_her_and_takes_a_sneak_claw() -> vo
 	foe.hp = 9
 	assert_true(foe.asleep())
 	assert_false(w.sees(foe, w.player().pos))
-	assert_true(w.caught_unawares(foe))
+	assert_true(Harm.caught_unawares(w, foe))
 	assert_eq(w.view_of(foe).count(1), 0, "its eyes are shut")
 	var claw := _claw(w)
 	assert_true(claw.sneak)
@@ -89,7 +89,7 @@ func test_a_searching_creature_next_to_miho_sees_her_and_takes_a_plain_claw() ->
 	foe.target = foe.pos
 	assert_false(foe.asleep())
 	assert_true(w.sees(foe, w.player().pos))
-	assert_false(w.caught_unawares(foe))
+	assert_false(Harm.caught_unawares(w, foe))
 	var claw := _claw(w)
 	assert_false(claw.sneak)
 	assert_eq(claw.n, 1)
@@ -101,7 +101,7 @@ func test_a_resting_patrol_is_never_asleep_and_sees_miho() -> void:
 	foe.hp = 9
 	assert_false(foe.asleep())
 	assert_true(w.sees(foe, w.player().pos))
-	assert_false(w.caught_unawares(foe))
+	assert_false(Harm.caught_unawares(w, foe))
 	assert_false(_claw(w).sneak)
 
 
@@ -114,7 +114,7 @@ func test_no_jangseung_sleeps_and_each_sees_miho_beside_it() -> void:
 		foe.hp = 9
 		assert_false(foe.asleep(), kind)
 		assert_true(w.sees(foe, w.player().pos), kind)
-		assert_false(w.caught_unawares(foe), kind)
+		assert_false(Harm.caught_unawares(w, foe), kind)
 		assert_string_contains(Info.plain(Info.at(w.known_clone(), foe.pos)), "고정")
 		assert_ne(Info.state(foe), "자는 중", kind)
 
@@ -125,7 +125,7 @@ func test_a_creature_walking_back_to_its_post_is_awake() -> void:
 	foe.home = Vector2i(9, 8)
 	assert_false(foe.asleep())
 	assert_true(w.sees(foe, w.player().pos))
-	assert_false(w.caught_unawares(foe))
+	assert_false(Harm.caught_unawares(w, foe))
 
 
 func test_miho_and_a_hunter_are_never_asleep() -> void:

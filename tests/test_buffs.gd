@@ -244,8 +244,8 @@ func test_the_hover_tells_the_talon_harm_by_creature() -> void:
 	var plain := FloorGen.spawn(w, &"imugi", ME + Vector2i(2, 0))
 	var eater := FloorGen.spawn(w, &"bulgasari", ME + Vector2i(3, 0))
 	_wear(w, Guise.TALON)
-	assert_eq(w.claw_harm(w.player(), false, plain), World.CLAW + Guise.TALON_HARM)
-	assert_eq(w.claw_harm(w.player(), false, eater), World.CLAW + Guise.TALON_ABSORBED)
+	assert_eq(Harm.claw_harm(w.player(), false, plain), World.CLAW + Guise.TALON_HARM)
+	assert_eq(Harm.claw_harm(w.player(), false, eater), World.CLAW + Guise.TALON_ABSORBED)
 	var sneak := World.CLAW * World.SNEAK + Guise.TALON_ABSORBED
 	assert_string_contains(Info.plain(Info.creature(w, eater)), "기습 피해: %d" % sneak)
 

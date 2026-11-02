@@ -148,7 +148,7 @@ func test_any_hurt_with_no_projectile_makes_a_resting_creature_look_around_whate
 	for kind in [DULL, SHARP, CUNNING]:
 		var w := _world()
 		var foe := _foe(w, kind, Vector2i(9, 3))
-		w.hurt(foe, 1)
+		Harm.hurt(w, foe, 1)
 		assert_eq(foe.alert, Actor.SEARCH, kind)
 		assert_eq(foe.target, foe.pos, kind)
 		assert_eq(foe.wary, World.WARY_ROUNDS, kind)
@@ -171,7 +171,7 @@ func test_a_claw_makes_the_creature_wary_for_thirty_rounds() -> void:
 func test_a_wary_searcher_does_not_rest_until_the_wariness_ends() -> void:
 	var w := _world()
 	var foe := _foe(w, DULL, Vector2i(20, 8))
-	w.hurt(foe, 1)
+	Harm.hurt(w, foe, 1)
 	assert_gt(foe.wary, World.SEARCH_ROUNDS)
 	for i in World.WARY_ROUNDS:
 		w.act(WAIT)
@@ -207,7 +207,7 @@ func test_a_wary_creature_notices_miho_one_tile_farther_in_the_dark() -> void:
 func test_wariness_counts_down_in_a_forecast_exactly() -> void:
 	var w := _world()
 	var foe := _foe(w, SHARP, Vector2i(20, 8))
-	w.hurt(foe, 1)
+	Harm.hurt(w, foe, 1)
 	var after := w.preview(WAIT)
 	assert_eq(w.actor(foe.id).wary, World.WARY_ROUNDS, "the world itself does not change")
 	w.act(WAIT)

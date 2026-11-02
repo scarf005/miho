@@ -114,7 +114,7 @@ static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 	var more := Guise.flame_harm(w, s.caster, s.spell) if n > 0 else 0
 	var m := dealt(a, s.spell, n + more)
 	if m > 0:
-		w.hurt(a, m, Bestiary.weak(a.nature_kind(), s.spell))
+		Harm.hurt(w, a, m, Bestiary.weak(a.nature_kind(), s.spell))
 
 
 ## How many times as hard 전기 (Spell.electric) hits `a`: WEAK on a wet creature
@@ -131,7 +131,7 @@ static func charge(a: Actor) -> int:
 static func shock(w: World, a: Actor, n: int, rounds: int) -> void:
 	var k := charge(a)
 	if k > 0:
-		w.hurt(a, n * k, k > 1)
+		Harm.hurt(w, a, n * k, k > 1)
 		if a.alive():
 			stun(w, a, rounds)
 

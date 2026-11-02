@@ -296,7 +296,7 @@ func test_what_is_clawed_dead_leaves_a_body_that_rises_on_land() -> void:
 	var me := w.player()
 	me.pos = Vector2i(SHORE - 1, 8)
 	var a := _ghost(w, Vector2i(SHORE + 1, 8))
-	w.hurt(a, a.hp)
+	Harm.hurt(w, a, a.hp)
 	assert_true(w.bodies.has(a.pos), "a body on the water")
 	me.raise = true
 	w.sense()

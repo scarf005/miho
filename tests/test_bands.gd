@@ -182,7 +182,7 @@ func test_when_the_leader_falls_the_band_scatters() -> void:
 	var g := _band(w, lead, &"bitjaru", Vector2i(31, 9))
 	var other := FloorGen.spawn(w, &"oedari", Vector2i(10, 4))
 	var kin := _band(w, other, &"dokkaebi", Vector2i(11, 4))
-	w.hurt(lead, 3)
+	Harm.hurt(w, lead, 3)
 	assert_false(lead.alive())
 	assert_eq([f.leader, g.leader], [0, 0])
 	assert_eq(kin.leader, other.id, "another band is left alone")
@@ -203,7 +203,7 @@ func test_a_leader_pushed_into_the_sky_scatters_the_band_too() -> void:
 func test_a_lone_creature_falling_scatters_nothing() -> void:
 	var w := _hall()
 	var lone := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
-	w.hurt(lone, 3)
+	Harm.hurt(w, lone, 3)
 	assert_false(w.events.any(func(e): return e.t == &"scatter"))
 
 
@@ -243,7 +243,7 @@ func test_the_agent_tells_the_band_and_the_log_tells_no_scattering() -> void:
 	var before := w.clone()
 	var events: Array[Dictionary] = []
 	w.events = events
-	w.hurt(lead, 1)
+	Harm.hurt(w, lead, 1)
 	var lines := Messages.of(before, w, events).map(func(l): return Messages.plain(l))
 	assert_true(events.any(func(e): return e.t == &"scatter"), "the band scatters")
 	assert_false(lines.any(func(l): return l.contains("무리")), str(lines))

@@ -237,7 +237,7 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 	match w.tile(to):
 		World.THORNS:
 			w.emit({t = &"prick", id = a.id, at = to})
-			w.hurt(a, THORN)
+			Harm.hurt(w, a, THORN)
 		World.MUD:
 			Elements.root(w, a, MUD)
 
@@ -256,7 +256,7 @@ static func tick(w: World) -> void:
 			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
-				w.hurt(a, HOT[h.x].harm)
+				Harm.hurt(w, a, HOT[h.x].harm)
 		if h.y <= 1:
 			w.hot.erase(p)
 			cooled.get_or_add(h.x, []).append(p)

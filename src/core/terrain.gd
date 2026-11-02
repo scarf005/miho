@@ -320,7 +320,7 @@ static func burn(w: World, alight: Array) -> void:
 			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
-				w.hurt(a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)
+				Harm.hurt(w, a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)
 				Status.dry(w, a)
 		caught.append_array(_catch(w, p))
 		w.burning[p] -= 1

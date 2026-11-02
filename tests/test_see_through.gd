@@ -191,4 +191,4 @@ func test_another_kind_that_does_not_track_is_still_fooled() -> void:
 	w.act(_self(Guise.RECIPE[Guise.GUISE]))
 	assert_false(Guise.knows(w, a))
 	assert_ne(a.alert, Actor.HUNT)
-	assert_true(w.caught_unawares(a))
+	assert_true(Harm.caught_unawares(w, a))

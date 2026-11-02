@@ -61,7 +61,7 @@ func _beast(w: World) -> Actor:
 ## The 해태 falls in a round of its own.
 func _fall(w: World) -> void:
 	w.events = []
-	w.hurt(_beast(w), 99)
+	Harm.hurt(w, _beast(w), 99)
 	EventRooms.tick(w)
 
 
@@ -160,7 +160,7 @@ func test_another_creature_falling_in_the_room_returns_nothing() -> void:
 	var w := _floor()
 	var other := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 7))
 	w.events = []
-	w.hurt(other, 99)
+	Harm.hurt(w, other, 99)
 	EventRooms.tick(w)
 	assert_eq(w.tails, 2, "only the soul it gave, not all three")
 	assert_eq(w.sites.size(), 1)

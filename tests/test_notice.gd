@@ -125,7 +125,7 @@ func test_a_fallen_creature_is_searched() -> void:
 	var a := _watcher(w)
 	var other := FloorGen.spawn(w, &"dokkaebi", SPOT)
 	other.cooldown = 99
-	w.hurt(other, 99)
+	Harm.hurt(w, other, 99)
 	assert_eq(w.changes[0].kind, &"body")
 	assert_eq(w.changes[0].at, SPOT)
 	w.act(WAIT)
@@ -221,7 +221,7 @@ func test_a_body_mark_stays_once_seen_and_is_cloned() -> void:
 	var at := ME + Vector2i.RIGHT
 	var other := FloorGen.spawn(w, &"dokkaebi", at)
 	other.cooldown = 99
-	w.hurt(other, 99)
+	Harm.hurt(w, other, 99)
 	w.act(WAIT)
 	assert_eq(w.bodies[at].kind, &"dokkaebi")
 	assert_true(w.bodies[at].met, "Miho saw it")
@@ -239,7 +239,7 @@ func test_a_body_out_of_sight_is_not_known_until_seen() -> void:
 	var w := _world()
 	var other := FloorGen.spawn(w, &"dokkaebi", SPOT)
 	other.cooldown = 99
-	w.hurt(other, 99)
+	Harm.hurt(w, other, 99)
 	w.sense()
 	assert_false(w.bodies[SPOT].met)
 

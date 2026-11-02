@@ -20,7 +20,7 @@ extends RefCounted
 ## next to it, until noise or a wound wakes it; a patrol, which walks while it
 ## rests, and a 장승, never sleep. Claws strike three times as hard at a creature that is
 ## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
-## caught_unawares), so Miho can creep up on a sleeper. A creature
+## Harm.caught_unawares), so Miho can creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -508,7 +508,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			var to: Vector2i = me.pos + action.dir
 			var foe := actor_at(to)
 			if foe != null and foe.faction != me.faction:
-				_claw(me, foe)
+				Harm.claw(self, me, foe)
 			elif Terrain.knockable(tile(to)):
 				Terrain.knock(self, me, to)
 			elif tile(to) == DOOR:
@@ -637,30 +637,6 @@ func set_tile(p: Vector2i, t: int) -> void:
 	_changed()
 
 
-## Whether a claw at `a` is a sneak attack: it is off guard (not hunting) and
-## does not see Miho, or does not know her in guise (Guise); a sleeping or
-## blind creature sees nothing, but a blind hunter is on guard.
-func caught_unawares(a: Actor) -> bool:
-	return a.alert != Actor.HUNT and not Guise.knows(self, a)
-
-
-## The harm a claw of `me` at `foe` does: CLAW, SNEAK times that on a sneak attack,
-## and what 쇠발톱 adds (Guise.talon_harm).
-func claw_harm(me: Actor, sneak: bool, foe: Actor = null) -> int:
-	return CLAW * (SNEAK if sneak else 1) + Guise.talon_harm(me, foe)
-
-
-func _claw(me: Actor, foe: Actor) -> void:
-	var sneak := caught_unawares(foe)
-	var n := claw_harm(me, sneak, foe)
-	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
-	Hearing.noise(self, foe.pos, 1 if sneak else 3, "퍽", true, me.id)
-	hurt(foe, n)
-	if foe.alive():
-		Mind.provoke(self, foe, me)
-		hunt_from(foe, me.pos)
-
-
 ## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
 func hunt_from(a: Actor, at: Vector2i) -> void:
 	var fresh := a.alert != Actor.HUNT
@@ -672,37 +648,6 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 	a.lost = 0
 	if fresh:
 		Mind.shout(self, a)
-
-
-func hurt(a: Actor, n: int, weak := false) -> void:
-	if not a.alive() or Cheat.immune(self, a):
-		return
-	var shatter := Status.shatter(a)
-	n *= Status.SHATTER if shatter else 1
-	a.hp -= n
-	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
-	Guise.hurt(self, a)
-	if a.alive():
-		if shatter:
-			emit({t = &"thaw", id = a.id, at = a.pos})
-		if a.faction == Actor.HEAVEN:
-			Hearing.noise(self, a.pos, CRY, "끽", true, a.id)
-			Mind.hurt(a)
-		return
-	emit({t = &"die", id = a.id, at = a.pos, foe = a.faction == Actor.HEAVEN})
-	a.intent.clear()
-	_changed()
-	if a.is_miho():
-		outcome = &"lost"
-		emit({t = &"lost"})
-		return
-	Mind.forget(self, a)
-	if a.ally():
-		return
-	Notice.fallen(self, a)
-	tails = mini(max_tails(), tails + 1)
-	emit({t = &"soul", id = a.id, at = a.pos})
-	Scrolls.drop(self, a)
 
 
 ## Sets p alight if it is flammable, or whatever it is when `force`d; a

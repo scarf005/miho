@@ -392,7 +392,7 @@ func test_frozen_miho_cannot_step_and_takes_double_harm() -> void:
 	var w := _world()
 	Status.freeze(w, w.player(), Compounds.FROST)
 	assert_false(w.can({t = &"move", dir = W}))
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(w.player().hp, 3 - 2)
 	assert_true(w.can({t = &"move", dir = W}), "the ice broke")
 
@@ -477,7 +477,7 @@ func test_a_blow_that_breaks_the_ice_tells_that_it_melted() -> void:
 	Status.freeze(w, foe, Compounds.FROST)
 	var before := w.clone()
 	w.events = []
-	w.hurt(foe, 1)
+	Harm.hurt(w, foe, 1)
 	assert_eq(_of(w.events, &"thaw").size(), 1)
 	assert_eq(_told(before, w, w.events).slice(0, 2), ["장승이 피해를 2 입었다", "장승이 녹았다"])
 

@@ -132,7 +132,7 @@ func _send(k: String) -> void:
 			main._forecast()
 		"kill":
 			var foe: Actor = main.world.actor_at(Vector2i(int(parts[1]), int(parts[2])))
-			main.world.hurt(foe, foe.hp)
+			Harm.hurt(main.world, foe, foe.hp)
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
