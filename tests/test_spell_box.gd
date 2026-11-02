@@ -166,3 +166,18 @@ func test_the_runs_world_and_dice_are_untouched_by_a_hovered_spell() -> void:
 	assert_eq(seen.run.actions, plain.run.actions)
 	assert_true(sim.shown.get_connections().is_empty(), "no way to the sound")
 	assert_true(sim.settled.get_connections().is_empty())
+
+
+func test_a_slot_the_queue_no_longer_has_is_no_longer_under_the_pointer() -> void:
+	var m := _main()
+	m.world.cards.assign(Cards.ALL)
+	m.picked.assign([Cards.FOX, Cards.FIRE])
+	m._forecast()
+	m.hover_slot = 1
+	m._refresh()
+	assert_false(m.term.info.is_empty(), "the slot shows a box")
+	m._unpick()
+	assert_eq(m.hover_slot, -1, "the slot went with the talisman")
+	m.hover_slot = 0
+	m._unpick()
+	assert_eq(m.hover_slot, -1, "the queue is empty")
