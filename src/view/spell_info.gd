@@ -561,11 +561,15 @@ static func shot(w: World, s: Shot) -> Array:
 	return lines
 
 
-## Whether the spell tells its elements (Spell.nature): it has some and its title
-## does not, since a compound or a creature's own name stands for them. A title
-## that names every element ("불×2 구슬") needs no line saying it again.
+## Whether the spell tells its elements (Spell.nature): it has some and they are not
+## just the talismans it is made of, which its title or recipe shows; a creature
+## names its own spell, so that always tells them.
 static func _tells_nature(s: Spell) -> bool:
-	return not s.nature().is_empty() and (s.called != "" or not s.compounds().is_empty())
+	var held := s.cards.filter(func(c): return Cards.ELEMENTS.has(c))
+	return (
+		not s.nature().is_empty()
+		and (s.called != "" or held.any(func(c): return not s.nature().has(c)))
+	)
 
 
 ## The elements of the spell, "+" between them.

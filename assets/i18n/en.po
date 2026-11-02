@@ -1689,8 +1689,8 @@ msgstr "Elements"
 msgid "전기"
 msgstr "Electric"
 
-msgid "피해 절반인 주문: ×%d"
-msgstr "Half-damage spells: ×%d"
+msgid "막는 원소가 섞인 주문: ×%d"
+msgstr "Spells with a blocked element mixed in: ×%d"
 
 msgid "피해 절반: "
 msgstr "Half damage: "

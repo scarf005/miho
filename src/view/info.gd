@@ -78,7 +78,7 @@ static func glossary() -> Dictionary:
 		[
 			Lang.t("피해: ×%d") % Elements.WEAK,
 			"대상: 그 원소가 든 주문",
-			Lang.t("피해 절반인 주문: ×%d") % (Elements.WEAK / Elements.HALF),
+			Lang.t("막는 원소가 섞인 주문: ×%d") % (Elements.WEAK / Elements.HALF),
 		],
 		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
