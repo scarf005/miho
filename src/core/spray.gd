@@ -290,6 +290,41 @@ static func carried(
 	return out
 
 
+## The shape of what `cover` gives `spell`.
+static func form(spell: Spell) -> StringName:
+	var level := spell.level()
+	match spell.slots[0] if level > 0 else &"":
+		Cards.FIRE:
+			return FAN_SHAPE
+		Cards.WATER:
+			return LINE
+		Cards.METAL:
+			return FAN_SHAPE if level >= SHOTGUN_LEVEL else LINE
+		Cards.EARTH:
+			return AROUND
+		Cards.WOOD:
+			return ROOTS
+	return SHAPE[spell.slots[0]][0]
+
+
+## Whether `cover` can hold a tile of kind `t` for `spell`.
+static func holds(spell: Spell, t: int) -> bool:
+	var walk: bool = Tiles.walk[t] == 1
+	var open := walk or t == World.POND
+	if spell.level() == 0 and SHAPE[spell.slots[0]][1] + spell.grown(spell.slots[0]) == 0:
+		return walk
+	match form(spell):
+		AROUND, BREACH, CLEAVE:
+			return true
+		FAN_SHAPE, BURST:
+			return not Terrain.wall(t)
+		LINE, STRIKE:
+			return open
+		BORE:
+			return open or Terrain.wall(t)
+	return walk
+
+
 ## The radius of a shotgun of `level` (two or more copies of 쇠).
 static func shotgun(level: int) -> int:
 	return SHOTGUN + level - SHOTGUN_LEVEL

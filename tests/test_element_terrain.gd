@@ -252,7 +252,30 @@ func test_the_forecast_of_a_spray_matches_the_round() -> void:
 
 
 func test_a_spray_hover_leaves_out_what_its_shape_cannot_reach() -> void:
-	var read := func(picked: Array) -> String: return Info.plain(SpellInfo.spell(Spell.make(picked)))
+	var read := func(picked: Array) -> String:
+		return Info.plain(SpellInfo.spell(Spell.make(picked)))
 	assert_false(read.call([METAL]).contains(Tiles.of(World.WOOD_WALL, "name")), "a pistol's line")
 	assert_true(read.call([METAL, METAL]).contains(Tiles.of(World.WOOD_WALL, "name")), "a fan")
 	assert_false(read.call([WOOD, FIRE, WOOD]).contains("금 간 벽이 됨"), "a fan leaves walls out")
+
+
+## An element's hover names a tile only if its spray's real cover can hold that tile.
+func test_a_spray_hover_names_only_the_tiles_it_reaches() -> void:
+	var talons := Cards.TRIPLES[&"talon"] + Cards.TRIPLES[&"talon"]
+	var spells := [[FIRE], [WATER], [METAL], [METAL, METAL], [EARTH], [WOOD, FIRE, WOOD], talons]
+	for triple: Array in Cards.TRIPLES.values() + Cards.PAIRS.values():
+		spells.append(triple)
+	var kinds := [World.WALL, World.WALL_CRACKED, World.WOOD_WALL, World.POND, World.GRASS]
+	var placed := [Spray.SIGHT, Spray.ROOTS, Spray.ACROSS, Spray.CLEAVE]
+	for picked: Array in spells:
+		var s := Spell.make(picked)
+		if s.shape != Spell.SPRAY or Spray.form(s) in placed:
+			continue
+		for t: int in kinds:
+			var w := _world()
+			for i in w.tiles.size():
+				if w.tiles[i] == World.FLOOR and (Grid.index(ME) != i or Tiles.walk[t] == 1):
+					w.tiles[i] = t
+			var cover := Spray.cover(w, w.player(), s, E)
+			var held := cover.any(func(p): return w.tile(p) == t)
+			assert_eq(Spray.holds(s, t), held, "%s %s" % [s.title(), Tiles.of(t, "name")])

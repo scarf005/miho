@@ -133,7 +133,7 @@ static func spell(s: Spell) -> Array:
 		return lines
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
-		if s.level() > 0 and s.slots[0] != Cards.WOOD:
+		if s.level() > 0:
 			lines.append_array(_lines(_reacts(s, s.slots[0]), Palette.CARD[s.slots[0]]))
 		if not _flame(s):
 			lines.append(_pair(MUZZLE) if s.gun() else _line("빛", "없음"))
@@ -779,7 +779,7 @@ static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 	if e in Terrain.reacting(s):
 		for t: int in Tiles.ROWS:
 			var change: Variant = Tiles.of(t, "reacts").get(e)
-			if change != null:
+			if change != null and (at_stop or Spray.holds(s, t)):
 				changes.get_or_add(change, []).append(Lang.t(Tiles.of(t, "name")))
 	return changes.keys().map(
 		func(to):
