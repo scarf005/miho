@@ -11,6 +11,10 @@ extends RefCounted
 ## 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a fourth element
 ## only as the last slot (Spell.queue). Cards queue into a compound in some
 ## orders only (`recipe`).
+## What a spell meets in a creature is its elements (Spell.nature): a lone
+## element is itself, a pair is both of its elements, a 3단 or more is what
+## NATURE says, and 최면, 도약, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
+## none. 벼락 is no element but ELECTRIC.
 
 const FOX := &"fox"
 const ORB := &"orb"
@@ -77,6 +81,22 @@ const FIVES := {
 	CONQUEST: [WOOD, EARTH, WATER, FIRE, METAL],
 	DRAGON: [METAL, WATER, WOOD, FIRE, EARTH],
 }
+
+## 3단 or more compound -> the elements it counts as against a creature's
+## weakness and absorption, in 오행 order; one that is not here has none.
+const NATURE := {
+	&"furnace": [FIRE, METAL],
+	&"swamp": [WATER, EARTH],
+	&"talon": [METAL],
+	&"palisade": [WOOD],
+	&"beacon": [FIRE],
+	&"mist": [WATER],
+	&"sinkhole": [EARTH],
+	DRAGON: [EARTH],
+	CONQUEST: ELEMENTS,
+}
+## The compounds of 전기, a kind outside the five elements (Elements.charge).
+const ELECTRIC: Array[StringName] = [&"thunder"]
 
 const NAME := {
 	FOX: "여우불",
@@ -243,3 +263,9 @@ static func _order(slot: StringName, rest: Array, head: Array) -> Array:
 ## which leaps and carries nothing.
 static func parts(slot: StringName) -> Array:
 	return [] if slot == VAULT or FORMS.has(slot) else made_of(slot)
+
+
+## The elements a slot counts as against a creature: itself, a pair's two, a
+## 3단 or more by NATURE; none for the rest.
+static func nature(slot: StringName) -> Array:
+	return [slot] if ELEMENTS.has(slot) else PAIRS.get(slot, NATURE.get(slot, []))

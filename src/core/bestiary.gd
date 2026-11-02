@@ -29,9 +29,12 @@ extends RefCounted
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
-## absorb: &"fire" eats spells that carry fire (해태 guards against fire);
-## &"nofire" eats every spell without fire (불가사리 dies only in fire).
-## eats: the element whose spells feed it when it absorbs them: max HP and HP
+## absorb: &"fire" absorbs the fire of a spell (해태 guards against fire): a spell
+## whose elements are all fire is stopped whole, effects and all; one with other
+## elements too is only halved in harm (rounded down) and keeps its effects.
+## &"nofire" stops every spell with no fire among its elements, one with no
+## element included (불가사리 dies only in fire). 전기 is never absorbed.
+## eats: the element whose spells feed it when it stops them: max HP and HP
 ## grow by GROWTH.
 ## group: the group of heaven it belongs to (GROUPS).
 ## shout: what it shouts when it starts to hunt Miho, its word and how many
@@ -41,8 +44,11 @@ extends RefCounted
 ## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
 ## hat: wears the invisibility hat, seen only from the next tile or with a wisp
 ## clinging to it (Hat).
-## A creature's elements are those of the spells it casts. A spell that holds
-## an element beating one of them hits it twice as hard (Cards.BEATS).
+## A creature's elements are those of the spells it casts (Spell.nature). A
+## spell with an element beating one of them hits it twice as hard (Cards.BEATS),
+## and only once as hard when it is partly absorbed too (Elements.dealt). 전기
+## ignores the weakness: it follows the elements the creature has
+## (Elements.charge).
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
@@ -520,31 +526,52 @@ static func bands(kind: StringName) -> bool:
 	)
 
 
+## The elements of `spell` that `kind` absorbs: only fire, for a fire absorber.
+## 전기 is no element, so nothing of it is absorbed.
+static func taken(kind: StringName, spell: Spell) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if info(kind).get("absorb", &"") == &"fire" and not spell.electric():
+		out.assign(spell.nature().filter(func(e): return e == Cards.FIRE))
+	return out
+
+
+## Whether the creature stops the spell whole, effects and all: every element of
+## it is absorbed. &"nofire" stops a spell with no fire among its elements, one
+## with none included.
 static func absorbs(kind: StringName, spell: Spell) -> bool:
+	if spell.electric():
+		return false
 	match info(kind).get("absorb", &""):
 		&"fire":
-			return spell.holds(Cards.FIRE)
+			return not taken(kind, spell).is_empty() and taken(kind, spell) == spell.nature()
 		&"nofire":
-			return not spell.holds(Cards.FIRE)
+			return not spell.nature().has(Cards.FIRE)
 	return false
+
+
+## Whether the creature absorbs some of the elements of the spell but not all:
+## its harm is halved and its effects stay.
+static func absorbs_part(kind: StringName, spell: Spell) -> bool:
+	return not taken(kind, spell).is_empty() and not absorbs(kind, spell)
 
 
 ## Whether the creature eats the spell it absorbs and grows from it.
 static func eats(kind: StringName, spell: Spell) -> bool:
-	return absorbs(kind, spell) and spell.holds(info(kind).get("eats", &""))
+	return absorbs(kind, spell) and spell.nature().has(info(kind).get("eats", &""))
 
 
-## A creature's elements: those of the spells it casts at any rank, in 오행
-## order.
+## A creature's elements: those of the spells it casts at any rank
+## (Spell.nature), in 오행 order.
 static func elements(kind: StringName) -> Array[StringName]:
 	var out: Array[StringName] = []
 	if info(kind).has("mana"):
 		return out
 	var all := []
 	for r in range(1, RANKS + 1):
-		all.append_array(casts(kind, r).filter(func(c): return c != KINDLE and c != LEAP))
+		for cast: Array in casts(kind, r).filter(func(c): return c != KINDLE and c != LEAP):
+			all.append_array(Spell.make(cast).nature())
 	for c in Cards.ELEMENTS:
-		if all.any(func(cast): return cast.has(c)):
+		if all.has(c):
 			out.append(c)
 	return out
 
@@ -557,9 +584,10 @@ static func weak_to(kind: StringName) -> Array[StringName]:
 	return out
 
 
-## Whether the spell holds an element that beats one of the creature's.
+## Whether an element of the spell beats one of the creature's.
 static func weak(kind: StringName, spell: Spell) -> bool:
-	return weak_to(kind).any(func(c): return spell.holds(c))
+	var beats := weak_to(kind)
+	return spell.nature().any(func(c): return beats.has(c))
 
 
 ## Wood creatures catch fire when a fire spell hits them.

@@ -43,6 +43,7 @@ const SOUNDS := [
 	[{t = &"smash", was = World.WOOD_WALL}, &"fall"],
 	[{t = &"collapse"}, &"blast"],
 	[{t = &"absorb"}, &"absorb"],
+	[{t = &"resist"}, &"absorb"],
 	[{t = &"grow"}, &"card"],
 	[{t = &"card"}, &"card"],
 	[{t = &"scroll"}, &"page"],

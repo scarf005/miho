@@ -134,17 +134,29 @@ func test_below_the_third_rank_it_tries_only_its_next_spell() -> void:
 	assert_true(Spell.make(plans[0].cards).homing(), "its homing orb goes round")
 
 
-func test_it_passes_over_what_its_rival_absorbs_and_takes_what_it_is_weak_to() -> void:
+func test_it_passes_over_what_its_rival_stops_whole_and_takes_what_it_is_weak_to() -> void:
 	var w := _world(9)
-	var boss := _hunter(w, &"cheonnyeon", Vector2i(20, 8), 1)
+	var poker := _hunter(w, &"bujigaengi", Vector2i(16, 12))
 	var dog := FloorGen.spawn(w, &"bulgae", Vector2i(16, 8))
+	var boss := _hunter(w, &"cheonnyeon", Vector2i(20, 8), 1)
 	w.sense()
+	var spells := Aim.at(w, poker, dog).filter(func(plan): return plan.cards != Bestiary.LEAP)
+	assert_eq(spells, [], "all of its spells but the leap are fire")
 	var plans := Aim.at(w, boss, dog)
 	assert_eq(plans.size(), 2)
-	for plan in plans:
-		var s := Spell.make(plan.cards)
-		assert_false(s.holds(Cards.FIRE), s.title())
 	assert_true(Bestiary.weak(&"bulgae", Spell.make(plans[0].cards)))
+
+
+func test_it_still_casts_a_spell_its_rival_absorbs_in_part() -> void:
+	var w := _world(9)
+	var boss := _hunter(w, &"cheonnyeon", Vector2i(20, 8), 1)
+	var guard := FloorGen.spawn(w, &"haetae", Vector2i(16, 8))
+	w.sense()
+	var plans := Aim.at(w, boss, guard)
+	assert_false(plans.is_empty())
+	var first := Spell.make(plans[0].cards)
+	assert_true(Bestiary.absorbs_part(guard.kind, first), first.title())
+	assert_false(Bestiary.absorbs(guard.kind, first))
 
 
 func test_from_the_fourth_rank_it_charges_two_spells_and_casts_both() -> void:

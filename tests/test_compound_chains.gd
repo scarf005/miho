@@ -215,7 +215,6 @@ func test_a_3dan_is_one_slot_worth_three_tails_that_holds_its_elements() -> void
 	var leap := Spell.make(_made(Cards.VAULT))
 	assert_true(leap.compounds().is_empty(), "도약 is a shape")
 	assert_false(leap.holds(FIRE), "도약 carries nothing")
-	assert_true(Bestiary.absorbs(&"haetae", Spell.make(_made(&"furnace"))))
 
 
 func test_a_doubled_3dan_grows_a_tile_and_costs_six_cards() -> void:
