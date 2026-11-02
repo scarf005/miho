@@ -243,3 +243,11 @@ func test_a_lone_spell_mixed_with_another_slot_says_why_along_any_direction() ->
 	m._direction(Vector2i.RIGHT, false)
 	assert_eq(m.world.round_no, round_no)
 	assert_eq(m.messages.lines.back().text, Guise.MIXED)
+
+
+func test_a_creature_pushed_off_the_edge_is_the_next_form() -> void:
+	var w := _world(&"")
+	var foe := FloorGen.spawn(w, &"jangseung", ME + E * 3)
+	Fall.drop(w, foe, foe.pos + E)
+	assert_false(foe.alive())
+	assert_eq(w.player().prey, &"jangseung")
