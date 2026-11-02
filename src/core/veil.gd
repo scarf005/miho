@@ -87,7 +87,7 @@ static func tick(w: World) -> void:
 	for a in w.actors.duplicate():
 		if a.alive() and scorches(w, a.pos):
 			w.emit({t = &"burn", at = a.pos, id = a.id})
-			if Bestiary.absorbs(a.kind, flame):
+			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = a.pos})
 			else:
 				w.hurt(a, World.FIRE_DAMAGE)

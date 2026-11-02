@@ -41,6 +41,7 @@ const CONDITIONS := {
 		"쫓아옴: 후각이 뛰어나다",
 		["도깨비불을 쏘는 적: %s, %s", WITS[Bestiary.SHARP], WITS[Bestiary.CUNNING]],
 	],
+	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM]],
 }
 ## How a clever creature looks for Miho under her 은신 (Aim.suspected).
 const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
@@ -218,7 +219,10 @@ static func status_facts(key: StringName) -> Array:
 
 ## A condition (`CONDITIONS`), by its name, as the 도감 tells it.
 static func condition_facts(name: String) -> Array:
-	return [[[Lang.t(name), Palette.TEXT]]] + _tags(CONDITIONS[name])
+	var lines := [[[Lang.t(name), Palette.TEXT]]]
+	if name == Guise.NAME[Guise.FLAME]:
+		lines.append_array(nature(Guise.FLAME_KIND))
+	return lines + _tags(CONDITIONS[name])
 
 
 ## Lines of text: a string, or a format string and its numbers; each in the language shown.
@@ -282,8 +286,14 @@ static func _head(a: Actor) -> Array:
 
 ## Name and health, elements, weakness and immunities.
 static func _profile(a: Actor) -> Array:
-	var lines := [_head(a)]
-	var elements := Bestiary.elements(a.kind)
+	return [_head(a)] + nature(a.nature_kind())
+
+
+## The elements of a creature of `kind`, what beats them and what it takes no
+## harm from (DCSS `_monster_stat_description`).
+static func nature(kind: StringName) -> Array:
+	var lines := []
+	var elements := Bestiary.elements(kind)
 	if not elements.is_empty():
 		var line := [[Lang.t("오행: "), Palette.DIM]]
 		for c in elements:
@@ -296,8 +306,8 @@ static func _profile(a: Actor) -> Array:
 				]
 			)
 		lines.append(line)
-		lines.append(_weakness(a.kind))
-	lines.append_array(_immunities(a))
+		lines.append(_weakness(kind))
+	lines.append_array(_immunities(kind))
 	return lines
 
 
@@ -415,6 +425,9 @@ static func _melee(melee: Dictionary) -> Array:
 static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head] + _tails(w) + _claws(w, a)
 	lines.append_array(_conditions(w, a))
+	lines.append_array(nature(a.nature_kind()))
+	if a.flame:
+		lines.append([[Lang.t("불 주문 피해: +%d") % Guise.FLAME_HARM, Palette.TEXT]])
 	if a.guise:
 		var form: String = Lang.t(Bestiary.info(a.form).name)
 		lines.append([[Lang.t("둔갑"), Palette.TEXT], [": " + form, Palette.SIDE[0]]])
@@ -451,8 +464,8 @@ static func _weakness(kind: StringName) -> Array:
 
 
 ## Everything the creature takes no harm or effect from, one "면역" line each.
-static func _immunities(a: Actor) -> Array:
-	var spec := a.info()
+static func _immunities(kind: StringName) -> Array:
+	var spec := Bestiary.info(kind)
 	var out := []
 	match spec.get("absorb", &""):
 		&"fire":
@@ -492,14 +505,14 @@ static func _conditions(w: World, a: Actor) -> Array:
 	]:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
-	for kind in [Guise.TALON, Guise.CLOAK]:
+	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME]:
 		if a.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))
 	if (
 		w.burning.has(a.pos)
 		and a.alight <= 0
-		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
 		var fire := Lang.t("맹렬한 불" if fierce else "불타는 칸")
@@ -507,7 +520,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
 	if (
 		Veil.scorches(w, a.pos)
-		and not Bestiary.absorbs(a.kind, Spell.make([Cards.FOX, Cards.FIRE]))
+		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		out.append(_amount("도깨비불 장막 옆 칸 초당 피해: ", World.FIRE_DAMAGE))
 	for s in w.shots:

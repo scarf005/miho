@@ -34,7 +34,8 @@ extends RefCounted
 ## absorbed is stopped whole. 전기 (벼락) is no element: it hurts a creature with
 ## 쇠 or 물, or a wet one, twice over; else a creature with 나무, 흙 or 불 is
 ## immune to its harm and stun; any other takes it once (`charge`). Nothing of
-## it is absorbed.
+## it is absorbed. Miho as 불여우 (Actor.nature_kind) meets them as a fire creature,
+## and each harm of her spells that hold 불 is Guise.FLAME_HARM more (`harm`).
 
 const ROOT := 2
 const STUN := 1
@@ -62,7 +63,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 		Mind.struck(w, a, s)
 		return false
 	harm(w, s, a, n)
-	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.kind)):
+	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.nature_kind())):
 		Status.ignite(w, a)
 	if a.alive():
 		if spell.orb and spell.has(Cards.METAL) and not spell.mortar():
@@ -80,11 +81,11 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 ## Whether `a` stops `s` whole, taking no harm or effect from it; one that eats
 ## it grows. A spell it absorbs only in part is told (`resisted`) and goes on.
 static func absorbed(w: World, s: Shot, a: Actor) -> bool:
-	if not Bestiary.absorbs(a.kind, s.spell):
+	if not Bestiary.absorbs(a.nature_kind(), s.spell):
 		resisted(w, s.spell, a)
 		return false
 	w.emit({t = &"absorb", id = a.id, at = a.pos})
-	if Bestiary.eats(a.kind, s.spell):
+	if Bestiary.eats(a.nature_kind(), s.spell):
 		a.max_hp += Bestiary.GROWTH
 		a.hp += Bestiary.GROWTH
 		w.emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
@@ -93,31 +94,34 @@ static func absorbed(w: World, s: Shot, a: Actor) -> bool:
 
 ## `a` absorbs only part of `spell`: the elements it took are told.
 static func resisted(w: World, spell: Spell, a: Actor) -> void:
-	if Bestiary.absorbs_part(a.kind, spell):
-		w.emit({t = &"resist", id = a.id, at = a.pos, taken = Bestiary.taken(a.kind, spell)})
+	if Bestiary.absorbs_part(a.nature_kind(), spell):
+		w.emit(
+			{t = &"resist", id = a.id, at = a.pos, taken = Bestiary.taken(a.nature_kind(), spell)}
+		)
 
 
 ## The harm `n` of `spell` comes to against `a`: twice over when `a` is weak to
 ## it, halved (rounded down) when it is partly absorbed, once when both.
 static func dealt(a: Actor, spell: Spell, n: int) -> int:
-	var weak := Bestiary.weak(a.kind, spell)
-	if weak == Bestiary.absorbs_part(a.kind, spell):
+	var weak := Bestiary.weak(a.nature_kind(), spell)
+	if weak == Bestiary.absorbs_part(a.nature_kind(), spell):
 		return n
 	return n * WEAK if weak else n / HALF
 
 
-## `s` hurts `a` for n, as `dealt` says.
+## `s` hurts `a` for n, and what 불여우 adds when n is not none, as `dealt` says.
 static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
-	var m := dealt(a, s.spell, n)
+	var more := Guise.flame_harm(w, s.caster, s.spell) if n > 0 else 0
+	var m := dealt(a, s.spell, n + more)
 	if m > 0:
-		w.hurt(a, m, Bestiary.weak(a.kind, s.spell))
+		w.hurt(a, m, Bestiary.weak(a.nature_kind(), s.spell))
 
 
 ## How many times as hard 전기 (Spell.electric) hits `a`: WEAK on a wet creature
 ## and on one with an element of CONDUCTS, else none on one with an element of
 ## GROUNDS, else once. It is never more.
 static func charge(a: Actor) -> int:
-	var mine := Bestiary.elements(a.kind)
+	var mine := Bestiary.elements(a.nature_kind())
 	if a.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
 		return WEAK
 	return 0 if GROUNDS.any(func(e): return mine.has(e)) else 1
@@ -168,12 +172,12 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			w.ignite(p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
-			if Bestiary.absorbs(b.kind, spell):
+			if Bestiary.absorbs(b.nature_kind(), spell):
 				w.emit({t = &"absorb", id = b.id, at = p})
 			else:
 				resisted(w, spell, b)
 				harm(w, s, b, n)
-				if fire and Bestiary.burns(b.kind):
+				if fire and Bestiary.burns(b.nature_kind()):
 					Status.ignite(w, b)
 			Mind.struck(w, b, s)
 		var o := w.shot_at(p, s)

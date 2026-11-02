@@ -13,7 +13,12 @@ extends RefCounted
 
 ## Conditions besides Status.NAME that harm their holder, and those that help it.
 const HARM := ["묶임", "기절", "눈멂"]
-const BOON := [Guise.NAME[Guise.GUISE], Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
+const BOON := [
+	Guise.NAME[Guise.GUISE],
+	Guise.NAME[Guise.TALON],
+	Guise.NAME[Guise.CLOAK],
+	Guise.NAME[Guise.FLAME]
+]
 ## Particles that may follow a name, which stays a link: 진흙이, 풀을.
 const PARTICLES := "이|가|을|를|은|는|의|에서|에게|에|으로|로|과|와|도|만|까지|부터|처럼|이다"  # i18n: keep
 ## The tabs in the order their names win: a name that is a rule or a state means

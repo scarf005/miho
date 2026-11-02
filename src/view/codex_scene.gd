@@ -68,6 +68,8 @@ const TABLE := {
 	"둔갑": ["  @w", ">s..", Guise.RECIPE[Guise.GUISE]],
 	"쇠발톱": ["  @d", "s>>", Guise.RECIPE[Guise.TALON]],
 	"은신": ["  @     d", "s...", Guise.RECIPE[Guise.CLOAK]],
+	Guise.FLAME: ["  @  d", "sc..", Guise.RECIPE[Guise.FLAME]],
+	"불여우": ["  @  d", "sc..", Guise.RECIPE[Guise.FLAME]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
 	Jars.KIMCHI: ["  @ K", ">>."],

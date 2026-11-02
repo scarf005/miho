@@ -317,7 +317,7 @@ static func burn(w: World, alight: Array) -> void:
 		if a != null and alight.has(p) and a.alight <= 0:
 			var fierce := Tiles.fierce[w.tile(p)] == 1
 			w.emit({t = &"burn", at = p, id = a.id, fierce = fierce})
-			if Bestiary.absorbs(a.kind, flame):
+			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
 				w.hurt(a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)

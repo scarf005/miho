@@ -253,7 +253,7 @@ static func tick(w: World) -> void:
 		var a := w.actor_at(p)
 		if a != null:
 			w.emit({t = &"sear", id = a.id, at = p, kind = h.x})
-			if Bestiary.absorbs(a.kind, flame):
+			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
 			else:
 				w.hurt(a, HOT[h.x].harm)

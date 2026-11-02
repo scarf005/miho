@@ -294,6 +294,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}했다", [_named(Guise.NAME[Guise.CLOAK])])
 		&"uncloak":
 			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.CLOAK])])
+		&"flame":
+			return _t("{0}으로/로 변했다", [_named(Guise.NAME[Guise.FLAME])])
+		&"unflame":
+			return _t("{0} 변신이 풀렸다", [_named(Guise.NAME[Guise.FLAME])])
 		&"sleep":
 			return _t("{0}이/가 잠들었다", [who])
 		&"fade":

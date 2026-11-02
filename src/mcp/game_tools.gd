@@ -46,7 +46,7 @@ const DIRS := {
 }
 const KINDS := {
 	"type": "string",
-	"enum": ["shadow", "guise", "talon", "cloak"],
+	"enum": ["shadow", "guise", "talon", "cloak", "flame"],
 	"description": "dispel: the buff on Miho to drop."
 }
 const SPELLS := {
@@ -99,10 +99,18 @@ const SPELLS := {
 			% Guise.NAME[Guise.CLOAK]
 		)
 		+ (
-			"knows her only from beside her, hunters too) or the 3 element compound %s (her "
+			"knows her only from beside her, hunters too), fox, fire and wood (%s: she is a fire "
+			% Guise.NAME[Guise.FLAME]
+		)
+		+ (
+			"creature, takes no harm from fire and her fire spells harm %d more) or the 3 element "
+			% Guise.FLAME_HARM
+		)
+		+ (
+			"compound %s (her claws harm more), which goes on her whatever dir. They last "
 			% Guise.NAME[Guise.TALON]
 		)
-		+ "claws harm more), which goes on her whatever dir. They last until she drops them "
+		+ "until she drops them "
 		+ "with the action dispel. The forecast lists every number. "
 		+ (
 			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "

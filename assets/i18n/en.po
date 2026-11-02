@@ -2937,3 +2937,18 @@ msgstr "you"
 
 msgid "정보창 고정"
 msgstr "Pin the box"
+
+msgid "불여우"
+msgstr "Fire fox"
+
+msgid "불 주문 피해"
+msgstr "Fire spell damage"
+
+msgid "불 주문 피해: +%d"
+msgstr "Fire spell damage: +%d"
+
+msgid "{0}으로/로 변했다"
+msgstr "Turned into {0}"
+
+msgid "{0} 변신이 풀렸다"
+msgstr "Your {0} form ended"

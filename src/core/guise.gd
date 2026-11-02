@@ -33,19 +33,32 @@ extends RefCounted
 ## clings to her, a hunter too. The spell is silent. A tracker follows her scent
 ## even while it hunts (Mind.hunt), and a clever creature throws its wisp at where
 ## it suspects her (Aim.suspected).
+##
+## 불여우 (FLAME: 여 and the 들불 slot of 목+불): she counts as a fire creature
+## (Actor.nature_kind = FLAME_KIND), under the rule creatures obey (Bestiary.absorbs,
+## weak): fire spells and burning tiles do her no harm, water harms her twice over,
+## and every spell of hers that holds 불 and harms does FLAME_HARM more (`flame_harm`).
+## The spell is silent. Thrown along a direction it is the 여우불 of 들불, as ever.
 
 const SHADOW := &"shadow"
 const GUISE := &"guise"
 const TALON := &"talon"
 const CLOAK := &"cloak"
-const NAME := {SHADOW: "그림자", GUISE: "둔갑", TALON: Cards.NAME[TALON], CLOAK: "은신"}
+const FLAME := &"flame"
+const NAME := {SHADOW: "그림자", GUISE: "둔갑", TALON: Cards.NAME[TALON], CLOAK: "은신", FLAME: "불여우"}
 ## The talismans that make each, at their weakest.
 const RECIPE := {
 	SHADOW: [Cards.FOX, Cards.WATER, Cards.WOOD],
 	GUISE: [Cards.WOOD, Cards.EARTH, Cards.WOOD],
 	TALON: [Cards.FIRE, Cards.WOOD, Cards.METAL],
 	CLOAK: [Cards.FOX, Cards.WOOD, Cards.EARTH],
+	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
 }
+## The creature whose elements 불여우 gives her: a 불개, a fire creature that
+## does nothing more with them.
+const FLAME_KIND := &"bulgae"
+## What her harming spells that hold 불 do more as 불여우.
+const FLAME_HARM := 1
 ## The spells that go on her whatever the direction they are cast along.
 const ANYWHERE := [TALON]
 const NO_PREY := "아직 처치한 적이 없다"
@@ -74,7 +87,7 @@ static func _only(t: Callable) -> String:
 	return t.call("스스로에겐 %s만 걸 수 있다") % ", ".join(spells)
 
 
-## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, or empty when
+## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, FLAME, or empty when
 ## it does not go on oneself.
 static func kind(spell: Spell) -> StringName:
 	if spell == null:
@@ -92,6 +105,8 @@ static func kind(spell: Spell) -> StringName:
 			return CLOAK
 		if spell.has(Cards.WOOD):
 			return GUISE
+	if spell.slots.size() == 2 and spell.count(&"wildfire") == 1 and spell.has(Cards.FOX):
+		return FLAME
 	return &""
 
 
@@ -145,6 +160,10 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 			caster.cloak = true
 			w.emit({t = &"cloak", id = caster.id, at = caster.pos})
 			return true
+		FLAME:
+			caster.flame = true
+			w.emit({t = &"flame", id = caster.id, at = caster.pos})
+			return true
 	for old in shadows(w, caster):
 		old.gone = true
 		w.emit({t = &"fade", shot = old.id, at = old.pos})
@@ -170,7 +189,13 @@ static func shadows(w: World, a: Actor) -> Array[Shot]:
 
 ## The buffs on `a`, in the order of RECIPE.
 static func worn(w: World, a: Actor) -> Array:
-	var on := {SHADOW: not shadows(w, a).is_empty(), GUISE: a.guise, TALON: a.talon, CLOAK: a.cloak}
+	var on := {
+		SHADOW: not shadows(w, a).is_empty(),
+		GUISE: a.guise,
+		TALON: a.talon,
+		CLOAK: a.cloak,
+		FLAME: a.flame,
+	}
 	return RECIPE.keys().filter(func(k): return on[k])
 
 
@@ -199,6 +224,9 @@ static func dispel(w: World, a: Actor, which: StringName) -> void:
 		CLOAK:
 			a.cloak = false
 			w.emit({t = &"uncloak", id = a.id, at = a.pos})
+		FLAME:
+			a.flame = false
+			w.emit({t = &"unflame", id = a.id, at = a.pos})
 
 
 ## What 쇠발톱 adds to a claw of `me` at `foe`, or at no creature in particular.
@@ -207,6 +235,12 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 		return 0
 	var eats := foe != null and Bestiary.absorbs(foe.kind, Spell.make([Cards.METAL]))
 	return TALON_ABSORBED if eats else TALON_HARM
+
+
+## What 불여우 adds to the harm of a spell of `caster` that holds 불.
+static func flame_harm(w: World, caster: int, spell: Spell) -> int:
+	var me := w.actor(caster)
+	return FLAME_HARM if me != null and me.flame and spell.holds(Cards.FIRE) else 0
 
 
 ## Whether `by` takes `a` for someone else: `a` is in guise and `by` is a creature

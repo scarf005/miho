@@ -157,6 +157,7 @@ const LEVEL := {
 	&"unstun": -8.0,
 	&"unblind": -8.0,
 	&"untalon": -8.0,
+	&"unflame": -8.0,
 	&"sleep": -8.0,
 	&"heat": -8.0,
 	&"relight": -8.0,
@@ -453,8 +454,12 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask", &"uncloak", &"dry", &"quench", &"thaw", &"sleep":
 			return &"hiss"
+		&"unflame":
+			return &"hiss"
 		&"fade":
 			return &"hiss" if e.get("dropped", false) else &""
+		&"flame":
+			return &"flame"
 		&"stick", &"yelp":
 			return &"foxfire"
 		&"ignite", &"heat", &"relight", &"alight":

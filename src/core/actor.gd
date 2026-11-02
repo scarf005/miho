@@ -67,9 +67,11 @@ var prey := &""
 var form := &""
 var guise := false
 var beside := 0
-## Whether it holds 쇠발톱 (her claws harm more) and 은신 (the hat's rule, Hat).
+## Whether it holds 쇠발톱 (her claws harm more), 은신 (the hat's rule, Hat) and
+## 불여우 (it counts as a fire creature: `nature_kind`).
 var talon := false
 var cloak := false
+var flame := false
 
 
 func alive() -> bool:
@@ -113,6 +115,12 @@ func drumming() -> bool:
 
 func info() -> Dictionary:
 	return Bestiary.info(kind)
+
+
+## The kind whose elements it meets a spell with (Bestiary.weak, absorbs, burns):
+## its own, but for Miho as 불여우 (Guise.FLAME_KIND).
+func nature_kind() -> StringName:
+	return Guise.FLAME_KIND if flame else kind
 
 
 ## Every spell it casts at its rank (Bestiary.casts).
@@ -160,6 +168,7 @@ func clone() -> Actor:
 		"beside",
 		"talon",
 		"cloak",
+		"flame",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate(true)

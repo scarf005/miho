@@ -56,6 +56,8 @@ static func text(world: World) -> String:
 		out.append("claws harm %d more" % Guise.TALON_HARM)
 	if me.cloak:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
+	if me.flame:
+		out.append("fire creature: no harm from fire, fire spells harm %d more" % Guise.FLAME_HARM)
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":

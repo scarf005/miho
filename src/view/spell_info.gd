@@ -232,6 +232,15 @@ static func ward(s: Spell) -> Array:
 			),
 			_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 		]
+	if kind == Guise.FLAME:
+		return (
+			[_line(on, name)]
+			+ Info.nature(Guise.FLAME_KIND)
+			+ [
+				_line("불 주문 피해", "+%d" % Guise.FLAME_HARM),
+				_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
+			]
+		)
 	var dark: int = Guise.dark(s).light(Actor.FOX).radius
 	return [
 		_line(on, name),

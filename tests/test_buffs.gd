@@ -226,6 +226,7 @@ func test_each_drop_is_told_in_the_log_with_a_sound() -> void:
 		Guise.GUISE: "둔갑이 풀렸다",
 		Guise.TALON: "쇠발톱이 사라졌다",
 		Guise.CLOAK: "은신이 풀렸다",
+		Guise.FLAME: "불여우 변신이 풀렸다",
 	}
 	for kind: StringName in told:
 		var w := _world()

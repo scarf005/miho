@@ -24,7 +24,9 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var plans: Array[Dictionary] = []
 	for cast: Array in _turn(a):
 		var plan := _reach(w, a, cast, foe)
-		var eaten := a.rank >= Bestiary.PICKS and Bestiary.absorbs(foe.kind, Spell.make(cast))
+		var eaten := (
+			a.rank >= Bestiary.PICKS and Bestiary.absorbs(foe.nature_kind(), Spell.make(cast))
+		)
 		if not plan.is_empty() and not eaten:
 			plans.append(plan)
 	if plans.is_empty():
@@ -32,7 +34,10 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var first := 0
 	for i in plans.size():
 		var spell := Spell.make(plans[i].cards)
-		if Bestiary.weak(foe.kind, spell) and not Bestiary.absorbs_part(foe.kind, spell):
+		if (
+			Bestiary.weak(foe.nature_kind(), spell)
+			and not Bestiary.absorbs_part(foe.nature_kind(), spell)
+		):
 			first = i
 			break
 	var out: Array[Dictionary] = [plans[first]]
@@ -85,7 +90,7 @@ static func _dearest(w: World, a: Actor, foe: Actor, mana: int, skip: Array) -> 
 		var spell := Spell.make(cast)
 		if price <= best_price or price > mana or skip.has(cast) or _moot(spell, foe):
 			continue
-		if Bestiary.absorbs(foe.kind, spell):
+		if Bestiary.absorbs(foe.nature_kind(), spell):
 			continue
 		var plan := _reach(w, a, cast, foe)
 		if not plan.is_empty():
