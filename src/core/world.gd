@@ -451,18 +451,7 @@ func _reaches(a: Actor, p: Vector2i) -> bool:
 
 
 func can(action: Dictionary) -> bool:
-	if outcome != &"":
-		return false
-	match action.get("t"):
-		&"wait":
-			return true
-		&"move":
-			return Legal.move(self, action.get("dir", Vector2i.ZERO))
-		&"cast":
-			return Legal.cast(self, action.get("spells", []))
-		&"close":
-			return Legal.close(self, action.get("dir", Vector2i.ZERO))
-	return action.get("t") == &"cheat" and Cheat.can(self, action)
+	return outcome == &"" and Legal.action(self, action)
 
 
 ## Runs `action` on a copy; the world itself does not change.
@@ -504,6 +493,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 						return events
 		&"close":
 			Terrain.close_door(self, me, me.pos + action.dir)
+		&"dispel":
+			Guise.dispel(self, me, action.kind)
 		&"cast":
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
@@ -661,15 +652,15 @@ func caught_unawares(a: Actor) -> bool:
 	return a.alert != Actor.HUNT and not Guise.knows(self, a)
 
 
-## The harm a claw of `me` does: CLAW, SNEAK times that on a sneak attack, and
-## Guise.TALON_HARM more under 쇠발톱.
-func claw_harm(me: Actor, sneak: bool) -> int:
-	return CLAW * (SNEAK if sneak else 1) + (Guise.TALON_HARM if me.talon > 0 else 0)
+## The harm a claw of `me` at `foe` does: CLAW, SNEAK times that on a sneak attack,
+## and what 쇠발톱 adds (Guise.talon_harm).
+func claw_harm(me: Actor, sneak: bool, foe: Actor = null) -> int:
+	return CLAW * (SNEAK if sneak else 1) + Guise.talon_harm(me, foe)
 
 
 func _claw(me: Actor, foe: Actor) -> void:
 	var sneak := caught_unawares(foe)
-	var n := claw_harm(me, sneak)
+	var n := claw_harm(me, sneak, foe)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
 	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)

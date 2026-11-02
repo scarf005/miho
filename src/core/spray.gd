@@ -82,8 +82,8 @@ const STRIKE := &"strike"
 ## compound -> [shape, size, more]: a fan's radius, a line's length, how far
 ## ahead a cleave looks for a wall, a radius round the caster; for a burst how
 ## far ahead it lands and its radius, for tiles across the line how far ahead
-## they lie and how many. 쇠발톱 and 은신 go on Miho (Guise) and are never
-## sprayed; a projectile that carries one does nothing with it.
+## they lie and how many. 쇠발톱 goes on Miho (Guise) and is never sprayed; a
+## projectile that carries it does nothing with it.
 const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
 	&"lava": [LINE, 4],
@@ -100,7 +100,6 @@ const SHAPE := {
 	&"talon": [AROUND, 0],
 	&"palisade": [ACROSS, 2, 3],
 	&"beacon": [BURST, 6, 1],
-	&"cloak": [AROUND, 0],
 	&"magpie": [LINE, 8],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],

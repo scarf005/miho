@@ -285,7 +285,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			var form := [Bestiary.info(e.kind).name, Palette.KIND[e.kind]]
 			return Lang.runs("{0}의 모습으로 둔갑했다", [form], Palette.GOOD)
 		&"unmask":
-			return _t("둔갑이 풀렸다")
+			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.GUISE])])
 		&"talon":
 			return _t("{0}이/가 돋았다", [_named(Guise.NAME[Guise.TALON])])
 		&"untalon":
@@ -297,6 +297,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"sleep":
 			return _t("{0}이/가 잠들었다", [who])
 		&"fade":
+			if e.get("dropped", false):
+				return _t("{0}이/가 사라졌다", [[_title(e), TEXT]])
 			if not e.get("lit", false):
 				return []
 			return _t("{0}이/가 불빛에 사라졌다", [[_title(e), TEXT]])

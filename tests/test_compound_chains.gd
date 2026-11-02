@@ -162,7 +162,7 @@ func test_every_table_chain_runs_along_one_ring_and_has_a_name_and_a_glyph() -> 
 		assert_false(glyphs.has(Cards.GLYPH[c]), "one glyph each: " + Cards.GLYPH[c])
 		glyphs[Cards.GLYPH[c]] = true
 	assert_eq(Cards.TRIPLES.size(), 6)
-	assert_eq(Cards.QUADS.size(), 9)
+	assert_eq(Cards.QUADS.size(), 8)
 	assert_eq(Cards.FIVES.size(), 3)
 
 
@@ -175,8 +175,8 @@ func test_a_3dan_and_a_missing_element_make_the_4dan_of_its_ring() -> void:
 		var grows: bool = Cards.GROWS[_made(t)[0]] == _made(t)[1]
 		for e: StringName in Cards.ELEMENTS:
 			var q := Cards.join(t, e, 5)
-			if _made(t).has(e):
-				assert_eq(q, &"", "%s already holds %s" % [t, e])
+			if _made(t).has(e) or [t, e] == [&"furnace", WATER]:
+				assert_eq(q, &"", "%s + %s has no spell" % [t, e])
 				continue
 			assert_true(Cards.QUADS.has(q), "%s + %s" % [t, e])
 			assert_true(_same_set(Cards.QUADS[q], _made(t) + [e]), "%s + %s" % [t, e])
@@ -426,11 +426,11 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 
 
 func test_a_self_cast_goes_only_to_the_spells_that_change_her() -> void:
-	assert_eq(Guise.kind(Spell.make([WOOD, EARTH])), Guise.GUISE)
-	assert_eq(Guise.kind(Spell.make([WOOD, EARTH, WOOD])), Guise.GUISE, "목 adds time")
-	assert_eq(Guise.kind(Spell.make([FOX, WATER])), Guise.SHADOW)
+	assert_eq(Guise.kind(Spell.make([WOOD, EARTH])), &"", "two cards are no buff")
+	assert_eq(Guise.kind(Spell.make([WOOD, EARTH, WOOD])), Guise.GUISE)
+	assert_eq(Guise.kind(Spell.make([FOX, WATER, WOOD])), Guise.SHADOW)
 	assert_eq(Guise.kind(Spell.make(_made(Guise.TALON))), Guise.TALON)
-	assert_eq(Guise.kind(Spell.make(_made(Guise.CLOAK))), Guise.CLOAK)
+	assert_eq(Guise.kind(Spell.make([FOX, WOOD, EARTH])), Guise.CLOAK)
 	assert_eq(
 		Guise.kind(Spell.make([FOX] + _made(Guise.TALON))), &"", "carried, it is no self-cast"
 	)

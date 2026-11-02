@@ -6,18 +6,21 @@ extends RefCounted
 ## spellbook lists the queued spell and the saved ones, with what the selected
 ## one does, and a slot key saves it to that slot; the 도감 (Codex) lists every
 ## creature, spell, compound, item and terrain feature; the log lists the past
-## messages; the debug commands (DebugMenu) list the Cheat commands. Every page
+## messages; the dispel page lists the buffs on Miho to drop; the debug commands
+## (DebugMenu) list the Cheat commands. Every page
 ## moves as ListNav says, scrolls with the wheel, lights the row under the
 ## pointer, and a click selects it.
 ## `key`, `use`, `click` and `back` return what the game should do: &"close",
 ## &"changed" (settings or keys changed), &"ask" (처음부터 asks for a second use),
 ## &"restart", &"quit" (save and end the
-## game), &"seed" (copy the seed), &"cast" (pick `chosen`), or nothing.
+## game), &"seed" (copy the seed), &"cast" (pick `chosen`), &"dispel" (drop the
+## buff on the selected row), or nothing.
 
 const VALUE_COL := 18.0
 const MOUSE := [
 	["왼쪽 클릭", "옆 칸으로 한 걸음, 먼 칸까지 걷기"],
 	["부적 고르고 클릭", "그쪽으로 던지기"],
+	["당신을 왼쪽 클릭", "주문 해제"],
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
 	["단어 왼쪽 클릭", "도감에서 열기"],
@@ -42,6 +45,7 @@ const OPTIONS := [
 	&"codex",
 	&"keys",
 	&"spells",
+	&"dispel",
 	&"log",
 	&"help",
 	&"seed",
@@ -60,6 +64,7 @@ const OPTION_NAMES := {
 	&"codex": "도감",
 	&"keys": "키 설정",
 	&"spells": "주문서",
+	&"dispel": "주문 해제",
 	&"log": "기록",
 	&"help": "도움말",
 	&"seed": "시드",
@@ -92,6 +97,8 @@ var waiting := false
 ## The spell queued when the spellbook opened (or null), and the spell Enter chose there.
 var queued: Spell
 var chosen: Spell
+## The buffs on Miho (Guise.worn) when the menu opened, which the dispel page lists.
+var buffs := []
 ## The messages the log page lists, as rows.
 var log_rows: Array = []
 ## The 도감 page's tab, entry and scroll; it keeps them when closed.
@@ -171,6 +178,8 @@ func panel() -> Dictionary:
 				detail = detail,
 				example = _example(list, rows, detail)
 			}
+		&"dispel":
+			out = {title = Lang.t("주문 해제"), rows = _dispels()}
 		&"log":
 			var none := [[[Lang.t("기록이 없다"), Palette.DIM]]]
 			out = {
@@ -207,7 +216,7 @@ func key(e: InputEventKey) -> StringName:
 		return _leave() if out == &"close" and debug.request.is_empty() else out
 	var slot := Keys.action_of(e)
 	var out := &"changed"
-	if page in [&"help", &"log"] and slot == page:
+	if page in [&"help", &"log", &"dispel"] and slot == page:
 		out = _leave()
 	elif page == &"spells" and Keys.SLOTS.has(slot) and not spells().is_empty():
 		save(slot)
@@ -310,6 +319,28 @@ func _example(list: Array[Spell], rows: Array, detail: Array) -> Dictionary:
 	return fit.merged({entry = [page, spell.key()], scene = SpellScene.of(spell.cards), rank = 0})
 
 
+## The dispel key in the game `m` (main.gd): drops the one buff on Miho, or lists
+## them when she wears more.
+static func dispel(m: Node) -> void:
+	var on := Guise.worn(m.world, m.world.player())
+	if on.size() > 1:
+		m._open(&"dispel")
+	elif on.size() == 1:
+		m._act({t = &"dispel", kind = on[0]})
+	else:
+		m._say("풀 수 있는 주문이 없다")
+		m.sfx.play(&"click")
+
+
+## Every buff on Miho as a row: its name.
+func _dispels() -> Array:
+	var rows := []
+	for kind: StringName in buffs:
+		var last: StringName = Spell.make(Guise.RECIPE[kind]).slots.back()
+		rows.append([[Lang.t(Guise.NAME[kind]), Palette.card(last)]])
+	return rows if rows else [[[Lang.t("풀 수 있는 주문이 없다"), Palette.DIM]]]
+
+
 ## The pointer is over row k (-1 for none): it lights.
 func point(k: int) -> void:
 	hovered = k
@@ -331,7 +362,7 @@ func click(row: int, tab: int) -> StringName:
 		if page == &"cheat":
 			return debug.click(row)
 		select(row)
-		return use() if page in [&"options", &"keys", &"spells"] else &""
+		return use() if page in [&"options", &"keys", &"spells", &"dispel"] else &""
 	return &""
 
 
@@ -363,6 +394,8 @@ func use() -> StringName:
 			return _leave()
 		&"spells":
 			return _choose()
+		&"dispel":
+			return &"dispel" if not buffs.is_empty() else _leave()
 		&"keys":
 			return _use_key_row()
 		&"options":
@@ -373,7 +406,7 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = _listed()[selected]
 	match row:
-		&"keys", &"codex", &"cheat", &"spells", &"log", &"help":
+		&"keys", &"codex", &"cheat", &"spells", &"dispel", &"log", &"help":
 			_enter(row)
 			return &""
 		&"restart" when not confirming:
@@ -513,7 +546,9 @@ static func _nav(e: InputEventKey) -> StringName:
 
 ## The options the page lists.
 func _listed() -> Array:
-	return OPTIONS.filter(func(o): return not (title and o in [&"cheat", &"spells", &"log"]))
+	return OPTIONS.filter(
+		func(o): return not (title and o in [&"cheat", &"spells", &"dispel", &"log"])
+	)
 
 
 func _options() -> Array:

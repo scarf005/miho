@@ -66,7 +66,6 @@ const TRIPLES := {
 ## 4단 compound -> its four elements, in the order of their ring.
 const QUADS := {
 	&"beacon": [WOOD, FIRE, EARTH, METAL],
-	&"cloak": [FIRE, EARTH, METAL, WATER],
 	&"magpie": [METAL, WATER, WOOD, FIRE],
 	&"mist": [WATER, WOOD, FIRE, EARTH],
 	&"sinkhole": [WOOD, EARTH, WATER, FIRE],
@@ -122,7 +121,6 @@ const NAME := {
 	&"talon": "쇠발톱",
 	&"palisade": "목책",
 	&"beacon": "봉화",
-	&"cloak": "은신",
 	&"magpie": "오작교",
 	&"mist": "안개비",
 	&"sinkhole": "땅꺼짐",
@@ -158,7 +156,6 @@ const GLYPH := {
 	&"talon": "발",
 	&"palisade": "책",
 	&"beacon": "봉",
-	&"cloak": "은",
 	&"magpie": "작",
 	&"mist": "안",
 	&"sinkhole": "꺼",

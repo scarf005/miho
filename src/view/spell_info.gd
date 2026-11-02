@@ -206,41 +206,42 @@ static func ward(s: Spell) -> Array:
 		return [
 			_line(on, name),
 			_line("모습", "마지막으로 처치한 적"),
-			_line("시간", Lang.t("%d초") % Guise.rounds(s)),
-			_line(
-				Lang.t("%s 한 장마다") % Lang.t(Cards.NAME[Cards.WOOD]), Lang.t("+%d초") % Guise.PER_WOOD
-			),
 			_line("속는 적", "추격 중이 아닌 적"),
+			_line("속지 않는 적", "냄새 추적"),
 			_line("발톱", "기습"),
-			_line("해제", Lang.t("적 옆에서 %d초, 주문 사용, 피해") % Guise.BESIDE),
+			_line("풀림", Lang.t("적 옆에서 %d초, 주문 사용, 피해") % Guise.BESIDE),
 			_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 		]
 	if kind == Guise.TALON:
 		return [
 			_line(on, name),
-			_line("시간", Lang.t("%d초") % Guise.TALON_ROUNDS),
 			_line("발톱 피해", "+%d" % Guise.TALON_HARM),
+			_line(
+				Lang.t("%s 면역인 적") % Lang.t(Cards.NAME[Cards.METAL]), "+%d" % Guise.TALON_ABSORBED
+			),
 			_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 		]
 	if kind == Guise.CLOAK:
 		return [
 			_line(on, name),
-			_line("시간", Lang.t("%d초") % Guise.CLOAK_ROUNDS),
 			_pair(hat_seen()),
-			_line("속는 적", "모든 적"),
+			_line("쫓아오는 적", "냄새 추적"),
+			_line(
+				"도깨비불을 쏘는 적",
+				"%s, %s" % [Lang.t(Info.WITS[Bestiary.SHARP]), Lang.t(Info.WITS[Bestiary.CUNNING])]
+			),
 			_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 		]
-	var dark: int = s.light(Actor.FOX).radius
+	var dark: int = Guise.dark(s).light(Actor.FOX).radius
 	return [
 		_line(on, name),
 		_line("어둠", Lang.t("둘레 %d칸") % dark),
-		_line("시간", Lang.t("%d초") % Spell.WISP_LIFE),
 		_line(
 			Lang.t("%s 한 장마다") % Lang.t(Cards.NAME[Cards.WATER]),
 			Lang.t("+%d칸") % Spell.DARK_PER_WATER
 		),
 		_line("보임", "바로 옆에서만"),
-		_line("해제", "둘레의 불, 켜진 등불"),
+		_line("풀림", "둘레의 불, 켜진 등불"),
 		_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 	]
 

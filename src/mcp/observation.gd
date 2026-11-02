@@ -50,12 +50,12 @@ static func text(world: World) -> String:
 		"talismans: " + ", ".join(_cards(k)),
 		"Miho at (%d,%d)" % [me.pos.x, me.pos.y],
 	]
-	if me.guise > 0:
-		out.append("in guise as %s for %d rounds" % [Bestiary.info(me.form).name, me.guise])
-	if me.talon > 0:
-		out.append("claws harm %d more for %d rounds" % [Guise.TALON_HARM, me.talon])
-	if me.cloak > 0:
-		out.append("cloaked for %d rounds: seen only within %d tile" % [me.cloak, Hat.REACH])
+	if me.guise:
+		out.append("in guise as %s" % Bestiary.info(me.form).name)
+	if me.talon:
+		out.append("claws harm %d more" % Guise.TALON_HARM)
+	if me.cloak:
+		out.append("cloaked: seen only within %d tile" % Hat.REACH)
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":

@@ -61,15 +61,15 @@ var rival_at := Vector2i.ZERO
 ## when the leader falls (Mind.forget).
 var leader := 0
 ## 둔갑 (Guise): the kind of the last creature of heaven that fell, the kind
-## it looks like and the rounds left of its guise, and the rounds in a row it
-## has stood next to a creature of heaven in guise.
+## it looks like, whether it is in guise, and the rounds in a row it has stood
+## next to a creature of heaven in guise.
 var prey := &""
 var form := &""
-var guise := 0
+var guise := false
 var beside := 0
-## Rounds left of 쇠발톱 (her claws harm more) and of 은신 (the hat's rule, Hat).
-var talon := 0
-var cloak := 0
+## Whether it holds 쇠발톱 (her claws harm more) and 은신 (the hat's rule, Hat).
+var talon := false
+var cloak := false
 
 
 func alive() -> bool:

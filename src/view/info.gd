@@ -26,15 +26,24 @@ const CONDITIONS := {
 	"경계": [["시간: %d초", World.WARY_ROUNDS], "수색 끝: 경계가 끝난 뒤", ["어두운 곳 시야: +%d칸", World.WARY_SIGHT]],
 	"둔갑":
 	[
-		["시간: %d초", Guise.ROUNDS],
-		["%s마다: +%d초", Cards.NAME[Cards.WOOD], Guise.PER_WOOD],
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
 		"속는 적: 추격 중이 아닌 적",
+		"속지 않는 적: 냄새 추적",
 	],
-	Guise.NAME[Guise.TALON]: [["시간: %d초", Guise.TALON_ROUNDS], ["발톱 피해: +%d", Guise.TALON_HARM]],
+	Guise.NAME[Guise.TALON]:
+	[
+		["발톱 피해: +%d", Guise.TALON_HARM],
+		["%s 면역인 적: +%d", Cards.NAME[Cards.METAL], Guise.TALON_ABSORBED],
+	],
 	Guise.NAME[Guise.CLOAK]:
-	[["시간: %d초", Guise.CLOAK_ROUNDS], ["보임: %d칸 안, 도깨비불 붙음", Hat.REACH], "속는 적: 모든 적"],
+	[
+		["보임: %d칸 안, 도깨비불 붙음", Hat.REACH],
+		"쫓아오는 적: 냄새 추적",
+		["도깨비불을 쏘는 적: %s, %s", WITS[Bestiary.SHARP], WITS[Bestiary.CUNNING]],
+	],
 }
+## How a clever creature looks for Miho under her 은신 (Aim.suspected).
+const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
 
 
 ## What washes the scent away: water, the spells that say so and the gases that do.
@@ -83,18 +92,25 @@ static func glossary() -> Dictionary:
 		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
 		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
-		"영리함": ["주문을 보면: 쏜 곳을 수색", Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH],
+		"영리함": ["주문을 보면: 쏜 곳을 수색", Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH, SUSPECTS],
 		"교활함":
 		[
 			"주문을 보면: 쏜 곳에서 추격",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
 			"여우불 소음: 던진 곳을 수색",
+			SUSPECTS,
 		],
 		"순찰": ["쉴 때: 방 사이를 돌아다님", no_sleep, "무리: 대장을 따라다님"],
 		"고정": ["움직이지 않음.", no_sleep],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
 		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
-		"냄새 추적": ["쉬거나 수색 중: 당신의 냄새를 따라감", Lang.t("남은 냄새: %d초 이내") % Scent.TRAIL_AGE],
+		"냄새 추적":
+		[
+			"쉬거나 수색 중: 당신의 냄새를 따라감",
+			"은신한 당신을 추격할 때: 냄새부터 따라감",
+			"둔갑: 속지 않음",
+			Lang.t("남은 냄새: %d초 이내") % Scent.TRAIL_AGE,
+		],
 		"등불 켜기": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
 		"밝음": ["적에게 보임: 시야 안 어디서나"],
 		"어두움":
@@ -323,7 +339,7 @@ static func _situation(w: World, a: Actor) -> Array:
 	else:
 		lines.append([[Lang.t("당신을 볼 수 없다"), Palette.SIDE[0]]])
 	if w.caught_unawares(a):
-		lines.append(_amount("기습 피해: ", w.claw_harm(w.player(), true)))
+		lines.append(_amount("기습 피해: ", w.claw_harm(w.player(), true, a)))
 	return lines
 
 
@@ -399,10 +415,9 @@ static func _melee(melee: Dictionary) -> Array:
 static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head] + _tails(w) + _claws(w, a)
 	lines.append_array(_conditions(w, a))
-	if a.guise > 0:
+	if a.guise:
 		var form: String = Lang.t(Bestiary.info(a.form).name)
 		lines.append([[Lang.t("둔갑"), Palette.TEXT], [": " + form, Palette.SIDE[0]]])
-		lines.append([[Lang.t("  남은 시간: %d초") % a.guise, Palette.SIDE[0]]])
 		lines.append([[Lang.t("적 옆: %d/%d초") % [a.beside, Guise.BESIDE], Palette.DIM]])
 	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
 		lines.append([[Lang.t("둔갑할 모습: %s") % Lang.t(Bestiary.info(a.prey).name), Palette.DIM]])
@@ -474,11 +489,12 @@ static func _conditions(w: World, a: Actor) -> Array:
 		[a.rooted, "묶임"],
 		[a.stunned, "기절"],
 		[a.wary, "경계"],
-		[a.talon, Guise.NAME[Guise.TALON]],
-		[a.cloak, Guise.NAME[Guise.CLOAK]],
 	]:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
+	for kind in [Guise.TALON, Guise.CLOAK]:
+		if a.get(kind):
+			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))
 	if (
 		w.burning.has(a.pos)
@@ -497,7 +513,8 @@ static func _conditions(w: World, a: Actor) -> Array:
 	for s in w.shots:
 		if s.host == a.id and not s.gone:
 			var runs := [[s.spell.shown(), Palette.card(s.spell.slots.back())]]
-			out.append(runs + [[Lang.t(" 붙음: %d초") % s.life, Palette.TEXT]])
+			var clings := Lang.t(" 붙음: %d초") % s.life if s.life > 0 else Lang.t(" 붙음")
+			out.append(runs + [[clings, Palette.TEXT]])
 	if w.hot.has(a.pos):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]

@@ -333,6 +333,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	t._pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
 	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
 	t._text(Vector2(_cell(rect.end).x - t._cells(right), at.y), right, Palette.TEXT)
+	StatusBar.buffs(t, Vector2(_cell(rect.end).x - t._cells(right) - 1.0, at.y))
 	var held: int = StatusBar._held(t)
 	for i in w.max_tails():
 		var c: Color = Palette.SIDE[0]

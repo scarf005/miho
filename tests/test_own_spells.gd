@@ -1,12 +1,12 @@
 extends GutTest
-## 쇠발톱 and 은신, cast on Miho (Guise): her claws harm more for a while, and she
-## wears the hat of 감투 도깨비 (Hat) for a while.
+## 쇠발톱 and 은신, cast on Miho (Guise): her claws harm more, and she wears the
+## hat of 감투 도깨비 (Hat).
 
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
 const WAIT := {t = &"wait"}
 const TALON := [Cards.FIRE, Cards.WOOD, Cards.METAL]
-const CLOAK := [Cards.FIRE, Cards.EARTH, Cards.METAL, Cards.WATER]
+const CLOAK := [Cards.FOX, Cards.WOOD, Cards.EARTH]
 
 
 ## An open hall walled at the edges, every tile known and seen, Miho at ME with
@@ -65,32 +65,26 @@ func _of(events: Array, kind: StringName) -> Array:
 	return events.filter(func(e): return e.t == kind)
 
 
-func test_the_claws_harm_more_for_the_rounds_of_the_spell_and_then_no_more() -> void:
+func test_the_claws_harm_more_until_the_talon_is_dropped() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + E)
 	w.act(_cast(TALON))
-	var harmed: Array = []
-	var ended := []
-	for i in Guise.TALON_ROUNDS:
-		var events := w.act({t = &"move", dir = E})
-		harmed.append_array(_claws(events))
-		ended.append_array(_of(events, &"untalon"))
-	var plain := World.CLAW
-	var boosted := World.CLAW + Guise.TALON_HARM
-	var expected := []
-	expected.resize(Guise.TALON_ROUNDS - 1)
-	expected.fill(boosted)
-	assert_eq(harmed, expected + [plain], "boosted while it lasts, plain once it is over")
-	assert_eq(ended.size(), 1)
-	assert_eq(foe.max_hp - foe.hp, (Guise.TALON_ROUNDS - 1) * boosted + plain)
+	for i in 3:
+		assert_eq(_claws(w.act({t = &"move", dir = E})), [World.CLAW + Guise.TALON_HARM])
+	w.act({t = &"dispel", kind = Guise.TALON})
+	assert_eq(_claws(w.act({t = &"move", dir = E})), [World.CLAW])
+	assert_eq(foe.max_hp - foe.hp, 3 * (World.CLAW + Guise.TALON_HARM) + World.CLAW)
 
 
-func test_casting_it_again_starts_the_rounds_over() -> void:
+func test_a_creature_that_absorbs_iron_takes_less_from_the_talon() -> void:
 	var w := _world()
+	var foe := FloorGen.spawn(w, &"bulgasari", ME + E)
+	foe.hp = 99
+	foe.alert = Actor.HUNT
 	w.act(_cast(TALON))
-	w.act(WAIT)
-	w.act(_cast(TALON))
-	assert_eq(w.player().talon, Guise.TALON_ROUNDS - 1)
+	var harm := World.CLAW + Guise.TALON_ABSORBED
+	assert_eq(_claws(w.act({t = &"move", dir = E})), [harm])
+	assert_eq(99 - foe.hp, harm)
 
 
 func test_a_sneak_claw_gains_the_same_harm() -> void:
@@ -118,13 +112,20 @@ func test_the_refusal_lists_every_spell_that_goes_on_her_and_each_can_be_cast() 
 	assert_true(w.can(_cast(CLOAK)))
 
 
-func test_they_go_on_her_whatever_the_direction() -> void:
-	for cards in [TALON, CLOAK]:
-		var w := _world()
-		assert_true(w.can(_cast(cards, E)))
-		w.act(_cast(cards, E))
-		assert_true(w.player().talon + w.player().cloak > 0)
-		assert_eq(w.shots.size(), 0, "nothing flies")
+func test_the_talon_goes_on_her_whatever_the_direction() -> void:
+	var w := _world()
+	assert_true(w.can(_cast(TALON, E)))
+	w.act(_cast(TALON, E))
+	assert_true(w.player().talon)
+	assert_eq(w.shots.size(), 0, "nothing flies")
+
+
+func test_the_cloak_goes_on_her_only_with_no_direction() -> void:
+	var w := _world()
+	w.act(_cast(CLOAK, E))
+	assert_false(w.player().cloak, "hurled, it is a wisp")
+	w.act(_cast(CLOAK))
+	assert_true(w.player().cloak)
 
 
 func test_they_are_silent_and_hurt_nobody() -> void:
@@ -176,23 +177,20 @@ func test_a_wisp_clinging_to_her_shows_her() -> void:
 	var wisp := Shot.new()
 	wisp.id = w.new_id()
 	wisp.spell = Spell.make([Cards.FOX, Cards.FIRE])
+	wisp.caster = searcher.id
 	w.shots.append(wisp)
 	Elements.stick(w, wisp, w.player())
 	assert_true(Guise.knows(w, searcher))
 
 
-func test_the_cloak_lasts_its_rounds_and_then_creatures_know_her_again() -> void:
+func test_her_own_shadow_does_not_show_her_under_the_cloak() -> void:
 	var w := _world()
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
 	w.act(_cast(CLOAK))
-	var ended := 0
-	for i in Guise.CLOAK_ROUNDS - 1:
-		assert_false(Guise.knows(w, searcher), "round %d" % i)
-		ended += _of(w.act(WAIT), &"uncloak").size()
-	assert_eq(ended, 1)
-	assert_eq(w.player().cloak, 0)
-	assert_true(Guise.knows(w, searcher))
+	w.act(_cast([Cards.FOX, Cards.WATER, Cards.WOOD]))
+	assert_eq(Guise.worn(w, w.player()), [Guise.SHADOW, Guise.CLOAK])
+	assert_true(Hat.hidden(w, w.player(), searcher.pos))
 
 
 func test_a_forecast_of_each_equals_the_round() -> void:

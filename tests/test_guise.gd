@@ -1,9 +1,10 @@
 extends GutTest
-## 둔갑: 목+토 cast on Miho gives her the form of the last creature of heaven
+## 둔갑: 목+토+목 cast on Miho gives her the form of the last creature of heaven
 ## that fell, and a creature that is not hunting her does not know her (Guise).
 
 const WOOD := Cards.WOOD
 const EARTH := Cards.EARTH
+const GUISE := [WOOD, EARTH, WOOD]
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
 const WAIT := {t = &"wait"}
@@ -57,12 +58,14 @@ func _lit(w: World) -> void:
 
 func test_the_guise_needs_a_creature_felled_first() -> void:
 	var w := _world(&"")
-	assert_false(w.can(_self([WOOD, EARTH])))
-	assert_eq(Guise.why(w.player(), Spell.make([WOOD, EARTH])), Guise.NO_PREY)
+	assert_false(w.can(_self(GUISE)))
+	assert_eq(Guise.why(w.player(), Spell.make(GUISE)), Guise.NO_PREY)
 	w.player().prey = &"bulgae"
-	assert_true(w.can(_self([WOOD, EARTH])))
-	assert_true(w.can(_self([EARTH, WOOD, WOOD])), "more wood, any order")
+	assert_true(w.can(_self(GUISE)))
+	assert_true(w.can(_self([EARTH, WOOD, WOOD])), "any order")
+	assert_false(w.can(_self([WOOD, EARTH])), "two cards are no guise")
 	assert_false(w.can(_self([WOOD, EARTH, EARTH])), "more earth is no guise")
+	assert_false(w.can(_self([WOOD, EARTH, WOOD, WOOD])), "more wood is no guise")
 
 
 func test_a_creature_felled_is_the_form_the_next_guise_takes() -> void:
@@ -74,28 +77,18 @@ func test_a_creature_felled_is_the_form_the_next_guise_takes() -> void:
 	assert_eq(w.player().prey, &"dokkaebi")
 
 
-func test_the_guise_lasts_rounds_and_two_more_for_every_wood() -> void:
+func test_the_guise_gives_her_the_form_for_three_tails() -> void:
 	var w := _world()
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	var me := w.player()
-	assert_eq([me.guise, me.form], [Guise.ROUNDS - 1, &"dokkaebi"])
-	assert_eq(w.tails, 3)
+	assert_eq([me.guise, me.form], [true, &"dokkaebi"])
+	assert_eq(w.tails, 2)
 	assert_eq(Guise.looks(me), &"dokkaebi", "the map draws her as it")
-	for i in Guise.ROUNDS - 2:
-		w.act(WAIT)
-	assert_eq(me.guise, 1, "still in guise in its last round")
-	var events := w.act(WAIT)
-	assert_eq(me.guise, 0)
-	assert_eq(Guise.looks(me), &"miho")
-	assert_eq(events.filter(func(e): return e.t == &"unmask" and e.why == &"time").size(), 1)
-	var more := _world()
-	more.act(_self([WOOD, EARTH, WOOD]))
-	assert_eq(more.player().guise, Guise.ROUNDS + Guise.PER_WOOD - 1)
 
 
 func test_the_guise_is_silent() -> void:
 	var w := _world()
-	var events := w.act(_self([WOOD, EARTH]))
+	var events := w.act(_self(GUISE))
 	assert_eq(events.filter(func(e): return e.t == &"noise").size(), 0)
 
 
@@ -103,7 +96,7 @@ func test_a_creature_that_is_not_hunting_does_not_know_her() -> void:
 	var w := _world()
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	assert_true(w.sees(searcher, ME), "it sees her tile")
 	assert_false(Guise.knows(w, searcher))
 	assert_ne(searcher.alert, Actor.HUNT)
@@ -124,7 +117,7 @@ func test_a_hunter_is_not_fooled() -> void:
 	var w := _world()
 	_lit(w)
 	var hunter := _foe(w, ME + Vector2i(4, 0), Actor.HUNT)
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	assert_true(Guise.knows(w, hunter))
 	assert_true(hunter.sees_me)
 	assert_false(w.caught_unawares(hunter))
@@ -134,30 +127,30 @@ func test_two_rounds_next_to_a_creature_end_the_guise() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i(2, 0))
 	foe.stunned = 99
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	w.act({t = &"move", dir = E})
-	assert_gt(w.player().guise, 0, "one round beside it")
+	assert_true(w.player().guise, "one round beside it")
 	w.act({t = &"move", dir = -E})
 	w.act({t = &"move", dir = E})
-	assert_gt(w.player().guise, 0, "stepping away starts the count again")
+	assert_true(w.player().guise, "stepping away starts the count again")
 	var events := w.act(WAIT)
-	assert_eq(w.player().guise, 0)
+	assert_false(w.player().guise)
 	assert_eq(events.filter(func(e): return e.t == &"unmask" and e.why == &"beside").size(), 1)
 
 
 func test_casting_a_spell_ends_the_guise() -> void:
 	var w := _world()
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	var events := w.act({t = &"cast", spells = [{cards = [Cards.FOX], dir = E}]})
-	assert_eq(w.player().guise, 0)
+	assert_false(w.player().guise)
 	assert_eq(events.filter(func(e): return e.t == &"unmask" and e.why == &"cast").size(), 1)
 
 
 func test_harm_ends_the_guise() -> void:
 	var w := _world()
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	w.hurt(w.player(), 1)
-	assert_eq(w.player().guise, 0)
+	assert_false(w.player().guise)
 	assert_eq(w.events.back().t, &"unmask")
 	assert_eq(w.events.back().why, &"hurt")
 
@@ -166,8 +159,8 @@ func test_the_forecast_casts_the_guise_the_round_does() -> void:
 	var w := _world()
 	_lit(w)
 	_foe(w, ME + Vector2i(4, 0))
-	var f := Forecast.of(w, _self([WOOD, EARTH, WOOD]))
-	w.act(_self([WOOD, EARTH, WOOD]))
+	var f := Forecast.of(w, _self(GUISE))
+	w.act(_self(GUISE))
 	var told := f.after.player()
 	var me := w.player()
 	assert_eq([told.guise, told.form, told.beside], [me.guise, me.form, me.beside])
@@ -177,7 +170,7 @@ func test_the_forecast_casts_the_guise_the_round_does() -> void:
 func test_the_log_tells_the_guise_and_its_end() -> void:
 	var w := _world()
 	var before := w.clone()
-	var lines := Messages.of(before, w, w.act(_self([WOOD, EARTH]))).map(Messages.plain)
+	var lines := Messages.of(before, w, w.act(_self(GUISE))).map(Messages.plain)
 	assert_has(lines, "도깨비의 모습으로 둔갑했다")
 	before = w.clone()
 	var cast := {t = &"cast", spells = [{cards = [Cards.FOX], dir = E}]}
@@ -194,21 +187,22 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 	var no_wood := _world()
 	no_wood.cards.erase(WOOD)
 	assert_false(Info.plain(Info.creature(no_wood, no_wood.player())).contains("둔갑할"))
-	w.act(_self([WOOD, EARTH]))
+	w.act(_self(GUISE))
 	var mine := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(mine, "둔갑: 도깨비\n  남은 시간: %d초" % (Guise.ROUNDS - 1))
+	assert_string_contains(mine, "둔갑: 도깨비")
+	assert_false(mine.contains("남은 시간"))
 	assert_string_contains(mine, "적 옆: 0/%d초" % Guise.BESIDE)
 	var its := Info.plain(Info.creature(w, searcher))
 	assert_string_contains(its, "둔갑한 당신을 알아볼 수 없다")
 	assert_false(its.contains("당신을 볼 수 있다"))
 	var seen := Observation.text(w)
-	assert_string_contains(seen, "in guise as 도깨비 for %d rounds" % (Guise.ROUNDS - 1))
+	assert_string_contains(seen, "in guise as 도깨비")
 	assert_string_contains(seen, "sees Miho but not through her guise")
 
 
 func test_the_spell_info_tells_what_the_guise_does() -> void:
-	var text := Info.plain(SpellInfo.spell(Spell.make([WOOD, EARTH, WOOD])))
-	for part in ["둔갑", "%d초" % (Guise.ROUNDS + Guise.PER_WOOD), "해제: 적 옆에서 %d초" % Guise.BESIDE]:
+	var text := Info.plain(SpellInfo.spell(Spell.make(GUISE)))
+	for part in ["둔갑", "풀림: 적 옆에서 %d초" % Guise.BESIDE]:
 		assert_string_contains(text, part)
 	assert_has(Codex.entries(2).map(func(e): return e.name), Guise.NAME[Guise.GUISE])
 
@@ -235,8 +229,7 @@ func _press(m: Node, key: String) -> void:
 
 func test_comma_with_no_creature_felled_says_so_and_keeps_the_turn() -> void:
 	var m := _main()
-	_press(m, "5")
-	_press(m, "7")
+	m.picked.assign(GUISE)
 	var round_no: int = m.world.round_no
 	_press(m, "Comma")
 	assert_eq(m.world.round_no, round_no)

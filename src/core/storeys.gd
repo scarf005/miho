@@ -4,8 +4,8 @@ extends RefCounted
 ## the tiles, the creatures, the plates and hidden doors, fire, gas, the event
 ## rooms, what she knew of the map and the storey's clock. Coming back by the
 ## stairs or by a fall finds the storey so; nothing happens on a storey she is
-## not on. Projectiles in flight and scent are not kept. A kept storey is never
-## changed, so World.clone shares them.
+## not on. Projectiles in flight and scent are not kept, and her 그림자 rides on
+## with her. A kept storey is never changed, so World.clone shares them.
 
 ## The World fields that belong to the storey Miho is on, but its creatures.
 const FIELDS: Array[String] = [
@@ -44,16 +44,33 @@ static func leave(w: World) -> void:
 
 
 ## Puts Miho at the start of storey `depth`: the one kept there, or a new one
-## the first time. Her projectiles and scent stay behind.
+## the first time. Her scent and her projectiles but her 그림자 stay behind.
 static func enter(w: World, depth: int) -> void:
 	w.depth = depth
 	w.scent.clear()
 	w.strong.clear()
+	var riding := Guise.shadows(w, w.player())
 	for s in w.shots:
 		s.gone = true
-	if not w.storeys.has(depth):
+	if w.storeys.has(depth):
+		_restore(w, depth)
+	else:
 		FloorGen.build(w)
-		return
+	w.shots.assign(riding)
+	for s in riding:
+		s.gone = false
+	carry(w)
+
+
+## Her 그림자 stands where she stands.
+static func carry(w: World) -> void:
+	for s in Guise.shadows(w, w.player()):
+		s.pos = w.player().pos
+	w._changed()
+
+
+## Puts back the storey kept at `depth`, with Miho at its start.
+static func _restore(w: World, depth: int) -> void:
 	var kept: Dictionary = w.storeys[depth]
 	w.storeys.erase(depth)
 	for f in FIELDS:

@@ -4,7 +4,7 @@ extends Node
 ## with claws. 1-8 put talismans in the queue (Spell); with a queue a direction
 ## hurls the spell (or leaps that way), and Shift with a direction holds it so
 ## several spells leave in one turn; , casts it on Miho (Guise), as does a click
-## on her. Space, Enter or . waits, or with a queue
+## on her; g or a click on her with no queue drops a buff. Space, Enter or . waits, or with a queue
 ## hurls it at the cursor (or casts what is held). Picking from the keyboard puts the cursor on the
 ## nearest creature in sight, and Tab moves it to the next. QWEASD fill the
 ## queue with a saved spell, F with the last spell hurled. Esc clears the queue
@@ -19,8 +19,7 @@ extends Node
 ## exploring and travel walk around; again it makes the zone one tile, and again removes it; 1-7 on
 ## a zone's centre set its radius.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
-## anywhere to hurl that way; click a talisman to queue it; right-click clears. Click a word with a
-## 도감 entry to open it.
+## anywhere to hurl; click a talisman to queue it or a 도감 word to open it; right-click clears.
 ## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
 ## into sight (StepGuard). Erasing the run asks first as well. The run is saved after every round
 ## (SaveGame) and the title continues it; a run that ends leaves no save.
@@ -402,6 +401,8 @@ func _do(action: StringName, shift: bool) -> void:
 		_journey(_resting, "꼬리가 이미 다 자랐다")
 	elif action == &"close":
 		_shut()
+	elif action == &"dispel":
+		Menu.dispel(self)
 	elif action == &"fight":
 		if picked.is_empty():
 			_fight()
@@ -445,12 +446,14 @@ func _eats_move() -> bool:
 	return eat
 
 
-## What a left click on `tile` does: on Miho's own, cast the talismans picked on
-## her, or nothing (a stray click must not pass the turn); hurl towards another
-## with talismans picked, step to a neighbour, or walk to a farther tile.
+## What a left click on `tile` does: on Miho's own, cast the talismans picked on her, or
+## with none list her buffs to drop (a stray click must not pass the turn); hurl towards
+## another with talismans picked, step to a neighbour, or walk to a farther tile.
 func _use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
 	if tile == me and picked.is_empty():
+		if staged.is_empty() and not Guise.worn(world, world.player()).is_empty():
+			_open(&"dispel")
 		return
 	if not picked.is_empty():
 		_direction(Grid.nearest_dir(tile - me), hold)
@@ -883,6 +886,7 @@ func _open(kind: StringName) -> void:
 	menu.seed_value = run_seed
 	menu.debug.world = world
 	menu.title = state == &"title"
+	menu.buffs = Guise.worn(world, world.player())
 	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.panel = menu.panel()
@@ -920,6 +924,10 @@ func _panel_input(event: InputEvent) -> void:
 		&"restart":
 			_close()
 			_restart()
+			return
+		&"dispel":
+			_close()
+			_act({t = &"dispel", kind = menu.buffs[menu.selected]})
 			return
 		&"ask":
 			sfx.play(&"warn")

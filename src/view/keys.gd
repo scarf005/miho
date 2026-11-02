@@ -29,7 +29,7 @@ const SHOWN := {
 	"Shift+Period": ">",
 	"Shift+Slash": "?",
 }
-## action -> [name, default keys]
+## action -> [name, default keys].
 const ACTIONS := {
 	&"move_n": ["위로", ["Up", "Kp 8", "K"]],
 	&"move_ne": ["오른쪽 위로", ["Kp 9", "U"]],
@@ -42,6 +42,7 @@ const ACTIONS := {
 	&"wait": ["기다리기", ["Period", "Kp 5", "Kp Period"]],
 	&"confirm": ["던지기", ["Enter", "Kp Enter", "Space"]],
 	&"self": ["스스로에게 걸기", ["Comma"]],
+	&"dispel": ["주문 해제", ["G"]],
 	&"pick_1": ["부적 1", ["1"]],
 	&"pick_2": ["부적 2", ["2"]],
 	&"pick_3": ["부적 3", ["3"]],

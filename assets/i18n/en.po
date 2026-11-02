@@ -1332,8 +1332,56 @@ msgstr "Foxfire let out a {0}"
 msgid "{0}의 모습으로 둔갑했다"
 msgstr "Disguised as {0}"
 
-msgid "둔갑이 풀렸다"
-msgstr "Disguise wore off"
+msgid "{0}이/가 풀렸다"
+msgstr "Your {0} ended"
+
+msgid "{0}이/가 사라졌다"
+msgstr "Your {0} faded"
+
+msgid "풀 수 있는 주문이 없다"
+msgstr "No spell to drop"
+
+msgid "주문 해제"
+msgstr "Drop a spell"
+
+msgid "당신을 왼쪽 클릭"
+msgstr "Left click yourself"
+
+msgid " 붙음"
+msgstr " clinging"
+
+msgid "속지 않는 적: 냄새 추적"
+msgstr "Not fooled: tracks scent"
+
+msgid "속지 않는 적"
+msgstr "Not fooled"
+
+msgid "%s 면역인 적"
+msgstr "Immune to %s"
+
+msgid "%s 면역인 적: +%d"
+msgstr "Immune to %s: +%d"
+
+msgid "쫓아오는 적: 냄새 추적"
+msgstr "Follows you: tracks scent"
+
+msgid "쫓아오는 적"
+msgstr "Follows you"
+
+msgid "도깨비불을 쏘는 적: %s, %s"
+msgstr "Shoots a wisp: %s, %s"
+
+msgid "도깨비불을 쏘는 적"
+msgstr "Shoots a wisp"
+
+msgid "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
+msgstr "Lost you in cloak: shoots a wisp at a suspected tile"
+
+msgid "은신한 당신을 추격할 때: 냄새부터 따라감"
+msgstr "Hunting you in cloak: follows scent first"
+
+msgid "둔갑: 속지 않음"
+msgstr "Disguise: not fooled"
 
 msgid "문을 열었다"
 msgstr "Opened the door"
@@ -1541,9 +1589,6 @@ msgstr "%d s"
 
 msgid "%s 한 장마다"
 msgstr "Per %s talisman"
-
-msgid "+%d초"
-msgstr "+%d s"
 
 msgid "추격 중이 아닌 적"
 msgstr "Enemies not chasing"
@@ -2023,9 +2068,6 @@ msgstr "%s, creatures"
 msgid "%s: 맨 앞, 또는 %s"
 msgstr "%s: at the front, or %s"
 
-msgid "%s마다: +%d초"
-msgstr "Per %s: +%d s"
-
 msgid "%s에 쓰러졌다"
 msgstr "Fell to %s"
 
@@ -2101,14 +2143,8 @@ msgstr "{0} grew"
 msgid "{0}이/가 불빛에 사라졌다"
 msgstr "{0} vanished in the light"
 
-msgid "{0}이/가 사라졌다"
-msgstr "{0} vanished"
-
 msgid "{0}이/가 잠들었다"
 msgstr "{0} fell asleep"
-
-msgid "{0}이/가 풀렸다"
-msgstr "{0} wore off"
 
 msgid "{0}했다"
 msgstr "Used {0}"
@@ -2323,9 +2359,6 @@ msgstr "Menu"
 msgid "면역"
 msgstr "Immune"
 
-msgid "모든 적"
-msgstr "All enemies"
-
 msgid "모으던 주문: 취소"
 msgstr "Charging spell: cancelled"
 
@@ -2496,9 +2529,6 @@ msgstr "Salt"
 
 msgid "속는 적"
 msgstr "Fooled enemies"
-
-msgid "속는 적: 모든 적"
-msgstr "Fooled enemies: all enemies"
 
 msgid "속는 적: 추격 중이 아닌 적"
 msgstr "Fooled enemies: enemies not chasing"
@@ -2839,7 +2869,7 @@ msgstr "One"
 msgid "한 번에 부술 수 있다"
 msgstr "Can be broken at once"
 
-msgid "해제"
+msgid "풀림"
 msgstr "Ends"
 
 msgid "허수아비"

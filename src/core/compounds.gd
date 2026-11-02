@@ -48,7 +48,6 @@ extends RefCounted
 ## 4단, of four elements:
 ## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
 ## where it relights every dark lantern the caster sees.
-## 은신 is cast on Miho, not sprayed: she wears the hat of 감투 도깨비 (Guise).
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
 ## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs

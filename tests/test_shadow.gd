@@ -1,9 +1,11 @@
 extends GutTest
 ## 스스로에게 걸기 and 그림자: a spell cast with no direction goes on Miho, and
-## 여 with 수 lays a dark wisp on her that darkens the tiles round her (Guise).
+## 여, 수 and 목 lay a dark wisp on her that darkens the tiles round her (Guise).
 
 const FOX := Cards.FOX
 const WATER := Cards.WATER
+const SHADOW := [FOX, WATER, Cards.WOOD]
+const WIDE := [FOX, WATER, Cards.WOOD, WATER]
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
 const WAIT := {t = &"wait"}
@@ -62,49 +64,57 @@ func test_every_recipe_named_in_the_refusal_goes_on_miho() -> void:
 
 func test_only_the_shadow_and_the_guise_go_on_miho() -> void:
 	var w := _world()
-	assert_true(w.can(_self([FOX, WATER])))
-	assert_true(w.can(_self([WATER, FOX, WATER])), "more water, any order")
+	assert_true(w.can(_self(SHADOW)))
+	assert_true(w.can(_self([WATER, FOX, Cards.WOOD, WATER])), "more water, any order")
 	for cards in [
-		[FOX], [Cards.ORB], [FOX, FOX, WATER], [FOX, WATER, Cards.WOOD, Cards.FIRE], [WATER]
+		[FOX],
+		[Cards.ORB],
+		[FOX, WATER],
+		[FOX, FOX, WATER, Cards.WOOD],
+		[FOX, WATER, Cards.WOOD, Cards.WOOD],
 	]:
 		assert_false(w.can(_self(cards)), str(cards))
 		assert_eq(Guise.why(w.player(), Spell.make(cards)), Guise.only())
 	var two := {
 		t = &"cast",
-		spells = [{cards = [FOX, WATER], dir = Vector2i.ZERO}, {cards = [FOX], dir = Vector2i.ZERO}]
+		spells = [{cards = SHADOW, dir = Vector2i.ZERO}, {cards = [FOX], dir = Vector2i.ZERO}]
 	}
 	assert_false(w.can(two), "one spell on herself a round")
 
 
-func test_the_shadow_rides_miho_for_wisp_life_rounds_and_darkens_her_tile() -> void:
+func test_the_shadow_rides_miho_and_darkens_her_tile() -> void:
 	var w := _world()
 	w.set_tile(ME + Vector2i(3, 0), World.LANTERN)
 	assert_true(w.lit(ME), "the lantern lights her")
-	w.act(_self([FOX, WATER]))
+	w.act(_self(SHADOW))
 	var s := _shadow(w)
 	assert_not_null(s)
 	assert_eq(s.spell.title(), "그림자")
-	assert_eq(s.life, Spell.WISP_LIFE - 1, "one round has passed")
 	assert_false(w.lit(ME), "the shadow puts her in the dark")
-	assert_eq(w.tails, 3, "two tails")
+	assert_eq(w.tails, 2, "three tails")
 	w.act({t = &"move", dir = Vector2i.UP})
 	assert_eq(_shadow(w).pos, ME + Vector2i.UP, "it goes where she goes")
-	for i in Spell.WISP_LIFE - 3:
-		w.act(WAIT)
-	assert_not_null(_shadow(w), "still on her in its last round")
-	w.act(WAIT)
-	assert_null(_shadow(w), "gone after WISP_LIFE rounds")
+
+
+func test_casting_the_shadow_again_replaces_it() -> void:
+	var w := _world()
+	w.act(_self(SHADOW))
+	w.tails = 5
+	w.act(_self(WIDE))
+	assert_eq(Guise.shadows(w, w.player()).size(), 1)
+	assert_eq(_shadow(w).spell.light(Actor.FOX).radius, 4)
 
 
 func test_each_water_past_the_first_darkens_one_tile_farther() -> void:
-	assert_eq(Spell.make([FOX, WATER]).light(Actor.FOX).radius, 3)
-	assert_eq(Spell.make([FOX, WATER, WATER]).light(Actor.FOX).radius, 4)
-	assert_eq(Spell.make([FOX, WATER, WATER, WATER]).light(Actor.FOX).radius, 5)
+	var cards := [FOX, Cards.WOOD]
+	for radius in [3, 4, 5]:
+		cards = cards + [WATER]
+		assert_eq(Guise.dark(Spell.make(cards)).light(Actor.FOX).radius, radius)
 
 
 func test_the_shadow_is_silent() -> void:
 	var w := _world()
-	var events := w.act(_self([FOX, WATER]))
+	var events := w.act(_self(SHADOW))
 	assert_eq(events.filter(func(e): return e.t == &"noise").size(), 0)
 
 
@@ -116,7 +126,7 @@ func test_a_creature_still_sees_her_from_the_next_tile_but_not_from_afar() -> vo
 	far.alert = Actor.SEARCH
 	near.alert = Actor.SEARCH
 	assert_true(w.sees(far, ME), "lit, she is seen from afar")
-	Guise.cast(w, w.player(), Spell.make([FOX, WATER]), Vector2i.ZERO)
+	Guise.cast(w, w.player(), Spell.make(SHADOW), Vector2i.ZERO)
 	assert_false(w.sees(far, ME))
 	assert_true(w.sees(near, ME))
 
@@ -124,7 +134,7 @@ func test_a_creature_still_sees_her_from_the_next_tile_but_not_from_afar() -> vo
 func test_a_fire_lit_in_the_dark_ends_the_shadow() -> void:
 	var w := _world()
 	w.set_tile(ME + Vector2i(1, 0), World.GRASS)
-	w.act(_self([FOX, WATER]))
+	w.act(_self(SHADOW))
 	var id := _shadow(w).id
 	var before := w.clone()
 	var events := w.act({t = &"cast", spells = [{cards = [Cards.FIRE], dir = E}]})
@@ -142,7 +152,7 @@ func test_a_lantern_lit_in_the_dark_ends_it_and_one_lit_beyond_does_not() -> voi
 		var stoker := _foe(w, Vector2i(x, ME.y - 2))
 		stoker.alert = Actor.SEARCH
 		stoker.target = stoker.pos
-		w.act(_self([FOX, WATER]))
+		w.act(_self(SHADOW))
 		var lit := w.events.filter(func(e): return e.t == &"relight").size() > 0
 		assert_true(lit, "the lantern was lit")
 		assert_eq(_shadow(w) == null, x == ME.x + 1, "lantern at x %d" % (x + 1))
@@ -152,8 +162,8 @@ func test_the_forecast_lays_the_shadow_the_round_does() -> void:
 	var w := _world()
 	w.set_tile(ME + Vector2i(3, 0), World.LANTERN)
 	_foe(w, ME + Vector2i(6, 0)).alert = Actor.SEARCH
-	var f := Forecast.of(w, _self([FOX, WATER, WATER]))
-	w.act(_self([FOX, WATER, WATER]))
+	var f := Forecast.of(w, _self(WIDE))
+	w.act(_self(WIDE))
 	var told := _shadow(f.after)
 	assert_not_null(told)
 	assert_eq([told.pos, told.life, told.host], [_shadow(w).pos, _shadow(w).life, _shadow(w).host])
@@ -164,15 +174,16 @@ func test_the_forecast_lays_the_shadow_the_round_does() -> void:
 func test_the_log_and_the_hover_tell_the_shadow() -> void:
 	var w := _world()
 	var before := w.clone()
-	var lines := Messages.of(before, w, w.act(_self([FOX, WATER]))).map(Messages.plain)
+	var lines := Messages.of(before, w, w.act(_self(SHADOW))).map(Messages.plain)
 	assert_has(lines, "그림자가 붙었다")
 	var text := Info.plain(Info.creature(w, w.player()))
-	assert_string_contains(text, "그림자 붙음: %d초" % (Spell.WISP_LIFE - 1))
+	assert_string_contains(text, "그림자 붙음")
+	assert_false(text.contains("그림자 붙음:"), "no time left to tell")
 
 
 func test_the_spell_info_tells_what_the_shadow_does_on_herself() -> void:
-	var text := Info.plain(SpellInfo.spell(Spell.make([FOX, WATER, WATER])))
-	for part in ["자신에게", "그림자", "%d초" % Spell.WISP_LIFE, "둘레 4칸", "불", "등불"]:
+	var text := Info.plain(SpellInfo.spell(Spell.make(WIDE)))
+	for part in ["자신에게", "그림자", "둘레 4칸", "불", "등불"]:
 		assert_string_contains(text, part)
 
 
@@ -203,8 +214,7 @@ func _press(m: Node, key: String) -> void:
 
 func test_comma_casts_the_queue_on_miho() -> void:
 	var m := _main()
-	_press(m, "1")
-	_press(m, "4")
+	m.picked.assign(SHADOW)
 	_press(m, "Comma")
 	while m.busy:
 		await get_tree().process_frame
@@ -214,8 +224,7 @@ func test_comma_casts_the_queue_on_miho() -> void:
 
 func test_a_click_on_miho_with_a_queue_casts_it_on_her() -> void:
 	var m := _main()
-	_press(m, "1")
-	_press(m, "4")
+	m.picked.assign(SHADOW)
 	m.hover = ME
 	m._use_tile(ME, false)
 	while m.busy:

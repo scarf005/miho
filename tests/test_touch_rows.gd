@@ -40,6 +40,24 @@ func test_the_noise_bar_has_room_beside_the_tails_in_both_orientations() -> void
 		)
 
 
+func test_a_tap_on_her_lists_her_buffs_and_a_tap_on_a_row_drops_that_one() -> void:
+	var m := _main()
+	m.world.cards.assign(Cards.ALL)
+	m.world.tails = 9
+	for kind: StringName in [Guise.TALON, Guise.CLOAK]:
+		m.world.act({t = &"cast", spells = [{cards = Guise.RECIPE[kind], dir = Vector2i.ZERO}]})
+	var round_no: int = m.world.round_no
+	_finger(m, _tile_at(m, m.world.player().pos))
+	assert_eq(m.overlay, &"dispel")
+	assert_eq(m.world.round_no, round_no, "the list takes no round")
+	_finger(m, _rows(m, 1))
+	while m.busy:
+		await get_tree().process_frame
+	assert_eq(m.overlay, &"")
+	assert_eq(Guise.worn(m.world, m.world.player()), [Guise.TALON])
+	assert_eq(m.world.round_no, round_no + 1)
+
+
 func test_a_tap_on_a_creature_of_the_strip_shows_its_info_in_portrait() -> void:
 	var m := _phone(Vector2i(390, 844), [&"dokkaebi"])
 	var card: Rect2 = m.touch.hud._creatures(m.term)[0].rect

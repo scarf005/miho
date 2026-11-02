@@ -44,6 +44,11 @@ const DIRS := {
 	"enum": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
 	"description": "Direction."
 }
+const KINDS := {
+	"type": "string",
+	"enum": ["shadow", "guise", "talon", "cloak"],
+	"description": "dispel: the buff on Miho to drop."
+}
 const SPELLS := {
 	type = "array",
 	description =
@@ -82,19 +87,23 @@ const SPELLS := {
 			% [Spell.WISP_LIFE, Lure.EVERY]
 		)
 		+ (
-			"an alarm heaven searches. dir self casts it on Miho: only fox with water (%s, "
+			"an alarm heaven searches. dir self casts it on Miho: only fox, water and wood (%s, "
 			% Guise.NAME[Guise.SHADOW]
 		)
 		+ (
-			"a dark wisp on her) or wood with earth (%s, the form of the last creature felled, "
+			"a dark wisp on her), wood, earth and wood (%s, the form of the last creature felled, "
 			% Guise.NAME[Guise.GUISE]
 		)
-		+ "which creatures not hunting her do not know) or the 3 and 4 element compounds "
 		+ (
-			"%s (her claws harm more) and %s (a creature knows her only from beside her, hunters "
-			% [Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
+			"which creatures not hunting her do not know), fox, wood and earth (%s: a creature "
+			% Guise.NAME[Guise.CLOAK]
 		)
-		+ "too), which go on her whatever dir. The forecast lists every number. "
+		+ (
+			"knows her only from beside her, hunters too) or the 3 element compound %s (her "
+			% Guise.NAME[Guise.TALON]
+		)
+		+ "claws harm more), which goes on her whatever dir. They last until she drops them "
+		+ "with the action dispel. The forecast lists every number. "
 		+ (
 			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "
 			% [Spell.MAX_SLOTS, COSTS, Spell.MAX_SLOTS, Spell.COST_EXTRA]
@@ -155,10 +164,21 @@ const TOOLS := [
 				{
 					"type": "string",
 					"enum":
-					["move", "close", "wait", "cast", "explore", "rest", "stairs", "travel"],
+					[
+						"move",
+						"close",
+						"wait",
+						"cast",
+						"dispel",
+						"explore",
+						"rest",
+						"stairs",
+						"travel"
+					],
 				},
 				dir = DIRS,
 				spells = SPELLS,
+				kind = KINDS,
 				x = {type = "integer", description = "travel: tile column."},
 				y = {type = "integer", description = "travel: tile row."},
 			},
@@ -187,9 +207,10 @@ const TOOLS := [
 			type = "object",
 			properties =
 			{
-				action = {"type": "string", "enum": ["move", "close", "wait", "cast"]},
+				action = {"type": "string", "enum": ["move", "close", "wait", "cast", "dispel"]},
 				dir = DIRS,
 				spells = SPELLS,
+				kind = KINDS,
 			},
 			required = ["action"],
 		},
@@ -291,8 +312,8 @@ func _look(args: Dictionary) -> Dictionary:
 
 func _forecast(args: Dictionary) -> Dictionary:
 	var action := _action(args)
-	if not action.has("t") or not [&"move", &"close", &"wait", &"cast"].has(action.t):
-		return _fail(action.get("error", "forecast takes move, close, wait or cast."))
+	if not action.has("t") or not [&"move", &"close", &"wait", &"cast", &"dispel"].has(action.t):
+		return _fail(action.get("error", "forecast takes move, close, wait, cast or dispel."))
 	if not world.can(action):
 		return _fail(_refusal(action))
 	var f := Forecast.of(world, action)
@@ -359,6 +380,8 @@ func _action(args: Dictionary) -> Dictionary:
 			)
 		"cast":
 			out = _cast(args.get("spells"))
+		"dispel":
+			out = {t = &"dispel", kind = StringName(str(args.get("kind", "")))}
 		"travel":
 			out = _travel(args.get("x"), args.get("y"))
 	return out

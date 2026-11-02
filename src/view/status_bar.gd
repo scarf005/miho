@@ -33,6 +33,7 @@ static func draw(t: Term) -> void:
 			Lang.t("디버그"),
 			Palette.SOUND
 		)
+	buffs(t, Vector2(t.cols - t._cells(right) - 1.0, row))
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
 		var ready := _castable(t, spell, held)
@@ -82,6 +83,19 @@ static func draw(t: Term) -> void:
 		)
 	t._text(at, name, Palette.TEXT)
 	NoiseMeter.draw(t)
+
+
+## The names of the buffs on Miho, ending at `end`: they have no time to run out, so
+## the row keeps telling them. The debug label takes the place on that row.
+static func buffs(t: Term, end: Vector2) -> void:
+	if not t.debug.is_empty():
+		return
+	var at := end
+	for kind: StringName in Guise.worn(t.world, t.world.player()):
+		var name := Lang.t(Guise.NAME[kind])
+		at.x -= t._cells(name) + 1.0
+		var last: StringName = Spell.make(Guise.RECIPE[kind]).slots.back()
+		t._text(at, name, Palette.card(last))
 
 
 ## Tails the spells held with Shift and the queue spend.

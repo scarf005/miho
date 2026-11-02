@@ -94,7 +94,6 @@ const SLOT := {
 	&"talon": &"thorn",
 	&"palisade": &"thorn",
 	&"beacon": &"flame",
-	&"cloak": &"hiss",
 	&"magpie": &"creak",
 	&"mist": &"jet",
 	&"sinkhole": &"rumble",
@@ -454,6 +453,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask", &"uncloak", &"dry", &"quench", &"thaw", &"sleep":
 			return &"hiss"
+		&"fade":
+			return &"hiss" if e.get("dropped", false) else &""
 		&"stick", &"yelp":
 			return &"foxfire"
 		&"ignite", &"heat", &"relight", &"alight":

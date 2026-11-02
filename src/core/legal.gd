@@ -3,6 +3,21 @@ extends RefCounted
 ## Whether Miho can take an action now (World.can).
 
 
+static func action(w: World, what: Dictionary) -> bool:
+	match what.get("t"):
+		&"wait":
+			return true
+		&"move":
+			return move(w, what.get("dir", Vector2i.ZERO))
+		&"cast":
+			return cast(w, what.get("spells", []))
+		&"close":
+			return close(w, what.get("dir", Vector2i.ZERO))
+		&"dispel":
+			return dispel(w, what.get("kind"))
+	return what.get("t") == &"cheat" and Cheat.can(w, what)
+
+
 ## A step onto a free tile, even one a shot flies through (a closed door slides
 ## open instead), claws at a creature next to Miho, or a knock at a lantern or window.
 static func move(w: World, dir: Vector2i) -> bool:
@@ -48,3 +63,8 @@ static func cast(w: World, spells: Array) -> bool:
 			return false
 		aims[d] = true
 	return cost <= w.tails
+
+
+## A buff on Miho that she drops (Guise.dispel).
+static func dispel(w: World, kind: Variant) -> bool:
+	return w.player().stunned <= 0 and Guise.worn(w, w.player()).has(kind)

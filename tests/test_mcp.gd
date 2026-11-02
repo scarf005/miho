@@ -147,13 +147,27 @@ func test_a_cast_spends_tails_and_a_cast_the_tails_cannot_pay_is_refused() -> vo
 
 func test_a_cast_on_self_lays_the_shadow_and_a_thrown_spell_is_refused_there() -> void:
 	var tools := _game()
-	tools.world.tails = 2
-	tools.world.cards.append(Cards.WATER)
+	tools.world.tails = 3
+	tools.world.cards.append_array([Cards.WATER, Cards.WOOD])
 	var r := _call(tools, "act", {action = "cast", spells = [{cards = ["fox"], dir = "self"}]})
 	assert_true(r.error, "a lone wisp does not go on Miho")
-	r = _call(tools, "act", {action = "cast", spells = [{cards = ["fox", "water"], dir = "self"}]})
+	r = _call(
+		tools, "act", {action = "cast", spells = [{cards = ["fox", "water", "wood"], dir = "self"}]}
+	)
 	assert_false(r.error)
 	assert_true(tools.world.shots.any(func(s): return s.host == tools.world.player().id))
+
+
+func test_dispel_drops_the_buff_named_and_refuses_one_she_does_not_wear() -> void:
+	var tools := _game()
+	tools.world.tails = 3
+	tools.world.cards.append_array([Cards.WOOD, Cards.EARTH])
+	var cards := ["fox", "wood", "earth"]
+	_call(tools, "act", {action = "cast", spells = [{cards = cards, dir = "self"}]})
+	assert_true(tools.world.player().cloak)
+	assert_true(_call(tools, "act", {action = "dispel", kind = "talon"}).error)
+	assert_false(_call(tools, "act", {action = "dispel", kind = "cloak"}).error)
+	assert_false(tools.world.player().cloak)
 
 
 func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:
