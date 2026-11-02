@@ -76,7 +76,7 @@ static func pick(w: World) -> StringName:
 ## The curses that would change something now.
 static func _open(w: World) -> Array[StringName]:
 	var out: Array[StringName] = [BODY]
-	if w.depth < World.FLOORS and w.round_no < arrival(w):
+	if w.depth < World.FLOORS and w.round_no + 1 < arrival(w):
 		out.push_front(REAPER)
 	if not w.curses.has(SIGHT):
 		out.append(SIGHT)

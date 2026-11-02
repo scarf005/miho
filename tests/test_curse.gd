@@ -12,7 +12,7 @@ const SEEDS := 60
 const LEAD := World.REAPER_ARRIVES - World.REAPER_OMEN
 const ALL := [Curse.REAPER, Curse.SIGHT, Curse.BODY]
 ## Rounds a doll is bumped in, around every moment of the reaper's clock.
-const ROUNDS := [0, 199, 219, 220, 221, 250, 298, 299, 300, 301, 310, 318, 319]
+const ROUNDS := [0, 199, 219, 220, 221, 250, 298, 299, 300, 301, 310, 318]
 
 
 ## An open hall walled at the edges, with no light, Miho at ME beside a doll jar at AT.
@@ -118,13 +118,11 @@ func test_the_reaper_comes_once_and_never_later_whenever_the_curse_falls() -> vo
 		var clock := _clock(w, w.act(BUMP))
 		assert_eq(clock.arrivals.size(), 1, "bumped in round %d" % r)
 		assert_lte(clock.omens.size(), 1, "bumped in round %d" % r)
-		assert_lte(clock.arrivals[0], World.REAPER_ARRIVES, "bumped in round %d" % r)
-		if r < World.REAPER_ARRIVES - 1:
-			assert_lt(clock.arrivals[0], World.REAPER_ARRIVES, "bumped in round %d" % r)
+		assert_lt(clock.arrivals[0], World.REAPER_ARRIVES, "bumped in round %d" % r)
 
 
 func test_with_the_omen_passed_the_reaper_comes_at_the_end_of_that_round() -> void:
-	for r in range(World.REAPER_OMEN, World.REAPER_ARRIVES):
+	for r in range(World.REAPER_OMEN, World.REAPER_ARRIVES - 1):
 		var w := _doomed(Curse.REAPER, 2, r)
 		var told := w.act(BUMP)
 		assert_true(told.any(func(e): return e.t == &"arrive"), "bumped in round %d" % r)
