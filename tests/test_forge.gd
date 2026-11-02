@@ -265,3 +265,31 @@ func test_a_creature_that_leaps_into_a_wall_does_not_call_its_side() -> void:
 	Leap.cast(w, leaper, Spell.make(Cards.recipe(Cards.VAULT)), E)
 	assert_eq(leaper.pos, Vector2i(Grid.W - 2, y))
 	assert_eq(sleeper.alert, Actor.REST, "no search for its own crash")
+
+
+func test_what_stands_round_her_is_cast_on_her_tile_too() -> void:
+	for cards: Array in [FURNACE, Cards.recipe(&"beacon")]:
+		var w := _world()
+		assert_eq(Guise.why(w.player(), Spell.make(cards)), "", str(cards))
+		assert_true(w.can(_cast(cards, Vector2i.ZERO)), str(cards))
+		var tails := w.tails
+		w.act(_cast(cards, Vector2i.ZERO))
+		assert_lt(w.tails, tails, str(cards))
+		assert_true(Guise.shadows(w, w.player()).is_empty(), "no dark wisp rides her")
+	var w := _world()
+	w.act(_cast(FURNACE, Vector2i.ZERO))
+	assert_not_null(_furnace(w))
+
+
+func test_a_furnace_stands_where_she_can_see_it() -> void:
+	for n in 8:
+		var w := _world()
+		w.rng.seed = n + 1
+		for y in range(ME.y - 3, ME.y + 4):
+			if y != ME.y + 1:
+				w.tiles[Grid.index(ME + Vector2i(1, y - ME.y))] = World.WALL
+		w.sense()
+		w.act(_cast(FURNACE))
+		var f := _furnace(w)
+		assert_not_null(f)
+		assert_true(w.sees(w.player(), f.pos), str(f.pos))
