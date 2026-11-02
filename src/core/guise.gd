@@ -3,7 +3,7 @@ extends RefCounted
 ## 스스로에게 걸기: a spell cast with no direction (`,`, or a click on Miho's own
 ## tile) goes on the caster herself. Only the buffs, which change how she is
 ## seen, what her claws do or her element, take that aim (`kind`); any other is refused with
-## `only`. 쇠발톱 goes on her whatever the direction (ANYWHERE). A buff takes at
+## `only`. 쇠발톱 and 사령술 go on her whatever the direction (ANYWHERE). A buff takes at
 ## least 3 talismans and holds 목. It has no time limit, stays on her from storey
 ## to storey (but RAISE), and she can drop it: one round, no tail (`dispel`).
 ##
@@ -42,10 +42,10 @@ extends RefCounted
 ## and every spell of hers that holds 불 and harms does FLAME_HARM more (`flame_harm`).
 ## The spell is silent. Thrown along a direction it is the 여우불 of 들불, as ever.
 ##
-## 사령술 (RAISE: the 윤회 slot of all five elements, 목 among them): the dead she sees rise
-## as allies (Raise). The one buff with a time limit: it ends when she goes to another
-## storey, by any way (Storeys.enter). The spell is silent. Thrown along a direction it
-## is 윤회, as ever.
+## 사령술 (RAISE, a set of 여, 토, 금, 수 and 목: Cards.SETS): the dead she sees rise as
+## allies (Raise). The one buff with a time limit: it ends when she goes to another
+## storey, by any way (Storeys.enter). The spell is silent and goes on her whatever the
+## direction (ANYWHERE).
 
 const SHADOW := &"shadow"
 const GUISE := &"guise"
@@ -59,7 +59,7 @@ const NAME := {
 	TALON: Cards.NAME[TALON],
 	CLOAK: "은신",
 	FLAME: "불여우",
-	RAISE: "사령술",
+	RAISE: Cards.NAME[RAISE],
 }
 ## The talismans that make each, at their weakest.
 const RECIPE := {
@@ -68,7 +68,7 @@ const RECIPE := {
 	TALON: [Cards.FIRE, Cards.WOOD, Cards.METAL],
 	CLOAK: [Cards.FOX, Cards.WOOD, Cards.EARTH],
 	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
-	RAISE: [Cards.EARTH, Cards.METAL, Cards.WATER, Cards.FIRE, Cards.WOOD],
+	RAISE: Cards.SETS[RAISE],
 }
 ## The creature whose elements 불여우 gives her: a 불개, a fire creature that
 ## does nothing more with them.
@@ -76,9 +76,9 @@ const FLAME_KIND := &"bulgae"
 ## What her harming spells that hold 불 do more as 불여우.
 const FLAME_HARM := 1
 ## The spells that go on her whatever the direction they are cast along.
-const ANYWHERE := [TALON]
+const ANYWHERE := [TALON, RAISE]
 ## The spells that take no other slot beside them.
-const ALONE := [TALON, Cards.BUNSIN]
+const ALONE := [TALON, Cards.BUNSIN, RAISE]
 const NO_PREY := "아직 처치한 적이 없다"
 const MIXED := "다른 부적과 섞을 수 없는 주문이다"
 const BESIDE := 2
@@ -116,8 +116,6 @@ static func kind(spell: Spell) -> StringName:
 		return &""
 	if spell.slots.size() == 1 and ANYWHERE.has(spell.slots[0]):
 		return spell.slots[0]
-	if spell.slots == [Cards.SAMSARA]:
-		return RAISE
 	if (
 		spell.count(Cards.FOX) == 1
 		and spell.count(&"rain") == 1

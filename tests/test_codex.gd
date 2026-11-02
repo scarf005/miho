@@ -118,7 +118,7 @@ func test_every_compound_is_listed_with_its_parts() -> void:
 		assert_eq(text, _text(SpellInfo.combo(c)), c)
 		var tails := "꼬리: %d" % Spell.price(parts.size())
 		assert_eq(text.count(tails), 1, "one head line: " + text)
-		var second: Array = ["자신에게:"] if Guise.ANYWHERE.has(c) else ["오행:", "모양:", "대상:"]
+		var second: Array = ["자신에게:", "지속"] if Guise.ANYWHERE.has(c) else ["오행:", "모양:", "대상:"]
 		assert_true(
 			text.get_slice("\n", 1).split(" ")[0] in second,
 			"the head line is followed by the shape, the target or the one it goes on"

@@ -10,10 +10,10 @@ extends RefCounted
 ## the 4단 of its ring, if there is one (QUADS), and a 4단 and the last element a
 ## 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a fourth element
 ## only as the last slot (Spell.queue). Cards queue into a compound in some
-## orders only (`recipe`). 분신 (SETS) is made of exactly its four cards in any order.
+## orders only (`recipe`). 분신 and 사령술 (SETS) are made of exactly their cards in any order.
 ## What a spell meets in a creature is its elements (Spell.nature): a lone
 ## element is itself, a pair is both of its elements, a 3단 or more is what
-## NATURE says, and 최면, 도약, 분신, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
+## NATURE says, and 최면, 도약, 분신, 사령술, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
 ## none. 벼락 is no element but ELECTRIC.
 
 const FOX := &"fox"
@@ -28,6 +28,7 @@ const SAMSARA := &"samsara"
 const CONQUEST := &"conquest"
 const DRAGON := &"dragon"
 const BUNSIN := &"bunsin"
+const RAISE := &"raise"
 
 const ALL: Array[StringName] = [FOX, ORB, FIRE, WATER, WOOD, METAL, EARTH]
 const FORMS: Array[StringName] = [FOX, ORB]
@@ -75,9 +76,10 @@ const QUADS := {
 	&"thunder": [FIRE, METAL, WOOD, EARTH],
 	&"stillness": [METAL, WOOD, EARTH, WATER],
 }
-## 4-card compound -> its cards, made in any order: 분신 holds 여 and no ring of elements.
+## Compound -> its cards, made in any order: each holds 여 and no ring of elements.
 const SETS := {
 	BUNSIN: [FOX, EARTH, FIRE, WOOD],
+	RAISE: [FOX, EARTH, METAL, WATER, WOOD],
 }
 ## 5단 compound -> its five elements; `recipe` finds an order of them that makes it.
 const FIVES := {
@@ -126,6 +128,7 @@ const NAME := {
 	&"talon": "쇠발톱",
 	&"palisade": "목책",
 	BUNSIN: "분신",
+	RAISE: "사령술",
 	&"beacon": "봉화",
 	&"magpie": "오작교",
 	&"mist": "안개비",
@@ -162,6 +165,7 @@ const GLYPH := {
 	&"talon": "발",
 	&"palisade": "책",
 	BUNSIN: "분",
+	RAISE: "령",
 	&"beacon": "봉",
 	&"magpie": "작",
 	&"mist": "안",
@@ -244,7 +248,7 @@ static func made_of(slot: StringName) -> Array:
 	)
 
 
-## The 4-card compound that exactly the cards `picked` make, in any order, else empty.
+## The compound that exactly the cards `picked` make, in any order, else empty.
 static func set_of(picked: Array) -> StringName:
 	for c in SETS:
 		var made: Array = SETS[c]

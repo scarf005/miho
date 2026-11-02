@@ -101,6 +101,7 @@ const SHAPE := {
 	&"talon": [AROUND, 0],
 	&"palisade": [ACROSS, 2, 3],
 	Cards.BUNSIN: [AROUND, 0],
+	Cards.RAISE: [AROUND, 0],
 	&"beacon": [BURST, 6, 1],
 	&"magpie": [LINE, 8],
 	&"mist": [AROUND, 4],

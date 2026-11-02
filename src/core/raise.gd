@@ -16,14 +16,12 @@ const STRONG := &"dalgyal"
 const GROUP := &"undead"
 ## The rule as the 도감 tells it (Info.CONDITIONS).
 const TOLD := [
-	"보이는 시체가 아군으로 되살아난다.",
+	"지속 시간: 다음 층까지",
 	[
-		"%s만큼 튼튼한 적은 %s, 더 약한 적은 %s 모습으로 되살아난다.",
-		Bestiary.KINDS[STRONG]["name"],
+		"시야에 보이는 시체를 아군으로 되살린다. 강한 적은 %s으로, 약한 적은 %s로.",
 		Bestiary.KINDS[STRONG]["name"],
 		Bestiary.KINDS[WEAK]["name"]
 	],
-	"층을 옮기면 풀리고, 되살아난 아군은 그 층에 남는다.",
 ]
 
 

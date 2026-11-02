@@ -9,7 +9,8 @@ extends RefCounted
 ## of her when it reaches none) are laid
 ## with the first ground the hall draws (CodexScene.MARKS) that it does something to. A
 ## spell that goes on Miho herself (Guise.ANYWHERE) is cast on her, and she walks up to the
-## creature. A new spell, or a change to a table, changes the example with no edit.
+## creature. A new spell, or a change to a table, changes the example with no edit. A spell
+## whose slot has its own row in CodexScene.TABLE plays that.
 
 ## Rounds the example waits for the shots of a cast to land and an ally it raised to
 ## fight, at most.
@@ -78,6 +79,9 @@ static func reach(w: World, action: Dictionary) -> Dictionary:
 
 
 static func _plan(cards: Array) -> Dictionary:
+	var slots := Spell.make(cards).slots
+	if slots.size() == 1 and CodexScene.TABLE.has(slots[0]):
+		return CodexScene.of(slots[0], cards)
 	var inward := Guise.ANYWHERE.has(Guise.kind(Spell.make(cards)))
 	var lay := {
 		cards = cards,

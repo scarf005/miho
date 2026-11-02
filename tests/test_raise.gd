@@ -1,5 +1,5 @@
 extends GutTest
-## 사령술 (Raise): five elements in the order of 윤회, cast on herself. The dead she sees
+## 사령술 (Raise): a set of five cards apart from 윤회, cast on herself. The dead she sees
 ## rise as allies until she leaves the storey.
 
 const ME := Vector2i(10, 8)

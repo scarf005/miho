@@ -112,11 +112,8 @@ const SPELLS := {
 		)
 		+ "until she drops them "
 		+ "with the action dispel. "
-		+ "dir self with %s, %s, %s, %s, %s " % Guise.RECIPE[Guise.RAISE]
-		+ (
-			"(the 5 element compound %s; hurled it stays that) is %s: a body she sees rises as an "
-			% [Cards.NAME[Cards.SAMSARA], Guise.NAME[Guise.RAISE]]
-		)
+		+ "%s, %s, %s, %s, %s in any order, whatever dir, " % Guise.RECIPE[Guise.RAISE]
+		+ "is %s: a body she sees rises as an " % Guise.NAME[Guise.RAISE]
 		+ (
 			"ally on its tile or next to it, a %s, or a %s from a creature with as much health; "
 			% [Bestiary.KINDS[Raise.WEAK]["name"], Bestiary.KINDS[Raise.STRONG]["name"]]

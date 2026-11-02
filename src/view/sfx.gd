@@ -103,6 +103,7 @@ const SLOT := {
 	&"hypnosis": &"hiss",
 	&"talon": &"thorn",
 	Cards.BUNSIN: &"foxfire",
+	Cards.RAISE: &"card",
 	&"palisade": &"thorn",
 	&"beacon": &"flame",
 	&"magpie": &"creak",

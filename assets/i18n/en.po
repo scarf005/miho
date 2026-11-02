@@ -3025,6 +3025,10 @@ msgctxt "talisman"
 msgid "분"
 msgstr "C"
 
+msgctxt "talisman"
+msgid "령"
+msgstr "N"
+
 msgctxt "creature"
 msgid "분"
 msgstr "C"
@@ -3092,14 +3096,11 @@ msgstr "{0} rose"
 msgid "{0}을/를 썼다"
 msgstr "Used {0}"
 
-msgid "보이는 시체가 아군으로 되살아난다."
-msgstr "A body you see rises as an ally."
+msgid "지속 시간: 다음 층까지"
+msgstr "Lasts: until the next storey"
 
-msgid "%s만큼 튼튼한 적은 %s, 더 약한 적은 %s 모습으로 되살아난다."
-msgstr "A foe as tough as a %s rises as a %s, a weaker one as a %s."
-
-msgid "층을 옮기면 풀리고, 되살아난 아군은 그 층에 남는다."
-msgstr "It ends when you change storeys, and the risen stay behind."
+msgid "시야에 보이는 시체를 아군으로 되살린다. 강한 적은 %s으로, 약한 적은 %s로."
+msgstr "Raises the bodies you see as allies. A strong foe rises as a %s, a weak one as a %s."
 
 msgid "이 층에 남는다."
 msgstr "Stays on this storey."
