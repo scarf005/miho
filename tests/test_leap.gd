@@ -89,7 +89,7 @@ func test_other_three_element_picks_make_their_own_compound_and_no_leap() -> voi
 		assert_eq(Spell.make(cards).slots, _typed(picks[cards]), str(cards))
 
 
-func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_it() -> void:
+func test_the_leap_slot_reaches_three_tiles_and_more_for_every_wood_behind_it() -> void:
 	var one := Spell.make(LEAP)
 	assert_eq(one.shape, Spell.LEAP)
 	assert_eq(one.leap(), 3)
@@ -97,11 +97,11 @@ func test_the_leap_slot_reaches_three_tiles_and_one_more_for_every_wood_behind_i
 	assert_eq(one.title(), "멀리뛰기 3칸")
 	var two := Spell.make(LEAP + [WOOD])
 	assert_eq(two.slots, [VAULT, WOOD] as Array[StringName])
-	assert_eq(two.leap(), 4)
+	assert_eq(two.leap(), 6)
 	assert_eq(two.cost(), 5)
-	assert_eq(two.title(), "멀리뛰기 4칸")
+	assert_eq(two.title(), "멀리뛰기 6칸")
 	assert_null(two.rest(), "the 목 is reach, not roots")
-	assert_eq(Spell.make(LEAP + [WOOD, WOOD]).leap(), 5)
+	assert_eq(Spell.make(LEAP + [WOOD, WOOD]).leap(), 9)
 	var split := Spell.make(LEAP + [WOOD, Cards.EARTH])
 	assert_eq(split.slots, [VAULT, &"rift"] as Array[StringName])
 	assert_eq(split.leap(), 3, "a 목 merged into a compound adds no reach")
@@ -494,3 +494,52 @@ func test_a_swap_never_puts_miho_on_a_pond() -> void:
 	_until_still(w, [Cards.FOX] + LEAP)
 	assert_eq(w.player().pos, ME)
 	assert_eq(foe.pos, Vector2i(6, 8))
+
+
+func _walled(reach_left: int) -> Array:
+	var w := _world()
+	var me := w.player()
+	var wall := me.pos + E * (Spell.make(LEAP).leap() + 1 - reach_left)
+	w.set_tile(wall, World.WALL)
+	return [w, wall]
+
+
+func test_a_leap_that_runs_into_a_wall_harms_the_wall_by_the_tiles_left() -> void:
+	var made := _walled(1)
+	var w: World = made[0]
+	var hp := w.player().hp
+	w.act(_leap(LEAP))
+	assert_eq(w.tile(made[1]), World.WALL_CRACKED, "one tile short: one harm")
+	assert_eq(w.player().hp, hp, "who leapt takes none")
+
+
+func test_two_tiles_left_of_a_leap_break_a_wall() -> void:
+	var made := _walled(2)
+	var w: World = made[0]
+	var hp := w.player().hp
+	w.act(_leap(LEAP))
+	assert_eq(w.tile(made[1]), World.RUBBLE)
+	assert_eq(w.player().hp, hp)
+
+
+func test_a_leap_that_lands_at_its_full_reach_before_a_wall_harms_nothing() -> void:
+	var made := _walled(0)
+	var w: World = made[0]
+	w.act(_leap(LEAP))
+	assert_eq(w.tile(made[1]), World.WALL)
+
+
+func test_a_leap_still_clears_a_creature_unharmed() -> void:
+	var w := _world()
+	var foe := _foe(w, w.player().pos + E)
+	var hp := foe.hp
+	w.act(_leap(LEAP))
+	assert_eq(foe.hp, hp)
+
+
+func test_every_wood_behind_a_leap_adds_three_tiles() -> void:
+	var w := _world()
+	var from := w.player().pos
+	w.tails = 9
+	w.act(_leap(LEAP + [WOOD]))
+	assert_eq(w.player().pos, from + E * 6)
