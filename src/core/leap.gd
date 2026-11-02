@@ -92,7 +92,7 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 	s.spell = s.spell.spent()
 	var trade := a != null and a != me and a.alive()
 	var to := a.pos if trade else s.pos
-	if not trade and not w.vacant(to):
+	if not (w.open_floor(to) if trade else w.vacant(to)):
 		return
 	var from := me.pos
 	var depth := w.depth
