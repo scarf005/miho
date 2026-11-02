@@ -25,6 +25,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Follow the global `korean-humanizer` skill for every Korean string you add or change. A line that passes the rules above can still read wrong. Any string that is a sentence or a description must be what a Korean player would say aloud. Keep the subject and the particles. An ability or a permission ends in `-ㄹ 수 있다`, never a flat `-ㄴ다`. Do not translate an English comment or brief word by word. User corrections:
   - `자신에게는 그림자나 둔갑만 건다` -> `스스로에겐 그림자나 둔갑만 걸 수 있다`
   - `밟으면 위층으로 오른다` -> `위층으로 올라갈 수 있다`
+  - `볼 수 없다` on a creature hover -> `미호를 볼 수 없다`: a bare verb reads as Miho not seeing the creature.
   - `당신을 보면 외친다: 낄낄 6칸` -> `말할 수 있다.`
   - `장승 피해 2` -> `장승이 피해를 2 입었다`
   - `장승 쓰러짐` -> `장승이 쓰러졌다`
