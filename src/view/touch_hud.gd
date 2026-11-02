@@ -331,7 +331,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	var at := _cell(rect.position)
 	t._glyph(at, "@", Palette.KIND[&"miho"])
 	t._pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
-	var right := "%d층 %d초" % [w.depth, w.round_no]
+	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
 	t._text(Vector2(_cell(rect.end).x - t._cells(right), at.y), right, Palette.TEXT)
 	var held: int = StatusBar._held(t)
 	for i in w.max_tails():
@@ -341,7 +341,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 		elif i >= w.tails - held:
 			c = Palette.CARD[Cards.EARTH]
 		t._glyph(at + Vector2(i, 1), "~", c)
-	NoiseMeter.draw(t, Vector2(_cell(rect.end).x - NoiseMeter.WIDTH, at.y + 1))
+	NoiseMeter.draw(t, Vector2(_cell(rect.end).x - NoiseMeter.width(), at.y + 1))
 
 
 func _draw_strip(t: Term) -> void:
@@ -373,7 +373,9 @@ func _draw_saved(t: Term, row: Rect2) -> void:
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
 			t._glyph(
-				at + Vector2(0.5 + k, 0.4), Cards.GLYPH[spell.slots[k]], c if ready else c * 0.4
+				at + Vector2(0.5 + k, 0.4),
+				Lang.t(Cards.GLYPH[spell.slots[k]], "talisman"),
+				c if ready else c * 0.4
 			)
 	var slots := _count(t, &"saved")
 	_more(t, row, first[&"saved"] > 0, first[&"saved"] + chips.size() < slots)
@@ -395,7 +397,11 @@ func _draw_card(t: Term, item: Dictionary) -> void:
 	if queued != null and queued.cards.has(card):
 		t.draw_rect(rect, Palette.CARD[card] * 0.45)
 	_lit(t, item)
-	t._glyph(_cell(rect.get_center()) - Vector2(0.5, 0.5), Cards.GLYPH[card], Palette.CARD[card])
+	t._glyph(
+		_cell(rect.get_center()) - Vector2(0.5, 0.5),
+		Lang.t(Cards.GLYPH[card], "talisman"),
+		Palette.CARD[card]
+	)
 
 
 func _draw_queue(t: Term, item: Dictionary) -> void:
@@ -414,7 +420,7 @@ func _draw_queue(t: Term, item: Dictionary) -> void:
 	if item.n < slots.size():
 		var c := Palette.card(slots[item.n])
 		t.draw_rect(rect, c * 0.35)
-		t._glyph(middle, Cards.GLYPH[slots[item.n]], c)
+		t._glyph(middle, Lang.t(Cards.GLYPH[slots[item.n]], "talisman"), c)
 	else:
 		var more := StatusBar.fits(t, item.n - slots.size() + 1)
 		t._glyph(middle, "·", Palette.TEXT if more else Palette.DIM)
@@ -425,6 +431,6 @@ func _draw_button(t: Term, item: Dictionary) -> void:
 	if item.id == pressed and t._time - pressed_at < FLASH:
 		t.draw_rect(rect, Color(Palette.TEXT, 0.3))
 	_lit(t, item)
-	var label: String = item.label
+	var label: String = Lang.t(item.label, "button")
 	var at := _cell(rect.get_center()) - Vector2(t._cells(label) / 2.0, 0.5)
 	t._text(at, label, Palette.TEXT)

@@ -140,10 +140,15 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 		&"heed":
 			return {at = at, text = "?", color = Palette.ALERT[1], life = 0.9}
 		&"drum":
-			return {at = at, text = "툭" if fact.wet else "둥", color = Palette.SOUND, life = 1.2}
+			return {
+				at = at, text = Lang.t("툭" if fact.wet else "둥"), color = Palette.SOUND, life = 1.2
+			}
 		&"card":
 			return {
-				at = at, text = Cards.GLYPH[fact.card], color = Palette.CARD[fact.card], life = 1.6
+				at = at,
+				text = Lang.t(Cards.GLYPH[fact.card], "talisman"),
+				color = Palette.CARD[fact.card],
+				life = 1.6
 			}
 		&"heal":
 			if fact.get("n", World.HEAL) <= 0:
@@ -155,10 +160,12 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 				life = 0.9
 			}
 		&"noise", &"shout":
-			return {at = at, text = fact.word, color = Palette.SOUND, life = 1.4}
+			return {at = at, text = Lang.t(fact.word), color = Palette.SOUND, life = 1.4}
 		&"find":
 			var plate: Array = Palette.TILES[fact.kind]
 			return {at = at, text = plate[0], color = plate[1], life = 1.6}
 		&"trap":
-			return {at = at, text = Traps.CLICK, color = Palette.TILES[fact.kind][1], life = 1.2}
+			return {
+				at = at, text = Lang.t(Traps.CLICK), color = Palette.TILES[fact.kind][1], life = 1.2
+			}
 	return {}

@@ -862,7 +862,8 @@ func _strike(s: Shot, a: Actor) -> void:
 			at = at,
 			by = s.caster,
 			title = spell.title(),
-			cards = spell.cards
+			cards = spell.cards,
+			spell = spell.tag()
 		}
 	)
 	noise(at, spell.burst_noise(), "쾅", true, s.caster)

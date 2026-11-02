@@ -98,8 +98,7 @@ func step() -> bool:
 	if not world.can(action):
 		return false
 	var before := world.clone()
-	for line in Messages.of(before, world, world.act(action)):
-		messages.add(line, world.round_no)
+	messages.add_round(before, world, world.act(action))
 	played += 1
 	return true
 

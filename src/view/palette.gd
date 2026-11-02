@@ -176,7 +176,7 @@ static func card(slot: StringName) -> Color:
 ## How a spell shows: a leap as Miho where she lands.
 static func shot_glyph(spell: Spell) -> String:
 	if spell.shape == Spell.LEAP:
-		return Bestiary.info(&"miho").glyph
+		return Lang.t(Bestiary.info(&"miho").glyph, "creature")
 	if spell.orb:
 		return "●"
 	return "○" if spell.has(Cards.WATER) else "*"

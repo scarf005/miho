@@ -32,8 +32,6 @@ const WALK_SPEED := 3.0
 ## Message lines shown over the map, and for how many rounds.
 const LOG_ROWS := 3
 const LOG_FADE := 5
-## What the title asks before it erases the run on disk.
-const ERASE := "이어하던 판을 지우고 새로 시작할까?"
 ## Why exploring or resting does not start.
 const WATCHED := {
 	&"explore": "깨어 있는 적이 보여서 탐험할 수 없다",
@@ -145,13 +143,7 @@ func _show_title(asking := false) -> void:
 	pending = SaveGame.load_from(save_path)
 	state = &"title"
 	erasing = asking and pending != null
-	var line := touch.say(
-		"아무 키나 눌러 시작" if pending == null else "Enter 이어하기 · N 새로 시작",
-		"화면을 눌러 시작" if pending == null else ""
-	)
-	if erasing:
-		line = touch.say(ERASE + " Y/N", ERASE)
-	term.banner_lines = ["미호", "천상누각 꼭대기에 사람이 되는 영약이 있다", line]
+	Banner.show(self)
 
 
 ## The title's new run: with a run on disk it asks once, then erases it.
@@ -163,9 +155,21 @@ func _new_game() -> void:
 		_restart()
 
 
+## Writes again the text kept from before a change of language: the banner, the
+## log over the map and the hover.
+func _translated() -> void:
+	if not busy:
+		Banner.show(self)
+	if world != null:
+		_show_log()
+		_refresh()
+
+
 ## Puts the settings into effect.
 func _apply() -> void:
 	menu.settings = settings
+	settings.apply_language()
+	_translated()
 	settings.apply_sound()
 	sfx.set_music(settings.music)
 	term.saved = settings.spells
@@ -271,7 +275,7 @@ func _continue() -> void:
 	busy = true
 	saved.begin()
 	while saved.played < saved.actions.size():
-		term.banner_lines = ["미호", "%d/%d" % [saved.played, saved.actions.size()]]
+		term.banner_lines = [Lang.t("미호"), "%d/%d" % [saved.played, saved.actions.size()]]
 		var until := Time.get_ticks_msec() + REPLAY_BUDGET_MS
 		while saved.played < saved.actions.size() and Time.get_ticks_msec() < until:
 			if not saved.step():
@@ -525,14 +529,15 @@ func _stop_look() -> void:
 
 ## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
 func _add(card: StringName) -> void:
-	var why := ""
+	var why: Variant = null
 	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
 		why = "부적 칸이 가득 찼다"
 	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
 		why = _short(_held() + Spell.price(picked.size() + 1))
 	elif Spell.make(picked + [card]) == null:
-		why = "%s: 맨 앞, 또는 %s" % [Cards.NAME[Cards.VAULT], SpellInfo.behind()]
-	if why != "":
+		why = func():
+			return Lang.t("%s: 맨 앞, 또는 %s") % [Lang.t(Cards.NAME[Cards.VAULT]), SpellInfo.behind()]
+	if why != null:
 		_refuse(why)
 	else:
 		picked.append(card)
@@ -543,14 +548,14 @@ func _add(card: StringName) -> void:
 ## Picks a saved spell's talismans to aim it, if Miho has them and the tails.
 func _recall(key: String) -> void:
 	var spell := Spell.from_key(key) if key != "" else null
-	var why := ""
+	var why: Variant = null
 	if spell == null:
 		why = "저장한 주문이 없다"
 	elif not spell.cards.all(func(c): return world.cards.has(c)):
 		why = "부적이 모자라다"
 	elif spell.cost() + _held() > Cheat.tails(world):
 		why = _short(spell.cost() + _held())
-	if why != "":
+	if why != null:
 		_refuse(why)
 		return
 	picked.assign(spell.cards)
@@ -598,13 +603,14 @@ func _hurl_at_cursor() -> void:
 
 
 ## The refusal when a spell needs more tails than Miho has.
-func _short(need: int) -> String:
-	return "꼬리가 %d개 모자라다" % (need - Cheat.tails(world))
+func _short(need: int) -> Callable:
+	var lack := need - Cheat.tails(world)
+	return func(): return Lang.t("꼬리가 %d개 모자라다") % lack
 
 
 ## Says why a talisman or saved spell cannot be picked, with the warning sound.
-func _refuse(why: String) -> void:
-	_say(why)
+func _refuse(why: Variant) -> void:
+	_say(Guise.shown_only if why is String and why == Guise.only() else why)
 	sfx.play(&"deny")
 	refused = true
 
@@ -711,8 +717,7 @@ func _act(action: Dictionary) -> Array:
 	run.record(action, kills, world.outcome != &"")
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
-	for line in Messages.of(before, world, events):
-		messages.add(line, world.round_no)
+	messages.add_round(before, world, events)
 	_show_log()
 	if action.t == &"cast":
 		last_spell = "+".join(action.spells.back().cards)
@@ -726,9 +731,7 @@ func _act(action: Dictionary) -> Array:
 		reel.clear()
 	if world.outcome != &"":
 		state = &"over"
-		term.banner_lines = Banner.over(world, kills, run_seed)
-		for i in [-1, -2]:
-			term.banner_lines[i] = touch.say(term.banner_lines[i], "")
+		Banner.show(self)
 	busy = false
 	_forecast()
 	return events
@@ -863,8 +866,8 @@ func _copy_seed() -> void:
 	_say("시드를 복사했다")
 
 
-func _say(text: String) -> void:
-	messages.add([[text, Palette.TEXT]], world.round_no)
+func _say(text: Variant) -> void:
+	messages.add_text(text, world.round_no)
 	_show_log()
 
 

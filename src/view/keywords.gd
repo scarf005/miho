@@ -14,15 +14,12 @@ extends RefCounted
 const HARM := ["묶임", "기절", "눈멂"]
 const BOON := [Guise.NAME[Guise.GUISE], Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
 
-static var _words := _table()
-## Finds the words of `terms`, made on first use.
-static var _found: RegEx
-static var _find := RegEx.create_from_string(
-	"(?<![가-힣A-Za-z0-9])(%s)(?![가-힣A-Za-z0-9])" % "|".join(PackedStringArray(_words.keys()))
-)
+## language -> {words: shown word -> colours, find: the RegEx for them, ids: shown
+## term -> its Korean word, found: the RegEx for the terms}, made when first needed.
+static var _tables := {}
 
 
-## word -> [text colour] or [text colour, background colour].
+## The Korean word -> [text colour] or [text colour, background colour].
 static func _table() -> Dictionary:
 	var out := {"인화성": [Palette.FIERCE_TEXT, Palette.FIERCE_BACK], "가연성": [Palette.FLAMMABLE]}
 	for word: String in Status.NAME.values() + HARM:
@@ -32,14 +29,54 @@ static func _table() -> Dictionary:
 	return out
 
 
+## The words and the pattern that finds them in the language shown.
+static func _for() -> Dictionary:
+	var code := Lang.active()
+	if not _tables.has(code):
+		var words := {}
+		var table := _table()
+		for word: String in table:
+			words[_key(Lang.t(word))] = table[word]
+		_tables[code] = {words = words, find = _regex(words.keys())}
+	return _tables[code]
+
+
+## The RegEx that finds the whole words `words`, longest first. English words
+## match in any case.
+static func _regex(words: Array) -> RegEx:
+	var keys := words.duplicate()
+	keys.sort_custom(func(a: String, b: String): return a.length() > b.length())
+	var edge := "[가-힣A-Za-z0-9]"  # i18n: keep
+	var find := "(?<!%s)(%s)(?!%s)" % [edge, "|".join(PackedStringArray(keys)), edge]
+	return RegEx.create_from_string(("" if Lang.active() == &"ko" else "(?i)") + find)
+
+
+## `_for` with the terms of the 도감 as well: each shown term by its Korean word,
+## and the RegEx that finds them. Made on first use.
+static func _terms_for() -> Dictionary:
+	var shown := _for()
+	if not shown.has("ids"):
+		var ids := {}
+		for term: String in terms():
+			ids[_key(Lang.t(term))] = term
+		shown.ids = ids
+		shown.found = _regex(ids.keys())
+	return shown
+
+
+static func _key(word: String) -> String:
+	return word if Lang.active() == &"ko" else word.to_lower()
+
+
 ## `text` as runs of `base` colour with each known word in its own.
 static func runs(text: String, base: Color) -> Array:
 	var out := []
 	var at := 0
-	for m in _find.search_all(text):
+	var shown := _for()
+	for m in shown.find.search_all(text):
 		if m.get_start() > at:
 			out.append([text.substr(at, m.get_start() - at), base])
-		out.append([m.get_string()] + _words[m.get_string()])
+		out.append([m.get_string()] + shown.words[_key(m.get_string())])
 		at = m.get_end()
 	if at < text.length() or out.is_empty():
 		out.append([text.substr(at), base])
@@ -54,8 +91,8 @@ static func paint(line: Array) -> Array:
 		var parts := []
 		if plain:
 			parts = runs(run[0], run[1])
-		elif _words.has(run[0]):
-			parts = [[run[0]] + _words[run[0]]]
+		elif _for().words.has(_key(run[0])):
+			parts = [[run[0]] + _for().words[_key(run[0])]]
 		if parts.is_empty():
 			out.append(run)
 			continue
@@ -129,11 +166,8 @@ static func entry_at(row: Array, x: float, col: float) -> Array:
 			x += Term._cells(c)
 			text += c
 	starts.append(x)
-	if _found == null:
-		_found = RegEx.create_from_string(
-			"(?<![가-힣A-Za-z0-9])(%s)(?![가-힣A-Za-z0-9])" % "|".join(PackedStringArray(terms()))
-		)
-	for m in _found.search_all(text):
+	var shown := _terms_for()
+	for m in shown.found.search_all(text):
 		if col >= starts[m.get_start()] and col < starts[m.get_end()]:
-			return entry(m.get_string())
+			return entry(shown.ids[_key(m.get_string())])
 	return []

@@ -65,5 +65,5 @@ func lines(p: Vector2i, covered: Dictionary) -> Array:
 	if not covered.has(p):
 		return []
 	var radius: Variant = zones.get(p)
-	var text := "위험구역" if radius == null else "위험구역 (반경 %d)" % radius
+	var text := Lang.t("위험구역") if radius == null else Lang.t("위험구역 (반경 %d)") % radius
 	return [[[text, Palette.ZONE]]]

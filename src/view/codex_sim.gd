@@ -25,10 +25,10 @@ var _left := 0.0
 
 
 ## The scale that fits the example on a screen of `room` cells, 0.0 when none does.
-static func scale_for(room: Vector2i) -> float:
+static func scale_for(room: Vector2i, side := Codex.SIDE_X) -> float:
 	for k in SCALES:
 		var high := CodexScene.VIEW.y * k
-		if room.x - beside(k) - Codex.SIDE_X - 1.0 >= LEAST_TEXT and TOP + high + FOOT <= room.y:
+		if room.x - beside(k) - side - 1.0 >= LEAST_TEXT and TOP + high + FOOT <= room.y:
 			return k
 	return 0.0
 

@@ -130,9 +130,9 @@ static func action_of(e: InputEvent) -> StringName:
 ## A short label for a key: printable keys as their character.
 static func label(key: String) -> String:
 	if SHOWN.has(key):
-		return SHOWN[key]
+		return Lang.t(SHOWN[key])
 	if key.begins_with("Kp "):
-		return "키패드 " + label(key.trim_prefix("Kp "))
+		return Lang.t("키패드 ") + label(key.trim_prefix("Kp "))
 	var code := OS.find_keycode_from_string(key)
 	var bare := code & KEY_CODE_MASK
 	if bare > 32 and bare < 127:

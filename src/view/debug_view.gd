@@ -49,7 +49,7 @@ static func draw(t: Term) -> void:
 				var c := Color(Palette.SOUND, 0.22 if edge else 0.05)
 				t.draw_rect(Rect2(t._cell(p) * Term.CELL, Term.CELL), c)
 		if t._shown(s.at):
-			t._small(t._cell(s.at), s.word, Palette.SOUND)
+			t._small(t._cell(s.at), Lang.t(s.word), Palette.SOUND)
 	for g: Dictionary in t.debug.get("goals", []):
 		var c: Color = Palette.ALERT[g.alert]
 		if t._shown(g.from) and t._shown(g.to):
@@ -70,7 +70,7 @@ static func at(w: World, p: Vector2i) -> Array:
 	var lines := Info.terrain(w, p)
 	var stamp := w.scent[Grid.index(p)] if w.scent.size() == w.tiles.size() else 0
 	if stamp > 0:
-		lines.append([["냄새 %d초 전" % (w.round_no + 1 - stamp), Palette.DIM]])
+		lines.append([[Lang.t("냄새 %d초 전") % (w.round_no + 1 - stamp), Palette.DIM]])
 	return lines
 
 
@@ -80,11 +80,13 @@ static func creature(a: Actor) -> Array:
 	var resting := a.alert == Actor.REST
 	var goal := a.home if resting else a.target
 	var color: Color = Palette.ALERT[maxi(a.alert, 1)]
-	var goal_text := "%s (%d, %d) %d칸"
-	goal_text = goal_text % ["쉬는 곳" if resting else "목표", goal.x, goal.y, Grid.cheb(a.pos, goal)]
-	var lines := [[["디버그 ", Palette.DIM], [goal_text, color]]]
+	var goal_text := Lang.t("%s (%d, %d) %d칸")
+	goal_text = (
+		goal_text % [Lang.t("쉬는 곳" if resting else "목표"), goal.x, goal.y, Grid.cheb(a.pos, goal)]
+	)
+	var lines := [[[Lang.t("디버그 "), Palette.DIM], [goal_text, color]]]
 	if not resting:
-		lines.append([["놓친 지 %d/%d초" % [a.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
+		lines.append([[Lang.t("놓친 지 %d/%d초") % [a.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
 	if not a.repertoire().is_empty():
 		lines.append(_clock(a))
 	return lines
@@ -93,13 +95,13 @@ static func creature(a: Actor) -> Array:
 ## The spell clock: the aim and talismans being charged, else the wait left.
 static func _clock(a: Actor) -> Array:
 	if a.intent.is_empty():
-		var text := "%d초 뒤 주술" % a.cooldown if a.cooldown > 0 else "주술 가능"
+		var text := Lang.t("%d초 뒤 주술") % a.cooldown if a.cooldown > 0 else Lang.t("주술 가능")
 		if Bestiary.mana(a.kind) > 0:
-			text = "마력 %d/%d" % [a.mana, Bestiary.mana(a.kind)]
+			text = Lang.t("마력 %d/%d") % [a.mana, Bestiary.mana(a.kind)]
 		return [[text, Palette.TEXT]]
 	var glyphs := func(cards: Array) -> String:
-		return "".join(cards.map(func(c): return Cards.GLYPH[c]))
+		return "".join(cards.map(func(c): return Lang.t(Cards.GLYPH[c], "talisman")))
 	var aimed := a.intent.map(
 		func(plan): return "%s %s" % [Palette.BOLT[plan.dir], glyphs.call(plan.cards)]
 	)
-	return [["조준 " + " ".join(aimed), Palette.HURT]]
+	return [[Lang.t("조준 %s") % " ".join(aimed), Palette.HURT]]

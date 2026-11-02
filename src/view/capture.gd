@@ -27,6 +27,7 @@ extends Node
 ## --depth=n builds the storeys up to n and puts Miho on n, with its tails.
 ## --replay=seconds also saves out-replay.png that long into the first
 ## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
+## --lang=en shows English (Korean otherwise).
 ## Runs start from default settings and keys, and never save them. They keep no
 ## run either, unless --save=path names a file (a title that offers to continue
 ## it takes Enter, not any key, to start).
@@ -59,6 +60,7 @@ static func attach(main: Node) -> void:
 	main.settings = Settings.new()
 	main.settings.path = ""
 	main.settings.zoom = float(args.get("zoom", "0"))
+	main.settings.language = args.get("lang", "ko")
 	Keys.reset()
 	main._apply()
 	var c := Capture.new()

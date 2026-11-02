@@ -51,15 +51,17 @@ func reply(event: InputEventKey, action: StringName) -> StringName:
 ## What is asked before stepping `d`; the keys answer it unless `touch`.
 static func question(w: World, d: Vector2i, touch: bool) -> String:
 	var to := w.player().pos + d
-	var name: String = "불타는 칸" if w.burning.has(to) else Tiles.of(w.tile(to), "name")
-	var text := toward(name) + " 갈까?"
+	var name := Lang.t("불타는 칸" if w.burning.has(to) else Tiles.of(w.tile(to), "name"))
+	var text := Lang.t("%s 갈까?") % toward(name)
 	return text if touch else text + " Y/N"
 
 
-## `word` with 로 after a vowel or ㄹ, else 으로.
+## `word` with 로 after a vowel or ㄹ, else 으로; the word alone in another language.
 static func toward(word: String) -> String:
+	if Lang.active() != &"ko":
+		return word
 	var c := word.unicode_at(word.length() - 1) - 0xAC00
-	return word + ("로" if c % 28 in [0, 8] else "으로")
+	return word + ("로" if c % 28 in [0, 8] else "으로")  # i18n: keep
 
 
 ## Whether a creature is in sight that was not at the last fresh key press.

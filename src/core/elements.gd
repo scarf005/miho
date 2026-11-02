@@ -106,7 +106,8 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			faction = s.faction,
 			by = s.caster,
 			title = s.spell.title(),
-			cards = s.spell.cards
+			cards = s.spell.cards,
+			spell = s.spell.tag()
 		}
 	)
 	for d in Grid.DIRS:
@@ -153,6 +154,7 @@ static func pass_through(w: World, s: Shot, a: Actor) -> bool:
 			by = s.caster,
 			title = title,
 			cards = s.spell.cards,
+			spell = s.spell.tag(),
 			through = true
 		}
 	)
@@ -253,6 +255,7 @@ static func stick(w: World, s: Shot, a: Actor) -> void:
 			at = a.pos,
 			faction = s.faction,
 			cards = s.spell.cards,
-			title = s.spell.title()
+			title = s.spell.title(),
+			spell = s.spell.tag()
 		}
 	)

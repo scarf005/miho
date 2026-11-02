@@ -370,7 +370,8 @@ static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
 			faction = s.faction,
 			by = s.caster,
 			title = s.spell.title(),
-			cards = s.spell.cards
+			cards = s.spell.cards,
+			spell = s.spell.tag()
 		}
 	)
 	for p in Spray.square(w, at, r, true):

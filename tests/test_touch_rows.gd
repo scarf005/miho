@@ -35,7 +35,7 @@ func test_the_noise_bar_has_room_beside_the_tails_in_both_orientations() -> void
 		var stat: Rect2 = m.touch.hud._rect(m.term, &"stat")
 		assert_gte(
 			stat.size.x / Term.CELL.x,
-			m.world.max_tails() + NoiseMeter.WIDTH,
+			m.world.max_tails() + NoiseMeter.width(),
 			"the tails and the bar share a row at %s" % size
 		)
 

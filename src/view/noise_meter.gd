@@ -14,8 +14,14 @@ const FAR := Elements.CANNON_LOUD
 const BAR_CELLS := 9
 ## The segments each band fills; band 4 makes the bar one segment longer.
 const FILLED := [0, 3, 6, 9, 10]
-## Cells from the caption's start to the end of the longest bar.
-const WIDTH := 7.5
+## Cells of the longest bar: one segment more than BAR_CELLS, half a cell each.
+const BAR_WIDTH := 5.0
+
+
+## Cells from the caption's start to the end of the longest bar, the caption in
+## the language shown.
+static func width() -> float:
+	return Term._cells(Lang.t("소음")) + 0.5 + BAR_WIDTH
 
 
 ## How far the loudest noise in `events` is heard, in tiles, from those made on a
@@ -38,7 +44,7 @@ static func band(loud: int) -> int:
 ## Where the caption starts, flush with the right edge: on the lower status row
 ## after the queue when it fits there, else on the map row above the storey.
 static func at(t: Term) -> Vector2:
-	var x := t.cols - WIDTH
+	var x := t.cols - width()
 	return Vector2(x, t.rows - (1 if x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS + 0.5 else 3))
 
 
@@ -48,11 +54,14 @@ static func draw(t: Term, from := Vector2(-1, -1)) -> void:
 	var start := at(t) if from.x < 0 else from
 	if from.x < 0 and start.y < t.rows - 2:
 		t.draw_rect(
-			Rect2(start * Term.CELL, Vector2(WIDTH, 1) * Term.CELL), Color(Palette.VOID, 0.85)
+			Rect2(start * Term.CELL, Vector2(width(), 1) * Term.CELL), Color(Palette.VOID, 0.85)
 		)
-	t._text(start, "소음", Palette.TEXT)
+	t._text(start, Lang.t("소음"), Palette.TEXT)
 	var cell := Term.CELL
 	for i in maxi(BAR_CELLS, FILLED[band_no]):
-		var seg := ((start + Vector2(2.5 + i * 0.5, 0)) * cell).round() + Vector2(2, cell.y * 0.35)
+		var seg := (
+			((start + Vector2(Term._cells(Lang.t("소음")) + 0.5 + i * 0.5, 0)) * cell).round()
+			+ Vector2(2, cell.y * 0.35)
+		)
 		var color: Color = Palette.DIM if i >= FILLED[band_no] else Palette.NOISE[band_no - 1]
 		t.draw_rect(Rect2(seg, Vector2(cell.x * 0.5 - 4, cell.y * 0.3)), color)

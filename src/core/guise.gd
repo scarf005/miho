@@ -61,12 +61,21 @@ const CLOAK_ROUNDS := 6
 
 ## The refusal for a spell that does not go on oneself, listing every one that does.
 static func only() -> String:
+	return _only(func(s: String, _context := "") -> String: return s)
+
+
+## `only` in the language shown, for the player to read and no rule to use.
+static func shown_only() -> String:
+	return _only(Lang.t)
+
+
+static func _only(t: Callable) -> String:
 	var spells := RECIPE.keys().map(
 		func(k):
-			var cards: Array = RECIPE[k].map(func(c): return Cards.GLYPH[c])
-			return "%s(%s)" % [NAME[k], "+".join(cards)]
+			var cards: Array = RECIPE[k].map(func(c): return t.call(Cards.GLYPH[c], "talisman"))
+			return "%s(%s)" % [t.call(NAME[k]), "+".join(cards)]
 	)
-	return "스스로에겐 %s만 걸 수 있다" % ", ".join(spells)
+	return t.call("스스로에겐 %s만 걸 수 있다") % ", ".join(spells)
 
 
 ## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, or empty when
@@ -188,7 +197,16 @@ static func tick(w: World) -> void:
 		if lit.any(func(e): return Grid.cheb(e.at, s.pos) <= l.radius):
 			s.gone = true
 			w._changed()
-			w.emit({t = &"fade", shot = s.id, at = s.pos, lit = true, title = s.spell.title()})
+			w.emit(
+				{
+					t = &"fade",
+					shot = s.id,
+					at = s.pos,
+					lit = true,
+					title = s.spell.title(),
+					spell = s.spell.tag()
+				}
+			)
 	var me := w.player()
 	_lapse(w, me, TALON, &"untalon")
 	_lapse(w, me, CLOAK, &"uncloak")

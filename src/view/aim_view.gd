@@ -32,9 +32,9 @@ static func paint(
 		var d := Grid.line_dir(leap[0], leap[1])
 		for i in range(1, Grid.cheb(leap[0], leap[1]) + 1):
 			tints[leap[0] + d * i] = Color(Palette.SIDE[0], 0.35)
-		marks[leap[1]] = [Bestiary.info(&"miho").glyph, Palette.SIDE[0]]
+		marks[leap[1]] = [Lang.t(Bestiary.info(&"miho").glyph, "creature"), Palette.SIDE[0]]
 	for swap: Array in f.swaps:
-		marks[swap[1]] = [Bestiary.info(&"miho").glyph, Palette.SIDE[0]]
+		marks[swap[1]] = [Lang.t(Bestiary.info(&"miho").glyph, "creature"), Palette.SIDE[0]]
 	for p in f.sprouts:
 		tints[p] = Color(Palette.TILES[World.WOOD_WALL][1], 0.5)
 	for p in f.grounds:

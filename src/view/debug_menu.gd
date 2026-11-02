@@ -57,7 +57,7 @@ func open(size: Vector2i) -> void:
 
 
 func panel() -> Dictionary:
-	var title: String = Cheat.NAME.get(page, "디버그 명령")
+	var title: String = Lang.t(Cheat.NAME.get(page, "디버그 명령"))
 	return {title = title, rows = _rows(), selected = selected, top = top, hover = hovered}
 
 
@@ -69,28 +69,30 @@ func _rows() -> Array:
 	var rows := []
 	match page:
 		&"kill":
-			rows = KILLS.map(func(n): return [[n, Palette.TEXT]])
+			rows = KILLS.map(func(n): return [[Lang.t(n), Palette.TEXT]])
 		&"floor":
 			for d in range(1, World.FLOORS + 1):
-				var row := [["%d층" % d, Palette.KIND[&"miho"]]]
+				var row := [[Lang.t("%d층") % d, Palette.KIND[&"miho"]]]
 				if d == world.depth:
-					row.append(["지금", Palette.DIM, VALUE_COL])
+					row.append([Lang.t("지금"), Palette.DIM, VALUE_COL])
 				rows.append(row)
 		&"card":
-			rows.append([["모두", Palette.TEXT]])
+			rows.append([[Lang.t("모두"), Palette.TEXT]])
 			for c in Cards.ALL:
-				var row := [[Cards.NAME[c], Palette.card(c)]]
+				var row := [[Lang.t(Cards.NAME[c]), Palette.card(c)]]
 				if world.cards.has(c):
-					row.append(["있음", Palette.DIM, VALUE_COL])
+					row.append([Lang.t("있음"), Palette.DIM, VALUE_COL])
 				rows.append(row)
 		&"summon":
 			for kind in Codex.foes():
-				rows.append([[Bestiary.info(kind).name, Palette.KIND[kind]]])
+				rows.append([[Lang.t(Bestiary.info(kind).name), Palette.KIND[kind]]])
 		_:
 			for cmd in COMMANDS:
-				var row := [[Cheat.NAME[cmd], Palette.TEXT]]
+				var row := [[Lang.t(Cheat.NAME[cmd]), Palette.TEXT]]
 				if Cheat.TOGGLES.has(cmd):
-					row.append(["켜짐" if Cheat.on(world, cmd) else "꺼짐", Palette.SIDE[0], VALUE_COL])
+					row.append(
+						[Lang.t("켜짐" if Cheat.on(world, cmd) else "꺼짐"), Palette.SIDE[0], VALUE_COL]
+					)
 				elif cmd == &"damage":
 					row.append([str(AMOUNTS[amount]), Palette.SIDE[0], VALUE_COL])
 				rows.append(row)
@@ -209,8 +211,8 @@ func asking() -> bool:
 func head() -> Array:
 	if not asking():
 		return []
-	var what := "적" if ask.needs[0] == &"foe" else "칸"
-	return [[[Cheat.NAME[ask.cmd] + ": " + what, Palette.TEXT]]]
+	var what := Lang.t("적" if ask.needs[0] == &"foe" else "칸")
+	return [[[Lang.t("%s: %s") % [Lang.t(Cheat.NAME[ask.cmd]), what], Palette.TEXT]]]
 
 
 ## A key or click while a pick is waited for.

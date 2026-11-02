@@ -703,7 +703,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		draw_rect(Rect2(cell * CELL, CELL), Color(0, 0, 0, 0.55))
 		if tints.has(a.pos):
 			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
-		_glyph(cell, Bestiary.info(Guise.looks(a)).glyph, c)
+		_glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)
 		for s: Dictionary in shots.values():
 			if s.pos == a.pos:
 				var glow := Palette.shot_color(s.spell, s.faction)
@@ -867,7 +867,7 @@ static func _cells(s: String) -> float:
 ## half; ♥ and ♡ are drawn as pixel hearts a cell wide.
 func _text(at: Vector2, s: String, color: Color) -> void:
 	var x := at.x
-	for part in _hearts_split(s):
+	for part in _hearts_split(Lang.singular(s)):
 		if part == "♥" or part == "♡":
 			_heart(
 				Vector2(x, at.y), part == "♥", color if part == "♥" else Color(Palette.DIM, color.a)

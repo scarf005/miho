@@ -1,0 +1,2954 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "도깨비"
+msgstr "Dokkaebi"
+
+msgid "장승"
+msgstr "Jangseung"
+
+msgid "용"
+msgstr "Dragon"
+
+msgid "짐승"
+msgstr "Beast"
+
+msgid "저승"
+msgstr "Underworld"
+
+msgid "도깨비불"
+msgstr "Dokkaebi fire"
+
+msgid "저승불"
+msgstr "Underworld fire"
+
+msgid "혼불"
+msgstr "Soul fire"
+
+msgid "미호"
+msgstr "Miho"
+
+msgid "낄낄"
+msgstr "hehe"
+
+msgid "방망이"
+msgstr "club"
+
+msgid "맞아"
+msgstr "hit"
+
+msgid "외다리 도깨비"
+msgstr "One-legged Dokkaebi"
+
+msgid "으라차"
+msgstr "heave"
+
+msgid "씨름"
+msgstr "wrestling"
+
+msgid "져"
+msgstr "thrown"
+
+msgid "부지깽이 도깨비"
+msgstr "Poker Dokkaebi"
+
+msgid "부지깽이"
+msgstr "poker"
+
+msgid "빗자루 도깨비"
+msgstr "Broom Dokkaebi"
+
+msgid "빗자루"
+msgstr "broom"
+
+msgid "감투 도깨비"
+msgstr "Hat Dokkaebi"
+
+msgid "박치기"
+msgstr "headbutt"
+
+msgid "이무기"
+msgstr "Imugi"
+
+msgid "쉭"
+msgstr "hiss"
+
+msgid "불개"
+msgstr "Bulgae"
+
+msgid "컹컹"
+msgstr "woof"
+
+msgid "이빨"
+msgstr "fangs"
+
+msgid "물려"
+msgstr "bitten"
+
+msgid "해태"
+msgstr "Haetae"
+
+msgid "으르렁"
+msgstr "grr"
+
+msgid "앞발"
+msgstr "paw"
+
+msgid "천하대장군"
+msgstr "Cheonhadaejanggun"
+
+msgid "이놈"
+msgstr "you there"
+
+msgid "지하여장군"
+msgstr "Jihayeojanggun"
+
+msgid "불가사리"
+msgstr "Bulgasari"
+
+msgid "끼긱"
+msgstr "skree"
+
+msgid "천년 이무기"
+msgstr "Thousand-year Imugi"
+
+msgid "크아앙"
+msgstr "roar"
+
+msgid "저승사자"
+msgstr "Underworld Reaper"
+
+msgid "오랏줄"
+msgstr "rope"
+
+msgid "강철이"
+msgstr "Gangcheori"
+
+msgid "우르릉"
+msgstr "rumble"
+
+msgid "어둑시니"
+msgstr "Eodeoksini"
+
+msgid "손톱"
+msgstr "claws"
+
+msgid "긁혀"
+msgstr "scratched"
+
+msgid "두억시니"
+msgstr "Dueoksini"
+
+msgid "우어어"
+msgstr "groan"
+
+msgid "주먹"
+msgstr "fist"
+
+msgid "여우불"
+msgstr "Foxfire"
+
+msgid "구슬"
+msgstr "Orb"
+
+msgid "불"
+msgstr "Fire"
+
+msgid "물"
+msgstr "Water"
+
+msgid "나무"
+msgstr "Wood"
+
+msgid "쇠"
+msgstr "Metal"
+
+msgid "흙"
+msgstr "Earth"
+
+msgid "들불"
+msgstr "Wildfire"
+
+msgid "용암"
+msgstr "Lava"
+
+msgid "유탄"
+msgstr "Grenade"
+
+msgid "서리"
+msgstr "Frost"
+
+msgid "단비"
+msgstr "Rain"
+
+msgid "증기"
+msgstr "Steam"
+
+msgid "쇳물"
+msgstr "Molten metal"
+
+msgid "가시"
+msgstr "Thorn"
+
+msgid "진흙"
+msgstr "Mud"
+
+msgid "화산"
+msgstr "Volcano"
+
+msgid "용광로"
+msgstr "Furnace"
+
+msgid "우박"
+msgstr "Hail"
+
+msgid "서리꽃"
+msgstr "Frostbloom"
+
+msgid "도약"
+msgstr "Leap"
+
+msgid "늪"
+msgstr "Swamp"
+
+msgid "간헐천"
+msgstr "Geyser"
+
+msgid "목책"
+msgstr "Palisade"
+
+msgid "봉화"
+msgstr "Beacon"
+
+msgid "오작교"
+msgstr "Magpie bridge"
+
+msgid "안개비"
+msgstr "Drizzle"
+
+msgid "땅꺼짐"
+msgstr "Sinkhole"
+
+msgid "그믐"
+msgstr "New moon"
+
+msgid "이간질"
+msgstr "Discord"
+
+msgid "벼락"
+msgstr "Thunderbolt"
+
+msgid "고요"
+msgstr "Stillness"
+
+msgid "윤회"
+msgstr "Samsara"
+
+msgid "상극"
+msgstr "Conquest"
+
+msgid "황룡"
+msgstr "Yellow dragon"
+
+msgid "뜨거운 땅"
+msgstr "Hot ground"
+
+msgid "뜨거운 쇠"
+msgstr "Hot metal"
+
+msgid "화르륵"
+msgstr "whoosh"
+
+msgid "둥"
+msgstr "boom"
+
+msgid "안개"
+msgstr "Mist"
+
+msgid "연기"
+msgstr "Smoke"
+
+msgid "향 연기"
+msgstr "Incense smoke"
+
+msgid "늪 가스"
+msgstr "Swamp gas"
+
+msgid "쾅"
+msgstr "bang"
+
+msgid "그림자"
+msgstr "Shadow"
+
+msgid "둔갑"
+msgstr "Disguise"
+
+msgid "아직 처치한 적이 없다"
+msgstr "No enemy slain yet"
+
+msgid "탁"
+msgstr "tap"
+
+msgid "펑"
+msgstr "pop"
+
+msgid "캥"
+msgstr "yelp"
+
+msgid "퍽"
+msgstr "thump"
+
+msgid "꺼진 등불"
+msgstr "Unlit lantern"
+
+msgid "부서진 등불"
+msgstr "Broken lantern"
+
+msgid "부서진 문"
+msgstr "Broken door"
+
+msgid "부서진 벽"
+msgstr "Broken wall"
+
+msgid "재"
+msgstr "Ash"
+
+msgid "멀리뛰기"
+msgstr "Long jump"
+
+msgid "유도 구슬"
+msgstr "Homing orb"
+
+msgid "철갑탄"
+msgstr "Piercing shell"
+
+msgid "비격진"
+msgstr "Bigyeokjin"
+
+msgid "%s %d칸"
+msgstr "%s %d tiles"
+
+msgid " %d발"
+msgstr " x%d"
+
+msgid "탕"
+msgstr "crack"
+
+msgid "웅"
+msgstr "hum"
+
+msgid "휙"
+msgstr "whoosh"
+
+msgid "불길"
+msgstr "Flame"
+
+msgid "물줄기"
+msgstr "Water jet"
+
+msgid "권총"
+msgstr "Pistol"
+
+msgid "산탄"
+msgstr "Shotgun"
+
+msgid "쿵"
+msgstr "thud"
+
+msgid "철벅"
+msgstr "splash"
+
+msgid "젖음"
+msgstr "Wet"
+
+msgid "불붙음"
+msgstr "Burning"
+
+msgid "얼어붙음"
+msgstr "Frozen"
+
+msgid "우지끈"
+msgstr "crack"
+
+msgid "드르륵"
+msgstr "rumble"
+
+msgid "쨍"
+msgstr "clang"
+
+msgid "타닥"
+msgstr "crackle"
+
+msgid "바닥"
+msgstr "Floor"
+
+msgid "벽"
+msgstr "Wall"
+
+msgid "문"
+msgstr "Door"
+
+msgid "등불"
+msgstr "Lantern"
+
+msgid "대숲"
+msgstr "Bamboo grove"
+
+msgid "사각"
+msgstr "swish"
+
+msgid "마루"
+msgstr "Wooden floor"
+
+msgid "삐걱"
+msgstr "creak"
+
+msgid "연못"
+msgstr "Pond"
+
+msgid "금 간 벽"
+msgstr "Cracked wall"
+
+msgid "무너진 벽"
+msgstr "Collapsed wall"
+
+msgid "하늘"
+msgstr "Sky"
+
+msgid "창문"
+msgstr "Window"
+
+msgid "하늘다리"
+msgstr "Sky bridge"
+
+msgid "열린 문"
+msgstr "Open door"
+
+msgid "북"
+msgstr "Drum"
+
+msgid "찌익"
+msgstr "rip"
+
+msgid "찢어진 북"
+msgstr "Torn drum"
+
+msgid "풀"
+msgstr "Grass"
+
+msgid "마른 짚"
+msgstr "Dry straw"
+
+msgid "갈대"
+msgstr "Reeds"
+
+msgid "바스락"
+msgstr "rustle"
+
+msgid "쓰러진 갈대"
+msgstr "Flattened reeds"
+
+msgid "낙엽"
+msgstr "Fallen leaves"
+
+msgid "얕은 물"
+msgstr "Shallow water"
+
+msgid "기둥"
+msgstr "Pillar"
+
+msgid "나무벽"
+msgstr "Wooden wall"
+
+msgid "얼음"
+msgstr "Ice"
+
+msgid "가시덤불"
+msgstr "Thornbush"
+
+msgid "징 함정"
+msgstr "Gong trap"
+
+msgid "허방다리"
+msgstr "Pitfall"
+
+msgid "불씨 함정"
+msgstr "Ember trap"
+
+msgid "덩굴 함정"
+msgstr "Vine trap"
+
+msgid "혼불 제단"
+msgstr "Soul fire altar"
+
+msgid "타오르는 제단"
+msgstr "Blazing altar"
+
+msgid "도깨비불 장막"
+msgstr "Dokkaebi fire veil"
+
+msgid "석등"
+msgstr "Stone lantern"
+
+msgid "두루마리 서가"
+msgstr "Scroll shelf"
+
+msgid "읽은 서가"
+msgstr "Read shelf"
+
+msgid "병풍"
+msgstr "Folding screen"
+
+msgid "장독"
+msgstr "Jar"
+
+msgid "쨍그랑"
+msgstr "crash"
+
+msgid "향로"
+msgstr "Censer"
+
+msgid "마당"
+msgstr "Courtyard"
+
+msgid "석상"
+msgstr "Statue"
+
+msgid "낡은 마루"
+msgstr "Rotten floor"
+
+msgid "댕"
+msgstr "dong"
+
+msgid "철컥"
+msgstr "click"
+
+msgid "끽"
+msgstr "squeak"
+
+msgid "툭"
+msgstr "plop"
+
+msgid "천상누각 꼭대기에 사람이 되는 영약이 있다"
+msgstr "An elixir that makes one human waits atop the Sky Pavilion"
+
+msgid "아무 키나 눌러 시작"
+msgstr "Press any key to start"
+
+msgid "Enter 이어하기 · N 새로 시작"
+msgstr "Enter: continue · N: new game"
+
+msgid "사람이 되었다"
+msgstr "became human"
+
+msgid "쓰러졌다"
+msgstr "fell"
+
+msgid "%d층 · %d초"
+msgstr "Floor %d · %d s"
+
+msgid "처치 %d"
+msgstr "Kills %d"
+
+msgid "시드 %d"
+msgstr "Seed %d"
+
+msgid "%s키를 눌러 재시작"
+msgstr "Press %s to restart"
+
+msgid "적"
+msgstr "Enemies"
+
+msgid "주문"
+msgstr "Spells"
+
+msgid "조합"
+msgstr "Combos"
+
+msgid "아이템"
+msgstr "Items"
+
+msgid "지형지물"
+msgstr "Terrain"
+
+msgid "상태이상"
+msgstr "Statuses"
+
+msgid "용어"
+msgstr "Terms"
+
+msgid "영약"
+msgstr "Elixir"
+
+msgid "복숭아"
+msgstr "Peach"
+
+msgid "주문서"
+msgstr "Spellbook"
+
+msgid "도감"
+msgstr "Codex"
+
+msgid "%s 부적"
+msgstr "%s talisman"
+
+msgid "계단"
+msgstr "Stairs"
+
+msgid "불타는 칸"
+msgstr "Burning tile"
+
+msgid "맹렬한 불"
+msgstr "Fierce fire"
+
+msgid "냄새 %d초 전"
+msgstr "Scent %d s ago"
+
+msgid "%s (%d, %d) %d칸"
+msgstr "%s (%d, %d) %d tiles"
+
+msgid "쉬는 곳"
+msgstr "Rest spot"
+
+msgid "목표"
+msgstr "Goal"
+
+msgid "디버그 "
+msgstr "Debug "
+
+msgid "놓친 지 %d/%d초"
+msgstr "Lost for %d/%d s"
+
+msgid "%d초 뒤 주술"
+msgstr "Casts in %d s"
+
+msgid "주술 가능"
+msgstr "Can cast"
+
+msgid "마력 %d/%d"
+msgstr "Mana %d/%d"
+
+msgid "조준 %s"
+msgstr "Aim %s"
+
+msgid "쉬는 중"
+msgstr "Resting"
+
+msgid "수색 중"
+msgstr "Searching"
+
+msgid "추격 중"
+msgstr "Chasing"
+
+msgid "둔함"
+msgstr "Dull"
+
+msgid "영리함"
+msgstr "Sharp"
+
+msgid "교활함"
+msgstr "Cunning"
+
+msgid "흔적."
+msgstr "Trace."
+
+msgid "묶임"
+msgstr "Rooted"
+
+msgid "기절"
+msgstr "Stunned"
+
+msgid "경계"
+msgstr "Alert"
+
+msgid "시간: %d초"
+msgstr "Time: %d s"
+
+msgid "가연성"
+msgstr "Flammable"
+
+msgid "번질 확률: %d%%"
+msgstr "Spread chance: %d%%"
+
+msgid "인화성"
+msgstr "Combustible"
+
+msgid "초당 피해: %d"
+msgstr "Damage/s: %d"
+
+msgid "함정"
+msgstr "Trap"
+
+msgid "흔적"
+msgstr "Trace"
+
+msgid "약점"
+msgstr "Weakness"
+
+msgid "대상: 그 원소가 든 주문"
+msgstr "Target: spells with that element"
+
+msgid "젖은 적 시간: %d초"
+msgstr "Wet enemy time: %d s"
+
+msgid "오행: "
+msgstr "Elements: "
+
+msgid "자는 중"
+msgstr "Sleeping"
+
+msgid "지키는 중"
+msgstr "Guarding"
+
+msgid "따라가는 중"
+msgstr "Following"
+
+msgid "순찰 중"
+msgstr "Patrolling"
+
+msgid "돌아가는 중"
+msgstr "Returning"
+
+msgid "싸우는 중: %s"
+msgstr "Fighting: %s"
+
+msgid "  남은 시간: %d초"
+msgstr "  Time left: %d s"
+
+msgid "북 치러 가는 중."
+msgstr "Going to beat a drum."
+
+msgid "기습 피해: "
+msgstr "Sneak attack damage: "
+
+msgid "무언가"
+msgstr "Something"
+
+msgid "근접: %s"
+msgstr "Melee: %s"
+
+msgid "  피해: "
+msgstr "  Damage: "
+
+msgid "  던짐: %d칸"
+msgstr "  Throw: %d tiles"
+
+msgid "말할 수 있다."
+msgstr "Can speak."
+
+msgid "보임: %d칸 안, 도깨비불 붙음"
+msgstr "Visible: within %d tiles, with Dokkaebi fire attached"
+
+msgid "먹이: "
+msgstr "Food: "
+
+msgid "%s 주문"
+msgstr "%s spell"
+
+msgid "  최대 체력: "
+msgstr "  Max health: "
+
+msgid "  체력: "
+msgstr "  Health: "
+
+msgid "소지품: "
+msgstr "Carries: "
+
+msgid "적 옆: %d/%d초"
+msgstr "Beside enemy: %d/%d s"
+
+msgid "둔갑할 모습: %s"
+msgstr "Disguise form: %s"
+
+msgid "발톱 피해: "
+msgstr "Claw damage: "
+
+msgid "약점: "
+msgstr "Weakness: "
+
+msgid " (불과 함께)"
+msgstr " (with fire)"
+
+msgid "불 주문, 불타는 칸"
+msgstr "Fire spells, burning tiles"
+
+msgid "불 없는 주문"
+msgstr "Spells without fire"
+
+msgid "면역: "
+msgstr "Immune: "
+
+msgid "수색: %d번 더"
+msgstr "Search: %d more times"
+
+msgid "눈멂"
+msgstr "Blind"
+
+msgid "%s: %d초"
+msgstr "%s: %d s"
+
+msgid "%s 위: %d초"
+msgstr "On %s: %d s"
+
+msgid "  초당 피해: "
+msgstr "  Damage/s: "
+
+msgid " 붙음: %d초"
+msgstr " attached: %d s"
+
+msgid ": %d초"
+msgstr ": %d s"
+
+msgid "마력: %d/%d"
+msgstr "Mana: %d/%d"
+
+msgid "주술: "
+msgstr "Casting: "
+
+msgid "  간격: %d초"
+msgstr "  Interval: %d s"
+
+msgid "  모으는 중."
+msgstr "  Charging."
+
+msgid "  다음: %d초 뒤"
+msgstr "  Next: in %d s"
+
+msgid "피해: %d"
+msgstr "Damage: %d"
+
+msgid "원소: %s"
+msgstr "Element: %s"
+
+msgid "폭발 피해: %d"
+msgstr "Blast damage: %d"
+
+msgid "순찰"
+msgstr "Patrols"
+
+msgid "잠들지 않음"
+msgstr "Never sleeps"
+
+msgid "발소리: %d칸"
+msgstr "Footsteps: %d tiles"
+
+msgid "불에 탐"
+msgstr "Burns"
+
+msgid "체력: +%d"
+msgstr "Health: +%d"
+
+msgid "꼬리: 모두 회복"
+msgstr "Tails: all restored"
+
+msgid "가득 찼을 때 최대 체력: +%d"
+msgstr "Max health when full: +%d"
+
+msgid "%s 주문서"
+msgstr "%s scroll"
+
+msgid "%s: %d초 남음"
+msgstr "%s: %d s left"
+
+msgid "초당 피해: "
+msgstr "Damage/s: "
+
+msgid "뿜는 기체: "
+msgstr "Vents gas: "
+
+msgid "쓰러진 %s"
+msgstr "Fallen %s"
+
+msgid ": %d초 전"
+msgstr ": %d s ago"
+
+msgid "젖음: %d초"
+msgstr "Wet: %d s"
+
+msgid "소음: 없음"
+msgstr "Noise: none"
+
+msgid "막음: 길, 주문"
+msgstr "Blocks: path, spells"
+
+msgid "빛: %d칸"
+msgstr "Light: %d tiles"
+
+msgid "꺼지지 않음."
+msgstr "Never goes out."
+
+msgid "막음: 시야"
+msgstr "Blocks: sight"
+
+msgid "여닫을 때 소음: %d"
+msgstr "Noise when opened or closed: %d"
+
+msgid "칠 때 소음: 층 전체"
+msgstr "Noise when hit: whole floor"
+
+msgid "찢어짐: 구슬, 부딪침"
+msgstr "Tears: orb, collision"
+
+msgid "다시 켜짐: 불, 수색하는 적"
+msgstr "Relit by: fire, searching enemy"
+
+msgid "막음: 시야, 빛"
+msgstr "Blocks: sight, light"
+
+msgid "밟으면: 쓰러짐"
+msgstr "Stepped on: falls over"
+
+msgid "막음: 길, 시야, 빛"
+msgstr "Blocks: path, sight, light"
+
+msgid "부서짐: 구슬"
+msgstr "Breaks: orb"
+
+msgid "막음: 길, 시야"
+msgstr "Blocks: path, sight"
+
+msgid "타격: 쓰러짐"
+msgstr "Struck: falls over"
+
+msgid "막음: 길"
+msgstr "Blocks: path"
+
+msgid "타격: 깨짐"
+msgstr "Struck: breaks"
+
+msgid "%s 초당 피해: %d"
+msgstr "%s damage/s: %d"
+
+msgid "소음: %d"
+msgstr "Noise: %d"
+
+msgid "추락한 적: 사라짐"
+msgstr "Enemy that falls: gone"
+
+msgid "층당 추락 피해: %d"
+msgstr "Fall damage per floor: %d"
+
+msgid "불에 타지 않음."
+msgstr "Does not burn."
+
+msgid "지날 때 피해: %d"
+msgstr "Damage when passing: %d"
+
+msgid "발소리: 없음"
+msgstr "Footsteps: none"
+
+msgid "밟으면: 하늘로 추락"
+msgstr "Stepped on: falls into the sky"
+
+msgid "밟으면: 밟은 방향 앞 %d칸에 불"
+msgstr "Stepped on: fire %d tiles ahead in the step direction"
+
+msgid "함정."
+msgstr "Trap."
+
+msgid "부서질 때 소음: %d"
+msgstr "Noise when broken: %d"
+
+msgid "부딪칠 때 소음: %d"
+msgstr "Noise when hit: %d"
+
+msgid "인화성."
+msgstr "Combustible."
+
+msgid "가연성."
+msgstr "Flammable."
+
+msgid "시야 막음: %d 이상"
+msgstr "Blocks sight: %d or more"
+
+msgid "불타는 중"
+msgstr "Burning"
+
+msgid "밝음."
+msgstr "Lit."
+
+msgid "어두움: %d칸 안에서만 보임"
+msgstr "Dark: seen only within %d tiles"
+
+msgid "꼬리: %d/%d"
+msgstr "Tails: %d/%d"
+
+msgid "어둠"
+msgstr "Dark"
+
+msgid "위로"
+msgstr "Up"
+
+msgid "오른쪽 위로"
+msgstr "Up right"
+
+msgid "오른쪽으로"
+msgstr "Right"
+
+msgid "오른쪽 아래로"
+msgstr "Down right"
+
+msgid "아래로"
+msgstr "Down"
+
+msgid "왼쪽 아래로"
+msgstr "Down left"
+
+msgid "왼쪽으로"
+msgstr "Left"
+
+msgid "왼쪽 위로"
+msgstr "Up left"
+
+msgid "기다리기"
+msgstr "Wait"
+
+msgid "던지기"
+msgstr "Throw"
+
+msgid "부적 1"
+msgstr "Talisman 1"
+
+msgid "부적 2"
+msgstr "Talisman 2"
+
+msgid "부적 3"
+msgstr "Talisman 3"
+
+msgid "부적 4"
+msgstr "Talisman 4"
+
+msgid "부적 5"
+msgstr "Talisman 5"
+
+msgid "부적 6"
+msgstr "Talisman 6"
+
+msgid "부적 7"
+msgstr "Talisman 7"
+
+msgid "같은 주문 다시"
+msgstr "Repeat spell"
+
+msgid "저장 주문 1"
+msgstr "Saved spell 1"
+
+msgid "저장 주문 2"
+msgstr "Saved spell 2"
+
+msgid "저장 주문 3"
+msgstr "Saved spell 3"
+
+msgid "저장 주문 4"
+msgstr "Saved spell 4"
+
+msgid "저장 주문 5"
+msgstr "Saved spell 5"
+
+msgid "저장 주문 6"
+msgstr "Saved spell 6"
+
+msgid "주문 하나 빼기"
+msgstr "Take back one"
+
+msgid "취소 / 설정"
+msgstr "Cancel / Settings"
+
+msgid "계단으로 가기"
+msgstr "Go to stairs"
+
+msgid "자동 탐험"
+msgstr "Auto-explore"
+
+msgid "자동 공격"
+msgstr "Auto-attack"
+
+msgid "살펴보기"
+msgstr "Look"
+
+msgid "쉬기"
+msgstr "Rest"
+
+msgid "문 닫기"
+msgstr "Close door"
+
+msgid "위험구역 표시"
+msgstr "Mark danger zone"
+
+msgid "위험구역 모두 지우기"
+msgstr "Clear danger zones"
+
+msgid "디버그 보기"
+msgstr "Debug view"
+
+msgid "도움말"
+msgstr "Help"
+
+msgid "재시작"
+msgstr "Restart"
+
+msgid "아직 계단을 찾지 못했다"
+msgstr "No stairs found yet"
+
+msgid "더 탐험할 곳이 없다"
+msgstr "Nothing left to explore"
+
+msgid "꼬리가 이미 다 자랐다"
+msgstr "Tails are already full"
+
+msgid "부적이 모자라다"
+msgstr "Not enough talismans"
+
+msgid "아직 던진 주문이 없다"
+msgstr "No spell cast yet"
+
+msgid "보이는 적이 없다"
+msgstr "No enemy in sight"
+
+msgid "겨눌 곳이 없다"
+msgstr "Nothing to aim at"
+
+msgid "어느 쪽 문을 닫을까? 방향키"
+msgstr "Close which door? Arrow keys"
+
+msgid "닫을 문이 없다"
+msgstr "No door to close"
+
+msgid "너무 다쳐서 싸울 수 없다"
+msgstr "Too hurt to fight"
+
+msgid "위험구역"
+msgstr "Danger zone"
+
+msgid "위험구역 (반경 %d)"
+msgstr "Danger zone (radius %d)"
+
+msgid "왼쪽 클릭"
+msgstr "Left click"
+
+msgid "옆 칸으로 한 걸음, 먼 칸까지 걷기"
+msgstr "Step to an adjacent tile, walk to a far one"
+
+msgid "부적 고르고 클릭"
+msgstr "Pick a talisman and click"
+
+msgid "그쪽으로 던지기"
+msgstr "Throw that way"
+
+msgid "오른쪽 클릭"
+msgstr "Right click"
+
+msgid "취소"
+msgstr "Cancel"
+
+msgid "가리키기"
+msgstr "Point"
+
+msgid "무엇이 있는지 보기"
+msgstr "See what is there"
+
+msgid "살피는 중"
+msgstr "Looking"
+
+msgid "소리 크기"
+msgstr "Sound volume"
+
+msgid "음악 크기"
+msgstr "Music volume"
+
+msgid "CRT 효과"
+msgstr "CRT effect"
+
+msgid "화면 크기"
+msgstr "Screen size"
+
+msgid "움직임 속도"
+msgstr "Move speed"
+
+msgid "언어"
+msgstr "Language"
+
+msgid "명장면 다시보기"
+msgstr "Replay highlights"
+
+msgid "키 설정"
+msgstr "Key bindings"
+
+msgid "처음부터"
+msgstr "Restart"
+
+msgid "저장하고 끝내기"
+msgstr "Save and quit"
+
+msgid "계속"
+msgstr "Resume"
+
+msgid "설정"
+msgstr "Settings"
+
+msgid "기록"
+msgstr "Log"
+
+msgid "꼬리 %d"
+msgstr "Tails %d"
+
+msgid "꺼짐"
+msgstr "Off"
+
+msgid "맞춤"
+msgstr "Fit"
+
+msgid "켜짐"
+msgstr "On"
+
+msgid "모두 기본값"
+msgstr "Reset all"
+
+msgid "부적 고르기"
+msgstr "Pick a talisman"
+
+msgid "멀리서 {0} 소리를 들었다"
+msgstr "Heard a distant {0}"
+
+msgid "꼬리가 {0}개로 늘었다"
+msgstr "Tails grew to {0}"
+
+msgid "{0}을/를 발견했다"
+msgstr "Spotted {0}"
+
+msgid "{0}에게 들켰다"
+msgstr "{0} spotted you"
+
+msgid "{0}이/가 {1}"
+msgstr "{0} {1}"
+
+msgid "{0}의 {1}에 {2} 피해를 {3} 입었다"
+msgstr "{0}'s {1} hit you for {3}"
+
+msgid "{0}의 {1}에 {2}이/가 {3} 피해를 {4} 입었다"
+msgstr "{0}'s {1} hit {2} for {4}"
+
+msgid "{0}이/가 {1}에게 덤벼들었다"
+msgstr "{0} attacked {1}"
+
+msgid "{0}이/가 {1} 소리쳤다"
+msgstr "{0} cried {1}"
+
+msgid "{0}이/가 싸움을 멈췄다"
+msgstr "{0} stopped fighting"
+
+msgid "{0}이/가 {1}을/를 먹고 커졌다"
+msgstr "{0} ate {1} and grew"
+
+msgid "{0}"
+msgstr "{0}"
+
+msgid "하늘로 떨어져 {0}으로 내려왔다"
+msgstr "Fell through the sky to {0}"
+
+msgid "{0}이/가 하늘로 떨어졌다"
+msgstr "{0} fell into the sky"
+
+msgid "%d층"
+msgstr "Floor %d"
+
+msgid "{0}을 얻었다"
+msgstr "Got {0}"
+
+msgid "{0}가 떨어졌다"
+msgstr "{0} dropped"
+
+msgid "체력을 {0} 회복했다"
+msgstr "Healed {0}"
+
+msgid "최대 체력이 {0} 늘었다"
+msgstr "Max health rose by {0}"
+
+msgid "복숭아를 먹었다. "
+msgstr "Ate a peach. "
+
+msgid "{0}의 {1}"
+msgstr "{0} {1}"
+
+msgid "눈이 멀었다"
+msgstr "got blinded"
+
+msgid "기절했다"
+msgstr "got stunned"
+
+msgid "밀려났다"
+msgstr "got pushed back"
+
+msgid "멀리 뛰었다"
+msgstr "leapt"
+
+msgid "주문이 멈춘 자리로 옮겨 갔다"
+msgstr "moved to where the spell stopped"
+
+msgid "{0}과/와 자리를 바꿨다"
+msgstr "Swapped places with {0}"
+
+msgid "{0}이/가 자랐다"
+msgstr "{0} grew"
+
+msgid "얼어붙었다"
+msgstr "froze"
+
+msgid "젖었다"
+msgstr "got wet"
+
+msgid "말랐다"
+msgstr "dried"
+
+msgid "{0}에게 {1}"
+msgstr "{0} {1}"
+
+msgid "불이 붙었다"
+msgstr "caught fire"
+
+msgid "맹렬한 불이 붙었다"
+msgstr "caught fierce fire"
+
+msgid "{0}의 불이 꺼졌다"
+msgstr "{0}'s fire went out"
+
+msgid "녹았다"
+msgstr "thawed"
+
+msgid "{0}이/가 생겼다"
+msgstr "{0} formed"
+
+msgid "{0}이/가 남았다"
+msgstr "{0} remained"
+
+msgid "{0}이/가 식었다"
+msgstr "{0} cooled"
+
+msgid "{0}에게는 통하지 않았다"
+msgstr "It had no effect on {0}"
+
+msgid "{0}이/가 {1}을/를 보고 살피러 갔다"
+msgstr "{0} saw {1} and went to look"
+
+msgid "{0}이/가 수색을 멈췄다"
+msgstr "{0} stopped searching"
+
+msgid "{0}이/가 붙었다"
+msgstr "{0} stuck to you"
+
+msgid "{0}이/가 {1}에게 붙었다"
+msgstr "{0} stuck to {1}"
+
+msgid "여우불이 {0} 울었다"
+msgstr "Foxfire let out a {0}"
+
+msgid "{0}의 모습으로 둔갑했다"
+msgstr "Disguised as {0}"
+
+msgid "둔갑이 풀렸다"
+msgstr "Disguise wore off"
+
+msgid "문을 열었다"
+msgstr "Opened the door"
+
+msgid "문을 닫았다"
+msgstr "Closed the door"
+
+msgid "문이 열렸다"
+msgstr "A door opened"
+
+msgid "문이 닫혔다"
+msgstr "A door closed"
+
+msgid "{0}이/가 문을 열었다"
+msgstr "{0} opened a door"
+
+msgid "{0}이/가 문을 닫았다"
+msgstr "{0} closed a door"
+
+msgid "{0}이/가 젖은 북을 쳤다"
+msgstr "{0} beat a wet drum"
+
+msgid "{0}이/가 북을 쳤다"
+msgstr "{0} beat a drum"
+
+msgid "북이 젖었다"
+msgstr "The drum got wet"
+
+msgid "{0}이/가 피어올랐다"
+msgstr "{0} rose"
+
+msgid "{0}을/를 찾았다"
+msgstr "Found {0}"
+
+msgid "{0}이/가 {1}을/를 밟았다"
+msgstr "{0} stepped on {1}"
+
+msgid "{0}을/를 밟았다"
+msgstr "Stepped on {0}"
+
+msgid "{0}이/가 쓰러졌다"
+msgstr "{0} fell"
+
+msgid "벽이 무너졌다"
+msgstr "The wall collapsed"
+
+msgid "{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다"
+msgstr "{0} blazed. All tails came back and one more grew"
+
+msgid "두루마리를 읽었다. 이 층의 지도가 드러났다"
+msgstr "Read the scroll. The map of this floor appeared"
+
+msgid "꼬리가 모두 돌아왔다"
+msgstr "All tails came back"
+
+msgid "{0}으로 올라갔다"
+msgstr "Climbed to {0}"
+
+msgid "{0}이/가 오고 있다"
+msgstr "{0} is coming"
+
+msgid "{0}이/가 나타났다"
+msgstr "{0} appeared"
+
+msgid "{0}이/가 폭발했다"
+msgstr "{0} exploded"
+
+msgid "{0}이/가 꺼졌다"
+msgstr "{0} gave way"
+
+msgid "{0}이/가 깨어났다"
+msgstr "{0} awoke"
+
+msgid "영약을 마시고 {0}"
+msgstr "Drank the elixir and {0}"
+
+msgid "{0}에 {1}"
+msgstr "{0} {1}"
+
+msgid "{0}이/가 재가 되었다"
+msgstr "{0} turned to ash"
+
+msgid "등불이 꺼졌다"
+msgstr "The lantern went out"
+
+msgid "{0}이/가 등불을 다시 켰다"
+msgstr "{0} relit a lantern"
+
+msgid "등불이 다시 켜졌다"
+msgstr "A lantern relit"
+
+msgid "벽에 금이 갔다"
+msgstr "The wall cracked"
+
+msgid "금 간 벽이 무너졌다"
+msgstr "The cracked wall collapsed"
+
+msgid "창문이 깨졌다"
+msgstr "The window broke"
+
+msgid "병풍이 쓰러졌다"
+msgstr "The screen fell"
+
+msgid "장독이 깨졌다"
+msgstr "The jar broke"
+
+msgid "향로가 쓰러졌다"
+msgstr "The censer fell"
+
+msgid "{0}이/가 부서졌다"
+msgstr "{0} broke"
+
+msgid "{0}이/가 맹렬한 불에 타 피해를 {1} 입었다"
+msgstr "{0} took {1} damage from fierce fire"
+
+msgid "{0}이/가 불에 타 피해를 {1} 입었다"
+msgstr "{0} took {1} damage from fire"
+
+msgid "맹렬한 불에 타 피해를 {0} 입었다"
+msgstr "Took {0} damage from fierce fire"
+
+msgid "불에 타 피해를 {0} 입었다"
+msgstr "Took {0} damage from fire"
+
+msgid "{0}이/가 {1}에 데어 피해를 {2} 입었다"
+msgstr "{0} took {2} damage from {1}"
+
+msgid "{0}에 데어 피해를 {1} 입었다"
+msgstr "Took {1} damage from {0}"
+
+msgid "{0}이/가 가시에 찔려 피해를 {1} 입었다"
+msgstr "{0} took {1} damage from thorns"
+
+msgid "가시에 찔려 피해를 {0} 입었다"
+msgstr "Took {0} damage from thorns"
+
+msgid "{0}의 {1}에 {2}이/가 피해를 {3} 입었다"
+msgstr "{0}'s {1} hit {2} for {3}"
+
+msgid "{0}에게 피해를 {1} 주었다"
+msgstr "Dealt {1} damage to {0}"
+
+msgid "{0}이/가 피해를 {1} 입었다"
+msgstr "{0} took {1} damage"
+
+msgid "피해를 {0} 입었다"
+msgstr "Took {0} damage"
+
+msgid "소음"
+msgstr "Noise"
+
+msgid "%d층 %d초"
+msgstr "Floor %d %d s"
+
+msgid "디버그"
+msgstr "Debug"
+
+msgid "싸우는 중"
+msgstr "Fighting"
+
+msgid "뿌리기"
+msgstr "Spray"
+
+msgid "만드는 법"
+msgstr "Recipe"
+
+msgid "오행 부적만"
+msgstr "Element talismans only"
+
+msgid "모양"
+msgstr "Shape"
+
+msgid "투사체 없이 닿는 칸"
+msgstr "Tiles reached with no projectile"
+
+msgid "만드는 법: "
+msgstr "Recipe: "
+
+msgid "넣으면: "
+msgstr "Adding it: "
+
+msgid " · 꼬리: %d"
+msgstr " · Tails: %d"
+
+msgid "빛"
+msgstr "Light"
+
+msgid "없음"
+msgstr "none"
+
+msgid "자신에게"
+msgstr "On self"
+
+msgid "모습"
+msgstr "Form"
+
+msgid "마지막으로 처치한 적"
+msgstr "Last enemy slain"
+
+msgid "시간"
+msgstr "Time"
+
+msgid "%d초"
+msgstr "%d s"
+
+msgid "%s 한 장마다"
+msgstr "Per %s talisman"
+
+msgid "+%d초"
+msgstr "+%d s"
+
+msgid "추격 중이 아닌 적"
+msgstr "Enemies not chasing"
+
+msgid "발톱"
+msgstr "Claws"
+
+msgid "기습"
+msgstr "Sneak attack"
+
+msgid "%s 소음"
+msgstr "%s noise"
+
+msgid "둘레 %d칸"
+msgstr "Around: %d tiles"
+
+msgid "보임"
+msgstr "Seen"
+
+msgid "바로 옆에서만"
+msgstr "Only from the next tile"
+
+msgid "둘레의 불, 켜진 등불"
+msgstr "Fire around, lit lanterns"
+
+msgid "피해"
+msgstr "Damage"
+
+msgid "곧게 %d칸"
+msgstr "Straight, %d tiles"
+
+msgid "멈춤"
+msgstr "Stops at"
+
+msgid "첫 적"
+msgstr "First enemy"
+
+msgid "밀침"
+msgstr "Push"
+
+msgid "%d칸"
+msgstr "%d tiles"
+
+msgid "불, 등불"
+msgstr "Fire, lanterns"
+
+msgid "금"
+msgstr "Crack"
+
+msgid "무너짐"
+msgstr "Collapses"
+
+msgid "모두"
+msgstr "All"
+
+msgid "%d명"
+msgstr "%d"
+
+msgid "거리"
+msgstr "Distance"
+
+msgid "%d걸음"
+msgstr "%d steps"
+
+msgid "대상"
+msgstr "Target"
+
+msgid "보이는 가까운 적 %s"
+msgstr "Nearest visible enemies: %s"
+
+msgid "보이는 칸만"
+msgstr "Visible tiles only"
+
+msgid "바로 옆 적 피해"
+msgstr "Damage to an enemy next to you"
+
+msgid "%d칸 앞 %s"
+msgstr "%d tiles ahead %s"
+
+msgid "보이는 적 모두, 미호"
+msgstr "All visible enemies, Miho"
+
+msgid "보이는 적 모두"
+msgstr "All visible enemies"
+
+msgid "%d칸 안 첫 벽과 그 양옆"
+msgstr "First wall within %d tiles and the tiles beside it"
+
+msgid "초당 피해"
+msgstr "Damage/s"
+
+msgid "%s 양"
+msgstr "%s amount"
+
+msgid "지날 때 피해"
+msgstr "Damage when passing"
+
+msgid "땅"
+msgstr "Ground"
+
+msgid "발소리"
+msgstr "Footsteps"
+
+msgid "끝 벽"
+msgstr "End wall"
+
+msgid "보이는 꺼진 등불"
+msgstr "Visible unlit lantern"
+
+msgid "끝 칸 소음"
+msgstr "End tile noise"
+
+msgid "하늘, 연못"
+msgstr "Sky, pond"
+
+msgid "냄새"
+msgstr "Scent"
+
+msgid "싸움"
+msgstr "Fight"
+
+msgid "추격 중인 적"
+msgstr "Enemies chasing"
+
+msgid "체력"
+msgstr "Health"
+
+msgid "약점인 적 피해"
+msgstr "Damage to a weak enemy"
+
+msgid "%d칸, 바깥으로"
+msgstr "%d tiles, outward"
+
+msgid "폭발 반지름"
+msgstr "Blast radius"
+
+msgid "폭발 피해"
+msgstr "Blast damage"
+
+msgid "주위 벽"
+msgstr "Surrounding walls"
+
+msgid "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆"
+msgstr "First wall within %d tiles of the stop and the tiles beside it"
+
+msgid "멈춘 곳 %s"
+msgstr "Stop point %s"
+
+msgid "미호의 "
+msgstr "Miho's "
+
+msgid "적의 "
+msgstr "Enemy's "
+
+msgid "원소"
+msgstr "Element"
+
+msgid "초당 %d칸"
+msgstr "%d tiles/s"
+
+msgid "남은 시간"
+msgstr "Time left"
+
+msgid "꼬리: %d"
+msgstr "Tails: %d"
+
+msgid "바꿔치기"
+msgstr "Swap"
+
+msgid "멈춘 칸으로"
+msgstr "To the stop tile"
+
+msgid "맞힌 적"
+msgstr "Enemy hit"
+
+msgid "자리 교환"
+msgstr "Swap places"
+
+msgid "벽, 닫힌 문, 등불"
+msgstr "Wall, closed door, lantern"
+
+msgid "%s %d발"
+msgstr "%s ×%d"
+
+msgid "발당 피해"
+msgstr "Damage per shot"
+
+msgid "맞히면"
+msgstr "On hit"
+
+msgid "사거리"
+msgstr "Range"
+
+msgid "가장 가까운 적"
+msgstr "Nearest enemy"
+
+msgid "교활한 적"
+msgstr "Cunning enemies"
+
+msgid "폭발"
+msgstr "Blast"
+
+msgid "나무 적"
+msgstr "Wooden enemies"
+
+msgid "%s %d초"
+msgstr "%s %d s"
+
+msgid "멈춘 곳에 직각으로 %d칸"
+msgstr "%d tiles across at the stop"
+
+msgid "어둠 %d칸"
+msgstr "Dark %d tiles"
+
+msgctxt "creature"
+msgid "도"
+msgstr "D"
+
+msgctxt "creature"
+msgid "외"
+msgstr "O"
+
+msgctxt "creature"
+msgid "부"
+msgstr "P"
+
+msgctxt "creature"
+msgid "빗"
+msgstr "B"
+
+msgctxt "creature"
+msgid "감"
+msgstr "G"
+
+msgctxt "creature"
+msgid "장"
+msgstr "J"
+
+msgctxt "creature"
+msgid "이"
+msgstr "I"
+
+msgctxt "creature"
+msgid "불"
+msgstr "F"
+
+msgctxt "creature"
+msgid "해"
+msgstr "H"
+
+msgctxt "creature"
+msgid "천"
+msgstr "S"
+
+msgctxt "creature"
+msgid "지"
+msgstr "E"
+
+msgctxt "creature"
+msgid "가"
+msgstr "A"
+
+msgctxt "creature"
+msgid "용"
+msgstr "Y"
+
+msgctxt "creature"
+msgid "사"
+msgstr "R"
+
+msgctxt "creature"
+msgid "강"
+msgstr "K"
+
+msgctxt "creature"
+msgid "어"
+msgstr "Q"
+
+msgctxt "creature"
+msgid "두"
+msgstr "W"
+
+msgctxt "talisman"
+msgid "여"
+msgstr "f"
+
+msgctxt "talisman"
+msgid "구"
+msgstr "o"
+
+msgctxt "talisman"
+msgid "화"
+msgstr "F"
+
+msgctxt "talisman"
+msgid "수"
+msgstr "W"
+
+msgctxt "talisman"
+msgid "목"
+msgstr "T"
+
+msgctxt "talisman"
+msgid "금"
+msgstr "M"
+
+msgctxt "talisman"
+msgid "토"
+msgstr "E"
+
+msgctxt "talisman"
+msgid "들"
+msgstr "w"
+
+msgctxt "talisman"
+msgid "용"
+msgstr "L"
+
+msgctxt "talisman"
+msgid "유"
+msgstr "S"
+
+msgctxt "talisman"
+msgid "서"
+msgstr "Z"
+
+msgctxt "talisman"
+msgid "단"
+msgstr "R"
+
+msgctxt "talisman"
+msgid "증"
+msgstr "V"
+
+msgctxt "talisman"
+msgid "쇳"
+msgstr "N"
+
+msgctxt "talisman"
+msgid "가"
+msgstr "H"
+
+msgctxt "talisman"
+msgid "균"
+msgstr "P"
+
+msgctxt "talisman"
+msgid "진"
+msgstr "U"
+
+msgctxt "talisman"
+msgid "산"
+msgstr "C"
+
+msgctxt "talisman"
+msgid "광"
+msgstr "K"
+
+msgctxt "talisman"
+msgid "박"
+msgstr "A"
+
+msgctxt "talisman"
+msgid "꽃"
+msgstr "B"
+
+msgctxt "talisman"
+msgid "약"
+msgstr "J"
+
+msgctxt "talisman"
+msgid "늪"
+msgstr "s"
+
+msgctxt "talisman"
+msgid "천"
+msgstr "G"
+
+msgctxt "talisman"
+msgid "최"
+msgstr "Q"
+
+msgctxt "talisman"
+msgid "발"
+msgstr "h"
+
+msgctxt "talisman"
+msgid "책"
+msgstr "p"
+
+msgctxt "talisman"
+msgid "봉"
+msgstr "b"
+
+msgctxt "talisman"
+msgid "은"
+msgstr "r"
+
+msgctxt "talisman"
+msgid "속"
+msgstr "i"
+
+msgctxt "talisman"
+msgid "작"
+msgstr "g"
+
+msgctxt "talisman"
+msgid "안"
+msgstr "m"
+
+msgctxt "talisman"
+msgid "꺼"
+msgstr "k"
+
+msgctxt "talisman"
+msgid "믐"
+msgstr "n"
+
+msgctxt "talisman"
+msgid "이"
+msgstr "d"
+
+msgctxt "talisman"
+msgid "벼"
+msgstr "t"
+
+msgctxt "talisman"
+msgid "고"
+msgstr "y"
+
+msgctxt "talisman"
+msgid "윤"
+msgstr "a"
+
+msgctxt "talisman"
+msgid "극"
+msgstr "c"
+
+msgctxt "talisman"
+msgid "룡"
+msgstr "D"
+
+msgctxt "word"
+msgid "불"
+msgstr "fire"
+
+msgid "  묶임: %d초"
+msgstr "  Rooted: %d s"
+
+msgid "  최대 양: %d"
+msgstr "  Max amount: %d"
+
+msgid " · 마력: %s"
+msgstr " · Mana: %s"
+
+msgid " 부적"
+msgstr " talisman"
+
+msgid "%d 복사했다"
+msgstr "%d copied"
+
+msgid "%d초마다 %d"
+msgstr "Every %d s, %d"
+
+msgid "%d칸 안, 도깨비불 붙음"
+msgstr "within %d tiles, with Dokkaebi fire attached"
+
+msgid "%d칸 앞에서 직각으로 %d칸"
+msgstr "%d tiles ahead, %d tiles across"
+
+msgid "%d칸 이상 날아간 뒤 폭발 피해"
+msgstr "Blast damage after %d tiles of flight"
+
+msgid "%d칸 이상 날아간 뒤 피해"
+msgstr "Damage after %d tiles of flight"
+
+msgid "%s 갈까?"
+msgstr "Step onto %s?"
+
+msgid "%s 뒤 맨 끝"
+msgstr "End after %s"
+
+msgid "%s 속: 바로 옆에서만 보임"
+msgstr "In %s: seen only from the next tile"
+
+msgid "%s 체력"
+msgstr "%s health"
+
+msgid "%s 최대 양: %d"
+msgstr "%s max amount: %d"
+
+msgid "%s 폭발에 쓰러졌다"
+msgstr "Fell to a %s blast"
+
+msgid "%s 한 장마다 +%d칸"
+msgstr "Each %s talisman: +%d tiles"
+
+msgid "%s, 곧게 %d칸"
+msgstr "%s, straight, %d tiles"
+
+msgid "%s, 생물"
+msgstr "%s, creatures"
+
+msgid "%s: 맨 앞, 또는 %s"
+msgstr "%s: at the front, or %s"
+
+msgid "%s: 초당 %d칸"
+msgstr "%s: %d tiles/s"
+
+msgid "%s마다: +%d초"
+msgstr "Per %s: +%d s"
+
+msgid "%s에 쓰러졌다"
+msgstr "Fell to %s"
+
+msgid "%s에게 쓰러졌다"
+msgstr "Fell to %s"
+
+msgid "%s의 %s에 쓰러졌다"
+msgstr "Fell to %s's %s"
+
+msgid "%s이 됨"
+msgstr "Turns to %s"
+
+msgid "%s키를 눌러 기록 보기"
+msgstr "Press %s to view the log"
+
+msgid "%s한 미호를 알아볼 수 없다"
+msgstr "Does not recognize Miho under %s"
+
+msgid "+%d칸"
+msgstr "+%d tiles"
+
+msgid ", 냄새 지움"
+msgstr ", erases scent"
+
+msgid ", 반지름 %d"
+msgstr ", radius %d"
+
+msgid ", 보는 적이 이 칸 수색"
+msgstr ", enemies that see it search this tile"
+
+msgid ", 보이는 가장 가까운 적 피해 %d"
+msgstr ", %d damage to the nearest visible enemy"
+
+msgid ", 이 칸과 옆 %d칸 %s"
+msgstr ", this tile and the %d beside it %s"
+
+msgid ", 주위 %d칸 %s, 불과 냄새 지움"
+msgstr ", %d tiles around %s, erases fire and scent"
+
+msgid ", 주위 %d칸 적 기절 %d초"
+msgstr ", stuns enemies within %d tiles for %d s"
+
+msgid ", 체력 +%d"
+msgstr ", health +%d"
+
+msgid "{0}으로 이동했다"
+msgstr "Moved to {0}"
+
+msgid "{0}을/를 껐다"
+msgstr "Turned {0} off"
+
+msgid "{0}을/를 먹었다. 체력을 {1} 회복했다"
+msgstr "Ate {0}. Healed {1}"
+
+msgid "{0}을/를 불러냈다"
+msgstr "Summoned {0}"
+
+msgid "{0}을/를 없앴다"
+msgstr "Removed {0}"
+
+msgid "{0}을/를 옮겼다"
+msgstr "Moved {0}"
+
+msgid "{0}을/를 켰다"
+msgstr "Turned {0} on"
+
+msgid "{0}이/가 {1}을/를 모으기 시작했다"
+msgstr "{0} began charging {1}"
+
+msgid "{0}이/가 돋았다"
+msgstr "{0} grew"
+
+msgid "{0}이/가 불빛에 사라졌다"
+msgstr "{0} vanished in the light"
+
+msgid "{0}이/가 사라졌다"
+msgstr "{0} vanished"
+
+msgid "{0}이/가 잠들었다"
+msgstr "{0} fell asleep"
+
+msgid "{0}이/가 풀렸다"
+msgstr "{0} wore off"
+
+msgid "{0}했다"
+msgstr "Used {0}"
+
+msgid "가까운 적끼리 둘씩"
+msgstr "Nearest enemies in pairs"
+
+msgid "가득 찼을 때: 먹지 않음"
+msgstr "When full: not eaten"
+
+msgid "가림: %s"
+msgstr "Cover: %s"
+
+msgid "가속"
+msgstr "Acceleration"
+
+msgid "가연성·인화성 칸"
+msgstr "Flammable and combustible tiles"
+
+msgid "감소: 초당 %d%%"
+msgstr "Thins: %d%% per second"
+
+msgid "감투 쓴 적: 보임"
+msgstr "Hat wearers: seen"
+
+msgid "건너는 것"
+msgstr "Crossed by"
+
+msgid "경계한 적: %d칸 안"
+msgstr "Alerted enemies: within %d tiles"
+
+msgid "경로"
+msgstr "Path"
+
+msgid "고른 부적도, 저장한 주문도 없다"
+msgstr "No talisman picked and no saved spell"
+
+msgid "고정"
+msgstr "Fixed"
+
+msgid "공격"
+msgstr "Fight"
+
+msgid "관통"
+msgstr "Pierces"
+
+msgid "균열"
+msgstr "Rift"
+
+msgid "그 칸으로 이동"
+msgstr "Move to that tile"
+
+msgid "그 칸의 적"
+msgstr "Enemy on that tile"
+
+msgid "금이 감"
+msgstr "Cracks"
+
+msgid "기다릴 때 들킴: %s"
+msgstr "Noticed when waiting: %s"
+
+msgid "기다릴 때 추락: %d층"
+msgstr "Fall when waiting: %d floors"
+
+msgid "기다릴 때 피해: %d"
+msgstr "Damage when waiting: %d"
+
+msgid "기록이 없다"
+msgstr "No log"
+
+msgid "김치"
+msgstr "Kimchi"
+
+msgid "깨어 있는 적이 보여서 쉴 수 없다"
+msgstr "Cannot rest with an awake enemy in sight"
+
+msgid "깨어 있는 적이 보여서 탐험할 수 없다"
+msgstr "Cannot explore with an awake enemy in sight"
+
+msgid "깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"
+msgstr "When awake: relights an unlit lantern beside it first"
+
+msgid "깨어남: 소음, 피해"
+msgstr "Wakes to: noise, damage"
+
+msgid "꺼지지 않는 칸"
+msgstr "Tiles that do not sink"
+
+msgid "꼬리 무제한"
+msgstr "Unlimited tails"
+
+msgid "꼬리가 %d개 모자라다"
+msgstr "Short of tails: %d"
+
+msgid "끝: 수색 중"
+msgstr "Ends: searching"
+
+msgid "끝: 쉬는 중"
+msgstr "Ends: resting"
+
+msgid "나왔다"
+msgstr "came out"
+
+msgid "남김: 미호가 선 칸"
+msgstr "Leaves: Miho's tile"
+
+msgid "남는 시간: %d초"
+msgstr "Time remaining: %d s"
+
+msgid "남은 냄새: %d초 이내"
+msgstr "Scent left: within %d s"
+
+msgid "냄새 추적"
+msgstr "Scent tracking"
+
+msgid "냄새: 지워짐"
+msgstr "Scent: erased"
+
+msgid "냄새가 남지 않음."
+msgstr "Leaves no scent."
+
+msgid "놓치면: 마지막으로 본 곳, 냄새를 따라감"
+msgstr "If it loses Miho: goes to the last place it saw her, follows the scent"
+
+msgid "다른 부적과 섞을 수 없는 주문이다"
+msgstr "This spell cannot be mixed with other talismans"
+
+msgid "다시"
+msgstr "Again"
+
+msgid "다시 볼 수 있게 되었다"
+msgstr "could see again"
+
+msgid "다시 켜짐"
+msgstr "Relights"
+
+msgid "다음 피해: ×%d"
+msgstr "Next damage: ×%d"
+
+msgid "달라붙음"
+msgstr "Sticks"
+
+msgid "대기"
+msgstr "Wait"
+
+msgid "던진 곳 수색"
+msgstr "Search where it was thrown"
+
+msgid "덩굴"
+msgstr "Vine"
+
+msgid "도깨비불 장막 옆 칸 초당 피해: "
+msgstr "Damage/s on tiles beside a Dokkaebi fire veil: "
+
+msgid "동시 주술: %d개"
+msgstr "Casts at once: %d"
+
+msgid "두 곳에서 %d"
+msgstr "%d at both places"
+
+msgid "둘러봄: %d번"
+msgstr "Looks around: %d times"
+
+msgid "뒤로"
+msgstr "Back"
+
+msgid "듣지 못하는 적: 소음 면역"
+msgstr "Enemies that cannot hear: immune to noise"
+
+msgid "들은 적: 추격 중이 아니면 미호를 본 곳을 수색"
+msgstr "Enemy that hears: if not chasing, searches where it saw Miho"
+
+msgid "등불 켜기"
+msgstr "Lights lanterns"
+
+msgid "디버그 명령"
+msgstr "Debug commands"
+
+msgid "땅속 덩굴"
+msgstr "Underground vine"
+
+msgid "떨어져 쓰러졌다"
+msgstr "Fell from a height"
+
+msgid "마침표(.)"
+msgstr "Period (.)"
+
+msgid "막는 것"
+msgstr "Blocked by"
+
+msgid "맞은 북"
+msgstr "Struck drum"
+
+msgid "맞은 적"
+msgstr "Struck enemy"
+
+msgid "맵 밝히기"
+msgstr "Reveal map"
+
+msgid "먹은 뒤 냄새: %d초 동안 진함"
+msgstr "Scent after eating: strong for %d s"
+
+msgid "멈춘 곳 %s의 불, 등불"
+msgstr "Fire and lanterns in the %s at the stop"
+
+msgid "멈춘 곳 소음"
+msgstr "Noise at the stop"
+
+msgid "메뉴"
+msgstr "Menu"
+
+msgid "면역"
+msgstr "Immune"
+
+msgid "모든 적"
+msgstr "All enemies"
+
+msgid "모으던 주문: 취소"
+msgstr "Charging spell: cancelled"
+
+msgid "무리: 대장을 따라다님"
+msgstr "Pack: follows its leader"
+
+msgid "무적"
+msgstr "Invincible"
+
+msgid "묶였다"
+msgstr "got rooted"
+
+msgid "묶임 %d초"
+msgstr "Rooted %d s"
+
+msgid "묶임: %d초"
+msgstr "Rooted: %d s"
+
+msgid "문닫기"
+msgstr "Close"
+
+msgid "물: %d초 동안 소음 없음"
+msgstr "Water: silent for %d s"
+
+msgid "미호 칸, 계단으로 가는 길이 끊기는 칸"
+msgstr "Miho's tile, tiles that cut the way to the stairs"
+
+msgid "미호가 보는 거리: %d칸"
+msgstr "Distance Miho sees: %d tiles"
+
+msgid "미호는 범위 안의 소음을 모두 들을 수 있다."
+msgstr "Miho hears every noise in the area."
+
+msgid "미호를 보면: 추격 중"
+msgstr "Sees Miho: chasing"
+
+msgid "미호를 볼 수 없다"
+msgstr "Cannot see Miho"
+
+msgid "미호를 볼 수 있다"
+msgstr "Can see Miho"
+
+msgid "발견: 밝은 칸 또는 %d칸 안"
+msgstr "Spotted: on a lit tile or within %d tiles"
+
+msgid "발사 빛"
+msgstr "Muzzle light"
+
+msgid "발톱 피해"
+msgstr "Claw damage"
+
+msgid "발톱 피해: +%d"
+msgstr "Claw damage: +%d"
+
+msgid "밝음"
+msgstr "Bright"
+
+msgid "밟으면"
+msgstr "Stepped on"
+
+msgid "밟으면: 묶임 %d초"
+msgstr "Stepped on: rooted for %d s"
+
+msgid "밟으면: 주위 %d×%d 모두 묶임"
+msgstr "Stepped on: roots everything in %d×%d around"
+
+msgid "밟을 때 소음: 층 전체"
+msgstr "Noise when stepped on: whole floor"
+
+msgid "방향키 아래"
+msgstr "Down arrow"
+
+msgid "방향키 오른쪽"
+msgstr "Right arrow"
+
+msgid "방향키 왼쪽"
+msgstr "Left arrow"
+
+msgid "방향키 위"
+msgstr "Up arrow"
+
+msgid "방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반경), Esc 끝"
+msgstr "Arrow keys move the cursor (Shift: %d tiles), Enter walks, the danger zone key marks (1-%d sets the radius there), Esc ends"
+
+msgid "번개"
+msgstr "Lightning"
+
+msgid "번지는 속도: 초당 %d칸"
+msgstr "Spread speed: %d tiles/s"
+
+msgid "번질 확률"
+msgstr "Spread chance"
+
+msgid "범위"
+msgstr "Area"
+
+msgid "범위: 소음 값만큼의 칸, 벽을 돌아서"
+msgstr "Area: as many tiles as the noise value, around walls"
+
+msgid "벽 앞, 첫 적"
+msgstr "In front of a wall, first enemy"
+
+msgid "벽까지 직선"
+msgstr "Straight to a wall"
+
+msgid "보이는 적, 가까운 적부터 남은 체력만큼"
+msgstr "Visible enemies, nearest first, as far as remaining health goes"
+
+msgid "보이지 않음."
+msgstr "Cannot be seen."
+
+msgid "보지 못해도 미호를 쫓아감"
+msgstr "Chases Miho without seeing her"
+
+msgid "부술 수 없다."
+msgstr "Cannot be broken."
+
+msgid "부적 얻기"
+msgstr "Get talisman"
+
+msgid "부적 제단"
+msgstr "Talisman altar"
+
+msgid "부적 칸이 가득 찼다"
+msgstr "The talisman queue is full"
+
+msgid "부채꼴 %d°"
+msgstr "Fan %d°"
+
+msgid "부채꼴 %d° 안의 적"
+msgstr "Enemies within a %d° fan"
+
+msgid "북 치기: 추격 중 걸어서 %d칸 안"
+msgstr "Drum beating: while chasing, within %d tiles on foot"
+
+msgid "북 치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안"
+msgstr "Drum beater: a sharp enemy chasing Miho, within %d tiles on foot"
+
+msgid "북: %d초 동안 소음 없음"
+msgstr "Drum: silent for %d s"
+
+msgid "북소리를 들은 적: 북 친 적이 미호를 마지막으로 본 곳을 수색"
+msgstr "Enemy that hears the drum: searches where the beater last saw Miho"
+
+msgid "불붙음: 불이 든 주문에 맞을 때"
+msgstr "Burning: when hit by a spell with fire"
+
+msgid "불에 타 쓰러졌다"
+msgstr "Burned to death"
+
+msgid "불이 붙지 않음."
+msgstr "Does not catch fire."
+
+msgid "불타는 시간: %d초"
+msgstr "Burning time: %d s"
+
+msgid "불탄 뒤: %s"
+msgstr "After burning: %s"
+
+msgid "불탄 뒤: 재"
+msgstr "After burning: ash"
+
+msgid "빈 독"
+msgstr "Empty jar"
+
+msgid "빛: 맞은 대상을 따라 움직임"
+msgstr "Light: moves with the target it hits"
+
+msgid "빼기"
+msgstr "Undo"
+
+msgid "새로 시작"
+msgstr "New run"
+
+msgid "소금"
+msgstr "Salt"
+
+msgid "소음 없이 무너짐"
+msgstr "Collapses silently"
+
+msgid "속는 적"
+msgstr "Fooled enemies"
+
+msgid "속는 적: 모든 적"
+msgstr "Fooled enemies: all enemies"
+
+msgid "속는 적: 추격 중이 아닌 적"
+msgstr "Fooled enemies: enemies not chasing"
+
+msgid "속도"
+msgstr "Speed"
+
+msgid "속박"
+msgstr "Binding"
+
+msgid "쇠발톱"
+msgstr "Iron talons"
+
+msgid "수색"
+msgstr "Search"
+
+msgid "수색 끝: 경계가 끝난 뒤"
+msgstr "Search ends: after the alert ends"
+
+msgid "수색: 경계가 끝날 때까지"
+msgstr "Search: until the alert ends"
+
+msgid "수색을 시작했다"
+msgstr "started searching"
+
+msgid "수색하는 적: 추격 중이 아닌 적"
+msgstr "Searching enemy: an enemy not chasing"
+
+msgid "순간이동"
+msgstr "Teleport"
+
+msgid "순간이동했다"
+msgstr "Teleported"
+
+msgid "쉬거나 수색 중: 미호의 냄새를 따라감"
+msgstr "While resting or searching: follows Miho's scent"
+
+msgid "쉴 때: 방 사이를 돌아다님"
+msgstr "When resting: wanders between rooms"
+
+msgid "쉼표(,)"
+msgstr "Comma (,)"
+
+msgid "스스로에게 걸기"
+msgstr "Cast on self"
+
+msgid "스스로에겐 %s만 걸 수 있다"
+msgstr "Only %s can be cast on yourself"
+
+msgid "시드"
+msgstr "Seed"
+
+msgid "시드 %d 복사했다"
+msgstr "Seed %d copied"
+
+msgid "시드를 복사했다"
+msgstr "Copied the seed"
+
+msgid "시야: 없음"
+msgstr "Sight: none"
+
+msgid "시야를 막음."
+msgstr "Blocks sight."
+
+msgid "시야를 막지 않음."
+msgstr "Does not block sight."
+
+msgid "시작: 미호를 봄, 주문에 맞음"
+msgstr "Starts: sees Miho, hit by a spell"
+
+msgid "시작: 소음, 흔적, 날아오는 주문"
+msgstr "Starts: noise, trace, incoming spell"
+
+msgid "시작: 추격을 시작할 때"
+msgstr "Starts: when a chase begins"
+
+msgid "시체"
+msgstr "Corpse"
+
+msgid "쏜 칸"
+msgstr "Cast tile"
+
+msgid "쏟아졌다"
+msgstr "spilled"
+
+msgid "쓰러진 허수아비"
+msgstr "Fallen scarecrow"
+
+msgid "안 남는 칸: %s"
+msgstr "No scent on: %s"
+
+msgid "어두운 곳 시야: +%d칸"
+msgstr "Sight in the dark: +%d tiles"
+
+msgid "어두움"
+msgstr "Dark"
+
+msgid "여우불 소음: 던진 곳을 수색"
+msgstr "Foxfire noise: searches where it was thrown"
+
+msgid "옆 칸 초당 피해: %d"
+msgstr "Damage/s on tiles beside it: %d"
+
+msgid "외침"
+msgstr "Shout"
+
+msgid "움직이지 않음."
+msgstr "Does not move."
+
+msgid "움직일 수 없다."
+msgstr "Cannot move."
+
+msgid "움직일 수도, 주문을 쓸 수도 없다."
+msgstr "Cannot move or cast."
+
+msgid "위치 감지"
+msgstr "Senses position"
+
+msgid "위험구역 너머는 탐험할 수 없다"
+msgstr "Cannot explore past a danger zone"
+
+msgid "위험구역 너머로는 갈 수 없다"
+msgstr "Cannot go past a danger zone"
+
+msgid "은신"
+msgstr "Cloak"
+
+msgid "이 칸으로 이동할 때 들킴: %s"
+msgstr "Noticed when moving here: %s"
+
+msgid "이 칸으로 이동할 때 추락: %d층"
+msgstr "Fall when moving here: %d floors"
+
+msgid "이 칸으로 이동할 때 피해: %d"
+msgstr "Damage when moving here: %d"
+
+msgid "이어하기"
+msgstr "Continue"
+
+msgid "이어하던 판을 지우고 새로 시작할까?"
+msgstr "Erase the run in progress and start anew?"
+
+msgid "있음"
+msgstr "held"
+
+msgid "잠듦"
+msgstr "Sleep"
+
+msgid "저장한 주문이 없다"
+msgstr "No saved spell"
+
+msgid "적 멈춤"
+msgstr "Freeze enemies"
+
+msgid "적 모두, 벽 한 칸"
+msgstr "All enemies, one wall"
+
+msgid "적 소환"
+msgstr "Summon enemy"
+
+msgid "적 옆에서 %d초, 주문 사용, 피해"
+msgstr "%d s beside an enemy, casting, damage"
+
+msgid "적 이동"
+msgstr "Move enemy"
+
+msgid "적 제거"
+msgstr "Remove enemies"
+
+msgid "적: 소음이 난 곳을 수색"
+msgstr "Enemies: search where the noise came from"
+
+msgid "적에게 보임: %d칸 안"
+msgstr "Seen by enemies: within %d tiles"
+
+msgid "적에게 보임: 시야 안 어디서나"
+msgstr "Seen by enemies: anywhere in sight"
+
+msgid "적에게 피해"
+msgstr "Damage enemies"
+
+msgid "적은 밟지 않음."
+msgstr "Enemies do not step on it."
+
+msgid "적을 모두 없앴다"
+msgstr "Removed all enemies"
+
+msgid "정말 처음부터 시작할까?"
+msgstr "Really start over?"
+
+msgid "정신을 차렸다"
+msgstr "came to"
+
+msgid "정지"
+msgstr "Stopped"
+
+msgid "정지 중 소음"
+msgstr "Noise while stopped"
+
+msgid "젖은 적 "
+msgstr "Wet enemy "
+
+msgid "제웅"
+msgstr "Effigy"
+
+msgid "제자리 수색"
+msgstr "Search in place"
+
+msgid "제한 없음"
+msgstr "No limit"
+
+msgid "주문과 %s로만 건널 수 있다."
+msgstr "Crossed only by spells and %s."
+
+msgid "주문을 보면: 날아가는 칸을 수색"
+msgstr "Sees a spell: searches the tiles it flies over"
+
+msgid "주문을 보면: 쏜 곳에서 추격"
+msgstr "Sees a spell: chases from where it was cast"
+
+msgid "주문을 보면: 쏜 곳을 수색"
+msgstr "Sees a spell: searches where it was cast"
+
+msgid "주위 %d칸, 피해 %d"
+msgstr "%d tiles around, damage %d"
+
+msgid "지금"
+msgstr "now"
+
+msgid "지나간 가연성·인화성 칸"
+msgstr "Flammable and combustible tiles passed"
+
+msgid "지속 시간"
+msgstr "Duration"
+
+msgid "지워짐"
+msgstr "Erased"
+
+msgid "지워짐: 물 주문, 안개비, 고요, 향 연기"
+msgstr "Erased by: water spells, Drizzle, Stillness, incense smoke"
+
+msgid "지진"
+msgstr "Earthquake"
+
+msgid "진한 냄새 남는 시간: %d초"
+msgstr "Strong scent lasts: %d s"
+
+msgid "진흙 착지 소음"
+msgstr "Noise landing on mud"
+
+msgid "찢어졌다"
+msgstr "tore"
+
+msgid "착지 소음"
+msgstr "Landing noise"
+
+msgid "착지 후: "
+msgstr "After landing: "
+
+msgid "착지한 칸만"
+msgstr "Landing tile only"
+
+msgid "착지할 곳이 없다"
+msgstr "Nowhere to land"
+
+msgid "체력 회복"
+msgstr "Heal"
+
+msgid "체력을 모두 회복했다"
+msgstr "Healed fully"
+
+msgid "최대 체력: 오르지 않음"
+msgstr "Max health: does not rise"
+
+msgid "최면"
+msgstr "Hypnosis"
+
+msgid "추격"
+msgstr "Chase"
+
+msgid "추격 중인 적: 수색하지 않음"
+msgstr "Enemy chasing: does not search"
+
+msgid "추격: 항상"
+msgstr "Chase: always"
+
+msgid "추격을 시작했다"
+msgstr "started chasing"
+
+msgid "추락"
+msgstr "Fall"
+
+msgid "충돌 소음"
+msgstr "Collision noise"
+
+msgid "층 이동"
+msgstr "Change floor"
+
+msgid "칸"
+msgstr "Tile"
+
+msgid "칸당 %s"
+msgstr "%s per tile"
+
+msgid "키 입력 대기"
+msgstr "Waiting for a key"
+
+msgid "키패드 "
+msgstr "Keypad "
+
+msgid "키패드 ."
+msgstr "Keypad ."
+
+msgid "타격: %s, 이 칸과 옆 %d칸"
+msgstr "Struck: %s, this tile and the %d beside it"
+
+msgid "타격: 옆 가연성·인화성 칸에 불"
+msgstr "Struck: fire on flammable and combustible tiles beside it"
+
+msgid "탄환"
+msgstr "Bullet"
+
+msgid "탐험"
+msgstr "Explore"
+
+msgid "팥"
+msgstr "Red beans"
+
+msgid "풀려났다"
+msgstr "was freed"
+
+msgid "풀림: 피해, 주문, 적 옆 %d초 연속"
+msgstr "Ends: damage, casting, %d s in a row beside an enemy"
+
+msgid "피해: ×%d"
+msgstr "Damage: ×%d"
+
+msgid "하나"
+msgstr "One"
+
+msgid "한 번에 부술 수 있다"
+msgstr "Can be broken at once"
+
+msgid "해제"
+msgstr "Ends"
+
+msgid "허수아비"
+msgstr "Scarecrow"
+
+msgid "화면을 눌러 시작"
+msgstr "Tap the screen to start"
+
+msgid "회복: %d초마다 %d"
+msgstr "Regen: every %d s, %d"
+
+msgid "회전"
+msgstr "Turn"
+
+msgid "회전: 칸당 %s"
+msgstr "Turn: %s per tile"
+
+msgid "횟수: 적마다 한 번"
+msgstr "Times: once per enemy"
+
+msgid "효과: 사람이 됨"
+msgstr "Effect: becomes human"
+
+msgid "흩어졌다"
+msgstr "scattered"
+
+msgctxt "spell"
+msgid "꺼짐"
+msgstr "Extinguishes"
+
+msgctxt "button"
+msgid "주문서"
+msgstr "Spells"
+
+msgctxt "button"
+msgid "탐험"
+msgstr "Auto"
+
+msgctxt "banner"
+msgid "사람이 되었다"
+msgstr "Became human"
+
+msgctxt "banner"
+msgid "쓰러졌다"
+msgstr "Fell"
+
+msgid "숯"
+msgstr "Charcoal"
+
+msgid "생김"
+msgstr "Forms"
+
