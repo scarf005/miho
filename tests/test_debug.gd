@@ -114,6 +114,19 @@ func test_a_creature_out_of_sight_tells_its_hidden_state_on_hover() -> void:
 	assert_string_contains(text, "놓친 지 4/%d초" % World.SEARCH_ROUNDS)
 
 
+func test_a_projectile_tells_what_it_is_wherever_it_flies() -> void:
+	var w := _hall()
+	var s := Shot.new()
+	s.spell = Spell.make([Cards.ORB])
+	s.pos = Vector2i(14, 8)
+	s.origin = Vector2i(13, 8)
+	s.dir = Vector2i(1, 0)
+	s.life = 4
+	w.shots.append(s)
+	assert_eq(w.seen[Grid.index(s.pos)], 0)
+	assert_eq(Info.plain(DebugView.at(w, s.pos)), Info.plain(SpellInfo.shot(w, s)))
+
+
 func test_a_sleeper_tells_where_it_rests_and_an_empty_tile_tells_its_scent() -> void:
 	var w := _hall()
 	var a := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 8))
