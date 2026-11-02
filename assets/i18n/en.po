@@ -921,8 +921,8 @@ msgstr "%s damage/s: %d"
 msgid "소음: %d"
 msgstr "Noise: %d"
 
-msgid "추락한 적: 사라짐"
-msgstr "Enemy that falls: gone"
+msgid "사라짐: 추락한 적"
+msgstr "Gone: enemy that falls"
 
 msgid "층당 추락 피해: %d"
 msgstr "Fall damage per floor: %d"
@@ -1649,9 +1649,6 @@ msgstr "Damage when passing"
 
 msgid "땅"
 msgstr "Ground"
-
-msgid "발소리"
-msgstr "Footsteps"
 
 msgid "끝 벽"
 msgstr "End wall"
@@ -2530,9 +2527,6 @@ msgstr "New run"
 msgid "소금"
 msgstr "Salt"
 
-msgid "소음 없이 무너짐"
-msgstr "Collapses silently"
-
 msgid "속는 적"
 msgstr "Fooled enemies"
 
@@ -2776,8 +2770,11 @@ msgstr "Duration"
 msgid "지워짐"
 msgstr "Erased"
 
-msgid "지워짐: 물 주문, 안개비, 고요, 향 연기, 연기"
-msgstr "Erased by: water spells, Drizzle, Stillness, incense smoke, smoke"
+msgid "지워짐: %s"
+msgstr "Erased: %s"
+
+msgid "물 주문"
+msgstr "water spells"
 
 msgid "지진"
 msgstr "Earthquake"

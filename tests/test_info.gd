@@ -392,4 +392,4 @@ func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
 		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있다.")
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
-	assert_string_contains(sky, "추락한 적: 사라짐\n층당 추락 피해: 1")
+	assert_string_contains(sky, "사라짐: 추락한 적\n층당 추락 피해: 1")

@@ -282,7 +282,7 @@ static func _spray(s: Spell) -> Array:
 			if level >= Spray.CRACK_LEVEL:
 				out.append(_line("벽", "금이 감", color))
 			if level >= Spray.FELL_LEVEL:
-				out.append(_line("금 간 벽", "무너짐", color))
+				out.append(_line("무너짐", "금 간 벽", color))
 			return out
 	var who := Lang.t("모두") if Spray.ROOT_COUNT[i] == 0 else Lang.t("%d명") % Spray.ROOT_COUNT[i]
 	return [
@@ -416,7 +416,7 @@ static func compound(c: StringName) -> Array:
 				["생성", name], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
 			]
 		&"rift":
-			return [["벽", "소음 없이 무너짐"]]
+			return [["무너짐", "벽"]]
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
 			return [
@@ -425,7 +425,7 @@ static func compound(c: StringName) -> Array:
 		&"volcano":
 			return hot.call(Compounds.LAVA) + [["불타는 칸", "가연성·인화성 칸"], _alight_on()]
 		&"furnace":
-			return hot.call(Compounds.MOLTEN) + [["끝 벽", "무너짐"]]
+			return hot.call(Compounds.MOLTEN) + [["무너짐", "끝 벽"]]
 		&"hail":
 			var frozen: String = Status.NAME[&"frozen"]
 			return [
@@ -492,7 +492,7 @@ static func compound(c: StringName) -> Array:
 			]
 		Cards.DRAGON:
 			return [
-				["벽", "무너짐"],
+				["무너짐", "벽"],
 				["밀침", Lang.t("%d칸, 바깥으로") % Compounds.DRAGON_PUSH],
 				["기절", Lang.t("%d초") % Compounds.DRAGON_STUN],
 			]

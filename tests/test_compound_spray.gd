@@ -173,7 +173,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[METAL, METAL, METAL]: ["산탄", "반지름 4", "바로 옆 적 피해: 2"],
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
 		[EARTH, EARTH]: ["둘레 2칸", "벽: 금이 감"],
-		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "금 간 벽: 무너짐"],
+		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "무너짐: 금 간 벽"],
 		[WOOD]: ["거리: 4걸음", "적 1명", "묶임: 2초", "소음: 없음"],
 		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶임: 3초"],
 		[WOOD, WOOD, WOOD]: ["거리: 8걸음", "적 모두", "묶임: 4초"],
@@ -187,7 +187,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		],
 		[WATER, FIRE, WATER, FIRE]: ["증기×2", "3칸 앞 5×5"],
 		[METAL, WOOD]: ["가시", "반지름 2", "피해: %d\n지날 때 피해: %d" % [Compounds.THORN, Compounds.THORN]],
-		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "벽: 소음 없이 무너짐", "소음: 없음"],
+		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "무너짐: 벽", "소음: 없음"],
 		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
 		[FIRE, EARTH]:
 		[

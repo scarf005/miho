@@ -483,7 +483,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"불붙음: %d초" % Status.ALIGHT,
 			"소음: %d" % Spray.GUN_LOUD,
 		],
-		&"furnace": ["용광로 · 꼬리: 3", "모양: 곧게 6칸", "뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS, "끝 벽: 무너짐"],
+		&"furnace": ["용광로 · 꼬리: 3", "모양: 곧게 6칸", "뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS, "무너짐: 끝 벽"],
 		&"hail":
 		[
 			"우박 · 꼬리: 3",
@@ -498,7 +498,7 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 		[
 			"늪 · 꼬리: 3",
 			"모양: 3칸 앞 5×5",
-			"벽: 소음 없이 무너짐",
+			"무너짐: 벽",
 			"땅: 진흙",
 			"묶임: %d초" % Compounds.SWAMP,
 			"소음: 없음",

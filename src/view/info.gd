@@ -35,6 +35,15 @@ const CONDITIONS := {
 }
 
 
+## What washes the scent away: water, the spells that say so and the gases that do.
+static func _scent_erasers() -> Array:
+	var gases := Gas.ROWS.values().filter(func(g): return g.get("erases", false))
+	return (
+		[Lang.t("물 주문"), Lang.t(Cards.NAME[&"mist"]), Lang.t(Cards.NAME[&"stillness"])]
+		+ gases.map(func(g): return Lang.t(g.name))
+	)
+
+
 ## The rules many things share, by the tag their hover shows instead, one
 ## `이름: 값` line each: the 도감's glossary (Codex).
 static func glossary() -> Dictionary:
@@ -115,7 +124,7 @@ static func glossary() -> Dictionary:
 			Lang.t("남는 시간: %d초") % Scent.TRAIL_AGE,
 			Lang.t("진한 냄새 남는 시간: %d초") % (Scent.TRAIL_AGE + Scent.STRONG_EXTRA),
 			Lang.t("안 남는 칸: %s") % no_scent,
-			"지워짐: 물 주문, 안개비, 고요, 향 연기, 연기",
+			Lang.t("지워짐: %s") % ", ".join(_scent_erasers()),
 		],
 	}
 
@@ -743,7 +752,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("주문과 %s로만 건널 수 있다.") % Lang.t(Spell.SHAPE_NAME[Spell.LEAP]))
 		World.SKY:
 			out.append(Lang.t("주문과 %s로만 건널 수 있다.") % Lang.t(Spell.SHAPE_NAME[Spell.LEAP]))
-			out.append(Lang.t("추락한 적: 사라짐"))
+			out.append(Lang.t("사라짐: 추락한 적"))
 			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
 		World.WINDOW:
 			out.append(Lang.t("막음: 길"))
