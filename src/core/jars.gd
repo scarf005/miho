@@ -12,7 +12,7 @@ extends RefCounted
 ## is): Miho eats it on the tile once she is hurt, whether she came onto it hurt or
 ## was hurt standing there. It heals HEAL, never above her maximum, and her scent is
 ## strong for PUNGENT_ROUNDS (Scent). 제웅, a straw
-## doll, tears and hurts the nearest creature of heaven Miho sees by EFFIGY_HARM.
+## doll, tears and puts a curse on Miho (Curse).
 ## 허수아비, a scarecrow, falls where every creature that sees it goes to search
 ## (Notice), as it does for a lantern that broke. 소금, salt, clears the scent trail of the
 ## whole storey (Scent.clear). 팥, red beans, stun every creature of heaven in the eight
@@ -33,7 +33,6 @@ const ROWS := [
 const KIMCHI := &"kimchi"
 ## Rounds Miho's scent stays strong after she eats kimchi.
 const PUNGENT_ROUNDS := 20
-const EFFIGY_HARM := 1
 ## Rounds the creatures round a jar of red beans are stunned: a 흙 wisp's.
 const BEANS_STUN := Elements.STUN
 
@@ -93,7 +92,7 @@ static func broke(w: World, at: Vector2i) -> void:
 		KIMCHI:
 			w.sites.append({kind = KIMCHI, at = at})
 		&"effigy":
-			_tear(w)
+			Curse.strike(w, at)
 		&"scarecrow":
 			Notice.record(w, &"scarecrow", at)
 		&"salt":
@@ -136,22 +135,6 @@ static func _flood(w: World, at: Vector2i) -> void:
 		if w.tile(at + d) == World.FLOOR and not w.traps.has(at + d):
 			w.set_tile(at + d, World.SHALLOW)
 		Terrain.wash(w, at + d)
-
-
-static func _tear(w: World) -> void:
-	var me := w.player()
-	var near: Actor = null
-	for a in w.actors:
-		if (
-			a.faction == Actor.HEAVEN
-			and a.alive()
-			and w.sees(me, a.pos)
-			and not Hat.hidden(w, a, me.pos)
-			and (near == null or Grid.cheb(a.pos, me.pos) < Grid.cheb(near.pos, me.pos))
-		):
-			near = a
-	if near != null:
-		w.hurt(near, EFFIGY_HARM)
 
 
 static func _scatter(w: World) -> void:

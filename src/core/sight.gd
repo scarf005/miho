@@ -13,13 +13,19 @@ static func field(origin: Vector2i, radius: int, opaque: PackedByteArray) -> Pac
 	return Native.sight(origin, radius, opaque, Grid.W)
 
 
+## How far `a` sees in the dark.
+static func reach(w: World, a: Actor) -> int:
+	var more := Curse.sight_bonus(w) if a.faction == Actor.HEAVEN else 0
+	return World.NIGHT[a.faction] + (World.WARY_SIGHT if a.wary > 0 else 0) + more
+
+
 ## What `me` senses now, [seen, dim, known]: World.seen, World.dim and World.known once it has
 ## looked round. Its own field answers for the clear tiles, as sight is symmetric between them.
 ## In Rust, rust/src/lib.rs.
 static func sensed(w: World, me: Actor) -> Array:
 	return Native.sense(
 		me.pos,
-		World.NIGHT[me.faction] + (World.WARY_SIGHT if me.wary > 0 else 0),
+		reach(w, me),
 		me.asleep(),
 		me.blind > 0,
 		me.faction == Actor.FOX,

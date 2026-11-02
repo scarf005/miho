@@ -527,8 +527,10 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"omen"
 		&"arrive":
 			return &"dread"
-		&"wake":
+		&"wake", &"rise":
 			return &"stone"
+		&"curse":
+			return EERIE
 		&"ascend":
 			return &"ascend"
 		&"fall":

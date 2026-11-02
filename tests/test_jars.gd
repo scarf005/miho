@@ -164,26 +164,6 @@ func test_a_jar_gives_its_effect_once_and_an_empty_one_nothing() -> void:
 	assert_false(w.jars.has(AT), "the effect is spent")
 
 
-func test_a_torn_effigy_hurts_the_nearest_creature_miho_sees() -> void:
-	for how in [&"bump", &"orb"]:
-		var w := _world()
-		var near := _foe(w, NEAR_FOE)
-		var far := _foe(w, FAR_FOE)
-		var hp := [near.hp, far.hp]
-		_break(w, how, &"effigy")
-		assert_eq(near.hp, hp[0] - Jars.EFFIGY_HARM, "%s: the nearest" % how)
-		assert_eq(far.hp, hp[1], "%s: only one" % how)
-
-
-func test_a_torn_effigy_with_no_creature_in_sight_hurts_none() -> void:
-	var w := _world()
-	var hidden := FloorGen.spawn(w, &"jangseung", Vector2i(30, 12))
-	var hp := hidden.hp
-	_break(w, &"bump", &"effigy")
-	assert_eq(hidden.hp, hp)
-	assert_eq(w.player().hp, 3)
-
-
 func test_a_fallen_scarecrow_sends_the_creatures_that_see_it_to_search_there() -> void:
 	for how in [&"bump", &"orb"]:
 		var w := _world()

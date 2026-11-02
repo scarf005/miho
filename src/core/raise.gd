@@ -3,7 +3,7 @@ extends RefCounted
 ## 사령술 (Guise.RAISE): while it is on, a body (World.bodies, Notice.fallen) Miho sees at
 ## the end of a round rises as an ally, whether it fell in her sight or lay there before,
 ## as DCSS Death Channel and Animate Dead raise the dead for their caster. No chance is
-## involved. It takes the body's tile or the first free one next to it (`_spot`); with
+## involved. It takes the body's tile or the first free one next to it (`spot_of`); with
 ## none free it stays a body and tries again each round she sees it. What falls into the
 ## sky leaves no body, and an ally leaves none (World.hurt), so what rises does not rise
 ## again. It stays on the storey it rose on when she leaves (Storeys.followers), and up
@@ -45,7 +45,7 @@ static func rises(w: World, kind: StringName) -> StringName:
 
 ## Where a body at `at` rises: its tile, else the first tile next to it, none that a
 ## plate or fire would catch it on. (-1, -1) when none is free.
-static func _spot(w: World, at: Vector2i) -> Vector2i:
+static func spot_of(w: World, at: Vector2i) -> Vector2i:
 	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
 		var p := at + d
 		if w.vacant(p) and not w.traps.has(p) and not w.burning.has(p):
@@ -53,13 +53,14 @@ static func _spot(w: World, at: Vector2i) -> Vector2i:
 	return Vector2i(-1, -1)
 
 
-## The end of a round, once her sight is worked out: every body she sees rises.
+## The end of a round, once her sight is worked out: every body she sees rises, but one
+## that rises for heaven (Curse).
 static func tick(w: World) -> void:
 	if not w.player().raise or w.outcome != &"":
 		return
 	for at: Vector2i in w.bodies.keys():
-		var spot := _spot(w, at)
-		if w.seen[Grid.index(at)] == 1 and spot.x >= 0:
+		var spot := spot_of(w, at)
+		if w.seen[Grid.index(at)] == 1 and spot.x >= 0 and not w.bodies[at].has("rises"):
 			Mind.enlist(w, FloorGen.spawn(w, rises(w, w.bodies[at].kind), spot))
 			w.bodies.erase(at)
 	w._changed()

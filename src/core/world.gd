@@ -164,6 +164,8 @@ var peaches: Array[Vector2i] = []
 var jars := {}
 ## Rounds Miho's scent stays strong (Jars.eat), and the tiles it was laid strong on (Scent).
 var pungent := 0
+## What a torn 제웅 laid on this storey: curse -> its value (Curse).
+var curses := {}
 var strong := {}
 ## Burning tiles: position -> rounds left; the wild ones always spread.
 var burning := {}
@@ -251,6 +253,7 @@ func clone() -> World:
 	w.peaches = peaches.duplicate()
 	w.jars = jars.duplicate()
 	w.pungent = pungent
+	w.curses = curses.duplicate()
 	w.strong = strong.duplicate()
 	w.burning = burning.duplicate()
 	w.wild = wild.duplicate()
@@ -459,7 +462,7 @@ func _reaches(a: Actor, p: Vector2i) -> bool:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
 		return false
-	return Grid.cheb(a.pos, p) <= NIGHT[a.faction] + (WARY_SIGHT if a.wary > 0 else 0) or lit(p)
+	return Grid.cheb(a.pos, p) <= Sight.reach(self, a) or lit(p)
 
 
 func can(action: Dictionary) -> bool:
@@ -962,16 +965,7 @@ func _end_round() -> void:
 				Elements.fade(self, s)
 	_prune()
 	round_no += 1
-	if outcome != &"" or depth >= FLOORS:
-		return
-	if round_no == REAPER_OMEN:
-		emit({t = &"omen"})
-	elif round_no == REAPER_ARRIVES:
-		var spot := FloorGen.nearest_free(self, start)
-		if spot.x >= 0:
-			var saja := FloorGen.spawn(self, &"saja", spot)
-			_changed()
-			emit({t = &"arrive", id = saja.id, at = spot})
+	Curse.tick(self)
 
 
 func _prune() -> void:

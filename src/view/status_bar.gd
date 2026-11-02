@@ -85,8 +85,9 @@ static func draw(t: Term) -> void:
 	NoiseMeter.draw(t)
 
 
-## The names of the buffs on Miho, ending at `end`: they have no time to run out, so
-## the row keeps telling them. The debug label takes the place on that row.
+## The names of the buffs on Miho and the curses on the storey (Curse), ending at `end`: they
+## have no time to run out, so the row keeps telling them. The debug label takes the place on
+## that row.
 static func buffs(t: Term, end: Vector2) -> void:
 	if not t.debug.is_empty():
 		return
@@ -96,6 +97,10 @@ static func buffs(t: Term, end: Vector2) -> void:
 		at.x -= t._cells(name) + 1.0
 		var last: StringName = Spell.make(Guise.RECIPE[kind]).slots.back()
 		t._text(at, name, Palette.card(last))
+	for kind: StringName in Curse.worn(t.world):
+		var name := Lang.t(Curse.NAME[kind])
+		at.x -= t._cells(name) + 1.0
+		t._text(at, name, Palette.BAD)
 
 
 ## Tails the spells held with Shift and the queue spend.

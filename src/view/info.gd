@@ -55,6 +55,8 @@ const CONDITIONS := {
 	],
 	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
+	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
+	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
 }
 ## How a clever creature looks for Miho under her 은신 (Aim.suspected).
 const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
@@ -63,6 +65,8 @@ const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비
 ## The lines a jar's entry adds in the 도감: each thing it can hold with its chance
 ## (Jars.chances) and what it does. The hover over a jar does not tell them.
 static func jar_facts() -> Array:
+	var curses: Array = Curse.NAME.values().map(func(n): return Lang.t(n))
+	curses.append(Lang.t("%d초 뒤 되살아나는 시체") % Curse.RISE_ROUNDS)
 	var does := {
 		&"empty": "",
 		&"water":
@@ -71,7 +75,7 @@ static func jar_facts() -> Array:
 			% [Grid.DIRS.size(), Lang.t(Tiles.of(World.SHALLOW, "name"))]
 		),
 		Jars.KIMCHI: Lang.t(", 체력 +%d") % World.HEAL,
-		&"effigy": Lang.t(", 보이는 가장 가까운 적 피해 %d") % Jars.EFFIGY_HARM,
+		&"effigy": Lang.t(", 무작위 저주: %s") % ", ".join(curses),
 		&"scarecrow": Lang.t(", 보는 적이 이 칸 수색"),
 		&"salt": Lang.t(", 냄새 지움"),
 		&"beans": Lang.t(", 주위 %d칸 적 기절 %d초") % [Grid.DIRS.size(), Jars.BEANS_STUN],
@@ -328,6 +332,7 @@ static func _melee(melee: Dictionary) -> Array:
 static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head] + _tails(w) + _claws(w, a)
 	lines.append_array(_conditions(w, a))
+	lines.append_array(_tags(Curse.worn(w).map(func(c): return Curse.NAME[c])))
 	lines.append_array(nature(a.nature_kind()))
 	if a.flame:
 		lines.append([[Lang.t("불 주문 피해: +%d") % Guise.FLAME_HARM, Palette.TEXT]])
@@ -628,7 +633,7 @@ static func _change_lines(w: World, p: Vector2i) -> Array:
 		return []
 	var label := Lang.t(Notice.LABEL[change.kind])
 	var color := Palette.TEXT
-	if change.kind == &"body":
+	if change.kind == &"body" and not body.has("rises"):
 		label = Lang.t("쓰러진 %s") % Lang.t(Bestiary.info(body.kind).name)
 		color = Palette.KIND[body.kind]
 	return [
@@ -821,7 +826,7 @@ static func _hidden(w: World, p: Vector2i) -> Array:
 		]
 	if w.lit(p):
 		return [[Lang.t("밝음."), Palette.ALERT[1]]]
-	var reach: int = World.NIGHT[Actor.HEAVEN]
+	var reach: int = World.NIGHT[Actor.HEAVEN] + Curse.sight_bonus(w)
 	return [[Lang.t("어두움: %d칸 안에서만 보임") % reach, Palette.SIDE[0]]]
 
 

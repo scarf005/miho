@@ -63,6 +63,10 @@ static func text(world: World) -> String:
 		out.append(
 			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
 		)
+	if k.curses.has(Curse.REAPER):
+		out.append("cursed: the reaper comes %d rounds sooner on this storey" % Curse.SOONER)
+	if k.curses.has(Curse.SIGHT):
+		out.append("cursed: creatures see %d tiles farther in the dark" % Curse.MORE_SIGHT)
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":

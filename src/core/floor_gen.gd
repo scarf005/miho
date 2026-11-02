@@ -230,6 +230,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.changes.clear()
 	w.bodies.clear()
 	w.round_no = 0
+	w.curses.clear()
 	w.known = PackedByteArray()
 	w.seen = PackedByteArray()
 	w.dim = PackedByteArray()

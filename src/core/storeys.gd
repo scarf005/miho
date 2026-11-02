@@ -37,6 +37,7 @@ const FIELDS: Array[String] = [
 	"bodies",
 	"known",
 	"round_no",
+	"curses",
 ]
 
 

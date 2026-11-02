@@ -39,8 +39,14 @@ static func smashed(w: World, was: int, at: Vector2i) -> void:
 
 ## A heaven creature fell on its tile: records it and leaves a body mark there.
 static func fallen(w: World, a: Actor) -> void:
-	record(w, &"body", a.pos)
-	w.bodies[a.pos] = {kind = a.kind, round = w.round_no, met = false}
+	lay(w, a.kind, a.pos)
+
+
+## A body of `kind` lies at `at` from now on, and creatures can notice it. Returns its mark.
+static func lay(w: World, kind: StringName, at: Vector2i) -> Dictionary:
+	record(w, &"body", at)
+	w.bodies[at] = {kind = kind, round = w.round_no, met = false}
+	return w.bodies[at]
 
 
 ## The body marks Miho has seen.

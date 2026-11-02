@@ -9,8 +9,9 @@ extends RefCounted
 ## parted by "/" and centred in the hall's height, column 0 at the hall's left. It
 ## has a mark from MARKS, or one of:
 ## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
-## rest, w a dull one (장승) at rest with one health, k the creature the row is for, m that creature
-## hunting her and casting nothing, t the tile the row is for,
+## rest, w a dull one (장승) at rest with one health, J a 장승 that casts once it sees her, k the
+## creature the row is for, m that creature hunting her and casting nothing, D a jar with a doll
+## that puts on her the curse the row is for (`_doll`), t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
 ## the row is for holds kimchi.
@@ -76,6 +77,8 @@ const TABLE := {
 	"불여우": ["  @  d", "sc..", Guise.RECIPE[Guise.FLAME]],
 	Guise.RAISE: [RISES, ">s>...."],
 	Guise.NAME[Guise.RAISE]: [RISES, ">s>....", Guise.RECIPE[Guise.RAISE]],
+	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],
+	Curse.NAME[Curse.SIGHT]: ["  @D J", "c..", [Cards.ORB]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
 	Jars.KIMCHI: ["  @ K", ">>."],
@@ -225,8 +228,10 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			w.start = p
 		"i":
 			_foe(w, &"imugi", p, mark)
-		"w":
+		"w", "J":
 			_foe(w, &"jangseung", p, mark)
+		"D":
+			_doll(w, key, p)
 		"d", "z":
 			_foe(w, &"dokkaebi", p, mark)
 		"k", "m":
@@ -259,9 +264,24 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 				Gas.put(w, p, int(mark), Gas.MAX)
 
 
+## A jar whose doll puts on Miho the curse named `key`, the seed moved on until the dice pick it.
+## The hall is as the curse shows there: the reaper's omen told, or the lanterns out.
+static func _doll(w: World, key: Variant, p: Vector2i) -> void:
+	w.set_tile(p, World.JAR)
+	w.jars[p] = &"effigy"
+	var curse: StringName = Curse.NAME.find_key(key)
+	if curse == Curse.REAPER:
+		w.round_no = World.REAPER_OMEN
+	else:
+		for at in LANTERNS:
+			w.set_tile(CORNER + at, World.LANTERN_OUT)
+	while Curse.pick(w.clone()) != curse:
+		w.rng.seed += 1
+
+
 static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 	var a := FloorGen.spawn(w, kind, p)
-	if mark != "k":
+	if mark != "k" and mark != "J":
 		a.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1

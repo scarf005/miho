@@ -200,6 +200,16 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["쓰러졌다", TEXT]])
 		&"ally":
 			return _t("{0}이/가 되살아났다" if Raise.undead(e.kind) else "{0}이/가 나타났다", [who])
+		&"rise":
+			return _t("{0}이/가 되살아났다", [who])
+		&"curse":
+			match e.what:
+				Curse.REAPER:
+					return _t("{0}이/가 길을 재촉했다", [_kind(&"saja")])
+				Curse.SIGHT:
+					return _t("누군가가 지켜보는 느낌이 든다...")
+			var jar := _named(Tiles.of(World.JAR, "name"))
+			return _t("{0}에서 {1}이/가 나왔다", [jar, _named(Notice.LABEL[&"body"])])
 		&"fall":
 			if e.has("depth"):
 				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
@@ -348,8 +358,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"ascend":
 			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
 		&"omen":
-			var saja := [Bestiary.info(&"saja").name, Palette.KIND[&"saja"]]
-			return _t("{0}이/가 오고 있다", [saja])
+			return _t("{0}이/가 오고 있다", [_kind(&"saja")])
 		&"arrive":
 			return _t("{0}이/가 나타났다", [who])
 		&"blast":
@@ -532,6 +541,11 @@ static func _actor(before: World, after: World, id: int) -> Actor:
 
 static func _tile(w: World, p: Vector2i) -> Array:
 	return _named(Tiles.of(w.tile(p), "name"))
+
+
+## The name of a kind of creature in its colour, whether she sees one or not.
+static func _kind(kind: StringName) -> Array:
+	return [Bestiary.info(kind).name, Palette.KIND[kind]]
 
 
 static func _named(name: String) -> Array:

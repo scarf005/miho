@@ -12,7 +12,7 @@ extends RefCounted
 ## It derives from `before` and `after` only, so a replay gives the same facts.
 
 ## The mark a seen event already tells.
-const TELLS := {&"notice": "!", &"heed": "?", &"blind": "x"}
+const TELLS := {&"notice": "!", &"heed": "?", &"blind": "x", &"rise": "?"}
 
 ## Tiles seen at the start or end of the round (1 for seen).
 var vis := PackedByteArray()
