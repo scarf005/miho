@@ -284,3 +284,13 @@ func test_a_detail_too_tall_for_the_screen_stays_under_the_list_and_scrolls_to_i
 	assert_true(shown.aside_up)
 	menu.scroll_by(-99, true)
 	assert_eq(menu.panel().detail[0], all[0])
+
+
+func test_clearing_the_slot_of_the_last_spell_keeps_the_selection_on_the_list() -> void:
+	var menu := Menu.new()
+	menu.settings.spells = {&"slot_1": "orb+fire", &"slot_2": "fox+fire"}
+	menu.open(&"spells", Vector2i(60, 24))
+	menu.selected = 1
+	menu.save(&"slot_2")
+	assert_eq(menu.selected, 0)
+	assert_eq(menu.panel().rows.size(), 1)
