@@ -178,7 +178,7 @@ func test_a_fire_orb_sets_only_a_wood_creature_alight_and_bursts_round_it() -> v
 func test_a_water_wisp_is_silent_and_douses_the_fire_on_the_creature_it_strikes() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 0))
-	w.ignite(foe.pos, true)
+	Terrain.ignite(w, foe.pos, true)
 	var events := w.act(_cast([FOX, WATER]))
 	assert_true(_of(events, &"noise").all(func(e): return e.word != "휙"), "no cast sound")
 	assert_eq(Spell.make([FOX, WATER]).cast_noise(), 0)
@@ -191,7 +191,7 @@ func test_a_water_orb_douses_the_3x3_round_where_it_bursts_and_no_farther() -> v
 	_put(w, ME + Vector2i(4, 0), World.WALL)
 	for p: Vector2i in [ME + Vector2i(2, 1), ME + Vector2i(1, -1)]:
 		_put(w, p, World.BOARD)
-		w.ignite(p)
+		Terrain.ignite(w, p)
 	_put(w, ME + Vector2i(3, -1), World.LANTERN)
 	w.act(_cast([ORB, WATER]))
 	w.act(WAIT)
@@ -419,7 +419,7 @@ func test_a_wooden_wall_burns_to_ash() -> void:
 	var w := _world()
 	var at := ME + Vector2i(3, 0)
 	_put(w, at, World.WOOD_WALL)
-	w.ignite(at)
+	Terrain.ignite(w, at)
 	assert_true(w.burning.has(at))
 	assert_false(w.opaque(at), "nothing burning blocks sight")
 	for i in World.BURN_ROUNDS:

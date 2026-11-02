@@ -27,7 +27,7 @@ static func claw(w: World, me: Actor, foe: Actor) -> void:
 	hurt(w, foe, n)
 	if foe.alive():
 		Mind.provoke(w, foe, me)
-		w.hunt_from(foe, me.pos)
+		Mind.hunt_from(w, foe, me.pos)
 
 
 static func hurt(w: World, a: Actor, n: int, weak := false) -> void:

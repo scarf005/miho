@@ -118,7 +118,7 @@ func test_a_creature_stepping_onto_the_scroll_leaves_it_and_fire_and_water_spare
 	var w := _world()
 	_kill(w, _foe(w))
 	Walk.move(w, _foe(w, FOE + Vector2i(0, 2)), FOE)
-	w.ignite(FOE, true)
+	Terrain.ignite(w, FOE, true)
 	w.set_tile(FOE, World.POND)
 	assert_eq(_scroll(w).at, FOE)
 	assert_false(w.cards.has(Cards.FIRE))
@@ -295,7 +295,7 @@ func _plank(w: World) -> Vector2i:
 
 
 func _burn_out(w: World, at: Vector2i) -> void:
-	w.ignite(at)
+	Terrain.ignite(w, at)
 	for i in World.BURN_ROUNDS:
 		Terrain.burn(w, [])
 
@@ -358,7 +358,7 @@ func test_a_forecast_of_the_plank_burning_moves_the_scroll_as_the_round_does() -
 	var w := _world()
 	var plank := _plank(w)
 	w.sites.append({kind = &"scroll", at = plank, card = Cards.FIRE})
-	w.ignite(plank)
+	Terrain.ignite(w, plank)
 	for i in World.BURN_ROUNDS - 1:
 		w.act({t = &"wait"})
 	var f := Forecast.of(w, {t = &"wait"})

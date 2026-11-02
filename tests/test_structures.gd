@@ -104,8 +104,8 @@ func test_a_screen_burns_and_a_jar_does_not() -> void:
 	var w := _world()
 	_put(w, AT, World.SCREEN)
 	_put(w, AT + E, World.JAR)
-	w.ignite(AT)
-	w.ignite(AT + E)
+	Terrain.ignite(w, AT)
+	Terrain.ignite(w, AT + E)
 	assert_true(w.burning.has(AT))
 	assert_false(w.burning.has(AT + E))
 	for i in World.BURN_ROUNDS:

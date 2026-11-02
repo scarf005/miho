@@ -214,7 +214,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 static func _alarm(w: World, caster: Actor) -> void:
 	for a in _watching(w, caster):
 		if Bestiary.wits(a.kind) >= ALARMED:
-			w.hunt_from(a, caster.pos)
+			Mind.hunt_from(w, a, caster.pos)
 
 
 ## The living creatures of heaven that see `caster`.

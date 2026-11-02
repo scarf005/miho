@@ -169,7 +169,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 	for d in Grid.DIRS:
 		var p := at + d
 		if fire:
-			w.ignite(p)
+			Terrain.ignite(w, p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.nature_kind(), spell):

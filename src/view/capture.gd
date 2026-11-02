@@ -147,7 +147,7 @@ func _send(k: String) -> void:
 				"hp":
 					w.actor_at(at).hp = int(parts[1])
 				"chase":
-					w.hunt_from(w.actor_at(at), w.player().pos)
+					Mind.hunt_from(w, w.actor_at(at), w.player().pos)
 				"follow":
 					w.actor_at(at).leader = (
 						w.actor_at(w.player().pos + Vector2i(int(parts[1]), int(parts[2]))).id
@@ -206,7 +206,7 @@ func _stage(parts: PackedStringArray) -> void:
 		"foe":
 			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
 		"hunt":
-			w.hunt_from(w.actor_at(xy), w.player().pos)
+			Mind.hunt_from(w, w.actor_at(xy), w.player().pos)
 		"save":
 			main.term.saved[StringName(parts[1])] = parts[2]
 		"card":

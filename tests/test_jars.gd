@@ -140,7 +140,7 @@ func _put_round(w: World, at: Vector2i) -> void:
 	w.set_tile(at + Vector2i(0, 1), World.BOARD)
 	w.set_tile(at + Vector2i(0, -1), World.LANTERN)
 	w.traps[at + Vector2i(1, 0)] = World.TRAP_ALARM
-	w.ignite(at + Vector2i(0, 1))
+	Terrain.ignite(w, at + Vector2i(0, 1))
 
 
 func test_kimchi_lies_where_the_jar_stood() -> void:

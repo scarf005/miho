@@ -271,6 +271,25 @@ static func wash(w: World, p: Vector2i) -> void:
 		w.emit({t = &"snuff", shot = o.id, at = p})
 
 
+## Sets p alight if it is flammable, or whatever it is when `force`d; a
+## `wildfire` always spreads. Water never burns.
+static func ignite(w: World, p: Vector2i, force := false, wildfire := false) -> void:
+	Gas.light(w, p)
+	if (
+		(force or Tiles.burns[w.tile(p)] == 1)
+		and not w.burning.has(p)
+		and not Tiles.of(w.tile(p), "douses")
+	):
+		w.burning[p] = World.BURN_ROUNDS
+		if wildfire:
+			w.wild[p] = true
+		else:
+			w.wild.erase(p)
+		Scent.clear(w, p)
+		w._changed()
+		w.emit({t = &"ignite", at = p})
+
+
 ## A lit lantern, a fire or a veil of dokkaebi fire on p goes out.
 static func douse(w: World, p: Vector2i) -> void:
 	if w.tile(p) == World.VEIL:
@@ -345,7 +364,7 @@ static func burn(w: World, alight: Array) -> void:
 		caught.append_array(front)
 	for p in caught:
 		if not gone.has(p):
-			w.ignite(p)
+			ignite(w, p)
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})

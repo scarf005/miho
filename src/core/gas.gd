@@ -126,7 +126,7 @@ static func light(w: World, p: Vector2i) -> void:
 		if a != null:
 			Harm.hurt(w, a, BLAST)
 			Status.ignite(w, a)
-		w.ignite(q)
+		Terrain.ignite(w, q)
 	w._changed()
 
 

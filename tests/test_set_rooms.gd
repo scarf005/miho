@@ -196,7 +196,7 @@ func test_a_censer_never_goes_where_it_would_cut_the_storey_apart() -> void:
 func test_a_spark_spreads_over_the_straw_of_a_granary() -> void:
 	var w := _plan(2)
 	_granary(w)
-	w.ignite(Vector2i(16, 6))
+	Terrain.ignite(w, Vector2i(16, 6))
 	for i in 8:
 		w.act({t = &"wait"})
 	var burnt := _count(w, MID, World.ASH) + w.burning.size()
@@ -422,7 +422,7 @@ func test_a_spark_in_a_swamp_sets_off_its_marsh_gas() -> void:
 	var w := _plan(7)
 	_swamp(w)
 	var vent: Vector2i = w.vents.keys()[0]
-	w.ignite(vent)
+	Terrain.ignite(w, vent)
 	assert_eq(w.events.filter(func(e): return e.t == &"blast").size(), 1)
 	assert_false(w.gas.has(vent))
 

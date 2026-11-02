@@ -129,7 +129,7 @@ static func _flame(w: World, at: Vector2i, dir: Vector2i) -> void:
 		if not w.open_floor(p):
 			return
 		if not w.traps.has(p):
-			w.ignite(p, true)
+			Terrain.ignite(w, p, true)
 
 
 static func _vines(w: World, at: Vector2i) -> void:

@@ -179,7 +179,7 @@ func test_frost_freezes_the_first_creature_and_the_ponds_on_its_line() -> void:
 func test_rain_roots_the_3x3_and_douses_it() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(3, 1), World.BOARD)
-	w.ignite(ME + Vector2i(3, 1))
+	Terrain.ignite(w, ME + Vector2i(3, 1))
 	var foe := _post(w, ME + Vector2i(4, -1))
 	var events := w.act(_cast([WATER, WOOD]))
 	assert_false(w.burning.has(ME + Vector2i(3, 1)), "doused")

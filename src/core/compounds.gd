@@ -126,7 +126,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 	match c:
 		&"wildfire":
 			for p in tiles:
-				w.ignite(p, false, true)
+				Terrain.ignite(w, p, false, true)
 		&"lava":
 			heat(w, tiles, LAVA)
 		&"frost":

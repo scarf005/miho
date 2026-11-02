@@ -559,7 +559,7 @@ static func _tell(w: World, s: Shot, a: Actor) -> void:
 
 static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for p in tiles:
-		w.ignite(p, false, level >= 3)
+		Terrain.ignite(w, p, false, level >= 3)
 	if level < 3:
 		return
 	for a in on(w, s, tiles):
@@ -640,7 +640,7 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 		Compounds.tip(w, s, c, at)
 	for p in tiles:
 		if spell.has(Cards.FIRE):
-			w.ignite(p)
+			Terrain.ignite(w, p)
 		if spell.has(Cards.WATER):
 			Terrain.wash(w, p)
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):

@@ -83,7 +83,7 @@ static func ignite(w: World, a: Actor, wild := false) -> void:
 	if a.alive() and dry(w, a):
 		return
 	if a.is_miho() or not a.alive():
-		w.ignite(a.pos, true, wild)
+		Terrain.ignite(w, a.pos, true, wild)
 		return
 	if a.alight <= 0:
 		w.emit({t = &"alight", id = a.id, at = a.pos, rounds = ALIGHT})

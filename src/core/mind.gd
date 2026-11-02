@@ -97,7 +97,7 @@ static func perceive(w: World, a: Actor) -> void:
 	var me := w.player()
 	a.sees_me = Guise.knows(w, a)
 	if a.sees_me or a.info().get("hunts", false):
-		w.hunt_from(a, me.pos)
+		hunt_from(w, a, me.pos)
 		return
 	if a.alert == Actor.HUNT or a.blind > 0:
 		return
@@ -138,7 +138,7 @@ static func _heed(w: World, a: Actor, s: Shot) -> void:
 		Bestiary.SHARP:
 			_look(a, s.origin)
 		_:
-			w.hunt_from(a, s.origin)
+			hunt_from(w, a, s.origin)
 
 
 ## It was hurt: wary for WARY_ROUNDS, and a resting creature looks around.
@@ -146,6 +146,19 @@ static func hurt(a: Actor) -> void:
 	a.wary = World.WARY_ROUNDS
 	if a.alert == Actor.REST:
 		_look(a, a.pos)
+
+
+## `a` hunts Miho from `at`; starting to, it notices her and shouts (shout).
+static func hunt_from(w: World, a: Actor, at: Vector2i) -> void:
+	var fresh := a.alert != Actor.HUNT
+	if fresh:
+		w.emit({t = &"notice", id = a.id, at = a.pos})
+		Drums.plan(w, a)
+	a.alert = Actor.HUNT
+	a.target = at
+	a.lost = 0
+	if fresh:
+		shout(w, a)
 
 
 ## `a` has just started to hunt Miho: it shouts its word (Bestiary shout, DCSS
@@ -278,7 +291,7 @@ static func struck(w: World, a: Actor, s: Shot) -> void:
 	if a.faction != Actor.HEAVEN or not a.alive() or s.faction == a.faction:
 		return
 	if caster != null and caster.is_miho():
-		w.hunt_from(a, caster.pos if caster.alive() else s.origin)
+		hunt_from(w, a, caster.pos if caster.alive() else s.origin)
 
 
 static func _look(a: Actor, at: Vector2i) -> void:

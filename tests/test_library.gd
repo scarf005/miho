@@ -183,7 +183,7 @@ func test_boards_straw_and_shelves_burn_and_catch_fire_more_readily_than_grass()
 		assert_gt(Tiles.of(t, "spread"), Tiles.of(World.GRASS, "spread"), str(t))
 	var w := _library()
 	var rng_state := w.rng.state
-	w.ignite(Vector2i(SHELVES[0], ROOM.position.y + 1))
+	Terrain.ignite(w, Vector2i(SHELVES[0], ROOM.position.y + 1))
 	for i in 8:
 		Terrain.burn(w, w.burning.keys())
 	assert_eq(

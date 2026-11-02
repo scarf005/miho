@@ -43,7 +43,7 @@ func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 ## A creature that has just noticed Miho, `at` tiles from the drum along its row.
 func _drummer(w: World, at := Vector2i(16, 8), kind := &"dokkaebi") -> Actor:
 	var a := _foe(w, kind, at)
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	return a
 
 

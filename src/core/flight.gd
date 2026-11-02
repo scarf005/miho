@@ -53,7 +53,7 @@ static func fly(w: World, s: Shot, to: Vector2i) -> void:
 	s.flown += 1
 	w._changed()
 	if s.spell.has(Cards.FIRE):
-		w.ignite(to)
+		Terrain.ignite(w, to)
 	if w.actor_at(to) == null:
 		Traps.fly(w, s)
 
@@ -133,7 +133,7 @@ static func _effects(w: World, s: Shot, at: Vector2i, struck := Vector2i(-1, -1)
 	if s.spell.has(Cards.EARTH):
 		Hearing.noise(w, at, World.THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
-		w.ignite(at)
+		Terrain.ignite(w, at)
 	Terrain.touch(w, s, at, struck)
 	if s.spell.orb and s.spell.has(Cards.WOOD):
 		Elements.sprout(w, s, at)

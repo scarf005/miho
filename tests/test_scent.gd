@@ -115,7 +115,7 @@ func test_a_tile_set_alight_loses_its_scent() -> void:
 	var p := w.player().pos
 	assert_gt(w.scent[Grid.index(p)], 0)
 	w.tiles[Grid.index(p)] = World.BOARD
-	w.ignite(p)
+	Terrain.ignite(w, p)
 	assert_eq(w.scent[Grid.index(p)], 0)
 
 

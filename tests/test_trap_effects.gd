@@ -263,7 +263,7 @@ func test_a_hunter_crosses_a_plate_that_is_the_only_way_and_sets_it_off() -> voi
 	_walled_column(w, 9, 8)
 	_plate(w, Vector2i(9, 8), World.TRAP_ALARM)
 	var foe := _foe(w, Vector2i(14, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	var gongs := 0
 	for i in 8:
 		gongs += w.act(WAIT).filter(func(e): return e.t == &"trap" and e.id == foe.id).size()
@@ -276,7 +276,7 @@ func test_a_hunter_does_not_step_aside_for_a_plate_on_its_straight_line() -> voi
 	for y in range(6, 11):
 		_plate(w, Vector2i(8, y), World.TRAP_VINE)
 	var foe := _foe(w, Vector2i(10, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	w.act(WAIT)
 	w.act(WAIT)
 	assert_true(w.traps.has(foe.pos), "at %s" % foe.pos)
@@ -288,7 +288,7 @@ func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() ->
 	_walled_column(w, 9, 8)
 	_plate(w, Vector2i(9, 8), World.TRAP_COLLAPSE)
 	var foe := _foe(w, Vector2i(11, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	for i in 4:
 		w.act(WAIT)
 	assert_false(foe.alive())

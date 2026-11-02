@@ -224,7 +224,7 @@ func test_a_rain_or_mud_wisp_hovers_on_after_its_own_landing() -> void:
 func test_a_water_jet_douses_fire_and_the_lantern_it_runs_into() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(2, 0), World.BOARD)
-	w.ignite(ME + Vector2i(2, 0))
+	Terrain.ignite(w, ME + Vector2i(2, 0))
 	_put(w, ME + Vector2i(4, 0), World.LANTERN)
 	w.act(_cast([WATER]))
 	assert_false(w.burning.has(ME + Vector2i(2, 0)))

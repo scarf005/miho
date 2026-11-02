@@ -87,7 +87,7 @@ func test_it_swims_up_to_her_when_she_stands_on_the_shore() -> void:
 	var w := _shore()
 	w.player().pos = Vector2i(SHORE - 1, 8)
 	var a := _ghost(w, Vector2i(POND_END, 8))
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.sense()
 	for i in 20:
 		w.player().hp = w.player().max_hp
@@ -101,7 +101,7 @@ func test_she_is_safe_once_no_water_lies_next_to_her() -> void:
 	var w := _shore()
 	w.player().pos = Vector2i(SHORE - 2, 8)
 	var a := _ghost(w, Vector2i(SHORE, 8))
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.sense()
 	for i in 30:
 		w.act(WAIT)
@@ -152,7 +152,7 @@ func test_the_log_tells_nothing_of_it_while_it_is_unseen() -> void:
 	var at := Vector2i(SHORE + 2, 8)
 	var a := _ghost(w, at)
 	assert_eq(w.seen[Grid.index(at)], 1, "she sees the water")
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.player().pos = Vector2i(SHORE - 1, 8)
 	a.pos = at + E
 	w.sense()

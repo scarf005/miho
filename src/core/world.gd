@@ -590,38 +590,6 @@ func set_tile(p: Vector2i, t: int) -> void:
 	_changed()
 
 
-## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
-func hunt_from(a: Actor, at: Vector2i) -> void:
-	var fresh := a.alert != Actor.HUNT
-	if fresh:
-		emit({t = &"notice", id = a.id, at = a.pos})
-		Drums.plan(self, a)
-	a.alert = Actor.HUNT
-	a.target = at
-	a.lost = 0
-	if fresh:
-		Mind.shout(self, a)
-
-
-## Sets p alight if it is flammable, or whatever it is when `force`d; a
-## `wildfire` always spreads. Water never burns.
-func ignite(p: Vector2i, force := false, wildfire := false) -> void:
-	Gas.light(self, p)
-	if (
-		(force or Tiles.burns[tile(p)] == 1)
-		and not burning.has(p)
-		and not Tiles.of(tile(p), "douses")
-	):
-		burning[p] = BURN_ROUNDS
-		if wildfire:
-			wild[p] = true
-		else:
-			wild.erase(p)
-		Scent.clear(self, p)
-		_changed()
-		emit({t = &"ignite", at = p})
-
-
 ## One round of a spent tail growing back, counted before the action: the round
 ## a tail is spent in does not count, and nothing counts while none is missing.
 func _regrow() -> void:

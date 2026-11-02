@@ -43,7 +43,7 @@ func test_marsh_gas_does_not_block_sight_however_thick() -> void:
 func test_fire_on_one_tile_of_the_cloud_clears_all_of_it_and_blasts_once() -> void:
 	var w := _world()
 	w.gas[AT + Vector2i(9, 0)] = Vector2i(Gas.MARSH, 3)
-	w.ignite(AT + Vector2i(1, 0))
+	Terrain.ignite(w, AT + Vector2i(1, 0))
 	var blasts := _blasts(w.events)
 	assert_eq(blasts.size(), 1)
 	assert_eq(blasts[0].tiles.size(), 4, "the joined tiles, not the far one")
@@ -56,7 +56,7 @@ func test_everyone_in_the_cloud_is_hurt_and_alight_and_none_outside() -> void:
 	var w := _world()
 	var inside := FloorGen.spawn(w, &"jangseung", AT + Vector2i(3, 0))
 	var outside := FloorGen.spawn(w, &"jangseung", AT + Vector2i(3, 2))
-	w.ignite(AT)
+	Terrain.ignite(w, AT)
 	assert_eq(inside.hp, inside.max_hp - Gas.BLAST)
 	assert_gt(inside.alight, 0)
 	assert_eq(outside.hp, outside.max_hp)
@@ -65,7 +65,7 @@ func test_everyone_in_the_cloud_is_hurt_and_alight_and_none_outside() -> void:
 
 func test_the_blast_is_loud_and_it_logs_and_sounds() -> void:
 	var w := _world()
-	w.ignite(AT)
+	Terrain.ignite(w, AT)
 	var noises := w.events.filter(func(e): return e.t == &"noise" and e.word == "쾅")
 	assert_eq(noises.size(), 1)
 	assert_eq(noises[0].loud, Gas.BLAST_LOUD)
@@ -79,7 +79,7 @@ func test_the_blast_is_loud_and_it_logs_and_sounds() -> void:
 func test_other_gases_do_not_explode() -> void:
 	var w := _world()
 	Gas.put(w, AT - Vector2i(0, 3), Gas.FOG, 3)
-	w.ignite(AT - Vector2i(0, 3))
+	Terrain.ignite(w, AT - Vector2i(0, 3))
 	assert_eq(_blasts(w.events), [])
 	assert_true(w.gas.has(AT - Vector2i(0, 3)))
 
@@ -88,7 +88,7 @@ func test_a_burning_tile_beside_the_cloud_sets_it_off_in_the_round_the_gas_reach
 	var w := _world(1)
 	w.set_tile(AT, World.GRASS)
 	w.gas.erase(AT)
-	w.ignite(AT)
+	Terrain.ignite(w, AT)
 	Gas.put(w, AT, Gas.MARSH, 3)
 	var events := w.act(WAIT)
 	assert_eq(_blasts(events).size(), 1)
