@@ -459,7 +459,14 @@ static func _blind_to(w: World, a: Actor, p: Vector2i, ground: PackedByteArray) 
 static func _walk(w: World, a: Actor, to: Vector2i) -> void:
 	w.move(a, to)
 	var s := w.shot_at(a.pos)
-	if a.pos != to or s == null or s.faction == a.faction or s.dir == Vector2i.ZERO or s.host != 0:
+	if (
+		not a.alive()
+		or a.pos != to
+		or s == null
+		or s.faction == a.faction
+		or s.dir == Vector2i.ZERO
+		or s.host != 0
+	):
 		return
 	if s.spell.pierces():
 		s.gone = not Elements.pass_through(w, s, a)
