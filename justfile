@@ -40,9 +40,10 @@ import:
 launch-check: rust import
     #!/usr/bin/env bash
     set -uo pipefail
-    log=$(timeout 40 gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- {{ godot }} --audio-driver Dummy --path . --quit-after 120 2>&1)
+    # gamescope does not pass on the exit status of what it runs.
+    log=$(timeout 40 gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- sh -c '{{ godot }} --audio-driver Dummy --path . --quit-after 120; echo "game-exit=$?"' 2>&1)
     if rg 'SCRIPT ERROR' <<<"$log" | sort -u | rg .; then exit 1; fi
-    rg -q 'Godot Engine' <<<"$log" || { echo "error: the game did not start" >&2; exit 1; }
+    rg -q 'game-exit=0' <<<"$log" || { echo "error: the game did not start or exit cleanly" >&2; exit 1; }
 
 # Play on the desktop.
 run: rust import
