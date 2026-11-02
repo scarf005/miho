@@ -61,7 +61,8 @@ extends RefCounted
 ## 그믐 puts out the fires and lanterns it reaches.
 ## 이간질 sets the creatures it reaches against each other in pairs, the
 ## nearest first (Mind.feud), when Miho casts it.
-## 벼락 hurts each creature THUNDER and stuns it THUNDER_STUN, and flashes.
+## 벼락 hurts each creature THUNDER, twice over when it is wet or has a weakness,
+## and stuns it THUNDER_STUN, and flashes.
 ## 고요 sends the creatures hunting within its reach to search where they stand
 ## (Mind.lose) and washes the scent away.
 ## 5단, of all five, heard BOOM tiles but 윤회:
@@ -255,7 +256,7 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			if a.faction == Actor.HEAVEN and a.alert == Actor.HUNT:
 				Mind.lose(a)
 		&"thunder":
-			Elements.harm(w, s, a, THUNDER)
+			Elements.harm(w, s, a, THUNDER, a.wet > 0)
 			if a.alive():
 				Elements.stun(w, a, THUNDER_STUN)
 		Cards.SAMSARA:

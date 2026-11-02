@@ -347,6 +347,27 @@ func test_thunder_pierces_every_creature_on_its_line_to_a_wall_and_is_heard_and_
 	assert_true(w.flares.has(ME), "a flash on her tile")
 
 
+func test_thunder_hurts_a_wet_creature_and_a_water_creature_twice_but_not_four_times() -> void:
+	var spell := Spell.make(_made(&"thunder"))
+	var waters := Bestiary.KINDS.keys().filter(
+		func(k): return Bestiary.elements(k).has(WATER) and not Bestiary.absorbs(k, spell)
+	)
+	var water: StringName = waters[0]
+	var w := _world()
+	var dry := _post(w, ME + E * 2)
+	var wet := _post(w, ME + E * 3)
+	wet.wet = Status.WET
+	var of_water := _post(w, ME + E * 4)
+	of_water.kind = water
+	var both := _post(w, ME + E * 5)
+	both.kind = water
+	both.wet = Status.WET
+	var events := w.act(_cast(_made(&"thunder")))
+	assert_eq(_first(events, dry.id), Compounds.THUNDER)
+	for foe in [wet, of_water, both]:
+		assert_eq(_first(events, foe.id), Compounds.THUNDER * Elements.WEAK)
+
+
 func test_stillness_sends_the_hunters_in_reach_to_search_where_they_stand() -> void:
 	var w := _world()
 	var near := _post(w, ME + E * 4)

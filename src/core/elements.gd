@@ -74,8 +74,8 @@ static func absorbed(w: World, s: Shot, a: Actor) -> bool:
 
 
 ## `s` hurts `a` for n, twice over when `a` is weak to it.
-static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
-	var weak := Bestiary.weak(a.kind, s.spell)
+static func harm(w: World, s: Shot, a: Actor, n: int, conducts := false) -> void:
+	var weak := conducts or Bestiary.weak(a.kind, s.spell)
 	if n > 0:
 		w.hurt(a, n * (WEAK if weak else 1), weak)
 

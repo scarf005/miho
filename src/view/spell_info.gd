@@ -479,6 +479,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				["피해", "%d" % Compounds.THUNDER],
 				["기절", Lang.t("%d초") % Compounds.THUNDER_STUN],
+				["젖음", Lang.t("피해 ×%d") % Elements.WEAK],
 			]
 		&"stillness":
 			return [["추격 중인 적", "제자리 수색"], ["지워짐", "냄새"]]

@@ -2281,6 +2281,9 @@ msgstr "Relights"
 msgid "다음 피해: ×%d"
 msgstr "Next damage: ×%d"
 
+msgid "피해 ×%d"
+msgstr "Damage ×%d"
+
 msgid "달라붙음"
 msgstr "Sticks"
 
