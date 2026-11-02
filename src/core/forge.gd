@@ -74,7 +74,21 @@ static func turn(w: World, a: Actor) -> bool:
 		return false
 	var foe := w.actor(a.rival) if a.fighting() else null
 	if foe != null and foe.alive() and Hat.sees(w, a, foe) and a.acted % FIRE_ROUNDS == 0:
-		var plan := {cards = ORB, dir = Grid.nearest_dir(foe.pos - a.pos)}
-		if not Aim.catches(w, a, plan, foe):
-			w.cast(a, Spell.make(plan.cards), plan.dir)
+		var dir := Grid.nearest_dir(foe.pos - a.pos)
+		if not _catches_own(w, a, dir):
+			w.cast(a, Spell.make(ORB), dir)
 	return true
+
+
+## Whether an orb `a` throws along `dir` would burst on one of its own side, where it
+## stops on the first creature or at the end of its range.
+static func _catches_own(w: World, a: Actor, dir: Vector2i) -> bool:
+	var end := a.pos
+	for p: Vector2i in Forecast.ray(w, a.pos, dir).slice(0, RANGE):
+		end = p
+		if w.actor_at(p) != null:
+			break
+	var burst := Spray.square(w, end, 1, true)
+	return w.actors.any(
+		func(b): return b != a and b.alive() and b.faction == a.faction and burst.has(b.pos)
+	)
