@@ -86,7 +86,7 @@ const TABLE := {
 	Guise.RAISE: [RISES, "s>>...."],
 	Guise.CLOAK: ["  @     d", "s..."],
 	Cards.VAULT: ["  @__", "c..."],
-	&"magpie": ["  @_____", "c>>>>>>"],
+	&"magpie": ["   ____/   ____/   ____/  @____/   ____/   ____/   ____", "c>>>>"],
 	&"thunder": ["      w/  @  w  w/      w", "c..."],
 	Guise.NAME[Guise.RAISE]: [RISES, "s>>....", Guise.RECIPE[Guise.RAISE]],
 	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],

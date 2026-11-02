@@ -195,23 +195,22 @@ func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
 	assert_eq(sleeper.target, centre)
 
 
-func test_magpie_bridges_the_sky_and_ponds_along_its_line_up_to_a_wall() -> void:
+func test_magpie_bridges_the_sky_on_the_seven_by_seven_round_her_and_nothing_else() -> void:
 	var w := _world()
-	for x in [2, 3]:
-		_put(w, ME + E * x, World.SKY)
-	_put(w, ME + E * 5, World.POND)
-	_put(w, ME + E * 8, World.WALL)
-	_put(w, ME + E * 9, World.SKY)
+	var inside := [ME + E * 2, ME + E * 3, ME + Vector2i(-3, 3), ME + Vector2i(3, -3)]
+	for p: Vector2i in inside:
+		_put(w, p, World.SKY)
+	_put(w, ME + Vector2i(1, 1), World.WALL)
+	_put(w, ME + Vector2i(2, 2), World.SKY)
+	_put(w, ME + E * 4, World.SKY)
+	_put(w, ME + Vector2i(0, 2), World.POND)
 	var events := w.act(_cast(_made(&"magpie")))
-	for x in [2, 3, 5]:
-		assert_eq(w.tile(ME + E * x), World.BRIDGE, str(x))
-		assert_true(w.open_floor(ME + E * x), "it can be walked")
-	assert_eq(w.tile(ME + E * 9), World.SKY, "past the wall")
+	for p: Vector2i in inside + [ME + Vector2i(2, 2)]:
+		assert_eq(w.tile(p), World.BRIDGE, str(p))
+		assert_true(w.open_floor(p), "it can be walked")
+	assert_eq(w.tile(ME + E * 4), World.SKY, "past three tiles")
+	assert_eq(w.tile(ME + Vector2i(0, 2)), World.POND, "a pond stays")
 	assert_eq(_of(events, &"become").size(), 1)
-	w = _world()
-	_put(w, ME + E * 9, World.SKY)
-	w.act(_cast(_made(&"magpie")))
-	assert_eq(w.tile(ME + E * 9), World.SKY, "past eight tiles")
 
 
 func test_mist_lays_fog_round_miho_and_washes_the_scent_without_striking_anyone() -> void:

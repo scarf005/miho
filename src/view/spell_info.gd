@@ -481,7 +481,7 @@ static func compound(c: StringName) -> Array:
 				compound(&"wildfire") + [["다시 켜짐", "보이는 꺼진 등불"], ["끝 칸 소음", "%d" % Compounds.BOOM]]
 			)
 		&"magpie":
-			return [[_names(CROSSED), Tiles.of(World.BRIDGE, "name")]]
+			return [[_names([World.SKY]), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
 			var name: String = Lang.t("%s 양") % Lang.t(Gas.of(Gas.FOG, "name"))
 			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["지워짐", "냄새"]]

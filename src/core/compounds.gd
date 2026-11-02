@@ -161,8 +161,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 		&"beacon":
 			ground(w, s, &"wildfire", tiles)
 		&"magpie":
-			var gaps := tiles.filter(func(p): return w.tile(p) in [World.SKY, World.POND])
-			_become(w, gaps, World.BRIDGE)
+			_become(w, tiles.filter(func(p): return w.tile(p) == World.SKY), World.BRIDGE)
 		&"mist":
 			for p in tiles:
 				Gas.add(w, p, Gas.FOG, Gas.MAX)

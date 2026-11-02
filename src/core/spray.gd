@@ -102,7 +102,7 @@ const SHAPE := {
 	Cards.BUNSIN: [AROUND, 0],
 	Cards.RAISE: [AROUND, 0],
 	&"beacon": [BURST, 6, 1],
-	&"magpie": [LINE, 8],
+	&"magpie": [AROUND, 3],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],
 	&"newmoon": [AROUND, 8],
