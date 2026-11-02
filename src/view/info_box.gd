@@ -31,6 +31,27 @@ static func layout(lines: Array, room: Vector2, least := READABLE) -> Dictionary
 	return _fit(rows, room, SMALLEST)
 
 
+## The layout of `lines` in a box right under row `cell.y` of `room`, starting at
+## column `cell.x` and moved left to stay inside it; above the row when there is
+## more room there. It never covers the row. {scale, cells, columns, at}, `at`
+## the cell of the box's top-left corner.
+static func beside(lines: Array, room: Rect2, cell: Vector2i, least := READABLE) -> Dictionary:
+	var below := Rect2(room.position.x, cell.y + 1, room.size.x, room.end.y - cell.y - 1)
+	var above := Rect2(room.position, Vector2(room.size.x, cell.y - room.position.y))
+	var fits := [below, above].map(
+		func(r: Rect2) -> Dictionary: return layout(lines, r.size, least) if r.size.y >= 1.0 else {}
+	)
+	var up: bool = fits[0].is_empty() or (not fits[1].is_empty() and fits[1].scale > fits[0].scale)
+	var fit: Dictionary = fits[1 if up else 0]
+	var r: Rect2 = above if up else below
+	if fit.is_empty():
+		fit = layout(lines, room.size, least)
+		r = room
+	var wide: Vector2 = fit.cells * fit.scale
+	var x := clampf(cell.x, r.position.x, maxf(r.position.x, r.end.x - wide.x))
+	return fit.merged({at = Vector2(x, r.end.y - wide.y if up else r.position.y)})
+
+
 ## `rows` in the fewest columns at the largest scale down to `least` that fit
 ## `room`, or nothing.
 static func _fit(rows: Array, room: Vector2, least: float) -> Dictionary:

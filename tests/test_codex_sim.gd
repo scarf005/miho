@@ -200,17 +200,13 @@ func test_the_box_of_a_word_over_the_example_hides_it() -> void:
 	var m := _main()
 	var sim := _sim(m)
 	m._open(&"codex")
-	m.term.hint_at = Vector2(m.term.cols - 1, m.term.rows - 1)
+	m.term.hint_at = Vector2(0, m.term.rows - 1)
 	m.term.hint = [[["가연성", Palette.TEXT]]]
 	sim._process(0.0)
 	assert_true(sim.visible, "a box on the far side leaves it be")
-	var tall := []
-	tall.resize(m.term.rows * 2)
-	tall.fill([["가연성", Palette.TEXT]])
-	m.term.hint = tall
-	m.term.hint_at = Vector2(0, m.term.rows - 1)
+	m.term.hint_at = Vector2(sim.position.x / Term.CELL.x, CodexSim.TOP - 1.0)
 	sim._process(0.0)
-	assert_false(sim.visible)
+	assert_false(sim.visible, "a box under the word, from the example's column")
 	m.term.hint = []
 	sim._process(0.0)
 	assert_true(sim.visible)

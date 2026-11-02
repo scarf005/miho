@@ -67,8 +67,8 @@ var zone := {}
 var info: Array = []:
 	set(v):
 		info = Keywords.lines(v)
-## Set by the game: the glossary entry (WordHover) of the word the pointer is
-## over in a panel or the log, and the cell the pointer is in.
+## Set by the game: the 도감 entry (WordHover) of the word the pointer is over in
+## a panel or the log, and the cell the pointer is in, which the box is drawn under.
 var hint: Array = []:
 	set(v):
 		hint = Keywords.lines(v)
@@ -484,7 +484,7 @@ func _draw() -> void:
 	if not panel.is_empty():
 		PanelView.draw(self)
 	if not hint.is_empty():
-		_draw_box(hint, Vector2i(hint_at) - side + cam)
+		_draw_box(hint_fit())
 
 
 func _draw_game() -> void:
@@ -745,12 +745,11 @@ func _draw_info() -> void:
 		var r := Rect2(_cell(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if not info.is_empty():
-		_draw_box(info, cursor if shown else null)
+		_draw_box(_info_fit(cursor if shown else null, info))
 
 
-## `lines` in a box on the far side of the map from the map tile `p` (null for none).
-func _draw_box(lines: Array, p: Variant) -> void:
-	var fit := _info_fit(p, lines)
+## A box laid out as `fit` says (InfoBox).
+func _draw_box(fit: Dictionary) -> void:
 	draw_set_transform(fit.at * CELL, 0.0, Vector2(fit.scale, fit.scale))
 	var box := Rect2(Vector2.ZERO, fit.cells * CELL)
 	draw_rect(box, Palette.VOID)
@@ -781,6 +780,12 @@ func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
 		at.x = room.end.x - wide.x if c.x < v.x / 2 else room.position.x
 		at.y = room.end.y - wide.y if c.y < v.y / 2 else 0
 	return fit.merged({at = at})
+
+
+## The layout of the hint under the cell the pointer is in, inside the screen.
+func hint_fit() -> Dictionary:
+	var room := Rect2(0, 0, cols, rows if not panel.is_empty() else rows - foot)
+	return InfoBox.beside(hint, room, Vector2i(hint_at), minf(1.0, readable / (CELL.x * scale.x)))
 
 
 func _draw_log() -> void:
