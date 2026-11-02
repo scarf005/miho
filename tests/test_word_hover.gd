@@ -2,6 +2,8 @@ extends GutTest
 ## A word with a 도감 entry shows it where the map hover cannot be pointed at:
 ## in a 도감 detail, a panel row and the log over the map.
 
+const NONE := Vector2i(-1, -1)
+
 
 func _term() -> Term:
 	var t: Term = autofree(Term.new())
@@ -39,7 +41,7 @@ func test_the_entry_is_of_the_word_under_the_pointer_and_of_no_other_cell() -> v
 
 
 func test_a_word_inside_a_longer_one_has_no_entry() -> void:
-	assert_eq(Keywords.entry_at([["소음이", Palette.TEXT]], 0.0, 0.5), [])
+	assert_eq(Keywords.entry_at([["소음기", Palette.TEXT]], 0.0, 0.5), [])
 
 
 func test_a_tag_of_several_words_has_its_entry_over_each_of_them() -> void:
@@ -65,7 +67,7 @@ func test_the_log_over_the_map_gives_the_entry_of_a_word_in_it() -> void:
 	var t := _term()
 	t.log_lines = [[[["도깨비가 ", Palette.TEXT], ["묶임", Palette.BAD]], 1.0]]
 	assert_eq(_head(WordHover.at(t, _over(Term.MAP.x + 0.5 + 5.0, 0))), "묶임")
-	assert_eq(WordHover.at(t, _over(Term.MAP.x + 0.5, 0)), [], "a name has none")
+	assert_eq(WordHover.word_at(t, _over(Term.MAP.x + 0.5, 0)), "도깨비", "a creature's name")
 	t.banner_lines = ["미호"]
 	assert_eq(WordHover.at(t, _over(Term.MAP.x + 5.5, 0)), [], "a banner hides the log")
 
@@ -122,3 +124,43 @@ func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -
 	assert_eq(m.term.log_lines, [], "the line is gone")
 	assert_true(m.term.hint.is_empty(), "so is its entry")
 	assert_false(m.term.info.is_empty(), "the tile under the pointer shows again")
+
+
+func _word_at(text: String, col: float) -> String:
+	return Keywords.word_at([[text, Palette.TEXT]], 0.0, col)
+
+
+func test_every_name_of_every_tab_is_a_word_with_an_entry() -> void:
+	for tab in Codex.TABS.size():
+		for e in Codex.entries(tab):
+			var at := Keywords.locate(e.name)
+			assert_ne(at, NONE, e.name)
+			assert_false(Keywords.entry(e.name).is_empty(), e.name)
+	assert_eq(Keywords.locate("모르는 말"), NONE)
+
+
+func test_a_name_is_a_word_whole_or_before_a_particle_and_in_no_longer_word() -> void:
+	assert_eq(_word_at("진흙이 깔렸다", 0.5), "진흙")
+	assert_eq(_word_at("문을 열었다", 0.5), "문")
+	assert_eq(_word_at("주문", 1.5), "", "문 inside 주문")
+	assert_eq(_word_at("벽돌", 0.5), "", "벽 before 돌")
+	assert_eq(_word_at("풀다", 0.5), "", "풀 before 다")
+	assert_eq(_word_at("꺼진 등불", 3.0), "꺼진 등불", "the longest name wins")
+	assert_eq(_word_at("진흙이다", 0.5), "진흙", "the particle 이다")
+
+
+func test_a_name_in_two_tabs_is_the_state_or_the_floor_before_the_spell() -> void:
+	var mud := Keywords.locate("진흙")
+	assert_eq(mud.x, 4, "the tile, not the spell of the same name")
+	assert_eq(Keywords.locate("둔갑").x, 5, "the status")
+
+
+func test_an_english_name_is_a_word_in_any_case_and_not_inside_a_longer_one() -> void:
+	Lang.locked = false
+	Lang.use(&"en")
+	assert_eq(_word_at("The mud is deep", 2.5), "mud")
+	assert_eq(_word_at("Mudslide", 0.5), "")
+	assert_eq(Keywords.locate("Mud").x, 4)
+	Lang.use(&"ko")
+	Lang.locked = true
+	TranslationServer.set_locale("ko")
