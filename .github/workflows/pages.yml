@@ -1,7 +1,7 @@
 name: pages
 
 on:
-  push: { branches: [main] }
+  push: { branches: [main], paths-ignore: ["**.md", "docs/**", "tests/**"] }
 
 concurrency: { group: pages, cancel-in-progress: true }
 
