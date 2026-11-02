@@ -166,34 +166,37 @@ func test_a_held_ctrl_q_does_not_answer_its_own_question() -> void:
 	assert_true(m.erasing)
 
 
-func test_ctrl_q_on_the_ending_asks_first() -> void:
+func _ending(m: Node) -> void:
+	m._new_run(3)
+	m.state = &"over"
+	Banner.show(m)
+
+
+func test_r_on_the_ending_starts_a_new_run_at_once() -> void:
 	var m := _keyboard()
-	m._new_run(3)
-	m.state = &"over"
-	Banner.show(m)
-	var plain: Array = m.term.banner_lines.duplicate()
-	m._unhandled_input(_ctrl_q())
-	assert_eq(m.state, &"over")
-	assert_string_ends_with(m.term.banner_lines.back(), "Y/N")
-	m._unhandled_input(_key_event(KEY_N))
-	assert_eq(m.state, &"over")
-	assert_eq(m.term.banner_lines, plain)
-	m._unhandled_input(_ctrl_q())
-	m._unhandled_input(_key_event(KEY_Y))
+	_ending(m)
+	m._unhandled_input(_key_event(KEY_R))
 	assert_eq(m.state, &"play")
-
-
-func test_the_restart_button_of_the_touch_ending_asks_first() -> void:
-	var m := _phone()
-	m._new_run(3)
-	m.state = &"over"
-	Banner.show(m)
-	m._fit()
-	_finger(m, _hud(m, &"new"))
-	assert_eq(m.state, &"over", "the first tap only asks")
-	assert_false("Y/N" in m.term.banner_lines.back())
-	_finger(m, Vector2(300, 300))
 	assert_false(m.erasing)
-	_finger(m, _hud(m, &"new"))
+
+
+func test_ctrl_q_on_the_ending_starts_a_new_run_at_once() -> void:
+	var m := _keyboard()
+	_ending(m)
+	m._unhandled_input(_ctrl_q())
+	assert_eq(m.state, &"play")
+	assert_false(m.erasing)
+
+
+func test_the_ending_tells_the_key_that_starts_again() -> void:
+	var m := _keyboard()
+	_ending(m)
+	assert_true(m.term.banner_lines.any(func(l): return l.begins_with("R키")))
+
+
+func test_the_restart_button_of_the_touch_ending_starts_at_once() -> void:
+	var m := _phone()
+	_ending(m)
+	m._fit()
 	_finger(m, _hud(m, &"new"))
 	assert_eq(m.state, &"play")
