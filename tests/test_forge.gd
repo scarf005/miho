@@ -293,3 +293,32 @@ func test_a_furnace_stands_where_she_can_see_it() -> void:
 		var f := _furnace(w)
 		assert_not_null(f)
 		assert_true(w.sees(w.player(), f.pos), str(f.pos))
+
+
+func test_a_second_furnace_never_shuts_her_off_from_the_way_up() -> void:
+	for n in 40:
+		var w := _world()
+		w.rng.seed = n + 1
+		for y in range(1, Grid.H - 1):
+			for x in range(1, Grid.W - 1):
+				if y != ME.y and y != ME.y + 1:
+					w.tiles[Grid.index(Vector2i(x, y))] = World.WALL
+		for x in range(1, ME.x):
+			w.tiles[Grid.index(Vector2i(x, ME.y))] = World.WALL
+			w.tiles[Grid.index(Vector2i(x, ME.y + 1))] = World.WALL
+		w.stairs = Vector2i(Grid.W - 2, ME.y)
+		w.tails = 20
+		w.sense()
+		w.act(_cast(FURNACE))
+		w.act(_cast(FURNACE))
+		var furnaces := w.actors.filter(func(a): return a.kind == Forge.FURNACE)
+		assert_eq(furnaces.size(), 2)
+		assert_true(Compounds.linked(w, furnaces.map(func(a): return a.pos)), "seed %d" % (n + 1))
+
+
+func test_a_creature_keeps_a_lava_orb_until_its_foe_is_in_range() -> void:
+	var w := _world()
+	var saja := FloorGen.spawn(w, &"saja", ME + E * (Forge.RANGE + 2))
+	assert_true(Aim._reach(w, saja, LAVA, w.player()).is_empty())
+	saja.pos = ME + E * Forge.RANGE
+	assert_false(Aim._reach(w, saja, LAVA, w.player()).is_empty())
