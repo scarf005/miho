@@ -88,16 +88,16 @@ static func _vault_opens(w: World, gate: Vector2i) -> bool:
 
 ## For every kind: the storeys looked at, those with the room, those where it
 ## opens, and the storeys where it does not.
-static func measure(seeds: int) -> Dictionary:
+static func measure(seeds: int, storey := Callable()) -> Dictionary:
+	if storey.is_null():
+		storey = _storey
 	var kinds_ := kinds()
 	var out := {}
 	for name: String in kinds_:
 		out[name] = {storeys = 0, present = 0, solvable = 0, stuck = []}
 	for seed_value in seeds:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value * World.FLOORS + depth)
-			w.depth = depth
-			FloorGen.build(w)
+			var w: World = storey.call(seed_value * World.FLOORS + depth, depth)
 			for name: String in kinds_:
 				var row: Dictionary = out[name]
 				row.storeys += 1
@@ -108,6 +108,14 @@ static func measure(seeds: int) -> Dictionary:
 					else:
 						row.stuck.append("seed %d storey %d" % [seed_value, depth])
 	return out
+
+
+## Storey `depth` of the world a seed makes, built as the game builds it.
+static func _storey(seed_value: int, depth: int) -> World:
+	var w := World.create(seed_value)
+	w.depth = depth
+	FloorGen.build(w)
+	return w
 
 
 ## A markdown table of `measure`.

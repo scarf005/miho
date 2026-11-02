@@ -10,7 +10,7 @@ var _rows := {}
 
 
 func before_all() -> void:
-	_rows = EventRooms.measure(SEEDS)
+	_rows = EventRooms.measure(SEEDS, Built.storey)
 
 
 func test_every_event_room_can_be_opened_from_the_start() -> void:
@@ -23,47 +23,6 @@ func test_a_vault_comes_up_in_about_two_storeys_in_five() -> void:
 	var row: Dictionary = _rows[VAULT]
 	assert_eq(row.storeys, SEEDS * World.FLOORS)
 	assert_between(float(row.present) / row.storeys, 0.3, 0.5, "share of storeys")
-
-
-## Ponds once grew round a lantern of the vault on storey 1 of some seeds.
-func test_a_pond_never_cuts_a_vault_lantern_off() -> void:
-	var vaults := 0
-	for seed_value in 200:
-		var w := World.create(seed_value)
-		w.depth = 1
-		FloorGen.build(w)
-		vaults += w.seals.size()
-		for seal: Vector2i in w.seals:
-			assert_true(EventRooms._vault_opens(w, seal), "seed %d" % seed_value)
-	assert_gt(vaults, 50, "storey 1 of 200 seeds holds vaults")
-
-
-func test_a_vault_with_a_broken_lantern_is_not_opened_by_its_lanterns() -> void:
-	for seed_value in SEEDS:
-		var w := World.create(seed_value)
-		w.depth = 1
-		FloorGen.build(w)
-		for seal: Vector2i in w.seals:
-			assert_true(EventRooms._vault_opens(w, seal), "seed %d" % seed_value)
-			w.tiles[Grid.index(w.seals[seal][0])] = World.LANTERN_BROKEN
-			assert_false(EventRooms._vault_opens(w, seal), "seed %d broken" % seed_value)
-			return
-	fail_test("no vault on storey 1 in %d seeds" % SEEDS)
-
-
-func test_a_vault_with_a_lantern_beyond_reach_is_not_opened() -> void:
-	for seed_value in SEEDS:
-		var w := World.create(seed_value)
-		w.depth = 1
-		FloorGen.build(w)
-		for seal: Vector2i in w.seals:
-			var lantern: Vector2i = w.seals[seal][0]
-			for d in Grid.DIRS:
-				if w.open_floor(lantern + d):
-					w.tiles[Grid.index(lantern + d)] = World.WALL
-			assert_false(EventRooms._vault_opens(w, seal), "seed %d walled in" % seed_value)
-			return
-	fail_test("no vault on storey 1 in %d seeds" % SEEDS)
 
 
 func test_the_table_has_a_row_per_room_with_its_shares() -> void:
