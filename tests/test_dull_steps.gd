@@ -75,3 +75,18 @@ func test_a_dull_creature_never_walks_onto_a_shot_of_its_own_side() -> void:
 	s.life = 4
 	w.shots.append(s)
 	assert_false(Mind._walkable(w, a).call(s.pos))
+
+
+func test_a_creature_felled_by_the_step_does_not_stop_the_projectile() -> void:
+	var w := _world()
+	var a := _hunter(w, &"gaekgwi", 9)
+	a.hp = 1
+	w.act({t = &"cast", spells = [{cards = [Cards.ORB], dir = E}]})
+	var s: Shot = w.shots[0]
+	w.set_tile(s.pos, World.THORNS)
+	a.pos = s.pos + E
+	var from := w.events.size()
+	Mind._walk(w, a, s.pos)
+	assert_false(a.alive(), "the thorns fell it")
+	assert_false(s.gone)
+	assert_false(w.events.slice(from).any(func(e): return e.t == &"hit"))
