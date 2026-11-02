@@ -285,7 +285,7 @@ static func grow(w: World, tiles: Array[Vector2i]) -> void:
 ## loud as one that struck.
 static func fade(w: World, s: Shot) -> void:
 	if s.spell.mortar() or s.spell.blasts():
-		w.noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
+		Hearing.noise(w, s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.mortar():
 		Compounds.land(w, s, s.pos)
 	elif s.spell.blasts():

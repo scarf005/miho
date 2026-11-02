@@ -157,7 +157,7 @@ static func shout(w: World, a: Actor) -> void:
 	if cry.is_empty():
 		return
 	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word})
-	w.noise(a.pos, cry.loud, cry.word, true, a.id, a.target)
+	Hearing.noise(w, a.pos, cry.loud, cry.word, true, a.id, a.target)
 
 
 ## `a` was struck by `by`: by Miho, it stops fighting; by a living ally of hers or
@@ -393,7 +393,7 @@ static func rest(w: World, a: Actor) -> void:
 ## back when the blow throws and rooting it when the blow roots.
 static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void:
 	w.emit({t = &"melee", id = a.id, target = target.id, at = target.pos, n = melee.damage})
-	w.noise(target.pos, 3, "퍽", true, a.id)
+	Hearing.noise(w, target.pos, 3, "퍽", true, a.id)
 	w.hurt(target, melee.damage)
 	provoke(w, target, a)
 	var seizes: bool = melee.get("pull", false)

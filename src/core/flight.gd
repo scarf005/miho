@@ -119,7 +119,7 @@ static func _burst(w: World, s: Shot) -> void:
 	w.emit({t = &"burst", shot = s.id, at = s.pos, cards = s.spell.cards})
 	s.gone = true
 	w._changed()
-	w.noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
+	Hearing.noise(w, s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.blasts():
 		Elements.splash(w, s, s.pos, null)
 	_effects(w, s, s.pos, s.pos + s.dir)
@@ -131,7 +131,7 @@ static func _burst(w: World, s: Shot) -> void:
 ## compound acts round where it ends (Compounds); 도약 brings Miho (Leap.swap).
 static func _effects(w: World, s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
-		w.noise(at, World.THUD, "쿵", true, s.caster)
+		Hearing.noise(w, at, World.THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
 		w.ignite(at)
 	Terrain.touch(w, s, at, struck)
@@ -157,7 +157,7 @@ static func _strike(w: World, s: Shot, a: Actor) -> void:
 			spell = spell.tag()
 		}
 	)
-	w.noise(at, spell.burst_noise(), "쾅", true, s.caster)
+	Hearing.noise(w, at, spell.burst_noise(), "쾅", true, s.caster)
 	var storey := w.depth
 	if not Elements.strike(w, s, a, spell.damage(Grid.cheb(s.origin, at))) or w.depth != storey:
 		return

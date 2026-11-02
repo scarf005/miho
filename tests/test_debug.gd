@@ -86,7 +86,7 @@ func test_scent_is_brighter_the_fresher_and_stops_where_hunters_stop_following()
 
 func test_a_sound_reaches_only_as_far_as_it_travels_round_walls() -> void:
 	var w := _hall()
-	w.noise(Vector2i(6, 8), 3, "쿵", false, 0)
+	Hearing.noise(w, Vector2i(6, 8), 3, "쿵", false, 0)
 	var sounds: Array = DebugView.view(w).sounds
 	assert_eq(sounds.size(), 1)
 	assert_eq(sounds[0].word, "쿵")

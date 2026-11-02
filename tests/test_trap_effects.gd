@@ -315,7 +315,7 @@ func test_the_searchers_an_alarm_plate_calls_do_not_ring_it_again() -> void:
 	w.player().pos = Vector2i(2, 20)
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var foes := [_foe(w, PLATE + Vector2i(6, 0)), _foe(w, PLATE + Vector2i(0, 6))]
-	w.noise(PLATE, Drums.LOUD, Traps.GONG, true, 0)
+	Hearing.noise(w, PLATE, Drums.LOUD, Traps.GONG, true, 0)
 	for i in 20:
 		assert_false(w.act(WAIT).any(func(e): return e.t == &"trap"), "round %d" % i)
 	assert_eq(foes.filter(func(a): return Grid.cheb(a.pos, PLATE) <= 2).size(), 2, "they came")

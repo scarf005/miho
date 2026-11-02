@@ -49,7 +49,7 @@ static func tick(w: World) -> void:
 static func _yelp(w: World, s: Shot) -> void:
 	var n := loud(s.spell)
 	w.emit({t = &"yelp", shot = s.id, at = s.pos, loud = n})
-	w.noise(s.pos, n, WORD, true, 0)
+	Hearing.noise(w, s.pos, n, WORD, true, 0)
 	var dist: PackedInt32Array = Grid.search(s.pos, Masks.heard(w), n).dist
 	for a in w.actors:
 		var d := dist[Grid.index(a.pos)]

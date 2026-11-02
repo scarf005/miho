@@ -14,8 +14,8 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		return
 	if spell.gun():
 		w.flares.append(caster.pos)
-	w.noise(
-		caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id
+	Hearing.noise(
+		w, caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id
 	)
 	var targets := Homing.targets(w, caster, spell, dir)
 	var heads := Homing.headings(w, caster, spell, dir, targets)

@@ -236,7 +236,7 @@ func test_sky_blocks_walking_but_not_sight_light_sound_or_spells() -> void:
 	assert_true(w.lit(Vector2i(8, 8)), "light crosses it too")
 	var listener := FloorGen.spawn(w, &"imugi", Vector2i(10, 8))
 	listener.cooldown = 99
-	w.noise(Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
+	Hearing.noise(w, Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
 	assert_eq(listener.alert, Actor.SEARCH, "sound crosses it")
 	assert_true(w.can(_cast([Cards.FOX], E)), "a wisp is cast over sky")
 	var events := w.act(_cast([Cards.FOX], E)) + w.act(WAIT)

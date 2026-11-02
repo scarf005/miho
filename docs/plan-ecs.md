@@ -64,7 +64,7 @@ Each system is a static module over `World`. `World` keeps the state, the querie
 | `Round` | `act` body, `_regrow`, `_end_round`, `_prune`, `_ascend` |
 | `Flight` | `_shots_phase`, `_spawn`, `_step`, `_fly`, `_land`, `_burst`, `_effects`, `_strike`, `rides` |
 | `Walk` | `move`, `arrive` |
-| `Noise` | `noise` |
+| `Hearing` | `noise` |
 | `Harm` | `hurt`, `_claw`, `claw_harm`, `caught_unawares` |
 | `Cast` | `cast` |
 | `Mind`, `Terrain` | `hunt_from` to `Mind`, `ignite` to `Terrain` |
@@ -157,7 +157,7 @@ Each commit leaves the game playable and the suite green. A merge needs identica
 | O | `tools/oracle.gd`, `tools/oracle/`, `tools/oracle.expected`, `justfile` | |
 | A1 | `World.STOREY`: `world.gd` clone, `storeys.gd` | O |
 | A2 | `Flight`, `Cast`: `world.gd`, `flight.gd`, `cast.gd`, call sites | A1 |
-| A3 | `Round`, `Walk`, `Noise`, `Harm`, moves to `Mind` and `Terrain`: `world.gd`, new modules, call sites | A2 |
+| A3 | `Round`, `Walk`, `Hearing`, `Harm`, moves to `Mind` and `Terrain`: `world.gd`, new modules, call sites | A2 |
 | B1 | `Entity`, `Traps.enter`, one rider rule, `Shot.of`: `entity.gd`, `actor.gd`, `shot.gd`, `traps.gd`, `walk.gd`, `flight.gd`, `cheat.gd`, `storeys.gd`, `guise.gd` | A3 |
 | B2 | One death path: `harm.gd`, `fall.gd`, `bunsin.gd` | A3 |
 | B3 | Ground harm and spell reach: `terrain.gd`, `compounds.gd`, `veil.gd`, `spray.gd` | B1 |

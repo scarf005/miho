@@ -90,7 +90,7 @@ static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bo
 static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	var sound: Array = Tiles.of(w.tile(at), "hit")
 	hit(w, at)
-	w.noise(at, sound[0], sound[1], true, me.id)
+	Hearing.noise(w, at, sound[0], sound[1], true, me.id)
 
 
 ## Whether `p` is a plank: 마루 with sky on two opposite sides.
@@ -113,7 +113,7 @@ static func crumble(w: World, by: Actor, at: Vector2i) -> void:
 		w.set_tile(at, gone)
 		Scrolls.displace(w, [at])
 		w.emit({t = &"crumble", at = at, was = was})
-		w.noise(at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
+		Hearing.noise(w, at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
 
 
 ## A creature steps onto reeds at `at`: they lie flat, and sight clears.
@@ -138,7 +138,7 @@ static func close_door(w: World, by: Actor, at: Vector2i) -> void:
 static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName) -> void:
 	w.set_tile(at, to)
 	w.emit({t = event, at = at, id = by.id})
-	w.noise(at, SLIDE, "드르륵", by.faction == Actor.FOX, by.id)
+	Hearing.noise(w, at, SLIDE, "드르륵", by.faction == Actor.FOX, by.id)
 
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;
@@ -153,9 +153,9 @@ static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 		while Elements.fells(s.spell) and wall(w.tile(at)) and breakable(w, at):
 			hit(w, at)
 		if wall(struck):
-			w.noise(at, World.THUD, "쿵", true, s.caster)
+			Hearing.noise(w, at, World.THUD, "쿵", true, s.caster)
 		elif struck == World.WINDOW:
-			w.noise(at, World.KNOCK, "쨍", true, s.caster)
+			Hearing.noise(w, at, World.KNOCK, "쨍", true, s.caster)
 
 
 ## Moves the tile one step along `breaks_to`, or straight `to` when given; `was`
@@ -312,7 +312,7 @@ static func burn(w: World, alight: Array) -> void:
 	var caught: Array[Vector2i] = []
 	var gone := {}
 	for p: Vector2i in w.burning.keys():
-		w.noise(p, World.CRACKLE, "타닥", true, 0)
+		Hearing.noise(w, p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
 		if a != null and alight.has(p) and a.alight <= 0:
 			var fierce := Tiles.fierce[w.tile(p)] == 1
@@ -349,7 +349,7 @@ static func burn(w: World, alight: Array) -> void:
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})
-		w.noise(p, CRACK, "우지끈", true, 0)
+		Hearing.noise(w, p, CRACK, "우지끈", true, 0)
 	Scrolls.displace(w, gone.keys())
 	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))
 	falling.reverse()

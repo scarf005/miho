@@ -594,7 +594,7 @@ func move(a: Actor, to: Vector2i) -> void:
 			s.pos = to
 			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
-	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
+	Hearing.noise(self, to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.crumble(self, a, from)
 	Terrain.trample(self, to)
 	Compounds.step(self, a, to)
@@ -630,38 +630,6 @@ func push(a: Actor, dir: Vector2i, n: int) -> void:
 	Fall.push(self, a, dir, n)
 
 
-## Spreads a noise around walls. Miho hears every noise in range but her side's;
-## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
-func noise(
-	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
-) -> void:
-	if loud <= 0:
-		return
-	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
-	var me := player()
-	var d := dist[Grid.index(me.pos)]
-	var maker := actor(by)
-	var heard_it := (maker == null or maker.faction != me.faction) and d >= 0 and d <= loud
-	if heard_it:
-		heard.append({at = at, word = word})
-	emit({t = &"noise", at = at, word = word, loud = loud, heard = heard_it})
-	if not alarm:
-		return
-	for a in actors:
-		if (
-			a.alive()
-			and a.faction == Actor.HEAVEN
-			and a.id != by
-			and a.alert != Actor.HUNT
-			and not a.info().get("deaf", false)
-		):
-			var da := dist[Grid.index(a.pos)]
-			if da >= 0 and da <= loud:
-				a.alert = Actor.SEARCH
-				a.target = at if spot.x < 0 else spot
-				a.lost = 0
-
-
 func set_tile(p: Vector2i, t: int) -> void:
 	if tiles[Grid.index(p)] != t:
 		wet.erase(p)
@@ -686,7 +654,7 @@ func _claw(me: Actor, foe: Actor) -> void:
 	var sneak := caught_unawares(foe)
 	var n := claw_harm(me, sneak, foe)
 	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
-	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
+	Hearing.noise(self, foe.pos, 1 if sneak else 3, "퍽", true, me.id)
 	hurt(foe, n)
 	if foe.alive():
 		Mind.provoke(self, foe, me)
@@ -718,7 +686,7 @@ func hurt(a: Actor, n: int, weak := false) -> void:
 		if shatter:
 			emit({t = &"thaw", id = a.id, at = a.pos})
 		if a.faction == Actor.HEAVEN:
-			noise(a.pos, CRY, "끽", true, a.id)
+			Hearing.noise(self, a.pos, CRY, "끽", true, a.id)
 			Mind.hurt(a)
 		return
 	emit({t = &"die", id = a.id, at = a.pos, foe = a.faction == Actor.HEAVEN})

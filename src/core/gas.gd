@@ -120,7 +120,7 @@ static func light(w: World, p: Vector2i) -> void:
 	for q in cloud:
 		w.gas.erase(q)
 	w.emit({t = &"blast", at = p, kind = kind, tiles = cloud})
-	w.noise(p, BLAST_LOUD, "쾅", false, -1)
+	Hearing.noise(w, p, BLAST_LOUD, "쾅", false, -1)
 	for q in cloud:
 		var a := w.actor_at(q)
 		if a != null:

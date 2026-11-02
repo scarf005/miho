@@ -114,7 +114,7 @@ static func fly(w: World, s: Shot) -> void:
 static func _go_off(w: World, kind: int, at: Vector2i, dir: Vector2i, by: int) -> void:
 	match kind:
 		World.TRAP_ALARM:
-			w.noise(at, Drums.LOUD, GONG, true, by)
+			Hearing.noise(w, at, Drums.LOUD, GONG, true, by)
 		World.TRAP_FIRE:
 			_flame(w, at, dir)
 		World.TRAP_VINE:

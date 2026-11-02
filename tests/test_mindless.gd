@@ -92,7 +92,7 @@ func test_a_dalgyal_does_not_hear_noise() -> void:
 	var w := _hall()
 	var dead := FloorGen.spawn(w, &"dalgyal", ME + E * 6)
 	var living := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(0, -4))
-	w.noise(ME, 12, "쾅", true, w.player().id)
+	Hearing.noise(w, ME, 12, "쾅", true, w.player().id)
 	assert_eq(living.alert, Actor.SEARCH, "a 도깨비 goes to look")
 	assert_eq(dead.alert, Actor.REST, "a 달걀귀신 does not")
 

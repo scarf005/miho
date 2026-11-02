@@ -73,7 +73,7 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	w.move(a, to)
 	if w.depth != depth or not a.alive():
 		return
-	w.noise(to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
+	Hearing.noise(w, to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
 	if a.is_miho():
 		Scent.lay(w, to)
 		if w.arrive(a):
@@ -105,7 +105,7 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 	if w.depth != depth or not me.alive():
 		return
 	for p in [from, to]:
-		w.noise(p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
+		Hearing.noise(w, p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
 	if me.is_miho():
 		Scent.lay(w, to)
 		w.arrive(me)

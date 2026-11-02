@@ -71,7 +71,7 @@ static func strike(w: World, a: Actor) -> void:
 	w.emit({t = &"drum", id = a.id, at = a.drum, wet = wet})
 	if wet:
 		return
-	w.noise(a.drum, LOUD, "둥", false, a.id)
+	Hearing.noise(w, a.drum, LOUD, "둥", false, a.id)
 	for b in w.actors:
 		if (
 			b.alive()

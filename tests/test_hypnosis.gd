@@ -83,7 +83,7 @@ func test_noise_wakes_it_and_it_goes_to_search_the_spot() -> void:
 	var w := _world()
 	var foe := _hunter(w, &"imugi", ME + E * 2)
 	w.act(_cast())
-	w.noise(ME + Vector2i(3, 3), Compounds.BOOM, "쾅", true, 0)
+	Hearing.noise(w, ME + Vector2i(3, 3), Compounds.BOOM, "쾅", true, 0)
 	assert_false(foe.asleep())
 	assert_eq(foe.alert, Actor.SEARCH)
 

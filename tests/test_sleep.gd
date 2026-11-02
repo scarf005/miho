@@ -74,7 +74,7 @@ func test_a_sleeper_in_the_light_stays_asleep_while_miho_walks_by() -> void:
 func test_noise_wakes_a_sleeper_and_it_goes_to_search_the_spot() -> void:
 	var w := _hall()
 	var foe := _foe(w, SLEEPER, Vector2i(12, 8))
-	w.noise(Vector2i(10, 8), 6, "쾅", true, 0)
+	Hearing.noise(w, Vector2i(10, 8), 6, "쾅", true, 0)
 	assert_eq(foe.alert, Actor.SEARCH)
 	assert_eq(foe.target, Vector2i(10, 8))
 	assert_false(foe.asleep())

@@ -339,7 +339,7 @@ static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
 
 ## 봉화 is heard where it lands, and every dark lantern its caster sees lights.
 static func _signal(w: World, s: Shot, at: Vector2i) -> void:
-	w.noise(at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
+	Hearing.noise(w, at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
 	var me := w.actor(s.caster)
 	if me == null or not me.alive():
 		return
