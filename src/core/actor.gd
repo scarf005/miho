@@ -71,6 +71,11 @@ var raise := false
 var imprint: Array[StringName] = []
 
 
+## `bare` leaves the parts a copy replaces unbuilt (`clone`).
+func _init(_bare := false) -> void:
+	pass
+
+
 func alive() -> bool:
 	return hp > 0
 
@@ -137,49 +142,46 @@ func repertoire() -> Array:
 
 
 func clone() -> Actor:
-	var a := Actor.new()
-	for p in [
-		"id",
-		"kind",
-		"faction",
-		"pos",
-		"hp",
-		"max_hp",
-		"cooldown",
-		"rank",
-		"rooted",
-		"stunned",
-		"blind",
-		"wet",
-		"alight",
-		"frozen",
-		"casts",
-		"mana",
-		"regrow",
-		"acted",
-		"alert",
-		"target",
-		"lost",
-		"wary",
-		"sees_me",
-		"guard",
-		"drum",
-		"home",
-		"post",
-		"rival",
-		"grudge",
-		"rival_at",
-		"leader",
-		"prey",
-		"form",
-		"guise",
-		"beside",
-		"talon",
-		"cloak",
-		"flame",
-		"raise",
-	]:
-		a.set(p, get(p))
+	var a := Actor.new(true)
+	a.id = id
+	a.kind = kind
+	a.faction = faction
+	a.pos = pos
+	a.hp = hp
+	a.max_hp = max_hp
+	a.cooldown = cooldown
+	a.rank = rank
+	a.rooted = rooted
+	a.stunned = stunned
+	a.blind = blind
+	a.wet = wet
+	a.alight = alight
+	a.frozen = frozen
+	a.casts = casts
+	a.mana = mana
+	a.regrow = regrow
+	a.acted = acted
+	a.alert = alert
+	a.target = target
+	a.lost = lost
+	a.wary = wary
+	a.sees_me = sees_me
+	a.guard = guard
+	a.drum = drum
+	a.home = home
+	a.post = post
+	a.rival = rival
+	a.grudge = grudge
+	a.rival_at = rival_at
+	a.leader = leader
+	a.prey = prey
+	a.form = form
+	a.guise = guise
+	a.beside = beside
+	a.talon = talon
+	a.cloak = cloak
+	a.flame = flame
+	a.raise = raise
 	a.intent = intent.duplicate(true)
 	a.marked.assign(marked)
 	a.imprint.assign(imprint)
