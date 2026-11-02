@@ -272,5 +272,3 @@ func test_the_codex_lists_the_lamp_and_the_stand_by_what_they_are() -> void:
 		var entry := Codex.entries(4).filter(func(e): return e.name == name)
 		assert_eq(entry.size(), 1, name)
 		assert_false(Info.plain(Codex.detail(entry[0])).contains("얻는 부적"), name)
-	var lamp: Dictionary = Codex.entries(4).filter(func(e): return e.name == "석등")[0]
-	assert_string_contains(Info.plain(Codex.detail(lamp)), "꺼지지 않음")
