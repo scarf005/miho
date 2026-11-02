@@ -70,3 +70,40 @@ func test_default_keys_follow_roguelike_conventions() -> void:
 func test_x_looks_around_and_the_look_key_is_not_exploring() -> void:
 	assert_eq(Keys.action_of(_press("X")), &"look")
 	assert_ne(Keys.action_of(_press("X")), &"explore")
+
+
+## A press of the keypad key `pad` as Num Lock makes it read: `key` is what it sends.
+func _pad(pad: Key, key: String) -> InputEventKey:
+	var e := _press(key)
+	e.physical_keycode = pad
+	return e
+
+
+func test_the_keypad_moves_whatever_num_lock_says() -> void:
+	for row in [
+		[KEY_KP_7, "Home", "7", &"move_nw"],
+		[KEY_KP_8, "Up", "8", &"move_n"],
+		[KEY_KP_9, "PageUp", "9", &"move_ne"],
+		[KEY_KP_4, "Left", "4", &"move_w"],
+		[KEY_KP_5, "Clear", "5", &"wait"],
+		[KEY_KP_6, "Right", "6", &"move_e"],
+		[KEY_KP_1, "End", "1", &"move_sw"],
+		[KEY_KP_2, "Down", "2", &"move_s"],
+		[KEY_KP_3, "PageDown", "3", &"move_se"],
+		[KEY_KP_PERIOD, "Delete", "Period", &"wait"],
+	]:
+		assert_eq(Keys.action_of(_pad(row[0], row[1])), row[3], "off: %s" % row[1])
+		assert_eq(Keys.action_of(_pad(row[0], row[2])), row[3], "on: %s" % row[2])
+
+
+func test_the_keys_above_the_arrows_and_the_digit_row_keep_their_meaning() -> void:
+	assert_eq(Keys.action_of(_pad(KEY_HOME, "Home")), &"")
+	assert_eq(Keys.action_of(_pad(KEY_PAGEUP, "PageUp")), &"")
+	assert_eq(Keys.action_of(_pad(KEY_7, "7")), &"pick_7")
+
+
+func test_a_list_reads_the_keypad_with_num_lock_off_as_list_keys() -> void:
+	assert_eq(Menu._nav(_pad(KEY_KP_7, "Home")), &"home")
+	assert_eq(Menu._nav(_pad(KEY_KP_1, "End")), &"end")
+	assert_eq(Menu._nav(_pad(KEY_KP_9, "PageUp")), &"page_up")
+	assert_eq(Menu._nav(_pad(KEY_KP_3, "PageDown")), &"page_down")
