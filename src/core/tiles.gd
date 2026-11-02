@@ -177,7 +177,7 @@ const ROWS := {
 		burns = true,
 		knock = true,
 		breaks_to = World.FLOOR,
-		hit = [World.THUD, "쿵"],
+		hit = [World.KNOCK, "쿵"],
 	},
 	World.JAR:
 	{

@@ -5,7 +5,7 @@ extends RefCounted
 ## sight, burns, or lights the ground.
 ##
 ## A screen (병풍) blocks sight and walking until it is knocked down to floor:
-## Miho walking into it, or an orb, with a thud of World.THUD tiles. A jar
+## Miho walking into it, or an orb, with a thud of World.KNOCK tiles. A jar
 ## (장독) is knocked to pieces with a clang, and what it holds happens (Jars). A
 ## censer (향로) breathes incense (Gas.INCENSE) from the tile it stands on, while it
 ## stands; knocked over, it spills coals: the tile and the four beside it become
