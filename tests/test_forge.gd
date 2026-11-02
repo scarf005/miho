@@ -248,8 +248,8 @@ func test_a_slot_in_a_queue_tells_its_own_talismans_and_price() -> void:
 func test_a_flyer_takes_no_harm_from_hot_ground() -> void:
 	var w := _world()
 	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 3)
-	bat.cooldown = 99
-	bat.rooted = 9
+	bat.magic.cooldown = 99
+	bat.ailments.rooted = 9
 	var hp := bat.hp
 	Compounds.heat(w, [bat.pos], Compounds.MOLTEN)
 	w.act(WAIT)
@@ -260,11 +260,11 @@ func test_a_creature_that_leaps_into_a_wall_does_not_call_its_side() -> void:
 	var w := _world()
 	var y := ME.y + 6
 	var sleeper := FloorGen.spawn(w, &"dokkaebi", Vector2i(Grid.W - 6, y))
-	sleeper.cooldown = 99
+	sleeper.magic.cooldown = 99
 	var leaper := FloorGen.spawn(w, &"dokkaebi", Vector2i(Grid.W - 3, y))
 	Leap.cast(w, leaper, Spell.make(Cards.recipe(Cards.VAULT)), E)
 	assert_eq(leaper.pos, Vector2i(Grid.W - 2, y))
-	assert_eq(sleeper.alert, Actor.REST, "no search for its own crash")
+	assert_eq(sleeper.brain.alert, Actor.REST, "no search for its own crash")
 
 
 func test_what_stands_round_her_is_cast_on_her_tile_too() -> void:
