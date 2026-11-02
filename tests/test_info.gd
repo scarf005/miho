@@ -414,14 +414,27 @@ func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
 	assert_false(Info.plain(Info.creature(w, foe)).contains("당신을 추격"), "an ally hunts others")
 
 
-func test_a_searcher_on_your_noise_tells_so_and_not_how_many_looks_are_left() -> void:
+func test_a_searcher_bound_for_your_tile_tells_so_and_not_how_many_looks_are_left() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
 	foe.alert = Actor.SEARCH
 	foe.target = w.player().pos
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "소음을 쫓는 중")
+	assert_string_contains(text, "당신에게 오는 중")
+	assert_false(text.contains("소음"), "it may be after a spell it saw: %s" % text)
 	assert_false(text.contains("수색"), text)
+
+
+func test_a_hunter_fighting_a_rival_does_not_also_say_it_hunts_you() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
+	var rival := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(2, 0))
+	foe.alert = Actor.HUNT
+	foe.rival = rival.id
+	foe.grudge = 3
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "싸우는 중")
+	assert_false(text.contains("추격"), text)
 
 
 func test_a_searcher_elsewhere_is_only_searching() -> void:

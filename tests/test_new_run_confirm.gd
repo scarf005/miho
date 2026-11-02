@@ -200,3 +200,12 @@ func test_the_restart_button_of_the_touch_ending_starts_at_once() -> void:
 	m._fit()
 	_finger(m, _hud(m, &"new"))
 	assert_eq(m.state, &"play")
+
+
+func test_ctrl_r_on_the_ending_does_not_start_a_new_run() -> void:
+	var m := _keyboard()
+	_ending(m)
+	var e := _key_event(KEY_R)
+	e.ctrl_pressed = true
+	m._unhandled_input(e)
+	assert_eq(m.state, &"over")

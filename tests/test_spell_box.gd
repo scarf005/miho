@@ -87,6 +87,25 @@ func test_a_flying_shot_on_the_map_shows_its_spell() -> void:
 	assert_eq(m.term.example.spell, [Cards.FOX], "from %s" % me)
 
 
+func test_a_shot_of_a_caster_she_does_not_see_does_not_tell_its_kind() -> void:
+	var m := _main()
+	var me: Vector2i = m.world.player().pos
+	var hidden: Actor = FloorGen.spawn(m.world, &"gamtu", me + Vector2i(1, 0) * (Hat.REACH + 1))
+	var shot := Shot.new()
+	shot.spell = Spell.make([Cards.FOX])
+	shot.faction = Actor.HEAVEN
+	shot.caster = hidden.id
+	shot.pos = me + Vector2i(0, 1)
+	shot.life = 4
+	m.world.shots.append(shot)
+	m.world.seen[Grid.index(shot.pos)] = 1
+	m.world.seen[Grid.index(hidden.pos)] = 1
+	m.known = m.world.known_clone()
+	m.hover = shot.pos
+	m._refresh()
+	assert_ne(m.term.example.key, hidden.kind)
+
+
 func test_the_box_keeps_its_text_clear_of_the_example_and_drops_it_when_there_is_no_room() -> void:
 	var lines := [[["하나", Palette.TEXT]], [["둘 둘 둘", Palette.TEXT]], [["셋", Palette.TEXT]]]
 	var extra := Vector2(CodexScene.VIEW)

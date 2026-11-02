@@ -89,6 +89,25 @@ func test_a_click_picks_a_choice_and_the_pointer_lights_it() -> void:
 	assert_eq(sim._scene.spell.size(), 3)
 
 
+func test_opening_the_codex_again_lights_no_choice() -> void:
+	var m := _main()
+	_codex(m, TALISMANS)
+	m.menu.codex.lit = 2
+	m.menu.open(&"codex")
+	assert_eq(m.menu.codex.lit, -1)
+
+
+func test_a_click_on_a_kept_box_over_a_choice_does_not_pick_it() -> void:
+	var m := _main()
+	_codex(m, TALISMANS)
+	var row: Vector2 = m.term.panel.choices.from + Vector2(1, 2)
+	var local: Vector2 = (row + Vector2(0.1, 0.5)) * Term.CELL
+	m.term.pin = {fit = {at = row - Vector2.ONE, cells = Vector2(4, 4), scale = 1.0}, lines = []}
+	WordLink.click(m, local)
+	assert_eq(m.menu.codex.part, 0)
+	m.term.pin = {}
+
+
 func test_a_creature_strikes_and_casts_each_spell_itself_in_its_examples() -> void:
 	for rank in RANKS:
 		var list := Codex.entries(FOES, rank)
