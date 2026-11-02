@@ -469,6 +469,7 @@ static func compound(c: StringName) -> Array:
 				["쓰는 주문", Spell.make(Forge.ORB).shown()],
 				["발사 간격", Lang.t("%d초") % Forge.FIRE_ROUNDS],
 				["빛", Lang.t("%d칸") % Light.FIRE_RADIUS],
+				["소음", "없음"],
 			]
 		&"swamp":
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
@@ -490,6 +491,8 @@ static func compound(c: StringName) -> Array:
 			return [
 				["모양", Lang.t("%d방향") % Grid.DIRS.size()],
 				["쓰는 주문", Spell.make(Forge.HOMING).shown()],
+				["소음", "%d" % Spell.make(Forge.HOMING).cast_noise()],
+				["충돌 소음", "%d" % Spell.make(Forge.HOMING).burst_noise()],
 			]
 		&"magpie":
 			return [[_names([World.SKY]), Tiles.of(World.BRIDGE, "name")]]
