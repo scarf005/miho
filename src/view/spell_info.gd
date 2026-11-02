@@ -209,7 +209,8 @@ static func ward(s: Spell) -> Array:
 			_line(on, name),
 			_line("모습", "마지막으로 처치한 적"),
 			_line("속는 적", "추격 중이 아닌 적"),
-			_line("속지 않음", "후각이 뛰어나다"),
+			_line("속지 않음", "%s, %s" % [Lang.t(Info.SMELL), Lang.t(Info.WITS[Guise.SEES_THROUGH])]),
+			_line("둔갑을 보면 추격", Info.alarmed()),
 			_line("발톱", "기습"),
 			_line("풀림", Lang.t("적 옆에서 %d초, 주문 사용, 피해") % Guise.BESIDE),
 			_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
@@ -227,7 +228,7 @@ static func ward(s: Spell) -> Array:
 		return [
 			_line(on, name),
 			_pair(hat_seen()),
-			_line("쫓아옴", "후각이 뛰어나다"),
+			_line("쫓아옴", Info.SMELL),
 			_line(
 				"도깨비불을 쏘는 적",
 				"%s, %s" % [Lang.t(Info.WITS[Bestiary.SHARP]), Lang.t(Info.WITS[Bestiary.CUNNING])]

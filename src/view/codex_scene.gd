@@ -9,7 +9,7 @@ extends RefCounted
 ## parted by "/" and centred in the hall's height, column 0 at the hall's left. It
 ## has a mark from MARKS, or one of:
 ## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
-## rest, w one at rest with one health, k the creature the row is for, m that creature
+## rest, w a dull one (장승) at rest with one health, k the creature the row is for, m that creature
 ## hunting her and casting nothing, t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
@@ -221,7 +221,9 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			w.start = p
 		"i":
 			_foe(w, &"imugi", p, mark)
-		"d", "z", "w":
+		"w":
+			_foe(w, &"jangseung", p, mark)
+		"d", "z":
 			_foe(w, &"dokkaebi", p, mark)
 		"k", "m":
 			_foe(w, key, p, mark)

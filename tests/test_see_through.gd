@@ -187,7 +187,7 @@ func test_a_tracker_sees_through_the_guise() -> void:
 func test_another_kind_that_does_not_track_is_still_fooled() -> void:
 	var w := _world()
 	_lit(w)
-	var a := _foe(w, &"gamtu", ME + Vector2i(4, 0))
+	var a := _foe(w, &"jangseung", ME + Vector2i(4, 0))
 	w.act(_self(Guise.RECIPE[Guise.GUISE]))
 	assert_false(Guise.knows(w, a))
 	assert_ne(a.alert, Actor.HUNT)

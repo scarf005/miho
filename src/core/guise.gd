@@ -20,7 +20,9 @@ extends RefCounted
 ## that is not hunting her does not know her (`fools`): seeing her does not
 ## start a hunt, its spells do not seek her, and her claws catch it unawares. A
 ## hunter is not fooled, nor a tracker (Bestiary tracks): the form changes, the
-## smell does not. It is silent. The guise ends at
+## smell does not. Nor is a cunning creature (SEES_THROUGH). One that sees her
+## put the guise on and is sharp (ALARMED) hunts her at once, so it is not fooled
+## while it hunts; a dull one that sees it is fooled. It is silent. The guise ends at
 ## the end of the round in which she has stood next to a creature of heaven BESIDE
 ## rounds in a row, when she casts any spell, or when she is hurt.
 ##
@@ -66,6 +68,10 @@ const ALONE := [TALON, Cards.BUNSIN]
 const NO_PREY := "아직 처치한 적이 없다"
 const MIXED := "다른 부적과 섞을 수 없는 주문이다"
 const BESIDE := 2
+## The wits (Bestiary) from which a creature that sees her put on a guise hunts
+## her, and from which it is never fooled.
+const ALARMED := Bestiary.SHARP
+const SEES_THROUGH := Bestiary.CUNNING
 const TALON_HARM := 2
 const TALON_ABSORBED := 1
 
@@ -149,6 +155,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 		return false
 	match own:
 		GUISE:
+			_alarm(w, caster)
 			caster.form = caster.prey
 			caster.guise = true
 			caster.beside = 0
@@ -180,6 +187,20 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	Elements.stick(w, s, caster)
 	s.life = 0
 	return true
+
+
+## Every creature of heaven of ALARMED wits that sees `caster` put on a guise
+## hunts her from where she stands.
+static func _alarm(w: World, caster: Actor) -> void:
+	for a in w.actors.duplicate():
+		if (
+			a.alive()
+			and a.faction == Actor.HEAVEN
+			and Bestiary.wits(a.kind) >= ALARMED
+			and w.sees(a, caster.pos)
+			and not Hat.hidden(w, caster, a.pos)
+		):
+			w.hunt_from(a, caster.pos)
 
 
 ## The 그림자 on `a`: the wisps of its own that ride it.
@@ -254,13 +275,14 @@ static func shot_harm(w: World, s: Shot) -> int:
 
 
 ## Whether `by` takes `a` for someone else: `a` is in guise and `by` is a creature
-## of heaven that is not hunting and does not go by smell.
+## of heaven that is not hunting, does not go by smell and is not cunning.
 static func fools(by: Actor, a: Actor) -> bool:
 	return (
 		a.guise
 		and by.faction == Actor.HEAVEN
 		and by.alert != Actor.HUNT
 		and not by.info().get("tracks", false)
+		and Bestiary.wits(by.kind) < SEES_THROUGH
 	)
 
 

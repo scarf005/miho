@@ -10,6 +10,8 @@ extends RefCounted
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
+## The tag of a creature that follows Miho by her scent (Bestiary tracks), told in the glossary.
+const SMELL := "후각이 뛰어나다"
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
 ## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
@@ -30,7 +32,7 @@ const CONDITIONS := {
 	[
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
 		"속는 적: 추격 중이 아닌 적",
-		"속지 않음: 후각이 뛰어나다",
+		["속지 않음: %s, %s", SMELL, WITS[Guise.SEES_THROUGH]],
 	],
 	Guise.NAME[Guise.TALON]:
 	[
@@ -95,11 +97,19 @@ static func glossary() -> Dictionary:
 		],
 		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
-		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
-		"영리함": ["주문을 보면: 쏜 곳을 수색", Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH, SUSPECTS],
+		"둔함": ["주문을 보면: 날아가는 칸을 수색", "둔갑을 봐도: 속음"],
+		"영리함":
+		[
+			"주문을 보면: 쏜 곳을 수색",
+			"둔갑을 보면: 추격 시작",
+			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
+			SUSPECTS
+		],
 		"교활함":
 		[
 			"주문을 보면: 쏜 곳에서 추격",
+			"둔갑을 보면: 추격 시작",
+			"둔갑: 속지 않음",
 			Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH,
 			"여우불 소음: 던진 곳을 수색",
 			SUSPECTS,
@@ -108,7 +118,7 @@ static func glossary() -> Dictionary:
 		"고정": ["움직이지 않음.", no_sleep],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
 		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
-		"후각이 뛰어나다":
+		SMELL:
 		[
 			"쉬거나 수색 중: 당신의 냄새를 따라감",
 			"은신한 당신을 추격할 때: 냄새부터 따라감",
@@ -225,7 +235,15 @@ static func condition_facts(name: String) -> Array:
 	var lines := [[[Lang.t(name), Palette.TEXT]]]
 	if name == Guise.NAME[Guise.FLAME]:
 		lines.append_array(nature(Guise.FLAME_KIND))
-	return lines + _tags(CONDITIONS[name])
+	lines.append_array(_tags(CONDITIONS[name]))
+	if name == Guise.NAME[Guise.GUISE]:
+		lines.append([[Lang.t("둔갑을 보면 추격: %s") % alarmed(), Palette.TEXT]])
+	return lines
+
+
+## The wits that hunt Miho at once when they see her put on a guise (Guise.ALARMED).
+static func alarmed() -> String:
+	return ", ".join(range(Guise.ALARMED, WITS.size()).map(func(i): return Lang.t(WITS[i])))
 
 
 ## Lines of text: a string, or a format string and its numbers; each in the language shown.
@@ -644,7 +662,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if spec.get("hunts", false):
 		out.append(Lang.t("위치 감지"))
 	if spec.get("tracks", false):
-		out.append(Lang.t("후각이 뛰어나다"))
+		out.append(Lang.t(SMELL))
 	if spec.get("stokes", false):
 		out.append(Lang.t("등불 켜기"))
 	return out

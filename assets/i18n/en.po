@@ -1350,8 +1350,20 @@ msgstr "Left click yourself"
 msgid " 붙음"
 msgstr " clinging"
 
-msgid "속지 않음: 후각이 뛰어나다"
-msgstr "Not fooled: keen smell"
+msgid "속지 않음: %s, %s"
+msgstr "Not fooled: %s, %s"
+
+msgid "둔갑을 보면 추격: %s"
+msgstr "Hunts on seeing the disguise: %s"
+
+msgid "둔갑을 보면 추격"
+msgstr "Hunts on seeing the disguise"
+
+msgid "둔갑을 보면: 추격 시작"
+msgstr "Sees the disguise: starts hunting"
+
+msgid "둔갑을 봐도: 속음"
+msgstr "Even if it sees the disguise: fooled"
 
 msgid "망자"
 msgstr "Undead"
