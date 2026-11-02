@@ -138,8 +138,8 @@ static func _example(m: Node) -> Dictionary:
 		cards = Spell.from_key(m.hover_spell).cards
 	elif m.hover_card != &"":
 		cards = Cards.made_of(m.hover_card)
-	elif not m.hover_status and not m.debugging:
-		var shot := Info.shot_at(m.known, m.hover)
+	elif not m.hover_status:
+		var shot: Shot = m.world.shot_at(m.hover) if m.debugging else Info.shot_at(m.known, m.hover)
 		if shot != null and shot.faction != Actor.FOX:
 			var by: Actor = m.world.actor(shot.caster)
 			return CodexScene.charged(by.kind if by != null else Codex.foes()[0], shot.spell.cards)

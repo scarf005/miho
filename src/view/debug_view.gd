@@ -60,13 +60,16 @@ static func draw(t: Term) -> void:
 
 
 ## What hovering tile p tells with the overlay on: every tile, creatures
-## wherever they are, with their hidden state.
+## wherever they are, with their hidden state, and projectiles wherever they fly.
 static func at(w: World, p: Vector2i) -> Array:
 	if not Grid.inside(p):
 		return []
 	var a := w.actor_at(p)
 	if a != null:
 		return Info.creature(w, a) + (creature(a) if a.faction != Actor.FOX else [])
+	var s := w.shot_at(p)
+	if s != null:
+		return SpellInfo.shot(w, s)
 	var lines := Info.terrain(w, p)
 	var stamp := w.scent[Grid.index(p)] if w.scent.size() == w.tiles.size() else 0
 	if stamp > 0:
