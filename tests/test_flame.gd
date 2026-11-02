@@ -303,3 +303,26 @@ func test_a_save_replays_to_the_same_world() -> void:
 	assert_eq(back.world.player().hp, w.player().hp)
 	assert_eq(back.world.round_no, w.round_no)
 	assert_eq(back.world.rng.state, w.rng.state)
+
+
+func test_the_hover_on_her_tells_no_harm_from_hot_ground_only_worn() -> void:
+	var w := _world()
+	w.hot[ME] = Vector2i(0, Compounds.HOT_ROUNDS)
+	assert_true(Info.plain(Info.creature(w, w.player())).contains("초당 피해"))
+	_wear(w)
+	w.hot[ME] = Vector2i(0, Compounds.HOT_ROUNDS)
+	assert_false(Info.plain(Info.creature(w, w.player())).contains("초당 피해"))
+
+
+func test_the_hover_on_her_flying_shot_tells_the_harm_it_will_do() -> void:
+	var w := _world()
+	_wear(w)
+	w.act(_throw(FIRE_ORB, EAST))
+	var shot: Shot = w.shots.back()
+	var harm: int = shot.spell.damage(shot.distance()) + Guise.FLAME_HARM
+	assert_true(Info.plain(SpellInfo.shot(w, shot)).contains("피해: %d" % harm))
+
+
+func test_a_spell_of_lightning_is_no_fire_spell() -> void:
+	var cards := [Cards.FOX] + Cards.made_of(&"thunder")
+	assert_eq(_dealt(cards, true), _dealt(cards, false))
