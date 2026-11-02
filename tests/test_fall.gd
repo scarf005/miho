@@ -386,3 +386,86 @@ func test_the_forecast_shows_a_fall() -> void:
 	assert_true(f.deaths.has(foe.id))
 	assert_true(f.drops_me())
 	assert_eq(f.after.depth, 2)
+
+
+func test_a_push_into_a_wall_harms_both_by_the_tiles_left() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(16, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(14, ROW), World.WALL)
+	w.push(foe, -E, 2)
+	assert_eq(foe.pos, Vector2i(15, ROW), "one tile flown, one left")
+	assert_eq(foe.hp, 8)
+	assert_eq(w.tile(Vector2i(14, ROW)), World.WALL_CRACKED)
+
+
+func test_a_push_from_beside_a_wall_harms_both_by_the_whole_push() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(15, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(14, ROW), World.WALL)
+	w.push(foe, -E, 2)
+	assert_eq(foe.pos, Vector2i(15, ROW))
+	assert_eq(foe.hp, 7)
+	assert_eq(w.tile(Vector2i(14, ROW)), World.RUBBLE)
+
+
+func test_miho_pushed_into_a_wall_is_harmed_like_a_creature() -> void:
+	var w := _world()
+	var me := w.player()
+	me.hp = 9
+	w.set_tile(me.pos - E * 2, World.WALL)
+	var from := me.pos
+	w.push(me, -E, 2)
+	assert_eq(me.pos, from - E)
+	assert_eq(me.hp, 8)
+	assert_eq(w.tile(from - E * 2), World.WALL_CRACKED)
+
+
+func test_a_push_that_ends_beside_a_wall_harms_nothing() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(16, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(14, ROW), World.WALL)
+	w.push(foe, -E, 1)
+	assert_eq(foe.hp, 9)
+	assert_eq(w.tile(Vector2i(14, ROW)), World.WALL)
+
+
+func test_the_outermost_wall_harms_the_creature_and_stands() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(1, ROW))
+	foe.hp = 9
+	w.push(foe, -E, 2)
+	assert_eq(foe.hp, 7)
+	assert_eq(w.tile(Vector2i(0, ROW)), World.WALL)
+
+
+func test_a_wall_broken_early_still_harms_the_creature_by_the_whole_rest() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(15, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(14, ROW), World.WALL_CRACKED)
+	w.push(foe, -E, 3)
+	assert_eq(foe.hp, 6)
+	assert_eq(w.tile(Vector2i(14, ROW)), World.RUBBLE)
+
+
+func test_a_push_into_anything_but_a_wall_harms_nothing() -> void:
+	for blocker in [World.LANTERN, World.POND, World.WINDOW]:
+		var w := _world()
+		var foe := _foe(w, &"dokkaebi", Vector2i(12, ROW))
+		foe.hp = 9
+		w.set_tile(Vector2i(13, ROW), blocker)
+		w.push(foe, E, 3)
+		assert_eq(foe.hp, 9, str(blocker))
+		assert_eq(w.tile(Vector2i(13, ROW)), blocker, str(blocker))
+
+
+func test_a_wall_crash_can_fell_the_creature() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(15, ROW))
+	foe.hp = 1
+	w.set_tile(Vector2i(14, ROW), World.WALL)
+	w.push(foe, -E, 2)
+	assert_false(foe.alive())
