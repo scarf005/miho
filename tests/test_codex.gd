@@ -113,7 +113,7 @@ func test_every_compound_is_listed_with_its_parts() -> void:
 	assert_true(names.has(Spell.SHAPE_NAME[Spell.HOMING]))
 	for c in Cards.compounds():
 		var text := _text(Codex.detail(_entry(2, Cards.NAME[c])))
-		var parts: Array = Cards.recipe(c).map(func(e): return Cards.NAME[e])
+		var parts: Array = Cards.spell_of(c).map(func(e): return Cards.NAME[e])
 		assert_string_contains(text, " · %s\n" % "+".join(parts))
 		assert_eq(text, _text(SpellInfo.combo(c)), c)
 		var tails := "꼬리: %d" % Spell.price(parts.size())

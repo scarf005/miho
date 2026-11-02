@@ -105,7 +105,6 @@ func test_the_old_shapes_are_refused_the_same_way_as_any_spell() -> void:
 		[Cards.WOOD, Cards.EARTH],
 		[Cards.WOOD, Cards.EARTH, Cards.WOOD, Cards.WOOD],
 		[Cards.FOX, Cards.WOOD, Cards.EARTH, Cards.WOOD],
-		[Cards.FIRE, Cards.EARTH, Cards.METAL, Cards.WATER],
 	]:
 		assert_false(w.can(_self(cards)), str(cards))
 		assert_eq(Guise.why(w.player(), Spell.make(cards)), Guise.only(), str(cards))

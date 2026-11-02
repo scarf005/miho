@@ -141,6 +141,7 @@ func _left_click(m: Node, cell: Vector2) -> void:
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
+	m.glass.visible = false
 	click.position = m.term.get_global_transform() * (cell * Term.CELL)
 	m._click(click)
 

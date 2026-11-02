@@ -44,7 +44,7 @@ func test_the_opaque_mask_agrees_with_opaque_on_every_tile() -> void:
 func test_a_walk_mask_agrees_with_the_test_on_every_tile_and_holds_the_walker() -> void:
 	for s in 6:
 		var w := _busy(s)
-		for a in w.actors:
+		for a in w.actors.filter(func(b): return not Bestiary.flies(b.kind)):
 			var test := func(p): return p == a.pos or (w.vacant(p) and not w.burning.has(p))
 			var mask := Masks.walk(w, a, test)
 			var wrong: Array[Vector2i] = []

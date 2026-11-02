@@ -534,7 +534,7 @@ func test_a_leap_still_clears_a_creature_unharmed() -> void:
 	var w := _world()
 	var foe := _foe(w, w.player().pos + E)
 	var hp := foe.hp
-	w.act(_leap(LEAP))
+	w.cast(w.player(), Spell.make(LEAP), E)
 	assert_eq(foe.hp, hp)
 
 

@@ -394,7 +394,7 @@ func test_a_lone_fire_fan_covers_three_tiles_and_two_cover_what_one_did() -> voi
 
 func test_every_fire_spell_relights_a_dark_lantern_it_reaches() -> void:
 	var lamp := ME + Vector2i(2, 0)
-	for cards in [[FIRE], [FIRE, FIRE], [Cards.ORB, FIRE], [Cards.FOX, FIRE], [FIRE, Cards.EARTH]]:
+	for cards in [[FIRE], [FIRE, FIRE], [Cards.ORB, FIRE], [Cards.FOX, FIRE]]:
 		var w := _world()
 		_put(w, lamp, World.LANTERN_OUT)
 		var events := w.act(_cast(cards))

@@ -144,6 +144,7 @@ func test_a_wet_step_into_mud_is_still_silent() -> void:
 
 func test_a_louder_tread_keeps_its_reach_but_splashes() -> void:
 	var a := Actor.new()
+	a.kind = &"dokkaebi"
 	a.wet = 1
 	assert_eq(Status.tread(a, [4, "삐걱"]), [4, Status.SPLASH_WORD])
 	a.wet = 0
