@@ -61,7 +61,7 @@ func _choke(open: PackedByteArray, from: Vector2i, to: Vector2i, ends: Array) ->
 		for d in Grid.DIRS + [Vector2i.ZERO]:
 			if Grid.inside(mid + d):
 				shut[Grid.index(mid + d)] = 0
-		if Grid.search(from, shut).dist[Grid.index(to)] < 0:
+		if Grid.distance(from, shut, to) < 0:
 			return mid
 	return Vector2i(-1, -1)
 
