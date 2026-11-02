@@ -345,7 +345,7 @@ func test_a_blast_stays_on_the_storey_where_the_orb_struck() -> void:
 	var caster := FloorGen.spawn(w, &"imugi", ME - E * 3)
 	caster.cooldown = 99
 	w.player().hp = 50
-	w.cast(caster, Spell.make(_copies(3, [WATER])), E)
+	Cast.cast(w, caster, Spell.make(_copies(3, [WATER])), E)
 	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
 	assert_true(kinds.has(&"ascend"), "the push took her up")
 	assert_false(kinds.has(&"splash"), "the blast does not follow her")
@@ -364,7 +364,7 @@ func test_a_creatures_charged_twin_flies_the_line_it_drew() -> void:
 
 func test_an_orb_that_fades_blasts_where_it_ends() -> void:
 	var w := _world()
-	w.cast(w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
+	Cast.cast(w, w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
 	w.shots[0].life = 1
 	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
 	assert_true(kinds.has(&"fade"))
@@ -373,7 +373,7 @@ func test_an_orb_that_fades_blasts_where_it_ends() -> void:
 
 func test_an_orb_that_fades_is_heard_as_a_blast() -> void:
 	var w := _world()
-	w.cast(w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
+	Cast.cast(w, w.player(), Spell.make(_copies(3, [Cards.FOX])), E)
 	w.shots[0].life = 1
 	var loud := w.act({t = &"wait"}).filter(func(e): return e.t == &"noise" and e.word == "쾅")
 	assert_eq(loud.size(), 1)

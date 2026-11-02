@@ -145,7 +145,7 @@ func test_a_5dan_costs_seven_tails_and_miho_has_them_on_the_seventh_storey() -> 
 ## or looks again. Returns the events.
 func _now(w: World, cards: Array, dir := E, by: Actor = null) -> Array:
 	w.events = []
-	w.cast(w.player() if by == null else by, Spell.make(cards), dir)
+	Cast.cast(w, w.player() if by == null else by, Spell.make(cards), dir)
 	return w.events
 
 

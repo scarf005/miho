@@ -74,7 +74,7 @@ static func heaven_phase(w: World) -> void:
 			a.cooldown = a.info().get("cd", 0)
 			for plan in plans:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
-					w.cast(a, Bestiary.spell(a.kind, plan.cards), plan.dir)
+					Cast.cast(w, a, Bestiary.spell(a.kind, plan.cards), plan.dir)
 			continue
 		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue

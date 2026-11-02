@@ -245,7 +245,7 @@ func test_a_homing_spell_of_a_foe_chases_an_ally() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + Vector2i(6, 0))
 	var caster := _hunter(w, ME + Vector2i(9, 0))
-	w.cast(caster, Spell.make([Cards.FOX]), W)
+	Cast.cast(w, caster, Spell.make([Cards.FOX]), W)
 	assert_eq(w.shots.back().target, copy.id)
 
 

@@ -137,7 +137,7 @@ func test_a_creature_that_eats_the_spell_gets_no_wisp() -> void:
 func test_a_heaven_wisp_sticks_to_miho_and_lights_her() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"bulgae", Vector2i(4, 8))
-	w.cast(foe, Spell.make([FOX]), E)
+	Cast.cast(w, foe, Spell.make([FOX]), E)
 	w.act(WAIT)
 	assert_eq(w.shots.size(), 1)
 	var wisp: Shot = w.shots[0]
@@ -203,7 +203,7 @@ func test_the_log_tells_a_wisp_that_sticks_once_in_sight() -> void:
 func test_the_log_names_the_spell_a_creature_gives_its_wisp_and_speaks_to_miho() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
 	w.sense()
 	var before := w.clone()
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
@@ -240,7 +240,7 @@ func test_a_creature_tells_the_wisps_riding_it_and_the_rounds_they_have_left() -
 func test_miho_tells_a_wisp_riding_her_and_a_creature_without_one_tells_none() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
 	w.act(WAIT)
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), "도깨비불 붙음: ")
 	assert_false(Info.plain(Info.creature(w, foe)).contains("붙음: "))

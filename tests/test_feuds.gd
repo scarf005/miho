@@ -45,7 +45,7 @@ func _provoke(w: World, a: Actor, by: Actor) -> void:
 func _orb_at(w: World, caster: Actor, victim: Actor) -> Array:
 	var events: Array = []
 	var before := victim.hp
-	w.cast(caster, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, caster, Spell.make([Cards.ORB]), W)
 	for i in 4:
 		events.append_array(w.act(WAIT))
 		if victim.hp < before:
@@ -214,7 +214,7 @@ func test_the_log_tells_the_fight() -> void:
 	victim.hp = 5
 	w.set_tile(ME + Vector2i(5, 1), World.LANTERN)
 	w.sense()
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	var lines := []
 	for i in 3:
 		var before := w.clone()

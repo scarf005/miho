@@ -39,7 +39,7 @@ static func open(w: World, at: Vector2i) -> bool:
 	return w.vacant(at)
 
 
-## `caster` casts `spell` along `dir`: true when it is 분신, and World.cast has
+## `caster` casts `spell` along `dir`: true when it is 분신, and Cast.cast has
 ## nothing more to do. A leap of the same action may have left no room for it.
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if not spell.has(Cards.BUNSIN):

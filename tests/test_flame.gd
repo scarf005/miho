@@ -81,7 +81,7 @@ func _dummy(w: World, kind: StringName, at: Vector2i) -> Actor:
 ## events of the rounds that follow.
 func _shoot(w: World, at: Vector2i, cards: Array) -> Array[Dictionary]:
 	var shooter := _dummy(w, &"jangseung", at + Vector2i(GAP, 0))
-	w.cast(shooter, Spell.make(cards), WEST)
+	Cast.cast(w, shooter, Spell.make(cards), WEST)
 	var events: Array[Dictionary] = []
 	for i in 6:
 		events.append_array(w.act(WAIT))
@@ -203,7 +203,7 @@ func test_a_forecast_of_a_fire_shot_at_her_equals_the_round() -> void:
 	var w := _world()
 	_wear(w)
 	var shooter := _dummy(w, &"jangseung", ME + Vector2i(GAP, 0))
-	w.cast(shooter, Spell.make(FIRE_WISP), WEST)
+	Cast.cast(w, shooter, Spell.make(FIRE_WISP), WEST)
 	w.sense()
 	var f := Forecast.of(w, WAIT)
 	var events := w.act(WAIT)

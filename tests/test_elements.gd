@@ -106,7 +106,7 @@ func _wisp_at_miho() -> World:
 	w.player().max_hp = 5
 	var foe := _post(w, ME + Vector2i(2, 0), &"bujigaengi")
 	foe.rooted = 99
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
 	w.sense()
 	return w
 
@@ -237,7 +237,7 @@ func test_a_gun_lights_the_casters_tile_for_the_round_it_fires() -> void:
 	for cards: Array in [[FOX, METAL], [ORB, METAL]]:
 		var w := _world()
 		assert_false(w.lit(ME))
-		w.cast(w.player(), Spell.make(cards), E)
+		Cast.cast(w, w.player(), Spell.make(cards), E)
 		assert_true(w.lit(ME), "the muzzle flash of %s" % [cards])
 		w.act(WAIT)
 		assert_false(w.lit(ME), "for that round only")

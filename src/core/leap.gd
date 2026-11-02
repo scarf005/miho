@@ -80,7 +80,7 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 			return
 	var rest := spell.rest()
 	if rest != null:
-		w.cast(a, rest, dir)
+		Cast.cast(w, a, rest, dir)
 
 
 ## Projectile `s` has ended at its tile, where `a` stands (or null): its caster

@@ -279,7 +279,7 @@ func test_a_mortar_is_a_gun_that_flashes_and_booms() -> void:
 	var bang: Dictionary = events.filter(func(e): return e.t == &"noise")[0]
 	assert_eq([bang.word, bang.loud], ["쾅", Elements.CANNON_LOUD])
 	var flash := _world()
-	flash.cast(flash.player(), Spell.make([ORB, EARTH, METAL]), E)
+	Cast.cast(flash, flash.player(), Spell.make([ORB, EARTH, METAL]), E)
 	assert_has(flash.flares, ME)
 
 

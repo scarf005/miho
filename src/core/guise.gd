@@ -161,7 +161,7 @@ static func dark(spell: Spell) -> Spell:
 
 
 ## `caster` casts `spell` along `dir`, which ends its guise. With no direction
-## (any for ANYWHERE) it goes on the caster: true, and World.cast has nothing
+## (any for ANYWHERE) it goes on the caster: true, and Cast.cast has nothing
 ## more to do.
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if caster.guise:

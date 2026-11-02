@@ -519,7 +519,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			for one: Dictionary in action.spells:
 				var spell := Spell.make(one.cards)
 				tails -= Cheat.cost(self, spell)
-				cast(me, spell, one.dir)
+				Cast.cast(self, me, spell, one.dir)
 	Flight.phase(self)
 	Mind.heaven_phase(self)
 	Terrain.burn(self, alight)
@@ -691,33 +691,6 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 	a.lost = 0
 	if fresh:
 		Mind.shout(self, a)
-
-
-func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
-	caster.casts += 1
-	Bunsin.learn(caster, spell, dir)
-	if Guise.cast(self, caster, spell, dir) or Bunsin.cast(self, caster, spell, dir):
-		return
-	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
-		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
-		return
-	if spell.gun():
-		flares.append(caster.pos)
-	noise(caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id)
-	var targets := Homing.targets(self, caster, spell, dir)
-	var heads := Homing.headings(self, caster, spell, dir, targets)
-	for i in heads.size():
-		var s := Flight.spawn(self, caster, spell, heads[i], targets[i])
-		if spell.orb:
-			# An orb that leaves on the line of one before it trails it from the caster.
-			if not heads.slice(0, i).has(heads[i]):
-				Flight.step(self, s)
-		elif heads[i] == dir:
-			Flight.step(self, s)
-		else:
-			Flight.fly(self, s, s.pos + s.dir)
-			s.dir = Homing.facing(self, s)
 
 
 func hurt(a: Actor, n: int, weak := false) -> void:

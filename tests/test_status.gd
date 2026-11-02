@@ -229,7 +229,7 @@ func test_fire_never_sets_miho_alight_only_her_tile_which_she_steps_off() -> voi
 	var w := _world()
 	var dog := _post(w, ME + E * 2, &"bujigaengi")
 	dog.rooted = 99
-	w.cast(dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
+	Cast.cast(w, dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
 	w.sense()
 	w.act(WAIT)
 	assert_eq(w.player().alight, 0)

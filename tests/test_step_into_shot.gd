@@ -33,7 +33,7 @@ func _world() -> World:
 func _wisp(w: World, kind: StringName) -> Shot:
 	var foe := FloorGen.spawn(w, kind, FOE)
 	foe.cooldown = 99
-	w.cast(foe, Bestiary.spell(kind, foe.info().casts[0]), WEST)
+	Cast.cast(w, foe, Bestiary.spell(kind, foe.info().casts[0]), WEST)
 	var s: Shot = w.shots.back()
 	s.pos = ME + EAST
 	w.sense()

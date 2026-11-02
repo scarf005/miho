@@ -147,7 +147,7 @@ func test_the_shadow_stays_on_her_through_a_fall() -> void:
 	w.player().hp = 9
 	Storeys.leave(w)
 	Storeys.enter(w, 2)
-	w.cast(w.player(), Spell.make(Guise.RECIPE[Guise.SHADOW]), Vector2i.ZERO)
+	Cast.cast(w, w.player(), Spell.make(Guise.RECIPE[Guise.SHADOW]), Vector2i.ZERO)
 	Fall._drop(w, w.player(), w.player().pos)
 	assert_eq(w.depth, 1)
 	assert_eq(Guise.shadows(w, w.player())[0].pos, w.player().pos)

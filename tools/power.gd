@@ -261,7 +261,7 @@ func _blow(kind: StringName, r: int) -> Dictionary:
 			var plans := Aim.at(w, foe, w.player())
 			w.events = []
 			for plan in plans:
-				w.cast(foe, Bestiary.spell(kind, plan.cards), plan.dir)
+				Cast.cast(w, foe, Bestiary.spell(kind, plan.cards), plan.dir)
 			for i in 12:
 				Flight.phase(w)
 			var n := 0
