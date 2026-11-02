@@ -69,6 +69,8 @@ static func text(world: World) -> String:
 	out.append("creatures in sight:" if not foes.is_empty() else "creatures in sight: none")
 	for a: Actor in foes:
 		out.append(_creature(k, a))
+	for a: Actor in k.actors.filter(func(b): return b.ally() and b.alive()):
+		out.append("ally: " + _ally(k, a))
 	var shots := k.shots.filter(func(s): return not s.gone)
 	if not shots.is_empty():
 		out.append("projectiles in sight:")
@@ -95,7 +97,7 @@ static func _cards(k: World) -> Array:
 
 static func _foes(k: World) -> Array:
 	var me := k.player().pos
-	var list := k.actors.filter(func(a): return a.faction != Actor.FOX and a.alive())
+	var list := k.actors.filter(func(a): return a.faction == Actor.HEAVEN and a.alive())
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me) < Grid.cheb(b.pos, me))
 	return list
 
@@ -145,6 +147,23 @@ static func _glyph(k: World, p: Vector2i) -> String:
 		return Palette.ELIXIR[0]
 	var t := k.tile(p)
 	return REMEMBERED_FLOOR if t == World.FLOOR and not in_sight else Palette.TILES[t][0]
+
+
+## One of Miho's side: it fights on its own, and walking into it trades places.
+static func _ally(k: World, a: Actor) -> String:
+	var line := (
+		"%s %s (%d,%d) hp %d/%d" % [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp]
+	)
+	if Bestiary.mana(a.kind) > 0:
+		line += ", tails %d/%d" % [a.mana, Bestiary.mana(a.kind)]
+	for cast: Array in a.repertoire():
+		line += ", casts " + Spell.make(cast).shown()
+	if a.fighting():
+		var rival := k.actor(a.rival)
+		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
+	if not Legal.makes_way(a):
+		line += ", cannot trade places"
+	return line
 
 
 static func _creature(k: World, a: Actor) -> String:
@@ -229,7 +248,7 @@ static func _moves(k: World) -> String:
 			var a := k.actor_at(to)
 			var note := ""
 			if a != null:
-				note = "(claw %s)" % a.info().name
+				note = ("(swap with %s)" if a.ally() else "(claw %s)") % a.info().name
 			elif k.tile(to) == World.WINDOW:
 				note = "(knock window)"
 			elif Terrain.lantern(k.tile(to)):

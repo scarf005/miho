@@ -111,7 +111,20 @@ const SPELLS := {
 			% Guise.NAME[Guise.TALON]
 		)
 		+ "until she drops them "
-		+ "with the action dispel. The forecast lists every number. "
+		+ "with the action dispel. "
+		+ (
+			"Earth, water and fire make %s: a copy of her steps out onto the free tile next to "
+			% Cards.NAME[Cards.BUNSIN]
+		)
+		+ (
+			"her along dir and fights on its own, with %d tails of its own that grow back, spent "
+			% Bunsin.TAILS
+		)
+		+ (
+			"on the last spell she threw that costs at most %d; it claws without one. "
+			% Bunsin.TAILS
+		)
+		+ "The forecast lists every number. "
 		+ (
 			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "
 			% [Spell.MAX_SLOTS, COSTS, Spell.MAX_SLOTS, Spell.COST_EXTRA]
@@ -349,6 +362,8 @@ func _forecast(args: Dictionary) -> Dictionary:
 		if i != me:
 			var dies := " (dies)" if f.deaths.has(i) else ""
 			out.append("harm dealt: %s -%d%s" % [_whom(world, i), f.harm[i], dies])
+	for p: Vector2i in f.allies:
+		out.append("ally appears: (%d,%d)" % [p.x, p.y])
 	if f.after.depth != world.depth:
 		var way := "falls" if f.drops_me() else "climbs"
 		out.append("Miho %s to storey %d" % [way, f.after.depth])
