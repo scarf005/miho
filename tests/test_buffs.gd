@@ -111,12 +111,11 @@ func test_the_old_shapes_are_refused_the_same_way_as_any_spell() -> void:
 
 
 func test_no_buff_ends_by_time() -> void:
-	for kind: StringName in Guise.RECIPE:
-		var w := _world()
-		_wear(w, kind)
-		for i in 100:
-			w.act(WAIT)
-		assert_eq(Guise.worn(w, w.player()), [kind])
+	var w := _world()
+	_wear_all(w)
+	for i in 100:
+		w.act(WAIT)
+	assert_eq(Guise.worn(w, w.player()), Guise.RECIPE.keys())
 
 
 func test_every_buff_stays_on_her_up_a_storey_and_down_again() -> void:
