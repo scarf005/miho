@@ -4,6 +4,8 @@ extends RefCounted
 
 ## The line holding the seed, which a click copies.
 const SEED := 3
+## The key that starts a new run from an ending, besides the restart action.
+const AGAIN := KEY_R
 ## What the title asks before it erases the run on disk.
 const ERASE := "이어하던 판을 지우고 새로 시작할까?"
 ## Puts text on the clipboard; a test swaps it, since a headless run has none.
@@ -19,11 +21,9 @@ static func show(m: Node) -> void:
 		m.term.banner_lines = over(m.world, m.kills, m.run_seed)
 		for i in [-1, -2]:
 			m.term.banner_lines[i] = m.touch.say(m.term.banner_lines[i], "")
-		if m.erasing:
-			m.term.banner_lines[-1] = _sure(m.touch)
 
 
-## Asks before the run in play or the ending on screen gives way to a new one; Y
+## Asks before the run in play gives way to a new one; Y
 ## answers (a second press of the button on a touch screen).
 static func ask(m: Node) -> void:
 	m.erasing = true
@@ -63,7 +63,6 @@ static func title(pending: SaveGame, erasing: bool, touch: Touch) -> Array[Strin
 
 ## The lines of a run that ended in `w` with `kills` creatures put down.
 static func over(w: World, kills: int, seed_value: int) -> Array[String]:
-	var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["Ctrl+Q"])[0]
 	var log_key: String = (Keys.keys_of(&"log").map(Keys.label) + ["Ctrl+P"])[0]
 	return [
 		Lang.t("사람이 되었다", "banner") if w.outcome == &"won" else _fallen(w),
@@ -71,7 +70,7 @@ static func over(w: World, kills: int, seed_value: int) -> Array[String]:
 		Lang.t("처치 %d") % kills,
 		seed_line(seed_value, false),
 		Lang.t("%s키를 눌러 기록 보기") % log_key,
-		Lang.t("%s키를 눌러 재시작") % again,
+		Lang.t("%s키를 눌러 재시작") % OS.get_keycode_string(AGAIN),
 	]
 
 

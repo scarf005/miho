@@ -142,9 +142,9 @@ func _show_title(asking := false) -> void:
 	Banner.show(self)
 
 
-## A new run: a run on disk or in play, or an ending on screen, asks once first.
+## A new run: a run on disk or in play asks once first. An ending has none to lose.
 func _new_game() -> void:
-	if erasing or state == &"title" and pending == null:
+	if erasing or state == &"over" or state == &"title" and pending == null:
 		_restart()
 	elif state == &"title":
 		sfx.play(&"warn")
@@ -249,7 +249,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == &"title":
 		_begin()
 	elif state == &"over":
-		if Keys.action_of(event) == &"restart":
+		if (
+			Keys.action_of(event) == &"restart"
+			or event is InputEventKey and event.keycode == Banner.AGAIN
+		):
 			_new_game()
 		elif Keys.action_of(event) == &"log":
 			_open(&"log")
