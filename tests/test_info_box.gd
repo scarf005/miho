@@ -7,6 +7,12 @@ const VIEWS := [Vector2(1280, 720), Vector2(720, 1280)]
 ## Settings.ZOOMS: 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 
+var _hovers := {}
+
+
+func before_all() -> void:
+	_hovers = _hovers_of_every_creature()
+
 
 ## An open hall with Miho at ME, all of it seen.
 func _world() -> World:
@@ -54,7 +60,7 @@ func _busy(w: World, kind: StringName, led: bool, hunting: bool) -> Actor:
 
 
 ## Every hover a creature can give, as lines.
-func _hovers() -> Dictionary:
+func _hovers_of_every_creature() -> Dictionary:
 	var out := {}
 	for kind in Codex.foes():
 		for led in [false, true]:
@@ -80,14 +86,15 @@ func _screen(view: Vector2, zoom: float, lines: Array) -> Array:
 
 
 func test_every_creature_hover_is_inside_the_screen_at_every_zoom_and_window() -> void:
-	var hovers := _hovers()
+	var hovers := _hovers
 	for view: Vector2 in VIEWS:
 		for zoom: float in ZOOMS:
 			for name: String in hovers:
 				var screen := _screen(view, zoom, hovers[name])
 				var t: Term = screen[0]
+				var laid := t._info_layout(t.info)
 				for p in screen[1] + [null]:
-					var fit := t._info_fit(p)
+					var fit := t._info_at(laid.fit, laid.room, p)
 					var box := Rect2(fit.at, fit.cells * fit.scale)
 					var where := "%s %s zoom %s cursor %s: %s" % [name, view, zoom, p, box]
 					assert_true(Rect2(0, 0, t.cols, t.rows - 2).grow(0.001).encloses(box), where)
@@ -97,7 +104,7 @@ func test_every_creature_hover_is_inside_the_screen_at_every_zoom_and_window() -
 
 
 func test_the_hover_box_loses_no_line_and_keeps_them_in_order() -> void:
-	var hovers := _hovers()
+	var hovers := _hovers
 	for view: Vector2 in VIEWS:
 		for zoom: float in ZOOMS:
 			for name: String in hovers:

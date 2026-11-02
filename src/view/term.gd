@@ -789,6 +789,12 @@ func _draw_box(fit: Dictionary) -> void:
 ## too small to read, on the far side from the map tile `p` (null for none). With
 ## `extra` cells for the example (`example` of the layout); none when they do not fit.
 func _info_fit(p: Variant = null, lines: Array = info, extra := Vector2.ZERO) -> Dictionary:
+	var laid := _info_layout(lines, extra)
+	return _info_at(laid.fit, laid.room, p)
+
+
+## The layout of `lines` and the room it lies in; where it sits is `_info_at`.
+func _info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
 	var v := map_view()
 	var room := Rect2(Vector2(side), Vector2(v))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
@@ -797,7 +803,12 @@ func _info_fit(p: Variant = null, lines: Array = info, extra := Vector2.ZERO) ->
 		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
 		fit = InfoBox.layout(lines, room.size, least, extra)
 		if fit.get("scale", 0.0) < least and extra != Vector2.ZERO:
-			return _info_fit(p, lines)
+			return _info_layout(lines)
+	return {fit = fit, room = room}
+
+
+func _info_at(fit: Dictionary, room: Rect2, p: Variant) -> Dictionary:
+	var v := map_view()
 	var wide: Vector2 = fit.cells * fit.scale
 	var at := Vector2(room.position.x, room.end.y - wide.y)
 	if p != null:
