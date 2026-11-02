@@ -406,24 +406,28 @@ func _lines_fit() -> int:
 	return PanelView.lines_fit(room.y, 0)
 
 
-## An entry, its example the row `key` of CodexScene.
+## An entry, its example the row `key` of CodexScene, or, with `cards` of a spell and no
+## row, the spell's own (SpellScene).
 static func _entry(
 	glyph: String, color: Color, name: String, lines: Callable, key: Variant = null, cards := []
 ) -> Dictionary:
 	var scene := CodexScene.of(key, cards)
+	if scene.is_empty() and not cards.is_empty():
+		scene = SpellScene.of(cards)
 	return {glyph = glyph, color = color, name = Lang.t(name), lines = lines, scene = scene}
 
 
+## A talisman: its example plays it 1 to Spell.MAX_SLOTS times over (SpellScene.counts).
 static func _talisman(c: StringName) -> Dictionary:
 	var lines := func(): return SpellInfo.stacked(c)
-	return _entry(
+	var out := _entry(
 		Lang.t(Cards.GLYPH[c], "talisman"),
 		Palette.CARD[c],
 		Lang.t("%s 부적") % Lang.t(Cards.NAME[c]),
-		lines,
-		c,
-		[c]
+		lines
 	)
+	out.scene = SpellScene.counts(c)
+	return out
 
 
 static func _shape_entry(kind: StringName) -> Dictionary:

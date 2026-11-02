@@ -1,0 +1,109 @@
+class_name ExampleSim
+extends Term
+## A small Term of its own with a World of its own (CodexScene, SpellScene) that plays
+## round after round through Term.play, over whatever shows an example: the 도감, the
+## spellbook, the box of a hover. It has no link to the run, the log or the sound.
+## Before each cast the tiles it would reach are tinted as the aim preview tints them
+## (SpellScene.reach). A scene with a list `each` plays one after the other.
+
+## Seconds before the first round, after each round, and before starting again.
+const START := 0.5
+const ROUND := 0.45
+const REST := 1.0
+## Seconds the tiles a cast reaches stay tinted before it is cast.
+const AIM := 0.8
+
+var _scenes: Array[Dictionary] = []
+var _turn := 0
+var _rank := 0
+var _actions: Array[Dictionary] = []
+var _next := 0
+var _left := 0.0
+var _aimed := false
+
+
+func _ready() -> void:
+	cols = CodexScene.VIEW.x
+	rows = CodexScene.VIEW.y
+	side = Vector2i.ZERO
+	foot = 0
+	replay = true
+	cam = CodexScene.CORNER
+	clip_contents = true
+	super()
+	stop()
+
+
+## The camera stays on the hall.
+func follow(_p: Vector2i) -> void:
+	pass
+
+
+func _process(delta: float) -> void:
+	super(delta)
+	if _animating:
+		return
+	_left -= delta * speed
+	if _left <= 0.0:
+		_play_next()
+
+
+## Plays `scene`, on a storey of rank `rank`, from its start.
+func show_scene(scene: Dictionary, rank := 0) -> void:
+	_scenes = SpellScene.parts(scene)
+	_rank = rank
+	_turn = 0
+	speed = get_parent().speed
+	set_process(true)
+	visible = true
+	_begin()
+
+
+func stop() -> void:
+	_scenes.clear()
+	rush()
+	set_process(false)
+	visible = false
+
+
+func _begin() -> void:
+	rush()
+	_popups.clear()
+	_flashes.clear()
+	_trails.clear()
+	_clear()
+	var scene := SpellScene.ready(_scenes[_turn])
+	_actions = CodexScene.actions(scene, _rank)
+	show_world(CodexScene.build(scene, _rank))
+	_next = 0
+	_left = START
+
+
+## The next round of the scene: a cast shows the tiles it reaches first. After the last,
+## the next scene of the list, or the scene again from its start.
+func _play_next() -> void:
+	if _next >= _actions.size() or not world.can(_actions[_next]):
+		_turn = (_turn + 1) % _scenes.size()
+		_begin()
+		return
+	var action := _actions[_next]
+	if action.t == &"cast" and not _aimed:
+		var shown := SpellScene.reach(world, action)
+		tints = shown.tints
+		marks = shown.marks
+		lines = shown.lines
+		_aimed = true
+		_left = AIM
+		return
+	_clear()
+	_next += 1
+	_left = REST if _next == _actions.size() else ROUND
+	var before := world.clone()
+	play(world.act(action), before, world)
+
+
+func _clear() -> void:
+	tints = {}
+	marks = {}
+	lines = []
+	_aimed = false

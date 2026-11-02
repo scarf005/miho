@@ -9,7 +9,8 @@ extends RefCounted
 ## parted by "/" and centred in the hall's height, column 0 at the hall's left. It
 ## has a mark from MARKS, or one of:
 ## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
-## rest, w one at rest with one health, k the creature the row is for, t the tile the row is for,
+## rest, w one at rest with one health, k the creature the row is for, m that creature
+## hunting her and casting nothing, t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
 ## the row is for holds kimchi.
@@ -36,6 +37,8 @@ const CASTS := "c..."
 const EAST := Vector2i(1, 0)
 ## Columns between the hall's left and a map's column 0: the action sits in the middle.
 const LEFT := 1
+## The column of a map where Miho stands, and so the first of her hall.
+const ME := 2
 const MARKS := {
 	"#": World.WALL,
 	"~": World.POND,
@@ -53,54 +56,9 @@ const KNOCKS := "  @t"
 const WALKS := "  @ttt"
 const SHOT := "  @   d"
 const NEAR := "  @  d"
-const TWO := "  @  d/     d"
-const COLUMN := "      #/      #/      #/  @   #/      #/      #/      #"
-const LEAPS := "   ~~/  @~~/   ~~"
-const FAN := "   ;;;;;/  @;;d;;/   ;;;;;"
 const TABLE := {
-	Cards.FOX: [SHOT],
-	Spell.WISP: [SHOT],
-	Cards.ORB: ["  @    d"],
-	Spell.HOMING: ["        d//  @"],
-	Spell.LEAP: [LEAPS, "c.."],
-	Cards.VAULT: [LEAPS, "c.."],
-	Spell.SPRAY: [FAN],
-	Cards.FIRE: [FAN],
-	Cards.WATER: ["  @ * d"],
-	Cards.WOOD: [SHOT],
-	Cards.METAL: [SHOT],
-	Cards.EARTH: ["  @d"],
-	&"fox+metal": [SHOT],
-	&"fox+metal+metal": ["  @ d d #"],
-	&"orb+earth+metal": ["  @    d/       d"],
 	Guise.SHADOW: ["  @     d", "s..."],
 	Guise.GUISE: ["  @w", ">s.."],
-	Guise.TALON: ["  @d", "s>>"],
-	Guise.CLOAK: ["  @     d", "s..."],
-	&"wildfire": ["   ,,,,/  @,d,,/   ,,,,"],
-	&"lava": [SHOT],
-	&"shrapnel": ["     d/  @  d/     d"],
-	&"frost": ["  @~~ d"],
-	&"rain": ["    **/  @  d/    **"],
-	&"steam": [NEAR],
-	&"thorn": ["  @ d"],
-	&"rift": ["    #/    #/    #/  @ #   d/    #/    #/    #", "c...."],
-	&"mud": ["  @    d", "c...."],
-	&"furnace": [COLUMN],
-	&"swamp": ["       #/       #/  @  d #/       #/       #"],
-	&"palisade": ["  @     d", "c....."],
-	&"beacon": ["   l    ,,,/  @     ,d,/        ,,,"],
-	&"magpie": ["     ~~/     ~~/     ~~/  @  ~~   d/     ~~/     ~~/     ~~", "c....."],
-	&"hypnosis": ["  @   i"],
-	&"mist": [SHOT],
-	&"sinkhole": [NEAR],
-	&"newmoon": ["  @   *  d"],
-	&"discord": ["  @   d/      d", "c....."],
-	&"thunder": ["  @  d d"],
-	&"stillness": ["    #/    #/  @ #  d/    #/    #"],
-	Cards.SAMSARA: [SHOT],
-	Cards.CONQUEST: [TWO],
-	Cards.DRAGON: ["     @d #"],
 	&"wet": ["  @ d", CASTS, [Cards.WATER]],
 	&"alight": [SHOT, CASTS, [Cards.FOX, Cards.FIRE]],
 	&"frozen": [NEAR, CASTS, [Cards.METAL, Cards.WATER]],
@@ -177,6 +135,21 @@ static func of(key: Variant, cards := []) -> Dictionary:
 
 ## The scene as a World from its start, on a storey of rank `rank`; 0 for DEPTH.
 static func build(scene: Dictionary, rank := 0) -> World:
+	var w := hall(rank)
+	var rows: PackedStringArray = scene.map.split("/")
+	var top := HALL.position.y + (HALL.size.y - rows.size()) / 2
+	for y in rows.size():
+		for x in rows[y].length():
+			_place(w, scene.key, rows[y][x], Vector2i(HALL.position.x + LEFT + x, top + y))
+	w.known.resize(w.tiles.size())
+	w.known.fill(1)
+	w.sense()
+	return w
+
+
+## The empty hall on a storey of rank `rank` (0 for DEPTH), Miho in it where a map's
+## "@" stands unless the map moves her.
+static func hall(rank := 0) -> World:
 	var w := World.new()
 	w.rng.seed = SEED
 	w.tiles.resize(Grid.W * Grid.H)
@@ -197,15 +170,9 @@ static func build(scene: Dictionary, rank := 0) -> World:
 	me.faction = Actor.FOX
 	me.max_hp = MIHO_HP
 	me.hp = MIHO_HP - World.HEAL
+	me.pos = HALL.position + Vector2i(LEFT + ME, HALL.size.y / 2)
+	w.start = me.pos
 	w.actors.append(me)
-	var rows: PackedStringArray = scene.map.split("/")
-	var top := HALL.position.y + (HALL.size.y - rows.size()) / 2
-	for y in rows.size():
-		for x in rows[y].length():
-			_place(w, scene.key, rows[y][x], Vector2i(HALL.position.x + LEFT + x, top + y))
-	w.known.resize(w.tiles.size())
-	w.known.fill(1)
-	w.sense()
 	return w
 
 
@@ -251,7 +218,7 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			_foe(w, &"imugi", p, mark)
 		"d", "z", "w":
 			_foe(w, &"dokkaebi", p, mark)
-		"k":
+		"k", "m":
 			_foe(w, key, p, mark)
 		"t":
 			w.set_tile(p, key)
@@ -287,6 +254,6 @@ static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 		a.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1
-	if mark in ["d", "i", "k"]:
+	if mark in ["d", "i", "k", "m"]:
 		a.alert = Actor.HUNT
 		a.target = w.player().pos

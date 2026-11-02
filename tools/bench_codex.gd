@@ -1,6 +1,6 @@
 extends SceneTree
-## Times what the 도감's examples cost: building a scene, which a selection pays at
-## once, and a round of one, the slowest of each over every entry.
+## Times what the 도감's examples cost: planning a spell's example, building a scene, which a
+## selection pays at once, and a round of one, the slowest of each over every entry.
 ## godot --headless --path . -s tools/bench_codex.gd
 
 
@@ -12,29 +12,43 @@ func _init() -> void:
 	var rounds := 0
 	var round_all := 0
 	var slowest := ""
+	var plan_all := 0
+	var plan_most := 0
+	var plans := 0
+	var planned := ""
 	for tab in Codex.TABS.size():
 		for e in Codex.entries(tab):
-			if e.scene.is_empty():
-				continue
-			var t := Time.get_ticks_usec()
-			var w := CodexScene.build(e.scene)
-			var took := Time.get_ticks_usec() - t
-			build += took
-			build_most = maxi(build_most, took)
-			builds += 1
-			for action in CodexScene.actions(e.scene):
-				if not w.can(action):
-					break
-				t = Time.get_ticks_usec()
-				var before := w.clone()
-				var events := w.act(action)
-				Perceived.of(before, w, events)
-				took = Time.get_ticks_usec() - t
-				round_all += took
-				rounds += 1
-				if took > round_most:
-					round_most = took
-					slowest = e.name
+			for part in SpellScene.parts(e.scene):
+				var t := Time.get_ticks_usec()
+				SpellScene.ready(part)
+				var took := Time.get_ticks_usec() - t
+				if part.has("spell"):
+					plan_all += took
+					plans += 1
+					if took > plan_most:
+						plan_most = took
+						planned = e.name
+			for scene in SpellScene.resolve(e.scene):
+				var t := Time.get_ticks_usec()
+				var w := CodexScene.build(scene)
+				var took := Time.get_ticks_usec() - t
+				build += took
+				build_most = maxi(build_most, took)
+				builds += 1
+				for action in CodexScene.actions(scene):
+					if not w.can(action):
+						break
+					t = Time.get_ticks_usec()
+					var before := w.clone()
+					var events := w.act(action)
+					Perceived.of(before, w, events)
+					took = Time.get_ticks_usec() - t
+					round_all += took
+					rounds += 1
+					if took > round_most:
+						round_most = took
+						slowest = e.name
+	print("plans %d: mean %d us, most %d us (%s)" % [plans, plan_all / plans, plan_most, planned])
 	print("scenes %d: build mean %d us, most %d us" % [builds, build / builds, build_most])
 	print(
 		"rounds %d: mean %d us, most %d us (%s)" % [rounds, round_all / rounds, round_most, slowest]

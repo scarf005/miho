@@ -64,13 +64,12 @@ func _rounds(scene: Dictionary, idle := false) -> Array:
 func _assert_casts_matter(entries: Array) -> void:
 	for e: Dictionary in entries:
 		assert_false(e.scene.is_empty(), "%s has an example" % e.name)
-		if e.scene.is_empty():
-			continue
-		var w := CodexScene.build(e.scene)
-		for action in CodexScene.actions(e.scene):
-			assert_true(w.can(action), "%s: %s is legal" % [e.name, action])
-			w.act(action)
-		assert_true(_rounds(e.scene) != _rounds(e.scene, true), "%s does something" % e.name)
+		for scene in SpellScene.resolve(e.scene):
+			var w := CodexScene.build(scene)
+			for action in CodexScene.actions(scene):
+				assert_true(w.can(action), "%s: %s is legal" % [e.name, action])
+				w.act(action)
+			assert_true(_rounds(scene) != _rounds(scene, true), "%s does something" % e.name)
 
 
 func test_every_spell_entry_casts_and_does_what_waiting_would_not() -> void:
@@ -99,22 +98,24 @@ func test_every_condition_entry_casts_and_does_what_waiting_would_not() -> void:
 	_assert_casts_matter(conditions)
 
 
-## Everything a round of the scene does happens inside the window.
+## Everything a round of the scene does happens inside the window. A spell's example reaches
+## as far as the spell does, which a wide spray carries past the walls of the hall: it keeps
+## Miho in the window.
 func test_what_every_scene_does_stays_in_the_window() -> void:
 	var window := Rect2i(CodexScene.CORNER, CodexScene.VIEW)
 	for tab in Codex.TABS.size():
 		for e in Codex.entries(tab):
-			if e.scene.is_empty():
-				continue
-			var w := CodexScene.build(e.scene)
-			for action in CodexScene.actions(e.scene):
-				if not w.can(action):
-					break
-				for event in w.act(action):
-					var at: Vector2i = event.get("to", event.get("at", window.position))
-					if event.t != &"noise" and Grid.inside(at):
-						assert_true(window.has_point(at), "%s: %s" % [e.name, event])
-			assert_true(window.has_point(w.player().pos), "%s: Miho stays" % e.name)
+			var of_a_spell: bool = e.scene.has("spell") or e.scene.has("each")
+			for scene in SpellScene.resolve(e.scene):
+				var w := CodexScene.build(scene)
+				for action in CodexScene.actions(scene):
+					if not w.can(action):
+						break
+					for event in w.act(action):
+						var at: Vector2i = event.get("to", event.get("at", window.position))
+						if event.t != &"noise" and Grid.inside(at) and not of_a_spell:
+							assert_true(window.has_point(at), "%s: %s" % [e.name, event])
+				assert_true(window.has_point(w.player().pos), "%s: Miho stays" % e.name)
 
 
 func test_every_creature_entry_does_something_as_miho_waits() -> void:
@@ -152,7 +153,7 @@ func test_every_tile_scene_plays_its_actions_and_changes_the_hall() -> void:
 
 
 func test_a_scene_plays_the_same_every_time() -> void:
-	var scene := CodexScene.of(&"steam", Cards.made_of(&"steam"))
+	var scene := SpellScene.ready(SpellScene.of(Cards.made_of(Cards.compounds()[0])))
 	var runs := []
 	for k in 2:
 		var w := CodexScene.build(scene)
