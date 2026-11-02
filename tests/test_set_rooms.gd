@@ -7,7 +7,7 @@ const HOME := Rect2i(2, 2, 6, 8)
 const MID := Rect2i(10, 2, 12, 9)
 const GOAL := Rect2i(24, 2, 6, 8)
 const HALL := Rect2i(10, 4, 12, 3)
-const SEEDS := 8
+const SEEDS := 12
 ## The tiles each kind leaves in its room: those it must hold, and the others it may.
 const MADE_OF := {
 	&"garden": [[World.REEDS, World.SHALLOW], []],
