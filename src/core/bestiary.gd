@@ -47,7 +47,7 @@ extends RefCounted
 ## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
 ## From sharp on it throws a wisp at where it suspects her under 은신 (Aim.suspected).
 ## From sharp on it hunts her at once when it sees her cast 둔갑, and a cunning one is never
-## fooled by it (Guise). 시귀 and 강시, the dull and spell-less dead, are of the group `undead`.
+## fooled by it (Guise). 객귀 and 달걀귀신, the dull and spell-less dead, are of the group `undead`.
 ## hat: wears the invisibility hat, seen only from the next tile or with a wisp
 ## clinging to it (Hat).
 ## A creature's elements are those of the spells it casts (Spell.nature). A
@@ -70,8 +70,8 @@ const HEALTH := {
 	&"bitjaru": [2, 3, 3, 3, 3],
 	&"gamtu": [2, 3, 3, 3, 3],
 	&"jangseung": [3, 4, 6, 8, 9],
-	&"sigwi": [3, 4, 4, 4, 4],
-	&"gangsi": [4, 5, 6, 7, 8],
+	&"gaekgwi": [3, 4, 4, 4, 4],
+	&"dalgyal": [4, 5, 6, 7, 8],
 	&"imugi": [2, 3, 3, 3, 3],
 	&"bulgae": [4, 5, 5, 5, 5],
 	&"haetae": [4, 5, 7, 9, 10],
@@ -253,20 +253,20 @@ const KINDS := {
 		deaf = true,
 		wits = 0,
 	},
-	&"sigwi":
+	&"gaekgwi":
 	{
-		name = "시귀",
-		glyph = "귀",
+		name = "객귀",
+		glyph = "객",
 		group = &"undead",
 		melee = {name = "물어뜯기", hit = "물려", damage = 1},
 		move = &"approach",
 		step = 2,
 		wits = 0,
 	},
-	&"gangsi":
+	&"dalgyal":
 	{
-		name = "강시",
-		glyph = "시",
+		name = "달걀귀신",
+		glyph = "달",
 		group = &"undead",
 		melee = {name = "주먹", hit = "맞아", damage = 2},
 		move = &"slow",

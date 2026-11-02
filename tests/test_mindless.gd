@@ -1,5 +1,5 @@
 extends GutTest
-## 시귀 and 강시, the mindless dead (wits 0, no spells): they stand on the early
+## 객귀 and 달걀귀신, the mindless dead (wits 0, no spells): they stand on the early
 ## storeys, strike in melee and fall for a guise.
 
 const WAIT := {t = &"wait"}
@@ -52,55 +52,55 @@ func _count(kind: StringName, depth: int) -> int:
 
 
 func test_a_storey_builds_with_the_mindless_dead_in_it() -> void:
-	assert_eq(_count(&"sigwi", 1), SEEDS.size(), "storey 1 holds a 시귀")
-	assert_eq(_count(&"gangsi", 2), SEEDS.size(), "storey 2 holds a 강시")
-	assert_eq(_count(&"sigwi", 3), SEEDS.size(), "storey 3 holds a 시귀")
+	assert_eq(_count(&"gaekgwi", 1), SEEDS.size(), "storey 1 holds a 객귀")
+	assert_eq(_count(&"dalgyal", 2), SEEDS.size(), "storey 2 holds a 달걀귀신")
+	assert_eq(_count(&"gaekgwi", 3), SEEDS.size(), "storey 3 holds a 객귀")
 
 
-func test_the_undead_of_a_storey_stand_in_one_band_led_by_the_gangsi() -> void:
+func test_the_undead_of_a_storey_stand_in_one_band_led_by_the_dalgyal() -> void:
 	for s in SEEDS:
 		var w := Built.storey(s, 2)
-		var lead: Actor = w.actors.filter(func(a): return a.kind == &"gangsi")[0]
-		var sigwi: Actor = w.actors.filter(func(a): return a.kind == &"sigwi")[0]
-		assert_eq(sigwi.leader, lead.id, "seed %d" % s)
+		var lead: Actor = w.actors.filter(func(a): return a.kind == &"dalgyal")[0]
+		var gaekgwi: Actor = w.actors.filter(func(a): return a.kind == &"gaekgwi")[0]
+		assert_eq(gaekgwi.leader, lead.id, "seed %d" % s)
 
 
-func test_a_sigwi_walks_at_her_and_strikes() -> void:
+func test_a_gaekgwi_walks_at_her_and_strikes() -> void:
 	var w := _hall()
-	var a := _hunter(w, &"sigwi", ME + E * 3)
+	var a := _hunter(w, &"gaekgwi", ME + E * 3)
 	var struck := 0
 	for i in 6:
 		struck += w.act(WAIT).filter(func(e): return e.t == &"melee" and e.id == a.id).size()
 	assert_eq(Grid.cheb(a.pos, ME), 1, "it came to her")
 	assert_gt(struck, 0)
-	assert_eq(w.player().hp, w.player().max_hp - struck * Bestiary.info(&"sigwi").melee.damage)
+	assert_eq(w.player().hp, w.player().max_hp - struck * Bestiary.info(&"gaekgwi").melee.damage)
 
 
-func test_a_gangsi_hops_every_other_round_and_hits_harder() -> void:
+func test_a_dalgyal_hops_every_other_round_and_hits_harder() -> void:
 	var w := _hall()
-	var a := _hunter(w, &"gangsi", ME + E * 5)
+	var a := _hunter(w, &"dalgyal", ME + E * 5)
 	var hops := 0
 	for i in 4:
 		var before := a.pos
 		w.act(WAIT)
 		hops += 1 if a.pos != before else 0
 	assert_eq(hops, 2, "it moves every other round")
-	assert_gt(Bestiary.info(&"gangsi").melee.damage, Bestiary.info(&"sigwi").melee.damage)
+	assert_gt(Bestiary.info(&"dalgyal").melee.damage, Bestiary.info(&"gaekgwi").melee.damage)
 
 
-func test_a_gangsi_does_not_hear_noise() -> void:
+func test_a_dalgyal_does_not_hear_noise() -> void:
 	var w := _hall()
-	var dead := FloorGen.spawn(w, &"gangsi", ME + E * 6)
+	var dead := FloorGen.spawn(w, &"dalgyal", ME + E * 6)
 	var living := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(0, -4))
 	w.noise(ME, 12, "쾅", true, w.player().id)
 	assert_eq(living.alert, Actor.SEARCH, "a 도깨비 goes to look")
-	assert_eq(dead.alert, Actor.REST, "a 강시 does not")
+	assert_eq(dead.alert, Actor.REST, "a 달걀귀신 does not")
 
 
 func test_the_forecast_of_a_round_with_the_dead_equals_the_round() -> void:
 	var w := _hall()
-	_hunter(w, &"gangsi", ME + E)
-	_hunter(w, &"sigwi", ME + Vector2i(0, -1))
+	_hunter(w, &"dalgyal", ME + E)
+	_hunter(w, &"gaekgwi", ME + Vector2i(0, -1))
 	var f := Forecast.of(w, WAIT)
 	var hurt := 0
 	for e in w.act(WAIT):
@@ -116,7 +116,7 @@ func test_a_whole_storey_with_the_dead_runs_rounds_alike_twice() -> void:
 	for k in 2:
 		var w := Built.storey(3, 2)
 		for a in w.actors:
-			if a.kind in [&"sigwi", &"gangsi"]:
+			if a.kind in [&"gaekgwi", &"dalgyal"]:
 				a.alert = Actor.HUNT
 				a.target = w.player().pos
 		for i in 12:

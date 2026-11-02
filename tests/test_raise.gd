@@ -119,12 +119,12 @@ func test_a_foe_falling_in_sight_rises_as_a_fighting_ally() -> void:
 
 func test_what_rises_goes_by_the_health_of_the_fallen() -> void:
 	var w := _on()
-	assert_eq(Raise.rises(w, Raise.WEAK), Raise.WEAK, "a 시귀 rises a 시귀")
-	assert_eq(Raise.rises(w, Raise.STRONG), Raise.STRONG, "a 강시 rises a 강시")
-	assert_eq(Raise.rises(w, &"dokkaebi"), Raise.WEAK, "frailer than a 강시")
+	assert_eq(Raise.rises(w, Raise.WEAK), Raise.WEAK, "a 객귀 rises a 객귀")
+	assert_eq(Raise.rises(w, Raise.STRONG), Raise.STRONG, "a 달걀귀신 rises a 달걀귀신")
+	assert_eq(Raise.rises(w, &"dokkaebi"), Raise.WEAK, "frailer than a 달걀귀신")
 	_fell(w, &"saja", 3)
 	w.act(WAIT)
-	assert_eq(_risen(w)[0].kind, Raise.STRONG, "as hale as a 강시")
+	assert_eq(_risen(w)[0].kind, Raise.STRONG, "as hale as a 달걀귀신")
 
 
 func test_a_body_out_of_sight_rises_when_she_comes_to_see_it() -> void:

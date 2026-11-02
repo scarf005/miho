@@ -1356,14 +1356,14 @@ msgstr "Disguise in its sight: hunts"
 msgid "망자"
 msgstr "Undead"
 
-msgid "시귀"
-msgstr "Sigwi"
+msgid "객귀"
+msgstr "Wandering Ghost"
 
 msgid "물어뜯기"
 msgstr "gnawing"
 
-msgid "강시"
-msgstr "Gangsi"
+msgid "달걀귀신"
+msgstr "Egg Ghost"
 
 msgid "%s 면역인 적"
 msgstr "Immune to %s"
@@ -1875,11 +1875,11 @@ msgid "두"
 msgstr "W"
 
 msgctxt "creature"
-msgid "귀"
+msgid "객"
 msgstr "Z"
 
 msgctxt "creature"
-msgid "시"
+msgid "달"
 msgstr "C"
 
 msgctxt "talisman"

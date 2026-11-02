@@ -154,7 +154,7 @@ func test_a_dull_creature_that_sees_the_cast_is_fooled() -> void:
 	var w := _world()
 	_lit(w)
 	var statue := _foe(w, ME + Vector2i(4, 0))
-	var walker := _foe(w, ME + Vector2i(3, 2), Actor.SEARCH, &"sigwi")
+	var walker := _foe(w, ME + Vector2i(3, 2), Actor.SEARCH, &"gaekgwi")
 	w.act(_self(GUISE))
 	for dull in [statue, walker]:
 		assert_true(w.sees(dull, ME), dull.kind)

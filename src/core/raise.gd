@@ -11,8 +11,8 @@ extends RefCounted
 
 ## What rises from a body, and from a body of a creature with STRONG's health or more on
 ## this storey.
-const WEAK := &"sigwi"
-const STRONG := &"gangsi"
+const WEAK := &"gaekgwi"
+const STRONG := &"dalgyal"
 const GROUP := &"undead"
 ## The rule as the 도감 tells it (Info.CONDITIONS).
 const TOLD := [
