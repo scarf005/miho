@@ -691,7 +691,7 @@ func hunt_from(a: Actor, at: Vector2i) -> void:
 
 
 func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
+	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir, bolt = Elements.bolt(spell)})
 	caster.casts += 1
 	Bunsin.learn(caster, spell, dir)
 	if Guise.cast(self, caster, spell, dir) or Bunsin.cast(self, caster, spell, dir):
@@ -713,7 +713,7 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 			if not heads.slice(0, i).has(heads[i]):
 				_step(s)
 		elif heads[i] == dir:
-			_step(s)
+			Elements.loose(self, s)
 		else:
 			_fly(s, s.pos + s.dir)
 			s.dir = Homing.facing(self, s)
@@ -740,7 +740,8 @@ func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
 			at = s.pos,
 			faction = s.faction,
 			cards = spell.cards,
-			target = target
+			target = target,
+			bolt = Elements.bolt(spell)
 		}
 	)
 	return s
@@ -792,7 +793,7 @@ func _step(s: Shot) -> void:
 			_burst(s)
 			Terrain.smash(self, s, to, struck)
 		else:
-			_land(s)
+			Elements.land(self, s)
 		return
 	var a := actor_at(to)
 	if a != null:
@@ -815,19 +816,13 @@ func _step(s: Shot) -> void:
 			o.gone = true
 			emit({t = &"snuff", shot = o.id, at = to})
 		elif o.spell.orb:
-			_land(s)
+			Elements.land(self, s)
 			return
 	_fly(s, to)
 	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
-		_land(s)
+		Elements.land(self, s)
 	elif not s.gone and Forge.lobbed(s.spell) and s.flown >= Forge.RANGE:
 		_burst(s)
-
-
-func _land(s: Shot) -> void:
-	s.life = Spell.WISP_LIFE
-	emit({t = &"land", shot = s.id, at = s.pos})
-	_effects(s, s.pos)
 
 
 func _burst(s: Shot) -> void:

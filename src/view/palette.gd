@@ -157,6 +157,8 @@ const DIM := Color(0.35, 0.34, 0.33)
 ## A shortcut's label beside what it stands for.
 const KEY := Color(0.64, 0.62, 0.58)
 ## Bolt glyphs by direction, as Brogue draws them.
+## A creature's 번개, flickering white and yellow.
+const ZAP := [Color(1.0, 1.0, 0.95), Color(1.0, 0.92, 0.3)]
 const BOLT := {
 	Vector2i(0, -1): "|",
 	Vector2i(0, 1): "|",
@@ -194,6 +196,8 @@ static func shot_glyph(spell: Spell) -> String:
 
 
 static func shot_color(spell: Spell, faction: int) -> Color:
+	if Elements.bolt(spell):
+		return ZAP[1]
 	var held := spell.nature()
 	if held.has(Cards.WATER):
 		return CARD[Cards.WATER]

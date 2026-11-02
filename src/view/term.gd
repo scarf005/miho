@@ -351,9 +351,12 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 			if Spell.make(e.cards).gun():
 				_flash(at, Color(Palette.BURNING[1], 0.9))
 		&"spawn":
-			_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
+			if not e.get("bolt", false):
+				_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
 		&"fly":
-			if _shots.has(e.shot):
+			if not _shots.has(e.shot):
+				TermMarks.bolt(self, e.to)
+			else:
 				_shots[e.shot].pos = e.to
 				var tail: Array = _trails.get(e.shot, [])
 				tail.append(e.from)
@@ -415,9 +418,9 @@ func _apply(e: Dictionary, fact: Dictionary) -> float:
 
 
 ## A tile lit up for a moment, starting `after` seconds from now.
-func _flash(at: Vector2i, color: Color, after := 0.0) -> void:
+func _flash(at: Vector2i, color: Color, after := 0.0, zap := false) -> void:
 	if _visible(at):
-		_flashes.append({at = at, color = color, born = _time + after})
+		_flashes.append({at = at, color = color, born = _time + after, zap = zap})
 
 
 ## Screen position of the centre of map tile p, in this node's space.
@@ -540,7 +543,9 @@ func _draw_game() -> void:
 			continue
 		var k: float = 1.0 - (_time - f.born) / 0.35
 		var c: Color = f.color
-		draw_rect(Rect2(_cell(f.at) * CELL, CELL), Color(c, c.a * k))
+		draw_rect(Rect2(_cell(f.at) * CELL, CELL), Color(c, c.a * k * (0.35 if f.zap else 1.0)))
+		if f.zap:
+			TermMarks.zigzag(self, _cell(f.at), c)
 	for p in _popups:
 		if not _shown(p.at):
 			continue

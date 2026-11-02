@@ -321,6 +321,9 @@ msgstr " x%d"
 msgid "탕"
 msgstr "crack"
 
+msgid "콰르릉"
+msgstr "boom"
+
 msgid "웅"
 msgstr "hum"
 

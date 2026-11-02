@@ -423,6 +423,8 @@ func blast(centre: int) -> int:
 func speed() -> int:
 	if orb:
 		return mini(ORB_SPEED + count(Cards.ORB) - 1, BULLET_SPEED)
+	if Elements.bolt(self):
+		return RANGE
 	return BULLET_SPEED if gun() else WISP_SPEED
 
 
@@ -531,6 +533,8 @@ func cast_noise() -> int:
 
 ## The word a projectile's cast is heard as.
 func cast_word() -> String:
+	if Elements.bolt(self):
+		return "콰르릉"
 	if gun():
 		return "쾅" if orb else "탕"
 	return "웅" if orb else "휙"
