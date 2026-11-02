@@ -66,3 +66,18 @@ func test_the_status_row_fits_nine_tails_and_the_saved_spells() -> void:
 	var right := "%d층 %d초" % [World.FLOORS, 999]
 	var last: Dictionary = slots[-1]
 	assert_lt(last.x + last.width, t.cols - t._cells(right) - t._cells("디버그") - 1)
+
+
+func test_a_longer_saved_spell_key_pushes_the_next_spell_along() -> void:
+	var t: Term = autofree(Term.new())
+	t.world = _built(1, 1)
+	t.saved = {&"slot_1": "fox+fire", &"slot_2": "orb+water"}
+	t.fit(Vector2(1280, 720), 0.0)
+	var short: float = StatusBar.saved_slots(t)[1].x
+	var keys := Keys.keys_of(&"slot_1")
+	Keys.bind(&"slot_1", ["Ctrl+Shift+Q"])
+	var slots := StatusBar.saved_slots(t)
+	assert_gt(slots[1].x, short)
+	var hit := StatusBar.slot_at(t, Vector2(slots[1].x + 0.1, t.rows - 2) * Term.CELL)
+	Keys.bind(&"slot_1", keys)
+	assert_eq(hit, "orb+water")

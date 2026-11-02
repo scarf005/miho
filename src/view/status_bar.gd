@@ -36,11 +36,11 @@ static func draw(t: Term) -> void:
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
 		var ready := _castable(t, spell, held)
-		t._text(Vector2(slot.x, row), slot.key, Palette.TEXT if ready else Palette.DIM)
+		t._key(Vector2(slot.x, row), slot.key, Palette.KEY if ready else Palette.DIM)
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
 			t._glyph(
-				Vector2(slot.x + t._cells(slot.key) + k, row),
+				Vector2(slot.x + Term._key_cells(slot.key) + k, row),
 				Lang.t(Cards.GLYPH[spell.slots[k]], "talisman"),
 				c if ready else c * 0.4
 			)
@@ -54,7 +54,7 @@ static func draw(t: Term) -> void:
 				Rect2(Vector2(x, row) * Term.CELL, Vector2(2, 1) * Term.CELL),
 				Palette.CARD[card] * 0.45
 			)
-		t._glyph(Vector2(x, row), str(i + 1), Palette.TEXT)
+		t._key(Vector2(x + 0.5, row), str(i + 1))
 		t._glyph(Vector2(x + 1, row), Lang.t(Cards.GLYPH[card], "talisman"), Palette.CARD[card])
 	var slots: Array[StringName] = []
 	if queued != null:
@@ -167,7 +167,7 @@ static func saved_slots(t: Term) -> Array:
 			continue
 		var keys := Keys.keys_of(action)
 		var key := Keys.label(keys[0]) if not keys.is_empty() else ""
-		var width: float = Term._cells(key) + Spell.from_key(t.saved[action]).slots.size()
+		var width: float = Term._key_cells(key) + Spell.from_key(t.saved[action]).slots.size()
 		out.append({action = action, key = key, x = x, width = width})
 		x += width + 1.0
 	return out

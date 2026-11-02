@@ -369,7 +369,7 @@ func _draw_saved(t: Term, row: Rect2) -> void:
 		_lit(t, item)
 		var at := _cell(_shown(item).position)
 		var label := slot_label(chip.action, Keys.SLOTS.find(chip.action))
-		t._small(at + Vector2(0.1, 0.05), label, Palette.TEXT if ready else Palette.DIM)
+		t._key(at + Vector2(0.1, 0), label, Palette.KEY if ready else Palette.DIM)
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
 			t._glyph(

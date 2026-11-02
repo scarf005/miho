@@ -828,6 +828,9 @@ static func rows_of(runs: Array, width: float) -> Array:
 
 ## A run at `at`, on its background if it has one, faded to `alpha`; the cells it takes.
 func _run(at: Vector2, run: Array, alpha := 1.0) -> float:
+	if run.slice(2).has(&"key"):
+		_key(at, run[0], Color(run[1], run[1].a * alpha))
+		return _key_cells(run[0])
 	var width := _cells(run[0])
 	var back := Keywords.back(run)
 	if back.a > 0.0:
@@ -913,6 +916,17 @@ func _glyph(cell: Vector2, c: String, color: Color) -> void:
 	var w := _font.get_string_size(c, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
 	var at := cell * CELL + Vector2((CELL.x - w) / 2.0, (CELL.y - px) / 2.0 + px * 0.75)
 	draw_string(_font, at.round(), c, HORIZONTAL_ALIGNMENT_LEFT, -1, px, color)
+
+
+## A shortcut's label at the top of `cell`, small beside what it stands for.
+func _key(cell: Vector2, s: String, color := Palette.KEY) -> void:
+	_small(cell + Vector2(0, 0.05), s, color)
+
+
+## The cells a shortcut's label takes, at the font's doubled grid.
+static func _key_cells(s: String) -> float:
+	var px := Fonts.pixel().get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL).x
+	return ceilf(px / CELL.x * 2.0) / 2.0
 
 
 func _small(cell: Vector2, s: String, color: Color) -> void:

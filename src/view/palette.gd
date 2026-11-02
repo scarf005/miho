@@ -145,6 +145,8 @@ const ALERT_MARK := ["", "?", "!"]
 const ZONE := Color(0.85, 0.2, 0.35)
 const TEXT := Color(0.8, 0.78, 0.72)
 const DIM := Color(0.35, 0.34, 0.33)
+## A shortcut's label beside what it stands for.
+const KEY := Color(0.64, 0.62, 0.58)
 ## Bolt glyphs by direction, as Brogue draws them.
 const BOLT := {
 	Vector2i(0, -1): "|",
