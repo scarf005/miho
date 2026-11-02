@@ -156,7 +156,8 @@ func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	assert_eq(w.tails, 2, "three tails")
 
 
-func test_from_every_ledge_the_leap_and_a_wood_per_three_tiles_of_sky_past_two_lands_across() -> void:
+func test_from_every_ledge_the_leap_and_a_wood_per_three_tiles_of_sky_past_two_lands_across(
+) -> void:
 	var crossed := 0
 	for seed_value in 4:
 		for depth in [1, 3, 6, 9]:
