@@ -6,6 +6,44 @@ extends RefCounted
 ## there would take.
 
 
+## The pointer moved to the screen point: what it is over (a tile, a talisman,
+## the status, a saved spell, a queue slot, a page row, a word) and, when that
+## changed, the screen again. The page rows do not light while a box is kept
+## (WordHover.hold); the tile and the rest are followed all the same, so a click
+## acts on what is under the pointer.
+static func point(m: Node, screen: Vector2) -> void:
+	var term: Term = m.term
+	var hinted := not term.hint.is_empty()
+	var local: Vector2 = m._local(screen)
+	if m.overlay != &"" and term.pin.is_empty():
+		m.menu.point(PanelView.row_at(term, local))
+		term.panel = m.menu.panel()
+	var tile := term.tile_at(local)
+	if not Grid.inside(tile):
+		tile = term.side_at(local)
+	var card: StringName = term.bar.talisman_at(term, local)
+	var status: bool = term.bar.status_at(term, local)
+	var spell: String = term.bar.slot_at(term, local) + term.bar.hand_at(term, local)
+	var slot: int = term.bar.queue_at(term, local)
+	term.hint = WordHover.at(term, local)
+	term.hint_at = local / Term.CELL
+	if (
+		hinted == term.hint.is_empty()
+		or tile != m.hover
+		or card != m.hover_card
+		or status != m.hover_status
+		or spell != m.hover_spell
+		or slot != m.hover_slot
+	):
+		m.hover = tile
+		m.hover_card = card
+		m.hover_status = status
+		m.hover_spell = spell
+		m.hover_slot = slot
+		if m.state == &"play" and not m.busy:
+			m._refresh()
+
+
 static func paint(m: Node) -> void:
 	var world: World = m.world
 	var term: Term = m.term
@@ -61,6 +99,8 @@ static func paint(m: Node) -> void:
 
 static func _inspect(m: Node) -> void:
 	var term: Term = m.term
+	if not term.pin.is_empty():
+		return
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
 	if m.state != &"play" or not term.hint.is_empty():

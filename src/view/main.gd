@@ -212,6 +212,8 @@ func _new_run(seed_value := randi()) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	var press := event.is_pressed() and not event.is_echo()
 	var walked := walking or state == &"replay"
+	if event is InputEventKey and event.keycode == KEY_SHIFT and not event.is_echo():
+		WordHover.hold(self, event.pressed)
 	if event.is_pressed() and state in [&"play", &"replay"]:
 		halt = halt or walking and press
 		skip = skip or press
@@ -220,6 +222,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		touch.input(event)
 	elif event is InputEventMouseMotion:
 		if not touch.gesture.touching():
+			if not event.shift_pressed:
+				WordHover.hold(self, false)
 			_point(event.position)
 	elif walked:
 		pass
@@ -335,6 +339,8 @@ func _key(event: InputEventKey) -> void:
 ## What a key means, or a button of the touch screen: `action` is a Keys action,
 ## `shift` holds a spell with a direction.
 func _do(action: StringName, shift: bool) -> void:
+	if action != &"":
+		WordHover.hold(self, false)
 	var eat := _eats_move()
 	if Keys.MOVES.get(action) != guard.asking:
 		_unask()
@@ -404,6 +410,7 @@ func _do(action: StringName, shift: bool) -> void:
 func _click(event: InputEventMouseButton) -> void:
 	if _left_click(event) and WordLink.open(self, _local(event.position)):
 		return
+	term.pin = {}
 	looking = false
 	shutting = false
 	var eat := _eats_move()
@@ -458,35 +465,7 @@ func _local(screen: Vector2) -> Vector2:
 
 
 func _point(screen: Vector2) -> void:
-	var hinted := not term.hint.is_empty()
-	var local := _local(screen)
-	if overlay != &"":
-		menu.point(PanelView.row_at(term, local))
-		term.panel = menu.panel()
-	var tile := term.tile_at(local)
-	if not Grid.inside(tile):
-		tile = term.side_at(local)
-	var card: StringName = term.bar.talisman_at(term, local)
-	var status: bool = term.bar.status_at(term, local)
-	var spell: String = term.bar.slot_at(term, local) + term.bar.hand_at(term, local)
-	var slot: int = term.bar.queue_at(term, local)
-	term.hint = WordHover.at(term, local)
-	term.hint_at = local / Term.CELL
-	if (
-		hinted == term.hint.is_empty()
-		or tile != hover
-		or card != hover_card
-		or status != hover_status
-		or spell != hover_spell
-		or slot != hover_slot
-	):
-		hover = tile
-		hover_card = card
-		hover_status = status
-		hover_spell = spell
-		hover_slot = slot
-		if state == &"play" and not busy:
-			_refresh()
+	Preview.point(self, screen)
 
 
 ## In look mode: the directions move the cursor, Enter walks to it, Esc or the
@@ -905,6 +884,8 @@ func _open(kind: StringName) -> void:
 ## The Menu page takes keys; the wheel scrolls, a left click acts on the row or
 ## tab under the pointer, and a right click goes back.
 func _panel_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_SHIFT and not menu.waiting:
+		return
 	var command := &""
 	var button: int = event.button_index if event is InputEventMouseButton else 0
 	var local := _local(event.position) if button != 0 else Vector2.ZERO

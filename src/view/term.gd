@@ -67,12 +67,18 @@ var zone := {}
 var info: Array = []:
 	set(v):
 		info = Keywords.lines(v)
+		pin = {}
 ## Set by the game: the 도감 entry (WordHover) of the word the pointer is over in
-## a panel or the log, and the cell the pointer is in, which the box is drawn under.
+## a panel, the log or a kept box, and the cell the pointer is in, which the box is
+## drawn under.
 var hint: Array = []:
 	set(v):
 		hint = Keywords.lines(v)
 var hint_at := Vector2.ZERO
+## The box Shift keeps where it is (WordHover.hold): {lines, fit} of the hover box
+## that was open, drawn as it was and read for its words. A new `info` or `panel`
+## ends it.
+var pin := {}
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.
 var debug := {}
@@ -90,6 +96,7 @@ var panel := {}:
 	set(v):
 		panel = Keywords.panel(v)
 		hint = []
+		pin = {}
 		panel_set.emit(panel)
 var cols := 40
 var rows := 18
@@ -483,6 +490,8 @@ func _draw() -> void:
 		bar.draw(self)
 	if not panel.is_empty():
 		PanelView.draw(self)
+	if not pin.is_empty():
+		_draw_box(pin.fit)
 	if not hint.is_empty():
 		_draw_box(hint_fit())
 
@@ -744,8 +753,8 @@ func _draw_info() -> void:
 	if shown:
 		var r := Rect2(_cell(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
-	if not info.is_empty():
-		_draw_box(_info_fit(cursor if shown else null, info))
+	if not info.is_empty() and pin.is_empty():
+		_draw_box(info_fit())
 
 
 ## A box laid out as `fit` says (InfoBox).
@@ -780,6 +789,11 @@ func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
 		at.x = room.end.x - wide.x if c.x < v.x / 2 else room.position.x
 		at.y = room.end.y - wide.y if c.y < v.y / 2 else 0
 	return fit.merged({at = at})
+
+
+## The layout of `info`: on the far side of the map from the tile under the pointer.
+func info_fit() -> Dictionary:
+	return _info_fit(cursor if Grid.inside(cursor) and _shown(cursor) else null, info)
 
 
 ## The layout of the hint under the cell the pointer is in, inside the screen.

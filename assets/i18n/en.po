@@ -2883,3 +2883,6 @@ msgstr "In the %s at the stop: %s"
 
 msgid "당신"
 msgstr "you"
+
+msgid "정보창 고정"
+msgstr "Pin the box"

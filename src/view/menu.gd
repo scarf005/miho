@@ -21,6 +21,7 @@ const MOUSE := [
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
 	["단어 왼쪽 클릭", "도감에서 열기"],
+	["Shift", "정보창 고정"],
 ]
 ## Tiles the look cursor moves with Shift held.
 const LOOK_FAR := 5

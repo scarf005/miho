@@ -114,11 +114,14 @@ func _play_next() -> void:
 	play(world.act(action), before, world)
 
 
-## Whether the box of the word under the pointer lies over the example.
+## Whether the box of the word under the pointer, or a box Shift keeps, lies over
+## the example.
 func _covered() -> bool:
 	var t: Term = get_parent()
-	if t.hint.is_empty():
-		return false
-	var fit: Dictionary = t.hint_fit()
-	var box := Rect2(fit.at, fit.cells * fit.scale)
-	return box.intersects(Rect2(position / CELL, Vector2(CodexScene.VIEW) * scale.x))
+	var fits := [] if t.pin.is_empty() else [t.pin.fit]
+	if not t.hint.is_empty():
+		fits.append(t.hint_fit())
+	var view := Rect2(position / CELL, Vector2(CodexScene.VIEW) * scale.x)
+	return fits.any(
+		func(fit: Dictionary) -> bool: return Rect2(fit.at, fit.cells * fit.scale).intersects(view)
+	)

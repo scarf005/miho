@@ -237,6 +237,10 @@ func input(event: InputEvent, now := _now()) -> void:
 func _gesture(e: Dictionary) -> void:
 	if main.busy or main.walking or main.state == &"replay":
 		return
+	if frozen and e.t == &"tap" and WordHover.on_pin(main.term, main._local(e.pos)):
+		WordLink.open(main, main._local(e.pos))
+		frozen = not main.term.pin.is_empty()
+		return
 	if frozen and e.t != &"hold":
 		_close_info()
 		if e.t == &"tap":
@@ -254,6 +258,7 @@ func _gesture(e: Dictionary) -> void:
 
 func _close_info() -> void:
 	frozen = false
+	WordHover.hold(main, false)
 	main._point(OFF)
 
 
@@ -332,7 +337,7 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 		return
 	elif Grid.inside(term.side_at(local)):
 		main._point(pos)
-		frozen = not main.term.info.is_empty()
+		_freeze(not main.term.info.is_empty())
 	elif hud.cast_at(term, local):
 		if not main.picked.is_empty() or not main.staged.is_empty():
 			main._do(&"confirm", false)
@@ -356,8 +361,15 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 func _hold(pos: Vector2) -> void:
 	if main.overlay != &"" or main.state != &"play":
 		return
+	WordHover.hold(main, false)
 	main._point(pos)
-	frozen = not main.term.info.is_empty() or Grid.inside(main.hover)
+	_freeze(not main.term.info.is_empty() or Grid.inside(main.hover))
+
+
+## The next tap only closes the box that is open, or opens a word in it.
+func _freeze(on: bool) -> void:
+	frozen = on
+	WordHover.hold(main, true)
 
 
 func _swipe(dir: Vector2i, from: Vector2) -> void:
