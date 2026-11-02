@@ -195,6 +195,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"die":
 			if last.get("t") == &"fall":
 				return []
+			if e.get("gone", false):
+				return _t("{0}이/가 사라졌다", [who])
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["쓰러졌다", TEXT]])
 		&"ally":
 			return _t("{0}이/가 나타났다", [who])

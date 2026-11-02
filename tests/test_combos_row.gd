@@ -44,7 +44,7 @@ func test_a_compound_shows_only_when_her_most_tails_pay_for_it() -> void:
 	var m := _main()
 	m.term.fit(Vector2(1920, 1080), 0.0)
 	for depth in range(1, 8):
-		_hold(m, Cards.ELEMENTS, depth)
+		_hold(m, Cards.ELEMENTS + [Cards.FOX], depth)
 		var shown := StatusBar.makeable(m.world)
 		for c in Cards.compounds():
 			var price := Spell.price(Cards.made_of(c).size())

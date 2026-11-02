@@ -10,7 +10,7 @@ extends RefCounted
 ## the 4단 of its ring, if there is one (QUADS), and a 4단 and the last element a
 ## 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a fourth element
 ## only as the last slot (Spell.queue). Cards queue into a compound in some
-## orders only (`recipe`).
+## orders only (`recipe`). 분신 (SETS) is made of exactly its four cards in any order.
 ## What a spell meets in a creature is its elements (Spell.nature): a lone
 ## element is itself, a pair is both of its elements, a 3단 or more is what
 ## NATURE says, and 최면, 도약, 분신, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
@@ -63,7 +63,6 @@ const TRIPLES := {
 	&"hypnosis": [WATER, FIRE, METAL],
 	&"talon": [FIRE, METAL, WOOD],
 	&"palisade": [METAL, WOOD, EARTH],
-	BUNSIN: [EARTH, WATER, FIRE],
 }
 ## 4단 compound -> its four elements, in the order of their ring.
 const QUADS := {
@@ -75,6 +74,10 @@ const QUADS := {
 	&"discord": [WATER, FIRE, METAL, WOOD],
 	&"thunder": [FIRE, METAL, WOOD, EARTH],
 	&"stillness": [METAL, WOOD, EARTH, WATER],
+}
+## 4-card compound -> its cards, made in any order: 분신 holds 여 and no ring of elements.
+const SETS := {
+	BUNSIN: [FOX, EARTH, FIRE, WOOD],
 }
 ## 5단 compound -> the five elements in an order that makes it (`join`).
 const FIVES := {
@@ -178,7 +181,7 @@ static var _recipes := {}
 
 ## Every compound, pairs first, then by tier.
 static func compounds() -> Array:
-	return PAIRS.keys() + TRIPLES.keys() + QUADS.keys() + FIVES.keys()
+	return PAIRS.keys() + TRIPLES.keys() + QUADS.keys() + SETS.keys() + FIVES.keys()
 
 
 ## The compound two different elements make.
@@ -203,6 +206,8 @@ static func feeder(c: StringName) -> StringName:
 static func join(slot: StringName, c: StringName, tier := TIER) -> StringName:
 	if ELEMENTS.has(slot):
 		return pair(slot, c) if slot != c else &""
+	if SETS.has(slot):
+		return &""
 	var made := made_of(slot)
 	if made.size() < 2 or made.size() >= tier or made.has(c):
 		return &""
@@ -234,7 +239,21 @@ static func _grows(chain: Array) -> bool:
 
 ## The cards a slot is worth: a compound's elements, else the slot itself.
 static func made_of(slot: StringName) -> Array:
-	return PAIRS.get(slot, TRIPLES.get(slot, QUADS.get(slot, FIVES.get(slot, [slot]))))
+	return PAIRS.get(
+		slot, TRIPLES.get(slot, QUADS.get(slot, SETS.get(slot, FIVES.get(slot, [slot]))))
+	)
+
+
+## The 4-card compound that exactly the cards `picked` make, in any order, else empty.
+static func set_of(picked: Array) -> StringName:
+	for c in SETS:
+		var made: Array = SETS[c]
+		if (
+			picked.size() == made.size()
+			and made.all(func(e): return picked.count(e) == made.count(e))
+		):
+			return c
+	return &""
 
 
 ## The cards of `slot` in the first order that queues into that one slot (the
@@ -263,7 +282,7 @@ static func _order(slot: StringName, rest: Array, head: Array) -> Array:
 ## The elements a slot holds: itself or a compound's, none for a form or 도약,
 ## which leaps and carries nothing.
 static func parts(slot: StringName) -> Array:
-	return [] if slot == VAULT or FORMS.has(slot) else made_of(slot)
+	return [] if slot == VAULT or FORMS.has(slot) else made_of(slot).filter(ELEMENTS.has)
 
 
 ## The elements a slot counts as against a creature: itself, a pair's two, a

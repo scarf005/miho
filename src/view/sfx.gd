@@ -477,7 +477,7 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"hurt":
 			return &"hurt"
 		&"die":
-			return &"die"
+			return &"hiss" if e.get("gone", false) else &"die"
 		&"charge", &"notice", &"feud":
 			return &"charge"
 		&"omen", &"arrive":

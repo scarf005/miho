@@ -8,7 +8,7 @@ const W := Vector2i(-1, 0)
 const S := Vector2i(0, 1)
 const WAIT := {t = &"wait"}
 const ME := Vector2i(10, 8)
-const BUNSIN := [Cards.EARTH, Cards.WATER, Cards.FIRE]
+const BUNSIN := [Cards.FOX, Cards.EARTH, Cards.FIRE, Cards.WOOD]
 ## A spell a copy can pay for, and one it cannot.
 const CHEAP := [Cards.ORB, Cards.FIRE]
 const DEAR := [Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB]
@@ -83,6 +83,23 @@ func _rounds(w: World, n: int) -> Array[Dictionary]:
 	return events
 
 
+## The copies of Miho that stand, oldest first.
+func _copies(w: World) -> Array:
+	var out := w.actors.filter(func(a): return a.ally() and a.kind == Cards.BUNSIN)
+	out.sort_custom(func(a, b): return a.id < b.id)
+	return out
+
+
+## The first of the eight lines a copy can be cast along, with the tails for it.
+func _free(w: World) -> Vector2i:
+	w.tails = w.max_tails()
+	return Grid.DIRS.filter(func(d): return _can_cast(w, BUNSIN, d))[0]
+
+
+func _stand(w: World) -> void:
+	_cast(w, BUNSIN, _free(w))
+
+
 func _hurt(events: Array[Dictionary], a: Actor) -> bool:
 	return events.any(func(e): return e.t == &"hurt" and e.id == a.id)
 
@@ -97,6 +114,73 @@ func test_miho_pays_the_table_price_and_the_copy_stands_on_the_aimed_tile() -> v
 	assert_true(copy.ally())
 	assert_eq(copy.mana, Bunsin.TAILS, "its tails are its own")
 	assert_true(events.any(func(e): return e.t == &"ally" and e.id == copy.id))
+
+
+func test_earth_water_and_fire_make_no_copy() -> void:
+	var w := _world()
+	var action := {
+		t = &"cast", spells = [{cards = [Cards.EARTH, Cards.WATER, Cards.FIRE], dir = E}]
+	}
+	if w.can(action):
+		w.act(action)
+	assert_true(_copies(w).is_empty())
+
+
+func test_a_third_copy_stands_on_the_aimed_tile_and_the_oldest_goes() -> void:
+	var w := _world()
+	_stand(w)
+	_stand(w)
+	var kept := _copies(w)
+	assert_eq(kept.size(), 2)
+	var dir := _free(w)
+	var events := _cast(w, BUNSIN, dir)
+	var now := _copies(w)
+	assert_eq(now.size(), Bunsin.MOST)
+	assert_eq(now[0].id, kept[1].id, "the second is the oldest now")
+	assert_false(w.actors.has(kept[0]), "the first is gone")
+	assert_eq(w.actor_at(ME + dir), now[1], "the new one stands where it was aimed")
+	var gone := events.filter(func(e): return e.t == &"die" and e.id == kept[0].id)
+	assert_eq(gone.size(), 1)
+	assert_true(gone[0].gone)
+	assert_false(gone[0].foe)
+	assert_eq(w.tails, w.max_tails() - Spell.price(BUNSIN.size()), "a vanished copy gives no tail")
+
+
+func test_a_copy_that_came_upstairs_counts_and_the_lowest_id_goes_first() -> void:
+	var w := _world()
+	var old := _copy(w, ME + E)
+	var mid := _copy(w, ME + W)
+	w.actors.erase(old)
+	w.actors.append(old)
+	_stand(w)
+	assert_false(w.actors.has(old), "the first to come is the first to go, wherever it is listed")
+	assert_true(w.actors.has(mid))
+	assert_eq(_copies(w).size(), Bunsin.MOST)
+
+
+func test_the_forecast_of_a_third_copy_is_the_cast() -> void:
+	var w := _world()
+	_stand(w)
+	_stand(w)
+	var oldest: Actor = _copies(w)[0]
+	var dir := _free(w)
+	var action := {t = &"cast", spells = [{cards = BUNSIN, dir = dir}]}
+	var f := Forecast.of(w, action)
+	assert_true(f.deaths.has(oldest.id))
+	assert_eq(f.allies, [ME + dir] as Array[Vector2i])
+	assert_eq(str(w.clone().act(action)), str(w.act(action)))
+
+
+func test_the_log_and_the_hover_tell_a_copy_leaving_and_how_many_stand() -> void:
+	var w := _world()
+	w.sense()
+	_stand(w)
+	_stand(w)
+	var before := w.clone()
+	var dir := _free(w)
+	var lines := Messages.of(before, w, _cast(w, BUNSIN, dir)).map(Messages.plain)
+	assert_has(lines, "분신이 사라졌다")
+	assert_string_contains(str(SpellInfo.combo(Cards.BUNSIN)), "최대 수")
 
 
 func test_the_copy_needs_a_free_tile_along_a_line_and_goes_alone() -> void:
@@ -117,6 +201,8 @@ func test_the_copy_takes_the_last_spell_she_threw_that_its_tails_pay_for() -> vo
 	_cast(w, CHEAP, W)
 	_cast(w, DEAR, W)
 	assert_gt(Spell.make(DEAR).cost(), Bunsin.TAILS)
+	assert_false(Bunsin.imprints(Spell.make(BUNSIN), E), "it never takes its own spell")
+	w.tails = w.max_tails()
 	_cast(w, BUNSIN, Vector2i(0, -1))
 	assert_eq(w.actor_at(ME + Vector2i(0, -1)).imprint, Spell.make(CHEAP).cards)
 
@@ -258,15 +344,19 @@ func test_a_saved_run_with_a_copy_replays_to_the_same_world() -> void:
 		{t = &"cheat", cmd = &"tails"},
 		{t = &"cheat", cmd = &"god"},
 	]
+	plan.append({t = &"cast", spells = [{cards = CHEAP, dir = Grid.DIRS[0]}]})
 	for d in Grid.DIRS:
 		plan.append({t = &"cast", spells = [{cards = BUNSIN, dir = d}]})
-		plan.append({t = &"cast", spells = [{cards = CHEAP, dir = d}]})
 	plan.append_array([WAIT, WAIT, WAIT, WAIT])
+	var gone := 0
 	for action in plan:
 		if w.can(action):
-			w.act(action)
+			gone += (
+				w.act(action).filter(func(e): return e.t == &"die" and e.get("gone", false)).size()
+			)
 			run.record(action, w.round_no, w.outcome != &"")
-	assert_true(w.actors.any(func(a): return a.ally()), "a copy is there")
+			assert_lte(_copies(w).size(), Bunsin.MOST)
+	assert_gt(gone, 0, "a third pushed one out")
 	var back := SaveGame.load_from(PATH)
 	assert_true(back.replay())
 	var state := func(a: Actor) -> Array: return [a.id, a.pos, a.hp, a.mana, a.imprint]

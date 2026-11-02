@@ -30,7 +30,7 @@ static func score(before: World, events: Array) -> int:
 	for e in events:
 		match e.t:
 			&"die":
-				if e.id != me:
+				if e.id != me and e.get("foe", false):
 					kills += 1
 			&"claw":
 				if e.sneak:

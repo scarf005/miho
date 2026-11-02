@@ -112,18 +112,17 @@ const SPELLS := {
 		)
 		+ "until she drops them "
 		+ "with the action dispel. "
-		+ (
-			"Earth, water and fire make %s: a copy of her steps out onto the free tile next to "
-			% Cards.NAME[Cards.BUNSIN]
-		)
+		+ "Fox, earth, fire and wood in any order make "
+		+ ("%s: a copy of her steps out onto the free tile next to " % Cards.NAME[Cards.BUNSIN])
 		+ (
 			"her along dir and fights on its own, with %d tails of its own that grow back, spent "
 			% Bunsin.TAILS
 		)
 		+ (
-			"on the last spell she threw that costs at most %d; it claws without one. "
-			% Bunsin.TAILS
+			"on the last spell she threw that costs at most %d; it claws without one. At most %d copies "
+			% [Bunsin.TAILS, Bunsin.MOST]
 		)
+		+ "stand on a storey, and a cast that makes one more sends the oldest away. "
 		+ "The forecast lists every number. "
 		+ (
 			"A spell of 1 to %d cards costs %s tails, and each card past %d costs %d more; "

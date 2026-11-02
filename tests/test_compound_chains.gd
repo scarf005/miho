@@ -161,9 +161,38 @@ func test_every_table_chain_runs_along_one_ring_and_has_a_name_and_a_glyph() -> 
 	for c in Cards.NAME:
 		assert_false(glyphs.has(Cards.GLYPH[c]), "one glyph each: " + Cards.GLYPH[c])
 		glyphs[Cards.GLYPH[c]] = true
-	assert_eq(Cards.TRIPLES.size(), 7)
+	assert_eq(Cards.TRIPLES.size(), 6)
 	assert_eq(Cards.QUADS.size(), 8)
 	assert_eq(Cards.FIVES.size(), 3)
+
+
+func test_the_four_cards_of_a_copy_make_it_in_every_order_for_5_tails() -> void:
+	var cards := [Cards.FOX, Cards.EARTH, Cards.FIRE, Cards.WOOD]
+	var orders := _orders(cards)
+	assert_eq(orders.size(), 24)
+	for order: Array in orders:
+		var s := Spell.make(order)
+		assert_eq(s.slots, [Cards.BUNSIN] as Array[StringName], str(order))
+		assert_eq(s.cost(), 5, str(order))
+		assert_eq(Spell.from_key(s.key()).slots, s.slots, str(order))
+	assert_true(_same_set(Cards.recipe(Cards.BUNSIN), cards))
+	assert_eq(Spell.fill(Cards.recipe(Cards.BUNSIN)), [Cards.BUNSIN] as Array[StringName])
+
+
+func test_other_cards_beside_the_four_of_a_copy_follow_the_usual_rules() -> void:
+	var cards := [Cards.FOX, Cards.EARTH, Cards.FIRE, Cards.WOOD]
+	assert_gt(Spell.make([EARTH, WATER, FIRE]).slots.size(), 1, "토 수 화 is no spell now")
+	assert_gt(Spell.make([WOOD, FIRE, EARTH]).slots.size(), 1, "without 여 it is no spell")
+	assert_false(Spell.make([Cards.FOX] + cards).has(Cards.BUNSIN), "a second 여")
+	for e: StringName in Cards.ELEMENTS:
+		assert_eq(Cards.join(Cards.BUNSIN, e, 5), &"", "it takes no element in")
+		var beside := Spell.make(cards + [e])
+		assert_eq(
+			beside.slots, [Cards.BUNSIN, e] as Array[StringName], "a fifth card is its own slot"
+		)
+		assert_true(Guise.mixed(beside), "and a copy goes alone")
+	assert_eq(Spell.make(Cards.recipe(&"beacon")).slots, [&"beacon"] as Array[StringName])
+	assert_eq(Spell.make(Cards.recipe(&"mist")).slots, [&"mist"] as Array[StringName])
 
 
 func test_a_3dan_and_a_missing_element_make_the_4dan_of_its_ring() -> void:

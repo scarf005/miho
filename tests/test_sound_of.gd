@@ -98,6 +98,7 @@ const SOUNDS := [
 	[{t = &"noise", word = Lure.WORD}, &"foxfire"],
 	[{t = &"hurt"}, &"hurt"],
 	[{t = &"die"}, &"die"],
+	[{t = &"die", gone = true}, &"hiss"],
 	[{t = &"charge"}, &"charge"],
 	[{t = &"notice"}, &"charge"],
 	[{t = &"feud"}, &"charge"],

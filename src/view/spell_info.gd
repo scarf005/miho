@@ -462,6 +462,7 @@ static func compound(c: StringName) -> Array:
 			var kind := Bestiary.info(c)
 			return [
 				["대상", "옆 빈 칸"],
+				["최대 수", "%d" % Bunsin.MOST],
 				["체력", "%d" % Bestiary.hp(c, 1)],
 				[Lang.t("%s의 꼬리 수") % Lang.t(kind.name), "%d" % Bunsin.TAILS],
 				["발톱 피해", "%d" % kind.melee.damage],

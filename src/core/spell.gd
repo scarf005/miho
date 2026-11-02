@@ -140,8 +140,12 @@ static func fill(picked: Array) -> Array[StringName]:
 ## The slots after card `c` joins them: an element merges with the first slot
 ## it can join (Cards.join), but a 도약 that another slot follows, which stays a
 ## leap; anything else goes at the end. A slot that grows takes in the lone
-## elements it now joins (`_settled`).
+## elements it now joins (`_settled`). The cards that make a compound of
+## Cards.SETS in any order are that one slot.
 static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
+	var whole := Cards.set_of(_cards_of(slots) + [c])
+	if whole != &"":
+		return [whole]
 	var out := slots.duplicate()
 	if Cards.ELEMENTS.has(c):
 		for i in out.size():

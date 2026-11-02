@@ -1647,6 +1647,9 @@ msgstr "%d steps"
 msgid "대상"
 msgstr "Target"
 
+msgid "최대 수"
+msgstr "Most at once"
+
 msgid "보이는 가까운 적 %s"
 msgstr "Nearest visible enemies: %s"
 

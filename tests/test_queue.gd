@@ -203,7 +203,7 @@ func test_every_compound_can_be_made_through_the_queue_from_single_talismans() -
 	for card in Cards.TIER:
 		var next: Array = []
 		for slots: Array[StringName] in queues:
-			for element in Cards.ELEMENTS:
+			for element in Cards.ELEMENTS + [Cards.FOX]:
 				var out := Spell.queue(slots, element)
 				for slot in out:
 					made[slot] = true
