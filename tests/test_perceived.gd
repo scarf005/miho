@@ -235,3 +235,12 @@ func test_a_shout_pops_its_bare_word_once() -> void:
 	var noise := {t = &"noise", at = SEEN, word = "낄낄", loud = 6, heard = true}
 	var p := Perceived.of(w, w, [shout, noise])
 	assert_eq(p.facts.map(Perceived.popup_of).map(func(q): return q.text), ["낄낄"])
+
+
+func test_the_reapers_omen_is_told_wherever_she_stands() -> void:
+	var w := _world()
+	w.start = HIDDEN
+	w.round_no = World.REAPER_OMEN - 1
+	var before := w.clone()
+	var events := w.act({t = &"wait"})
+	assert_true(Perceived.of(before, w, events).facts.any(func(f): return f.t == &"omen"))
