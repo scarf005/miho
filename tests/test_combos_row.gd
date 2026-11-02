@@ -135,3 +135,47 @@ func test_a_glyph_points_at_its_compound_and_is_not_a_talisman_to_click() -> voi
 	assert_eq(StatusBar.combo_at(t, on + Vector2(Term.CELL.x * 3, 0)), &"")
 	var picked: Array[StringName] = [Cards.FIRE]
 	assert_eq(SpellInfo.hovered(c, picked), SpellInfo.combo(c))
+
+
+func _left_click(m: Node, cell: Vector2) -> void:
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = m.term.get_global_transform() * (cell * Term.CELL)
+	m._click(click)
+
+
+func test_a_click_on_a_compound_fills_the_queue_with_its_talismans() -> void:
+	var m := _main()
+	var t: Term = m.term
+	t.fit(Vector2(1920, 1080), 0.0)
+	_hold(m, [Cards.FIRE, Cards.WATER], 9)
+	m.world.tails = m.world.max_tails()
+	m.picked.assign([Cards.FIRE, Cards.FIRE])
+	var c := Cards.pair(Cards.FIRE, Cards.WATER)
+	_left_click(m, Vector2(StatusBar.combos(t)[0].x + 0.5, t.rows - 0.5))
+	assert_eq(Spell.make(m.picked).slots, [c] as Array[StringName], "the queue is that spell")
+
+
+func test_a_click_on_a_compound_she_cannot_pay_for_now_is_refused() -> void:
+	var m := _main()
+	var t: Term = m.term
+	t.fit(Vector2(1920, 1080), 0.0)
+	_hold(m, [Cards.FIRE, Cards.WATER], 9)
+	m.world.tails = 0
+	_left_click(m, Vector2(StatusBar.combos(t)[0].x + 0.5, t.rows - 0.5))
+	assert_eq(m.picked, [] as Array[StringName])
+	assert_true(m.refused)
+
+
+func test_a_click_on_a_saved_spell_fills_the_queue_with_it() -> void:
+	var m := _main()
+	var t: Term = m.term
+	t.fit(Vector2(1920, 1080), 0.0)
+	_hold(m, [Cards.FOX], 9)
+	m.world.tails = m.world.max_tails()
+	m.settings.spells = {&"slot_1": "fox"}
+	t.saved = m.settings.spells
+	var slot: Dictionary = StatusBar.saved_slots(t)[0]
+	_left_click(m, Vector2(slot.x + 0.1, t.rows - 1.5))
+	assert_eq(m.picked, [Cards.FOX] as Array[StringName])

@@ -264,3 +264,37 @@ func test_a_route_steps_around_fire_in_sight() -> void:
 	assert_false(Travel.near_fire(w, Vector2i(4, 8)))
 	w.seen[Grid.index(Vector2i(6, 8))] = 0
 	assert_false(Travel.near_fire(w, Vector2i(5, 8)), "fire out of sight is not known")
+
+
+func test_exploring_does_not_climb_stairs_at_the_unexplored_edge() -> void:
+	var w := _world()
+	w.stairs = Vector2i(5, 8)
+	_forget(w, Vector2i(6, 0), Vector2i(Grid.W - 1, Grid.H - 1))
+	var step := Travel.explore_step(w, Travel.search(w))
+	assert_ne(step, Vector2i.ZERO, "the edge beside the stairs is still there to explore")
+	assert_ne(w.player().pos + step, w.stairs)
+
+
+func test_exploring_does_not_take_the_elixir_at_the_unexplored_edge() -> void:
+	var w := _world()
+	w.elixir = Vector2i(5, 8)
+	_forget(w, Vector2i(6, 0), Vector2i(Grid.W - 1, Grid.H - 1))
+	assert_ne(w.player().pos + Travel.explore_step(w, Travel.search(w)), w.elixir)
+
+
+func test_a_walk_ends_on_the_stairs_and_never_goes_through_them() -> void:
+	var w := _world()
+	for y in Grid.H:
+		w.tiles[Grid.index(Vector2i(6, y))] = World.WALL
+	w.stairs = Vector2i(6, 8)
+	w.tiles[Grid.index(w.stairs)] = World.FLOOR
+	var found := Travel.search(w)
+	assert_eq(Travel.route(found, w.stairs).back(), w.stairs, "told to go there, she can")
+	assert_eq(Travel.route(found, Vector2i(9, 8)), [] as Array[Vector2i], "the far side is shut")
+
+
+func test_a_hunted_stairs_tile_is_no_way_out() -> void:
+	var w := _world()
+	w.stairs = Vector2i(6, 8)
+	var found := Travel.search(w, {w.stairs: true})
+	assert_eq(Travel.route(found, w.stairs), [] as Array[Vector2i], "an exclusion holds")

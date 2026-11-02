@@ -435,3 +435,83 @@ func test_a_tail_spent_from_full_comes_back_three_rounds_later_at_any_moment() -
 			assert_eq(w.tails, 0, "round %d after a cast at %d" % [i + 1, waited])
 		w.act({t = &"wait"})
 		assert_eq(w.tails, 1, "the third round after a cast at %d" % waited)
+
+
+## Miho holds what a 그림자 takes and the tails for it, the talismans picked, the pointer off the map.
+func _guise_ready() -> Node:
+	var m := _main()
+	var recipe: Array = Guise.RECIPE[Guise.SHADOW]
+	m.world.cards.assign(recipe)
+	m.world.tails = m.world.max_tails()
+	m.hover = Vector2i(-1, -1)
+	for c in recipe:
+		m._add(c)
+	return m
+
+
+func _foe_in_sight(m: Node) -> void:
+	var at: Vector2i = m.world.player().pos + Vector2i(2, 0)
+	m.world.set_tile(at, World.FLOOR)
+	FloorGen.spawn(m.world, &"jangseung", at)
+	m.world.sense()
+
+
+func _wears_guise(m: Node) -> bool:
+	return Guise.worn(m.world, m.world.player()).has(Guise.SHADOW)
+
+
+func test_the_self_key_casts_the_picked_spell_on_her() -> void:
+	var m := _guise_ready()
+	_press(m, "Comma")
+	assert_true(_wears_guise(m))
+
+
+func test_with_no_foe_a_keyboard_pick_puts_the_cursor_on_her_and_enter_casts_there() -> void:
+	var m := _guise_ready()
+	m._aim()
+	assert_eq(m.hover, m.world.player().pos)
+	_press(m, "Enter")
+	assert_true(_wears_guise(m))
+
+
+func test_with_no_foe_a_pick_leaves_the_cursor_where_the_pointer_is_on_the_map() -> void:
+	var m := _guise_ready()
+	var at: Vector2i = m.world.player().pos + Vector2i(3, 0)
+	m.hover = at
+	m._aim()
+	assert_eq(m.hover, at)
+
+
+func test_tab_goes_through_the_foes_then_to_her() -> void:
+	var m := _guise_ready()
+	_foe_in_sight(m)
+	m._aim()
+	var foes: Array = Fight.targets(m.world)
+	assert_eq(foes.size(), 1)
+	assert_eq(m.hover, foes[0].pos)
+	m._aim_next()
+	assert_eq(m.hover, m.world.player().pos)
+	m._aim_next()
+	assert_eq(m.hover, foes[0].pos)
+	m._aim_next()
+	_press(m, "Enter")
+	assert_true(_wears_guise(m), "Enter casts on the tile Tab reached")
+
+
+func test_enter_in_look_mode_on_her_own_tile_casts_the_picked_spell_on_her() -> void:
+	var m := _guise_ready()
+	_press(m, "X")
+	assert_eq(m.hover, m.world.player().pos)
+	_press(m, "Enter")
+	assert_true(_wears_guise(m))
+
+
+func test_enter_on_her_own_tile_refuses_a_spell_that_cannot_go_on_her() -> void:
+	var m := _main()
+	m.world.cards.assign([Cards.FOX])
+	m.world.tails = m.world.max_tails()
+	m._add(Cards.FOX)
+	m.hover = m.world.player().pos
+	_press(m, "Enter")
+	assert_eq(m.world.round_no, 0)
+	assert_true(m.refused)
