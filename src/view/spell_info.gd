@@ -80,6 +80,24 @@ static func card(c: StringName, after: Spell) -> Array:
 	return lines
 
 
+## A talisman in the 도감: one copy, then each further copy with the lines it changes.
+static func stacked(c: StringName) -> Array:
+	var lines := card(c, null)
+	var before := spell(Spell.make([c])).slice(1).map(func(l): return Info.plain([l]))
+	for n in range(2, Spell.MAX_SLOTS + 1):
+		var copies := []
+		copies.resize(n)
+		copies.fill(c)
+		var all := spell(Spell.make(copies))
+		lines.append(all[0])
+		var now: Array = all.slice(1).map(func(l): return Info.plain([l]))
+		for k in now.size():
+			if not before.has(now[k]):
+				lines.append(all[k + 1])
+		before = now
+	return lines
+
+
 ## What a talisman on the status rows shows: a compound as in the 도감, else the
 ## talisman and what it makes with the queue `picked`.
 static func hovered(c: StringName, picked: Array[StringName]) -> Array:

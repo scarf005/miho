@@ -242,3 +242,14 @@ func test_the_log_tells_the_harm_a_spray_deals() -> void:
 	var events := w.act(_cast([METAL]))
 	var lines: Array = Messages.of(before, w, events).map(Messages.plain)
 	assert_has(lines, "%s에게 피해를 1 주었다" % foe.info().name)
+
+
+func test_a_talisman_entry_shows_every_count_and_only_what_each_changes() -> void:
+	for c: StringName in Cards.FORMS + Cards.ELEMENTS:
+		var text := Info.plain(SpellInfo.stacked(c))
+		for n in range(2, Spell.MAX_SLOTS + 1):
+			assert_string_contains(text, Cards.GLYPH[c].repeat(n))
+	var orb := Info.plain(SpellInfo.stacked(Cards.ORB))
+	assert_string_contains(orb, "피해: %d" % Spell.make([Cards.ORB, Cards.ORB]).damage(0))
+	var wisp := Info.plain(SpellInfo.stacked(Cards.FOX))
+	assert_eq(wisp.count("사거리:"), 1, "a line no copy changes shows once")

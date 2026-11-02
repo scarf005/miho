@@ -343,7 +343,7 @@ static func _entry(
 
 
 static func _talisman(c: StringName) -> Dictionary:
-	var lines := func(): return SpellInfo.card(c, null)
+	var lines := func(): return SpellInfo.stacked(c)
 	return _entry(
 		Lang.t(Cards.GLYPH[c], "talisman"),
 		Palette.CARD[c],
