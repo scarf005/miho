@@ -72,9 +72,8 @@ func test_every_compound_has_its_shape() -> void:
 	assert_eq(_cover(w, [EARTH, METAL]), Spray.square(w, ME + E * 3), "유탄 3 ahead")
 	assert_eq(_cover(w, [WOOD, FIRE]).size(), 15, "들불: a fan of radius 3")
 	assert_eq(_cover(w, [METAL, WOOD]).size(), 8, "가시: a fan of radius 2")
-	for c in [[FIRE, EARTH], [METAL, WATER]]:
-		assert_eq(_cover(w, c), Spray.line(w, ME, E, 4, false), str(c))
-		assert_eq(_cover(w, c).size(), 4)
+	assert_eq(_cover(w, [METAL, WATER]), Spray.line(w, ME, E, 4, false), "서리")
+	assert_eq(_cover(w, [METAL, WATER]).size(), 4)
 	assert_true(_cover(w, [WOOD, EARTH]).is_empty(), "균열 with no wall near")
 	assert_eq(Spray.square(w, ME).size(), 9)
 
@@ -87,7 +86,7 @@ func test_a_burst_lands_short_of_a_wall_or_on_a_creature() -> void:
 	w = _world()
 	_post(w, ME + E)
 	assert_eq(_cover(w, [EARTH, METAL]), Spray.square(w, ME + E))
-	assert_eq(_cover(w, [FIRE, EARTH]), [ME + E] as Array[Vector2i], "a line stops at it")
+	assert_eq(_cover(w, [METAL, WATER]), [ME + E] as Array[Vector2i], "a line stops at it")
 
 
 func test_wall_splitting_fells_the_first_wall_and_its_neighbours_silently() -> void:
@@ -136,7 +135,8 @@ func test_a_spray_preview_equals_the_round() -> void:
 		[WATER, FIRE, WATER, FIRE],
 	]
 	for pair: Array in Cards.PAIRS.values():
-		queues.append(pair)
+		if not Forge.needs_orb(Spell.make(pair)):
+			queues.append(pair)
 	for q in queues:
 		var w := _world()
 		_put(w, ME + Vector2i(2, 2), World.BAMBOO)
@@ -189,19 +189,19 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[METAL, WOOD]: ["가시", "반지름 2", "피해: %d\n지날 때 피해: %d" % [Compounds.THORN, Compounds.THORN]],
 		[WOOD, EARTH]: ["3칸 안 첫 벽과 그 양옆", "무너짐: 벽", "소음: 없음"],
 		[WOOD, EARTH, WOOD, EARTH]: ["4칸 안 첫 벽과 그 양옆"],
-		[FIRE, EARTH]:
+		[ORB, FIRE, EARTH]:
 		[
 			"용암",
-			"곧게 4칸",
-			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
-			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
-		],
-		[FIRE, EARTH, METAL]:
-		[
-			"용광로",
-			"곧게 6칸",
+			"사거리: %d칸" % Forge.RANGE,
 			"뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.MOLTEN].harm,
+		],
+		[ORB, FIRE, EARTH, METAL]:
+		[
+			"용광로",
+			"대상: %d칸 안 무작위 빈 칸" % Forge.REACH,
+			"쓰는 주문: " + Spell.make(Forge.ORB).shown(),
+			"발사 간격: %d초" % Forge.FIRE_ROUNDS,
 		],
 		[WOOD, FIRE]: ["들불", "반지름 3", "번질 확률: 100%", "소음: %d" % Spray.HUSH],
 		[EARTH, METAL]:

@@ -78,7 +78,7 @@ static func heaven_phase(w: World) -> void:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
 					w.cast(a, Bestiary.spell(a.kind, plan.cards), plan.dir)
 			continue
-		if _flit(w, a) or a.blind > 0 or _stoke(w, a) or _fight(w, a):
+		if Forge.turn(w, a) or _flit(w, a) or a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
 		match a.alert:
 			Actor.HUNT:

@@ -66,7 +66,7 @@ func test_every_box_about_one_spell_shows_it_and_a_box_about_a_tile_does_not() -
 	m.hover_spell = ""
 	m.hover_card = Cards.compounds()[0]
 	m._refresh()
-	assert_eq(m.term.example.spell, Cards.made_of(m.hover_card), "a compound")
+	assert_eq(m.term.example.spell, Cards.spell_of(m.hover_card), "a compound")
 	m.hover_card = &""
 	m.hover = m.world.player().pos
 	m._refresh()

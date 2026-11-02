@@ -65,8 +65,6 @@ const FAN_SHAPE := &"fan"
 const LINE := &"line"
 const BURST := &"burst"
 const CLEAVE := &"cleave"
-## A line and the wall it runs into.
-const BORE := &"bore"
 ## A burst that takes in the walls within its radius.
 const BREACH := &"breach"
 ## Tiles across the line, where a wooden wall can grow.
@@ -88,7 +86,7 @@ const ROOTS := &"roots"
 ## projectile that carries it does nothing with it.
 const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
-	&"lava": [LINE, 4],
+	&"lava": [BURST, 0, 1],
 	&"frost": [LINE, 4],
 	&"shrapnel": [BURST, 3, 1],
 	&"rain": [BURST, 3, 1],
@@ -96,14 +94,14 @@ const SHAPE := {
 	&"mud": [BURST, 2, 1],
 	&"thorn": [FAN_SHAPE, 2],
 	&"rift": [CLEAVE, 3],
-	&"furnace": [BORE, 6],
+	&"furnace": [AROUND, 0],
 	&"swamp": [BREACH, 3, 2],
 	&"hypnosis": [LINE, 5],
 	&"talon": [AROUND, 0],
 	&"palisade": [ACROSS, 2, 3],
 	Cards.BUNSIN: [AROUND, 0],
 	Cards.RAISE: [AROUND, 0],
-	&"beacon": [BURST, 6, 1],
+	&"beacon": [AROUND, 0],
 	&"magpie": [BAND, 8, 3],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],
@@ -144,7 +142,7 @@ static func called(spell: Spell) -> String:
 static func noise(spell: Spell) -> int:
 	if spell.slots[0] in BOOMS:
 		return Compounds.BOOM
-	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"rift", &"beacon"]:
+	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"rift"]:
 		return 0
 	if spell.holds(Cards.METAL) or spell.holds(Cards.EARTH):
 		return GUN_LOUD
@@ -267,8 +265,6 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return fan(w, from, dir, n)
 		LINE:
 			return line(w, from, dir, n, false)
-		BORE:
-			return _bore(w, from, dir, n)
 		BURST:
 			return square(w, landing(w, from, dir, shape[1]), shape[2] + grown)
 		BREACH:
@@ -296,10 +292,7 @@ static func carried(
 			return square(w, at, r, true)
 		ACROSS:
 			return Elements.growable(w, square(w, at, r))
-	var out := square(w, at, r)
-	if SHAPE[c][0] == BORE and Terrain.wall(w.tile(at + dir)):
-		out.append(at + dir)
-	return out
+	return square(w, at, r)
 
 
 ## The shape of what `cover` gives `spell`.
@@ -356,8 +349,6 @@ static func holds(spell: Spell, t: int) -> bool:
 			return not Terrain.wall(t)
 		LINE:
 			return open
-		BORE:
-			return open or Terrain.wall(t)
 	return walk
 
 
@@ -414,16 +405,6 @@ static func _jet(w: World, from: Vector2i, dir: Vector2i, level: int) -> Array[V
 		out.size() < JET[level - 1] and (level >= THROUGH_LEVEL or w.actor_at(last) == null)
 	)
 	if stopped and Terrain.lantern(w.tile(last + dir)):
-		out.append(last + dir)
-	return out
-
-
-## A line of `n` and the wall it runs into; a creature stops it short of any.
-static func _bore(w: World, from: Vector2i, dir: Vector2i, n: int) -> Array[Vector2i]:
-	var out := line(w, from, dir, n, false)
-	var last: Vector2i = from if out.is_empty() else out.back()
-	var stopped: bool = out.size() < n and (out.is_empty() or w.actor_at(last) == null)
-	if stopped and Grid.inside(last + dir) and Terrain.wall(w.tile(last + dir)):
 		out.append(last + dir)
 	return out
 

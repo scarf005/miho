@@ -28,8 +28,8 @@ const HIGH := [
 	Cards.CONQUEST,
 	Cards.DRAGON,
 ]
-## The four 3단 spells that are no leap, and go on no one.
-const NEW := [&"furnace", &"swamp", &"hypnosis", &"palisade"]
+## The 3단 spells that are no leap, go on no one and need no orb.
+const NEW := [&"swamp", &"hypnosis", &"palisade"]
 
 
 ## An open hall walled at the edges, lit by lanterns two rows above Miho, who
@@ -259,7 +259,6 @@ func test_each_3dan_has_the_shape_of_the_plan() -> void:
 	var cover := func(c: StringName, dir := E) -> Array[Vector2i]:
 		return Spray.cover(w, w.player(), Spell.make(_made(c)), dir)
 	assert_eq(cover.call(&"swamp"), Spray.square(w, ME + E * 3, 2, true))
-	assert_eq(cover.call(&"furnace"), Spray.line(w, ME, E, 6, false))
 	assert_eq(cover.call(&"hypnosis"), Spray.line(w, ME, E, 5, false))
 	assert_eq(
 		cover.call(&"palisade"),
@@ -278,36 +277,6 @@ func test_a_burst_of_radius_two_does_not_pass_a_wall() -> void:
 	assert_eq(tiles.size(), 15, "the three columns on Miho's side")
 	w.act(_cast(rain))
 	assert_eq(behind.rooted, 0)
-
-
-func test_furnace_leaves_hot_iron_and_fells_the_wall_at_its_end() -> void:
-	var w := _world()
-	_put(w, ME + E * 4, World.WALL)
-	_put(w, ME + E * 5, World.WALL)
-	w.act(_cast(_made(&"furnace")))
-	assert_eq(w.hot.get(ME + E * 3).x, Compounds.MOLTEN)
-	assert_eq(w.tile(ME + E * 4), World.RUBBLE, "the wall it ran into")
-	assert_eq(w.tile(ME + E * 5), World.WALL, "one wall only")
-	w = _world()
-	_put(w, ME + E, World.WALL)
-	w.act(_cast(_made(&"furnace")))
-	assert_eq(w.tile(ME + E), World.RUBBLE, "right next to Miho")
-	w = _world()
-	_put(w, ME + E * 7, World.WALL)
-	w.act(_cast(_made(&"furnace")))
-	assert_eq(w.tile(ME + E * 7), World.WALL, "past the end of the line")
-	w = _world()
-	var foe := _post(w, ME + E * 2)
-	_put(w, ME + E * 3, World.WALL)
-	w.act(_cast(_made(&"furnace")))
-	assert_eq(w.tile(ME + E * 3), World.WALL, "the creature stopped the line")
-	assert_true(w.hot.has(foe.pos))
-	w = _world()
-	w.tiles[Grid.index(Vector2i(0, ME.y))] = World.WALL
-	w.player().pos = Vector2i(1, ME.y)
-	w.sense()
-	w.act(_cast(_made(&"furnace"), W))
-	assert_eq(w.tile(Vector2i(0, ME.y)), World.WALL, "the map's edge stands")
 
 
 func test_swamp_fells_walls_quietly_and_lays_mud() -> void:
@@ -361,8 +330,6 @@ func test_each_3dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends() -> v
 			var events := w.act(_cast(q))
 			var label := str(q)
 			match c:
-				&"furnace":
-					assert_eq(w.hot.get(at + Vector2i(1, -1)).x, Compounds.MOLTEN, label)
 				&"swamp":
 					assert_eq(w.tile(side.pos), World.MUD, label)
 					assert_eq(side.rooted, Compounds.SWAMP - 1, label)
@@ -373,12 +340,11 @@ func test_each_3dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends() -> v
 
 
 func test_a_wisp_that_stops_at_a_wall_still_knows_its_line() -> void:
-	for cards: Array in [_made(&"furnace"), [WOOD, EARTH]]:
-		var w := _world()
-		_put(w, ME + E * 2, World.WALL)
-		w.act(_cast([FOX] + cards))
-		assert_eq(w.tile(ME + E * 2), World.RUBBLE, "the wall ahead of it: %s" % [cards])
-		assert_eq(w.shots[0].dir, Vector2i.ZERO, "it hovers")
+	var w := _world()
+	_put(w, ME + E * 2, World.WALL)
+	w.act(_cast([FOX, WOOD, EARTH]))
+	assert_eq(w.tile(ME + E * 2), World.RUBBLE, "the wall ahead of it")
+	assert_eq(w.shots[0].dir, Vector2i.ZERO, "it hovers")
 
 
 func test_a_compound_preview_equals_the_round() -> void:
@@ -444,7 +410,6 @@ func _preview_equals_round(form: Array, compounds: Array) -> void:
 
 func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 	var rows := {
-		&"furnace": ["용광로 · 꼬리: 3", "모양: 곧게 6칸", "뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS, "무너짐: 끝 벽"],
 		&"swamp":
 		[
 			"늪 · 꼬리: 3",

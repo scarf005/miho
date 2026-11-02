@@ -13,7 +13,7 @@ extends RefCounted
 ## orders only (`recipe`). 분신 and 사령술 (SETS) are made of exactly their cards in any order.
 ## What a spell meets in a creature is its elements (Spell.nature): a lone
 ## element is itself, a pair is both of its elements, a 3단 or more is what
-## NATURE says, and 최면, 도약, 분신, 사령술, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
+## NATURE says, and 용광로, 봉화, 최면, 도약, 분신, 사령술, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
 ## none. 낙뢰 is no element but ELECTRIC.
 
 const FOX := &"fox"
@@ -88,14 +88,14 @@ const FIVES := {
 	DRAGON: [METAL, WATER, WOOD, FIRE, EARTH],
 }
 
+## The compounds that go only with an orb (Spell.needs_orb).
+const LOBBED := [&"lava", &"furnace"]
 ## 3단 or more compound -> the elements it counts as against a creature's
 ## weakness and absorption, in 오행 order; one that is not here has none.
 const NATURE := {
-	&"furnace": [FIRE, METAL],
 	&"swamp": [WATER, EARTH],
 	&"talon": [METAL],
 	&"palisade": [WOOD],
-	&"beacon": [FIRE],
 	&"mist": [WATER],
 	&"sinkhole": [EARTH],
 	DRAGON: [EARTH],
@@ -267,6 +267,11 @@ static func recipe(slot: StringName) -> Array:
 	if not _recipes.has(slot):
 		_recipes[slot] = _order(slot, made_of(slot), [])
 	return _recipes[slot]
+
+
+## The talismans of the spell compound `slot` is cast as: its recipe, with an orb if it needs one.
+static func spell_of(slot: StringName) -> Array:
+	return [ORB] + recipe(slot) if LOBBED.has(slot) else recipe(slot)
 
 
 ## The first order of `rest` after `head` that queues into `slot` alone.

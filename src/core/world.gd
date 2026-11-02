@@ -696,6 +696,8 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	Bunsin.learn(caster, spell, dir)
 	if Guise.cast(self, caster, spell, dir) or Bunsin.cast(self, caster, spell, dir):
 		return
+	if Forge.cast(self, caster, spell, dir):
+		return
 	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
 		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
 		return
@@ -802,7 +804,7 @@ func _step(s: Shot) -> void:
 		_strike(s, a)
 		return
 	var o := shot_at(to, s)
-	if o != null:
+	if o != null and not (s.spell.orb and o.spell.orb and s.caster == o.caster):
 		if s.spell.orb and o.spell.orb:
 			emit({t = &"clash", shot = s.id, other = o.id, at = to})
 			s.gone = true
@@ -818,6 +820,8 @@ func _step(s: Shot) -> void:
 	_fly(s, to)
 	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
 		_land(s)
+	elif not s.gone and Forge.lobbed(s.spell) and s.flown >= Forge.RANGE:
+		_burst(s)
 
 
 func _land(s: Shot) -> void:

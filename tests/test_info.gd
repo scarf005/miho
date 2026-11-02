@@ -388,9 +388,9 @@ func test_sky_and_deep_water_are_tagged_impassable_and_the_tag_tells_what_crosse
 
 
 func test_a_compound_hover_tells_its_elements_and_one_with_none_tells_nothing() -> void:
-	var furnace := Info.plain(SpellInfo.combo(&"furnace"))
-	assert_string_contains(furnace, "오행: 불+쇠\n")
-	for c in [&"hypnosis", &"thunder", Cards.VAULT]:
+	var swamp := Info.plain(SpellInfo.combo(&"swamp"))
+	assert_string_contains(swamp, "오행: 물+흙\n")
+	for c in [&"hypnosis", &"thunder", Forge.FURNACE, &"beacon", Cards.VAULT]:
 		assert_false(Info.plain(SpellInfo.combo(c)).contains("오행:"), c)
 
 

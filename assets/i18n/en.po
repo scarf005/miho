@@ -3226,3 +3226,19 @@ msgstr "%s ×%d"
 
 msgid "앞으로 %d×%d칸"
 msgstr "%d×%d tiles ahead"
+
+msgid "구슬 없이는 던질 수 없다"
+msgstr "It cannot be thrown without an orb"
+
+msgid "%d칸 안 무작위 빈 칸"
+msgstr "a random free tile within %d"
+
+msgid "발사 간격"
+msgstr "Firing interval"
+
+msgid "%d방향"
+msgstr "%d directions"
+
+msgctxt "creature"
+msgid "광"
+msgstr "F"

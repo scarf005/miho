@@ -86,7 +86,6 @@ const THORN := 1
 const MUD := 2
 const SWAMP := 3
 const BOOM := 12
-const BEACON_WORD := "화르륵"
 const THUNDER := 3
 const THUNDER_STUN := 2
 ## How far 낙뢰 arcs from the creature it struck, and how many arcs one cast makes.
@@ -134,7 +133,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			for p in tiles:
 				w.ignite(p, false, true)
 		&"lava":
-			heat(w, tiles, LAVA)
+			heat(w, tiles, MOLTEN)
 		&"frost":
 			_become(
 				w, tiles.filter(func(p): return w.tile(p) in [World.POND, World.VEIL]), World.ICE
@@ -146,23 +145,18 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			for p in tiles:
 				Gas.add(w, p, Gas.STEAM, STEAM)
 		&"thorn":
-			_become(w, tiles.filter(func(p): return _open(w, p)), World.THORNS)
+			_become(w, tiles.filter(func(p): return open(w, p)), World.THORNS)
 		&"rift":
 			_split(w, tiles)
 		&"mud":
 			for p in tiles:
 				Terrain.wash(w, p)
-			_become(w, tiles.filter(func(p): return _open(w, p)), World.MUD)
-		&"furnace":
-			heat(w, tiles, MOLTEN)
-			_split(w, tiles)
+			_become(w, tiles.filter(func(p): return open(w, p)), World.MUD)
 		&"swamp":
 			_split(w, tiles)
 			ground(w, s, &"mud", tiles)
 		&"palisade":
 			Elements.grow(w, tiles)
-		&"beacon":
-			ground(w, s, &"wildfire", tiles)
 		&"magpie":
 			_become(w, tiles.filter(func(p): return w.tile(p) == World.SKY), World.BRIDGE)
 		&"mist":
@@ -190,8 +184,6 @@ static func tip(w: World, s: Shot, c: StringName, at: Vector2i) -> void:
 		&"shrapnel":
 			if s.spell.mortar():
 				_explode(w, s, at, reach(s.spell, c))
-		&"beacon":
-			_signal(w, s, at)
 		Cards.SAMSARA:
 			_renew(w, s)
 
@@ -217,8 +209,6 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			Elements.root(w, a, SWAMP)
 		&"hypnosis":
 			Mind.sleep(w, a)
-		&"beacon":
-			strike(w, s, &"wildfire", a, at)
 		&"sinkhole":
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)
@@ -274,7 +264,7 @@ static func tick(w: World) -> void:
 
 
 ## Open ground a compound may turn into another kind.
-static func _open(w: World, p: Vector2i) -> bool:
+static func open(w: World, p: Vector2i) -> bool:
 	var t := w.tile(p)
 	return (
 		w.open_floor(p)
@@ -345,18 +335,6 @@ static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
 			Terrain.hit(w, p)
 
 
-## 봉화 is heard where it lands, and every dark lantern its caster sees lights.
-static func _signal(w: World, s: Shot, at: Vector2i) -> void:
-	w.noise(at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
-	var me := w.actor(s.caster)
-	if me == null or not me.alive():
-		return
-	var view := w.fov(me.pos)
-	for i in w.tiles.size():
-		if view[i] == 1 and w.tiles[i] == World.LANTERN_OUT:
-			Terrain.relight(w, Grid.at(i))
-
-
 ## 윤회 heals the caster, up to its health. Only Miho's is told (`heal`).
 static func _renew(w: World, s: Shot) -> void:
 	var me := w.actor(s.caster)
@@ -374,7 +352,7 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 	var guard := _linked(w, [])
 	var gone: Array[Vector2i] = []
 	for p in tiles:
-		if p != me and _open(w, p) and (not guard or _linked(w, gone + [p])):
+		if p != me and open(w, p) and (not guard or _linked(w, gone + [p])):
 			gone.append(p)
 	for p in gone:
 		w.hot.erase(p)

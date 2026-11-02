@@ -50,14 +50,17 @@ static func leave(w: World) -> void:
 	w.storeys[w.depth] = kept
 
 
+## Whether an ally goes along with Miho: it can move, and is no risen one.
+static func _follows(a: Actor) -> bool:
+	return a.ally() and a.info().get("move", &"static") != &"static" and not Raise.risen(a)
+
+
 ## Takes the allies by Miho off the storey (FOLLOW), to `bring` to the next, but the risen.
 static func followers(w: World) -> Array[Actor]:
 	var me := w.player()
 	var party: Array[Actor] = []
 	party.assign(
-		w.actors.filter(
-			func(a): return a.ally() and not Raise.risen(a) and Grid.cheb(a.pos, me.pos) <= FOLLOW
-		)
+		w.actors.filter(func(a): return _follows(a) and Grid.cheb(a.pos, me.pos) <= FOLLOW)
 	)
 	w.actors.assign(w.actors.filter(func(a): return not party.has(a)))
 	return party

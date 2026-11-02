@@ -162,37 +162,35 @@ func _caster(w: World, at: Vector2i) -> Actor:
 	return a
 
 
-func test_beacon_sets_a_wildfire_is_heard_at_its_end_and_lights_the_lanterns_in_sight() -> void:
+func test_beacon_hurls_a_homing_orb_of_lava_along_each_open_way_and_nothing_else() -> void:
 	var w := _world()
-	var centre := ME + E * 6
-	_put(w, centre, World.GRASS)
-	_put(w, centre + Vector2i(1, 1), World.GRASS)
-	_wall_across(w, ME.x + 12)
-	_put(w, ME + Vector2i(3, -2), World.LANTERN_OUT)
-	_put(w, Vector2i(ME.x + 15, ME.y - 2), World.LANTERN_OUT)
-	var foe := _post(w, centre + E)
-	w.sense()
-	var events := w.act(_cast(_made(&"beacon")))
-	assert_true(w.wild.has(centre) and w.wild.has(centre + Vector2i(1, 1)), "a fire that spreads")
-	assert_gt(foe.alight, 0)
-	assert_eq(w.tile(ME + Vector2i(3, -2)), World.LANTERN, "the dark lantern in sight")
-	assert_eq(w.tile(Vector2i(ME.x + 15, ME.y - 2)), World.LANTERN_OUT, "behind the wall")
-	var calls := _of(events, &"noise").filter(func(e): return e.word == Compounds.BEACON_WORD)
-	assert_eq(calls.size(), 1)
-	assert_eq([calls[0].at, calls[0].loud], [centre, Compounds.BOOM])
-	var at_me := _of(events, &"noise").filter(func(e): return e.at == ME and e.loud > 0)
-	assert_true(at_me.is_empty(), "nothing is heard where it was cast")
-
-
-func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
-	var w := _world()
-	var centre := ME + E * 6
-	var sleeper := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(-2, 3))
-	sleeper.cooldown = 99
+	_put(w, ME + E, World.WALL)
+	_put(w, ME + Vector2i(-1, 1), World.LANTERN_OUT)
+	var ally := FloorGen.spawn(w, Forge.FURNACE, ME + Vector2i(0, -1))
+	ally.cooldown = 99
+	_put(w, ME + Vector2i(1, 1), World.GRASS)
 	w.sense()
 	_now(w, _made(&"beacon"))
-	assert_eq(sleeper.alert, Actor.SEARCH)
-	assert_eq(sleeper.target, centre)
+	assert_eq(w.shots.size(), 5, "eight, less a wall, a lantern and an ally")
+	assert_true(w.wild.is_empty(), "no wildfire of its own")
+	assert_eq(w.tile(ME + Vector2i(-1, 1)), World.LANTERN_OUT, "no lantern lit")
+	assert_true(w.shots.all(func(s): return Forge.lobbed(s.spell) and s.spell.homing()))
+
+
+func test_the_orbs_of_a_beacon_turn_on_a_foe_and_do_not_put_each_other_out() -> void:
+	var w := _world()
+	var foe := _post(w, ME + Vector2i(4, 3))
+	foe.max_hp = 9
+	foe.hp = 9
+	w.sense()
+	var events := w.act(_cast(_made(&"beacon")))
+	assert_true(_of(events, &"clash").is_empty())
+	var near_foe := w.shots.filter(func(s): return Grid.cheb(s.pos, foe.pos) <= 2)
+	assert_gt(near_foe.size(), 1, "from more than the way that points at it")
+	while not w.shots.is_empty():
+		w.act({t = &"wait"})
+	assert_lt(foe.hp, 9)
+	assert_eq(w.hot[foe.pos].x, Compounds.MOLTEN)
 
 
 func test_magpie_bridges_the_sky_eight_ahead_and_three_across_and_nothing_else() -> void:

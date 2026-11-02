@@ -94,6 +94,7 @@ const HEALTH := {
 	&"eodeopsini": [3, 4, 4, 4, 4],
 	&"dueoksini": [6, 7, 9, 11, 12],
 	Cards.BUNSIN: [3, 3, 3, 3, 3],
+	Forge.FURNACE: [3, 4, 6, 8, 9],
 }
 ## Copies of 구 a creature's orb has beyond its rank (`tiered`).
 const ORB_EXTRA := 1
@@ -527,6 +528,15 @@ const KINDS := {
 		mana = Bunsin.TAILS,
 		tails = true,
 		move = &"approach",
+	},
+	Forge.FURNACE:
+	{
+		name = "용광로",
+		glyph = "광",
+		casts = [Forge.ORB],
+		cd = Forge.FIRE_ROUNDS,
+		move = &"static",
+		absorb = &"fire",
 	},
 }
 

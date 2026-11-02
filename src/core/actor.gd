@@ -119,7 +119,8 @@ func fighting() -> bool:
 ## Resting in the train of its leader (Mind.rest): one on patrol, or an ally behind
 ## Miho. One that does not patrol sleeps at its own home, band or not.
 func following() -> bool:
-	return leader != 0 and (faction == FOX or info().get("patrol", false))
+	var moves: bool = info().get("move", &"static") != &"static"
+	return moves and leader != 0 and (faction == FOX or info().get("patrol", false))
 
 
 ## Hunting Miho by way of a drum.

@@ -21,7 +21,7 @@ func _spells() -> Array:
 			cards.fill(c)
 			out.append(cards)
 	for c in Cards.compounds():
-		out.append(Cards.made_of(c))
+		out.append(Cards.spell_of(c))
 	return out
 
 

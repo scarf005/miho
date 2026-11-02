@@ -63,7 +63,11 @@ static func cast(w: World, spells: Array) -> bool:
 	var aims := {}
 	for one: Dictionary in spells:
 		var spell := Spell.make(one.get("cards", []))
-		if spell == null or spell.cards.any(func(c): return not w.cards.has(c)):
+		if (
+			spell == null
+			or Forge.needs_orb(spell)
+			or spell.cards.any(func(c): return not w.cards.has(c))
+		):
 			return false
 		cost += Cheat.cost(w, spell)
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
