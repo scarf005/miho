@@ -20,21 +20,12 @@ rust-web:
     cd rust  # for .cargo/config.toml
     cargo +{{ nightly }} build --release --quiet -Zbuild-std --target wasm32-unknown-emscripten
 
-# Play on the desktop.
-run: rust
-    {{ godot }} --path .
-
-# Run the rule tests in parallel Godot shards (MIHO_TEST_JOBS, one per core by default),
-# balanced by the script times of the last run. Each shard has its own user:// dir, log
-# and JUnit file in build/test/shard-N. GUT skips a script that fails to load and still
-# passes, so the run fails on a failing test, a script error, a skipped script, a
-# crashed shard and a hung one (MIHO_TEST_TIMEOUT seconds). Prints the slowest tests.
-test: rust
+# Refresh Godot's list of script classes. A checkout that gets a new class from a merge or a pull cannot start without it.
+import:
     #!/usr/bin/env bash
     set -uo pipefail
     out=build/test
     mkdir -p "$out"
-    touch "$out/times"
     # The import is slow, and only a changed list of script classes or a changed asset needs it.
     classes=$(rg --sort path '^(class_name|extends|@tool|@abstract)' src tests tools addons)
     if [ ! -e "$out/imported" ] \
@@ -44,6 +35,30 @@ test: rust
         touch "$out/imported"
         printf '%s\n' "$classes" > "$out/classes"
     fi
+
+# Start the game off the desktop, muted, for a few seconds and fail on any script error.
+launch-check: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    log=$(timeout 40 gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- {{ godot }} --audio-driver Dummy --path . --quit-after 120 2>&1)
+    if rg 'SCRIPT ERROR' <<<"$log" | sort -u | rg .; then exit 1; fi
+    rg -q 'Godot Engine' <<<"$log" || { echo "error: the game did not start" >&2; exit 1; }
+
+# Play on the desktop.
+run: rust import
+    {{ godot }} --path .
+
+# Run the rule tests in parallel Godot shards (MIHO_TEST_JOBS, one per core by default),
+# balanced by the script times of the last run. Each shard has its own user:// dir, log
+# and JUnit file in build/test/shard-N. GUT skips a script that fails to load and still
+# passes, so the run fails on a failing test, a script error, a skipped script, a
+# crashed shard and a hung one (MIHO_TEST_TIMEOUT seconds). Prints the slowest tests.
+test: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    out=build/test
+    mkdir -p "$out"
+    touch "$out/times"
     jobs=${MIHO_TEST_JOBS:-$(nproc)}
     plan=$({{ just_executable() }} test-plan "$jobs")
     [ -n "$plan" ] || { echo "error: no test scripts" >&2; exit 1; }
