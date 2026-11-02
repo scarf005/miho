@@ -22,7 +22,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Never type a game value into a string: a spell name, a recipe, a list of spells, a count, a radius or a chance comes from its table or constant, so a change to the data changes the text. Use `"스스로에겐 %s만 걸 수 있다"` with the list filled from the table, never `그림자(여+수)나 둔갑(목+토)`.
 - A lone spray goes by its name alone: `불길`, never `불 불길`. Label words are plain Korean game words: `대상`, never `노림`.
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`).
-- The player is `당신` in every line, as roguelikes such as DCSS write `You`: `당신을 볼 수 없다`, `당신의 불이 꺼졌다`. `미호` is only the title of the game.
+- The player is `당신` where a line could be read as about someone else, as roguelikes such as DCSS write `You`: `당신을 볼 수 없다` on a creature hover. `미호` is only the title of the game. A log line that can only be about the player drops the word. User: "`당신의 둔갑이 풀렸다` -> `둔갑이 풀렸다`가 훨씬 낫지않아? 지난번에 지적했던건 적 호버했을때 문구여서 헷갈릴수 있단거고 이건 누가 봐도 자기자신이 대상인걸 알수있잖아."
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
 - A thing lists what it has. Never add a line that denies what another thing has: kimchi does not say `최대 체력: 오르지 않음` when the peach says `가득 찼을 때 최대 체력: +1`, and a wall does not say `부술 수 없다.` when a cracked wall says `부서짐: 구슬`. The same goes for what the player already assumes, such as `멈춤: 첫 적` beside `관통`, or `바닥이 됨: 풀` on a spell with `피해: 1`. User: "이 두 문장이 대체 뭔 가치가 있음". A negative stays only when nothing else tells it and the player would act otherwise: `적은 밟지 않음.`, `냄새가 남지 않음.`
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".
