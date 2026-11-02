@@ -70,7 +70,7 @@ const ROWS := {
 		reacts = CUT,
 	},
 	World.BOARD: {name = "마루", walk = true, burns = true, tread = [3, "삐걱"]},
-	World.POND: {name = "연못", water = true, reacts = FILL},
+	World.POND: {name = "깊은 물", water = true, reacts = FILL},
 	World.ASH: {name = "재", walk = true, reacts = {Cards.WATER: World.GRASS}},
 	World.LANTERN_BROKEN: {name = "부서진 등불", walk = true},
 	World.WALL_CRACKED:

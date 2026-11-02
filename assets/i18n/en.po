@@ -390,8 +390,8 @@ msgstr "Wooden floor"
 msgid "삐걱"
 msgstr "creak"
 
-msgid "연못"
-msgstr "Pond"
+msgid "깊은 물"
+msgstr "Deep water"
 
 msgid "금 간 벽"
 msgstr "Cracked wall"
@@ -1695,8 +1695,8 @@ msgstr "Visible unlit lantern"
 msgid "끝 칸 소음"
 msgstr "End tile noise"
 
-msgid "하늘, 연못"
-msgstr "Sky, pond"
+msgid "하늘, 깊은 물"
+msgstr "Sky, deep water"
 
 msgid "냄새"
 msgstr "Scent"
@@ -2778,8 +2778,14 @@ msgstr "Search in place"
 msgid "제한 없음"
 msgstr "No limit"
 
-msgid "주문과 %s로만 건널 수 있다."
-msgstr "Crossed only by spells and %s."
+msgid "이동 불가"
+msgstr "Impassable"
+
+msgid "이동 불가."
+msgstr "Impassable."
+
+msgid "넘을 수 있음: 주문, %s"
+msgstr "Crossed by: spells, %s"
 
 msgid "주문을 보면: 날아가는 칸을 수색"
 msgstr "Sees a spell: searches the tiles it flies over"

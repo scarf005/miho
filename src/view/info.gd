@@ -713,9 +713,9 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		World.STATUE:
 			out.append(Lang.t("막음: 길"))
 		World.POND:
-			out.append(Lang.t("주문과 %s로만 건널 수 있다.") % Lang.t(Spell.SHAPE_NAME[Spell.LEAP]))
+			out.append(Lang.t("이동 불가."))
 		World.SKY:
-			out.append(Lang.t("주문과 %s로만 건널 수 있다.") % Lang.t(Spell.SHAPE_NAME[Spell.LEAP]))
+			out.append(Lang.t("이동 불가."))
 			out.append(Lang.t("사라짐: 추락한 적"))
 			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
 		World.WINDOW:
@@ -756,7 +756,9 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 	for e in Cards.ELEMENTS:
 		var change: Variant = Tiles.of(t, "reacts").get(e)
 		if change != null and (breakable or not Terrain.wall(t)):
-			out.append("%s: %s" % [Lang.t(Cards.NAME[e]), Lang.t(Tiles.of(change, "name"))])
+			out.append(
+				"%s: %s" % [Lang.t("%s 주문") % Lang.t(Cards.NAME[e]), SpellInfo.becomes(change)]
+			)
 	return out
 
 

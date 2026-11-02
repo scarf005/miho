@@ -545,7 +545,7 @@ static func _square(r: int) -> String:
 	return Lang.t("%d×%d") % [2 * r + 1, 2 * r + 1]
 
 
-## The names of tile kinds, joined: "하늘, 연못".
+## The names of tile kinds, joined: "하늘, 깊은 물".
 static func _names(tiles: Array) -> String:
 	return ", ".join(tiles.map(func(t): return Lang.t(Tiles.of(t, "name"))))
 
@@ -845,14 +845,13 @@ static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 		func(to):
 			var from := ", ".join(changes[to])
 			return [
-				_becomes(to),
-				Lang.t("멈춘 곳 %s의 %s") % [_square(Grid.NEAR), from] if at_stop else from
+				becomes(to), Lang.t("멈춘 곳 %s의 %s") % [_square(Grid.NEAR), from] if at_stop else from
 			]
 	)
 
 
 ## The label of what turns into tile kind `to`: "바닥이 됨".
-static func _becomes(to: int) -> String:
+static func becomes(to: int) -> String:
 	var runs := Lang.runs("{0}이/가 됨", [[Tiles.of(to, "name"), LABEL]], LABEL)
 	return "".join(runs.map(func(r): return r[0]))
 

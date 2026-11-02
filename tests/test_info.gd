@@ -374,13 +374,14 @@ func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void
 	assert_eq(foe.alert, Actor.REST, "rests at the first look once no longer wary")
 
 
-func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
+func test_sky_and_deep_water_are_tagged_impassable_and_the_tag_tells_what_crosses_them() -> void:
 	var w := World.create(7)
 	var p := Vector2i(5, 5)
 	for t in [World.SKY, World.POND]:
 		w.tiles[Grid.index(p)] = t
 		var text := Info.plain(Info.terrain_facts(w, p))
-		assert_string_contains(text, "주문과 멀리뛰기로만 건널 수 있다.")
+		assert_true(text.split("\n").has("이동 불가."), text)
+	assert_has(Glossary.rows()["이동 불가"], "넘을 수 있음: 주문, 멀리뛰기")
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
 	assert_string_contains(sky, "사라짐: 추락한 적\n층당 추락 피해: 1")
