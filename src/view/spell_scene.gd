@@ -54,7 +54,9 @@ static func leaps() -> Dictionary:
 		for i in n:
 			cards.append(Cards.WOOD)
 		var label := Lang.t("%s %d장") % [Lang.t(Cards.NAME[Cards.WOOD]), n]
-		each.append(of(cards).merged({label = Lang.t(Cards.NAME[Cards.VAULT]) if n == 0 else label}))
+		each.append(
+			of(cards).merged({label = Lang.t(Cards.NAME[Cards.VAULT]) if n == 0 else label})
+		)
 	return {key = &"", each = each}
 
 
