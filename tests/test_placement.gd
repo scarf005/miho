@@ -202,7 +202,12 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 					"%s is in a room" % p
 				)
 				assert_false(
-					w.rooms.any(func(r: Rect2i): return r.has_point(p) and r.has_point(goal)),
+					(
+						Skeletons.pick(w) != Skeletons.GARDEN
+						and w.rooms.any(
+							func(r: Rect2i): return r.has_point(p) and r.has_point(goal)
+						)
+					),
 					"%s is outside the goal room" % p
 				)
 

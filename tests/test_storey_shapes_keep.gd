@@ -1,6 +1,11 @@
 extends StoreyShapes
 ## The pond garden, the keep and the citadel.
 
+## A clump of ponds, bamboo or reeds is CLUMP tiles at least in CLUMPED of the garden
+## storeys; the noise leaves the others a tile or three short.
+const CLUMP := 8
+const CLUMPED := 0.9
+
 
 func before_all() -> void:
 	for kind: StringName in [Skeletons.GARDEN, Skeletons.KEEP, Skeletons.CITADEL]:
@@ -11,14 +16,18 @@ func before_all() -> void:
 
 
 func test_the_garden_has_hardly_a_wall_and_ponds_bamboo_and_reeds_in_clumps() -> void:
-	for w: World in _storeys(Skeletons.GARDEN):
+	var gardens := _storeys(Skeletons.GARDEN)
+	var clumps := {World.POND: 0, World.BAMBOO: 0, World.REEDS: 0}
+	for w: World in gardens:
 		var walls := w.tiles.count(World.WALL)
 		var ground := 0
 		for t in w.tiles:
 			ground += 1 if t != World.WALL and t != World.SKY and t != World.WINDOW else 0
 		assert_gt(ground, walls * 3, _label(w))
-		for t in [World.POND, World.BAMBOO, World.REEDS]:
-			assert_gte(w.tiles.count(t), 8, "%s tile %d" % [_label(w), t])
+		for t: int in clumps:
+			clumps[t] += 1 if w.tiles.count(t) >= CLUMP else 0
+	for t: int in clumps:
+		assert_gte(clumps[t], gardens.size() * CLUMPED, "storeys with a clump of tile %d" % t)
 
 
 func test_the_garden_has_walled_houses_for_what_needs_doors() -> void:

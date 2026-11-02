@@ -3,7 +3,7 @@ extends GutTest
 ## (tools/event_rooms.gd).
 
 const EventRooms := preload("res://tools/event_rooms.gd")
-const SEEDS := 25
+const SEEDS := 40
 const VAULT := "세 등불 보물방"
 
 var _rows := {}

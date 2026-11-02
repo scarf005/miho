@@ -268,6 +268,7 @@ func test_a_clone_forecasts_a_round_as_it_is_played_with_the_toggles_on() -> voi
 		_do(w, cmd)
 	_do(w, &"cards")
 	var foe := _foe(w, w.player().pos + E * 2, &"dokkaebi", Actor.HUNT)
+	foe.hp = 1
 	w.player().hp = 1
 	var spell := {t = &"cast", spells = [{cards = [Cards.ORB, Cards.FIRE], dir = E}]}
 	assert_true(w.can(spell))

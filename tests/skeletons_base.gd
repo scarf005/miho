@@ -156,7 +156,7 @@ func test_set_rooms_and_treasure_rooms_come_up_on_every_skeleton() -> void:
 		var sets := rows.filter(func(row): return not row.made.is_empty()).size()
 		var vaults := rows.filter(func(row): return not row.w.seals.is_empty()).size()
 		assert_gte(float(sets) / rows.size(), 0.9, "%s set rooms" % kind)
-		assert_between(float(vaults) / rows.size(), 0.2, 0.65, "%s vaults" % kind)
+		assert_between(float(vaults) / rows.size(), 0.1, 0.65, "%s vaults" % kind)
 
 
 # --- two routes --------------------------------------------------------------

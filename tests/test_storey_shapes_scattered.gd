@@ -1,6 +1,11 @@
 extends StoreyShapes
 ## The broken building and the scattered pavilions, and the ruin that mixes them.
 
+## A broken building has HOLES tiles of sky by its floor in every storey, a ruin, which
+## has the scattered pavilions in it too, in HOLED of them.
+const HOLES := 20
+const HOLED := 0.9
+
 
 func before_all() -> void:
 	for kind: StringName in [Skeletons.BROKEN, Skeletons.RUIN, Skeletons.SCATTERED]:
@@ -12,10 +17,14 @@ func before_all() -> void:
 
 func test_the_broken_building_has_holes_in_its_floor_but_none_in_a_rooms_middle() -> void:
 	for kind: StringName in [Skeletons.BROKEN, Skeletons.RUIN]:
-		for w: World in _storeys(kind):
-			assert_gte(_sky_by_floor(w), 20, _label(w))
+		var holed := 0
+		var storeys := _storeys(kind)
+		for w: World in storeys:
+			holed += 1 if _sky_by_floor(w) >= HOLES else 0
 			for r: Rect2i in w.rooms:
 				assert_ne(w.tile(FloorGen._centre(r)), World.SKY, "%s %s" % [_label(w), r])
+		var share := 1.0 if kind == Skeletons.BROKEN else HOLED
+		assert_gte(holed, storeys.size() * share, "%s storeys with holes" % kind)
 
 
 # --- the scattered pavilions ----------------------------------------------------

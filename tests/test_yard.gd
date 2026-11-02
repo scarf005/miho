@@ -8,17 +8,24 @@ const ROOM := Rect2i(10, 5, 11, 5)
 const DOOR := Vector2i(9, 7)
 const GUARD := Vector2i(20, 7)
 const STAND := Vector2i(19, 7)
-const SEEDS := 24
+## A yard comes up in about one storey in fifty: seeds are built until YARDS storeys
+## hold one, or SEEDS_MOST seeds are built.
+const YARDS := 3
+const SEEDS_MOST := 400
 const DEPTHS := [1, 3, 5, 9]
 
 var _storeys: Array[World] = []
 
 
 func before_all() -> void:
-	for seed_value in SEEDS:
+	var yards := 0
+	for seed_value in SEEDS_MOST:
 		for depth in DEPTHS:
 			var w := Built.storey(seed_value * World.FLOORS + depth, depth)
 			_storeys.append(w)
+			yards += 1 if w.sites.any(func(s): return s.kind == &"yard") else 0
+		if yards >= YARDS:
+			break
 
 
 func _label(w: World) -> String:
@@ -145,11 +152,12 @@ func test_a_room_with_sky_where_any_part_of_the_yard_would_lie_is_refused() -> v
 
 
 func test_the_storeys_that_laid_a_yard_over_the_sky_keep_their_guard_on_the_ground() -> void:
-	for pair: Array in [[1383, 5], [1815, 5], [1899, 8], [2016, 8]]:
-		var w := Built.storey(pair[0], pair[1])
-		for a in w.actors:
-			if a.guard:
-				assert_true(w.open_floor(a.pos), "seed %d storey %d" % pair)
+	var guards := 0
+	for w in _storeys:
+		for a in w.actors.filter(func(a): return a.guard):
+			guards += 1
+			assert_true(w.open_floor(a.pos), _label(w))
+	assert_gte(guards, YARDS)
 
 
 # --- the guard ---------------------------------------------------------------

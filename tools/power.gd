@@ -29,6 +29,8 @@ const ALL_KINDS: Array[StringName] = [
 	&"bitjaru",
 	&"gamtu",
 	&"jangseung",
+	&"sigwi",
+	&"gangsi",
 	&"imugi",
 	&"bulgae",
 	&"haetae",

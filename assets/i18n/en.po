@@ -1353,6 +1353,18 @@ msgstr " clinging"
 msgid "속지 않음: 후각이 뛰어나다"
 msgstr "Not fooled: keen smell"
 
+msgid "망자"
+msgstr "Undead"
+
+msgid "시귀"
+msgstr "Sigwi"
+
+msgid "물어뜯기"
+msgstr "gnawing"
+
+msgid "강시"
+msgstr "Gangsi"
+
 msgid "속지 않음"
 msgstr "Not fooled"
 
@@ -1873,6 +1885,14 @@ msgstr "Q"
 msgctxt "creature"
 msgid "두"
 msgstr "W"
+
+msgctxt "creature"
+msgid "귀"
+msgstr "Z"
+
+msgctxt "creature"
+msgid "시"
+msgstr "C"
 
 msgctxt "talisman"
 msgid "여"
