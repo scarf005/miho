@@ -876,9 +876,6 @@ msgstr "Blocks: path, spells"
 msgid "빛: %d칸"
 msgstr "Light: %d tiles"
 
-msgid "꺼지지 않음."
-msgstr "Never goes out."
-
 msgid "막음: 시야"
 msgstr "Blocks: sight"
 
@@ -930,14 +927,8 @@ msgstr "Enemy that falls: gone"
 msgid "층당 추락 피해: %d"
 msgstr "Fall damage per floor: %d"
 
-msgid "불에 타지 않음."
-msgstr "Does not burn."
-
 msgid "지날 때 피해: %d"
 msgstr "Damage when passing: %d"
-
-msgid "발소리: 없음"
-msgstr "Footsteps: none"
 
 msgid "밟으면: 하늘로 추락"
 msgstr "Stepped on: falls into the sky"
@@ -2161,9 +2152,6 @@ msgstr "Used {0}"
 msgid "가까운 적끼리 둘씩"
 msgstr "Nearest enemies in pairs"
 
-msgid "가득 찼을 때: 먹지 않음"
-msgstr "When full: not eaten"
-
 msgid "가림: %s"
 msgstr "Cover: %s"
 
@@ -2485,9 +2473,6 @@ msgstr "Cannot be seen."
 msgid "보지 못해도 당신을 쫓아감"
 msgstr "Chases you without seeing you"
 
-msgid "부술 수 없다."
-msgstr "Cannot be broken."
-
 msgid "부적 얻기"
 msgstr "Get talisman"
 
@@ -2520,9 +2505,6 @@ msgstr "Burning: when hit by a spell with fire"
 
 msgid "불에 타 쓰러졌다"
 msgstr "Burned to death"
-
-msgid "불이 붙지 않음."
-msgstr "Does not catch fire."
 
 msgid "불타는 시간: %d초"
 msgstr "Burning time: %d s"
@@ -2619,9 +2601,6 @@ msgstr "Sight: none"
 
 msgid "시야를 막음."
 msgstr "Blocks sight."
-
-msgid "시야를 막지 않음."
-msgstr "Does not block sight."
 
 msgid "시작: 당신을 봄, 주문에 맞음"
 msgstr "Starts: sees you, hit by a spell"
@@ -2826,9 +2805,6 @@ msgstr "Heal"
 
 msgid "체력을 모두 회복했다"
 msgstr "Healed fully"
-
-msgid "최대 체력: 오르지 않음"
-msgstr "Max health: does not rise"
 
 msgid "최면"
 msgstr "Hypnosis"

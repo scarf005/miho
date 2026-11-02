@@ -402,11 +402,7 @@ static func compound(c: StringName) -> Array:
 		&"mud":
 			var name: String = Tiles.of(World.MUD, "name")
 			return [
-				["꺼짐", "불, 등불"],
-				["땅", name],
-				["밟으면", Lang.t("묶임 %d초") % Compounds.MUD],
-				["발소리", "없음"],
-				_soak()
+				["꺼짐", "불, 등불"], ["땅", name], ["밟으면", Lang.t("묶임 %d초") % Compounds.MUD], _soak()
 			]
 		&"volcano":
 			return hot.call(Compounds.LAVA) + [["불타는 칸", "가연성·인화성 칸"], _alight_on()]

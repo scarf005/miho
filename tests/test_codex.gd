@@ -196,8 +196,6 @@ func test_a_gas_entry_tells_what_the_gas_is_not_how_much_of_it_lies_there() -> v
 		assert_false(text.contains("/%d" % Gas.MAX), name + " has no amount")
 		if Gas.of(kind, "blocks"):
 			assert_string_contains(text, "시야 막음: %d 이상" % Gas.OPAQUE)
-		else:
-			assert_string_contains(text, "시야를 막지 않음.")
 		assert_string_contains(text, "감소")
 		assert_false(text.contains("\n시야 막음."), name + " does not say it blocks sight now")
 

@@ -206,7 +206,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		["유탄", "3칸 앞 3×3", "피해: %d" % Compounds.SHRAPNEL, "소음: %d" % Spray.GUN_LOUD],
 		[METAL, WATER]: ["서리", "곧게 4칸", "얼어붙음: %d초" % Compounds.FROST, "연못: 얼음이 됨"],
 		[WATER, WOOD]: ["단비", "3칸 앞 3×3", "묶임: %d초" % Compounds.RAIN, "꺼짐: 불, 등불"],
-		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "밟으면: 묶임 %d초\n발소리: 없음" % Compounds.MUD],
+		[EARTH, WATER]: ["진흙", "2칸 앞 3×3", "밟으면: 묶임 %d초" % Compounds.MUD],
 		[EARTH, WATER, EARTH]: ["진흙·흙", "기절: %d초" % Elements.STUN],
 		[FOX, WATER, FIRE]: ["증기 여우불", "멈춘 곳 3×3", "증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX]],
 		[ORB, WOOD, EARTH]: ["멈춘 곳에서 1칸 안 첫 벽과 그 양옆"],

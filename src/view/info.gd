@@ -621,8 +621,6 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 		name = Jars.name_of(Jars.KIMCHI)
 		notes = [
 			Lang.t("체력: +%d") % World.HEAL,
-			"최대 체력: 오르지 않음",
-			"가득 찼을 때: 먹지 않음",
 			Lang.t("먹은 뒤 냄새: %d초 동안 진함") % Jars.PUNGENT_ROUNDS,
 		]
 	elif Scrolls.card_at(w, p) != &"":
@@ -692,8 +690,6 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("빛: %d칸") % Light.SOUL_RADIUS)
 		World.LAMP:
 			out.append(Lang.t("막음: 길, 주문"))
-			out.append(Lang.t("부술 수 없다."))
-			out.append(Lang.t("꺼지지 않음."))
 			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
 		World.VEIL:
 			out.append(Lang.t("막음: 길, 주문"))
@@ -720,7 +716,6 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("밟으면: 쓰러짐"))
 		World.PILLAR:
 			out.append(Lang.t("막음: 길, 시야, 빛"))
-			out.append(Lang.t("부술 수 없다."))
 		World.WOOD_WALL:
 			out.append(Lang.t("막음: 길, 시야, 빛"))
 			out.append(Lang.t("부서짐: 구슬"))
@@ -752,13 +747,10 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
 		World.WINDOW:
 			out.append(Lang.t("막음: 길"))
-		World.BRIDGE:
-			out.append(Lang.t("불에 타지 않음."))
 		World.THORNS:
 			out.append(Lang.t("지날 때 피해: %d") % Compounds.THORN)
 		World.MUD:
 			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
-			out.append(Lang.t("발소리: 없음"))
 		World.TRAP_ALARM:
 			out.append(Lang.t("밟을 때 소음: 층 전체"))
 		World.TRAP_COLLAPSE:
@@ -774,8 +766,6 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 	if Terrain.wall(t) and breakable:
 		out.append(Lang.t("부서짐: 구슬"))
 		out.append(Lang.t("부서질 때 소음: %d") % World.THUD)
-	elif Terrain.wall(t):
-		out.append(Lang.t("부술 수 없다."))
 	if Terrain.knockable(t) and t != World.DRUM:
 		out.append(Lang.t("부딪칠 때 소음: %d") % Tiles.of(t, "hit")[0])
 	var tread: Array = Tiles.of(t, "tread")
@@ -783,8 +773,6 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		out.append(Lang.t("발소리: %d칸") % tread[0])
 	if Tiles.of(t, "scentless"):
 		out.append(Lang.t("냄새가 남지 않음."))
-	if Tiles.of(t, "douses"):
-		out.append(Lang.t("불이 붙지 않음."))
 	if Tiles.burns[t] == 1 and not burns:
 		var spread := roundi(Tiles.of(t, "spread") * 100)
 		out.append(Lang.t("인화성." if Tiles.fierce[t] == 1 else "가연성."))
@@ -811,11 +799,9 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if now:
 		head.append([": %d/%d" % [g.y, Gas.MAX], Palette.DIM])
 	var out := [head]
-	if not Gas.of(g.x, "blocks"):
-		out.append([[Lang.t("시야를 막지 않음."), Palette.DIM]])
-	elif not now:
+	if Gas.of(g.x, "blocks") and not now:
 		out.append([[Lang.t("시야 막음: %d 이상") % Gas.OPAQUE, Palette.DIM]])
-	elif g.y >= Gas.OPAQUE:
+	elif Gas.of(g.x, "blocks") and g.y >= Gas.OPAQUE:
 		out.append([[Lang.t("시야를 막음."), Palette.DIM]])
 	out.append([[Lang.t("감소: 초당 %d%%") % Gas.of(g.x, "decay"), Palette.DIM]])
 	if Gas.of(g.x, "harm") > 0:

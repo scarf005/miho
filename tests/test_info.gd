@@ -32,7 +32,7 @@ func test_walls_show_their_health_but_the_outer_edge_shows_none() -> void:
 	w.tiles[Grid.index(inner)] = World.RUBBLE
 	assert_true(Info.plain(Info.terrain(w, inner)).begins_with("무너진 벽\n"))
 	w.tiles[0] = World.WALL
-	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽\n부술 수 없다.")
+	assert_eq(Info.plain(Info.terrain(w, Vector2i(0, 0))), "벽")
 
 
 func test_spells_of_the_same_talismans_but_another_form_read_differently() -> void:
@@ -244,7 +244,7 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 		World.BOARD: ["발소리: %d칸" % Tiles.of(World.BOARD, "tread")[0], "\n가연성."],
 		World.GRASS: ["가연성.\n번질 확률: %d%%" % roundi(Tiles.of(World.GRASS, "spread") * 100)],
 		World.DOOR: ["\n가연성."],
-		World.BRIDGE: ["발소리: %d칸" % Tiles.of(World.BRIDGE, "tread")[0], "불에 타지 않음."],
+		World.BRIDGE: ["발소리: %d칸" % Tiles.of(World.BRIDGE, "tread")[0]],
 		World.WINDOW: ["부딪칠 때 소음: %d" % World.KNOCK],
 		World.WALL: ["부서짐: 구슬\n부서질 때 소음: %d" % World.THUD],
 	}
