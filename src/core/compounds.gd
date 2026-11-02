@@ -113,7 +113,7 @@ static func land(w: World, s: Shot, at: Vector2i) -> void:
 		tip(w, s, c, at)
 		var line := Vector2i.ZERO if Spray.radial(c) else s.dir
 		for a in Spray.farthest_first(Spray.on(w, s, tiles), line, at):
-			if a == struck or Spray.reaches(w, s, a):
+			if a.alive() and (a == struck or Spray.reaches(w, s, a)):
 				strike(w, s, c, a, at)
 				if a != struck and a.alive() and not CALM.has(c):
 					Mind.struck(w, a, s)

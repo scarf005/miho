@@ -67,7 +67,7 @@ static func at(w: World, p: Vector2i) -> Array:
 	var a := w.actor_at(p)
 	if a != null:
 		return Info.creature(w, a) + (creature(a) if a.faction != Actor.FOX else [])
-	var s := w.shot_at(p)
+	var s := shot_at(w, p)
 	if s != null:
 		return SpellInfo.shot(w, s)
 	var lines := Info.terrain(w, p)
@@ -75,6 +75,11 @@ static func at(w: World, p: Vector2i) -> Array:
 	if stamp > 0:
 		lines.append([[Lang.t("냄새 %d초 전") % (w.round_no + 1 - stamp), Palette.DIM]])
 	return lines
+
+
+## The projectile `at` tells of on tile p: one with no creature on its tile.
+static func shot_at(w: World, p: Vector2i) -> Shot:
+	return w.shot_at(p) if w.actor_at(p) == null else null
 
 
 ## A creature's hidden state: what it is after, how long it has been without a

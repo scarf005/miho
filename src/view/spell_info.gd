@@ -394,8 +394,6 @@ static func _form(s: Spell) -> Array:
 			return [["모양", Lang.t("둘레 %d칸") % n]]
 		Spray.SIGHT:
 			return [["대상", "보이는 적 모두, 당신" if shape.size() > 2 else "보이는 적 모두"]]
-		Spray.STRIKE:
-			return [["모양", Lang.t("곧게 %d칸") % n]]
 	return [["모양", Lang.t("%d칸 안 첫 벽과 그 양옆") % n]]
 
 

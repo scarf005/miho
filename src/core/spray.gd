@@ -1,7 +1,8 @@
 class_name Spray
 extends RefCounted
 ## A spell of elements alone sprays: it covers its tiles in the round it is
-## cast, with no projectile, and emits one `spray` event with them. Its first
+## cast, with no projectile, and emits a `spray` event with them (낙뢰 one more for each
+## arc, `along`). Its first
 ## slot sets the shape. A lone element has its own gimmick, one level up for
 ## every copy (Spell.level, up to Spell.MAX_LEVEL):
 ## 불 a 90° fan over the tiles the caster sees (radius FAN): levels 1 and 2 set
@@ -77,13 +78,11 @@ const AROUND := &"around"
 const SIGHT := &"sight"
 ## The roots of a lone 나무 at its third level.
 const ROOTS := &"roots"
-## A line that goes through creatures.
-const STRIKE := &"strike"
 ## compound -> [shape, size, more]: a fan's radius, a line's length, how far
 ## ahead a cleave looks for a wall, a radius round the caster; for a burst how
 ## far ahead it lands and its radius, for tiles across the line how far ahead
-## they lie and how many. 쇠발톱 goes on Miho (Guise) and 분신 next to her (Bunsin): neither
-## is ever sprayed, and a
+## they lie and how many. 쇠발톱 and 사령술 go on Miho (Guise) and 분신 next to her (Bunsin):
+## none is ever sprayed, and a
 ## projectile that carries it does nothing with it.
 const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
@@ -108,7 +107,7 @@ const SHAPE := {
 	&"sinkhole": [BURST, 3, 1],
 	&"newmoon": [AROUND, 8],
 	&"discord": [SIGHT, 0],
-	&"thunder": [STRIKE, 8],
+	&"thunder": [LINE, 8],
 	&"stillness": [AROUND, 6],
 	Cards.SAMSARA: [SIGHT, 0, true],
 	Cards.CONQUEST: [SIGHT, 0],
@@ -276,8 +275,6 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return square(w, from, n, true)
 		SIGHT:
 			return sighted(w, caster, shape.size() > 2)
-		STRIKE:
-			return line(w, from, dir, n, false)
 		ACROSS:
 			var mid := landing(w, from, dir, shape[1])
 			return Elements.growable(w, Elements.across(mid, dir, shape[2] + grown))
@@ -353,7 +350,7 @@ static func holds(spell: Spell, t: int) -> bool:
 			return true
 		FAN_SHAPE, BURST:
 			return not Terrain.wall(t)
-		LINE, STRIKE:
+		LINE:
 			return open
 		BORE:
 			return open or Terrain.wall(t)
@@ -667,7 +664,7 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):
 			Terrain.hit(w, p)
 	for a in farthest_first(on(w, s, tiles), s.dir, at):
-		if not reaches(w, s, a):
+		if not a.alive() or not reaches(w, s, a):
 			continue
 		for c in spell.compounds():
 			Compounds.strike(w, s, c, a, at)
