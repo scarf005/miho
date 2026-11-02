@@ -184,8 +184,8 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	assert_string_contains(text, "도깨비")
 	assert_string_contains(text, "순찰 중")
 	assert_string_contains(text, "기습 피해: 3")
-	assert_string_contains(text, "근접: 방망이\n  피해: 1")
-	assert_string_contains(text, "주술: 도깨비불\n")
+	assert_string_contains(text, "근접: 방망이 · 피해: 1")
+	assert_string_contains(text, "주술: 도깨비불 · ")
 	assert_string_contains(text, "2초 뒤")
 	foe.alert = Actor.HUNT
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
