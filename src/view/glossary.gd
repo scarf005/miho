@@ -142,10 +142,14 @@ static func rows() -> Dictionary:
 
 ## What flying crosses and what it does not step on (Terrain.stepped).
 static func _flight() -> Array:
-	var names := func(ts): return ", ".join(ts.map(func(t): return Lang.t(Tiles.of(t, "name"))))
+	var names := func(ts): return ts.map(func(t): return Lang.t(Tiles.of(t, "name")))
+	var hot := Compounds.HOT.map(func(h): return Lang.t(h.name))
 	return [
-		Lang.t("넘을 수 있음: %s") % names.call([World.POND, World.SKY]),
-		Lang.t("밟지 않음: 함정, %s") % names.call([World.THORNS, World.MUD, World.BOARD_ROTTEN]),
+		Lang.t("넘을 수 있음: %s") % ", ".join(names.call([World.POND, World.SKY])),
+		(
+			Lang.t("밟지 않음: 함정, %s")
+			% ", ".join(names.call([World.THORNS, World.MUD, World.BOARD_ROTTEN]) + hot)
+		),
 	]
 
 

@@ -248,7 +248,7 @@ static func tick(w: World) -> void:
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
-		if a != null:
+		if a != null and not Bestiary.flies(a.kind):
 			w.emit({t = &"sear", id = a.id, at = p, kind = h.x})
 			if Bestiary.absorbs(a.nature_kind(), flame):
 				w.emit({t = &"absorb", id = a.id, at = p})
