@@ -7,16 +7,26 @@ extends RefCounted
 ## status that harms its holder BAD and one that helps it GOOD. A word is
 ## coloured only whole, never as part of a longer one. A run with a colour of
 ## its own is left as it is, unless it is nothing but such a word. It is also the
-## list of the words that have an entry in the 도감 (`terms`), which WordHover
-## shows where the pointer is over one.
+## list of the names that have an entry in the 도감 (`terms`), of every tab,
+## which WordHover shows and links where the pointer is over one. Such a name is
+## found whole, or with a particle after it; inside a longer word it is not.
 
 ## Conditions besides Status.NAME that harm their holder, and those that help it.
 const HARM := ["묶임", "기절", "눈멂"]
 const BOON := [Guise.NAME[Guise.GUISE], Guise.NAME[Guise.TALON], Guise.NAME[Guise.CLOAK]]
+## Particles that may follow a name, which stays a link: 진흙이, 풀을.
+const PARTICLES := "이|가|을|를|은|는|의|에서|에게|에|으로|로|과|와|도|만|까지|부터|처럼|이다"  # i18n: keep
+## The tabs in the order their names win: a name that is a rule or a state means
+## that, before a feature of the floor or a spell of the same name.
+const TAB_ORDER := [6, 5, 4, 3, 2, 1, 0]
 
-## language -> {words: shown word -> colours, find: the RegEx for them, ids: shown
-## term -> its Korean word, found: the RegEx for the terms}, made when first needed.
+## language -> {words: shown word -> colours, find: the RegEx for them}, made
+## when first needed.
 static var _tables := {}
+## language -> what the 도감 lists (_entries), and the last entry looked up as
+## [language, (tab, index), lines], which a pointer over one word asks for again.
+static var _listed := {}
+static var _last := []
 
 
 ## The Korean word -> [text colour] or [text colour, background colour].
@@ -43,25 +53,13 @@ static func _for() -> Dictionary:
 
 ## The RegEx that finds the whole words `words`, longest first. English words
 ## match in any case.
-static func _regex(words: Array) -> RegEx:
+static func _regex(words: Array, particles := "") -> RegEx:
 	var keys := words.duplicate()
 	keys.sort_custom(func(a: String, b: String): return a.length() > b.length())
 	var edge := "[가-힣A-Za-z0-9]"  # i18n: keep
-	var find := "(?<!%s)(%s)(?!%s)" % [edge, "|".join(PackedStringArray(keys)), edge]
+	var after := "" if particles == "" else "(?:%s)?" % particles
+	var find := "(?<!%s)(%s)%s(?!%s)" % [edge, "|".join(PackedStringArray(keys)), after, edge]
 	return RegEx.create_from_string(("" if Lang.active() == &"ko" else "(?i)") + find)
-
-
-## `_for` with the terms of the 도감 as well: each shown term by its Korean word,
-## and the RegEx that finds them. Made on first use.
-static func _terms_for() -> Dictionary:
-	var shown := _for()
-	if not shown.has("ids"):
-		var ids := {}
-		for term: String in terms():
-			ids[_key(Lang.t(term))] = term
-		shown.ids = ids
-		shown.found = _regex(ids.keys())
-	return shown
 
 
 static func _key(word: String) -> String:
@@ -135,28 +133,63 @@ static func piece(run: Array, text: String, color: Variant = null) -> Array:
 	)
 
 
-## The words that have an entry of their own in the 도감: its glossary's terms,
-## the conditions and the statuses; a new glossary term is a word with no other
-## change here.
+## The names that have an entry of their own in the 도감, in the language
+## shown, longest first: every entry of every tab (Codex.entries), so a new
+## entry is a word with no other change here.
 static func terms() -> Array:
-	var out: Array = Info.glossary().keys() + Info.CONDITIONS.keys() + Status.NAME.values()
-	out.sort_custom(func(a: String, b: String): return a.length() > b.length())
-	return out
+	return _entries().names.keys()
+
+
+## What the 도감 lists, made on first use in each language: the entries of each
+## tab, name -> where it is as (tab, index), and the RegEx that finds the names
+## whole, or with a particle after them, in a text.
+static func _entries() -> Dictionary:
+	var code := Lang.active()
+	if not _listed.has(code):
+		var tabs := {}
+		var at := {}
+		for tab: int in TAB_ORDER:
+			tabs[tab] = Codex.entries(tab)
+			for k in tabs[tab].size():
+				var key := _key(tabs[tab][k].name)
+				if not at.has(key):
+					at[key] = Vector2i(tab, k)
+		var names := at.keys()
+		names.sort_custom(func(a: String, b: String): return a.length() > b.length())
+		var sorted := {}
+		for name: String in names:
+			sorted[name] = at[name]
+		var particles := PARTICLES if code == &"ko" else ""
+		_listed[code] = {tabs = tabs, names = sorted, find = _regex(names.map(_escape), particles)}
+	return _listed[code]
+
+
+static func _escape(name: String) -> String:
+	for c in "\\.^$*+?()[]{}|":
+		name = name.replace(c, "\\" + c)
+	return name
+
+
+## Where the entry of `word` is, as (tab, index), or (-1, -1).
+static func locate(word: String) -> Vector2i:
+	return _entries().names.get(_key(word), Vector2i(-1, -1))
 
 
 ## The 도감 entry of `word` as hover lines, or none for a word without one.
 static func entry(word: String) -> Array:
-	if Info.glossary().has(word):
-		return Info.term_facts(word)
-	if Info.CONDITIONS.has(word):
-		return Info.condition_facts(word)
-	var key: Variant = Status.NAME.find_key(word)
-	return [] if key == null else Info.status_facts(key)
+	var at := locate(word)
+	if at.x < 0:
+		return []
+	var code := Lang.active()
+	if _last.size() == 3 and _last[0] == code and _last[1] == at:
+		return _last[2]
+	_last = [code, at, Codex.detail(_entries().tabs[at.x][at.y])]
+	return _last[2]
 
 
-## The entry of the word under column `col` (in cells) of a row of `runs` that
-## starts at column `x`, or none.
-static func entry_at(row: Array, x: float, col: float) -> Array:
+## The word under column `col` (in cells) of a row of `runs` that starts at
+## column `x`, or empty.
+static func word_at(row: Array, x: float, col: float) -> String:
 	var text := ""
 	var starts := PackedFloat32Array()
 	for run: Array in row:
@@ -166,8 +199,12 @@ static func entry_at(row: Array, x: float, col: float) -> Array:
 			x += Term._cells(c)
 			text += c
 	starts.append(x)
-	var shown := _terms_for()
-	for m in shown.found.search_all(text):
-		if col >= starts[m.get_start()] and col < starts[m.get_end()]:
-			return entry(shown.ids[_key(m.get_string())])
-	return []
+	for m in _entries().find.search_all(text):
+		if col >= starts[m.get_start(1)] and col < starts[m.get_end(1)]:
+			return _key(m.get_string(1))
+	return ""
+
+
+## The entry of the word under column `col` of a row, or none.
+static func entry_at(row: Array, x: float, col: float) -> Array:
+	return entry(word_at(row, x, col))

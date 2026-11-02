@@ -119,6 +119,6 @@ func _covered() -> bool:
 	var t: Term = get_parent()
 	if t.hint.is_empty():
 		return false
-	var fit: Dictionary = t._info_fit(Vector2i(t.hint_at) - t.side + t.cam, t.hint)
+	var fit: Dictionary = t.hint_fit()
 	var box := Rect2(fit.at, fit.cells * fit.scale)
 	return box.intersects(Rect2(position / CELL, Vector2(CodexScene.VIEW) * scale.x))

@@ -328,6 +328,8 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 		if Grid.inside(tile) or Grid.inside(term.side_at(local)):
 			main._point(pos)
 			main.menu.debug.pick(main, _click(pos))
+	elif WordLink.open(main, local):
+		return
 	elif Grid.inside(term.side_at(local)):
 		main._point(pos)
 		frozen = not main.term.info.is_empty()

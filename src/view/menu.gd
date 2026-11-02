@@ -20,6 +20,7 @@ const MOUSE := [
 	["부적 고르고 클릭", "그쪽으로 던지기"],
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
+	["단어 왼쪽 클릭", "도감에서 열기"],
 ]
 ## Tiles the look cursor moves with Shift held.
 const LOOK_FAR := 5
@@ -124,12 +125,22 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	if size != Vector2i.ZERO:
 		room = size
 	codex.hover = -1
+	codex.trail.clear()
 	codex.select(codex.selected)
 	if p == &"cheat":
 		debug.open(room)
 	if p == &"log":
 		selected = maxi(0, log_rows.size() - 1)
 		top = ListNav.reveal(0, selected, log_rows.size(), _fits())
+
+
+## A left click on the word `word` of the open page: its 도감 entry opens. Esc
+## returns to the entry it was opened from, or to the page.
+func link(word: String) -> void:
+	var inside := page == &"codex"
+	if not inside:
+		_enter(&"codex")
+	codex.link(word, inside)
 
 
 ## Opens a page from the current one, which Esc then returns to.
@@ -143,7 +154,7 @@ func _enter(p: StringName) -> void:
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
-	var out := {title = Lang.t("도움말"), rows = _help()}
+	var out := {title = Lang.t("도움말"), rows = _help(), words = true}
 	match page:
 		&"options":
 			out = {title = Lang.t("설정"), rows = _options()}
@@ -155,7 +166,12 @@ func panel() -> Dictionary:
 			out = {title = Lang.t("주문서"), rows = _spells(list), detail = detail}
 		&"log":
 			var none := [[[Lang.t("기록이 없다"), Palette.DIM]]]
-			out = {title = Lang.t("기록"), rows = log_rows if log_rows else none, painted = true}
+			out = {
+				title = Lang.t("기록"),
+				rows = log_rows if log_rows else none,
+				painted = true,
+				words = true
+			}
 		&"codex":
 			return codex.panel()
 		&"cheat":
@@ -370,6 +386,8 @@ func back() -> StringName:
 func _leave() -> StringName:
 	if confirming:
 		confirming = false
+		return &""
+	if page == &"codex" and codex.back():
 		return &""
 	if origin == &"":
 		return &"close"

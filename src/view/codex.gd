@@ -21,6 +21,9 @@ const AT := Vector2i(5, 8)
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
 var tab := 0
+## The entries a link was followed from, as [tab, selected, top, scroll], the
+## last one the latest; Esc goes back along them.
+var trail: Array = []
 ## The rank of the storey Miho is on (Bestiary.rank): the creatures read as there.
 var rank := 1
 var selected := 0
@@ -226,6 +229,7 @@ func panel() -> Dictionary:
 		aside_up = scroll > 0,
 		aside_down = scroll + fits < lines.size(),
 		example = _example(list[selected], _side_x(list)),
+		shown = Vector2i(tab, selected),
 	}
 
 
@@ -252,6 +256,8 @@ static func _legible(line: Array) -> Array:
 ## move the entry a page.
 func key(e: InputEventKey, nav: StringName) -> StringName:
 	var action := Keys.action_of(e)
+	if action == &"codex":
+		trail.clear()
 	if nav == &"back" or action == &"codex":
 		return &"close"
 	var pick := int(action.trim_prefix("pick_")) if action.begins_with("pick_") else 0
@@ -288,6 +294,30 @@ func scroll_by(lines: int, aside: bool) -> void:
 		scroll = ListNav.scrolled(scroll, lines, _lines().size(), _lines_fit())
 	else:
 		top = ListNav.scrolled(top, lines, entries(tab).size(), _fits())
+
+
+## Opens the entry of `word` in its own tab, kept in view. With `keep` the entry
+## shown now is put on the trail, unless it is the one.
+func link(word: String, keep: bool) -> void:
+	var at := Keywords.locate(word)
+	if at.x < 0 or at == Vector2i(tab, selected):
+		return
+	if keep:
+		trail.append([tab, selected, top, scroll])
+	go(at.x)
+	select(at.y)
+
+
+## Goes back to the entry the last link was followed from; false with none.
+func back() -> bool:
+	if trail.is_empty():
+		return false
+	var from: Array = trail.pop_back()
+	tab = from[0]
+	selected = from[1]
+	top = from[2]
+	scroll = from[3]
+	return true
 
 
 func go(t: int) -> void:

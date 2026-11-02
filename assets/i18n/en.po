@@ -1140,6 +1140,12 @@ msgstr "Point"
 msgid "무엇이 있는지 보기"
 msgstr "See what is there"
 
+msgid "단어 왼쪽 클릭"
+msgstr "Left click a word"
+
+msgid "도감에서 열기"
+msgstr "Open in the codex"
+
 msgid "살피는 중"
 msgstr "Looking"
 

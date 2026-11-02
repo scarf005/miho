@@ -13,19 +13,17 @@ extends Node
 ## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
 ## F3 shows the debug view (DebugView), which changes nothing in the game; F4 lists
-## the debug commands (DebugMenu), which play as actions. x looks
-## around: a cursor starts on Miho and the directions move it (Shift five
-## tiles), showing what the pointer would; Enter walks there, Esc or x stops.
-## In look mode the exclude key marks a danger zone (Exclusions) on the cursor
-## that exploring and travel walk around; again it makes the zone one tile, and
-## again removes it; 1-7 on a zone's centre set its radius.
-## Mouse: click a neighbour to move or a farther known tile to walk there, or
-## with a queue click anywhere to hurl that way; click a talisman to queue it;
-## right-click clears.
-## A step onto a plate found, fire or a drop asks first, and a held key stops when a
-## creature comes into sight (StepGuard). Erasing the run asks first as well.
-## The run is saved after every round (SaveGame) and the title continues it; a
-## run that ends leaves no save.
+## the debug commands (DebugMenu), which play as actions. x looks around: a cursor starts on Miho
+## and the directions move it (Shift five tiles), showing what the pointer would; Enter walks there,
+## Esc or x stops. In look mode the exclude key marks a danger zone (Exclusions) on the cursor that
+## exploring and travel walk around; again it makes the zone one tile, and again removes it; 1-7 on
+## a zone's centre set its radius.
+## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
+## anywhere to hurl that way; click a talisman to queue it; right-click clears. Click a word with a
+## 도감 entry to open it.
+## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
+## into sight (StepGuard). Erasing the run asks first as well. The run is saved after every round
+## (SaveGame) and the title continues it; a run that ends leaves no save.
 
 ## How much faster rounds play while walking many rounds.
 const WALK_SPEED := 3.0
@@ -404,6 +402,8 @@ func _do(action: StringName, shift: bool) -> void:
 
 
 func _click(event: InputEventMouseButton) -> void:
+	if _left_click(event) and WordLink.open(self, _local(event.position)):
+		return
 	looking = false
 	shutting = false
 	var eat := _eats_move()
@@ -915,7 +915,7 @@ func _panel_input(event: InputEvent) -> void:
 	elif button in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, PanelView.aside_at(term, local))
 	elif button == MOUSE_BUTTON_LEFT:
-		command = menu.click(PanelView.row_at(term, local), PanelView.tab_at(term, local))
+		command = WordLink.click(self, local)
 	match command:
 		&"close":
 			_close()
