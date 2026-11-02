@@ -15,13 +15,8 @@ var cooldown := 0
 var intent: Array[Dictionary] = []
 ## The rank of the storey it came to (Bestiary.rank): what it casts and its health.
 var rank := 1
-var rooted := 0
-var stunned := 0
-var blind := 0
-## Rounds left of each status (Status).
-var wet := 0
-var alight := 0
-var frozen := 0
+## Rounds left of each condition and status (Status).
+var ailments: Ailments
 var casts := 0
 ## The mana it has left to pay for spells with (Bestiary mana).
 var mana := 0
@@ -72,8 +67,9 @@ var imprint: Array[StringName] = []
 
 
 ## `bare` leaves the parts a copy replaces unbuilt (`clone`).
-func _init(_bare := false) -> void:
-	pass
+func _init(bare := false) -> void:
+	if not bare:
+		ailments = Ailments.new()
 
 
 func alive() -> bool:
@@ -151,12 +147,6 @@ func clone() -> Actor:
 	a.max_hp = max_hp
 	a.cooldown = cooldown
 	a.rank = rank
-	a.rooted = rooted
-	a.stunned = stunned
-	a.blind = blind
-	a.wet = wet
-	a.alight = alight
-	a.frozen = frozen
 	a.casts = casts
 	a.mana = mana
 	a.regrow = regrow
@@ -182,6 +172,7 @@ func clone() -> Actor:
 	a.cloak = cloak
 	a.flame = flame
 	a.raise = raise
+	a.ailments = ailments.copy()
 	a.intent = intent.duplicate(true)
 	a.marked.assign(marked)
 	a.imprint.assign(imprint)

@@ -205,7 +205,7 @@ func test_roots_from_heaven_hold_miho() -> void:
 	_hunter(w, &"cheonha", ME + E * 3, 1)
 	w.act(WAIT)
 	w.act(WAIT)
-	assert_gt(w.player().rooted, 0)
+	assert_gt(w.player().ailments.rooted, 0)
 
 
 func test_the_great_serpent_freezes_miho() -> void:

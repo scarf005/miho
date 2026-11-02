@@ -92,7 +92,7 @@ func test_a_fire_wisp_sets_any_creature_it_strikes_alight() -> void:
 	var foe := _post(w, ME + Vector2i(2, 0))
 	foe.hp = 9
 	w.act(_cast([FOX, FIRE]))
-	assert_gt(foe.alight, 0, "no wood, yet it burns")
+	assert_gt(foe.ailments.alight, 0, "no wood, yet it burns")
 	assert_eq(foe.hp, 9 - 1, "hit for 1; the flames it lit hurt from the next round")
 	w.act(WAIT)
 	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "and each round after")
@@ -105,7 +105,7 @@ func _wisp_at_miho() -> World:
 	w.player().hp = 5
 	w.player().max_hp = 5
 	var foe := _post(w, ME + Vector2i(2, 0), &"bujigaengi")
-	foe.rooted = 99
+	foe.ailments.rooted = 99
 	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
 	w.sense()
 	return w
@@ -525,7 +525,9 @@ func _assert_forecast_is_exact(w: World, cards: Array) -> void:
 	for a in w.actors:
 		var b := f.after.actor(a.id)
 		assert_eq(
-			[b.pos, b.hp, b.rooted, b.stunned], [a.pos, a.hp, a.rooted, a.stunned], str(cards)
+			[b.pos, b.hp, b.ailments.rooted, b.ailments.stunned],
+			[a.pos, a.hp, a.ailments.rooted, a.ailments.stunned],
+			str(cards)
 		)
 	var grown: Array[Vector2i] = []
 	for e in _of(events, &"sprout"):

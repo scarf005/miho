@@ -132,7 +132,7 @@ func test_the_log_tells_a_yelp_in_sight_and_a_yelp_heard_from_the_dark() -> void
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
 	assert_has(lines, "여우불이 캥 울었다")
 	var blind := _world()
-	blind.player().blind = 5
+	blind.player().ailments.blind = 5
 	blind.sense()
 	var s := _hovering(blind)
 	s.pos = ME + Vector2i(3, 0)

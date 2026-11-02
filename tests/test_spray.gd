@@ -124,7 +124,7 @@ func test_three_fires_set_the_creatures_in_the_fan_alight() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(3, 1))
 	w.act(_cast([FIRE, FIRE, FIRE]))
-	assert_gt(foe.alight, 0, "radius 4 reaches it")
+	assert_gt(foe.ailments.alight, 0, "radius 4 reaches it")
 	assert_eq(foe.hp, foe.max_hp, "and it burns from the next round")
 	w.act(WAIT)
 	assert_eq(foe.hp, foe.max_hp - World.FIRE_DAMAGE)
@@ -385,11 +385,11 @@ func test_a_lone_fire_fan_covers_three_tiles_and_two_cover_what_one_did() -> voi
 	assert_eq(_offsets(_cover(w, [FIRE, FIRE])).size(), 8)
 	var foe := _post(w, ME + Vector2i(2, 0))
 	w.act(_cast([FIRE, FIRE]))
-	assert_eq(foe.alight, 0, "two fires light what burns, not creatures")
+	assert_eq(foe.ailments.alight, 0, "two fires light what burns, not creatures")
 	var three := _world()
 	var burnt := _post(three, ME + Vector2i(2, 0))
 	three.act(_cast([FIRE, FIRE, FIRE]))
-	assert_gt(burnt.alight, 0, "three do")
+	assert_gt(burnt.ailments.alight, 0, "three do")
 
 
 func test_every_fire_spell_relights_a_dark_lantern_it_reaches() -> void:

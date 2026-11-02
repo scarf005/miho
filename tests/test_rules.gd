@@ -165,7 +165,7 @@ func test_a_creature_view_is_every_tile_it_sees() -> void:
 	_put(w, Vector2i(12, 8), World.WALL)
 	var foe := _foe(w, &"dokkaebi", Vector2i(10, 8))
 	for blind in [0, 2]:
-		foe.blind = blind
+		foe.ailments.blind = blind
 		var view := w.view_of(foe)
 		var lit := 0
 		for i in view.size():
@@ -178,7 +178,7 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	var w := _world(Vector2i(5, 8))
 	_put(w, Vector2i(8, 9), World.LANTERN)
 	var foe := _foe(w, &"dokkaebi", Vector2i(8, 8), 2)
-	foe.blind = 2
+	foe.ailments.blind = 2
 	w.sense()
 	var text := Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "도깨비")
@@ -229,7 +229,7 @@ func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came
 func test_claws_strike_thrice_at_an_unaware_creature_and_kill_silently() -> void:
 	var w := _world()
 	var prey := _foe(w, &"dokkaebi", Vector2i(5, 8))
-	prey.blind = 2
+	prey.ailments.blind = 2
 	var other := _foe(w, &"imugi", Vector2i(8, 8))
 	var events := w.act({t = &"move", dir = E})
 	assert_false(prey.alive())
@@ -302,7 +302,7 @@ func test_a_blind_hunter_cannot_strike_back_and_takes_a_plain_claw() -> void:
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
 	foe.hp = 3
 	foe.alert = Actor.HUNT
-	foe.blind = 2
+	foe.ailments.blind = 2
 	w.act(WAIT)
 	assert_eq(w.player().hp, 3, "blind, it cannot strike")
 	w.act({t = &"move", dir = E})

@@ -104,7 +104,7 @@ func test_a_creature_alight_burns_for_two_even_on_fierce_ground() -> void:
 	foe.max_hp = 9
 	w.tiles[Grid.index(foe.pos)] = World.STRAW
 	w.sense()
-	foe.alight = 3
+	foe.ailments.alight = 3
 	w.act(WAIT)
 	assert_eq(foe.hp, 9 - World.FIRE_DAMAGE)
 

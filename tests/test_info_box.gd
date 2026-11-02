@@ -36,9 +36,9 @@ func _busy(w: World, kind: StringName, led: bool, hunting: bool) -> Actor:
 		other.leader = a.id
 	a.rival = other.id
 	a.grudge = 5
-	a.blind = 3
-	a.rooted = 3
-	a.stunned = 3
+	a.ailments.blind = 3
+	a.ailments.rooted = 3
+	a.ailments.stunned = 3
 	a.wary = 3
 	a.cooldown = 4
 	a.lost = 1
@@ -70,7 +70,7 @@ func _hovers_of_every_creature() -> Dictionary:
 				out["%s led=%s hunting=%s" % [kind, led, hunting]] = Info.creature(w, a)
 	var w := _world()
 	w.player().wary = 3
-	w.player().blind = 3
+	w.player().ailments.blind = 3
 	out["miho"] = Info.creature(w, w.player())
 	return out
 

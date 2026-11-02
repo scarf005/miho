@@ -199,7 +199,7 @@ func test_the_forecast_names_the_sharp_creatures_that_notice_the_cast() -> void:
 func test_two_rounds_next_to_a_creature_end_the_guise() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i(2, 0))
-	foe.stunned = 99
+	foe.ailments.stunned = 99
 	w.act(_self(GUISE))
 	w.act({t = &"move", dir = E})
 	assert_true(w.player().guise, "one round beside it")
@@ -255,7 +255,7 @@ func test_the_hover_tells_the_guise_on_miho_and_on_a_fooled_creature() -> void:
 	var w := _world()
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
-	searcher.rooted = 99
+	searcher.ailments.rooted = 99
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), "둔갑할 모습: 도깨비")
 	var no_wood := _world()
 	no_wood.cards.erase(WOOD)

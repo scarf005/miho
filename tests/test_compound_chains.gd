@@ -277,7 +277,7 @@ func test_a_burst_of_radius_two_does_not_pass_a_wall() -> void:
 	assert_false(tiles.has(behind.pos), "the wall shields it")
 	assert_eq(tiles.size(), 15, "the three columns on Miho's side")
 	w.act(_cast(rain))
-	assert_eq(behind.rooted, 0)
+	assert_eq(behind.ailments.rooted, 0)
 
 
 func test_furnace_leaves_hot_iron_and_fells_the_wall_at_its_end() -> void:
@@ -325,7 +325,7 @@ func test_swamp_fells_walls_quietly_and_lays_mud() -> void:
 	assert_eq(w.tile(at + E * 2), World.MUD, "the second wall")
 	assert_eq(w.tile(at + E * 3), World.WALL, "past the radius")
 	assert_eq(w.tile(at), World.MUD)
-	assert_eq(foe.rooted, Compounds.SWAMP - 1)
+	assert_eq(foe.ailments.rooted, Compounds.SWAMP - 1)
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 
 
@@ -365,7 +365,7 @@ func test_each_3dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends() -> v
 					assert_eq(w.hot.get(at + Vector2i(1, -1)).x, Compounds.MOLTEN, label)
 				&"swamp":
 					assert_eq(w.tile(side.pos), World.MUD, label)
-					assert_eq(side.rooted, Compounds.SWAMP - 1, label)
+					assert_eq(side.ailments.rooted, Compounds.SWAMP - 1, label)
 				&"palisade":
 					assert_eq(w.tile(at + Vector2i(-1, -1)), World.WOOD_WALL, label)
 					assert_eq(w.tile(at), World.FLOOR, "the struck creature's tile")
@@ -413,7 +413,7 @@ func _preview_equals_round(form: Array, compounds: Array) -> void:
 				_put(w, Vector2i(x, ME.y + 3), World.LANTERN)
 			_post(w, ME + dir * 2)
 			var wet := _post(w, ME + dir * 2 + Vector2i(-dir.y, dir.x))
-			wet.wet = Status.WET
+			wet.ailments.wet = Status.WET
 			w.player().hp = 1
 			_put(w, ME + dir * 2 + Vector2i(0, -1), World.POND)
 			_put(w, ME + dir * 4, World.WALL)
@@ -431,13 +431,25 @@ func _preview_equals_round(form: Array, compounds: Array) -> void:
 			for a in w.actors:
 				var other := f.after.actor(a.id)
 				assert_eq(
-					[other.pos, other.rooted, other.frozen, other.alight, other.wet],
-					[a.pos, a.rooted, a.frozen, a.alight, a.wet],
+					[
+						other.pos,
+						other.ailments.rooted,
+						other.ailments.frozen,
+						other.ailments.alight,
+						other.ailments.wet
+					],
+					[
+						a.pos,
+						a.ailments.rooted,
+						a.ailments.frozen,
+						a.ailments.alight,
+						a.ailments.wet
+					],
 					label
 				)
 				assert_eq(
-					[other.hp, other.stunned, other.alert, other.rival, other.grudge],
-					[a.hp, a.stunned, a.alert, a.rival, a.grudge],
+					[other.hp, other.ailments.stunned, other.alert, other.rival, other.grudge],
+					[a.hp, a.ailments.stunned, a.alert, a.rival, a.grudge],
 					label
 				)
 

@@ -53,7 +53,7 @@ static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 		return Bunsin.open(w, a.pos + dir)
 	if spell.shape != Spell.LEAP:
 		return Terrain.throwable(w, spell, a.pos + dir, dir)
-	return a.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
+	return a.ailments.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
 
 
 ## The one tile `spell` along `d` from `from` ends on, when it names one: the landing
@@ -64,7 +64,7 @@ static func aimed(w: World, from: Vector2i, d: Vector2i, spell: Spell) -> Vector
 
 static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	var to := landing(w, a.pos, dir, spell.leap())
-	if a.rooted > 0 or to == a.pos:
+	if a.ailments.rooted > 0 or to == a.pos:
 		return
 	var depth := w.depth
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})

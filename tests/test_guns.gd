@@ -358,5 +358,5 @@ func test_five_fires_cover_a_fan_of_radius_six() -> void:
 	var reached := _post(w, 6)
 	var past := _post(w, 7)
 	w.act(_cast(_n(FIRE, 5)))
-	assert_gt(reached.alight, 0)
-	assert_eq(past.alight, 0)
+	assert_gt(reached.ailments.alight, 0)
+	assert_eq(past.ailments.alight, 0)

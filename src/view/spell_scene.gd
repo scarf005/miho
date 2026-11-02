@@ -171,7 +171,16 @@ static func alters(scene: Dictionary) -> bool:
 static func _state(w: World) -> int:
 	var foe := []
 	for a in w.actors.slice(1):
-		foe += [a.hp, a.rooted, a.stunned, a.blind, a.wet, a.alight, a.frozen, a.alert]
+		foe += [
+			a.hp,
+			a.ailments.rooted,
+			a.ailments.stunned,
+			a.ailments.blind,
+			a.ailments.wet,
+			a.ailments.alight,
+			a.ailments.frozen,
+			a.alert
+		]
 		foe += [a.marked, a.rival, a.asleep()]
 	var shots := w.shots.map(func(s: Shot) -> Array: return [s.pos, s.host])
 	return [foe, shots, w.tiles, w.burning.keys(), w.hot.keys(), w.gas.keys()].hash()

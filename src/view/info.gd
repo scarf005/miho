@@ -408,9 +408,9 @@ static func _search_left(a: Actor) -> String:
 static func _conditions(w: World, a: Actor) -> Array:
 	var out := []
 	for c in [
-		[a.blind, "눈멂"],
-		[a.rooted, "묶임"],
-		[a.stunned, "기절"],
+		[a.ailments.blind, "눈멂"],
+		[a.ailments.rooted, "묶임"],
+		[a.ailments.stunned, "기절"],
 		[a.wary, "경계"],
 	]:
 		if c[0] > 0:
@@ -421,7 +421,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	out.append_array(_status(a))
 	if (
 		w.burning.has(a.pos)
-		and a.alight <= 0
+		and a.ailments.alight <= 0
 		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1

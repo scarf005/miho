@@ -171,7 +171,7 @@ func test_a_spell_with_no_element_is_not_weak_hit_and_a_starfish_stops_it() -> v
 func _zap(kind: StringName, wet := false) -> Dictionary:
 	var w := _world()
 	var foe := _foe(w, kind)
-	foe.wet = Status.WET if wet else 0
+	foe.ailments.wet = Status.WET if wet else 0
 	var events := w.act(_cast(Cards.recipe(&"thunder")))
 	var hurts := _of(events, &"hurt", foe.id)
 	return {

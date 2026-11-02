@@ -210,7 +210,7 @@ func test_a_blind_creature_does_not_see_a_change() -> void:
 	var w := _world()
 	w.set_tile(SPOT, World.DOOR)
 	var a := _watcher(w)
-	a.blind = 5
+	a.ailments.blind = 5
 	Terrain.hit(w, SPOT)
 	w.act(WAIT)
 	assert_eq(a.alert, Actor.REST)

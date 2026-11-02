@@ -164,12 +164,12 @@ static func _actors(w: World) -> Array:
 					a.target,
 					a.sees_me,
 					a.marked,
-					a.wet,
-					a.alight,
-					a.frozen,
-					a.rooted,
-					a.blind,
-					a.stunned,
+					a.ailments.wet,
+					a.ailments.alight,
+					a.ailments.frozen,
+					a.ailments.rooted,
+					a.ailments.blind,
+					a.ailments.stunned,
 				]
 			)
 		)

@@ -295,7 +295,7 @@ func test_miho_beside_a_jar_of_beans_is_not_stunned() -> void:
 	_jar(w, AT, &"beans")
 	Structures.broke(w, World.JAR, AT)
 	assert_eq(Grid.cheb(w.player().pos, AT), 1)
-	assert_eq(w.player().stunned, 0)
+	assert_eq(w.player().ailments.stunned, 0)
 
 
 func test_beans_make_the_stun_sound_once_for_a_creature() -> void:

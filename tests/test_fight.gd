@@ -61,7 +61,7 @@ func test_it_prefers_an_unaware_one_among_those_next_to_her() -> void:
 	_foe(w, Vector2i(5, 8), Actor.HUNT)
 	var blind := _foe(w, Vector2i(4, 9))
 	assert_eq(Fight.step(w), {t = &"move", dir = E}, "it sees her: no sneak attack")
-	blind.blind = 2
+	blind.ailments.blind = 2
 	assert_eq(Fight.step(w), {t = &"move", dir = S}, "the sneak attack")
 	blind.alert = Actor.HUNT
 	assert_eq(Fight.step(w), {t = &"move", dir = E}, "a blind hunter is on guard: the older one")
@@ -73,7 +73,7 @@ func test_a_claw_is_a_sneak_attack_only_on_an_off_guard_creature_that_does_not_s
 			var w := _hall()
 			var foe := _foe(w, Vector2i(5, 8), alert)
 			foe.hp = 9
-			foe.blind = blind
+			foe.ailments.blind = blind
 			w.sense()
 			var sneak: bool = blind > 0 and alert == Actor.REST
 			var why := "blind %d, alert %d" % [blind, alert]
@@ -98,7 +98,7 @@ func test_the_map_tints_only_the_creatures_her_claws_catch_unawares() -> void:
 	var m := _main()
 	var seeing := _foe(m.world, Vector2i(5, 8))
 	var blind := _foe(m.world, Vector2i(4, 9))
-	blind.blind = 2
+	blind.ailments.blind = 2
 	m.world.sense()
 	assert_false(Fight.sneakable(m.world, seeing))
 	assert_true(Fight.sneakable(m.world, blind))

@@ -60,5 +60,5 @@ func test_the_forecast_of_that_step_is_drawn() -> void:
 func test_a_rooted_miho_still_cannot_step_onto_it() -> void:
 	var w := _world()
 	_wisp(w, &"dokkaebi")
-	w.player().rooted = 2
+	w.player().ailments.rooted = 2
 	assert_false(w.can({t = &"move", dir = EAST}))

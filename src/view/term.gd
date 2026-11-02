@@ -992,7 +992,7 @@ func _small(cell: Vector2, s: String, color: Color) -> void:
 ## The marks of what holds `a`, small at `cell`: its status (Status.of), then
 ## rooted and stunned.
 func _status(cell: Vector2, a: Actor) -> void:
-	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.get(k) > 0)
+	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.ailments.get(k) > 0)
 	var marks: Array = held.map(func(k): return Palette.CONDITION[k])
 	if Palette.STATUS.has(Status.of(a)):
 		marks.push_front(Palette.STATUS[Status.of(a)])

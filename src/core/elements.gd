@@ -122,7 +122,7 @@ static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 ## GROUNDS, else once. It is never more.
 static func charge(a: Actor) -> int:
 	var mine := Bestiary.elements(a.nature_kind())
-	if a.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
+	if a.ailments.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
 		return WEAK
 	return 0 if GROUNDS.any(func(e): return mine.has(e)) else 1
 
@@ -137,12 +137,12 @@ static func shock(w: World, a: Actor, n: int, rounds: int) -> void:
 
 
 static func root(w: World, a: Actor, rounds: int) -> void:
-	a.rooted = maxi(a.rooted, rounds)
+	a.ailments.rooted = maxi(a.ailments.rooted, rounds)
 	w.emit({t = &"root", id = a.id, rounds = rounds})
 
 
 static func stun(w: World, a: Actor, rounds: int) -> void:
-	a.stunned = maxi(a.stunned, rounds)
+	a.ailments.stunned = maxi(a.ailments.stunned, rounds)
 	a.intent.clear()
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
 

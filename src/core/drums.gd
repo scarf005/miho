@@ -49,7 +49,7 @@ static func plan(w: World, a: Actor) -> void:
 ## blow when it stands beside it. False when it has no drum to go to (or cannot
 ## go now), and it hunts as usual.
 static func go(w: World, a: Actor) -> bool:
-	if a.drum == NONE or a.rooted > 0:
+	if a.drum == NONE or a.ailments.rooted > 0:
 		return false
 	var stand := _stand(_dist(w, a), a.drum)
 	if not usable(w, a.drum) or stand.is_empty():

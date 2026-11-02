@@ -145,5 +145,5 @@ static func _vines(w: World, at: Vector2i) -> void:
 		for x in range(-VINE_REACH, VINE_REACH + 1):
 			var a := w.actor_at(at + Vector2i(x, y))
 			if a != null:
-				a.rooted = maxi(a.rooted, ROOT_ROUNDS)
+				a.ailments.rooted = maxi(a.ailments.rooted, ROOT_ROUNDS)
 				w.emit({t = &"root", id = a.id, rounds = ROOT_ROUNDS})

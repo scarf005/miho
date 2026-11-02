@@ -58,9 +58,9 @@ func test_everyone_in_the_cloud_is_hurt_and_alight_and_none_outside() -> void:
 	var outside := FloorGen.spawn(w, &"jangseung", AT + Vector2i(3, 2))
 	Terrain.ignite(w, AT)
 	assert_eq(inside.hp, inside.max_hp - Gas.BLAST)
-	assert_gt(inside.alight, 0)
+	assert_gt(inside.ailments.alight, 0)
 	assert_eq(outside.hp, outside.max_hp)
-	assert_eq(outside.alight, 0)
+	assert_eq(outside.ailments.alight, 0)
 
 
 func test_the_blast_is_loud_and_it_logs_and_sounds() -> void:

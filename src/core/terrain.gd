@@ -332,7 +332,7 @@ static func burn(w: World, alight: Array) -> void:
 	for p: Vector2i in w.burning.keys():
 		Hearing.noise(w, p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
-		if a != null and alight.has(p) and a.alight <= 0:
+		if a != null and alight.has(p) and a.ailments.alight <= 0:
 			var fierce := Tiles.fierce[w.tile(p)] == 1
 			w.emit({t = &"burn", at = p, id = a.id, fierce = fierce})
 			if Harm.fire(w, a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE, p):

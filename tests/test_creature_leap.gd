@@ -91,7 +91,7 @@ func test_it_does_not_leap_past_miho_or_off_her_line() -> void:
 func test_a_rooted_dokkaebi_does_not_leap() -> void:
 	var w := _world(DEEP)
 	var a := _leaper(w, ME + E * 7)
-	a.rooted = 3
+	a.ailments.rooted = 3
 	assert_eq(Aim.at(w, a, w.player()).filter(_is_leap), [] as Array[Dictionary])
 
 
@@ -177,7 +177,7 @@ func test_a_charged_leap_is_dropped_when_she_roots_it_first() -> void:
 	var w := _world(DEEP)
 	var a := _charged(w, ME + E * 7)
 	var from := a.pos
-	a.rooted = 3
+	a.ailments.rooted = 3
 	var events := w.act(WAIT)
 	assert_eq(a.pos, from)
 	assert_false(events.any(func(e): return e.t == &"leap"))

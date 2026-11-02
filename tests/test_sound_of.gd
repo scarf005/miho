@@ -333,7 +333,7 @@ func _step_onto(tile: int, wet := 0) -> Dictionary:
 	var w := _world()
 	w.tiles[Grid.index(w.player().pos + E)] = tile
 	w._changed()
-	w.player().wet = wet
+	w.player().ailments.wet = wet
 	var step: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"move")[0]
 	return {sound = Sfx.sound_of(step), db = Sfx.level_of(step)}
 

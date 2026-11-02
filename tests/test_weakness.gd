@@ -159,7 +159,7 @@ func test_a_fire_spell_sets_a_wood_creature_alight_and_does_not_double() -> void
 	foe.hp = 12
 	var events := w.act(_cast([ORB, Cards.FIRE]))
 	assert_eq(_hurts(events)[0].n, 1, "fire does not beat wood")
-	assert_gt(foe.alight, 0, "it burns")
+	assert_gt(foe.ailments.alight, 0, "it burns")
 	assert_has(events.map(func(e): return e.t), &"alight")
 	assert_eq(w.tile(FOE), World.FLOOR)
 	var before := foe.hp
@@ -171,7 +171,7 @@ func test_a_fire_wisp_also_lights_a_wood_creature() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonha")
 	w.act(_cast([Cards.FOX, Cards.FIRE]))
-	assert_gt(foe.alight, 0)
+	assert_gt(foe.ailments.alight, 0)
 
 
 func test_fire_splash_lights_a_wood_creature_next_to_the_blast() -> void:
@@ -179,7 +179,7 @@ func test_fire_splash_lights_a_wood_creature_next_to_the_blast() -> void:
 	_foe(w, &"dokkaebi")
 	var wood := _foe(w, &"cheonha", FOE + Vector2i(0, 1))
 	w.act(_cast([ORB, Cards.FIRE]))
-	assert_gt(wood.alight, 0)
+	assert_gt(wood.ailments.alight, 0)
 
 
 func test_fire_leaves_other_creatures_tiles_alone() -> void:
@@ -226,7 +226,7 @@ func test_the_starfish_eats_a_spell_with_metal_and_grows() -> void:
 func test_the_starfish_does_not_grow_on_a_spell_without_metal_or_with_fire() -> void:
 	var w := _world()
 	var foe := _foe(w, &"bulgasari")
-	foe.rooted = 9
+	foe.ailments.rooted = 9
 	var types := w.act(_cast([ORB, Cards.WOOD])).map(func(e): return e.t)
 	assert_has(types, &"absorb")
 	assert_does_not_have(types, &"grow")

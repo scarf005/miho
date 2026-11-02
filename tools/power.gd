@@ -166,7 +166,7 @@ func _cast_at(cards: Array, kind: StringName, spots: Array[Vector2i], after := f
 	w.act({t = &"cast", spells = [{cards = cards, dir = EAST}]})
 	var first := _harm(w.events, ids)
 	var total := first
-	var lingers := w.actors.any(func(a): return a.alight > 0) or not w.hot.is_empty()
+	var lingers := w.actors.any(func(a): return a.ailments.alight > 0) or not w.hot.is_empty()
 	if after and (lingers or not w.gas.is_empty()):
 		for i in AFTER:
 			w.act({t = &"wait"})

@@ -225,9 +225,9 @@ func test_the_vine_plate_roots_everyone_in_the_three_by_three_for_the_set_rounds
 	var beside := _foe(w, PLATE + Vector2i(1, 1))
 	var apart := _foe(w, PLATE + Vector2i(2, 0), &"jangseung")
 	var events := w.act({t = &"move", dir = E})
-	assert_eq(w.player().rooted, Traps.ROOT_ROUNDS - 1, "one round of it has passed")
-	assert_eq(beside.rooted, Traps.ROOT_ROUNDS - 1)
-	assert_eq(apart.rooted, 0, "two tiles from the plate")
+	assert_eq(w.player().ailments.rooted, Traps.ROOT_ROUNDS - 1, "one round of it has passed")
+	assert_eq(beside.ailments.rooted, Traps.ROOT_ROUNDS - 1)
+	assert_eq(apart.ailments.rooted, 0, "two tiles from the plate")
 	assert_eq(events.filter(func(e): return e.t == &"root").size(), 2)
 	assert_false(w.can({t = &"move", dir = E}), "she cannot step")
 	var rounds := 0
@@ -243,9 +243,9 @@ func test_a_creature_pushed_onto_the_vine_plate_roots_itself_and_its_neighbours(
 	var foe := _foe(w, PLATE - E)
 	var next_to := _foe(w, PLATE + Vector2i(0, -1))
 	w.push(foe, E, 1)
-	assert_eq(foe.rooted, Traps.ROOT_ROUNDS)
-	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
-	assert_eq(w.player().rooted, 0)
+	assert_eq(foe.ailments.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(next_to.ailments.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(w.player().ailments.rooted, 0)
 
 
 # --- who walks onto them ------------------------------------------------------
@@ -280,7 +280,7 @@ func test_a_hunter_does_not_step_aside_for_a_plate_on_its_straight_line() -> voi
 	w.act(WAIT)
 	w.act(WAIT)
 	assert_true(w.traps.has(foe.pos), "at %s" % foe.pos)
-	assert_gt(foe.rooted, 0, "its own vines hold it")
+	assert_gt(foe.ailments.rooted, 0, "its own vines hold it")
 
 
 func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() -> void:
@@ -389,7 +389,7 @@ func test_a_shot_of_heaven_sets_a_plate_off_too() -> void:
 	var next_to := _foe(w, PLATE + Vector2i(0, 1))
 	var s := Flight.spawn(w, foe, Spell.make([Cards.ORB]), E, 0)
 	_fly_on(w, s, 2)
-	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(next_to.ailments.rooted, Traps.ROOT_ROUNDS)
 	assert_false(s.gone, "it flies on")
 
 

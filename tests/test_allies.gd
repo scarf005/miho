@@ -377,10 +377,10 @@ func test_she_trades_places_with_an_ally_she_walks_into() -> void:
 func test_an_ally_held_fast_does_not_trade_places() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E)
-	copy.rooted = 3
+	copy.ailments.rooted = 3
 	assert_false(w.can({t = &"move", dir = E}))
-	copy.rooted = 0
-	copy.stunned = 3
+	copy.ailments.rooted = 0
+	copy.ailments.stunned = 3
 	assert_false(w.can({t = &"move", dir = E}))
 
 
@@ -424,7 +424,7 @@ func test_a_walk_goes_through_an_ally_that_can_trade_places() -> void:
 	w.seen.fill(1)
 	var copy := _copy(w, ME + E)
 	assert_true(Travel.walkable(w, copy.pos))
-	copy.rooted = 2
+	copy.ailments.rooted = 2
 	assert_false(Travel.walkable(w, copy.pos))
 
 

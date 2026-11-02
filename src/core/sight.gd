@@ -27,7 +27,7 @@ static func sensed(w: World, me: Actor) -> Array:
 		me.pos,
 		reach(w, me),
 		me.asleep(),
-		me.blind > 0,
+		me.ailments.blind > 0,
 		me.faction == Actor.FOX,
 		w.fov(me.pos),
 		w.opaque_mask(),

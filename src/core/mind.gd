@@ -64,7 +64,7 @@ static func heaven_phase(w: World) -> void:
 			continue
 		a.acted += 1
 		_regrow(a)
-		if a.stunned > 0:
+		if a.ailments.stunned > 0:
 			Status.lapse(w, a, &"stunned")
 			continue
 		perceive(w, a)
@@ -76,7 +76,7 @@ static func heaven_phase(w: World) -> void:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
 					Cast.cast(w, a, Bestiary.spell(a.kind, plan.cards), plan.dir)
 			continue
-		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
+		if a.ailments.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
 		match a.alert:
 			Actor.HUNT:
@@ -99,7 +99,7 @@ static func perceive(w: World, a: Actor) -> void:
 	if a.sees_me or a.info().get("hunts", false):
 		hunt_from(w, a, me.pos)
 		return
-	if a.alert == Actor.HUNT or a.blind > 0:
+	if a.alert == Actor.HUNT or a.ailments.blind > 0:
 		return
 	for s in w.shots:
 		if not s.gone and s.faction != a.faction and w.sees(a, s.pos):
@@ -253,10 +253,10 @@ static func _fight(w: World, a: Actor) -> bool:
 			return true
 		if near:
 			_melee(w, a, rival, melee)
-		elif a.rooted <= 0:
+		elif a.ailments.rooted <= 0:
 			_close(w, a, rival)
 		return true
-	if a.rooted > 0 or (a.pos != a.rival_at and _step_to(w, a, a.rival_at)):
+	if a.ailments.rooted > 0 or (a.pos != a.rival_at and _step_to(w, a, a.rival_at)):
 		return true
 	_truce(w, a)
 	return false
@@ -312,11 +312,11 @@ static func hunt(w: World, a: Actor) -> void:
 			return
 		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, me)):
 			return
-		if a.rooted <= 0:
+		if a.ailments.rooted <= 0:
 			_chase(w, a)
 		return
 	if a.info().get("hunts", false):
-		if a.rooted <= 0:
+		if a.ailments.rooted <= 0:
 			_step_to(w, a, me.pos, 1)
 		return
 	if _suspect(w, a):
@@ -324,10 +324,10 @@ static func hunt(w: World, a: Actor) -> void:
 	var by_nose: bool = me.cloak and a.info().get("tracks", false)
 	if not by_nose and a.pos != a.target and a.lost < World.SEARCH_ROUNDS:
 		a.lost += 1
-		if a.rooted > 0 or _step_to(w, a, a.target):
+		if a.ailments.rooted > 0 or _step_to(w, a, a.target):
 			return
 	var to := Scent.next(w, a)
-	if a.rooted <= 0 and _step_to(w, a, to):
+	if a.ailments.rooted <= 0 and _step_to(w, a, to):
 		a.target = to
 		return
 	a.alert = Actor.SEARCH
@@ -344,7 +344,7 @@ static func _stoke(w: World, a: Actor) -> bool:
 
 ## A tracker (Bestiary tracks) on Miho's trail sweeps along it, searching.
 static func _track(w: World, a: Actor) -> bool:
-	if not a.info().get("tracks", false) or a.rooted > 0:
+	if not a.info().get("tracks", false) or a.ailments.rooted > 0:
 		return false
 	var to := Scent.next(w, a)
 	if to == a.pos or not _step_to(w, a, to):
@@ -366,7 +366,7 @@ static func search(w: World, a: Actor) -> void:
 		return
 	if a.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
 		return
-	if a.rooted > 0:
+	if a.ailments.rooted > 0:
 		return
 	if a.pos != a.target and _step_to(w, a, a.target):
 		return
@@ -392,7 +392,7 @@ static func _follow(w: World, a: Actor) -> bool:
 
 
 static func rest(w: World, a: Actor) -> void:
-	if a.rooted > 0 or _track(w, a) or _follow(w, a):
+	if a.ailments.rooted > 0 or _track(w, a) or _follow(w, a):
 		return
 	if not a.info().get("patrol", false):
 		if a.pos != a.home:
@@ -410,7 +410,7 @@ static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void
 	Harm.hurt(w, target, melee.damage)
 	provoke(w, target, a)
 	var seizes: bool = melee.get("pull", false)
-	if melee.get("root", 0) > 0 and target.alive() and not (seizes and target.rooted > 0):
+	if melee.get("root", 0) > 0 and target.alive() and not (seizes and target.ailments.rooted > 0):
 		Elements.root(w, target, melee.root)
 		if seizes:
 			Fall.pull(w, target, a)

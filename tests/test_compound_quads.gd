@@ -174,7 +174,7 @@ func test_beacon_sets_a_wildfire_is_heard_at_its_end_and_lights_the_lanterns_in_
 	w.sense()
 	var events := w.act(_cast(_made(&"beacon")))
 	assert_true(w.wild.has(centre) and w.wild.has(centre + Vector2i(1, 1)), "a fire that spreads")
-	assert_gt(foe.alight, 0)
+	assert_gt(foe.ailments.alight, 0)
 	assert_eq(w.tile(ME + Vector2i(3, -2)), World.LANTERN, "the dark lantern in sight")
 	assert_eq(w.tile(Vector2i(ME.x + 15, ME.y - 2)), World.LANTERN_OUT, "behind the wall")
 	var calls := _of(events, &"noise").filter(func(e): return e.word == Compounds.BEACON_WORD)
@@ -329,7 +329,7 @@ func test_thunder_pierces_every_creature_on_its_line_to_a_wall_and_is_heard_and_
 	var events := w.act(_cast(_made(&"thunder")))
 	for foe in [first, second]:
 		assert_eq(_first(events, foe.id), Compounds.THUNDER)
-		assert_eq(foe.stunned, Compounds.THUNDER_STUN - 1)
+		assert_eq(foe.ailments.stunned, Compounds.THUNDER_STUN - 1)
 	assert_eq(behind.hp, behind.max_hp, "the wall stops it")
 	var booms := _of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM)
 	assert_false(booms.is_empty())
@@ -347,12 +347,12 @@ func test_thunder_hurts_a_wet_creature_and_a_water_creature_twice_but_not_four_t
 	var w := _world()
 	var dry := _post(w, ME + E * 2)
 	var wet := _post(w, ME + E * 3)
-	wet.wet = Status.WET
+	wet.ailments.wet = Status.WET
 	var of_water := _post(w, ME + E * 4)
 	of_water.kind = water
 	var both := _post(w, ME + E * 5)
 	both.kind = water
-	both.wet = Status.WET
+	both.ailments.wet = Status.WET
 	var events := w.act(_cast(_made(&"thunder")))
 	assert_eq(_first(events, dry.id), Compounds.THUNDER)
 	for foe in [wet, of_water, both]:
@@ -395,7 +395,7 @@ func test_samsara_heals_the_caster_a_point_and_stuns_every_foe_in_sight() -> voi
 	var events := _now(w, _made(Cards.SAMSARA))
 	assert_eq(w.player().hp, 2)
 	assert_eq(_of(events, &"heal").size(), 1)
-	assert_eq([near.stunned, far.stunned, hidden.stunned], [2, 2, 0])
+	assert_eq([near.ailments.stunned, far.ailments.stunned, hidden.ailments.stunned], [2, 2, 0])
 	events = _now(w, _made(Cards.SAMSARA))
 	assert_eq(w.player().hp, 3)
 	events = _now(w, _made(Cards.SAMSARA))
@@ -408,7 +408,7 @@ func test_samsara_cast_by_a_creature_of_heaven_heals_it_and_stuns_miho() -> void
 	var caster := _caster(w, ME + E * 3)
 	var events := _now(w, _made(Cards.SAMSARA), W, caster)
 	assert_eq(caster.hp, 2)
-	assert_eq(w.player().stunned, 2)
+	assert_eq(w.player().ailments.stunned, 2)
 	assert_true(_of(events, &"heal").is_empty(), "the log tells only Miho's")
 
 
@@ -444,7 +444,7 @@ func test_dragon_fells_the_walls_and_pushes_the_foes_out_farthest_first_and_stun
 	assert_eq(inner.pos, ME + E * 5, "room was made for it")
 	assert_eq(west.pos, ME + Vector2i(-6, 0))
 	for foe in [inner, outer, west]:
-		assert_eq(foe.stunned, Compounds.DRAGON_STUN - 1)
+		assert_eq(foe.ailments.stunned, Compounds.DRAGON_STUN - 1)
 	assert_eq([w.player().pos, w.player().hp], [ME, 3])
 	assert_false(_of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM).is_empty())
 
@@ -462,7 +462,7 @@ func test_a_4dan_or_5dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends()
 		side = _post(w, ME + Vector2i(2, 1))
 		w.act(_cast([form] + _made(Cards.SAMSARA)))
 		assert_eq(w.player().hp, 2, str(form))
-		assert_gt(side.stunned, 0, str(form))
+		assert_gt(side.ailments.stunned, 0, str(form))
 		w = _world()
 		hit = _post(w, ME + E * 2)
 		side = _post(w, ME + Vector2i(2, 1))

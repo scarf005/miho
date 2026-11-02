@@ -293,9 +293,9 @@ func test_a_dark_tile_tells_how_far_heaven_sees_in_the_dark() -> void:
 func test_a_creature_tells_its_conditions_with_seconds_left() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.blind = 2
-	foe.rooted = 3
-	foe.stunned = 1
+	foe.ailments.blind = 2
+	foe.ailments.rooted = 3
+	foe.ailments.stunned = 1
 	foe.wary = 7
 	var text := Info.plain(Info.creature(w, foe))
 	for part in ["눈멂: 2초", "묶임: 3초", "기절: 1초", "경계: 7초"]:
@@ -332,8 +332,8 @@ func test_a_creature_tells_each_spell_on_one_row_with_its_harm_and_reach() -> vo
 func test_miho_tells_her_claws_and_conditions() -> void:
 	var w := _hall()
 	var me := w.player()
-	me.blind = 2
-	me.rooted = 1
+	me.ailments.blind = 2
+	me.ailments.rooted = 1
 	var text := Info.plain(Info.creature(w, me))
 	assert_string_contains(text, "발톱 피해: %d\n기습 피해: %d" % [World.CLAW, World.CLAW * World.SNEAK])
 	assert_false(text.contains("시야"))

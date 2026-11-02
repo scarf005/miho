@@ -70,7 +70,7 @@ func _rounds(w: World) -> Array:
 	for i in ROUNDS:
 		out.append(w.act(WAIT))
 		for a in w.actors.slice(1):
-			a.stunned = 99
+			a.ailments.stunned = 99
 		if w.shots.is_empty():
 			break
 	return out
@@ -187,7 +187,7 @@ func test_the_forecast_of_each_round_flies_the_wisp_where_the_round_does() -> vo
 		var f := Forecast.of(w, WAIT)
 		var events := w.act(WAIT)
 		for a in w.actors.slice(1):
-			a.stunned = 99
+			a.ailments.stunned = 99
 		assert_false(f.paths.is_empty(), "round %d" % i)
 		for id in f.paths:
 			var real := events.filter(func(e): return e.t == &"fly" and e.shot == id)

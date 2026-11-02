@@ -73,7 +73,7 @@ func _dummy(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.hp = 30
 	a.max_hp = 30
 	a.cooldown = 99
-	a.stunned = 99
+	a.ailments.stunned = 99
 	return a
 
 

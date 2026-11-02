@@ -124,7 +124,7 @@ static func sees(vis: PackedByteArray, p: Vector2i) -> bool:
 
 ## The mark the map draws by a creature: blind x, hunting !, searching ?, or none.
 static func mark_of(a: Actor) -> String:
-	if a.blind > 0:
+	if a.ailments.blind > 0:
 		return "x"
 	return Palette.ALERT_MARK[a.alert]
 

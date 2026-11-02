@@ -57,7 +57,7 @@ static func sources(w: World) -> Array[Dictionary]:
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
 	for a in w.actors:
-		if a.alive() and a.alight > 0:
+		if a.alive() and a.ailments.alight > 0:
 			out.append({at = a.pos, radius = FIRE_RADIUS, color = FIRE})
 	for p in w.flares:
 		out.append({at = p, radius = MUZZLE_RADIUS, color = FIRE})

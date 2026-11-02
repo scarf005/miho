@@ -191,12 +191,12 @@ static func _creature(k: World, a: Actor) -> String:
 	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
 	for c in [
-		[a.blind, "blind"],
-		[a.rooted, "rooted"],
-		[a.stunned, "stunned"],
-		[a.wet, "wet"],
-		[a.alight, "alight"],
-		[a.frozen, "frozen"]
+		[a.ailments.blind, "blind"],
+		[a.ailments.rooted, "rooted"],
+		[a.ailments.stunned, "stunned"],
+		[a.ailments.wet, "wet"],
+		[a.ailments.alight, "alight"],
+		[a.ailments.frozen, "frozen"]
 	]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]

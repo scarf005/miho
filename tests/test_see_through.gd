@@ -137,7 +137,7 @@ func test_a_clever_creature_throws_one_wisp_at_a_time() -> void:
 	_lit(w)
 	var a := _foe(w, &"dokkaebi", ME + Vector2i(0, -6))
 	a.target = Vector2i(1, 2)
-	a.rooted = 99
+	a.ailments.rooted = 99
 	_wear(w, Guise.CLOAK)
 	var charges := 0
 	for i in 2:

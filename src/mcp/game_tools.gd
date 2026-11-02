@@ -471,7 +471,7 @@ func _card(name: Variant) -> StringName:
 func _refusal(action: Dictionary) -> String:
 	if world.outcome != &"":
 		return "The game is over. Call new_game."
-	if world.player().stunned > 0:
+	if world.player().ailments.stunned > 0:
 		return "Miho is stunned and cannot act."
 	if action.t == &"move":
 		return "Miho cannot step there: it is blocked, off the map, or she is rooted."

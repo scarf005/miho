@@ -142,7 +142,11 @@ static func _dearest(w: World, a: Actor, foe: Actor, mana: int, skip: Array) -> 
 static func _moot(spell: Spell, foe: Actor) -> bool:
 	if spell.shape != Spell.SPRAY:
 		return false
-	var marks := {Cards.WOOD: foe.rooted, Cards.WATER: foe.wet, Cards.FIRE: foe.alight}
+	var marks := {
+		Cards.WOOD: foe.ailments.rooted,
+		Cards.WATER: foe.ailments.wet,
+		Cards.FIRE: foe.ailments.alight
+	}
 	var held: Array = spell.slots.reduce(func(all, slot): return all + Cards.parts(slot), [])
 	return held.all(func(e): return marks.get(e, 0) > 0)
 
@@ -240,7 +244,7 @@ static func _leaps(plan: Dictionary) -> bool:
 ## tile free of fire, hot ground and plates it keeps off.
 static func _leap(w: World, a: Actor, spell: Spell, foe: Actor) -> Dictionary:
 	var dir := Grid.line_dir(a.pos, foe.pos)
-	if dir == Vector2i.ZERO or a.rooted > 0:
+	if dir == Vector2i.ZERO or a.ailments.rooted > 0:
 		return {}
 	var to := Leap.landing(w, a.pos, dir, spell.leap())
 	var safe := not (w.burning.has(to) or w.hot.has(to) or Traps.bars(w, a, to))

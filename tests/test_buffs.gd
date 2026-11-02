@@ -185,7 +185,7 @@ func test_dropping_is_legal_only_for_a_buff_she_wears_and_not_while_stunned() ->
 	_wear(w, Guise.CLOAK)
 	assert_false(w.can(_drop(Guise.TALON)), "another one")
 	assert_true(w.can(_drop(Guise.CLOAK)))
-	w.player().stunned = 2
+	w.player().ailments.stunned = 2
 	assert_false(w.can(_drop(Guise.CLOAK)), "stunned")
 
 

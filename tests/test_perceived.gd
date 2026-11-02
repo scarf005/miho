@@ -88,10 +88,10 @@ func test_a_seen_heed_is_told_once() -> void:
 func test_a_creature_coming_into_view_searching_or_blind_is_told() -> void:
 	var r := _round(HIDDEN, SEEN, Actor.SEARCH, [])
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색을 시작했다"] as Array[String])
-	r[1].actor(r[2]).blind = 2
+	r[1].actor(r[2]).ailments.blind = 2
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 눈이 멀었다"] as Array[String])
 	var seen := _round(SEEN, SEEN, Actor.SEARCH, [])
-	seen[1].actor(seen[2]).blind = 2
+	seen[1].actor(seen[2]).ailments.blind = 2
 	var blinded := [{t = &"blind", id = seen[2]}]
 	assert_eq(_lines(seen[0], seen[1], blinded), ["도깨비의 눈이 멀었다"] as Array[String])
 
