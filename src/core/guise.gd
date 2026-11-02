@@ -5,7 +5,7 @@ extends RefCounted
 ## seen, what her claws do or her element, take that aim (`kind`); any other is refused with
 ## `only`. 쇠발톱 goes on her whatever the direction (ANYWHERE). A buff takes at
 ## least 3 talismans and holds 목. It has no time limit, stays on her from storey
-## to storey, and she can drop it: one round, no tail (`dispel`).
+## to storey (but RAISE), and she can drop it: one round, no tail (`dispel`).
 ##
 ## 그림자 (SHADOW: 여, the 단비 slot of 수+목, and any number of 수): a dark wisp
 ## rides her (Elements.stick), darkening the tiles round her (Spell.light: 3, and
@@ -41,13 +41,26 @@ extends RefCounted
 ## weak): fire spells and burning tiles do her no harm, water harms her twice over,
 ## and every spell of hers that holds 불 and harms does FLAME_HARM more (`flame_harm`).
 ## The spell is silent. Thrown along a direction it is the 여우불 of 들불, as ever.
+##
+## 사령술 (RAISE: the 윤회 slot of all five elements, 목 among them): the dead she sees rise
+## as allies (Raise). The one buff with a time limit: it ends when she goes to another
+## storey, by any way (Storeys.enter). The spell is silent. Thrown along a direction it
+## is 윤회, as ever.
 
 const SHADOW := &"shadow"
 const GUISE := &"guise"
 const TALON := &"talon"
 const CLOAK := &"cloak"
 const FLAME := &"flame"
-const NAME := {SHADOW: "그림자", GUISE: "둔갑", TALON: Cards.NAME[TALON], CLOAK: "은신", FLAME: "불여우"}
+const RAISE := &"raise"
+const NAME := {
+	SHADOW: "그림자",
+	GUISE: "둔갑",
+	TALON: Cards.NAME[TALON],
+	CLOAK: "은신",
+	FLAME: "불여우",
+	RAISE: "사령술",
+}
 ## The talismans that make each, at their weakest.
 const RECIPE := {
 	SHADOW: [Cards.FOX, Cards.WATER, Cards.WOOD],
@@ -55,6 +68,7 @@ const RECIPE := {
 	TALON: [Cards.FIRE, Cards.WOOD, Cards.METAL],
 	CLOAK: [Cards.FOX, Cards.WOOD, Cards.EARTH],
 	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
+	RAISE: [Cards.EARTH, Cards.METAL, Cards.WATER, Cards.FIRE, Cards.WOOD],
 }
 ## The creature whose elements 불여우 gives her: a 불개, a fire creature that
 ## does nothing more with them.
@@ -95,13 +109,15 @@ static func _only(t: Callable) -> String:
 	return t.call("스스로에겐 %s만 걸 수 있다") % ", ".join(spells)
 
 
-## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, FLAME, or empty when
+## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, FLAME, RAISE, or empty when
 ## it does not go on oneself.
 static func kind(spell: Spell) -> StringName:
 	if spell == null:
 		return &""
 	if spell.slots.size() == 1 and ANYWHERE.has(spell.slots[0]):
 		return spell.slots[0]
+	if spell.slots == [Cards.SAMSARA]:
+		return RAISE
 	if (
 		spell.count(Cards.FOX) == 1
 		and spell.count(&"rain") == 1
@@ -172,6 +188,10 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 		FLAME:
 			caster.flame = true
 			w.emit({t = &"flame", id = caster.id, at = caster.pos})
+			return true
+		RAISE:
+			caster.raise = true
+			w.emit({t = &"raise", id = caster.id, at = caster.pos})
 			return true
 	for old in shadows(w, caster):
 		old.gone = true
@@ -244,6 +264,7 @@ static func worn(w: World, a: Actor) -> Array:
 		TALON: a.talon,
 		CLOAK: a.cloak,
 		FLAME: a.flame,
+		RAISE: a.raise,
 	}
 	return RECIPE.keys().filter(func(k): return on[k])
 
@@ -276,6 +297,9 @@ static func dispel(w: World, a: Actor, which: StringName) -> void:
 		FLAME:
 			a.flame = false
 			w.emit({t = &"unflame", id = a.id, at = a.pos})
+		RAISE:
+			a.raise = false
+			w.emit({t = &"unraise", id = a.id, at = a.pos})
 
 
 ## What 쇠발톱 adds to a claw of `me` at `foe`, or at no creature in particular.

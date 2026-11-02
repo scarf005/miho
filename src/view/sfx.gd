@@ -411,8 +411,10 @@ static func sound_of(e: Dictionary) -> StringName:
 			return WORDS.get(e.word, &"step")
 		&"leap":
 			return &"hiss"
-		&"swap", &"ally":
+		&"swap":
 			return &"foxfire"
+		&"ally":
+			return &"stone" if Raise.undead(e.kind) else &"foxfire"
 		&"crumble":
 			return &"fall"
 		&"cast", &"hit", &"burst", &"splash":
@@ -448,7 +450,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"click"
 		&"open", &"close":
 			return &"door"
-		&"root", &"freeze", &"sprout", &"guise", &"talon":
+		&"root", &"freeze", &"sprout", &"guise", &"talon", &"raise":
 			return &"root"
 		&"stun":
 			return &"stun"
@@ -464,7 +466,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask", &"uncloak", &"dry", &"quench", &"thaw", &"sleep":
 			return &"hiss"
-		&"unflame":
+		&"unflame", &"unraise":
 			return &"hiss"
 		&"fade":
 			return &"hiss" if e.get("dropped", false) else &""

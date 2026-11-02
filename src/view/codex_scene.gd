@@ -58,6 +58,8 @@ const KNOCKS := "  @t"
 const WALKS := "  @ttt"
 const SHOT := "  @   d"
 const NEAR := "  @  d"
+## 사령술: she fells one, and what rises goes at the next.
+const RISES := "  @ w    d"
 const TABLE := {
 	Guise.SHADOW: ["  @     d", "s..."],
 	Guise.GUISE: ["  @w", ">s.."],
@@ -72,6 +74,8 @@ const TABLE := {
 	"은신": ["  @     d", "s...", Guise.RECIPE[Guise.CLOAK]],
 	Guise.FLAME: ["  @  d", "sc..", Guise.RECIPE[Guise.FLAME]],
 	"불여우": ["  @  d", "sc..", Guise.RECIPE[Guise.FLAME]],
+	Guise.RAISE: [RISES, ">s>...."],
+	Guise.NAME[Guise.RAISE]: [RISES, ">s>....", Guise.RECIPE[Guise.RAISE]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
 	Jars.KIMCHI: ["  @ K", ">>."],

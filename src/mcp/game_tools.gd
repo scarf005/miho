@@ -46,7 +46,7 @@ const DIRS := {
 }
 const KINDS := {
 	"type": "string",
-	"enum": ["shadow", "guise", "talon", "cloak", "flame"],
+	"enum": ["shadow", "guise", "talon", "cloak", "flame", "raise"],
 	"description": "dispel: the buff on Miho to drop."
 }
 const SPELLS := {
@@ -112,6 +112,16 @@ const SPELLS := {
 		)
 		+ "until she drops them "
 		+ "with the action dispel. "
+		+ "dir self with %s, %s, %s, %s, %s " % Guise.RECIPE[Guise.RAISE]
+		+ (
+			"(the 5 element compound %s; hurled it stays that) is %s: a body she sees rises as an "
+			% [Cards.NAME[Cards.SAMSARA], Guise.NAME[Guise.RAISE]]
+		)
+		+ (
+			"ally on its tile or next to it, a %s, or a %s from a creature with as much health; "
+			% [Bestiary.KINDS[Raise.WEAK]["name"], Bestiary.KINDS[Raise.STRONG]["name"]]
+		)
+		+ "it ends when she leaves the storey, and what rose stays there. "
 		+ "Fox, earth, fire and wood in any order make "
 		+ ("%s: a copy of her steps out onto the free tile next to " % Cards.NAME[Cards.BUNSIN])
 		+ (

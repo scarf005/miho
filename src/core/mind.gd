@@ -36,7 +36,7 @@ static func enlist(w: World, a: Actor) -> void:
 	a.grudge = 0
 	a.alert = Actor.REST
 	a.intent.clear()
-	w.emit({t = &"ally", id = a.id, at = a.pos})
+	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
 
 
 ## One round of spent mana growing back, as World._regrow does for tails; it

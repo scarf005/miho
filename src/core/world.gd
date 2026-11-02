@@ -293,6 +293,7 @@ func clone() -> World:
 func known_clone() -> World:
 	var w := clone()
 	w.traps = Traps.found(self)
+	w.bodies = Notice.known(self)
 	w.secrets = {}
 	w.jars = {}
 	w.actors.assign(w.actors.filter(func(a): return a.is_miho() or Hat.shown(self, a)))
@@ -526,6 +527,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 	Lure.tick(self)
 	_end_round()
 	sense()
+	Raise.tick(self)
 	return events
 
 

@@ -3019,3 +3019,24 @@ msgstr "%s foes and %s foes shoot wisps at tiles they suspect."
 
 msgid "{0} 눈앞에서 {1}할까?"
 msgstr "{1} in front of {0}?"
+
+msgid "사령술"
+msgstr "Necromancy"
+
+msgid "{0}이/가 되살아났다"
+msgstr "{0} rose"
+
+msgid "{0}을/를 썼다"
+msgstr "Used {0}"
+
+msgid "보이는 시체가 아군으로 되살아난다."
+msgstr "A body you see rises as an ally."
+
+msgid "%s만큼 튼튼한 적은 %s, 더 약한 적은 %s 모습으로 되살아난다."
+msgstr "A foe as tough as a %s rises as a %s, a weaker one as a %s."
+
+msgid "층을 옮기면 풀리고, 되살아난 아군은 그 층에 남는다."
+msgstr "It ends when you change storeys, and the risen stay behind."
+
+msgid "이 층에 남는다."
+msgstr "Stays on this storey."

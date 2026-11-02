@@ -54,6 +54,7 @@ const CONDITIONS := {
 		CLOAK_SHOT,
 	],
 	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM]],
+	Guise.NAME[Guise.RAISE]: Raise.TOLD,
 }
 ## How a clever creature looks for Miho under her 은신 (Aim.suspected).
 const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
@@ -350,6 +351,8 @@ static func _situation(w: World, a: Actor) -> Array:
 	var lines := []
 	if a.ally():
 		lines.append([[Lang.t(ALLY) + ".", Palette.SIDE[0]]])
+		if Raise.risen(a):
+			lines.append([[Lang.t("이 층에 남는다."), Palette.DIM]])
 	lines.append([[state(a), Palette.ALERT[maxi(a.alert, 1)]]])
 	if a.alert == Actor.SEARCH:
 		lines.append([[_search_left(a), Palette.TEXT]])
@@ -527,7 +530,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	]:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
-	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME]:
+	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME, Guise.RAISE]:
 		if a.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))

@@ -79,7 +79,7 @@ const QUADS := {
 const SETS := {
 	BUNSIN: [FOX, EARTH, FIRE, WOOD],
 }
-## 5단 compound -> the five elements in an order that makes it (`join`).
+## 5단 compound -> its five elements; `recipe` finds an order of them that makes it.
 const FIVES := {
 	SAMSARA: [EARTH, METAL, WATER, WOOD, FIRE],
 	CONQUEST: [WOOD, EARTH, WATER, FIRE, METAL],

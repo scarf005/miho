@@ -7,7 +7,8 @@ extends RefCounted
 ## not on. Projectiles in flight and scent are not kept, and her 그림자 rides on
 ## with her. A kept storey is never changed, so World.clone shares them. An ally
 ## by her when she takes the stairs comes along (`followers`, DCSS _tag_follower_at),
-## and any other stays there as a creature does.
+## and any other stays there as a creature does, as what rose by 사령술 always does
+## (Raise). 사령술 ends here on any way off a storey (`enter`).
 
 ## How near the stairs an ally stands to come along. She climbs on the step itself, so
 ## one right behind her is this far off when the step ends.
@@ -48,11 +49,15 @@ static func leave(w: World) -> void:
 	w.storeys[w.depth] = kept
 
 
-## Takes the allies by Miho off the storey (FOLLOW), to `bring` to the next.
+## Takes the allies by Miho off the storey (FOLLOW), to `bring` to the next, but the risen.
 static func followers(w: World) -> Array[Actor]:
 	var me := w.player()
 	var party: Array[Actor] = []
-	party.assign(w.actors.filter(func(a): return a.ally() and Grid.cheb(a.pos, me.pos) <= FOLLOW))
+	party.assign(
+		w.actors.filter(
+			func(a): return a.ally() and not Raise.risen(a) and Grid.cheb(a.pos, me.pos) <= FOLLOW
+		)
+	)
 	w.actors.assign(w.actors.filter(func(a): return not party.has(a)))
 	return party
 
@@ -76,6 +81,8 @@ static func bring(w: World, party: Array[Actor]) -> void:
 ## Puts Miho at the start of storey `depth`: the one kept there, or a new one
 ## the first time. Her scent and her projectiles but her 그림자 stay behind.
 static func enter(w: World, depth: int) -> void:
+	if w.player().raise:
+		Guise.dispel(w, w.player(), Guise.RAISE)
 	w.depth = depth
 	w.scent.clear()
 	w.strong.clear()

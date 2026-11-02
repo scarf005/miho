@@ -199,7 +199,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				return _t("{0}이/가 사라졌다", [who])
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["쓰러졌다", TEXT]])
 		&"ally":
-			return _t("{0}이/가 나타났다", [who])
+			return _t("{0}이/가 되살아났다" if Raise.undead(e.kind) else "{0}이/가 나타났다", [who])
 		&"fall":
 			if e.has("depth"):
 				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
@@ -302,6 +302,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}으로/로 변했다", [_named(Guise.NAME[Guise.FLAME])])
 		&"unflame":
 			return _t("{0} 변신이 풀렸다", [_named(Guise.NAME[Guise.FLAME])])
+		&"raise":
+			return _t("{0}을/를 썼다", [_named(Guise.NAME[Guise.RAISE])])
+		&"unraise":
+			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.RAISE])])
 		&"sleep":
 			return _t("{0}이/가 잠들었다", [who])
 		&"fade":

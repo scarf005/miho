@@ -68,10 +68,11 @@ var form := &""
 var guise := false
 var beside := 0
 ## Whether it holds 쇠발톱 (her claws harm more), 은신 (the hat's rule, Hat) and
-## 불여우 (it counts as a fire creature: `nature_kind`).
+## 불여우 (it counts as a fire creature: `nature_kind`) and 사령술 (Raise).
 var talon := false
 var cloak := false
 var flame := false
+var raise := false
 ## The one spell it casts in place of those of its kind (`repertoire`), empty for
 ## none. Miho's is the spell her next copy takes (Bunsin.learn).
 var imprint: Array[StringName] = []
@@ -182,6 +183,7 @@ func clone() -> Actor:
 		"talon",
 		"cloak",
 		"flame",
+		"raise",
 	]:
 		a.set(p, get(p))
 	a.intent = intent.duplicate(true)

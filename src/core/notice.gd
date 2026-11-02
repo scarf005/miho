@@ -43,6 +43,15 @@ static func fallen(w: World, a: Actor) -> void:
 	w.bodies[a.pos] = {kind = a.kind, round = w.round_no, met = false}
 
 
+## The body marks Miho has seen.
+static func known(w: World) -> Dictionary:
+	var out := {}
+	for p: Vector2i in w.bodies:
+		if w.bodies[p].met:
+			out[p] = w.bodies[p].duplicate()
+	return out
+
+
 ## Body marks Miho has seen stay on her map.
 static func remember(w: World) -> void:
 	for p: Vector2i in w.bodies:

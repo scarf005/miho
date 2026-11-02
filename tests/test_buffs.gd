@@ -85,8 +85,10 @@ func test_each_buff_holds_wood_and_goes_on_her_in_every_card_order() -> void:
 		assert_true(cards.size() >= 3, kind)
 		assert_true(Spell.make(cards).holds(Cards.WOOD), kind)
 		for order: Array in _orders(cards):
-			assert_eq(Guise.kind(Spell.make(order)), kind, str(order))
-			assert_true(_world().can(_self(order)), str(order))
+			var s := Spell.make(order)
+			var wears := kind != Guise.RAISE or s.slots == ([Cards.SAMSARA] as Array[StringName])
+			assert_eq(Guise.kind(s), kind if wears else &"", str(order))
+			assert_eq(_world().can(_self(order)), wears, str(order))
 
 
 func test_more_water_widens_the_shadow_in_every_order() -> void:
@@ -118,7 +120,7 @@ func test_no_buff_ends_by_time() -> void:
 	assert_eq(Guise.worn(w, w.player()), Guise.RECIPE.keys())
 
 
-func test_every_buff_stays_on_her_up_a_storey_and_down_again() -> void:
+func test_every_buff_but_raise_stays_on_her_up_a_storey_and_down_again() -> void:
 	var w := World.create(5)
 	w.cards.assign(Cards.ALL)
 	w.player().prey = &"dokkaebi"
@@ -130,7 +132,8 @@ func test_every_buff_stays_on_her_up_a_storey_and_down_again() -> void:
 		Storeys.enter(w, at_storey)
 		w.sense()
 		w.act(WAIT)
-		assert_eq(Guise.worn(w, w.player()).size(), Guise.RECIPE.size(), "on storey %d" % at_storey)
+		var kept := Guise.RECIPE.size() - 1
+		assert_eq(Guise.worn(w, w.player()).size(), kept, "on storey %d" % at_storey)
 		var wisp: Shot = Guise.shadows(w, w.player())[0]
 		assert_eq(wisp.pos, w.player().pos, "the wisp rides her on storey %d" % at_storey)
 		assert_false(w.lit(w.player().pos), "her tile stays dark on storey %d" % at_storey)

@@ -239,6 +239,12 @@ static func ward(s: Spell) -> Array:
 				_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 			]
 		)
+	if kind == Guise.RAISE:
+		return (
+			[_line(on, name)]
+			+ Raise.TOLD.map(func(l): return [[Info._text(l), Palette.TEXT]])
+			+ [_line(Lang.t("%s 소음") % Lang.t(name), "없음")]
+		)
 	var dark: int = Guise.dark(s).light(Actor.FOX).radius
 	return [
 		_line(on, name),

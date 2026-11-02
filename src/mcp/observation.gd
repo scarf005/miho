@@ -59,6 +59,10 @@ static func text(world: World) -> String:
 	if me.flame:
 		var line := "fire creature: no harm from fire, lightning harms only wet, water harms twice"
 		out.append("%s, fire spells harm %d more" % [line, Guise.FLAME_HARM])
+	if me.raise:
+		out.append(
+			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
+		)
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":
@@ -163,6 +167,8 @@ static func _ally(k: World, a: Actor) -> String:
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
 	if not Legal.makes_way(a):
 		line += ", cannot trade places"
+	if Raise.risen(a):
+		line += ", stays on this storey"
 	return line
 
 
