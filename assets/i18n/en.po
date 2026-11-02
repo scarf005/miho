@@ -1350,10 +1350,10 @@ msgstr "Left click yourself"
 msgid " 붙음"
 msgstr " clinging"
 
-msgid "속지 않는 적: 후각이 뛰어나다"
+msgid "속지 않음: 후각이 뛰어나다"
 msgstr "Not fooled: keen smell"
 
-msgid "속지 않는 적"
+msgid "속지 않음"
 msgstr "Not fooled"
 
 msgid "%s 면역인 적"
@@ -1362,10 +1362,10 @@ msgstr "Immune to %s"
 msgid "%s 면역인 적: +%d"
 msgstr "Immune to %s: +%d"
 
-msgid "쫓아오는 적: 후각이 뛰어나다"
+msgid "쫓아옴: 후각이 뛰어나다"
 msgstr "Follows you: keen smell"
 
-msgid "쫓아오는 적"
+msgid "쫓아옴"
 msgstr "Follows you"
 
 msgid "도깨비불을 쏘는 적: %s, %s"

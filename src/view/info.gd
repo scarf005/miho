@@ -28,7 +28,7 @@ const CONDITIONS := {
 	[
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
 		"속는 적: 추격 중이 아닌 적",
-		"속지 않는 적: 후각이 뛰어나다",
+		"속지 않음: 후각이 뛰어나다",
 	],
 	Guise.NAME[Guise.TALON]:
 	[
@@ -38,7 +38,7 @@ const CONDITIONS := {
 	Guise.NAME[Guise.CLOAK]:
 	[
 		["보임: %d칸 안, 도깨비불 붙음", Hat.REACH],
-		"쫓아오는 적: 후각이 뛰어나다",
+		"쫓아옴: 후각이 뛰어나다",
 		["도깨비불을 쏘는 적: %s, %s", WITS[Bestiary.SHARP], WITS[Bestiary.CUNNING]],
 	],
 }
