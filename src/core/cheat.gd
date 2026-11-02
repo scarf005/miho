@@ -4,7 +4,7 @@ extends RefCounted
 ## a save keeps them and Continue plays them again: {t = &"cheat", cmd, ...}.
 ## A command takes no round: nothing flies, no creature acts and the clock stays
 ## put. The four toggles are kept in World.cheats and copied with it: 무적 (Miho
-## takes no harm), 꼬리 무제한 (casting spends no tails), 맵 밝히기 (every tile
+## takes no harm), 꼬리 무제한 (casting spends no tails), 지도 밝히기 (every tile
 ## known and seen) and 적 멈춤 (creatures take no turns). Harming a creature goes
 ## by World.hurt, so a death drops its scroll and gives Miho a tail.
 
@@ -24,7 +24,7 @@ const NAME := {
 	&"card": "부적 얻기",
 	&"cards": "부적 얻기",
 	&"summon": "적 소환",
-	&"reveal": "맵 밝히기",
+	&"reveal": "지도 밝히기",
 	&"heal": "체력 회복",
 	&"halt": "적 멈춤",
 }
@@ -66,7 +66,7 @@ static func immune(w: World, a: Actor) -> bool:
 	return a.is_miho() and on(w, &"god")
 
 
-## With 맵 밝히기 on, every tile is known and seen; called once Miho's sight is worked out.
+## With 지도 밝히기 on, every tile is known and seen; called once Miho's sight is worked out.
 static func reveal(w: World) -> void:
 	if on(w, &"reveal"):
 		w.seen.fill(1)

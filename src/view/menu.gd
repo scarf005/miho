@@ -59,7 +59,7 @@ const OPTIONS := [
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
 	&"music": "음악 크기",
-	&"crt": "CRT 효과",
+	&"crt": "브라운관 효과",
 	&"zoom": "화면 크기",
 	&"speed": "움직임 속도",
 	&"language": "언어",

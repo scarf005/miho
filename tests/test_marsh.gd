@@ -73,7 +73,7 @@ func test_the_blast_is_loud_and_it_logs_and_sounds() -> void:
 	assert_eq(Sfx.sound_of(blast), &"blast")
 	var lines: Array[String] = []
 	lines.assign(Messages.of(w, w, [blast]).map(Messages.plain))
-	assert_eq(lines, ["늪 가스가 폭발했다"] as Array[String])
+	assert_eq(lines, ["늪 기체가 폭발했다"] as Array[String])
 
 
 func test_other_gases_do_not_explode() -> void:
@@ -98,6 +98,6 @@ func test_a_burning_tile_beside_the_cloud_sets_it_off_in_the_round_the_gas_reach
 func test_the_hover_of_the_gas_keeps_the_blast_a_secret() -> void:
 	var w := _world()
 	var text := Info.plain(Info.terrain(w, AT))
-	assert_string_contains(text, "늪 가스")
+	assert_string_contains(text, "늪 기체")
 	assert_false(text.contains("폭발"), text)
 	assert_false(text.contains("시야"), text)

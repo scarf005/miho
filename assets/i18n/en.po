@@ -258,7 +258,7 @@ msgstr "Smoke"
 msgid "향 연기"
 msgstr "Incense smoke"
 
-msgid "늪 가스"
+msgid "늪 기체"
 msgstr "Swamp gas"
 
 msgid "쾅"
@@ -552,7 +552,7 @@ msgstr "Spells"
 msgid "조합"
 msgstr "Combos"
 
-msgid "아이템"
+msgid "물건"
 msgstr "Items"
 
 msgid "지형지물"
@@ -1149,7 +1149,7 @@ msgstr "Sound volume"
 msgid "음악 크기"
 msgstr "Music volume"
 
-msgid "CRT 효과"
+msgid "브라운관 효과"
 msgstr "CRT effect"
 
 msgid "화면 크기"
@@ -2403,7 +2403,7 @@ msgstr "Struck drum"
 msgid "맞은 적"
 msgstr "Struck enemy"
 
-msgid "맵 밝히기"
+msgid "지도 밝히기"
 msgstr "Reveal map"
 
 msgid "먹은 뒤 냄새: %d초 동안 진함"

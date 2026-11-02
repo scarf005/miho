@@ -11,7 +11,7 @@ extends RefCounted
 ## a scene (CodexScene) plays it (CodexSim) where the screen has room.
 ## `key` returns &"close" or nothing.
 
-const TABS := ["적", "주문", "조합", "아이템", "지형지물", "상태이상", "용어"]
+const TABS := ["적", "주문", "조합", "물건", "지형지물", "상태이상", "용어"]
 ## The cell where the detail starts.
 ## Where the detail starts at least; a name too long for the list pushes it right.
 const SIDE_X := 13.0

@@ -36,7 +36,7 @@ const ROWS := {
 	STEAM: {name = "증기", decay = 50, harm = 1, wets = true},
 	SMOKE: {name = "연기", decay = 50, erases = true},
 	INCENSE: {name = "향 연기", decay = 20, blocks = false, erases = true},
-	MARSH: {name = "늪 가스", decay = 20, blocks = false, explodes = true},
+	MARSH: {name = "늪 기체", decay = 20, blocks = false, explodes = true},
 }
 const DEFAULT := {
 	name = "", decay = 0, harm = 0, wets = false, blocks = true, erases = false, explodes = false
