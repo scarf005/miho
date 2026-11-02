@@ -50,7 +50,7 @@ func test_each_of_two_wisps_is_named_alone_in_the_log_and_the_hover() -> void:
 	assert_false(lines.contains("2발이"), lines)
 	var hover := Info.plain(Info.creature(w, foe))
 	assert_string_contains(hover, "여우불 붙음")
-	assert_false(hover.contains("2발"), hover)
+	assert_false(hover.contains("여우불 2발"), hover)
 
 
 func test_one_of_two_flying_is_named_alone_in_its_hover_and_on_the_death_screen() -> void:

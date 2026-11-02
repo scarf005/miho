@@ -571,7 +571,10 @@ static func shot(w: World, s: Shot) -> Array:
 	if caster != null and caster.ally():
 		side = Lang.t("%s의 ") % Lang.t(caster.info().name)
 	var lines := [
-		[[side, Palette.SIDE[s.faction]], [spell.shown(), Palette.shot_color(spell, s.faction)]]
+		[
+			[side, Palette.SIDE[s.faction]],
+			[spell.shot_shown(), Palette.shot_color(spell, s.faction)]
+		]
 	]
 	lines.append_array(_nature(spell))
 	lines.append(_line("피해", str(Guise.shot_harm(w, s)), Palette.HURT))

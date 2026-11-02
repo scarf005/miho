@@ -509,9 +509,9 @@ static func _sub(
 	return _t(other, [_who(before, after, id)] + args)
 
 
-## The title of the spell an event tells of, in the language shown.
+## The title of the one shot an event tells of, in the language shown.
 static func _title(e: Dictionary) -> String:
-	return Spell.from_tag(e.spell).shown() if e.has("spell") else Lang.t(e.title)
+	return Spell.from_tag(e.spell).shot_shown() if e.has("spell") else Lang.t(e.title)
 
 
 ## A gas's name in its colour.

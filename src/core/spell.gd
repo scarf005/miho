@@ -324,8 +324,14 @@ func shown() -> String:
 	return _title(Lang.t)
 
 
-## The title with every name, form and format string passed through `t`.
-func _title(t: Callable) -> String:
+## The title of one shot of it, for what tells of a single wisp or orb.
+func shot_shown() -> String:
+	return _title(Lang.t, false)
+
+
+## The title with every name, form and format string passed through `t`, and how many
+## shots a cast makes when `whole`.
+func _title(t: Callable, whole := true) -> String:
 	if called != "":
 		return t.call(called)
 	if shape == SPRAY and level() > 0:
@@ -349,7 +355,7 @@ func _title(t: Callable) -> String:
 	elif mortar():
 		form = MORTAR_NAME
 	form = t.call(form)
-	if shots() > 1:
+	if whole and shots() > 1:
 		form += t.call(" %d발") % shots()
 	if swaps():
 		form += " " + t.call(Leap.SWAP_NAME)

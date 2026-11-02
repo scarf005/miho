@@ -123,7 +123,7 @@ static func _blow(w: World, e: Dictionary) -> String:
 
 static func _by(w: World, e: Dictionary) -> String:
 	var name := _name(w, e.by) if e.by != w.player().id else ""
-	var spell: String = Spell.from_tag(e.spell).shown() if e.has("spell") else Lang.t(e.title)
+	var spell: String = Spell.from_tag(e.spell).shot_shown() if e.has("spell") else Lang.t(e.title)
 	return Lang.t("%s의 %s에 쓰러졌다") % [name, spell] if name != "" else Lang.t("%s에 쓰러졌다") % spell
 
 
