@@ -22,7 +22,7 @@ static func hidden(w: World, a: Actor, from: Vector2i) -> bool:
 	return (
 		wears(a)
 		and Grid.cheb(a.pos, from) > REACH
-		and not w.shots.any(func(s): return s.host == a.id and s.caster != a.id and not s.gone)
+		and not Walk.riders(w, a).any(func(s): return s.caster != a.id)
 	)
 
 

@@ -433,11 +433,10 @@ static func _conditions(w: World, a: Actor) -> Array:
 		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		out.append(_amount("도깨비불 장막 옆 칸 초당 피해: ", World.FIRE_DAMAGE))
-	for s in w.shots:
-		if s.host == a.id and not s.gone:
-			var runs := [[s.spell.shown(), Palette.card(s.spell.slots.back())]]
-			var clings := Lang.t(" 붙음: %d초") % s.life if s.life > 0 else Lang.t(" 붙음")
-			out.append(runs + [[clings, Palette.TEXT]])
+	for s in Walk.riders(w, a):
+		var runs := [[s.spell.shown(), Palette.card(s.spell.slots.back())]]
+		var clings := Lang.t(" 붙음: %d초") % s.life if s.life > 0 else Lang.t(" 붙음")
+		out.append(runs + [[clings, Palette.TEXT]])
 	if (
 		w.hot.has(a.pos)
 		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))

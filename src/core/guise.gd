@@ -252,7 +252,7 @@ static func watcher(w: World, spells: Array) -> Actor:
 ## The 그림자 on `a`: the wisps of its own that ride it.
 static func shadows(w: World, a: Actor) -> Array[Shot]:
 	var out: Array[Shot] = []
-	out.assign(w.shots.filter(func(s): return s.host == a.id and s.caster == a.id and not s.gone))
+	out.assign(Walk.riders(w, a).filter(func(s): return s.caster == a.id))
 	return out
 
 

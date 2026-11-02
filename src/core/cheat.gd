@@ -169,9 +169,8 @@ static func handled(w: World, action: Dictionary) -> bool:
 ## Puts `a` on `to`, and the wisps riding it with it, without a step.
 static func _carry(w: World, a: Actor, to: Vector2i) -> void:
 	a.pos = to
-	for s in w.shots:
-		if s.host == a.id and not s.gone:
-			s.pos = to
+	for s in Walk.riders(w, a):
+		s.pos = to
 
 
 ## A free tile a creature may stand on: no creature, no closed door.

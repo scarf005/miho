@@ -17,16 +17,24 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 	var loud := 0 if w.tile(to) == World.MUD else maxi(a.info().get("step", 0), tread[0])
 	w.emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
 	a.pos = to
-	for s in w.shots:
-		if s.host == a.id and not s.gone:
-			s.pos = to
-			w.emit({t = &"ride", shot = s.id, to = to})
+	for s in riders(w, a):
+		s.pos = to
+		w.emit({t = &"ride", shot = s.id, to = to})
 	w._changed()
 	Hearing.noise(w, to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.crumble(w, a, from)
 	Terrain.trample(w, to)
 	Compounds.step(w, a, to)
 	Traps.enter(w, a, Grid.line_dir(from, to))
+
+
+## The wisps clinging to `a` (Elements.stick) and still alive, in the order of play.
+static func riders(w: World, a: Actor) -> Array[Shot]:
+	var out: Array[Shot] = []
+	for s in w.shots:
+		if s.host == a.id and not s.gone:
+			out.append(s)
+	return out
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
