@@ -627,6 +627,15 @@ msgstr "Searching"
 msgid "추격 중"
 msgstr "Chasing"
 
+msgid "당신을 추격 중이다"
+msgstr "Chasing you"
+
+msgid "당신의 소음을 쫓는 중"
+msgstr "Following your noise"
+
+msgid "당신의 냄새를 쫓는 중"
+msgstr "Following your scent"
+
 msgid "둔함"
 msgstr "Dull"
 

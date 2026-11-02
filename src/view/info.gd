@@ -225,6 +225,16 @@ static func state(a: Actor) -> String:
 	return Lang.t("돌아가는 중" if a.pos != a.home else STATE[Actor.REST])
 
 
+## What a creature is doing, a searcher told by what it is after: Miho's trail, as
+## Mind._track walks it, or the noise she has just made where she stands.
+static func doing(w: World, a: Actor) -> String:
+	if a.alert != Actor.SEARCH or a.ally():
+		return state(a)
+	if a.info().get("tracks", false) and a.rooted <= 0 and Scent.next(w, a) != a.pos:
+		return Lang.t("당신의 냄새를 쫓는 중")
+	return Lang.t("당신의 소음을 쫓는 중" if a.target == w.player().pos else STATE[Actor.SEARCH])
+
+
 ## How a creature stands now: its state, conditions, whether it sees Miho and
 ## what her claw does to it.
 static func _situation(w: World, a: Actor) -> Array:
@@ -233,8 +243,9 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[Lang.t(ALLY) + ".", Palette.SIDE[0]]])
 		if Raise.risen(a):
 			lines.append([[Lang.t("이 층에 남는다."), Palette.DIM]])
-	lines.append([[state(a), Palette.ALERT[maxi(a.alert, 1)]]])
-	if a.alert == Actor.SEARCH:
+	var now := Lang.t("당신을 추격 중이다") if a.alert == Actor.HUNT and not a.ally() else doing(w, a)
+	lines.append([[now, Palette.ALERT[maxi(a.alert, 1)]]])
+	if now == Lang.t(STATE[Actor.SEARCH]):
 		lines.append([[_search_left(a), Palette.TEXT]])
 	lines.append_array(_conditions(w, a))
 	if a.fighting():

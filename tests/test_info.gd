@@ -420,7 +420,7 @@ func test_a_searcher_on_your_noise_tells_so_and_not_how_many_looks_are_left() ->
 	foe.alert = Actor.SEARCH
 	foe.target = w.player().pos
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "당신의 소리를 쫓는 중")
+	assert_string_contains(text, "당신의 소음을 쫓는 중")
 	assert_false(text.contains("수색"), text)
 
 
