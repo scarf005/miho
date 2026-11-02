@@ -20,6 +20,7 @@ extends Node
 ## `card:name` (Miho holds that talisman, such as fire),
 ## `gas:x:y:kind:amount` (lay that much gas, a Gas constant, on a tile),
 ## `spawn:kind:dx:dy` (a creature that far from Miho, to see its info),
+## `shift` and `unshift` (Shift pressed and left up, to keep a box and click in it),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
 ## (the key held down, repeating 30 times a second), or `snap` (saves a frame
@@ -119,9 +120,12 @@ func _send(k: String) -> void:
 				var ev := InputEventMouseButton.new()
 				ev.button_index = MOUSE_BUTTON_LEFT
 				ev.position = at
+				ev.shift_pressed = Input.is_key_pressed(KEY_SHIFT)
 				ev.pressed = pressed
 				Input.parse_input_event(ev)
 				await get_tree().process_frame
+		"shift", "unshift":
+			_press("Shift", parts[0] == "shift", false)
 		"fire":
 			main.world.burning[Vector2i(int(parts[1]), int(parts[2]))] = World.BURN_ROUNDS
 			main.term.show_world(main.world)
