@@ -401,6 +401,19 @@ func test_a_foes_thunder_arcs_to_miho() -> void:
 	assert_eq(caster.hp, caster.max_hp)
 
 
+func test_a_foe_an_arc_felled_takes_no_more_of_a_carried_thunder() -> void:
+	var w := _world()
+	var foes := [_post(w, ME + E * 2), _post(w, ME + E * 3), _post(w, ME + E * 2 + Vector2i(0, 1))]
+	for foe in foes:
+		foe.hp = 1
+	var events := w.act(_cast([ORB] + _made(&"thunder")))
+	for foe in foes:
+		var fell := events.find_custom(func(e): return e.t == &"die" and e.id == foe.id)
+		assert_gte(fell, 0)
+		var after := events.slice(fell)
+		assert_false(after.any(func(e): return e.t == &"hit" and e.id == foe.id))
+
+
 func test_the_arcs_of_thunder_show_on_the_aim() -> void:
 	var w := _world()
 	var a := _post(w, ME + E * 2)

@@ -127,6 +127,17 @@ func test_a_projectile_tells_what_it_is_wherever_it_flies() -> void:
 	assert_eq(Info.plain(DebugView.at(w, s.pos)), Info.plain(SpellInfo.shot(w, s)))
 
 
+func test_a_creature_on_a_projectile_tile_is_what_the_view_tells_of() -> void:
+	var w := _hall()
+	var a := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 8))
+	var s := Shot.new()
+	s.spell = Spell.make([Cards.ORB])
+	s.pos = a.pos
+	w.shots.append(s)
+	assert_null(DebugView.shot_at(w, a.pos))
+	assert_string_contains(Info.plain(DebugView.at(w, a.pos)), "도깨비")
+
+
 func test_a_sleeper_tells_where_it_rests_and_an_empty_tile_tells_its_scent() -> void:
 	var w := _hall()
 	var a := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 8))
