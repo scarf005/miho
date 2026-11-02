@@ -213,8 +213,6 @@ dist version platform: rust import
         macos) {{ godot }} --headless --path . --export-release macOS ;;
         android)
             conf=$(mktemp -d -p "${XDG_CACHE_HOME:-$HOME/.cache}")
-            printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/java_sdk_path = "%s"\nexport/android/android_sdk_path = "%s"\n' \
-                "${JAVA_HOME:?}" "${ANDROID_HOME:?}" > "$conf/editor_settings-4.7.tres"
             if [ -z "${MIHO_ANDROID_KEYSTORE:-}" ]; then
                 key="$conf/throwaway.keystore"
                 keytool -genkeypair -keystore "$key" -alias miho -keyalg RSA -keysize 2048 -validity 10000 \
