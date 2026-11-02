@@ -8,7 +8,9 @@ extends RefCounted
 ## while she is rooted. The landing is a step onto that tile (World.move and
 ## World.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
 ## scent there alone, so a hunter on her trail loses it. The rest of the spell
-## is cast from the landing, unless she has left the storey or fallen.
+## is cast from the landing, unless she has left the storey or fallen. She
+## vents steam to fly: Compounds.STEAM of it lies on the tiles she leaves, from the
+## one she starts on up to the third last, so that it does not spread onto her.
 ##
 ## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
@@ -58,6 +60,8 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 		return
 	var depth := w.depth
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
+	for i in Grid.cheb(a.pos, to) - 1:
+		Gas.add(w, a.pos + dir * i, Gas.STEAM, Compounds.STEAM)
 	w.move(a, to)
 	if w.depth != depth or not a.alive():
 		return

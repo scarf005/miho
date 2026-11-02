@@ -629,6 +629,7 @@ static func leap(s: Spell) -> Array:
 		_line("모양", Lang.t("곧게 %d칸") % s.leap()),
 		_line("건너는 것", Lang.t("%s, 생물") % _names(CROSSED)),
 		_line("막는 것", "벽, 닫힌 문, 등불"),
+		_line("궤적", Gas.of(Gas.STEAM, "name")),
 		_line("착지 소음", "%d" % Leap.LOUD),
 		_line("진흙 착지 소음", "없음"),
 	]

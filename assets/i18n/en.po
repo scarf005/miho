@@ -2952,3 +2952,6 @@ msgstr "Charcoal"
 msgid "생김"
 msgstr "Forms"
 
+
+msgid "궤적"
+msgstr "Trail"

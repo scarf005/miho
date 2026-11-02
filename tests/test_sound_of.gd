@@ -11,7 +11,7 @@ const SOUNDS := [
 	[{t = &"move", word = "바스락", loud = 2}, &"rustle"],
 	[{t = &"move", word = "철벅", loud = 2}, &"splash"],
 	[{t = &"move", word = "삐걱", loud = 3}, &"creak"],
-	[{t = &"leap"}, &"foxfire"],
+	[{t = &"leap"}, &"hiss"],
 	[{t = &"swap"}, &"foxfire"],
 	[{t = &"crumble"}, &"fall"],
 	[{t = &"spot"}, &"tick"],
