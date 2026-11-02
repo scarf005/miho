@@ -183,14 +183,13 @@ func test_the_log_and_the_hover_tell_a_copy_leaving_and_how_many_stand() -> void
 	assert_string_contains(str(SpellInfo.combo(Cards.BUNSIN)), "최대 수")
 
 
-func test_the_copy_needs_a_free_tile_along_a_line_and_goes_alone() -> void:
+func test_the_copy_needs_a_free_tile_along_a_line() -> void:
 	var w := _world()
 	_hunter(w, ME + E)
 	w.set_tile(ME + S, World.WALL)
 	assert_false(_can_cast(w, BUNSIN, E), "taken")
 	assert_false(_can_cast(w, BUNSIN, S), "a wall")
 	assert_false(_can_cast(w, BUNSIN, Vector2i.ZERO), "on herself")
-	assert_false(_can_cast(w, BUNSIN + [Cards.FOX], W), "with another slot")
 	assert_true(_can_cast(w, BUNSIN, W))
 
 

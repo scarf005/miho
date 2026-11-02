@@ -141,11 +141,21 @@ static func fill(picked: Array) -> Array[StringName]:
 ## it can join (Cards.join), but a 도약 that another slot follows, which stays a
 ## leap; anything else goes at the end. A slot that grows takes in the lone
 ## elements it now joins (`_settled`). The cards that make a compound of
-## Cards.SETS in any order are that one slot.
+## Cards.SETS in any order are that one slot, which another card takes apart again.
 static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	var whole := Cards.set_of(_cards_of(slots) + [c])
 	if whole != &"":
 		return [whole]
+	var out := slots
+	if slots.any(func(s): return Cards.SETS.has(s)):
+		out = []
+		for card: StringName in _cards_of(slots):
+			out = _joined(out, card)
+	return _joined(out, c)
+
+
+## `slots` with `c` joined as `queue` tells, no set made of them.
+static func _joined(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	var out := slots.duplicate()
 	if Cards.ELEMENTS.has(c):
 		for i in out.size():

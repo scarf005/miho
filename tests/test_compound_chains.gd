@@ -186,11 +186,7 @@ func test_other_cards_beside_the_four_of_a_copy_follow_the_usual_rules() -> void
 	assert_false(Spell.make([Cards.FOX] + cards).has(Cards.BUNSIN), "a second 여")
 	for e: StringName in Cards.ELEMENTS:
 		assert_eq(Cards.join(Cards.BUNSIN, e, 5), &"", "it takes no element in")
-		var beside := Spell.make(cards + [e])
-		assert_eq(
-			beside.slots, [Cards.BUNSIN, e] as Array[StringName], "a fifth card is its own slot"
-		)
-		assert_true(Guise.mixed(beside), "and a copy goes alone")
+		assert_false(Spell.make(cards + [e]).has(Cards.BUNSIN), "a fifth card takes it apart")
 	assert_eq(Spell.make(Cards.recipe(&"beacon")).slots, [&"beacon"] as Array[StringName])
 	assert_eq(Spell.make(Cards.recipe(&"mist")).slots, [&"mist"] as Array[StringName])
 
