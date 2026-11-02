@@ -105,6 +105,11 @@ test: rust
     echo "$SECONDS s on $jobs shards"
     exit "$failed"
 
+# Run `just test` in a transient unit that holds the suite lock while other sessions share the machine;
+# prints its CPU time: just test-unit miho-x /path/to/log, and a last argument 1 for a serial run.
+test-unit unit log jobs="":
+    flock "$XDG_RUNTIME_DIR/miho-test.lock" systemd-run --user --wait --collect --slice=bnwork.slice --unit={{ unit }} --working-directory="$PWD" -E MIHO_TEST_JOBS={{ jobs }} -p RuntimeMaxSec=1200 -p MemoryMax=12G -p MemorySwapMax=0 -p StandardOutput=append:{{ log }} -p StandardError=append:{{ log }} {{ just_executable() }} test
+
 # Serve the game to an AI agent over MCP on stdio (see .mcp.json).
 mcp: rust
     {{ godot }} --headless --path . --import >&2
