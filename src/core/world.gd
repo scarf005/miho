@@ -965,7 +965,7 @@ func _end_round() -> void:
 	if outcome != &"" or depth >= FLOORS:
 		return
 	if round_no == REAPER_OMEN:
-		emit({t = &"omen", at = start})
+		emit({t = &"omen"})
 	elif round_no == REAPER_ARRIVES:
 		var spot := FloorGen.nearest_free(self, start)
 		if spot.x >= 0:
