@@ -454,7 +454,7 @@ func test_a_kill_by_an_ally_gives_a_tail_and_a_form_as_any_fall() -> void:
 	var events := w.act(WAIT)
 	assert_true(events.any(func(e): return e.t == &"die" and e.id == foe.id and e.foe))
 	assert_eq(w.tails, 2)
-	assert_eq(w.player().prey, &"dokkaebi")
+	assert_eq(w.player().buffs.prey, &"dokkaebi")
 
 
 func test_a_fallen_ally_gives_nothing_and_the_run_goes_on() -> void:
@@ -463,7 +463,7 @@ func test_a_fallen_ally_gives_nothing_and_the_run_goes_on() -> void:
 	w.tails = 1
 	Harm.hurt(w, copy, copy.hp)
 	assert_eq(w.tails, 1)
-	assert_eq(w.player().prey, &"")
+	assert_eq(w.player().buffs.prey, &"")
 	assert_eq(w.outcome, &"")
 	assert_false(w.bodies.has(ME + E))
 	w.act(WAIT)

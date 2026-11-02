@@ -24,7 +24,7 @@ func _world() -> World:
 	me.hp = 3
 	me.max_hp = 3
 	me.pos = ME
-	me.prey = &"dokkaebi"
+	me.buffs.prey = &"dokkaebi"
 	w.actors.append(me)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)

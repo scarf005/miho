@@ -52,7 +52,7 @@ func _cast() -> Dictionary:
 func _on() -> World:
 	var w := _world()
 	w.act(_cast())
-	assert_true(w.player().raise)
+	assert_true(w.player().buffs.raise)
 	return w
 
 
@@ -88,7 +88,7 @@ func test_seven_tails_are_needed() -> void:
 func test_hurled_it_stays_samsara() -> void:
 	var w := _world()
 	w.act({t = &"cast", spells = [{cards = RAISE, dir = E}]})
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 
 
 func test_the_other_five_element_spells_do_not_go_on_her() -> void:
@@ -196,10 +196,10 @@ func test_a_fallen_risen_ally_gives_nothing_and_does_not_rise() -> void:
 	w.act(WAIT)
 	var up: Actor = _risen(w)[0]
 	w.tails = 1
-	var prey := w.player().prey
+	var prey := w.player().buffs.prey
 	Harm.hurt(w, up, up.hp)
 	assert_eq(w.tails, 1, "no tail")
-	assert_eq(w.player().prey, prey, "no form")
+	assert_eq(w.player().buffs.prey, prey, "no form")
 	assert_true(w.bodies.is_empty(), "no body")
 	for i in 2:
 		w.act(WAIT)
@@ -219,7 +219,7 @@ func test_dropping_stops_the_rising_and_keeps_what_rose() -> void:
 	_fell(w, &"dokkaebi", 3)
 	w.act(WAIT)
 	w.act({t = &"dispel", kind = Guise.RAISE})
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 	assert_eq(_risen(w).size(), 1, "what rose stays up")
 	var at := _fell(w, &"dokkaebi", 6)
 	w.act(WAIT)
@@ -242,7 +242,7 @@ func test_climbing_ends_it_and_what_rose_stays_on_the_storey() -> void:
 	var top := w.depth
 	var events := w.act({t = &"move", dir = E})
 	assert_eq(w.depth, top + 1)
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 	assert_true(events.any(func(e): return e.t == &"unraise"))
 	assert_true(_risen(w).is_empty(), "the risen stay below")
 	assert_true(w.actors.any(func(a): return a.id == copy.id), "a copy comes along")
@@ -257,14 +257,14 @@ func test_falling_ends_it() -> void:
 	w.set_tile(ME + E, World.SKY)
 	Fall.drop(w, w.player(), ME + E)
 	assert_eq(w.depth, 5)
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 
 
 func test_the_floor_cheat_ends_it() -> void:
 	var w := _on()
 	w.act({t = &"cheat", cmd = &"floor", depth = 2})
 	assert_eq(w.depth, 2)
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 
 
 func test_back_on_a_storey_the_risen_still_stand_and_the_spell_is_off() -> void:
@@ -274,7 +274,7 @@ func test_back_on_a_storey_the_risen_still_stand_and_the_spell_is_off() -> void:
 	w.act({t = &"move", dir = E})
 	Storeys.leave(w)
 	Storeys.enter(w, top)
-	assert_false(w.player().raise)
+	assert_false(w.player().buffs.raise)
 	assert_eq(_risen(w).size(), 1)
 
 
@@ -300,9 +300,9 @@ func test_a_forecast_does_not_give_away_a_body_she_never_saw() -> void:
 func test_a_clone_keeps_the_spell_and_a_change_to_it_stays_its_own() -> void:
 	var w := _on()
 	var c := w.clone()
-	assert_true(c.player().raise)
-	c.player().raise = false
-	assert_true(w.player().raise)
+	assert_true(c.player().buffs.raise)
+	c.player().buffs.raise = false
+	assert_true(w.player().buffs.raise)
 
 
 func test_a_save_replays_a_rising() -> void:
@@ -329,7 +329,7 @@ func test_a_save_replays_a_rising() -> void:
 	assert_true(back.replay())
 	var look := func(a: Actor) -> Array: return [a.id, a.pos, a.kind, a.hp]
 	assert_eq(_risen(back.world).map(look), _risen(w).map(look))
-	assert_false(back.world.player().raise)
+	assert_false(back.world.player().buffs.raise)
 	assert_eq(back.world.round_no, w.round_no)
 	assert_eq(back.world.rng.state, w.rng.state)
 

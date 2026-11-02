@@ -116,16 +116,16 @@ func test_the_talon_goes_on_her_whatever_the_direction() -> void:
 	var w := _world()
 	assert_true(w.can(_cast(TALON, E)))
 	w.act(_cast(TALON, E))
-	assert_true(w.player().talon)
+	assert_true(w.player().buffs.talon)
 	assert_eq(w.shots.size(), 0, "nothing flies")
 
 
 func test_the_cloak_goes_on_her_only_with_no_direction() -> void:
 	var w := _world()
 	w.act(_cast(CLOAK, E))
-	assert_false(w.player().cloak, "hurled, it is a wisp")
+	assert_false(w.player().buffs.cloak, "hurled, it is a wisp")
 	w.act(_cast(CLOAK))
-	assert_true(w.player().cloak)
+	assert_true(w.player().buffs.cloak)
 
 
 func test_they_are_silent_and_hurt_nobody() -> void:
@@ -200,8 +200,8 @@ func test_a_forecast_of_each_equals_the_round() -> void:
 		var forecast := Forecast.of(w, _cast(cards))
 		var played := w.act(_cast(cards))
 		assert_eq(forecast.events, played)
-		assert_eq(forecast.after.player().talon, w.player().talon)
-		assert_eq(forecast.after.player().cloak, w.player().cloak)
+		assert_eq(forecast.after.player().buffs.talon, w.player().buffs.talon)
+		assert_eq(forecast.after.player().buffs.cloak, w.player().buffs.cloak)
 
 
 func test_no_creature_casts_them() -> void:

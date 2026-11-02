@@ -103,7 +103,7 @@ static func _gone(w: World, a: Actor, told: Array) -> void:
 	for e: Dictionary in told:
 		w.emit(e)
 	if not a.ally():
-		w.player().prey = a.kind
+		w.player().buffs.prey = a.kind
 		Harm.reward(w, a)
 	w._changed()
 

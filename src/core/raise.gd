@@ -56,7 +56,7 @@ static func spot_of(w: World, at: Vector2i) -> Vector2i:
 ## The end of a round, once her sight is worked out: every body she sees rises, but one
 ## that rises for heaven (Curse).
 static func tick(w: World) -> void:
-	if not w.player().raise or w.outcome != &"":
+	if not w.player().buffs.raise or w.outcome != &"":
 		return
 	for at: Vector2i in w.bodies.keys():
 		var spot := spot_of(w, at)

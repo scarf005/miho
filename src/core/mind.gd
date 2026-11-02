@@ -321,7 +321,7 @@ static func hunt(w: World, a: Actor) -> void:
 		return
 	if _suspect(w, a):
 		return
-	var by_nose: bool = me.cloak and a.info().get("tracks", false)
+	var by_nose: bool = me.buffs.cloak and a.info().get("tracks", false)
 	if not by_nose and a.pos != a.target and a.lost < World.SEARCH_ROUNDS:
 		a.lost += 1
 		if a.ailments.rooted > 0 or _step_to(w, a, a.target):

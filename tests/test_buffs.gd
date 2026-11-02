@@ -32,7 +32,7 @@ func _world() -> World:
 	me.hp = 3
 	me.max_hp = 3
 	me.pos = ME
-	me.prey = &"dokkaebi"
+	me.buffs.prey = &"dokkaebi"
 	w.actors.append(me)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
@@ -123,7 +123,7 @@ func test_no_buff_ends_by_time() -> void:
 func test_every_buff_but_raise_stays_on_her_up_a_storey_and_down_again() -> void:
 	var w := World.create(5)
 	w.cards.assign(Cards.ALL)
-	w.player().prey = &"dokkaebi"
+	w.player().buffs.prey = &"dokkaebi"
 	_wear_all(w)
 	var down := w.clone()
 	w.act(WAIT)
@@ -283,7 +283,7 @@ func test_g_with_one_buff_drops_it_and_takes_a_round() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "G")
 	await _settle(m)
-	assert_false(m.world.player().cloak)
+	assert_false(m.world.player().buffs.cloak)
 	assert_eq(m.world.round_no, round_no + 1)
 	assert_eq(m.overlay, &"")
 

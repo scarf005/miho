@@ -164,10 +164,10 @@ func test_dispel_drops_the_buff_named_and_refuses_one_she_does_not_wear() -> voi
 	tools.world.cards.append_array([Cards.WOOD, Cards.EARTH])
 	var cards := ["fox", "wood", "earth"]
 	_call(tools, "act", {action = "cast", spells = [{cards = cards, dir = "self"}]})
-	assert_true(tools.world.player().cloak)
+	assert_true(tools.world.player().buffs.cloak)
 	assert_true(_call(tools, "act", {action = "dispel", kind = "talon"}).error)
 	assert_false(_call(tools, "act", {action = "dispel", kind = "cloak"}).error)
-	assert_false(tools.world.player().cloak)
+	assert_false(tools.world.player().buffs.cloak)
 
 
 func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:

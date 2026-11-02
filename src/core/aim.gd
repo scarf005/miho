@@ -293,7 +293,7 @@ static func suspected(w: World, a: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if (
 		Bestiary.wits(a.kind) < Bestiary.SHARP
-		or not w.player().cloak
+		or not w.player().buffs.cloak
 		or w.shots.any(func(s): return s.caster == a.id and not s.gone)
 	):
 		return out

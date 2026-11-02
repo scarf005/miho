@@ -27,7 +27,7 @@ func _world(prey := &"dokkaebi") -> World:
 	me.hp = 3
 	me.max_hp = 3
 	me.pos = ME
-	me.prey = prey
+	me.buffs.prey = prey
 	w.actors.append(me)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
@@ -60,7 +60,7 @@ func test_the_guise_needs_a_creature_felled_first() -> void:
 	var w := _world(&"")
 	assert_false(w.can(_self(GUISE)))
 	assert_eq(Guise.why(w.player(), Spell.make(GUISE)), Guise.NO_PREY)
-	w.player().prey = &"bulgae"
+	w.player().buffs.prey = &"bulgae"
 	assert_true(w.can(_self(GUISE)))
 	assert_true(w.can(_self([EARTH, WOOD, WOOD])), "any order")
 	assert_false(w.can(_self([WOOD, EARTH])), "two cards are no guise")
@@ -74,14 +74,14 @@ func test_a_creature_felled_is_the_form_the_next_guise_takes() -> void:
 	foe.hp = 1
 	w.act({t = &"move", dir = E})
 	assert_false(foe.alive(), "a claw fells it")
-	assert_eq(w.player().prey, &"dokkaebi")
+	assert_eq(w.player().buffs.prey, &"dokkaebi")
 
 
 func test_the_guise_gives_her_the_form_for_three_tails() -> void:
 	var w := _world()
 	w.act(_self(GUISE))
 	var me := w.player()
-	assert_eq([me.guise, me.form], [true, &"dokkaebi"])
+	assert_eq([me.buffs.guise, me.buffs.form], [true, &"dokkaebi"])
 	assert_eq(w.tails, 2)
 	assert_eq(Guise.looks(me), &"dokkaebi", "the map draws her as it")
 
@@ -179,7 +179,7 @@ func test_the_reaper_hunts_her_in_any_guise() -> void:
 	var w := _world()
 	var reaper := _foe(w, ME + Vector2i(6, 0), Actor.REST, &"saja")
 	w.act(_self(GUISE))
-	assert_true(w.player().guise)
+	assert_true(w.player().buffs.guise)
 	assert_eq(reaper.alert, Actor.HUNT)
 	assert_false(Guise.fools(reaper, w.player()))
 
@@ -202,12 +202,12 @@ func test_two_rounds_next_to_a_creature_end_the_guise() -> void:
 	foe.ailments.stunned = 99
 	w.act(_self(GUISE))
 	w.act({t = &"move", dir = E})
-	assert_true(w.player().guise, "one round beside it")
+	assert_true(w.player().buffs.guise, "one round beside it")
 	w.act({t = &"move", dir = -E})
 	w.act({t = &"move", dir = E})
-	assert_true(w.player().guise, "stepping away starts the count again")
+	assert_true(w.player().buffs.guise, "stepping away starts the count again")
 	var events := w.act(WAIT)
-	assert_false(w.player().guise)
+	assert_false(w.player().buffs.guise)
 	assert_eq(events.filter(func(e): return e.t == &"unmask" and e.why == &"beside").size(), 1)
 
 
@@ -215,7 +215,7 @@ func test_casting_a_spell_ends_the_guise() -> void:
 	var w := _world()
 	w.act(_self(GUISE))
 	var events := w.act({t = &"cast", spells = [{cards = [Cards.FOX], dir = E}]})
-	assert_false(w.player().guise)
+	assert_false(w.player().buffs.guise)
 	assert_eq(events.filter(func(e): return e.t == &"unmask" and e.why == &"cast").size(), 1)
 
 
@@ -223,7 +223,7 @@ func test_harm_ends_the_guise() -> void:
 	var w := _world()
 	w.act(_self(GUISE))
 	Harm.hurt(w, w.player(), 1)
-	assert_false(w.player().guise)
+	assert_false(w.player().buffs.guise)
 	assert_eq(w.events.back().t, &"unmask")
 	assert_eq(w.events.back().why, &"hurt")
 
@@ -236,7 +236,10 @@ func test_the_forecast_casts_the_guise_the_round_does() -> void:
 	w.act(_self(GUISE))
 	var told := f.after.player()
 	var me := w.player()
-	assert_eq([told.guise, told.form, told.beside], [me.guise, me.form, me.beside])
+	assert_eq(
+		[told.buffs.guise, told.buffs.form, told.buffs.beside],
+		[me.buffs.guise, me.buffs.form, me.buffs.beside]
+	)
 	assert_eq(f.noticed, {}, "no one notices her")
 
 
@@ -323,4 +326,4 @@ func test_a_creature_pushed_off_the_edge_is_the_next_form() -> void:
 	var foe := FloorGen.spawn(w, &"jangseung", ME + E * 3)
 	Fall.drop(w, foe, foe.pos + E)
 	assert_false(foe.alive())
-	assert_eq(w.player().prey, &"jangseung")
+	assert_eq(w.player().buffs.prey, &"jangseung")

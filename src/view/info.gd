@@ -334,14 +334,16 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	lines.append_array(_conditions(w, a))
 	lines.append_array(_tags(Curse.worn(w).map(func(c): return Curse.NAME[c])))
 	lines.append_array(nature(a.nature_kind()))
-	if a.flame:
+	if a.buffs.flame:
 		lines.append([[Lang.t("불 주문 피해: +%d") % Guise.FLAME_HARM, Palette.TEXT]])
-	if a.guise:
-		var form: String = Lang.t(Bestiary.info(a.form).name)
+	if a.buffs.guise:
+		var form: String = Lang.t(Bestiary.info(a.buffs.form).name)
 		lines.append([[Lang.t("둔갑"), Palette.TEXT], [": " + form, Palette.SIDE[0]]])
-		lines.append([[Lang.t("적 옆: %d/%d초") % [a.beside, Guise.BESIDE], Palette.DIM]])
-	elif a.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
-		lines.append([[Lang.t("둔갑할 모습: %s") % Lang.t(Bestiary.info(a.prey).name), Palette.DIM]])
+		lines.append([[Lang.t("적 옆: %d/%d초") % [a.buffs.beside, Guise.BESIDE], Palette.DIM]])
+	elif a.buffs.prey != &"" and w.cards.has(Cards.WOOD) and w.cards.has(Cards.EARTH):
+		lines.append(
+			[[Lang.t("둔갑할 모습: %s") % Lang.t(Bestiary.info(a.buffs.prey).name), Palette.DIM]]
+		)
 	lines.append(_hidden(w, a.pos))
 	return lines
 
@@ -416,7 +418,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
 	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME, Guise.RAISE]:
-		if a.get(kind):
+		if a.buffs.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))
 	if (

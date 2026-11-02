@@ -343,14 +343,14 @@ func _actor_row(a: Actor) -> Array:
 		a.ties.grudge,
 		a.ties.rival_at,
 		a.ties.leader,
-		a.prey,
-		a.form,
-		a.guise,
-		a.beside,
-		a.talon,
-		a.cloak,
-		a.flame,
-		a.raise,
+		a.buffs.prey,
+		a.buffs.form,
+		a.buffs.guise,
+		a.buffs.beside,
+		a.buffs.talon,
+		a.buffs.cloak,
+		a.buffs.flame,
+		a.buffs.raise,
 		_plain(a.magic.imprint)
 	]
 

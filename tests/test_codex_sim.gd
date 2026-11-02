@@ -56,7 +56,7 @@ func _result(w: World) -> String:
 				a.ties.rival
 			]
 		)
-	var me := [w.player().pos, w.player().guise, w.player().cloak]
+	var me := [w.player().pos, w.player().buffs.guise, w.player().buffs.cloak]
 	return str(
 		[w.tiles, w.burning.keys(), w.hot.keys(), w.gas.keys(), w.shots.size(), creatures, me]
 	)

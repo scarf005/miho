@@ -272,7 +272,7 @@ func test_what_rises_goes_by_the_storey() -> void:
 
 func test_raising_the_dead_does_not_take_the_body_in_the_jar() -> void:
 	var w := _doomed(Curse.BODY)
-	w.player().raise = true
+	w.player().buffs.raise = true
 	w.act(BUMP)
 	assert_true(w.bodies.has(AT), "it lies its second")
 	w.act(WAIT)

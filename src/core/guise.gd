@@ -15,7 +15,7 @@ extends RefCounted
 ## (Chebyshev, walls or not) caught fire or had its lantern lit (`tick`).
 ##
 ## 둔갑 (GUISE: the 균열 slot of 목+토 and one 목): she takes the form of the last
-## creature of heaven that fell (Actor.prey; any fall, as for the tail it gives
+## creature of heaven that fell (Buffs.prey; any fall, as for the tail it gives
 ## back); with none fallen yet it is refused with NO_PREY. A creature of heaven
 ## that is not hunting her does not know her (`fools`): seeing her does not
 ## start a hunt, its spells do not seek her, and her claws catch it unawares. A
@@ -147,7 +147,7 @@ static func why(a: Actor, spell: Spell) -> String:
 		&"":
 			return only()
 		GUISE:
-			return NO_PREY if a.prey == &"" else ""
+			return NO_PREY if a.buffs.prey == &"" else ""
 	return ""
 
 
@@ -164,7 +164,7 @@ static func dark(spell: Spell) -> Spell:
 ## (any for ANYWHERE) it goes on the caster: true, and Cast.cast has nothing
 ## more to do.
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
-	if caster.guise:
+	if caster.buffs.guise:
 		unmask(w, caster, &"cast")
 	var own := kind(spell)
 	if dir != Vector2i.ZERO and not ANYWHERE.has(own):
@@ -172,25 +172,25 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	match own:
 		GUISE:
 			_alarm(w, caster)
-			caster.form = caster.prey
-			caster.guise = true
-			caster.beside = 0
-			w.emit({t = &"guise", id = caster.id, at = caster.pos, kind = caster.form})
+			caster.buffs.form = caster.buffs.prey
+			caster.buffs.guise = true
+			caster.buffs.beside = 0
+			w.emit({t = &"guise", id = caster.id, at = caster.pos, kind = caster.buffs.form})
 			return true
 		TALON:
-			caster.talon = true
+			caster.buffs.talon = true
 			w.emit({t = &"talon", id = caster.id, at = caster.pos})
 			return true
 		CLOAK:
-			caster.cloak = true
+			caster.buffs.cloak = true
 			w.emit({t = &"cloak", id = caster.id, at = caster.pos})
 			return true
 		FLAME:
-			caster.flame = true
+			caster.buffs.flame = true
 			w.emit({t = &"flame", id = caster.id, at = caster.pos})
 			return true
 		RAISE:
-			caster.raise = true
+			caster.buffs.raise = true
 			w.emit({t = &"raise", id = caster.id, at = caster.pos})
 			return true
 	for old in shadows(w, caster):
@@ -255,11 +255,11 @@ static func shadows(w: World, a: Actor) -> Array[Shot]:
 static func worn(w: World, a: Actor) -> Array:
 	var on := {
 		SHADOW: not shadows(w, a).is_empty(),
-		GUISE: a.guise,
-		TALON: a.talon,
-		CLOAK: a.cloak,
-		FLAME: a.flame,
-		RAISE: a.raise,
+		GUISE: a.buffs.guise,
+		TALON: a.buffs.talon,
+		CLOAK: a.buffs.cloak,
+		FLAME: a.buffs.flame,
+		RAISE: a.buffs.raise,
 	}
 	return RECIPE.keys().filter(func(k): return on[k])
 
@@ -284,22 +284,22 @@ static func dispel(w: World, a: Actor, which: StringName) -> void:
 		GUISE:
 			unmask(w, a, &"dispel")
 		TALON:
-			a.talon = false
+			a.buffs.talon = false
 			w.emit({t = &"untalon", id = a.id, at = a.pos})
 		CLOAK:
-			a.cloak = false
+			a.buffs.cloak = false
 			w.emit({t = &"uncloak", id = a.id, at = a.pos})
 		FLAME:
-			a.flame = false
+			a.buffs.flame = false
 			w.emit({t = &"unflame", id = a.id, at = a.pos})
 		RAISE:
-			a.raise = false
+			a.buffs.raise = false
 			w.emit({t = &"unraise", id = a.id, at = a.pos})
 
 
 ## What 쇠발톱 adds to a claw of `me` at `foe`, or at no creature in particular.
 static func talon_harm(me: Actor, foe: Actor = null) -> int:
-	if not me.talon:
+	if not me.buffs.talon:
 		return 0
 	var eats := foe != null and Bestiary.absorbs(foe.kind, Spell.make([Cards.METAL]))
 	return TALON_ABSORBED if eats else TALON_HARM
@@ -308,7 +308,7 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 ## What 불여우 adds to the harm of a spell of `caster` that holds 불. 벼락 is no element.
 static func flame_harm(w: World, caster: int, spell: Spell) -> int:
 	var me := w.actor(caster)
-	if me == null or not me.flame or spell.electric():
+	if me == null or not me.buffs.flame or spell.electric():
 		return 0
 	return FLAME_HARM if spell.holds(Cards.FIRE) else 0
 
@@ -323,7 +323,7 @@ static func shot_harm(w: World, s: Shot) -> int:
 ## of heaven that is not hunting, does not go by smell and is not cunning.
 static func fools(by: Actor, a: Actor) -> bool:
 	return (
-		a.guise
+		a.buffs.guise
 		and by.faction == Actor.HEAVEN
 		and by.alert != Actor.HUNT
 		and not by.info().get("tracks", false)
@@ -338,21 +338,21 @@ static func knows(w: World, a: Actor) -> bool:
 
 ## The kind `a` is drawn as: its form in guise.
 static func looks(a: Actor) -> StringName:
-	return a.form if a.guise else a.kind
+	return a.buffs.form if a.buffs.guise else a.kind
 
 
 ## `a` was hurt: one in guise drops it; a creature of heaven that fell is the
 ## form Miho's next guise takes.
 static func hurt(w: World, a: Actor) -> void:
-	if a.alive() and a.guise:
+	if a.alive() and a.buffs.guise:
 		unmask(w, a, &"hurt")
 	elif not a.alive() and a.faction == Actor.HEAVEN:
-		w.player().prey = a.kind
+		w.player().buffs.prey = a.kind
 
 
 static func unmask(w: World, a: Actor, why_ended: StringName) -> void:
-	a.guise = false
-	a.beside = 0
+	a.buffs.guise = false
+	a.buffs.beside = 0
 	w.emit({t = &"unmask", id = a.id, at = a.pos, why = why_ended})
 
 
@@ -378,11 +378,11 @@ static func tick(w: World) -> void:
 				}
 			)
 	var me := w.player()
-	if not me.guise:
+	if not me.buffs.guise:
 		return
 	var near := w.actors.any(
 		func(a): return a.alive() and a.faction == Actor.HEAVEN and Grid.cheb(a.pos, me.pos) == 1
 	)
-	me.beside = me.beside + 1 if near else 0
-	if me.beside >= BESIDE:
+	me.buffs.beside = me.buffs.beside + 1 if near else 0
+	if me.buffs.beside >= BESIDE:
 		unmask(w, me, &"beside")

@@ -298,7 +298,7 @@ func test_what_is_clawed_dead_leaves_a_body_that_rises_on_land() -> void:
 	var a := _ghost(w, Vector2i(SHORE + 1, 8))
 	Harm.hurt(w, a, a.hp)
 	assert_true(w.bodies.has(a.pos), "a body on the water")
-	me.raise = true
+	me.buffs.raise = true
 	w.sense()
 	Raise.tick(w)
 	var risen := w.actors.filter(func(b): return b.ally())
@@ -311,8 +311,8 @@ func test_it_is_fooled_by_a_guise_like_any_dull_creature() -> void:
 	var w := _shore()
 	var me := w.player()
 	me.pos = Vector2i(SHORE - 1, 8)
-	me.guise = true
-	me.form = &"dokkaebi"
+	me.buffs.guise = true
+	me.buffs.form = &"dokkaebi"
 	var a := _ghost(w, Vector2i(SHORE, 8))
 	w.sense()
 	w.act(WAIT)

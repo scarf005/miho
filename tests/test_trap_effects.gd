@@ -292,7 +292,7 @@ func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() ->
 	for i in 4:
 		w.act(WAIT)
 	assert_false(foe.alive())
-	assert_eq(w.player().prey, foe.kind, "a fall gives what a kill does")
+	assert_eq(w.player().buffs.prey, foe.kind, "a fall gives what a kill does")
 
 
 func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:

@@ -115,9 +115,9 @@ func _dealt(cards: Array, worn: bool) -> int:
 func test_the_recipe_goes_on_her_and_thrown_it_is_a_spell_as_before() -> void:
 	var w := _world()
 	w.act(_throw(Guise.RECIPE[Guise.FLAME], EAST))
-	assert_false(w.player().flame, "thrown, it goes on no one")
+	assert_false(w.player().buffs.flame, "thrown, it goes on no one")
 	_wear(w)
-	assert_true(w.player().flame)
+	assert_true(w.player().buffs.flame)
 	assert_eq(Guise.worn(w, w.player()), [Guise.FLAME])
 	assert_eq(w.player().nature_kind(), Guise.FLAME_KIND)
 
@@ -189,7 +189,7 @@ func test_a_forecast_of_the_cast_and_of_the_round_equals_what_happens() -> void:
 	var cast := _self(Guise.RECIPE[Guise.FLAME])
 	var f := Forecast.of(w, cast)
 	assert_eq(f.events, w.act(cast))
-	assert_true(f.after.player().flame)
+	assert_true(f.after.player().buffs.flame)
 	w.tails = 9
 	_dummy(w, &"imugi", ME + Vector2i(GAP, 0))
 	var fire := _throw(FIRE_WISP, EAST)
@@ -223,9 +223,9 @@ func test_the_form_stays_up_a_storey_and_down_again() -> void:
 		Storeys.enter(w, at_storey)
 		w.sense()
 		w.act(WAIT)
-		assert_true(w.player().flame, "on storey %d" % at_storey)
+		assert_true(w.player().buffs.flame, "on storey %d" % at_storey)
 		assert_eq(w.player().nature_kind(), Guise.FLAME_KIND)
-	assert_true(down.player().flame, "a clone keeps it")
+	assert_true(down.player().buffs.flame, "a clone keeps it")
 	assert_eq(down.player().nature_kind(), Guise.FLAME_KIND)
 
 
@@ -234,14 +234,14 @@ func test_it_does_not_end_by_time() -> void:
 	_wear(w)
 	for i in 200:
 		w.act(WAIT)
-	assert_true(w.player().flame)
+	assert_true(w.player().buffs.flame)
 
 
 func test_dropping_it_takes_everything_back() -> void:
 	var w := _world()
 	_wear(w)
 	var events := w.act({t = &"dispel", kind = Guise.FLAME})
-	assert_false(w.player().flame)
+	assert_false(w.player().buffs.flame)
 	assert_eq(w.player().nature_kind(), &"miho")
 	assert_eq(Guise.worn(w, w.player()), [])
 	assert_true(events.any(func(e): return e.t == &"unflame"))
@@ -299,7 +299,7 @@ func test_a_save_replays_to_the_same_world() -> void:
 	var back := SaveGame.load_from(SAVE)
 	assert_not_null(back)
 	assert_true(back.replay())
-	assert_true(back.world.player().flame)
+	assert_true(back.world.player().buffs.flame)
 	assert_eq(back.world.player().hp, w.player().hp)
 	assert_eq(back.world.round_no, w.round_no)
 	assert_eq(back.world.rng.state, w.rng.state)

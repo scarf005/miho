@@ -50,16 +50,16 @@ static func text(world: World) -> String:
 		"talismans: " + ", ".join(_cards(k)),
 		"Miho at (%d,%d)" % [me.pos.x, me.pos.y],
 	]
-	if me.guise:
-		out.append("in guise as %s" % Bestiary.info(me.form).name)
-	if me.talon:
+	if me.buffs.guise:
+		out.append("in guise as %s" % Bestiary.info(me.buffs.form).name)
+	if me.buffs.talon:
 		out.append("claws harm %d more" % Guise.TALON_HARM)
-	if me.cloak:
+	if me.buffs.cloak:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
-	if me.flame:
+	if me.buffs.flame:
 		var line := "fire creature: no harm from fire, lightning harms only wet, water harms twice"
 		out.append("%s, fire spells harm %d more" % [line, Guise.FLAME_HARM])
-	if me.raise:
+	if me.buffs.raise:
 		out.append(
 			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
 		)

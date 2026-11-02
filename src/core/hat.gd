@@ -1,7 +1,7 @@
 class_name Hat
 extends RefCounted
 ## 감투, the invisibility hat of the dokkaebi tales. A creature that wears one
-## (Bestiary hat), and Miho under her 은신 (Actor.cloak), is made out only from
+## (Bestiary hat), and Miho under her 은신 (Buffs.cloak), is made out only from
 ## REACH tile away, or while a wisp of another clings to it (Elements.stick), the
 ## red cloth of the tale; her own 그림자 does not give her away. Seeing its tile is
 ## not seeing it, so whoever asks whether a
@@ -14,7 +14,7 @@ const REACH := 1
 
 ## Whether `a` wears the hat: its kind does, or Miho's 은신 does.
 static func wears(a: Actor) -> bool:
-	return a.info().get("hat", false) or a.cloak
+	return a.info().get("hat", false) or a.buffs.cloak
 
 
 ## Whether the hat of `a` hides it from someone standing at `from`.

@@ -36,19 +36,8 @@ var home := Vector2i.ZERO
 var post := Vector2i.ZERO
 ## Whom it fights and follows (Ties).
 var ties: Ties
-## 둔갑 (Guise): the kind of the last creature of heaven that fell, the kind
-## it looks like, whether it is in guise, and the rounds in a row it has stood
-## next to a creature of heaven in guise.
-var prey := &""
-var form := &""
-var guise := false
-var beside := 0
-## Whether it holds 쇠발톱 (her claws harm more), 은신 (the hat's rule, Hat) and
-## 불여우 (it counts as a fire creature: `nature_kind`) and 사령술 (Raise).
-var talon := false
-var cloak := false
-var flame := false
-var raise := false
+## The spells it holds on itself (Guise).
+var buffs: Buffs
 
 
 ## `bare` leaves the parts a copy replaces unbuilt (`clone`).
@@ -57,6 +46,7 @@ func _init(bare := false) -> void:
 		ailments = Ailments.new()
 		magic = Magic.new()
 		ties = Ties.new()
+		buffs = Buffs.new()
 
 
 func alive() -> bool:
@@ -115,7 +105,7 @@ func info() -> Dictionary:
 ## The kind whose elements it meets a spell with (Bestiary.weak, absorbs, burns):
 ## its own, but for Miho as 불여우 (Guise.FLAME_KIND).
 func nature_kind() -> StringName:
-	return Guise.FLAME_KIND if flame else kind
+	return Guise.FLAME_KIND if buffs.flame else kind
 
 
 ## Every spell it casts: the one it was imprinted with, else those of its rank
@@ -143,16 +133,9 @@ func clone() -> Actor:
 	a.drum = drum
 	a.home = home
 	a.post = post
-	a.prey = prey
-	a.form = form
-	a.guise = guise
-	a.beside = beside
-	a.talon = talon
-	a.cloak = cloak
-	a.flame = flame
-	a.raise = raise
 	a.ailments = ailments.copy()
 	a.magic = magic.copy()
 	a.ties = ties.copy()
+	a.buffs = buffs.copy()
 	a.marked.assign(marked)
 	return a

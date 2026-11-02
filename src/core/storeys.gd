@@ -57,7 +57,7 @@ static func bring(w: World, party: Array[Actor]) -> void:
 ## Puts Miho at the start of storey `depth`: the one kept there, or a new one
 ## the first time. Her scent and her projectiles but her 그림자 stay behind.
 static func enter(w: World, depth: int) -> void:
-	if w.player().raise:
+	if w.player().buffs.raise:
 		Guise.dispel(w, w.player(), Guise.RAISE)
 	w.depth = depth
 	w.scent.clear()
