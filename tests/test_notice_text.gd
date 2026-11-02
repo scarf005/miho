@@ -40,7 +40,7 @@ func test_a_body_mark_tells_who_fell_and_that_the_seer_searches() -> void:
 	w.sense()
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "쓰러진 도깨비: 0초 전\n" + Info.TRACE)
-	assert_has(Info.glossary()["흔적"], "수색하는 적: 추격 중이 아닌 적")
+	assert_has(Glossary.rows()["흔적"], "수색하는 적: 추격 중이 아닌 적")
 
 
 func test_a_body_not_yet_seen_is_not_told() -> void:

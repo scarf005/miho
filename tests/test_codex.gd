@@ -216,7 +216,7 @@ func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
 
 func test_the_glossary_tells_each_shared_rule_once_by_its_tag() -> void:
 	var tab := Codex.TABS.find("용어")
-	var terms := Info.glossary()
+	var terms := Glossary.rows()
 	assert_eq(_names(tab), terms.keys())
 	for term: String in terms:
 		assert_eq(_text(Codex.detail(_entry(tab, term))), term + ".\n" + "\n".join(terms[term]))

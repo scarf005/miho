@@ -129,7 +129,7 @@ func test_a_creature_tells_what_it_is_weak_to() -> void:
 	assert_string_contains(dog, "약점: 흙\n")
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
 	assert_string_contains(boss, "약점: 불, 물, 흙\n")
-	assert_has(Info.glossary()["약점"], "피해: ×2", "the doubling is told once")
+	assert_has(Glossary.rows()["약점"], "피해: ×2", "the doubling is told once")
 	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
 	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
 
@@ -258,12 +258,12 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 	assert_false(Info.plain(Info.terrain(w, ash)).contains("가연성"), "ash does not burn again")
 	var wall := Info.plain(Info.terrain(w, _seen_tile(w, World.WALL)))
 	assert_false(wall.contains("한 번에"), "the spell tells what breaks a wall at once")
-	var glossary := "\n".join(Info.glossary()["가연성"])
+	var glossary := "\n".join(Glossary.rows()["가연성"])
 	assert_string_contains(glossary, "불타는 시간: %d초\n불탄 뒤: 재" % World.BURN_ROUNDS)
 	assert_string_contains(
 		glossary, "번지는 속도: 초당 1칸\n번질 확률: %d%%" % roundi(Tiles.DEFAULT.spread * 100)
 	)
-	var fierce := "\n".join(Info.glossary()["인화성"])
+	var fierce := "\n".join(Glossary.rows()["인화성"])
 	assert_string_contains(fierce, "번지는 속도: 초당 2칸\n초당 피해: %d" % World.FIERCE_DAMAGE)
 
 
@@ -397,6 +397,6 @@ func test_the_hover_of_electricity_is_a_tag_and_the_glossary_tells_its_rows() ->
 	var text := Info.plain(SpellInfo.combo(&"thunder"))
 	assert_string_contains(text, "\n전기.\n")
 	assert_false(text.contains("젖음"), "the glossary holds it")
-	var rows: Array = Info.glossary()[Info.ELECTRIC]
+	var rows: Array = Glossary.rows()[Info.ELECTRIC]
 	assert_eq(rows.size(), Elements.CONDUCTS.size() + 1 + Elements.GROUNDS.size())
 	assert_true(rows.any(func(r: String): return r.begins_with("젖음: ")))

@@ -1,7 +1,7 @@
 class_name Codex
 extends RefCounted
 ## The 도감: every creature, spell, compound, item and terrain feature, whether
-## or not Miho has met it, and the rules many of them share (Info.glossary),
+## or not Miho has met it, and the rules many of them share (Glossary.rows),
 ## by the tag their hovers show. The list is on the left; on the right the selected
 ## entry reads as its hover does, from the same Info and SpellInfo functions,
 ## less the lines about how it stands now (state, sight, light): a creature
@@ -153,7 +153,7 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 			for name: String in Info.CONDITIONS:
 				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name), name))
 		6:
-			for term: String in Info.glossary():
+			for term: String in Glossary.rows():
 				out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
 	return out
 
