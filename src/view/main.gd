@@ -161,6 +161,7 @@ func _translated() -> void:
 		Banner.show(self)
 	if world != null:
 		_show_log()
+		menu.log_rows = messages.lines.map(Messages.shown)
 		_refresh()
 
 
