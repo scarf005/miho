@@ -78,7 +78,7 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 		return
 	w.noise(to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
 	if left > 0 and Fall.WALLS.has(w.tile(to + dir)):
-		Fall.slam(w, to + dir, left, a.id)
+		Fall.slam(w, to + dir, left, a.id, a.faction == Actor.FOX)
 	if a.is_miho():
 		Scent.lay(w, to)
 		if w.arrive(a):
