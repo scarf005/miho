@@ -77,6 +77,19 @@ func test_every_example_does_something_a_wait_would_not() -> void:
 		assert_true(SpellScene.alters(scene), "%s changes something" % [cards])
 
 
+func test_a_leap_crosses_a_gap_and_a_bridge_is_walked_across_the_sky() -> void:
+	for cards in [Cards.recipe(Cards.VAULT), Cards.recipe(&"magpie")]:
+		var scene := SpellScene.ready(SpellScene.of(cards))
+		var w := CodexScene.build(scene)
+		var from := w.player().pos
+		var gap := w.tile(from + CodexScene.EAST)
+		assert_eq(gap, World.SKY, str(cards))
+		for action in CodexScene.actions(scene):
+			w.act(action)
+		assert_gt(w.player().pos.x, from.x + 1, str(cards))
+		assert_eq(w.player().hp, w.player().max_hp - World.HEAL, "she never fell: %s" % [cards])
+
+
 func test_a_creature_the_spell_needs_stands_by_her_row_inside_the_hall() -> void:
 	for cards in _spells():
 		var scene := SpellScene.ready(SpellScene.of(cards))

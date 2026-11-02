@@ -15,6 +15,8 @@ extends RefCounted
 ## Rounds the example waits for the shots of a cast to land and an ally it raised to
 ## fight, at most.
 const WAITS := 8
+## Rounds an example lasts at the least, so that what a cast did stays in view.
+const LINGER := 4
 ## Tiles east of Miho the creature stands when the spell reaches none on her row.
 const NEAR := 3
 ## Tiles up and down a wall runs when the spell does something only to a creature that
@@ -170,10 +172,10 @@ static func alters(scene: Dictionary) -> bool:
 	return false
 
 
-## What a cast can do, as one value: the creatures, the projectiles, and the tiles, fires, hot
-## ground and gas.
+## What a cast can do, as one value: Miho's health, the creatures, the projectiles, and the
+## tiles, fires, hot ground and gas.
 static func _state(w: World) -> int:
-	var foe := []
+	var foe := [w.player().hp]
 	for a in w.actors.slice(1):
 		foe += [a.hp, a.rooted, a.stunned, a.blind, a.wet, a.alight, a.frozen, a.alert]
 		foe += [a.marked, a.rival, a.asleep()]
@@ -181,7 +183,7 @@ static func _state(w: World) -> int:
 	return [foe, shots, w.tiles, w.burning.keys(), w.hot.keys(), w.gas.keys()].hash()
 
 
-## The rounds the shots of `scene`'s cast take to land, and none more.
+## The rounds the shots of `scene`'s cast take to land, at least LINGER so its result stays.
 static func _waits(scene: Dictionary) -> int:
 	var w := CodexScene.build(scene)
 	w.act(CodexScene.actions(scene)[0])
@@ -189,4 +191,4 @@ static func _waits(scene: Dictionary) -> int:
 	while (not w.shots.is_empty() or w.actors.any(func(a): return a.ally())) and n < WAITS:
 		w.act({t = &"wait"})
 		n += 1
-	return n
+	return maxi(n, LINGER)
