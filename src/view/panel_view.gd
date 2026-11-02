@@ -112,6 +112,9 @@ static func tab_at(t: Term, local: Vector2) -> int:
 	return -1
 
 
-## Whether a point in the term's space is over the panel's detail.
+## Whether a point in the term's space is over the panel's detail, beside the list or under it.
 static func aside_at(t: Term, local: Vector2) -> bool:
-	return not t.panel.is_empty() and local.x / Term.CELL.x >= t.panel.get("aside_x", t.cols)
+	if t.panel.is_empty():
+		return false
+	var under: int = t.rows - t.panel.get("detail", []).size()
+	return local.x / Term.CELL.x >= t.panel.get("aside_x", t.cols) or local.y / Term.CELL.y >= under

@@ -92,6 +92,8 @@ var confirming := false
 ## The first row shown, and the row the pointer is over (-1 for none).
 var top := 0
 var hovered := -1
+## On the spellbook: the first line of the detail shown, by row.
+var detail_tops := {}
 ## On the key page: the selected action waits for the key to bind.
 var waiting := false
 ## The spell queued when the spellbook opened (or null), and the spell Enter chose there.
@@ -126,6 +128,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	confirming = false
 	selected = 0
 	top = 0
+	detail_tops.clear()
 	hovered = -1
 	waiting = false
 	copied = false
@@ -172,11 +175,16 @@ func panel() -> Dictionary:
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
 			var rows := _spells(list)
+			var from: int = detail_tops.get(selected, 0)
+			var fit := _detail_fit(detail)
+			var shown := detail.slice(from, from + fit)
 			out = {
 				title = Lang.t("주문서"),
 				rows = rows,
-				detail = detail,
-				example = _example(list, rows, detail)
+				detail = shown,
+				aside_up = from > 0,
+				aside_down = from + fit < detail.size(),
+				example = _example(list, rows, shown)
 			}
 		&"dispel":
 			out = {title = Lang.t("주문 해제"), rows = _dispels()}
@@ -194,6 +202,11 @@ func panel() -> Dictionary:
 			return debug.panel()
 	out.merge({selected = selected, top = top, hover = hovered})
 	return out
+
+
+## The lines of the spellbook's `detail` that fit under one row of the list.
+func _detail_fit(detail: Array) -> int:
+	return detail.size() if room.y <= 0 else mini(detail.size(), maxi(1, room.y - 5))
 
 
 ## Rows of the page's list that fit.
@@ -383,6 +396,10 @@ func scroll_by(lines: int, aside: bool) -> void:
 		codex.scroll_by(lines, aside)
 	elif page == &"cheat":
 		debug.scroll_by(lines)
+	elif page == &"spells" and aside:
+		var detail: Array = SpellInfo.spell(spells()[selected]) if not spells().is_empty() else []
+		var last := detail.size() - _detail_fit(detail)
+		detail_tops[selected] = clampi(detail_tops.get(selected, 0) + lines, 0, last)
 	else:
 		top = ListNav.scrolled(top, lines, panel().rows.size(), _fits())
 

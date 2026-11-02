@@ -264,3 +264,23 @@ func test_a_click_lowers_a_full_slider_to_nothing() -> void:
 	menu.settings.crt = 100
 	menu.key(_press("Right"))
 	assert_eq(menu.settings.crt, 100, "the Right key stops at the top")
+
+
+func test_a_detail_too_tall_for_the_screen_stays_under_the_list_and_scrolls_to_its_end() -> void:
+	var menu := Menu.new()
+	var spell := Spell.make(Guise.RECIPE[Guise.CLOAK])
+	var all := SpellInfo.spell(spell)
+	menu.queued = spell
+	menu.open(&"spells", Vector2i(40, 12))
+	assert_gt(all.size(), 12 - 5, "the spell's detail is taller than the screen")
+	var shown: Dictionary = menu.panel()
+	assert_eq(shown.detail.size(), 12 - 5)
+	assert_eq(shown.detail[0], all[0])
+	assert_true(shown.aside_down)
+	menu.scroll_by(99, true)
+	shown = menu.panel()
+	assert_eq(shown.detail.back(), all.back())
+	assert_false(shown.aside_down)
+	assert_true(shown.aside_up)
+	menu.scroll_by(-99, true)
+	assert_eq(menu.panel().detail[0], all[0])
