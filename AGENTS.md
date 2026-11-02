@@ -7,6 +7,8 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - The magic system is 음양오행: shapes 여 and 구, and the five elements. A new spell is made by combining the existing talismans: pairs, then 상생 and 상극 chains of three, four and five (docs/plan-compounds.md). Never add a new talisman or card outside this system.
 - A buff, a spell cast on oneself, always holds 목. User: "버프형 주문은 반드시 목 있어야 함. 여 + 불 + 목, 여 + 수 + 목처럼".
 - A buff takes at least 3 talismans, has no time limit and can be dropped at will. User: "변신형 주문은 전부 최소 주문 3장 조합하게 하고 전부 유지시간은 무한대로 하되 스스로 해제 가능하게". 은신 and 둔갑 can be seen through. User: "은신과 둔갑은 파훼당할수 있게 해".
+- A creature with wits sees through a 둔갑 cast in front of it. User: "지능이 있는 적 눈앞에서 둔갑하면 소용없게, 지능이 없는 적을 추가로 만들어줘". 천년 이무기 is not fooled by 둔갑 either.
+- 분신 costs 3 tails and fights on its own. User: "분신은 꼬리 3개 전투 알아서 하게해 (spellforged servitor처럼)". 사령술 costs 7 tails and is the one buff with a time limit, the storey it is cast on. User: "7꼬리 주문, 한 층 내내 지속, 시야의 죽은 적을 발견하면 시귀/강시 등으로 되살아남".
 - Before you add a tile, status, state or creature field, diff it against the existing table (src/core/tiles.gd, Actor, Info.state). If its rules match an existing entry, reuse that entry. Never add a themed name with the same rules.
 - Level design teaches by arrangement, not by text. A secret or puzzle looks like ordinary terrain. Examples: a plain wall in front of an empty space, or three dark lanterns in a row. Never add an artificial prop whose hover explains the solution.
 - Never add a gameplay limit the user did not ask for: a damage cap, a balance ceiling, or a test that enforces one. A numeric limit a lane needs goes to the user first, in plain words.
