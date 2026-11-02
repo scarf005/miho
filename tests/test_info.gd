@@ -401,3 +401,55 @@ func test_the_hover_of_electricity_is_a_tag_and_the_glossary_tells_its_rows() ->
 	var rows: Array = Glossary.rows()[Info.ELECTRIC]
 	assert_eq(rows.size(), Elements.CONDUCTS.size() + 1 + Elements.GROUNDS.size())
 	assert_true(rows.any(func(r: String): return r.begins_with("젖음: ")))
+
+
+func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
+	foe.alert = Actor.HUNT
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "당신을 추격 중이다")
+	assert_string_contains(text, "당신을 볼 수 있다")
+	foe.faction = Actor.FOX
+	assert_false(Info.plain(Info.creature(w, foe)).contains("당신을 추격"), "an ally hunts others")
+
+
+func test_a_searcher_on_your_noise_tells_so_and_not_how_many_looks_are_left() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
+	foe.alert = Actor.SEARCH
+	foe.target = w.player().pos
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "당신의 소리를 쫓는 중")
+	assert_false(text.contains("수색"), text)
+
+
+func test_a_searcher_elsewhere_is_only_searching() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
+	foe.alert = Actor.SEARCH
+	foe.target = foe.pos
+	var text := Info.plain(Info.creature(w, foe))
+	assert_string_contains(text, "수색 중")
+	assert_string_contains(text, "수색: ")
+
+
+func test_a_tracker_on_your_trail_tells_so() -> void:
+	var w := World.create(7)
+	var kind := &""
+	for k in Codex.foes():
+		if (
+			Bestiary.info(k).get("tracks", false)
+			and Bestiary.info(k).get("move", &"static") != &"static"
+		):
+			kind = k
+	assert_ne(kind, &"")
+	var foe := FloorGen.spawn(w, kind, w.player().pos + Vector2i(1, 0))
+	foe.alert = Actor.SEARCH
+	foe.target = foe.pos
+	w.scent.resize(w.tiles.size())
+	w.round_no = 5
+	var ahead := foe.pos + Vector2i(1, 0)
+	w.tiles[Grid.index(ahead)] = World.FLOOR
+	w.scent[Grid.index(ahead)] = 5
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "당신의 냄새를 쫓는 중")
