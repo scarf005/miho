@@ -19,6 +19,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Do not write explanatory or causal sentences (`N하면 M한다`, `N해서 M하다`).
 - The player is `당신` in every line, as roguelikes such as DCSS write `You`: `당신을 볼 수 없다`, `당신의 불이 꺼졌다`. `미호` is only the title of the game.
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
+- A thing lists what it has. Never add a line that denies what another thing has: kimchi does not say `최대 체력: 오르지 않음` when the peach says `가득 찼을 때 최대 체력: +1`, and a wall does not say `부술 수 없다.` when a cracked wall says `부서짐: 구슬`. The same goes for what the player already assumes, such as `멈춤: 첫 적` beside `관통`, or `바닥이 됨: 풀` on a spell with `피해: 1`. User: "이 두 문장이 대체 뭔 가치가 있음". A negative stays only when nothing else tells it and the player would act otherwise: `적은 밟지 않음.`, `냄새가 남지 않음.`
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".
 - No onomatopoeia in hover or 도감, because rules use only the radius: write `소음: N`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
