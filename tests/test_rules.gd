@@ -54,7 +54,7 @@ func _foe(w: World, kind: StringName, at: Vector2i, cooldown := 99) -> Actor:
 ## A creature resting one step from its home: awake, since one at its home sleeps.
 func _lookout(w: World, kind: StringName, at: Vector2i, cooldown := 99) -> Actor:
 	var a := _foe(w, kind, at, cooldown)
-	a.home += E
+	a.brain.home += E
 	return a
 
 
@@ -132,17 +132,17 @@ func test_heaven_sees_miho_only_in_light_or_next_to_it() -> void:
 	var w := _world(Vector2i(5, 8))
 	var watcher := _lookout(w, &"jangseung", Vector2i(8, 8), 0)
 	w.act(WAIT)
-	assert_eq(watcher.alert, Actor.REST, "Miho stands in the dark")
+	assert_eq(watcher.brain.alert, Actor.REST, "Miho stands in the dark")
 	_put(w, Vector2i(5, 9), World.LANTERN)
 	var events := w.act(WAIT)
-	assert_eq(watcher.alert, Actor.HUNT)
+	assert_eq(watcher.brain.alert, Actor.HUNT)
 	assert_has(_types(events), &"notice")
 	var charged := Bestiary.casts(&"jangseung", watcher.rank)
 	assert_eq(watcher.magic.intent.map(func(p): return p.cards), charged, "it sees her and charges")
 	var close := _world(Vector2i(7, 8))
 	var other := _lookout(close, &"jangseung", Vector2i(8, 8))
 	close.act(WAIT)
-	assert_eq(other.alert, Actor.HUNT, "next to it even in the dark")
+	assert_eq(other.brain.alert, Actor.HUNT, "next to it even in the dark")
 
 
 func test_preview_shows_only_what_miho_knows() -> void:
@@ -152,11 +152,11 @@ func test_preview_shows_only_what_miho_knows() -> void:
 	w.sense()
 	assert_eq(w.seen[Grid.index(hidden.pos)], 0)
 	var real := w.preview(WAIT)
-	assert_eq(real.actor(hidden.id).alert, Actor.HUNT, "it really sees her")
+	assert_eq(real.actor(hidden.id).brain.alert, Actor.HUNT, "it really sees her")
 	var f := Forecast.of(w, WAIT)
 	assert_null(f.after.actor(hidden.id))
 	assert_false(_types(f.events).has(&"charge"))
-	assert_eq(hidden.alert, Actor.REST, "previews leave the world unchanged")
+	assert_eq(hidden.brain.alert, Actor.REST, "previews leave the world unchanged")
 
 
 func test_a_creature_view_is_every_tile_it_sees() -> void:
@@ -187,7 +187,7 @@ func test_hover_tells_a_seen_creature_state_and_claw_damage() -> void:
 	assert_string_contains(text, "근접: 방망이 · 피해: 1")
 	assert_string_contains(text, "주술: 도깨비불 · ")
 	assert_string_contains(text, "2초 뒤")
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_false(text.contains("기습"))
 
@@ -221,8 +221,8 @@ func test_a_resting_sharp_creature_that_sees_a_wisp_goes_to_search_where_it_came
 	var w := _world()
 	var foe := _lookout(w, &"imugi", Vector2i(12, 4))
 	w.act(_cast([FOX], E))
-	assert_eq(foe.alert, Actor.SEARCH)
-	assert_eq(foe.target, Vector2i(4, 8))
+	assert_eq(foe.brain.alert, Actor.SEARCH)
+	assert_eq(foe.brain.target, Vector2i(4, 8))
 	assert_eq(foe.pos, Vector2i(11, 5), "one step towards it")
 
 
@@ -236,27 +236,27 @@ func test_claws_strike_thrice_at_an_unaware_creature_and_kill_silently() -> void
 	var claw: Dictionary = events.filter(func(e): return e.t == &"claw")[0]
 	assert_eq(claw.n, 3)
 	assert_true(claw.sneak)
-	assert_eq(other.alert, Actor.REST, "nobody heard it")
+	assert_eq(other.brain.alert, Actor.REST, "nobody heard it")
 	assert_eq(w.player().pos, Vector2i(4, 8), "claws do not move her")
 
 
 func test_claws_on_a_hunter_strike_once_and_its_cry_alerts_others() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	foe.hp = 3
 	var other := _foe(w, &"imugi", Vector2i(9, 8))
 	w.act({t = &"move", dir = E})
 	assert_eq(foe.hp, 2, "at 1 health it would run instead of striking back")
-	assert_eq(other.alert, Actor.SEARCH)
-	assert_eq(other.target, Vector2i(5, 8))
+	assert_eq(other.brain.alert, Actor.SEARCH)
+	assert_eq(other.brain.target, Vector2i(5, 8))
 	assert_eq(w.player().hp, 2, "the hunter strikes back")
 
 
 func test_miho_hears_footsteps_in_the_dark_within_range_around_walls() -> void:
 	var w := _world()
 	var walker := _foe(w, &"dokkaebi", Vector2i(8, 8))
-	walker.post = Vector2i(6, 8)
+	walker.brain.post = Vector2i(6, 8)
 	w.act(WAIT)
 	assert_eq(walker.pos, Vector2i(7, 8))
 	assert_eq(w.heard, [{at = Vector2i(7, 8), word = "탁"}])
@@ -265,7 +265,7 @@ func test_miho_hears_footsteps_in_the_dark_within_range_around_walls() -> void:
 	for y in range(2, Grid.H - 1):
 		_put(walled, Vector2i(6, y), World.WALL)
 	var behind := _foe(walled, &"dokkaebi", Vector2i(8, 8))
-	behind.post = Vector2i(6, 1)
+	behind.brain.post = Vector2i(6, 1)
 	walled.act(WAIT)
 	assert_eq(walled.heard, [], "the way round is too long")
 
@@ -273,8 +273,8 @@ func test_miho_hears_footsteps_in_the_dark_within_range_around_walls() -> void:
 func test_a_searcher_throws_a_wisp_into_the_dark_before_going_in() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(20, 8), 0)
-	foe.alert = Actor.SEARCH
-	foe.target = Vector2i(14, 8)
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = Vector2i(14, 8)
 	var events := w.act(WAIT)
 	assert_has(_types(events), &"charge")
 	assert_eq(foe.magic.intent[0].dir, WEST)
@@ -301,7 +301,7 @@ func test_a_blind_hunter_cannot_strike_back_and_takes_a_plain_claw() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(5, 8))
 	foe.hp = 3
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	foe.ailments.blind = 2
 	w.act(WAIT)
 	assert_eq(w.player().hp, 3, "blind, it cannot strike")
@@ -330,9 +330,9 @@ func test_a_thud_draws_creatures_through_a_closed_door() -> void:
 	var far := _foe(w, &"imugi", Vector2i(26, 3))
 	w.act(_cast([FOX, Cards.EARTH], E))
 	w.act(WAIT)
-	assert_eq(near.alert, Actor.SEARCH)
-	assert_eq(near.target, Vector2i(11, 8))
-	assert_eq(far.alert, Actor.REST)
+	assert_eq(near.brain.alert, Actor.SEARCH)
+	assert_eq(near.brain.target, Vector2i(11, 8))
+	assert_eq(far.brain.alert, Actor.REST)
 
 
 func _noises(events: Array) -> Array:
@@ -364,22 +364,22 @@ func test_bamboo_rustles_and_floorboards_creak_and_draw_a_resting_creature() -> 
 		var noises := _noises(w.act({t = &"move", dir = E}))
 		if tread[1] == null:
 			assert_eq(noises, [], "plain floor is silent")
-			assert_eq(listener.alert, Actor.REST)
+			assert_eq(listener.brain.alert, Actor.REST)
 			continue
 		assert_eq([noises[0].word, noises[0].loud], tread[1])
-		assert_eq(listener.alert, Actor.SEARCH)
-		assert_eq(listener.target, Vector2i(5, 8))
+		assert_eq(listener.brain.alert, Actor.SEARCH)
+		assert_eq(listener.brain.target, Vector2i(5, 8))
 
 
 func test_miho_hears_heaven_creak_over_floorboards() -> void:
 	var w := _world()
 	_put(w, Vector2i(7, 8), World.BOARD)
 	var walker := _foe(w, &"dokkaebi", Vector2i(8, 8))
-	walker.post = Vector2i(6, 8)
+	walker.brain.post = Vector2i(6, 8)
 	var other := _foe(w, &"imugi", Vector2i(9, 9))
 	w.act(WAIT)
 	assert_eq(w.heard, [{at = Vector2i(7, 8), word = "삐걱"}])
-	assert_eq(other.alert, Actor.REST, "heaven ignores its own")
+	assert_eq(other.brain.alert, Actor.REST, "heaven ignores its own")
 
 
 func test_a_pond_blocks_walking_but_an_orb_flies_over_it() -> void:
@@ -511,8 +511,8 @@ func test_heaven_walks_around_fire() -> void:
 	_put(w, Vector2i(9, 8), World.BOARD)
 	w.burning[Vector2i(9, 8)] = World.BURN_ROUNDS
 	var foe := _foe(w, &"dokkaebi", Vector2i(8, 8))
-	foe.alert = Actor.SEARCH
-	foe.target = Vector2i(12, 8)
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = Vector2i(12, 8)
 	w.act(WAIT)
 	assert_has([Vector2i(9, 7), Vector2i(9, 9)], foe.pos)
 

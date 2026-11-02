@@ -139,8 +139,8 @@ func test_heaven_walks_round_hot_ground() -> void:
 	var a := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(3, 0))
 	a.magic.cooldown = 99
 	w.sense()
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	var before := a.pos
 	w.act(WAIT)
 	assert_ne(a.pos, ME + Vector2i(2, 0))

@@ -42,8 +42,8 @@ func _hatted(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"gamtu", at)
 	a.magic.cooldown = 99
 	a.ailments.rooted = 99
-	a.home = at
-	a.post = at
+	a.brain.home = at
+	a.brain.post = at
 	w.sense()
 	return a
 

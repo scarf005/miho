@@ -58,7 +58,7 @@ func test_a_board_that_gives_way_cracks_loud_enough_to_alarm_only_when_miho_made
 	w.set_tile(foe.pos + E, World.FLOOR)
 	Terrain.crumble(w, foe, foe.pos)
 	assert_eq(w.tile(foe.pos), World.SKY, "heaven's steps break it too")
-	assert_eq(foe.alert, Actor.REST, "a crack of heaven's own is no alarm")
+	assert_eq(foe.brain.alert, Actor.REST, "a crack of heaven's own is no alarm")
 
 
 func test_other_boards_and_other_floors_stay_when_stepped_off() -> void:

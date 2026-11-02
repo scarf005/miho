@@ -234,7 +234,7 @@ static func watcher(w: World, spells: Array) -> Actor:
 		return null
 	var me := w.player()
 	var foes := _watching(w, me).filter(
-		func(a): return Bestiary.wits(a.kind) >= ALARMED or a.alert == Actor.HUNT
+		func(a): return Bestiary.wits(a.kind) >= ALARMED or a.brain.alert == Actor.HUNT
 	)
 	foes.sort_custom(
 		func(a, b):
@@ -325,7 +325,7 @@ static func fools(by: Actor, a: Actor) -> bool:
 	return (
 		a.buffs.guise
 		and by.faction == Actor.HEAVEN
-		and by.alert != Actor.HUNT
+		and by.brain.alert != Actor.HUNT
 		and not by.info().get("tracks", false)
 		and Bestiary.wits(by.kind) < SEES_THROUGH
 	)

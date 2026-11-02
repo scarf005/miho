@@ -46,8 +46,8 @@ func _self(cards: Array) -> Dictionary:
 func _foe(w: World, at: Vector2i, alert := Actor.SEARCH, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.magic.cooldown = 99
-	a.alert = alert
-	a.target = at
+	a.brain.alert = alert
+	a.brain.target = at
 	return a
 
 
@@ -99,9 +99,9 @@ func test_a_creature_that_is_not_hunting_does_not_know_her() -> void:
 	w.act(_self(GUISE))
 	assert_true(w.sees(searcher, ME), "it sees her tile")
 	assert_false(Guise.knows(w, searcher))
-	assert_ne(searcher.alert, Actor.HUNT)
+	assert_ne(searcher.brain.alert, Actor.HUNT)
 	w.act(WAIT)
-	assert_ne(searcher.alert, Actor.HUNT, "it goes on searching")
+	assert_ne(searcher.brain.alert, Actor.HUNT, "it goes on searching")
 	assert_true(Harm.caught_unawares(w, searcher), "her claws catch it unawares")
 
 
@@ -110,7 +110,7 @@ func test_without_the_guise_the_same_creature_hunts_her() -> void:
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
 	w.act(WAIT)
-	assert_eq(searcher.alert, Actor.HUNT)
+	assert_eq(searcher.brain.alert, Actor.HUNT)
 
 
 func test_a_hunter_is_not_fooled() -> void:
@@ -119,7 +119,7 @@ func test_a_hunter_is_not_fooled() -> void:
 	var hunter := _foe(w, ME + Vector2i(4, 0), Actor.HUNT)
 	w.act(_self(GUISE))
 	assert_true(Guise.knows(w, hunter))
-	assert_true(hunter.sees_me)
+	assert_true(hunter.brain.sees_me)
 	assert_false(Harm.caught_unawares(w, hunter))
 
 
@@ -128,12 +128,12 @@ func test_a_sharp_creature_that_sees_the_cast_hunts_her_and_is_not_fooled() -> v
 	_lit(w)
 	var seer := _foe(w, ME + Vector2i(4, 0), Actor.SEARCH, &"dokkaebi")
 	w.act(_self(GUISE))
-	assert_eq(seer.alert, Actor.HUNT)
+	assert_eq(seer.brain.alert, Actor.HUNT)
 	assert_true(Guise.knows(w, seer))
 	assert_false(Guise.fools(seer, w.player()))
 	assert_false(Harm.caught_unawares(w, seer))
 	w.act(WAIT)
-	assert_eq(seer.alert, Actor.HUNT, "it keeps hunting")
+	assert_eq(seer.brain.alert, Actor.HUNT, "it keeps hunting")
 
 
 func test_a_sharp_creature_that_does_not_see_the_cast_is_fooled() -> void:
@@ -141,12 +141,12 @@ func test_a_sharp_creature_that_does_not_see_the_cast_is_fooled() -> void:
 	var far := _foe(w, ME + Vector2i(6, 0), Actor.SEARCH, &"dokkaebi")
 	w.act(_self(GUISE))
 	assert_false(w.sees(far, ME), "the dark hides her from afar")
-	assert_ne(far.alert, Actor.HUNT)
+	assert_ne(far.brain.alert, Actor.HUNT)
 	_lit(w)
 	w.act(WAIT)
 	assert_true(w.sees(far, ME), "now it sees her tile")
 	assert_false(Guise.knows(w, far))
-	assert_ne(far.alert, Actor.HUNT, "it takes her for another")
+	assert_ne(far.brain.alert, Actor.HUNT, "it takes her for another")
 	assert_true(Harm.caught_unawares(w, far))
 
 
@@ -159,7 +159,7 @@ func test_a_dull_creature_that_sees_the_cast_is_fooled() -> void:
 	for dull in [statue, walker]:
 		assert_true(w.sees(dull, ME), dull.kind)
 		assert_false(Guise.knows(w, dull), dull.kind)
-		assert_ne(dull.alert, Actor.HUNT, dull.kind)
+		assert_ne(dull.brain.alert, Actor.HUNT, dull.kind)
 
 
 func test_a_cunning_creature_is_never_fooled() -> void:
@@ -167,11 +167,11 @@ func test_a_cunning_creature_is_never_fooled() -> void:
 	var dragon := _foe(w, ME + Vector2i(6, 0), Actor.SEARCH, &"cheonnyeon")
 	var sharp := _foe(w, ME + Vector2i(6, 2), Actor.SEARCH, &"dokkaebi")
 	w.act(_self(GUISE))
-	assert_ne(dragon.alert, Actor.HUNT, "it did not see the cast")
+	assert_ne(dragon.brain.alert, Actor.HUNT, "it did not see the cast")
 	_lit(w)
 	w.act(WAIT)
 	assert_false(Guise.fools(dragon, w.player()))
-	assert_eq(dragon.alert, Actor.HUNT, "it knows her at sight")
+	assert_eq(dragon.brain.alert, Actor.HUNT, "it knows her at sight")
 	assert_true(Guise.fools(sharp, w.player()))
 
 
@@ -180,7 +180,7 @@ func test_the_reaper_hunts_her_in_any_guise() -> void:
 	var reaper := _foe(w, ME + Vector2i(6, 0), Actor.REST, &"saja")
 	w.act(_self(GUISE))
 	assert_true(w.player().buffs.guise)
-	assert_eq(reaper.alert, Actor.HUNT)
+	assert_eq(reaper.brain.alert, Actor.HUNT)
 	assert_false(Guise.fools(reaper, w.player()))
 
 
@@ -193,7 +193,7 @@ func test_the_forecast_names_the_sharp_creatures_that_notice_the_cast() -> void:
 	assert_true(f.noticed.has(seer.id))
 	assert_false(f.noticed.has(statue.id))
 	w.act(_self(GUISE))
-	assert_eq(seer.alert, Actor.HUNT)
+	assert_eq(seer.brain.alert, Actor.HUNT)
 
 
 func test_two_rounds_next_to_a_creature_end_the_guise() -> void:

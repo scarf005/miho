@@ -243,14 +243,14 @@ func test_a_gun_lights_the_casters_tile_for_the_round_it_fires() -> void:
 		assert_false(w.lit(ME), "for that round only")
 	var watcher := _world()
 	var foe := _post(watcher, ME + Vector2i(-6, 0))
-	foe.home += E  # awake: one at its home sleeps
+	foe.brain.home += E  # awake: one at its home sleeps
 	watcher.act(_cast([FOX, METAL]))
-	assert_eq(foe.alert, Actor.HUNT, "a creature that sees the flash sees Miho")
+	assert_eq(foe.brain.alert, Actor.HUNT, "a creature that sees the flash sees Miho")
 	var quiet := _world()
 	var other := _post(quiet, ME + Vector2i(-6, 0))
-	other.home += E  # awake: one at its home sleeps
+	other.brain.home += E  # awake: one at its home sleeps
 	quiet.act(_cast([FOX]))
-	assert_ne(other.alert, Actor.HUNT, "a wisp gives her no light")
+	assert_ne(other.brain.alert, Actor.HUNT, "a wisp gives her no light")
 
 
 func test_a_cannonball_hits_harder_pushes_two_and_booms() -> void:

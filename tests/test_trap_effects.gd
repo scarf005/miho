@@ -54,19 +54,19 @@ func test_the_alarm_plate_sends_every_resting_creature_to_search_it() -> void:
 	var far := _foe(w, Vector2i(50, 24))
 	var near := _foe(w, Vector2i(10, 20))
 	var hunter := _foe(w, Vector2i(30, 4))
-	hunter.alert = Actor.HUNT
-	hunter.target = Vector2i(2, 2)
+	hunter.brain.alert = Actor.HUNT
+	hunter.brain.target = Vector2i(2, 2)
 	var deaf := _foe(w, Vector2i(40, 20), &"jangseung")
 	var events := w.act({t = &"move", dir = E})
 	var gong := events.filter(func(e): return e.t == &"noise" and e.word == Traps.GONG)
 	assert_eq(gong.size(), 1)
 	assert_eq(gong[0].loud, Drums.LOUD, "the whole storey")
 	for a in [far, near]:
-		assert_eq(a.alert, Actor.SEARCH)
-		assert_eq(a.target, PLATE)
-	assert_eq(hunter.alert, Actor.HUNT, "a hunter keeps hunting")
-	assert_eq(hunter.target, Vector2i(2, 2))
-	assert_eq(deaf.alert, Actor.REST, "a deaf creature does not hear")
+		assert_eq(a.brain.alert, Actor.SEARCH)
+		assert_eq(a.brain.target, PLATE)
+	assert_eq(hunter.brain.alert, Actor.HUNT, "a hunter keeps hunting")
+	assert_eq(hunter.brain.target, Vector2i(2, 2))
+	assert_eq(deaf.brain.alert, Actor.REST, "a deaf creature does not hear")
 
 
 func test_the_alarm_plate_goes_off_again_for_every_step() -> void:
@@ -86,9 +86,9 @@ func test_a_creature_pushed_onto_the_alarm_plate_rings_it_for_the_others() -> vo
 	var other := _foe(w, Vector2i(40, 20))
 	w.push(pushed, E, 1)
 	assert_eq(pushed.pos, PLATE)
-	assert_eq(other.alert, Actor.SEARCH)
-	assert_eq(other.target, PLATE)
-	assert_ne(pushed.alert, Actor.SEARCH, "not the one that rang it")
+	assert_eq(other.brain.alert, Actor.SEARCH)
+	assert_eq(other.brain.target, PLATE)
+	assert_ne(pushed.brain.alert, Actor.SEARCH, "not the one that rang it")
 
 
 ## Keeps the hall as the storey below, as if Miho had climbed from it.
@@ -300,8 +300,8 @@ func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:
 	w.player().pos = Vector2i(2, 20)
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var foe := _foe(w, Vector2i(14, 8))
-	foe.alert = Actor.SEARCH
-	foe.target = PLATE
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = PLATE
 	var nearest := 99
 	for i in 12:
 		w.act(WAIT)
@@ -326,7 +326,7 @@ func test_an_ally_on_the_hunt_walks_round_a_plate() -> void:
 	_plate(w, PLATE, World.TRAP_FIRE)
 	var friend := _foe(w, PLATE - E)
 	friend.faction = Actor.FOX
-	friend.alert = Actor.HUNT
+	friend.brain.alert = Actor.HUNT
 	assert_true(Traps.bars(w, friend, PLATE))
 	friend.faction = Actor.HEAVEN
 	assert_false(Traps.bars(w, friend, PLATE))
@@ -344,14 +344,14 @@ func _trail(w: World) -> Actor:
 func test_a_trail_of_scent_leads_a_hunter_onto_a_plate() -> void:
 	var w := _world()
 	var foe := _trail(w)
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	assert_eq(Scent.next(w, foe), PLATE + E)
 
 
 func test_a_trail_of_scent_does_not_lead_a_searcher_onto_a_plate() -> void:
 	var w := _world()
 	var foe := _trail(w)
-	foe.alert = Actor.SEARCH
+	foe.brain.alert = Actor.SEARCH
 	assert_eq(Scent.next(w, foe), PLATE, "the trail goes over the plate, so it stays")
 
 
@@ -377,8 +377,8 @@ func test_an_orb_over_an_alarm_plate_calls_the_storey() -> void:
 	var far := _foe(w, Vector2i(50, 24))
 	var events := _fly_on(w, _shot(w), 3)
 	assert_eq(_types(events).count(&"trap"), 1)
-	assert_eq(far.alert, Actor.SEARCH)
-	assert_eq(far.target, PLATE)
+	assert_eq(far.brain.alert, Actor.SEARCH)
+	assert_eq(far.brain.target, PLATE)
 	assert_true(events.any(func(e): return e.t == &"noise" and e.word == Traps.GONG and e.heard))
 
 

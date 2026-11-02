@@ -28,7 +28,7 @@ func _hall(depth: int) -> World:
 func test_it_strikes_miho_beside_it_and_stays_where_it_is() -> void:
 	var w := _hall(1)
 	var post := FloorGen.spawn(w, &"jangseung", ME + Vector2i.RIGHT)
-	post.alert = Actor.HUNT
+	post.brain.alert = Actor.HUNT
 	post.magic.cooldown = 0
 	var events := w.act({t = &"wait"})
 	assert_eq(w.player().hp, 8)

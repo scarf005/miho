@@ -64,7 +64,7 @@ func test_the_woken_statue_is_a_jangseung_hunting_miho_from_where_it_stood() -> 
 	assert_not_null(a)
 	assert_eq(a.kind, &"jangseung")
 	assert_eq(a.faction, Actor.HEAVEN)
-	assert_eq(a.alert, Actor.HUNT)
+	assert_eq(a.brain.alert, Actor.HUNT)
 	assert_eq(a.hp, a.max_hp)
 	assert_eq(woke[0].id, a.id)
 	assert_eq(woke[0].at, AT)

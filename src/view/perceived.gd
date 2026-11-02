@@ -126,7 +126,7 @@ static func sees(vis: PackedByteArray, p: Vector2i) -> bool:
 static func mark_of(a: Actor) -> String:
 	if a.ailments.blind > 0:
 		return "x"
-	return Palette.ALERT_MARK[a.alert]
+	return Palette.ALERT_MARK[a.brain.alert]
 
 
 ## The popup a fact shows over its tile, or empty: {at, text, color, life}.

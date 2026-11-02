@@ -42,7 +42,7 @@ func _head(w: World) -> String:
 func test_a_blow_from_a_seen_creature_names_it() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i.RIGHT)
-	foe.alert = 2
+	foe.brain.alert = 2
 	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
 	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), foe.info().name + "에게 쓰러졌다")

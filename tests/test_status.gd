@@ -124,8 +124,8 @@ func test_a_wet_step_splashes_two_tiles_and_alarms_heaven() -> void:
 	var noises := _of(events, &"noise").filter(func(e): return e.at == ME + W)
 	assert_eq(noises.size(), 1)
 	assert_eq([noises[0].word, noises[0].loud], [Status.SPLASH_WORD, Status.SPLASH])
-	assert_eq(near.alert, Actor.SEARCH, "two tiles off, it heard her")
-	assert_eq(far.alert, Actor.REST, "three tiles off, it did not")
+	assert_eq(near.brain.alert, Actor.SEARCH, "two tiles off, it heard her")
+	assert_eq(far.brain.alert, Actor.REST, "three tiles off, it did not")
 
 
 func test_a_dry_step_on_floor_is_silent() -> void:
@@ -253,10 +253,10 @@ func test_a_hunter_at_one_health_and_one_alight_still_come_at_miho() -> void:
 	_put(w, ME + Vector2i(0, -3), World.LANTERN)
 	var weak := _post(w, ME + E * 4, &"dokkaebi")
 	weak.hp = 1
-	weak.alert = Actor.HUNT
+	weak.brain.alert = Actor.HUNT
 	var burning := _post(w, ME + W * 4, &"dokkaebi")
 	burning.hp = 9
-	burning.alert = Actor.HUNT
+	burning.brain.alert = Actor.HUNT
 	Status.ignite(w, burning)
 	w.sense()
 	w.act(WAIT)

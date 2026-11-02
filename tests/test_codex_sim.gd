@@ -52,7 +52,7 @@ func _result(w: World) -> String:
 				a.ailments.frozen,
 				a.ailments.rooted,
 				a.ailments.stunned,
-				a.alert,
+				a.brain.alert,
 				a.ties.rival
 			]
 		)

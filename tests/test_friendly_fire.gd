@@ -131,10 +131,10 @@ func test_a_creature_hurt_by_another_becomes_wary_and_looks_around_only() -> voi
 	for i in 3:
 		w.act(WAIT)
 	assert_lt(victim.hp, 5)
-	assert_gt(victim.wary, 0)
-	assert_eq(victim.alert, Actor.SEARCH)
-	assert_ne(victim.target, SHOOTER, "a sharp creature does not trace an ally's shot")
-	assert_eq(victim.target, VICTIM)
+	assert_gt(victim.brain.wary, 0)
+	assert_eq(victim.brain.alert, Actor.SEARCH)
+	assert_ne(victim.brain.target, SHOOTER, "a sharp creature does not trace an ally's shot")
+	assert_eq(victim.brain.target, VICTIM)
 
 
 func test_a_cunning_creature_hit_by_an_ally_does_not_hunt() -> void:
@@ -143,7 +143,7 @@ func test_a_cunning_creature_hit_by_an_ally_does_not_hunt() -> void:
 	var victim := _creature(w, &"cheonnyeon", VICTIM)
 	_hurl(w, shooter, [Cards.ORB])
 	assert_lt(victim.hp, 8)
-	assert_ne(victim.alert, Actor.HUNT)
+	assert_ne(victim.brain.alert, Actor.HUNT)
 
 
 func test_the_forecast_shows_the_harm_heaven_does_to_itself() -> void:

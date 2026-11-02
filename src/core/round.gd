@@ -88,7 +88,7 @@ static func end(w: World) -> void:
 			a.magic.cooldown = maxi(0, a.magic.cooldown - 1)
 			Status.lapse(w, a, &"rooted")
 			Status.lapse(w, a, &"blind")
-			a.wary = maxi(0, a.wary - 1)
+			a.brain.wary = maxi(0, a.brain.wary - 1)
 			a.ties.grudge = maxi(0, a.ties.grudge - 1)
 	w.pungent = maxi(0, w.pungent - 1)
 	Jars.arrive(w, w.player())

@@ -237,7 +237,7 @@ func test_sky_blocks_walking_but_not_sight_light_sound_or_spells() -> void:
 	var listener := FloorGen.spawn(w, &"imugi", Vector2i(10, 8))
 	listener.magic.cooldown = 99
 	Hearing.noise(w, Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
-	assert_eq(listener.alert, Actor.SEARCH, "sound crosses it")
+	assert_eq(listener.brain.alert, Actor.SEARCH, "sound crosses it")
 	assert_true(w.can(_cast([Cards.FOX], E)), "a wisp is cast over sky")
 	var events := w.act(_cast([Cards.FOX], E)) + w.act(WAIT)
 	assert_true(
@@ -272,7 +272,7 @@ func test_walking_into_a_window_breaks_it_to_floor_with_a_clang_and_a_message() 
 	assert_eq(w.player().pos, Vector2i(4, 8), "the knock takes her move")
 	var clang: Dictionary = _noises(events)[0]
 	assert_eq([clang.word, clang.loud, clang.at], ["쨍", World.KNOCK, at])
-	assert_eq(listener.alert, Actor.SEARCH)
+	assert_eq(listener.brain.alert, Actor.SEARCH)
 	var lines := Messages.of(w, w, events).map(Messages.plain)
 	assert_eq(lines, ["창문이 깨졌다"])
 	w.act({t = &"move", dir = E})

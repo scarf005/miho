@@ -230,7 +230,7 @@ func test_harm_beside_a_creature_does_not_ask() -> void:
 	var m := _keyboard()
 	var foe := _foe(m, ME + Vector2i(3, 0))
 	foe.magic.cooldown = 0
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	m._forecast()
 	_press(m, "Right")
 	await _settle(m)
@@ -349,7 +349,7 @@ func test_y_or_the_same_key_casts_the_guise_it_asked_about_and_the_creature_hunt
 		_press(m, key)
 		await _settle(m)
 		assert_true(m.world.player().buffs.guise, key)
-		assert_eq(foe.alert, Actor.HUNT, key)
+		assert_eq(foe.brain.alert, Actor.HUNT, key)
 		assert_true(m.guard.casting.is_empty(), key)
 
 

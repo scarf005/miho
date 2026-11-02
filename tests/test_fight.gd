@@ -31,7 +31,7 @@ func _hall() -> World:
 
 func _foe(w: World, at: Vector2i, alert := Actor.REST) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.alert = alert
+	a.brain.alert = alert
 	return a
 
 
@@ -63,7 +63,7 @@ func test_it_prefers_an_unaware_one_among_those_next_to_her() -> void:
 	assert_eq(Fight.step(w), {t = &"move", dir = E}, "it sees her: no sneak attack")
 	blind.ailments.blind = 2
 	assert_eq(Fight.step(w), {t = &"move", dir = S}, "the sneak attack")
-	blind.alert = Actor.HUNT
+	blind.brain.alert = Actor.HUNT
 	assert_eq(Fight.step(w), {t = &"move", dir = E}, "a blind hunter is on guard: the older one")
 
 
@@ -192,8 +192,8 @@ func test_tab_when_badly_hurt_refuses_even_with_a_creature_next_to_her() -> void
 func test_the_map_tints_a_sleeper_she_sees_from_afar_and_not_one_out_of_sight() -> void:
 	var m := _main()
 	var sleeper := FloorGen.spawn(m.world, &"haetae", Vector2i(8, 8))
-	sleeper.home = sleeper.pos
-	sleeper.alert = Actor.REST
+	sleeper.brain.home = sleeper.pos
+	sleeper.brain.alert = Actor.REST
 	m.world.sense()
 	m.world.seen[Grid.index(sleeper.pos)] = 1
 	assert_true(sleeper.asleep())

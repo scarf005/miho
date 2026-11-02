@@ -36,8 +36,8 @@ func _world(depth: int) -> World:
 ## A dokkaebi at `at` hunting Miho, its next spell the leap.
 func _leaper(w: World, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	a.magic.casts = a.repertoire().find(Bestiary.LEAP)
 	w.sense()
 	return a

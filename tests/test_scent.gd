@@ -35,8 +35,8 @@ func _world() -> World:
 func _hunter(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
 	a.magic.cooldown = 99
-	a.alert = Actor.HUNT
-	a.target = w.player().pos
+	a.brain.alert = Actor.HUNT
+	a.brain.target = w.player().pos
 	return a
 
 
@@ -55,8 +55,8 @@ func test_a_hunter_follows_miho_round_a_corner() -> void:
 	var a := _hunter(w, Vector2i(9, 8))
 	_walk(w, [E, E, E, E, N, N, N, N])
 	assert_eq(w.player().pos, Vector2i(16, 4))
-	assert_false(a.sees_me, "it never saw her again")
-	assert_eq(a.alert, Actor.HUNT)
+	assert_false(a.brain.sees_me, "it never saw her again")
+	assert_eq(a.brain.alert, Actor.HUNT)
 	assert_eq(a.pos.x, 16, "it came round the corner")
 	assert_lt(a.pos.y, 8)
 
@@ -66,24 +66,24 @@ func test_a_hunter_follows_a_trail_of_trail_age_and_drops_an_older_one() -> void
 		var w := _world()
 		w.round_no = 100
 		var a := _hunter(w, Vector2i(5, 8))
-		a.target = a.pos
+		a.brain.target = a.pos
 		_stamp(w, Vector2i(6, 8), w.round_no + 1 - age)
 		w.act(WAIT)
 		if age == Scent.TRAIL_AGE:
-			assert_eq(a.alert, Actor.HUNT, "age %d is followed" % age)
+			assert_eq(a.brain.alert, Actor.HUNT, "age %d is followed" % age)
 			assert_eq(a.pos, Vector2i(6, 8))
 		else:
-			assert_eq(a.alert, Actor.SEARCH, "age %d is cold" % age)
+			assert_eq(a.brain.alert, Actor.SEARCH, "age %d is cold" % age)
 
 
 func test_a_hunter_does_not_step_onto_an_older_tile() -> void:
 	var w := _world()
 	var a := _hunter(w, Vector2i(5, 8))
-	a.target = a.pos
+	a.brain.target = a.pos
 	_stamp(w, a.pos, 5)
 	_stamp(w, Vector2i(6, 8), 3)
 	w.act(WAIT)
-	assert_eq(a.alert, Actor.SEARCH)
+	assert_eq(a.brain.alert, Actor.SEARCH)
 
 
 func test_a_static_creature_never_follows() -> void:
@@ -105,8 +105,10 @@ func _trail_over(tile: int) -> Actor:
 
 
 func test_bamboo_breaks_the_trail() -> void:
-	assert_eq(_trail_over(World.BAMBOO).alert, Actor.SEARCH, "the trail ends at the bamboo")
-	assert_eq(_trail_over(World.FLOOR).alert, Actor.HUNT, "the same walk over floor is followed")
+	assert_eq(_trail_over(World.BAMBOO).brain.alert, Actor.SEARCH, "the trail ends at the bamboo")
+	assert_eq(
+		_trail_over(World.FLOOR).brain.alert, Actor.HUNT, "the same walk over floor is followed"
+	)
 
 
 func test_a_tile_set_alight_loses_its_scent() -> void:
@@ -147,13 +149,13 @@ func test_a_clone_and_a_preview_carry_the_scent() -> void:
 	assert_eq(w.clone().scent, w.scent)
 	assert_eq(w.known_clone().scent, w.scent)
 	var a := _hunter(w, Vector2i(10, 8))
-	a.target = Vector2i(13, 8)
+	a.brain.target = Vector2i(13, 8)
 	var step := {t = &"move", dir = E}
 	var shown := w.preview(step)
 	w.act(step)
 	assert_eq(shown.scent, w.scent)
 	assert_eq(shown.actors[1].pos, a.pos)
-	assert_eq(shown.actors[1].alert, a.alert)
+	assert_eq(shown.actors[1].brain.alert, a.brain.alert)
 
 
 func test_the_same_seed_and_actions_leave_the_same_scent_and_creatures() -> void:
@@ -167,7 +169,7 @@ func test_the_same_seed_and_actions_leave_the_same_scent_and_creatures() -> void
 		b.act(action)
 	assert_lt(a.scent.count(0), a.scent.size(), "Miho left a trail")
 	assert_eq(a.scent, b.scent)
-	var state := func(x): return [x.pos, x.alert]
+	var state := func(x): return [x.pos, x.brain.alert]
 	assert_eq(a.actors.map(state), b.actors.map(state))
 
 
@@ -185,21 +187,21 @@ func test_searching_lasts_search_rounds() -> void:
 	var w := _world()
 	var a := FloorGen.spawn(w, &"jangseung", Vector2i(5, 8))
 	a.magic.cooldown = 99
-	a.alert = Actor.SEARCH
-	a.target = a.pos
+	a.brain.alert = Actor.SEARCH
+	a.brain.target = a.pos
 	assert_eq(World.SEARCH_ROUNDS, 15)
 	for i in World.SEARCH_ROUNDS:
 		w.act(WAIT)
-		assert_eq(a.alert, Actor.SEARCH, "round %d" % (i + 1))
+		assert_eq(a.brain.alert, Actor.SEARCH, "round %d" % (i + 1))
 	w.act(WAIT)
-	assert_eq(a.alert, Actor.REST)
+	assert_eq(a.brain.alert, Actor.REST)
 
 
 func test_the_observation_says_a_hunter_is_tracking_scent() -> void:
 	var w := _world()
 	var a := _hunter(w, Vector2i(5, 8))
 	assert_string_contains(Observation._creature(w, a), ", tracking scent")
-	a.alert = Actor.SEARCH
+	a.brain.alert = Actor.SEARCH
 	assert_false(Observation._creature(w, a).contains("tracking"))
 	var near := _hunter(w, Vector2i(11, 8))
 	assert_false(Observation._creature(w, near).contains("tracking"), "it sees her")

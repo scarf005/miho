@@ -179,7 +179,7 @@ static func _ally(k: World, a: Actor) -> String:
 static func _creature(k: World, a: Actor) -> String:
 	var line := (
 		"%s %s (%d,%d) hp %d/%d, %s"
-		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.alert]]
+		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.brain.alert]]
 	)
 	if Guise.knows(k, a):
 		line += ", sees Miho"
@@ -188,7 +188,7 @@ static func _creature(k: World, a: Actor) -> String:
 			", sees Miho but not through her "
 			+ ("guise" if Guise.fools(a, k.player()) else "cloak")
 		)
-	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
+	elif a.brain.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
 	for c in [
 		[a.ailments.blind, "blind"],
@@ -200,8 +200,8 @@ static func _creature(k: World, a: Actor) -> String:
 	]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]
-	if a.wary > 0:
-		line += ", wary %d" % a.wary
+	if a.brain.wary > 0:
+		line += ", wary %d" % a.brain.wary
 	line += ", wits " + WITS[Bestiary.wits(a.kind)]
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
@@ -215,7 +215,7 @@ static func _creature(k: World, a: Actor) -> String:
 	elif k.actors.any(func(b): return b.ties.leader == a.id):
 		line += ", leads a band"
 	if a.drumming():
-		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
+		line += ", running to the drum at (%d,%d)" % [a.brain.drum.x, a.brain.drum.y]
 	for plan in a.magic.intent:
 		line += (
 			", charging %s aimed %s"

@@ -118,8 +118,8 @@ static func _rise(w: World) -> void:
 		var spot := Raise.spot_of(w, at)
 		if w.round_no > body.get("rises", w.round_no) and spot.x >= 0:
 			var a := FloorGen.spawn(w, body.kind, spot)
-			a.alert = Actor.SEARCH
-			a.target = spot
+			a.brain.alert = Actor.SEARCH
+			a.brain.target = spot
 			w.bodies.erase(at)
 			w.emit({t = &"rise", id = a.id, at = spot, kind = a.kind})
 

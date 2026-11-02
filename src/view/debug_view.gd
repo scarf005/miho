@@ -12,8 +12,8 @@ extends RefCounted
 static func view(w: World) -> Dictionary:
 	var goals := []
 	for a in w.actors:
-		if a.alive() and a.faction != Actor.FOX and a.alert != Actor.REST:
-			goals.append({from = a.pos, to = a.target, alert = a.alert})
+		if a.alive() and a.faction != Actor.FOX and a.brain.alert != Actor.REST:
+			goals.append({from = a.pos, to = a.brain.target, alert = a.brain.alert})
 	var scent := {}
 	if w.scent.size() == w.tiles.size():
 		for i in w.scent.size():
@@ -77,16 +77,16 @@ static func at(w: World, p: Vector2i) -> Array:
 ## A creature's hidden state: what it is after, how long it has been without a
 ## trail, and its spell clock and aim.
 static func creature(a: Actor) -> Array:
-	var resting := a.alert == Actor.REST
-	var goal := a.home if resting else a.target
-	var color: Color = Palette.ALERT[maxi(a.alert, 1)]
+	var resting := a.brain.alert == Actor.REST
+	var goal := a.brain.home if resting else a.brain.target
+	var color: Color = Palette.ALERT[maxi(a.brain.alert, 1)]
 	var goal_text := Lang.t("%s (%d, %d) %d칸")
 	goal_text = (
 		goal_text % [Lang.t("쉬는 곳" if resting else "목표"), goal.x, goal.y, Grid.cheb(a.pos, goal)]
 	)
 	var lines := [[[Lang.t("디버그 "), Palette.DIM], [goal_text, color]]]
 	if not resting:
-		lines.append([[Lang.t("놓친 지 %d/%d초") % [a.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
+		lines.append([[Lang.t("놓친 지 %d/%d초") % [a.brain.lost, World.SEARCH_ROUNDS], Palette.TEXT]])
 	if not a.repertoire().is_empty():
 		lines.append(_clock(a))
 	return lines

@@ -317,7 +317,7 @@ func test_it_is_fooled_by_a_guise_like_any_dull_creature() -> void:
 	w.sense()
 	w.act(WAIT)
 	assert_eq(me.hp, me.max_hp, "it does not know her")
-	assert_ne(a.alert, Actor.HUNT)
+	assert_ne(a.brain.alert, Actor.HUNT)
 
 
 func test_a_forecast_of_a_seen_one_agrees_with_the_round() -> void:
@@ -357,7 +357,7 @@ func test_a_preview_on_a_clone_equals_the_round_itself() -> void:
 			"me %d" % i
 		)
 		var b := ahead.actor(a.id)
-		assert_eq([b.pos, b.hp, b.alert], [a.pos, a.hp, a.alert], "it %d" % i)
+		assert_eq([b.pos, b.hp, b.brain.alert], [a.pos, a.hp, a.brain.alert], "it %d" % i)
 
 
 func test_a_saved_run_with_a_seize_plays_back_the_same() -> void:

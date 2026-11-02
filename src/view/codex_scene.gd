@@ -286,5 +286,5 @@ static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 	if mark == "w":
 		a.hp = 1
 	if mark in ["d", "i", "k", "m"]:
-		a.alert = Actor.HUNT
-		a.target = w.player().pos
+		a.brain.alert = Actor.HUNT
+		a.brain.target = w.player().pos

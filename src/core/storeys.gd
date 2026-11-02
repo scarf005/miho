@@ -44,8 +44,8 @@ static func bring(w: World, party: Array[Actor]) -> void:
 		if spot.x < 0:
 			continue
 		a.pos = spot
-		a.home = spot
-		a.post = spot
+		a.brain.home = spot
+		a.brain.post = spot
 		a.ties.rival = 0
 		a.ties.grudge = 0
 		a.magic.intent.clear()

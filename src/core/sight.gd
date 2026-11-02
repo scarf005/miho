@@ -16,7 +16,7 @@ static func field(origin: Vector2i, radius: int, opaque: PackedByteArray) -> Pac
 ## How far `a` sees in the dark.
 static func reach(w: World, a: Actor) -> int:
 	var more := Curse.sight_bonus(w) if a.faction == Actor.HEAVEN else 0
-	return World.NIGHT[a.faction] + (World.WARY_SIGHT if a.wary > 0 else 0) + more
+	return World.NIGHT[a.faction] + (World.WARY_SIGHT if a.brain.wary > 0 else 0) + more
 
 
 ## What `me` senses now, [seen, dim, known]: World.seen, World.dim and World.known once it has

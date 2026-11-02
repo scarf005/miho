@@ -111,9 +111,9 @@ func test_heaven_searches_the_yelp_but_a_cunning_creature_where_it_was_thrown_fr
 	var far := _sleeper(w, &"imugi", HOVER + Vector2i(9, 0))
 	_hovering(w)
 	w.act(WAIT)
-	assert_eq([sharp.alert, sharp.target], [Actor.SEARCH, HOVER])
-	assert_eq([cunning.alert, cunning.target], [Actor.SEARCH, ME])
-	assert_eq(far.alert, Actor.REST, "out of earshot")
+	assert_eq([sharp.brain.alert, sharp.brain.target], [Actor.SEARCH, HOVER])
+	assert_eq([cunning.brain.alert, cunning.brain.target], [Actor.SEARCH, ME])
+	assert_eq(far.brain.alert, Actor.REST, "out of earshot")
 
 
 func test_the_forecast_hears_the_yelp_the_round_does() -> void:

@@ -52,12 +52,12 @@ func _sig(w: World) -> Array:
 				a.id,
 				a.pos,
 				a.hp,
-				a.alert,
-				a.target,
-				a.lost,
+				a.brain.alert,
+				a.brain.target,
+				a.brain.lost,
 				a.magic.cooldown,
 				a.magic.intent,
-				a.sees_me
+				a.brain.sees_me
 			]
 	)
 	return [w.round_no, w.rng.state, actors, w.seen, w.known, w.scent, w.heard, w.events.size()]
@@ -66,11 +66,11 @@ func _sig(w: World) -> Array:
 func test_goals_are_listed_for_creatures_that_search_or_hunt_only() -> void:
 	var w := _hall()
 	var hunter := FloorGen.spawn(w, &"dokkaebi", Vector2i(12, 8))
-	hunter.alert = Actor.HUNT
-	hunter.target = Vector2i(10, 3)
+	hunter.brain.alert = Actor.HUNT
+	hunter.brain.target = Vector2i(10, 3)
 	var searcher := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 9))
-	searcher.alert = Actor.SEARCH
-	searcher.target = Vector2i(2, 2)
+	searcher.brain.alert = Actor.SEARCH
+	searcher.brain.target = Vector2i(2, 2)
 	FloorGen.spawn(w, &"dokkaebi", Vector2i(16, 9))
 	var goals: Array = DebugView.view(w).goals
 	assert_eq(goals.size(), 2, "the sleeper has none")
@@ -112,11 +112,11 @@ func test_a_sound_reaches_only_as_far_as_it_travels_round_walls() -> void:
 func test_a_creature_out_of_sight_tells_its_hidden_state_on_hover() -> void:
 	var w := _hall()
 	var a := FloorGen.spawn(w, &"dokkaebi", Vector2i(14, 8))
-	a.alert = Actor.SEARCH
-	a.target = Vector2i(12, 3)
-	a.lost = 4
+	a.brain.alert = Actor.SEARCH
+	a.brain.target = Vector2i(12, 3)
+	a.brain.lost = 4
 	a.magic.cooldown = 2
-	a.sees_me = false
+	a.brain.sees_me = false
 	assert_eq(w.seen[Grid.index(a.pos)], 0)
 	var text := Info.plain(DebugView.at(w, a.pos))
 	assert_string_contains(text, "도깨비")

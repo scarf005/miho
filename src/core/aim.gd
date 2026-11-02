@@ -281,7 +281,7 @@ static func _spray(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 ## turn that is one (`_turn`).
 static func searchlight(w: World, a: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	return out if w.lit(a.target) else _throw(w, a, a.target, _turn(a))
+	return out if w.lit(a.brain.target) else _throw(w, a, a.brain.target, _turn(a))
 
 
 ## A wisp a clever creature (from Bestiary.SHARP) throws at the tile it suspects
@@ -297,7 +297,7 @@ static func suspected(w: World, a: Actor) -> Array[Dictionary]:
 		or w.shots.any(func(s): return s.caster == a.id and not s.gone)
 	):
 		return out
-	var spot := a.target
+	var spot := a.brain.target
 	if a.info().get("tracks", false) and Scent.next(w, a) != a.pos:
 		spot = Scent.ahead(w, a, Spell.RANGE)
 	var list := _cheap(a, a.repertoire()) if Bestiary.mana(a.kind) > 0 else a.repertoire()

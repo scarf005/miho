@@ -27,11 +27,11 @@ static func noise(
 			a.alive()
 			and a.faction == Actor.HEAVEN
 			and a.id != by
-			and a.alert != Actor.HUNT
+			and a.brain.alert != Actor.HUNT
 			and not a.info().get("deaf", false)
 		):
 			var da := dist[Grid.index(a.pos)]
 			if da >= 0 and da <= loud:
-				a.alert = Actor.SEARCH
-				a.target = at if spot.x < 0 else spot
-				a.lost = 0
+				a.brain.alert = Actor.SEARCH
+				a.brain.target = at if spot.x < 0 else spot
+				a.brain.lost = 0

@@ -27,9 +27,9 @@ func _dark_hall(depth: int) -> World:
 
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
-	a.home = Vector2i(40, 8)
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
+	a.brain.home = Vector2i(40, 8)
 	return a
 
 

@@ -451,11 +451,11 @@ func _preview_equals_round(form: Array, compounds: Array) -> void:
 					[
 						other.hp,
 						other.ailments.stunned,
-						other.alert,
+						other.brain.alert,
 						other.ties.rival,
 						other.ties.grudge
 					],
-					[a.hp, a.ailments.stunned, a.alert, a.ties.rival, a.ties.grudge],
+					[a.hp, a.ailments.stunned, a.brain.alert, a.ties.rival, a.ties.grudge],
 					label
 				)
 

@@ -64,7 +64,7 @@ func _post(w: World, at: Vector2i) -> Actor:
 
 func _hunter(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.alert = Actor.HUNT
+	a.brain.alert = Actor.HUNT
 	return a
 
 
@@ -226,7 +226,7 @@ func test_a_foe_takes_on_an_ally_nearer_than_miho_and_goes_back_to_her() -> void
 	w._changed()
 	w.act(WAIT)
 	assert_eq(foe.ties.rival, 0, "she is nearer now")
-	assert_eq(foe.alert, Actor.HUNT)
+	assert_eq(foe.brain.alert, Actor.HUNT)
 
 
 func test_an_ally_takes_the_blows_of_a_foe_in_her_place() -> void:
@@ -234,7 +234,7 @@ func test_an_ally_takes_the_blows_of_a_foe_in_her_place() -> void:
 	var copy := _copy(w, ME + Vector2i(6, 0))
 	copy.hp = 99
 	var foe := FloorGen.spawn(w, &"oedari", ME + Vector2i(7, 0))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	var hp := w.player().hp
 	_rounds(w, 5)
 	assert_lt(copy.hp, 99, "the foe struck it")
@@ -318,7 +318,7 @@ func test_a_shot_of_an_ally_turns_a_foe_on_the_ally_and_not_on_miho() -> void:
 	s.origin = copy.pos
 	Mind.struck(w, foe, s)
 	assert_eq(foe.ties.rival, copy.id)
-	assert_ne(foe.alert, Actor.HUNT)
+	assert_ne(foe.brain.alert, Actor.HUNT)
 
 
 func test_the_forecast_of_a_round_with_an_ally_is_the_round() -> void:

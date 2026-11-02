@@ -39,8 +39,8 @@ func _world(depth := 7) -> World:
 
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	a.magic.cooldown = 9 if Bestiary.mana(kind) == 0 else 0
 	w.sense()
 	return a

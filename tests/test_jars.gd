@@ -172,8 +172,8 @@ func test_a_fallen_scarecrow_sends_the_creatures_that_see_it_to_search_there() -
 		var at := AT if how == &"bump" else FAR
 		assert_eq(Notice.at(w, at).get("kind"), &"scarecrow", str(how))
 		if how == &"bump":
-			assert_eq(foe.alert, Actor.SEARCH)
-			assert_eq(foe.target, at)
+			assert_eq(foe.brain.alert, Actor.SEARCH)
+			assert_eq(foe.brain.target, at)
 
 
 # --- kimchi ---------------------------------------------------------------------

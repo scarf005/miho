@@ -39,14 +39,14 @@ func _busy(w: World, kind: StringName, led: bool, hunting: bool) -> Actor:
 	a.ailments.blind = 3
 	a.ailments.rooted = 3
 	a.ailments.stunned = 3
-	a.wary = 3
+	a.brain.wary = 3
 	a.magic.cooldown = 4
-	a.lost = 1
+	a.brain.lost = 1
 	if hunting:
-		a.alert = Actor.HUNT
-		a.drum = Vector2i(1, 1)
+		a.brain.alert = Actor.HUNT
+		a.brain.drum = Vector2i(1, 1)
 	else:
-		a.alert = Actor.SEARCH
+		a.brain.alert = Actor.SEARCH
 	w.burning[AT] = 4
 	w.hot[AT] = Vector2i(Compounds.LAVA, 3)
 	w.gas[AT] = Vector2i(Gas.STEAM, 5)
@@ -69,7 +69,7 @@ func _hovers_of_every_creature() -> Dictionary:
 				var a := _busy(w, kind, led, hunting)
 				out["%s led=%s hunting=%s" % [kind, led, hunting]] = Info.creature(w, a)
 	var w := _world()
-	w.player().wary = 3
+	w.player().brain.wary = 3
 	w.player().ailments.blind = 3
 	out["miho"] = Info.creature(w, w.player())
 	return out

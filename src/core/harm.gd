@@ -10,7 +10,7 @@ extends RefCounted
 ## does not see Miho, or does not know her in guise (Guise); a sleeping or
 ## blind creature sees nothing, but a blind hunter is on guard.
 static func caught_unawares(w: World, a: Actor) -> bool:
-	return a.alert != Actor.HUNT and not Guise.knows(w, a)
+	return a.brain.alert != Actor.HUNT and not Guise.knows(w, a)
 
 
 ## The harm a claw of `me` at `foe` does: CLAW, SNEAK times that on a sneak attack,

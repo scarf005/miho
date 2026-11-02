@@ -16,24 +16,8 @@ var rank := 1
 var ailments: Ailments
 ## What it casts with and charges (Magic).
 var magic: Magic
-var acted := 0
-var alert := REST
-## Where it last saw Miho, or the spot it is searching.
-var target := Vector2i.ZERO
-var lost := 0
-## Rounds left of wariness after being hurt: it does not go back to rest, and
-## notices Miho one tile farther in the dark.
-var wary := 0
-## The ids of the changes (Notice) it has seen and reacted to.
-var marked: Array[int] = []
-var sees_me := false
-## A guard (Yard) stands at its post: its state reads guarding.
-var guard := false
-## The drum it runs to strike instead of attacking (Drums), or (-1, -1).
-var drum := Vector2i(-1, -1)
-## Where it rests, and where a patrol is heading.
-var home := Vector2i.ZERO
-var post := Vector2i.ZERO
+## What it knows and means to do (Mind).
+var brain: Brain
 ## Whom it fights and follows (Ties).
 var ties: Ties
 ## The spells it holds on itself (Guise).
@@ -46,6 +30,7 @@ func _init(bare := false) -> void:
 		ailments = Ailments.new()
 		magic = Magic.new()
 		ties = Ties.new()
+		brain = Brain.new()
 		buffs = Buffs.new()
 
 
@@ -67,7 +52,7 @@ func ally() -> bool:
 ## patrol, or one on its way home) is awake, and one that always knows where
 ## Miho is (`hunts`) or cannot walk (a 장승, `move` static) never sleeps.
 func asleep() -> bool:
-	return alert == REST and pos == home and sleeps()
+	return brain.alert == REST and pos == brain.home and sleeps()
 
 
 ## Whether it can sleep at all: a creature of heaven that does not patrol, always
@@ -95,7 +80,7 @@ func following() -> bool:
 
 ## Hunting Miho by way of a drum.
 func drumming() -> bool:
-	return alert == HUNT and drum != Vector2i(-1, -1)
+	return brain.alert == HUNT and brain.drum != Vector2i(-1, -1)
 
 
 func info() -> Dictionary:
@@ -123,19 +108,9 @@ func clone() -> Actor:
 	a.hp = hp
 	a.max_hp = max_hp
 	a.rank = rank
-	a.acted = acted
-	a.alert = alert
-	a.target = target
-	a.lost = lost
-	a.wary = wary
-	a.sees_me = sees_me
-	a.guard = guard
-	a.drum = drum
-	a.home = home
-	a.post = post
 	a.ailments = ailments.copy()
 	a.magic = magic.copy()
 	a.ties = ties.copy()
+	a.brain = brain.copy()
 	a.buffs = buffs.copy()
-	a.marked.assign(marked)
 	return a

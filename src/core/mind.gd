@@ -34,7 +34,7 @@ static func enlist(w: World, a: Actor) -> void:
 	a.ties.leader = w.player().id
 	a.ties.rival = 0
 	a.ties.grudge = 0
-	a.alert = Actor.REST
+	a.brain.alert = Actor.REST
 	a.magic.intent.clear()
 	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
 
@@ -62,7 +62,7 @@ static func heaven_phase(w: World) -> void:
 		if Bestiary.swims(a.kind) and Tiles.water[w.tile(a.pos)] != 1:
 			Fall.stranded(w, a)
 			continue
-		a.acted += 1
+		a.brain.acted += 1
 		_regrow(a)
 		if a.ailments.stunned > 0:
 			Status.lapse(w, a, &"stunned")
@@ -78,7 +78,7 @@ static func heaven_phase(w: World) -> void:
 			continue
 		if a.ailments.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
-		match a.alert:
+		match a.brain.alert:
 			Actor.HUNT:
 				hunt(w, a)
 			Actor.SEARCH:
@@ -95,11 +95,11 @@ static func perceive(w: World, a: Actor) -> void:
 	if a.ally():
 		return
 	var me := w.player()
-	a.sees_me = Guise.knows(w, a)
-	if a.sees_me or a.info().get("hunts", false):
+	a.brain.sees_me = Guise.knows(w, a)
+	if a.brain.sees_me or a.info().get("hunts", false):
 		hunt_from(w, a, me.pos)
 		return
-	if a.alert == Actor.HUNT or a.ailments.blind > 0:
+	if a.brain.alert == Actor.HUNT or a.ailments.blind > 0:
 		return
 	for s in w.shots:
 		if not s.gone and s.faction != a.faction and w.sees(a, s.pos):
@@ -143,20 +143,20 @@ static func _heed(w: World, a: Actor, s: Shot) -> void:
 
 ## It was hurt: wary for WARY_ROUNDS, and a resting creature looks around.
 static func hurt(a: Actor) -> void:
-	a.wary = World.WARY_ROUNDS
-	if a.alert == Actor.REST:
+	a.brain.wary = World.WARY_ROUNDS
+	if a.brain.alert == Actor.REST:
 		_look(a, a.pos)
 
 
 ## `a` hunts Miho from `at`; starting to, it notices her and shouts (shout).
 static func hunt_from(w: World, a: Actor, at: Vector2i) -> void:
-	var fresh := a.alert != Actor.HUNT
+	var fresh := a.brain.alert != Actor.HUNT
 	if fresh:
 		w.emit({t = &"notice", id = a.id, at = a.pos})
 		Drums.plan(w, a)
-	a.alert = Actor.HUNT
-	a.target = at
-	a.lost = 0
+	a.brain.alert = Actor.HUNT
+	a.brain.target = at
+	a.brain.lost = 0
 	if fresh:
 		shout(w, a)
 
@@ -170,7 +170,7 @@ static func shout(w: World, a: Actor) -> void:
 	if cry.is_empty():
 		return
 	w.emit({t = &"shout", id = a.id, at = a.pos, word = cry.word})
-	Hearing.noise(w, a.pos, cry.loud, cry.word, true, a.id, a.target)
+	Hearing.noise(w, a.pos, cry.loud, cry.word, true, a.id, a.brain.target)
 
 
 ## `a` was struck by `by`: by Miho, it stops fighting; by a living ally of hers or
@@ -207,12 +207,12 @@ static func lose(a: Actor) -> void:
 static func sleep(w: World, a: Actor) -> void:
 	if not a.alive() or not a.sleeps() or a.asleep():
 		return
-	a.alert = Actor.REST
-	a.home = a.pos
-	a.lost = 0
+	a.brain.alert = Actor.REST
+	a.brain.home = a.pos
+	a.brain.lost = 0
 	a.ties.rival = 0
 	a.ties.grudge = 0
-	a.sees_me = false
+	a.brain.sees_me = false
 	a.magic.intent.clear()
 	w._changed()
 	w.emit({t = &"sleep", id = a.id, at = a.pos})
@@ -277,7 +277,7 @@ static func _truce(w: World, a: Actor) -> void:
 	a.ties.rival = 0
 	a.ties.grudge = 0
 	w.emit({t = &"truce", id = a.id, at = a.pos})
-	if a.alert != Actor.HUNT and not a.ally():
+	if a.brain.alert != Actor.HUNT and not a.ally():
 		_look(a, a.ties.rival_at)
 
 
@@ -295,16 +295,16 @@ static func struck(w: World, a: Actor, s: Shot) -> void:
 
 
 static func _look(a: Actor, at: Vector2i) -> void:
-	a.alert = Actor.SEARCH
-	a.target = at
-	a.lost = 0
+	a.brain.alert = Actor.SEARCH
+	a.brain.target = at
+	a.brain.lost = 0
 
 
 static func hunt(w: World, a: Actor) -> void:
 	if Drums.go(w, a):
 		return
 	var me := w.player()
-	if a.sees_me:
+	if a.brain.sees_me:
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, me.pos) == 1:
 			if a.magic.cooldown > 0 or not _charge(w, a, Aim.kindle(w, a, me)):
@@ -322,16 +322,16 @@ static func hunt(w: World, a: Actor) -> void:
 	if _suspect(w, a):
 		return
 	var by_nose: bool = me.buffs.cloak and a.info().get("tracks", false)
-	if not by_nose and a.pos != a.target and a.lost < World.SEARCH_ROUNDS:
-		a.lost += 1
-		if a.ailments.rooted > 0 or _step_to(w, a, a.target):
+	if not by_nose and a.pos != a.brain.target and a.brain.lost < World.SEARCH_ROUNDS:
+		a.brain.lost += 1
+		if a.ailments.rooted > 0 or _step_to(w, a, a.brain.target):
 			return
 	var to := Scent.next(w, a)
 	if a.ailments.rooted <= 0 and _step_to(w, a, to):
-		a.target = to
+		a.brain.target = to
 		return
-	a.alert = Actor.SEARCH
-	a.lost = 0
+	a.brain.alert = Actor.SEARCH
+	a.brain.lost = 0
 	search(w, a)
 
 
@@ -368,12 +368,12 @@ static func search(w: World, a: Actor) -> void:
 		return
 	if a.ailments.rooted > 0:
 		return
-	if a.pos != a.target and _step_to(w, a, a.target):
+	if a.pos != a.brain.target and _step_to(w, a, a.brain.target):
 		return
-	a.lost += 1
-	if a.lost > World.SEARCH_ROUNDS and a.wary <= 0:
-		a.alert = Actor.REST
-		a.lost = 0
+	a.brain.lost += 1
+	if a.brain.lost > World.SEARCH_ROUNDS and a.brain.wary <= 0:
+		a.brain.alert = Actor.REST
+		a.brain.lost = 0
 		w.emit({t = &"calm", id = a.id})
 		return
 	_drift(w, a)
@@ -395,11 +395,11 @@ static func rest(w: World, a: Actor) -> void:
 	if a.ailments.rooted > 0 or _track(w, a) or _follow(w, a):
 		return
 	if not a.info().get("patrol", false):
-		if a.pos != a.home:
-			_step_to(w, a, a.home)
+		if a.pos != a.brain.home:
+			_step_to(w, a, a.brain.home)
 		return
-	if a.pos == a.post or not _step_to(w, a, a.post):
-		a.post = FloorGen.patrol_point(w)
+	if a.pos == a.brain.post or not _step_to(w, a, a.brain.post):
+		a.brain.post = FloorGen.patrol_point(w)
 
 
 ## `a` strikes `target` beside it with its `melee` (Bestiary), throwing it
@@ -437,7 +437,7 @@ static func _chase(w: World, a: Actor) -> void:
 		&"approach", &"water":
 			_step_to(w, a, me.pos, 1)
 		&"slow":
-			if a.acted % 2 == 0:
+			if a.brain.acted % 2 == 0:
 				_step_to(w, a, me.pos, 1)
 		&"align":
 			_align(w, a, me)

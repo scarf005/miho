@@ -355,7 +355,7 @@ func test_a_creatures_charged_twin_flies_the_line_it_drew() -> void:
 	var w := _world()
 	var caster := FloorGen.spawn(w, &"imugi", ME - E * 2)
 	caster.magic.cooldown = 99
-	caster.alert = Actor.HUNT
+	caster.brain.alert = Actor.HUNT
 	caster.magic.intent.assign([{cards = _copies(4), dir = E}])
 	w.player().hp = 50
 	w.act({t = &"move", dir = Vector2i(0, -1)})

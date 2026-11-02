@@ -44,9 +44,9 @@ func _cast() -> Dictionary:
 ## A creature that hunts Miho from where it stands, home elsewhere.
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
-	a.home = at + Vector2i(0, 3)
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
+	a.brain.home = at + Vector2i(0, 3)
 	a.magic.cooldown = 99
 	a.hp = 9
 	a.max_hp = 9
@@ -60,12 +60,12 @@ func test_the_first_creature_in_the_line_falls_asleep_unhurt_and_the_next_does_n
 	first.magic.intent.assign([{cards = [Cards.FOX], dir = Vector2i(-1, 0)}])
 	var events := w.act(_cast())
 	assert_true(first.asleep())
-	assert_eq(first.alert, Actor.REST)
+	assert_eq(first.brain.alert, Actor.REST)
 	assert_eq(first.hp, first.max_hp)
 	assert_true(first.magic.intent.is_empty(), "the spell it charged is dropped")
 	assert_eq(events.filter(func(e): return e.t == &"sleep").map(func(e): return e.id), [first.id])
 	assert_false(second.asleep())
-	assert_eq(second.alert, Actor.HUNT)
+	assert_eq(second.brain.alert, Actor.HUNT)
 
 
 func test_it_sleeps_on_and_does_not_hunt_her() -> void:
@@ -75,7 +75,7 @@ func test_it_sleeps_on_and_does_not_hunt_her() -> void:
 	for i in 4:
 		w.act(WAIT)
 	assert_true(foe.asleep())
-	assert_eq(foe.alert, Actor.REST)
+	assert_eq(foe.brain.alert, Actor.REST)
 	assert_false(w.sees(foe, ME), "its eyes are shut")
 
 
@@ -85,7 +85,7 @@ func test_noise_wakes_it_and_it_goes_to_search_the_spot() -> void:
 	w.act(_cast())
 	Hearing.noise(w, ME + Vector2i(3, 3), Compounds.BOOM, "쾅", true, 0)
 	assert_false(foe.asleep())
-	assert_eq(foe.alert, Actor.SEARCH)
+	assert_eq(foe.brain.alert, Actor.SEARCH)
 
 
 func test_a_wound_wakes_it() -> void:
@@ -95,7 +95,7 @@ func test_a_wound_wakes_it() -> void:
 	assert_true(foe.asleep())
 	w.act({t = &"move", dir = E})
 	assert_false(foe.asleep())
-	assert_eq(foe.alert, Actor.HUNT)
+	assert_eq(foe.brain.alert, Actor.HUNT)
 
 
 func test_a_creature_that_never_sleeps_stays_awake_and_still_stops_the_line() -> void:
@@ -128,4 +128,4 @@ func test_a_forecast_equals_the_round() -> void:
 	assert_eq(forecast.events, played)
 	for a in w.actors:
 		var seen := forecast.after.actor(a.id)
-		assert_eq([seen.alert, seen.home, seen.hp], [a.alert, a.home, a.hp])
+		assert_eq([seen.brain.alert, seen.brain.home, seen.hp], [a.brain.alert, a.brain.home, a.hp])

@@ -179,9 +179,9 @@ static func _state(w: World) -> int:
 			a.ailments.wet,
 			a.ailments.alight,
 			a.ailments.frozen,
-			a.alert
+			a.brain.alert
 		]
-		foe += [a.marked, a.ties.rival, a.asleep()]
+		foe += [a.brain.marked, a.ties.rival, a.asleep()]
 	var shots := w.shots.map(func(s: Shot) -> Array: return [s.pos, s.host])
 	return [foe, shots, w.tiles, w.burning.keys(), w.hot.keys(), w.gas.keys()].hash()
 

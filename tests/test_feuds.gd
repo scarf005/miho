@@ -95,7 +95,7 @@ func test_a_fighter_strikes_its_rival_before_miho_beside_it() -> void:
 	assert_eq(w.player().hp, 3)
 	assert_eq(rival.hp, 2)
 	assert_true(events.any(func(e): return e.t == &"melee" and e.target == rival.id))
-	assert_eq(fighter.alert, Actor.HUNT, "it saw Miho all the same")
+	assert_eq(fighter.brain.alert, Actor.HUNT, "it saw Miho all the same")
 
 
 func test_a_fighter_s_homing_spell_goes_for_its_rival() -> void:
@@ -161,7 +161,7 @@ func test_harm_from_miho_ends_the_fight() -> void:
 	fighter.hp = 9
 	w.act({t = &"move", dir = Vector2i(1, 0)})
 	assert_eq(fighter.ties.rival, 0)
-	assert_eq(fighter.alert, Actor.HUNT)
+	assert_eq(fighter.brain.alert, Actor.HUNT)
 
 
 func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void:
@@ -171,8 +171,8 @@ func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void
 	_provoke(w, fighter, rival)
 	var events := w.act(WAIT)
 	assert_eq(fighter.ties.rival, 0)
-	assert_eq(fighter.alert, Actor.SEARCH)
-	assert_eq(fighter.target, Vector2i(26, 8))
+	assert_eq(fighter.brain.alert, Actor.SEARCH)
+	assert_eq(fighter.brain.target, Vector2i(26, 8))
 	assert_true(events.any(func(e): return e.t == &"truce"))
 
 
@@ -233,7 +233,7 @@ func test_the_log_names_the_creature_a_blow_strikes() -> void:
 	assert_has(lines, "도깨비의 방망이에 장승이 맞아 피해를 1 입었다")
 	var me := _world()
 	var foe := _creature(me, &"dokkaebi", ME + Vector2i(1, 0))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	me.sense()
 	before = me.clone()
 	assert_has(Messages.of(before, me, me.act(WAIT)).map(Messages.plain), "도깨비의 방망이에 맞아 피해를 1 입었다")

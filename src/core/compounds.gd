@@ -218,7 +218,7 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)
 		&"stillness":
-			if a.faction == Actor.HEAVEN and a.alert == Actor.HUNT:
+			if a.faction == Actor.HEAVEN and a.brain.alert == Actor.HUNT:
 				Mind.lose(a)
 		&"thunder":
 			Elements.shock(w, a, THUNDER, THUNDER_STUN)

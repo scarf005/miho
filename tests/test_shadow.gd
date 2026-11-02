@@ -123,8 +123,8 @@ func test_a_creature_still_sees_her_from_the_next_tile_but_not_from_afar() -> vo
 	w.set_tile(ME + Vector2i(0, 3), World.LANTERN)
 	var far := _foe(w, ME + Vector2i(4, 0))
 	var near := _foe(w, ME + Vector2i(-1, 0))
-	far.alert = Actor.SEARCH
-	near.alert = Actor.SEARCH
+	far.brain.alert = Actor.SEARCH
+	near.brain.alert = Actor.SEARCH
 	assert_true(w.sees(far, ME), "lit, she is seen from afar")
 	Guise.cast(w, w.player(), Spell.make(SHADOW), Vector2i.ZERO)
 	assert_false(w.sees(far, ME))
@@ -150,8 +150,8 @@ func test_a_lantern_lit_in_the_dark_ends_it_and_one_lit_beyond_does_not() -> voi
 		var w := _world()
 		w.set_tile(Vector2i(x + 1, ME.y - 2), World.LANTERN_OUT)
 		var stoker := _foe(w, Vector2i(x, ME.y - 2))
-		stoker.alert = Actor.SEARCH
-		stoker.target = stoker.pos
+		stoker.brain.alert = Actor.SEARCH
+		stoker.brain.target = stoker.pos
 		w.act(_self(SHADOW))
 		var lit := w.events.filter(func(e): return e.t == &"relight").size() > 0
 		assert_true(lit, "the lantern was lit")
@@ -161,7 +161,7 @@ func test_a_lantern_lit_in_the_dark_ends_it_and_one_lit_beyond_does_not() -> voi
 func test_the_forecast_lays_the_shadow_the_round_does() -> void:
 	var w := _world()
 	w.set_tile(ME + Vector2i(3, 0), World.LANTERN)
-	_foe(w, ME + Vector2i(6, 0)).alert = Actor.SEARCH
+	_foe(w, ME + Vector2i(6, 0)).brain.alert = Actor.SEARCH
 	var f := Forecast.of(w, _self(WIDE))
 	w.act(_self(WIDE))
 	var told := _shadow(f.after)

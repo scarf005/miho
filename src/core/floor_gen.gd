@@ -893,8 +893,8 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.kind = kind
 	a.faction = Actor.HEAVEN
 	a.pos = at
-	a.home = at
-	a.post = at
+	a.brain.home = at
+	a.brain.post = at
 	a.rank = Bestiary.rank(w.depth)
 	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp

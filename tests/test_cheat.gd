@@ -44,7 +44,7 @@ func _do(w: World, cmd: StringName, args := {}) -> Array:
 ## A creature of `kind` on the hall, asleep unless `alert`.
 func _foe(w: World, at: Vector2i, kind := &"dokkaebi", alert := Actor.REST) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = alert
+	a.brain.alert = alert
 	return a
 
 
@@ -55,7 +55,7 @@ func test_teleport_puts_miho_on_the_tile_with_no_round_and_no_one_alerted() -> v
 	var events := _do(w, &"teleport", {at = to})
 	assert_eq(w.player().pos, to)
 	assert_eq(w.round_no, 0)
-	assert_eq(sleeper.alert, Actor.REST)
+	assert_eq(sleeper.brain.alert, Actor.REST)
 	assert_true(events.all(func(e): return e.t == &"cheat"), "no step, noise or round events")
 
 
@@ -216,7 +216,7 @@ func test_heal_fills_her_health_and_is_refused_when_full() -> void:
 func test_halt_stops_creatures_taking_turns() -> void:
 	var w := _hall()
 	var hunter := _foe(w, Vector2i(30, 8), &"dokkaebi", Actor.HUNT)
-	hunter.target = ME
+	hunter.brain.target = ME
 	var still := w.clone()
 	_do(w, &"halt")
 	for i in 4:
@@ -234,7 +234,7 @@ func test_a_command_takes_no_round_and_wakes_no_one() -> void:
 		_do(w, cmd)
 	_do(w, &"teleport", {at = Vector2i(7, 8)})
 	assert_eq(w.round_no, 0)
-	assert_eq(sleeper.alert, Actor.REST)
+	assert_eq(sleeper.brain.alert, Actor.REST)
 
 
 func test_a_toggle_and_a_summon_leave_a_log_line_that_says_which_way_it_went() -> void:

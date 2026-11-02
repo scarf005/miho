@@ -149,7 +149,7 @@ func test_a_noise_is_stopped_by_a_cracked_wall_but_not_by_rubble() -> void:
 		var listener := FloorGen.spawn(w, &"imugi", Vector2i(9, 8))
 		listener.magic.cooldown = 99
 		Hearing.noise(w, Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
-		assert_eq(listener.alert == Actor.SEARCH, t == World.RUBBLE, "noise over %d" % t)
+		assert_eq(listener.brain.alert == Actor.SEARCH, t == World.RUBBLE, "noise over %d" % t)
 
 
 func test_a_water_orb_does_not_break_a_wall() -> void:

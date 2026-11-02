@@ -40,8 +40,8 @@ func _world(depth: int) -> World:
 ## A creature of `kind` at `at` hunting Miho, ready to cast, its next spell `next`.
 func _hunter(w: World, kind: StringName, at: Vector2i, next := 0) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	a.magic.casts = next
 	w.sense()
 	return a

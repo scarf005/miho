@@ -36,7 +36,7 @@ func _hall() -> World:
 
 func _foe(w: World, kind: StringName, at: Vector2i, alert := Actor.REST) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = alert
+	a.brain.alert = alert
 	a.magic.cooldown = 99
 	return a
 
@@ -57,7 +57,7 @@ func test_a_sleeper_next_to_miho_does_not_see_her_and_takes_a_sneak_claw() -> vo
 	assert_true(claw.sneak)
 	assert_eq(claw.n, 3)
 	assert_eq(foe.hp, 6)
-	assert_eq(foe.alert, Actor.HUNT, "a wound wakes it")
+	assert_eq(foe.brain.alert, Actor.HUNT, "a wound wakes it")
 
 
 func test_a_sleeper_in_the_light_stays_asleep_while_miho_walks_by() -> void:
@@ -67,7 +67,7 @@ func test_a_sleeper_in_the_light_stays_asleep_while_miho_walks_by() -> void:
 	for i in 3:
 		var events := w.act({t = &"move", dir = E} if i == 0 else WAIT)
 		assert_false(events.any(func(e): return e.t == &"notice"))
-	assert_eq(foe.alert, Actor.REST)
+	assert_eq(foe.brain.alert, Actor.REST)
 	assert_true(foe.asleep())
 
 
@@ -75,8 +75,8 @@ func test_noise_wakes_a_sleeper_and_it_goes_to_search_the_spot() -> void:
 	var w := _hall()
 	var foe := _foe(w, SLEEPER, Vector2i(12, 8))
 	Hearing.noise(w, Vector2i(10, 8), 6, "쾅", true, 0)
-	assert_eq(foe.alert, Actor.SEARCH)
-	assert_eq(foe.target, Vector2i(10, 8))
+	assert_eq(foe.brain.alert, Actor.SEARCH)
+	assert_eq(foe.brain.target, Vector2i(10, 8))
 	assert_false(foe.asleep())
 	w.act(WAIT)
 	assert_ne(foe.pos, Vector2i(12, 8), "it walks to the noise")
@@ -86,7 +86,7 @@ func test_a_searching_creature_next_to_miho_sees_her_and_takes_a_plain_claw() ->
 	var w := _hall()
 	var foe := _foe(w, SLEEPER, Vector2i(5, 8), Actor.SEARCH)
 	foe.hp = 9
-	foe.target = foe.pos
+	foe.brain.target = foe.pos
 	assert_false(foe.asleep())
 	assert_true(w.sees(foe, w.player().pos))
 	assert_false(Harm.caught_unawares(w, foe))
@@ -122,7 +122,7 @@ func test_no_jangseung_sleeps_and_each_sees_miho_beside_it() -> void:
 func test_a_creature_walking_back_to_its_post_is_awake() -> void:
 	var w := _hall()
 	var foe := _foe(w, SLEEPER, Vector2i(5, 8))
-	foe.home = Vector2i(9, 8)
+	foe.brain.home = Vector2i(9, 8)
 	assert_false(foe.asleep())
 	assert_true(w.sees(foe, w.player().pos))
 	assert_false(Harm.caught_unawares(w, foe))
@@ -144,7 +144,7 @@ func test_the_hover_and_the_sidebar_call_a_sleeper_asleep_and_agree_with_its_sig
 	assert_string_contains(text, "당신을 볼 수 없다")
 	assert_string_contains(text, "기습 피해: 3")
 	assert_eq(Info.state(foe), "자는 중")
-	foe.alert = Actor.SEARCH
+	foe.brain.alert = Actor.SEARCH
 	text = Info.plain(Info.at(w.known_clone(), foe.pos))
 	assert_string_contains(text, "수색 중")
 	assert_string_contains(text, "당신을 볼 수 있다")
@@ -156,7 +156,7 @@ func test_an_awake_resting_creature_reads_by_what_it_does() -> void:
 	var patrol := _foe(w, PATROL, Vector2i(5, 9))
 	assert_eq(Info.state(patrol), "순찰 중")
 	var walker := _foe(w, SLEEPER, Vector2i(3, 8))
-	walker.home = Vector2i(2, 8)
+	walker.brain.home = Vector2i(2, 8)
 	assert_eq(Info.state(walker), "돌아가는 중")
 	var saja := _foe(w, &"saja", Vector2i(4, 7))
 	assert_eq(Info.state(saja), "쉬는 중", "awake at its home")

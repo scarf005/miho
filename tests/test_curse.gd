@@ -184,8 +184,8 @@ func test_under_the_sight_curse_a_creature_notices_her_where_it_would_not_have()
 	var foes := [_watcher(cursed, reach), _watcher(plain, reach)]
 	cursed.act(BUMP)
 	plain.act(BUMP)
-	assert_eq(foes[0].alert, Actor.HUNT)
-	assert_ne(foes[1].alert, Actor.HUNT)
+	assert_eq(foes[0].brain.alert, Actor.HUNT)
+	assert_ne(foes[1].brain.alert, Actor.HUNT)
 
 
 func test_rust_and_gdscript_sight_agree_under_the_sight_curse() -> void:
@@ -347,7 +347,7 @@ func _state(w: World) -> Array:
 		w.round_no,
 		w.rng.state,
 		w.tiles,
-		w.actors.map(func(a): return [a.id, a.kind, a.pos, a.hp, a.alert, a.faction]),
+		w.actors.map(func(a): return [a.id, a.kind, a.pos, a.hp, a.brain.alert, a.faction]),
 	]
 
 
@@ -430,8 +430,10 @@ func test_the_examples_in_the_codex_show_what_each_curse_does() -> void:
 	var watcher := func(a): return a.kind == &"jangseung"
 	assert_true(_example(Curse.REAPER).actors.any(saja), "the reaper comes at once")
 	assert_false(_example(Curse.REAPER, &"empty").actors.any(saja), "only by the doll")
-	assert_eq(_example(Curse.SIGHT).actors.filter(watcher)[0].alert, Actor.HUNT, "seen in the dark")
-	assert_ne(_example(Curse.SIGHT, &"empty").actors.filter(watcher)[0].alert, Actor.HUNT)
+	assert_eq(
+		_example(Curse.SIGHT).actors.filter(watcher)[0].brain.alert, Actor.HUNT, "seen in the dark"
+	)
+	assert_ne(_example(Curse.SIGHT, &"empty").actors.filter(watcher)[0].brain.alert, Actor.HUNT)
 
 
 func test_the_rising_is_told_as_a_line_when_she_sees_it() -> void:

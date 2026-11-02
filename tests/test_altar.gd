@@ -54,7 +54,7 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	a.hp = 1
 	a.max_hp = 1
 	a.magic.cooldown = 99
-	a.home += E
+	a.brain.home += E
 	return a
 
 

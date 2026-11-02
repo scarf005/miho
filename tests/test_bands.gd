@@ -130,7 +130,7 @@ func test_a_resting_follower_keeps_up_with_a_walking_leader() -> void:
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
 	lead.magic.cooldown = 99
 	var f := _band(w, lead, &"dokkaebi", Vector2i(30, 11))
-	lead.post = Vector2i(50, 8)
+	lead.brain.post = Vector2i(50, 8)
 	for i in 12:
 		w.act(WAIT)
 	assert_gt(lead.pos.x, 35, "the leader patrols")
@@ -141,10 +141,10 @@ func test_a_follower_beside_its_leader_stays_put() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
 	lead.magic.cooldown = 99
-	lead.post = lead.pos
+	lead.brain.post = lead.pos
 	var f := _band(w, lead, &"dokkaebi", Vector2i(31, 9))
 	var at := f.pos
-	f.post = f.pos
+	f.brain.post = f.pos
 	w.act(WAIT)
 	assert_eq(f.pos, at)
 
@@ -158,8 +158,8 @@ func test_a_sleeping_band_stays_asleep_and_wakes_alone() -> void:
 	assert_true(f.asleep())
 	w.act(WAIT)
 	assert_eq([lead.pos, f.pos], [Vector2i(30, 8), Vector2i(32, 8)])
-	lead.alert = Actor.SEARCH
-	lead.target = Vector2i(40, 8)
+	lead.brain.alert = Actor.SEARCH
+	lead.brain.target = Vector2i(40, 8)
 	w.act(WAIT)
 	assert_true(f.asleep(), "the leader moving off does not wake it")
 	assert_eq(f.pos, Vector2i(32, 8))

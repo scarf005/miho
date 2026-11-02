@@ -296,7 +296,7 @@ func test_a_creature_tells_its_conditions_with_seconds_left() -> void:
 	foe.ailments.blind = 2
 	foe.ailments.rooted = 3
 	foe.ailments.stunned = 1
-	foe.wary = 7
+	foe.brain.wary = 7
 	var text := Info.plain(Info.creature(w, foe))
 	for part in ["눈멂: 2초", "묶임: 3초", "기절: 1초", "경계: 7초"]:
 		assert_string_contains(text, part)
@@ -345,33 +345,33 @@ func test_miho_tells_her_claws_and_conditions() -> void:
 func test_a_searching_creature_tells_how_many_more_looks_before_it_rests() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
-	foe.lost = 4
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
+	foe.brain.lost = 4
 	foe.magic.cooldown = 99
-	var left := World.SEARCH_ROUNDS + 1 - foe.lost
+	var left := World.SEARCH_ROUNDS + 1 - foe.brain.lost
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: %d번 더" % left)
 	for i in left - 1:
 		Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.SEARCH, "still searching after one look fewer")
+	assert_eq(foe.brain.alert, Actor.SEARCH, "still searching after one look fewer")
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.REST, "rests after the told number of looks")
+	assert_eq(foe.brain.alert, Actor.REST, "rests after the told number of looks")
 
 
 func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
-	foe.lost = World.SEARCH_ROUNDS + 3
-	foe.wary = 2
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
+	foe.brain.lost = World.SEARCH_ROUNDS + 3
+	foe.brain.wary = 2
 	foe.magic.cooldown = 99
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: 경계가 끝날 때까지")
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.SEARCH, "wary: keeps looking")
-	foe.wary = 0
+	assert_eq(foe.brain.alert, Actor.SEARCH, "wary: keeps looking")
+	foe.brain.wary = 0
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.REST, "rests at the first look once no longer wary")
+	assert_eq(foe.brain.alert, Actor.REST, "rests at the first look once no longer wary")
 
 
 func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:

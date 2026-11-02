@@ -65,7 +65,7 @@ func _booms(events: Array) -> Array:
 func test_a_sharp_creature_that_starts_hunting_near_a_drum_plans_to_strike_it() -> void:
 	var w := _world()
 	var a := _drummer(w)
-	assert_eq(a.drum, DRUM_AT)
+	assert_eq(a.brain.drum, DRUM_AT)
 	assert_true(a.drumming())
 
 
@@ -73,24 +73,24 @@ func test_a_dull_creature_ignores_the_drum() -> void:
 	var w := _world()
 	var a := _drummer(w, Vector2i(16, 8), &"jangseung")
 	assert_eq(Bestiary.wits(&"jangseung"), Bestiary.DULL)
-	assert_eq(a.drum, Drums.NONE)
+	assert_eq(a.brain.drum, Drums.NONE)
 	var b := _drummer(w, Vector2i(16, 10), &"cheonha")
-	assert_eq(b.drum, Drums.NONE)
+	assert_eq(b.brain.drum, Drums.NONE)
 	var c := _drummer(w, Vector2i(17, 8), &"dokkaebi")
-	assert_eq(c.drum, DRUM_AT, "a sharp one does not")
+	assert_eq(c.brain.drum, DRUM_AT, "a sharp one does not")
 
 
 func test_a_drum_beyond_walking_reach_is_ignored_however_near_it_looks() -> void:
 	var w := _world()
 	var far := _drummer(w, DRUM_AT + Vector2i(Drums.REACH + 2, 0))
-	assert_eq(far.drum, Drums.NONE, "too far")
+	assert_eq(far.brain.drum, Drums.NONE, "too far")
 	for y in range(1, Grid.H - 1):
 		_put(w, Vector2i(22, y), World.WALL)
 	var behind := _drummer(w, Vector2i(23, 8))
-	assert_eq(behind.drum, Drums.NONE, "a wall between: the way round is long")
+	assert_eq(behind.brain.drum, Drums.NONE, "a wall between: the way round is long")
 	_put(w, Vector2i(22, 8), World.DOOR_OPEN)
 	var through := _drummer(w, Vector2i(23, 9))
-	assert_eq(through.drum, DRUM_AT, "through the open door it is near")
+	assert_eq(through.brain.drum, DRUM_AT, "through the open door it is near")
 
 
 func test_the_creature_runs_to_the_drum_and_strikes_it_instead_of_attacking() -> void:
@@ -105,8 +105,8 @@ func test_the_creature_runs_to_the_drum_and_strikes_it_instead_of_attacking() ->
 	assert_gt(a.pos.x, 16, "it ran")
 	events = _until_struck(w)
 	assert_eq(events.filter(func(e): return e.t == &"drum" and e.id == a.id).size(), 1)
-	assert_eq(a.drum, Drums.NONE, "done, it hunts as usual")
-	assert_eq(a.alert, Actor.HUNT)
+	assert_eq(a.brain.drum, Drums.NONE, "done, it hunts as usual")
+	assert_eq(a.brain.alert, Actor.HUNT)
 
 
 func test_the_boom_reaches_every_heaven_creature_and_sends_it_to_the_spot_of_sight() -> void:
@@ -114,22 +114,22 @@ func test_the_boom_reaches_every_heaven_creature_and_sends_it_to_the_spot_of_sig
 	for y in range(1, Grid.H - 1):
 		_put(w, Vector2i(30, y), World.WALL)
 	var a := _drummer(w)
-	a.target = Vector2i(7, 9)
+	a.brain.target = Vector2i(7, 9)
 	var sealed := _foe(w, &"imugi", Vector2i(45, 20))
 	var resting := _foe(w, &"dokkaebi", Vector2i(26, 3))
 	var hunting := _foe(w, &"imugi", Vector2i(40, 5))
-	hunting.alert = Actor.HUNT
-	hunting.target = Vector2i(50, 24)
+	hunting.brain.alert = Actor.HUNT
+	hunting.brain.target = Vector2i(50, 24)
 	var statue := _foe(w, &"jangseung", Vector2i(35, 8))
 	var events := _until_struck(w)
 	assert_eq(_booms(events).size(), 1)
 	assert_eq(_booms(events)[0].loud, Drums.LOUD)
 	for b: Actor in [sealed, resting]:
-		assert_eq(b.alert, Actor.SEARCH, b.kind)
-		assert_eq(b.target, a.target, "where the drummer last saw Miho")
-	assert_eq(hunting.alert, Actor.HUNT)
-	assert_eq(hunting.target, Vector2i(50, 24), "already hunting, it keeps its prey")
-	assert_eq(statue.alert, Actor.REST, "deaf")
+		assert_eq(b.brain.alert, Actor.SEARCH, b.kind)
+		assert_eq(b.brain.target, a.brain.target, "where the drummer last saw Miho")
+	assert_eq(hunting.brain.alert, Actor.HUNT)
+	assert_eq(hunting.brain.target, Vector2i(50, 24), "already hunting, it keeps its prey")
+	assert_eq(statue.brain.alert, Actor.REST, "deaf")
 
 
 func test_miho_hears_the_boom_wherever_she_is_on_the_storey() -> void:
@@ -154,8 +154,8 @@ func test_a_wet_drum_makes_no_sound_and_dries_after_its_time() -> void:
 	var drum: Dictionary = events.filter(func(e): return e.t == &"drum")[0]
 	assert_true(drum.wet)
 	assert_eq(_booms(events).size(), 0, "silent")
-	assert_eq(bystander.alert, Actor.REST)
-	assert_eq(a.drum, Drums.NONE)
+	assert_eq(bystander.brain.alert, Actor.REST)
+	assert_eq(a.brain.drum, Drums.NONE)
 	assert_true(w.wet.has(DRUM_AT), "still wet")
 	for i in 8:
 		w.act(WAIT)
@@ -163,7 +163,7 @@ func test_a_wet_drum_makes_no_sound_and_dries_after_its_time() -> void:
 	var b := _drummer(w, Vector2i(16, 8))
 	events = _until_struck(w)
 	assert_eq(_booms(events).size(), 1, "dry, it sounds")
-	assert_eq(b.drum, Drums.NONE)
+	assert_eq(b.brain.drum, Drums.NONE)
 
 
 func test_a_water_spell_beside_a_drum_wets_it_and_puts_out_its_fire() -> void:
@@ -207,8 +207,8 @@ func test_miho_walking_into_a_drum_tears_it_with_a_noise_heaven_investigates() -
 	assert_eq(w.player().pos, Vector2i(19, 8), "she stays put")
 	var noise: Dictionary = events.filter(func(e): return e.t == &"noise")[0]
 	assert_eq([noise.word, noise.loud], ["찌익", World.KNOCK])
-	assert_eq(foe.alert, Actor.SEARCH, "it heard the tear, not a drum")
-	assert_eq(foe.target, DRUM_AT)
+	assert_eq(foe.brain.alert, Actor.SEARCH, "it heard the tear, not a drum")
+	assert_eq(foe.brain.target, DRUM_AT)
 	w.act(action)
 	assert_eq(w.player().pos, DRUM_AT, "a torn drum can be walked over")
 
@@ -221,15 +221,15 @@ func test_a_torn_drum_is_not_struck_and_a_creature_running_to_it_gives_up() -> v
 	_put(w, DRUM_AT, World.DRUM_TORN)
 	var events := _until_struck(w, 5)
 	assert_eq(events.filter(func(e): return e.t == &"drum").size(), 0)
-	assert_eq(a.drum, Drums.NONE)
+	assert_eq(a.brain.drum, Drums.NONE)
 	var later := _drummer(w, Vector2i(17, 8))
-	assert_eq(later.drum, Drums.NONE, "no whole drum within reach")
+	assert_eq(later.brain.drum, Drums.NONE, "no whole drum within reach")
 
 
 func test_a_burning_drum_is_not_struck_and_burns_to_ash() -> void:
 	var w := _world()
 	w.burning[DRUM_AT] = World.BURN_ROUNDS
-	assert_eq(_drummer(w).drum, Drums.NONE)
+	assert_eq(_drummer(w).brain.drum, Drums.NONE)
 	for i in 4:
 		w.act(WAIT)
 	assert_eq(w.tile(DRUM_AT), World.ASH)
@@ -287,10 +287,10 @@ func test_a_preview_of_a_round_with_a_drummer_equals_the_real_round() -> void:
 		w.act(WAIT)
 		assert_eq(ahead.heard, w.heard, "round %d" % i)
 		assert_eq(
-			ahead.actors.map(func(x): return [x.pos, x.alert, x.target, x.drum]),
-			w.actors.map(func(x): return [x.pos, x.alert, x.target, x.drum])
+			ahead.actors.map(func(x): return [x.pos, x.brain.alert, x.brain.target, x.brain.drum]),
+			w.actors.map(func(x): return [x.pos, x.brain.alert, x.brain.target, x.brain.drum])
 		)
-	assert_eq(other.alert, Actor.SEARCH)
+	assert_eq(other.brain.alert, Actor.SEARCH)
 
 
 func test_drums_stand_in_lit_rooms_from_tier_two_and_never_cut_the_storey() -> void:

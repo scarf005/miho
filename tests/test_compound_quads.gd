@@ -191,8 +191,8 @@ func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
 	sleeper.magic.cooldown = 99
 	w.sense()
 	_now(w, _made(&"beacon"))
-	assert_eq(sleeper.alert, Actor.SEARCH)
-	assert_eq(sleeper.target, centre)
+	assert_eq(sleeper.brain.alert, Actor.SEARCH)
+	assert_eq(sleeper.brain.target, centre)
 
 
 func test_magpie_bridges_the_sky_and_ponds_along_its_line_up_to_a_wall() -> void:
@@ -223,7 +223,7 @@ func test_mist_lays_fog_round_miho_and_washes_the_scent_without_striking_anyone(
 	assert_eq(Gas.at(w, ME + E * 4).y, Gas.MAX)
 	assert_false(w.gas.has(ME + E * 5), "four tiles")
 	assert_eq(w.scent[Grid.index(ME + E * 3)], 0)
-	assert_eq(foe.alert, Actor.REST, "no one is struck")
+	assert_eq(foe.brain.alert, Actor.REST, "no one is struck")
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 
 
@@ -306,7 +306,7 @@ func test_discord_sets_the_nearest_pairs_of_seen_foes_on_each_other_whatever_the
 	assert_eq([a.ties.grudge, c.ties.grudge], [Mind.GRUDGE_ROUNDS, Mind.GRUDGE_ROUNDS])
 	assert_eq(lone.ties.rival, 0, "an odd one out")
 	assert_eq(_of(events, &"feud").size(), 4)
-	assert_eq(a.alert, Actor.REST, "no one is struck")
+	assert_eq(a.brain.alert, Actor.REST, "no one is struck")
 
 
 func test_discord_does_nothing_when_a_creature_of_heaven_casts_it() -> void:
@@ -365,13 +365,13 @@ func test_stillness_sends_the_hunters_in_reach_to_search_where_they_stand() -> v
 	var far := _post(w, ME + E * 10)
 	var asleep := _post(w, ME + Vector2i(-3, 2))
 	for foe in [near, far]:
-		foe.alert = Actor.HUNT
-		foe.target = ME
+		foe.brain.alert = Actor.HUNT
+		foe.brain.target = ME
 	Scent.lay(w, ME + E * 2)
 	var events := _now(w, _made(&"stillness"))
-	assert_eq([near.alert, near.target], [Actor.SEARCH, near.pos])
-	assert_eq(far.alert, Actor.HUNT, "past six tiles")
-	assert_eq(asleep.alert, Actor.REST)
+	assert_eq([near.brain.alert, near.brain.target], [Actor.SEARCH, near.pos])
+	assert_eq(far.brain.alert, Actor.HUNT, "past six tiles")
+	assert_eq(asleep.brain.alert, Actor.REST)
 	assert_eq(w.scent[Grid.index(ME + E * 2)], 0)
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 
@@ -380,7 +380,7 @@ func test_stillness_cast_by_a_creature_of_heaven_leaves_miho_as_she_was() -> voi
 	var w := _world()
 	var caster := _caster(w, ME + E * 3)
 	var events := _now(w, _made(&"stillness"), W, caster)
-	assert_eq(w.player().alert, Actor.REST)
+	assert_eq(w.player().brain.alert, Actor.REST)
 	assert_eq(w.player().hp, w.player().max_hp)
 	assert_true(_of(events, &"hurt").is_empty())
 

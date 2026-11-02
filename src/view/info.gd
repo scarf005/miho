@@ -212,17 +212,17 @@ static func nature(kind: StringName) -> Array:
 ## What a creature is doing. A resting one reads by what it does: asleep (eyes
 ## shut), on patrol, walking back home, or just resting.
 static func state(a: Actor) -> String:
-	if a.alert != Actor.REST:
-		return Lang.t(STATE[a.alert])
+	if a.brain.alert != Actor.REST:
+		return Lang.t(STATE[a.brain.alert])
 	if a.asleep():
 		return Lang.t(ASLEEP)
-	if a.guard and a.pos == a.home:
+	if a.brain.guard and a.pos == a.brain.home:
 		return Lang.t("지키는 중")
 	if a.following():
 		return Lang.t("따라가는 중")
 	if a.info().get("patrol", false):
 		return Lang.t("순찰 중")
-	return Lang.t("돌아가는 중" if a.pos != a.home else STATE[Actor.REST])
+	return Lang.t("돌아가는 중" if a.pos != a.brain.home else STATE[Actor.REST])
 
 
 ## How a creature stands now: its state, conditions, whether it sees Miho and
@@ -233,8 +233,8 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[Lang.t(ALLY) + ".", Palette.SIDE[0]]])
 		if Raise.risen(a):
 			lines.append([[Lang.t("이 층에 남는다."), Palette.DIM]])
-	lines.append([[state(a), Palette.ALERT[maxi(a.alert, 1)]]])
-	if a.alert == Actor.SEARCH:
+	lines.append([[state(a), Palette.ALERT[maxi(a.brain.alert, 1)]]])
+	if a.brain.alert == Actor.SEARCH:
 		lines.append([[_search_left(a), Palette.TEXT]])
 	lines.append_array(_conditions(w, a))
 	if a.fighting():
@@ -401,8 +401,8 @@ static func _immune(what: String, color: Color) -> Array:
 ## How many more looks around its spot a searching creature takes before it
 ## rests (Mind.search); a wary one keeps looking until it is no longer wary.
 static func _search_left(a: Actor) -> String:
-	var left := World.SEARCH_ROUNDS + 1 - a.lost
-	if a.wary > 0 and left <= 1:
+	var left := World.SEARCH_ROUNDS + 1 - a.brain.lost
+	if a.brain.wary > 0 and left <= 1:
 		return Lang.t("수색: 경계가 끝날 때까지")
 	return Lang.t("수색: %d번 더") % left
 
@@ -413,7 +413,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		[a.ailments.blind, "눈멂"],
 		[a.ailments.rooted, "묶임"],
 		[a.ailments.stunned, "기절"],
-		[a.wary, "경계"],
+		[a.brain.wary, "경계"],
 	]:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])

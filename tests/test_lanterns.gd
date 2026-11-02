@@ -65,8 +65,8 @@ func test_walking_into_a_lantern_knocks_it_out_with_a_clang() -> void:
 	assert_has(_types(events), &"smash")
 	var clang: Dictionary = _noises(events)[0]
 	assert_eq([clang.word, clang.loud], ["쨍", World.KNOCK])
-	assert_eq(listener.alert, Actor.SEARCH, "heard through the door")
-	assert_eq(listener.target, Vector2i(5, 8))
+	assert_eq(listener.brain.alert, Actor.SEARCH, "heard through the door")
+	assert_eq(listener.brain.target, Vector2i(5, 8))
 
 
 func test_a_noise_reaches_exactly_as_far_as_it_is_loud() -> void:
@@ -75,8 +75,8 @@ func test_a_noise_reaches_exactly_as_far_as_it_is_loud() -> void:
 	var near := _foe(w, &"imugi", Vector2i(9, 8))
 	var far := _foe(w, &"imugi", Vector2i(10, 4))
 	w.act({t = &"move", dir = E})
-	assert_eq(near.alert, Actor.SEARCH, "four steps away")
-	assert_eq(far.alert, Actor.REST, "five steps away")
+	assert_eq(near.brain.alert, Actor.SEARCH, "four steps away")
+	assert_eq(far.brain.alert, Actor.REST, "five steps away")
 
 
 func test_water_douses_a_lantern_silently_and_a_searcher_or_fire_relights_it() -> void:
@@ -89,8 +89,8 @@ func test_water_douses_a_lantern_silently_and_a_searcher_or_fire_relights_it() -
 	assert_has(_types(events), &"douse")
 	assert_eq(_noises(events), [], "silent")
 	var searcher := _foe(w, &"dokkaebi", Vector2i(11, 9))
-	searcher.alert = Actor.SEARCH
-	searcher.target = Vector2i(14, 9)
+	searcher.brain.alert = Actor.SEARCH
+	searcher.brain.target = Vector2i(14, 9)
 	events = w.act(WAIT)
 	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN)
 	var relight: Dictionary = events.filter(func(e): return e.t == &"relight")[0]
@@ -207,8 +207,8 @@ func test_a_searcher_relights_a_dark_lantern_but_not_rubble() -> void:
 		var w := _world()
 		_put(w, Vector2i(10, 8), t)
 		var searcher := _foe(w, &"dokkaebi", Vector2i(11, 9))
-		searcher.alert = Actor.SEARCH
-		searcher.target = Vector2i(14, 9)
+		searcher.brain.alert = Actor.SEARCH
+		searcher.brain.target = Vector2i(14, 9)
 		w.act(WAIT)
 		assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN if t == World.LANTERN_OUT else t)
 
@@ -217,7 +217,7 @@ func test_a_searcher_without_a_fire_spell_leaves_a_dark_lantern_dark() -> void:
 	var w := _world()
 	_put(w, Vector2i(10, 8), World.LANTERN_OUT)
 	var searcher := _foe(w, &"jangseung", Vector2i(11, 9))
-	searcher.alert = Actor.SEARCH
-	searcher.target = Vector2i(14, 9)
+	searcher.brain.alert = Actor.SEARCH
+	searcher.brain.target = Vector2i(14, 9)
 	w.act(WAIT)
 	assert_eq(w.tile(Vector2i(10, 8)), World.LANTERN_OUT)

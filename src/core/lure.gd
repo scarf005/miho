@@ -55,10 +55,10 @@ static func _yelp(w: World, s: Shot) -> void:
 		var d := dist[Grid.index(a.pos)]
 		if (
 			a.alive()
-			and a.alert == Actor.SEARCH
-			and a.target == s.pos
+			and a.brain.alert == Actor.SEARCH
+			and a.brain.target == s.pos
 			and Bestiary.wits(a.kind) == Bestiary.CUNNING
 			and d >= 0
 			and d <= n
 		):
-			a.target = s.origin
+			a.brain.target = s.origin

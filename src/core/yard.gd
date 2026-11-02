@@ -45,7 +45,7 @@ static func make(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 			w.tiles = before
 			w._changed()
 			continue
-		FloorGen.spawn(w, &"jangseung", guard).guard = true
+		FloorGen.spawn(w, &"jangseung", guard).brain.guard = true
 		var card: StringName = Cards.ELEMENTS[rng.randi_range(0, Cards.ELEMENTS.size() - 1)]
 		w.sites.append({kind = &"yard", at = stand, card = card})
 		return true

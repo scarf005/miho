@@ -31,8 +31,8 @@ func _world() -> World:
 
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = w.player().pos
+	a.brain.alert = Actor.HUNT
+	a.brain.target = w.player().pos
 	return a
 
 
@@ -109,7 +109,7 @@ func test_the_broom_sweeps_along_miho_s_scent() -> void:
 	Scent.lay(w, Vector2i(11, 8))
 	w.act(WAIT)
 	assert_eq(broom.pos, Vector2i(11, 8))
-	assert_eq(broom.alert, Actor.SEARCH)
+	assert_eq(broom.brain.alert, Actor.SEARCH)
 
 
 func test_a_dokkaebi_that_does_not_track_ignores_the_scent() -> void:
@@ -117,7 +117,7 @@ func test_a_dokkaebi_that_does_not_track_ignores_the_scent() -> void:
 	var a := FloorGen.spawn(w, &"dokkaebi", Vector2i(10, 8))
 	Scent.lay(w, Vector2i(11, 8))
 	w.act(WAIT)
-	assert_eq(a.alert, Actor.REST)
+	assert_eq(a.brain.alert, Actor.REST)
 
 
 func test_water_leaves_the_broom_no_trail() -> void:
@@ -126,7 +126,7 @@ func test_water_leaves_the_broom_no_trail() -> void:
 	w.tiles[Grid.index(Vector2i(11, 8))] = World.SHALLOW
 	Scent.lay(w, Vector2i(11, 8))
 	w.act(WAIT)
-	assert_eq(broom.alert, Actor.REST)
+	assert_eq(broom.brain.alert, Actor.REST)
 
 
 func test_each_kind_comes_from_its_tier_on() -> void:
@@ -172,7 +172,7 @@ func test_a_sleeping_poker_leaves_the_dark_lantern_beside_it() -> void:
 	a.id = w.new_id()
 	a.kind = &"bujigaengi"
 	a.pos = Vector2i(10, 8)
-	a.home = a.pos
+	a.brain.home = a.pos
 	a.hp = 2
 	w.actors.append(a)
 	w.act(WAIT)
@@ -183,14 +183,14 @@ func test_an_awake_poker_lights_it_on_patrol_searching_hunting_and_walking_home(
 	for alert in [Actor.REST, Actor.SEARCH, Actor.HUNT]:
 		var w := _lamp_world()
 		var a := FloorGen.spawn(w, &"bujigaengi", Vector2i(10, 8))
-		a.alert = alert
-		a.target = Vector2i(10, 8)
+		a.brain.alert = alert
+		a.brain.target = Vector2i(10, 8)
 		w.act(WAIT)
 		assert_false(a.asleep(), "a patrol never sleeps")
 		assert_eq(w.tile(Vector2i(11, 8)), World.LANTERN, "alert %d" % alert)
 	var home := _lamp_world()
 	var walker := FloorGen.spawn(home, &"bujigaengi", Vector2i(10, 8))
-	walker.home = Vector2i(20, 8)
+	walker.brain.home = Vector2i(20, 8)
 	home.act(WAIT)
 	assert_eq(home.tile(Vector2i(11, 8)), World.LANTERN)
 

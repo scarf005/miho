@@ -57,7 +57,7 @@ func _round(from: Vector2i, to: Vector2i, alert: int, events: Array) -> Array:
 	var after := before.clone()
 	var moved := after.actor(foe.id)
 	moved.pos = to
-	moved.alert = alert
+	moved.brain.alert = alert
 	after.sense()
 	return [before, after, foe.id, events]
 
@@ -100,8 +100,8 @@ func test_a_mark_changing_in_sight_is_told() -> void:
 	var r := _round(SEEN, SEEN, Actor.SEARCH, [])
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 수색을 시작했다"] as Array[String])
 	assert_eq(_lines(r[1], r[1], []), [] as Array[String])
-	r[0].actor(r[2]).alert = Actor.SEARCH
-	r[1].actor(r[2]).alert = Actor.HUNT
+	r[0].actor(r[2]).brain.alert = Actor.SEARCH
+	r[1].actor(r[2]).brain.alert = Actor.HUNT
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 추격을 시작했다"] as Array[String])
 
 
