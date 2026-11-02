@@ -147,7 +147,7 @@ static func spell(s: Spell) -> Array:
 		return lines + ward(s)
 	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
 		return lines + _does(Cards.BUNSIN)
-	if s.has(&"beacon") or s.orb and s.has(Forge.FURNACE):
+	if Forge.around(s):
 		return lines + _does(&"beacon" if s.has(&"beacon") else Forge.FURNACE)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))

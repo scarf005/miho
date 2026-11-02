@@ -25,18 +25,21 @@ static func needs_orb(s: Spell) -> bool:
 	return not s.has(Cards.ORB) and s.slots.any(func(c): return Cards.LOBBED.has(c))
 
 
+## Whether `spell` works round its caster, whatever the direction it is cast along.
+static func around(s: Spell) -> bool:
+	return s.shape != Spell.LEAP and (s.has(&"beacon") or s.orb and s.has(FURNACE))
+
+
 ## `caster` casts `spell` along `dir`: true when it is one of these, and World.cast has
 ## nothing more to do. A leap goes first and casts it where it lands.
 static func cast(w: World, caster: Actor, spell: Spell, _dir: Vector2i) -> bool:
-	if spell.shape == Spell.LEAP:
+	if not around(spell):
 		return false
 	if spell.has(&"beacon"):
 		_beacon(w, caster)
-		return true
-	if spell.orb and spell.has(FURNACE):
+	else:
 		_furnace(w, caster)
-		return true
-	return false
+	return true
 
 
 static func _beacon(w: World, caster: Actor) -> void:
