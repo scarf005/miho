@@ -11,16 +11,16 @@ The rules already live in static modules, and `World.act` already runs them in a
 3. Each new tile table goes into three lists: the `World` field, `World.clone` and `Storeys.FIELDS`.
 4. Actor holds 42 fields of six unrelated groups.
 
-Rules written once per path, each removed by a package below:
+Rules written once per path, and where each one is now:
 
-| Rule | Written in |
-| --- | --- |
-| A plate goes off | `Traps.step`, `Traps.fly` |
-| A wisp rides its host | `World.move`, `Cheat._carry`, `Storeys.carry` |
-| A creature dies and gives its tail | `World.hurt`, `Fall._gone`, `Bunsin.cap` |
-| Fire on the ground harms, unless absorbed | `Terrain.burn`, `Compounds.tick`, `Veil` |
-| A shot starts from its caster | `World._spawn`, `Spray.cast`, `Guise` |
-| A spell reaches tiles (react, relight, wash) | `Terrain.touch`, `Spray.cast`, `Terrain.smash` |
+| Rule | Written in on the base | Now |
+| --- | --- | --- |
+| A plate goes off | `Traps.step`, `Traps.fly` | one rule: `Traps.enter` |
+| A wisp rides its host | `World.move`, `Cheat._carry`, `Storeys.carry` | one rule: `Walk.riders` |
+| A creature dies and gives its tail | `World.hurt`, `Fall._gone`, `Bunsin.cap` | reward only: `Harm.reward`. Three death paths remain. Their event keys and orders differ, and the oracle hashes them. |
+| Fire on the ground harms, unless absorbed | `Terrain.burn`, `Compounds.tick`, `Veil` | one rule: `Harm.fire` |
+| A shot starts from its caster | `World._spawn`, `Spray.cast`, `Guise` | one rule: `Shot.of` |
+| A spell reaches tiles (react, relight, wash) | `Terrain.touch`, `Spray.cast`, `Terrain.smash` | not merged. The tile set, the sight check, the wash coverage and the order differ. A merge changes play. |
 
 ## Target
 
