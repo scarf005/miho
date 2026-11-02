@@ -107,3 +107,28 @@ func _clear() -> void:
 	marks = {}
 	lines = []
 	_aimed = false
+
+
+## The example `scene` plays in Term `t`, in `sim` or one made now; it stops and is freed with none.
+static func swap(t: Term, sim: ExampleSim, scene: Dictionary) -> ExampleSim:
+	if scene.is_empty():
+		if sim != null:
+			sim.queue_free()
+		return null
+	if sim == null:
+		sim = ExampleSim.new()
+		t.add_child(sim)
+	sim.show_scene(scene)
+	sim.visible = false
+	return sim
+
+
+## Puts `sim` in the box laid out as `fit` (InfoBox), where its cells are; it is hidden
+## when the box has none.
+static func place(sim: ExampleSim, fit: Dictionary) -> void:
+	if sim == null:
+		return
+	sim.visible = fit.has("example")
+	if sim.visible:
+		sim.position = (fit.at + fit.example * fit.scale) * CELL
+		sim.scale = Vector2(fit.scale, fit.scale)

@@ -80,6 +80,14 @@ static func draw(t: Term) -> void:
 		t._glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
 
 
+## The column where a line of runs that starts at `x` ends.
+static func end(line: Array, x := 2.0) -> float:
+	for run: Array in line:
+		x = Keywords.column(run, x)
+		x += Term._key_cells(run[0]) if run.slice(2).has(&"key") else Term._cells(run[0])
+	return x
+
+
 ## The panel row under a point in the term's space, or -1 (the detail beside the
 ## list holds no rows).
 static func row_at(t: Term, local: Vector2) -> int:

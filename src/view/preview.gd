@@ -103,24 +103,36 @@ static func _inspect(m: Node) -> void:
 		return
 	term.info = []
 	term.cursor = Vector2i(-1, -1)
-	if m.state != &"play" or not term.hint.is_empty():
-		return
+	var cards := []
+	if m.state == &"play" and term.hint.is_empty():
+		cards = _tell(m)
+	term.example = SpellScene.of(cards) if not cards.is_empty() else {}
+
+
+## Sets what the box under the pointer tells (`info`), and returns the cards of the one spell
+## it is about, or none.
+static func _tell(m: Node) -> Array:
+	var term: Term = m.term
 	term.cursor = m.hover
 	if m.hover_slot >= 0:
 		term.info = SpellInfo.slot(Spell.make(m.picked), m.hover_slot)
-	elif m.hover_spell != "":
-		term.info = SpellInfo.spell(Spell.from_key(m.hover_spell))
-	elif m.hover_card != &"":
+		return m.picked
+	if m.hover_spell != "":
+		var saved := Spell.from_key(m.hover_spell)
+		term.info = SpellInfo.spell(saved)
+		return saved.cards
+	if m.hover_card != &"":
 		term.info = SpellInfo.hovered(m.hover_card, m.picked)
-	elif m.hover_status:
+		return Cards.made_of(m.hover_card)
+	if m.hover_status:
 		term.info = Info.creature(m.known, m.known.player())
-	else:
-		var lines: Array = (
-			DebugView.at(m.world, m.hover) if m.debugging else Info.at(m.known, m.hover)
-		)
-		term.info = (
-			m.menu.debug.head()
-			+ lines
-			+ m.excluded.lines(m.hover, m.zone)
-			+ Info.ahead(m.world, m.ahead, m.hover)
-		)
+		return []
+	var lines: Array = DebugView.at(m.world, m.hover) if m.debugging else Info.at(m.known, m.hover)
+	term.info = (
+		m.menu.debug.head()
+		+ lines
+		+ m.excluded.lines(m.hover, m.zone)
+		+ Info.ahead(m.world, m.ahead, m.hover)
+	)
+	var shot := Info.shot_at(m.known, m.hover)
+	return shot.spell.cards if shot != null and not m.debugging else []

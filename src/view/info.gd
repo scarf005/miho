@@ -225,12 +225,20 @@ static func at(w: World, p: Vector2i) -> Array:
 		var a := w.actor_at(p)
 		if a != null and Hat.shown(w, a):
 			return creature(w, a)
-		var s := w.shot_at(p)
+		var s := shot_at(w, p)
 		if s != null:
 			return SpellInfo.shot(w, s)
 	if w.known[i] == 0:
 		return []
 	return terrain(w, p)
+
+
+## The projectile `at` shows for map tile p: one in sight with no creature shown on its tile.
+static func shot_at(w: World, p: Vector2i) -> Shot:
+	var a := w.actor_at(p)
+	if not Grid.inside(p) or w.seen[Grid.index(p)] != 1 or (a != null and Hat.shown(w, a)):
+		return null
+	return w.shot_at(p)
 
 
 ## A creature as the hover tells it: what it is, how it stands now (state,

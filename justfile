@@ -84,12 +84,13 @@ shot path *args: rust
     PULSE_SINK=miho_shot gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- \
         {{ godot }} --path . -- --shot="$(realpath -m '{{ path }}')" {{ args }}
 
-# Time storey generation, a round, forecasts and a Continue replay.
+# Time storey generation, a round, forecasts, a Continue replay, the 도감 and spell examples.
 bench: rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/bench.gd
     {{ godot }} --headless --path . -s tools/bench_round.gd
     {{ godot }} --headless --path . -s tools/bench_codex.gd
+    {{ godot }} --headless --path . -s tools/bench_example.gd
 
 # Replay a save (minus its last `back` actions) and explore from there; exits 1 on a back-and-forth loop.
 explore-check save="~/.local/share/godot/app_userdata/미호/save.cfg" rounds="400" back="0": rust

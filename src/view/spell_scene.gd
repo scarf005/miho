@@ -5,7 +5,8 @@ extends RefCounted
 ## spell in the empty hall and reads the tiles it would reach as the aim preview does
 ## (`reach`), stands the creature on the farthest of them along Miho's row, and takes
 ## the first creature of the Bestiary that the spell does anything to. When it does
-## nothing to any, the reached tiles (NEAR in front of her when it reaches none) are laid
+## nothing to any, the first is tried behind a wall; then the reached tiles (NEAR in front
+## of her when it reaches none) are laid
 ## with the first ground the hall draws (CodexScene.MARKS) that it does something to. A
 ## spell that goes on Miho herself (Guise.ANYWHERE) is cast on her, and she walks up to the
 ## creature. A new spell, or a change to a table, changes the example with no edit.
@@ -14,6 +15,9 @@ extends RefCounted
 const WAITS := 8
 ## Tiles east of Miho the creature stands when the spell reaches none on her row.
 const NEAR := 3
+## Tiles up and down a wall runs when the spell does something only to a creature that
+## cannot see Miho (고요), and tiles it stands before the creature.
+const BEHIND := 2
 
 static var _plans := {}
 
@@ -75,7 +79,14 @@ static func reach(w: World, action: Dictionary) -> Dictionary:
 static func _plan(cards: Array) -> Dictionary:
 	var inward := Guise.ANYWHERE.has(Guise.kind(Spell.make(cards)))
 	var lay := {
-		cards = cards, inward = inward, hit = [], dx = 0, kind = &"", ground = "", twin = false
+		cards = cards,
+		inward = inward,
+		hit = [],
+		dx = 0,
+		kind = &"",
+		ground = "",
+		twin = false,
+		wall = 0
 	}
 	var bare := _scene(lay)
 	var w := CodexScene.build(bare)
@@ -91,6 +102,7 @@ static func _plan(cards: Array) -> Dictionary:
 	var kinds := Bestiary.KINDS.keys().filter(func(k): return k != &"miho")
 	var tries := kinds.map(func(k): return {kind = k})
 	tries.append({kind = kinds[0], twin = true})
+	tries.append({kind = kinds[0], wall = BEHIND})
 	var patch: Array = lay.hit
 	if patch.is_empty():
 		patch = range(1, NEAR + 1).map(func(x: int) -> Vector2i: return Vector2i(x, 0))
@@ -116,6 +128,9 @@ static func _scene(lay: Dictionary, waits := WAITS) -> Dictionary:
 		at[Vector2i(lay.dx, 0)] = "m"
 		if lay.twin:
 			at[Vector2i(lay.dx, 1)] = "m"
+	if lay.wall > 0:
+		for y in range(-lay.wall, lay.wall + 1):
+			at[Vector2i(lay.dx - lay.wall, y)] = "#"
 	if lay.ground != "":
 		for o: Vector2i in lay.hit:
 			at[o] = at.get(o, lay.ground)

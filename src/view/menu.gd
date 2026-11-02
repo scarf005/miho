@@ -164,7 +164,13 @@ func panel() -> Dictionary:
 		&"spells":
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
-			out = {title = Lang.t("주문서"), rows = _spells(list), detail = detail}
+			var rows := _spells(list)
+			out = {
+				title = Lang.t("주문서"),
+				rows = rows,
+				detail = detail,
+				example = _example(list, rows, detail)
+			}
 		&"log":
 			var none := [[[Lang.t("기록이 없다"), Palette.DIM]]]
 			out = {
@@ -287,6 +293,21 @@ func _spells(list: Array[Spell]) -> Array:
 	if rows.is_empty():
 		rows.append([[Lang.t("고른 부적도, 저장한 주문도 없다"), Palette.DIM]])
 	return rows
+
+
+## The example of the selected spell (CodexSim) in the top right corner, where none of the
+## rows or the detail reaches; empty when the page has no room for it.
+func _example(list: Array[Spell], rows: Array, detail: Array) -> Dictionary:
+	var texts: Array[Rect2] = []
+	for k in rows.size():
+		texts.append(Rect2(2, 3 + k - top, PanelView.end(rows[k]) - 2, 1))
+	for k in detail.size():
+		texts.append(Rect2(2, room.y - detail.size() + k, PanelView.end(detail[k]) - 2, 1))
+	var fit := CodexSim.corner(room, texts)
+	if list.is_empty() or fit.is_empty():
+		return {}
+	var spell := list[selected]
+	return fit.merged({entry = [page, spell.key()], scene = SpellScene.of(spell.cards), rank = 0})
 
 
 ## The pointer is over row k (-1 for none): it lights.

@@ -19,16 +19,19 @@ const SMALLEST := 0.2
 ## it takes cells * scale of the room. `columns` are [x, lines] in box cells,
 ## their lines together all the lines in order; text starts 0.5 cell inside.
 ## `least` is the smallest scale that is still readable. The largest scale that
-## fits wins, then the fewest columns.
-static func layout(lines: Array, room: Vector2, least := READABLE) -> Dictionary:
-	var fit := _fit(lines, room, least)
+## fits wins, then the fewest columns. With `extra`, a block of that many cells of its
+## own stands after the last column, at `example` in the box's cells.
+static func layout(
+	lines: Array, room: Vector2, least := READABLE, extra := Vector2.ZERO
+) -> Dictionary:
+	var fit := _fit(lines, room, least, extra)
 	if not fit.is_empty():
 		return fit
 	var limit := room.x / least - 1.0
 	var rows := []
 	for line: Array in lines:
 		rows.append_array(Codex.flow([line], limit) if _width(line) > limit else [line])
-	return _fit(rows, room, SMALLEST)
+	return _fit(rows, room, SMALLEST, extra)
 
 
 ## The layout of `lines` in a box right under row `cell.y` of `room`, starting at
@@ -54,7 +57,7 @@ static func beside(lines: Array, room: Rect2, cell: Vector2i, least := READABLE)
 
 ## `rows` in the fewest columns at the largest scale down to `least` that fit
 ## `room`, or nothing.
-static func _fit(rows: Array, room: Vector2, least: float) -> Dictionary:
+static func _fit(rows: Array, room: Vector2, least: float, extra := Vector2.ZERO) -> Dictionary:
 	var widths := rows.map(_width)
 	for k in ceili((1.0 - least) / SHRINK) + 1:
 		var scale := 1.0 - k * SHRINK
@@ -68,9 +71,12 @@ static func _fit(rows: Array, room: Vector2, least: float) -> Dictionary:
 				columns.append([x, rows.slice(first, end)])
 				x += widths.slice(first, end).max() + GAP
 				first = end
-			var cells := Vector2(x - GAP + 0.5, height)
-			if cells.x * scale <= room.x and cells.y * scale <= room.y:
-				return {scale = scale, cells = cells, columns = columns}
+			var fit := {scale = scale, cells = Vector2(x - GAP + 0.5, height), columns = columns}
+			if extra != Vector2.ZERO:
+				fit.cells = Vector2(x + extra.x + 0.5, maxf(height, extra.y + 1.0))
+				fit.example = Vector2(x, 0.5)
+			if fit.cells.x * scale <= room.x and fit.cells.y * scale <= room.y:
+				return fit
 	return {}
 
 

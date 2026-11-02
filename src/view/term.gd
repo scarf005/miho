@@ -68,6 +68,13 @@ var info: Array = []:
 	set(v):
 		info = Keywords.lines(v)
 		pin = {}
+## Set by the game: the spell the box of `info` is about, as a scene (SpellScene.of), or empty.
+## Its example plays in the box, in a world that lives as long as the box does.
+var example := {}:
+	set(v):
+		if v != example:
+			example = v
+			sim = ExampleSim.swap(self, sim, example)
 ## Set by the game: the 도감 entry (WordHover) of the word the pointer is over in
 ## a panel, the log or a kept box, and the cell the pointer is in, which the box is
 ## drawn under.
@@ -116,6 +123,7 @@ var bar: Variant = StatusBar
 ## The smallest a cell may shrink to in the info box, in screen units.
 var readable := InfoBox.READABLE * CELL.x
 
+var sim: ExampleSim = null
 var _font: FontFile
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
@@ -754,7 +762,9 @@ func _draw_info() -> void:
 		var r := Rect2(_cell(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if not info.is_empty() and pin.is_empty():
-		_draw_box(info_fit())
+		var fit := info_fit()
+		_draw_box(fit)
+		ExampleSim.place(sim, fit)
 
 
 ## A box laid out as `fit` says (InfoBox).
@@ -773,15 +783,18 @@ func _draw_box(fit: Dictionary) -> void:
 
 ## The layout of `lines` (InfoBox) and `at`, the cell of its top-left corner. It
 ## lies in the map area, or in the whole width when that would make the text
-## too small to read, on the far side from the map tile `p` (null for none).
-func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
+## too small to read, on the far side from the map tile `p` (null for none). With
+## `extra` cells for the example (`example` of the layout); none when they do not fit.
+func _info_fit(p: Variant = null, lines: Array = info, extra := Vector2.ZERO) -> Dictionary:
 	var v := map_view()
 	var room := Rect2(Vector2(side), Vector2(v))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
-	var fit := InfoBox.layout(lines, room.size, least)
-	if fit.scale < least:
+	var fit := InfoBox.layout(lines, room.size, least, extra)
+	if fit.get("scale", 0.0) < least:
 		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
-		fit = InfoBox.layout(lines, room.size, least)
+		fit = InfoBox.layout(lines, room.size, least, extra)
+		if fit.get("scale", 0.0) < least and extra != Vector2.ZERO:
+			return _info_fit(p, lines)
 	var wide: Vector2 = fit.cells * fit.scale
 	var at := Vector2(room.position.x, room.end.y - wide.y)
 	if p != null:
@@ -793,7 +806,8 @@ func _info_fit(p: Variant = null, lines: Array = info) -> Dictionary:
 
 ## The layout of `info`: on the far side of the map from the tile under the pointer.
 func info_fit() -> Dictionary:
-	return _info_fit(cursor if Grid.inside(cursor) and _shown(cursor) else null, info)
+	var extra := Vector2(CodexScene.VIEW) if sim != null else Vector2.ZERO
+	return _info_fit(cursor if Grid.inside(cursor) and _shown(cursor) else null, info, extra)
 
 
 ## The layout of the hint under the cell the pointer is in, inside the screen.
