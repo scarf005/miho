@@ -107,7 +107,7 @@ const SOUNDS := [
 	[{t = &"feud"}, &"charge"],
 	[{t = &"noise", word = "낄낄"}, &"charge"],
 	[{t = &"omen"}, &"omen"],
-	[{t = &"arrive"}, &"omen"],
+	[{t = &"arrive"}, &"dread"],
 	[{t = &"wake"}, &"stone"],
 	[{t = &"ascend"}, &"ascend"],
 	[{t = &"fall", depth = 2}, &"scream"],

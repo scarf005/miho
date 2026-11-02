@@ -11,6 +11,9 @@ const MUSIC := [
 	"res://assets/music/bow.ogg",
 	"res://assets/music/drum.ogg",
 ]
+## The creatures whose sight is a bad sign, and the sound of a bad sign, heard from nowhere.
+const DREADED := [&"underworld", &"undead"]
+const EERIE := &"eerie"
 ## Music level at full music volume, against the sound effects.
 const MUSIC_DB := 0.0
 const FIRE := "res://assets/sfx/fire_loop.ogg"
@@ -56,6 +59,8 @@ const NAMES := [
 	&"page",
 	&"stone",
 	&"omen",
+	&"dread",
+	&"eerie",
 	&"die",
 	&"scream",
 	&"cannon",
@@ -223,6 +228,7 @@ var listener: AudioListener2D
 var _flat := {}
 var _music: AudioStreamPlayer
 var _track := randi() % MUSIC.size()
+var _dreaded := {}
 var _fire: AudioStreamPlayer2D
 var _fade: Tween
 var _lit := false
@@ -278,6 +284,8 @@ static func nearest_fire(w: World) -> Vector2i:
 ## Crackles from the nearest fire in sight, fading in when one starts to burn
 ## and out when none is left. `centre` maps a tile to its point in this space.
 func watch(w: World, centre: Callable) -> void:
+	if not dreaded(w, _dreaded).is_empty():
+		play(EERIE)
 	if _fire == null:
 		return
 	var at := nearest_fire(w)
@@ -329,7 +337,7 @@ func play_at(n: StringName, at: Vector2, volume_db := 0.0) -> void:
 
 func on_event(e: Dictionary, at: Vector2) -> void:
 	for n in sounds_of(e):
-		if e.t in GLOBAL:
+		if e.t in GLOBAL or n == EERIE:
 			play(n)
 		else:
 			play_at(n, at, level_of(e))
@@ -351,6 +359,25 @@ static func sounds_of(e: Dictionary) -> Array[StringName]:
 		out.append(sound_of(e))
 	if e.t == &"heal" and e.get("grew", false):
 		out.append(&"find")
+	if _ominous(e):
+		out.append(EERIE)
+	return out
+
+
+## Whether the event is a bad sign: a statue wakes or a guise is seen through.
+static func _ominous(e: Dictionary) -> bool:
+	return e.t == &"wake" or e.t == &"unmask" and e.get("why") == &"beside"
+
+
+## The creatures of the dead in sight of Miho that were never in sight before, now
+## noted in `known`.
+static func dreaded(w: World, known: Dictionary) -> Array[Actor]:
+	var out: Array[Actor] = []
+	for id: int in Travel.in_sight(w):
+		var a := w.actor(id)
+		if not known.has(id) and a.info().get("group") in DREADED:
+			known[id] = true
+			out.append(a)
 	return out
 
 
@@ -493,8 +520,10 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"hiss" if e.get("gone", false) else &"die"
 		&"charge", &"notice", &"feud":
 			return &"charge"
-		&"omen", &"arrive":
+		&"omen":
 			return &"omen"
+		&"arrive":
+			return &"dread"
 		&"wake":
 			return &"stone"
 		&"ascend":

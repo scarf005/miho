@@ -64,3 +64,39 @@ func test_when_a_track_ends_the_next_plays_and_all_come_round() -> void:
 		heard[sfx._music.stream.resource_path] = true
 		sfx._music.finished.emit()
 	assert_eq(heard.size(), Sfx.MUSIC.size())
+
+
+func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
+	var a := Actor.new()
+	a.id = w.new_id()
+	a.kind = kind
+	a.faction = Actor.HEAVEN
+	a.pos = at
+	a.hp = 3
+	w.actors.append(a)
+	return a
+
+
+func test_a_creature_of_the_dead_is_a_bad_sign_once_when_it_comes_into_sight() -> void:
+	var w := _world()
+	var saja := _foe(w, &"saja", ME + Vector2i(2, 0))
+	_foe(w, &"dokkaebi", ME + Vector2i(0, 2))
+	var known := {}
+	assert_eq(Sfx.dreaded(w, known), [saja] as Array[Actor])
+	assert_eq(Sfx.dreaded(w, known), [] as Array[Actor], "not again")
+
+
+func test_a_creature_of_the_dead_out_of_sight_is_no_sign_yet() -> void:
+	var w := _world()
+	var saja := _foe(w, &"saja", ME + Vector2i(2, 0))
+	w.seen[Grid.index(saja.pos)] = 0
+	var known := {}
+	assert_eq(Sfx.dreaded(w, known), [] as Array[Actor])
+	w.seen[Grid.index(saja.pos)] = 1
+	assert_eq(Sfx.dreaded(w, known), [saja] as Array[Actor])
+
+
+func test_a_waking_statue_and_a_guise_seen_through_add_the_eerie_sound() -> void:
+	assert_eq(Sfx.sounds_of({t = &"wake"}), [&"stone", Sfx.EERIE] as Array[StringName])
+	assert_has(Sfx.sounds_of({t = &"unmask", why = &"beside"}), Sfx.EERIE)
+	assert_does_not_have(Sfx.sounds_of({t = &"unmask", why = &"dispel"}), Sfx.EERIE)
