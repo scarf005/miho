@@ -1,6 +1,8 @@
 extends GutHookScript
-## GUT pre-run hook of `just test`: prints `TIME <ms> <script>` for each test script, its
-## set-up and tear-down included, which the runner uses to balance the next run.
+## GUT pre-run hook of `just test`: for each test script, its set-up and tear-down included,
+## prints `TIME <ms> <script> <storey>...`, the time without building storeys and the
+## storeys it asks of Built, and `STOREY <ms> <storey>` for each it built. The runner uses
+## them to balance the next run and keep scripts that share storeys on one shard.
 
 var _started := 0
 var _script := ""
@@ -17,4 +19,11 @@ func _start(script) -> void:
 
 
 func _end() -> void:
-	print("TIME %d %s" % [Time.get_ticks_msec() - _started, _script])
+	var built := 0
+	for storey: String in Built.spent:
+		built += Built.spent[storey]
+		print("STOREY %d %s" % [Built.spent[storey], storey])
+	var own := Time.get_ticks_msec() - _started - built
+	print("TIME %d %s %s" % [own, _script, " ".join(Built.asked.keys())])
+	Built.asked.clear()
+	Built.spent.clear()

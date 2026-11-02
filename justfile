@@ -35,21 +35,17 @@ test: rust
     out=build/test
     mkdir -p "$out"
     touch "$out/times"
-    # The import is slow, and only a new class_name or a changed asset needs it.
+    # The import is slow, and only a changed list of script classes or a changed asset needs it.
+    classes=$(rg --sort path '^(class_name|extends|@tool|@abstract)' src tests tools addons)
     if [ ! -e "$out/imported" ] \
         || [ -n "$(find src tests tools assets addons project.godot -type f -newer "$out/imported" ! -name '*.uid' ! -name '*.gd' -print -quit)" ] \
-        || find src tests tools addons -name '*.gd' -newer "$out/imported" -exec rg -l '^class_name' {} + | rg -q .; then
+        || [ "$classes" != "$(cat "$out/classes" 2>/dev/null)" ]; then
         {{ godot }} --headless --path . --import >/dev/null 2>&1 || { echo "error: import failed" >&2; exit 1; }
         touch "$out/imported"
+        printf '%s\n' "$classes" > "$out/classes"
     fi
     jobs=${MIHO_TEST_JOBS:-$(nproc)}
-    # Longest script first onto the least loaded shard. A script with no time yet counts by its lines.
-    plan=$(LC_ALL=C wc -l tests/test_*.gd | rg -v ' total$' | awk -v times="$out/times" '
-        BEGIN { while ((getline line < times) > 0) { split(line, f, " "); ms[f[2]] = f[1] } }
-        { n = split($2, p, "/"); print ((p[n] in ms) ? ms[p[n]] : $1 * 15), $2 }' \
-        | sort -rn | awk -v jobs="$jobs" '
-        { best = 0; for (i = 1; i < jobs; i++) if (load[i] < load[best]) best = i
-          load[best] += $1; print best, $2 }')
+    plan=$({{ just_executable() }} test-plan "$jobs")
     [ -n "$plan" ] || { echo "error: no test scripts" >&2; exit 1; }
     pids=()
     shards=()
@@ -100,10 +96,14 @@ test: rust
         END { printf "%d tests, %d asserts, %.1f s of test time\n", tests, a, sum }' "${dirs[@]/%//junit.xml}"
     sort -rn "$out/tests" | head -n 10 | sed 's/^/slowest: /'
     if [ "$failed" -eq 0 ]; then
-        rg -I '^TIME ' "${dirs[@]/%//log}" | cut -d' ' -f2,3 > "$out/times"
+        rg -I '^(TIME|STOREY) ' "${dirs[@]/%//log}" > "$out/times"
     fi
     echo "$SECONDS s on $jobs shards"
     exit "$failed"
+
+# Print which shard runs which test script, from the times of the last run: just test-plan 10
+test-plan jobs:
+    @LC_ALL=C wc -l tests/test_*.gd | rg -v ' total$' | awk -v times=build/test/times -v jobs={{ jobs }} -f tools/test_plan.awk
 
 # Run `just test` in a transient unit that holds the suite lock while other sessions share the machine;
 # prints its CPU time: just test-unit miho-x /path/to/log, and a last argument 1 for a serial run.
