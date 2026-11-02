@@ -2,9 +2,10 @@ class_name Forge
 extends RefCounted
 ## What lets out orbs of lava (Spell.lobbed). 봉화 (목, 화, 토, 금) sends a homing one along
 ## every open direction round its caster. 용광로 (구, 화, 토, 금) sets a FURNACE on a free tile
-## within REACH: an ally that stands where it is put and every FIRE_ROUNDS rounds hurls an orb
+## within REACH, one its caster sees if there is one: an ally that stands where it is put and
+## every FIRE_ROUNDS rounds hurls an orb
 ## along the line nearest the closest foe it sees, unless that would catch its own side
-## (Aim.catches).
+## (`_catches_own`).
 
 const FURNACE := &"furnace"
 ## Tiles an orb of lava flies before it bursts.
@@ -67,7 +68,9 @@ static func _furnace(w: World, caster: Actor) -> void:
 	)
 	if free.is_empty():
 		return
-	FloorGen.spawn(w, FURNACE, free[w.rng.randi() % free.size()])
+	var seen := free.filter(func(p): return w.sees(caster, p))
+	var from := free if seen.is_empty() else seen
+	FloorGen.spawn(w, FURNACE, from[w.rng.randi() % from.size()])
 	w._changed()
 
 
