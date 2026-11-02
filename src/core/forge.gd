@@ -22,7 +22,7 @@ static func lobbed(s: Spell) -> bool:
 
 ## Whether `s` holds a compound that goes only with an orb and has none (Cards.LOBBED).
 static func needs_orb(s: Spell) -> bool:
-	return not s.orb and s.slots.any(func(c): return Cards.LOBBED.has(c))
+	return not s.has(Cards.ORB) and s.slots.any(func(c): return Cards.LOBBED.has(c))
 
 
 ## `caster` casts `spell` along `dir`: true when it is one of these, and World.cast has
