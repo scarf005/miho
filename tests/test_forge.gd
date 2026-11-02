@@ -45,7 +45,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.max_hp = 9
 	a.hp = 9
 	w.sense()
