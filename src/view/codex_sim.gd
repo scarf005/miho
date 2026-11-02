@@ -78,7 +78,7 @@ func _on_panel(shown: Dictionary) -> void:
 		_entry = example.entry
 		_scene = example.scene
 		_rank = example.rank
-		_actions = CodexScene.actions(_scene)
+		_actions = CodexScene.actions(_scene, _rank)
 		speed = get_parent().speed
 		set_process(true)
 		visible = true

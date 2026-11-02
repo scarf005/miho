@@ -128,6 +128,17 @@ func test_every_creature_entry_does_something_as_miho_waits() -> void:
 		assert_false(acted.is_empty(), "%s acts" % kind)
 
 
+func test_a_homing_shot_turns_after_miho_as_she_moves_in_the_scene() -> void:
+	var scene := CodexScene.of(&"dokkaebi")
+	var w := CodexScene.build(scene)
+	var rows := {}
+	for action in CodexScene.actions(scene):
+		w.act(action)
+		for s in w.shots:
+			rows[s.pos.y] = true
+	assert_gt(rows.size(), 1, "the shot leaves its first row")
+
+
 func test_every_tile_scene_plays_its_actions_and_changes_the_hall() -> void:
 	for e in Codex.entries(4):
 		if e.scene.is_empty():

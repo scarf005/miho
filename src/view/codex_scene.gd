@@ -14,7 +14,7 @@ extends RefCounted
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
 ## the row is for holds kimchi.
 ## `do` is a round for each letter: c casts the cards east, s casts them on Miho,
-## > steps east, . waits, x shuts the door to the east.
+## > steps east, ^ north, v south, . waits, x shuts the door to the east.
 
 ## The map tiles in the window the example draws, and the first of them. The hall
 ## is the window less its ring of walls, far from the map's own edge, whose walls never
@@ -46,6 +46,8 @@ const MARKS := {
 }
 const HUNTER := "  @      k"
 const WATCHES := "........"
+## What Miho does before a creature whose spell homes, so that its shot turns after her.
+const DODGES := "^v^v^v^v"
 const BURNS := "   ttt/  @ttt/   ttt"
 const KNOCKS := "  @t"
 const WALKS := "  @ttt"
@@ -213,15 +215,20 @@ static func build(scene: Dictionary, rank := 0) -> World:
 	return w
 
 
-## What the scene's Miho does, a round each.
-static func actions(scene: Dictionary) -> Array[Dictionary]:
+## What the scene's Miho does, a round each, on a storey of rank `rank`; 0 for DEPTH.
+static func actions(scene: Dictionary, rank := 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for letter: String in scene.do:
+	var letters: String = DODGES if _homes(scene, rank) else scene.do
+	for letter: String in letters:
 		match letter:
 			"c":
 				out.append({t = &"cast", spells = [{cards = scene.cards, dir = EAST}]})
 			"s":
 				out.append({t = &"cast", spells = [{cards = scene.cards, dir = Vector2i.ZERO}]})
+			"^":
+				out.append({t = &"move", dir = Vector2i(0, -1)})
+			"v":
+				out.append({t = &"move", dir = Vector2i(0, 1)})
 			">":
 				out.append({t = &"move", dir = EAST})
 			"x":
@@ -229,6 +236,14 @@ static func actions(scene: Dictionary) -> Array[Dictionary]:
 			".":
 				out.append({t = &"wait"})
 	return out
+
+
+## Whether the scene is of a creature that casts a homing spell at `rank`.
+static func _homes(scene: Dictionary, rank: int) -> bool:
+	if not Bestiary.KINDS.has(scene.key) or scene.do != WATCHES:
+		return false
+	var at := rank if rank > 0 else Bestiary.rank(DEPTH)
+	return Bestiary.casts(scene.key, at).any(func(c): return Spell.make(c).turn() > 0)
 
 
 static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
