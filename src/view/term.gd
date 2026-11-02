@@ -47,6 +47,10 @@ const DELAY := {
 	&"drum": 0.3,
 	&"trap": 0.2,
 }
+## What a shot does where it ends, drawn as it touches; `impacts`.
+const IMPACT := [&"splash", &"sprout", &"become", &"heat"]
+## What starts another shot's or creature's doing, and so ends the look for an impact.
+const NOT_IMPACT := [&"fly", &"hit", &"burst", &"spawn", &"spray", &"cast"]
 ## Cells each character takes, measured once (_cells).
 static var _widths := {}
 
@@ -291,11 +295,19 @@ func play(events: Array, before: World, after: World) -> void:
 		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	_animating = true
 	var passes := Afterimage.plan(events)
+	var impact := impacts(events)
+	var drawn := {}
 	for i in events.size():
 		var veiled := _veiled if debug.is_empty() else {}
 		var left := Afterimage.copies(passes.get(i, []), _actors, _time, veiled)
 		_ghosts.append_array(left.filter(func(g): return _visible(g.at)))
-		var wait := _apply(events[i], _told.get(i, {}))
+		var wait: float = (
+			DELAY.get(events[i].t, 0.0) if drawn.has(i) else _apply(events[i], _told.get(i, {}))
+		)
+		for j: int in impact.get(i, []):
+			_apply(events[j], _told.get(j, {}))
+			drawn[j] = true
+			wait = 0.0
 		if wait > 0.0 and not _rushed:
 			_hold = get_tree().create_timer(wait / speed)
 			await _hold.timeout
@@ -304,6 +316,26 @@ func play(events: Array, before: World, after: World) -> void:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
 	show_world(after)
+
+
+## By the index of each event of a shot touching something, the later events it sets
+## off there. Their pictures and sounds start with the touch, and only the time they
+## hold stays where they come, so what the touch hurts is told at once.
+static func impacts(events: Array) -> Dictionary:
+	var out := {}
+	for i in events.size():
+		if events[i].t not in [&"hit", &"burst"] or events[i].get("through", false):
+			continue
+		for j in range(i + 1, events.size()):
+			if events[j].t in NOT_IMPACT:
+				break
+			if events[j].t in IMPACT and _touches(events[j], events[i].at):
+				out.get_or_add(i, []).append(j)
+	return out
+
+
+static func _touches(e: Dictionary, at: Vector2i) -> bool:
+	return e.at == at or e.get("tiles", []).has(at)
 
 
 ## Finishes the round in progress at once: `play` returns before this does, so
