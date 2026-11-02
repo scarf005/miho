@@ -3245,3 +3245,6 @@ msgstr "%d directions"
 msgctxt "creature"
 msgid "광"
 msgstr "F"
+
+msgid "마지막 저장 지점으로 돌아왔다"
+msgstr "You went back to the last save point."

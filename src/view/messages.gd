@@ -38,6 +38,16 @@ const JAR_DOES := {
 var lines: Array[Dictionary] = []
 
 
+## The lines as a save keeps them, without what was painted of them.
+func saved() -> Array:
+	return lines.map(
+		func(l):
+			var kept: Dictionary = l.duplicate()
+			kept.erase("shown")
+			return kept
+	)
+
+
 ## Adds a line that reads the same in every language.
 func add(runs: Array, round_no: int) -> void:
 	_push(_all(func(_code): return runs), round_no)
@@ -95,7 +105,7 @@ static func shown(line: Dictionary) -> Array:
 	if not line.has("shown"):
 		line.shown = {}
 	if not line.shown.has(code):
-		var runs: Array = line.variants[code]
+		var runs: Array = line.variants.get(code, line.variants[&"ko"])
 		line.shown[code] = Keywords.paint(
 			runs if line.n == 1 else runs + [[" ×%d" % line.n, Palette.DIM]]
 		)

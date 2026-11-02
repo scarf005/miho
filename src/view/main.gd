@@ -705,6 +705,7 @@ func _act(action: Dictionary) -> Array:
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)
 	messages.add_round(before, world, events)
+	run.keep(world, messages)
 	_show_log()
 	if action.t == &"cast":
 		last_spell = "+".join(action.spells.back().cards)
