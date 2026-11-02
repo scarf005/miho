@@ -30,11 +30,32 @@ static func near_fire(w: World, p: Vector2i) -> bool:
 
 
 ## Breadth-first steps from Miho over walkable tiles that are not in `avoid`
-## (tile -> true, the travel exclusions) (Grid.search, plus `from`).
+## (tile -> true, the travel exclusions) (Grid.search, plus `from`). A walk ends on an
+## exit and never goes through one, as stepping on it leaves the storey.
 static func search(w: World, avoid := {}) -> Dictionary:
-	var found := Grid.search(w.player().pos, open(w, avoid))
+	var exits := [w.stairs, w.elixir].filter(Grid.inside)
+	var shut := avoid.duplicate()
+	for p: Vector2i in exits:
+		shut[p] = true
+	var found := Grid.search(w.player().pos, open(w, shut))
 	found.from = w.player().pos
+	for p: Vector2i in exits:
+		if p != found.from and walkable(w, p) and not avoid.has(p):
+			_reach(found, p)
 	return found
+
+
+## Gives `p`, which the search left out, its steps from the nearest tile beside it.
+static func _reach(found: Dictionary, p: Vector2i) -> void:
+	var dist: PackedInt32Array = found.dist
+	for d in Grid.DIRS:
+		var q: Vector2i = p + d
+		if not Grid.inside(q) or dist[Grid.index(q)] < 0:
+			continue
+		var far := dist[Grid.index(q)] + 1
+		if dist[Grid.index(p)] < 0 or far < dist[Grid.index(p)]:
+			dist[Grid.index(p)] = far
+	found.dist = dist
 
 
 ## `walkable` and not in `avoid`, for every tile (a mask for Grid.search).
@@ -80,7 +101,8 @@ static func frontier(w: World, found: Dictionary) -> Vector2i:
 	for i in dist.size():
 		var p := Grid.at(i)
 		var cost := dist[i] + Vector2(p - found.from).length() * 0.01
-		if dist[i] > 0 and cost < best_cost and _borders_unknown(w, p):
+		var exit_tile := p == w.stairs or p == w.elixir
+		if dist[i] > 0 and cost < best_cost and not exit_tile and _borders_unknown(w, p):
 			best = p
 			best_cost = cost
 	return best
