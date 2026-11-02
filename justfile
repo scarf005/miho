@@ -183,6 +183,10 @@ bench: rust
     {{ godot }} --headless --path . -s tools/bench_codex.gd
     {{ godot }} --headless --path . -s tools/bench_example.gd
 
+# Time one read and one clone of 40 creatures in each storage shape of docs/plan-ecs.md.
+bench-storage: rust import
+    {{ godot }} --headless --path . -s tools/bench_storage.gd
+
 # Replay a save (minus its last `back` actions) and explore from there; exits 1 on a back-and-forth loop.
 explore-check save="~/.local/share/godot/app_userdata/미호/save.cfg" rounds="400" back="0": rust
     {{ godot }} --headless --path . --import
