@@ -561,7 +561,8 @@ func _draw_game() -> void:
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines
-## wrapped to the screen width, one blank row between them, centred over the map.
+## wrapped to the screen width, one blank row between them, centred on the screen
+## width the dark layer under them covers (a row wider than it starts at the left edge).
 func _banner_rows() -> Array:
 	var v := map_view()
 	var rows_of_line := []
@@ -577,7 +578,7 @@ func _banner_rows() -> Array:
 	for i in rows_of_line.size():
 		for text: String in rows_of_line[i]:
 			var w := _cells(text)
-			var x := clampf(side.x + (v.x - w) / 2.0, 0.0, maxf(0.0, cols - w))
+			var x := maxf(0.0, (cols - w) / 2.0)
 			out.append([i, text, Vector2(x, y)])
 			y += 1
 		y += 1

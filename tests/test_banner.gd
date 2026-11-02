@@ -138,3 +138,44 @@ func test_a_blast_far_from_her_is_not_the_cause() -> void:
 	w.emit({t = &"splash", at = ME + Vector2i(5, 0), by = w.player().id, title = "여우불"})
 	w.hurt(w.player(), 1)
 	assert_eq(_head(w), "쓰러졌다")
+
+
+func _lines() -> Array:
+	var w := _world()
+	var touch: Touch = autofree(Touch.new())
+	var lost := Banner.over(w, 12, 123456789)
+	w.outcome = &"won"
+	return [
+		Banner.title(null, false, touch),
+		Banner.title(SaveGame.new(), false, touch),
+		Banner.title(null, true, touch),
+		lost,
+		Banner.over(w, 12, 123456789),
+	]
+
+
+func test_a_banner_row_has_the_same_margin_on_both_sides() -> void:
+	Lang.locked = false
+	for lang in [&"ko", &"en"]:
+		Lang.use(lang)
+		for view in [Vector2(1280, 720), Vector2(390, 844)]:
+			for zoom in [0.0, 1.0, 2.0]:
+				for side in [Term.MAP.x, 0]:
+					var t: Term = autofree(Term.new())
+					t.side = Vector2i(side, 0)
+					t.fit(view, zoom)
+					for lines: Array in _lines():
+						t.banner_lines.assign(lines)
+						for row: Array in t._banner_rows():
+							var width := Term._cells(row[1])
+							var where := (
+								"%s %s zoom %s side %d: %s" % [lang, view, zoom, side, row[1]]
+							)
+							if width <= t.cols:
+								var gap: float = row[2].x - (t.cols - row[2].x - width)
+								assert_lte(absf(gap), 1.0, where)
+							else:
+								assert_eq(row[2].x, 0.0, where + " (wider than the screen)")
+	Lang.use(&"ko")
+	Lang.locked = true
+	TranslationServer.set_locale("ko")
