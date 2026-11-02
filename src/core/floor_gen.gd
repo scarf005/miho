@@ -176,7 +176,8 @@ const OPEN_DOORS := 0.3
 
 ## Builds the storey on `skeleton` (Skeletons.pick when none is given); returns the
 ## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
-## in its rooms has spoiled (`_sound`) starts over.
+## in its rooms has spoiled (`_sound`) starts over. The storey that stays has no
+## window an event room left bare (`_shut_windows`).
 static func build(w: World, skeleton := &"") -> Dictionary:
 	if skeleton == &"":
 		skeleton = Skeletons.pick(w)
@@ -185,6 +186,7 @@ static func build(w: World, skeleton := &"") -> Dictionary:
 		set_room = _build(w, skeleton)
 		if _sound(w, skeleton):
 			break
+	_shut_windows(w)
 	return set_room
 
 
@@ -621,6 +623,23 @@ static func _windows(w: World) -> void:
 					tiles[i] = World.WINDOW
 					break
 	w.tiles = tiles
+
+
+## Walls over the windows an event room left with no sky on one side or no room
+## on the other (a room laid over the sky inside it floors it).
+static func _shut_windows(w: World) -> void:
+	for i in w.tiles.size():
+		if w.tiles[i] != World.WINDOW:
+			continue
+		var p := Grid.at(i)
+		var faces := Placement.SIDES.filter(func(d): return w.tile(p + d) == World.SKY)
+		if (
+			faces.size() != 1
+			or Terrain.wall(w.tile(p - faces[0]))
+			or w.tile(p - faces[0]) == World.SKY
+		):
+			w.tiles[i] = World.WALL
+	w._changed()
 
 
 static func _fill(w: World, r: Rect2i, t: int) -> void:

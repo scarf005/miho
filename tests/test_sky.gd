@@ -170,6 +170,19 @@ func test_windows_sit_only_in_walls_between_a_room_and_the_sky() -> void:
 	assert_gt(seen[0], 20, "windows are common enough to be seen")
 
 
+func test_a_window_with_no_sky_beyond_it_is_walled_and_one_with_sky_stays() -> void:
+	var w := _world()
+	var bare := Vector2i(10, 8)
+	var kept := Vector2i(10, 4)
+	for p in [bare, kept]:
+		_put(w, p, World.WINDOW)
+		_put(w, p + E, World.SKY)
+	_put(w, bare + E, World.BOARD)
+	FloorGen._shut_windows(w)
+	assert_eq(w.tile(bare), World.WALL, "a library floored the sky behind it")
+	assert_eq(w.tile(kept), World.WINDOW)
+
+
 func test_bridges_are_lit_by_the_moon_and_a_start_in_the_dark_stays_dark() -> void:
 	_storeys(
 		func(w: World, label: String):
