@@ -225,3 +225,16 @@ func test_the_row_is_no_word() -> void:
 	while x < fit.at.x + fit.cells.x * fit.scale:
 		assert_eq(WordHover.word_at(m.term, Vector2(x, y) * Term.CELL), "", "at %f" % x)
 		x += 0.25
+
+
+func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -> void:
+	var m := _foe_hover()
+	var far := Vector2i(1, 1)
+	var hidden := FloorGen.spawn(m.world, &"dokkaebi", far)
+	hidden.cooldown = 99
+	m.debugging = true
+	m.hover = hidden.pos
+	m._refresh()
+	assert_eq(m.term.subject, Lang.t(hidden.info().name))
+	_press(m, "M")
+	assert_eq(m.overlay, &"codex")
