@@ -63,16 +63,17 @@ static func make(w: World, r: Rect2i) -> bool:
 ## row, in a shuffled order, that leaves the storey whole. World.seals[wall]
 ## stays empty when none does.
 static func _row(w: World, wall: Vector2i, hall: Rect2i) -> void:
+	# A lantern stands on a free floor tile of the hall, not its middle, 2 to NEAR tiles
+	# from the wall.
+	var found := Native.lantern_rows(
+		w.tiles, hall, wall, World.FLOOR, NEAR, LANTERNS, GAPS, Placement.SIDES, Grid.W
+	)
 	var rows := []
-	for y in range(hall.position.y, hall.end.y):
-		for x in range(hall.position.x, hall.end.x):
-			for d in Placement.SIDES:
-				for gap: int in GAPS:
-					var row: Array[Vector2i] = []
-					for k in LANTERNS:
-						row.append(Vector2i(x, y) + d * gap * k)
-					if row.all(func(p): return _fits(w, wall, hall, p)):
-						rows.append(row)
+	for i in range(0, found.size(), LANTERNS):
+		var row: Array[Vector2i] = []
+		for k in LANTERNS:
+			row.append(Grid.at(found[i + k]))
+		rows.append(row)
 	FloorGen.shuffle(w.rng, rows)
 	for row: Array[Vector2i] in rows:
 		for p in row:
@@ -83,18 +84,6 @@ static func _row(w: World, wall: Vector2i, hall: Rect2i) -> void:
 		for p in row:
 			w.tiles[Grid.index(p)] = World.FLOOR
 		w.seals[wall] = []
-
-
-## Whether a lantern of the wall may stand on p: a free floor tile of the hall,
-## not its middle, and 2 to NEAR tiles from the wall.
-static func _fits(w: World, wall: Vector2i, hall: Rect2i, p: Vector2i) -> bool:
-	return (
-		hall.has_point(p)
-		and p != hall.get_center()
-		and w.tile(p) == World.FLOOR
-		and Grid.cheb(p, wall) >= 2
-		and Grid.cheb(p, wall) <= NEAR
-	)
 
 
 ## The end of a round: a wall that has fallen is forgotten; one whose lanterns

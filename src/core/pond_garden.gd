@@ -143,21 +143,8 @@ static func _lies(w: World, p: Vector2i, houses: Array[Rect2i]) -> bool:
 ## Cellular noise over `area`: {tile: true} for each solid one.
 static func _noise(w: World, area: Rect2i) -> Dictionary:
 	var solid := {}
-	for y in range(area.position.y, area.end.y):
-		for x in range(area.position.x, area.end.x):
-			if w.rng.randf() < NOISE:
-				solid[Vector2i(x, y)] = true
-	for pass_no in PASSES:
-		var next := {}
-		for y in range(area.position.y, area.end.y):
-			for x in range(area.position.x, area.end.x):
-				var p := Vector2i(x, y)
-				var near := 0
-				for d in Grid.DIRS:
-					near += 1 if solid.has(p + d) else 0
-				if near >= 5 or (near == 4 and solid.has(p)):
-					next[p] = true
-		solid = next
+	for i in Native.noise(area, NOISE, PASSES, w.rng, Grid.W):
+		solid[Grid.at(i)] = true
 	return solid
 
 

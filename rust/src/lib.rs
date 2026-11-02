@@ -946,6 +946,181 @@ impl Native {
         out.push(&PackedInt32Array::from(laid.as_slice()).to_variant());
         out
     }
+
+    /// BrokenFloor._free: tile numbers of the `floor` and `wall` tiles inside `hall`, row by
+    /// row, off the middle of every room and clear of every walkable tile of `hall` outside
+    /// the rooms.
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn tearable(
+        tiles: PackedByteArray,
+        walk_table: PackedByteArray,
+        rooms: Array<Rect2i>,
+        hall: Rect2i,
+        floor: i32,
+        wall: i32,
+        width: i32,
+    ) -> PackedInt32Array {
+        let (t, walkable) = (tiles.as_slice(), walk_table.as_slice());
+        let b = Board::of(t.len(), width);
+        let mut roomy = vec![false; t.len()];
+        for r in rooms.iter_shared() {
+            for y in r.position.y..r.end().y {
+                for x in r.position.x..r.end().x {
+                    roomy[b.index(x, y)] = true;
+                }
+            }
+        }
+        let mut free = vec![false; t.len()];
+        for y in hall.position.y + 1..hall.end().y - 1 {
+            for x in hall.position.x + 1..hall.end().x - 1 {
+                let i = b.index(x, y);
+                free[i] = i32::from(t[i]) == floor || i32::from(t[i]) == wall;
+            }
+        }
+        let mut clear = |x: i32, y: i32| {
+            if b.inside(x, y) {
+                free[b.index(x, y)] = false;
+            }
+            for (dx, dy) in DIRS {
+                if b.inside(x + dx, y + dy) {
+                    free[b.index(x + dx, y + dy)] = false;
+                }
+            }
+        };
+        for y in hall.position.y..hall.end().y {
+            for x in hall.position.x..hall.end().x {
+                let i = b.index(x, y);
+                if walkable[usize::from(t[i])] == 1 && !roomy[i] {
+                    clear(x, y);
+                }
+            }
+        }
+        for r in rooms.iter_shared() {
+            clear(r.position.x + r.size.x / 2, r.position.y + r.size.y / 2);
+        }
+        let out: Vec<i32> = (0..t.len())
+            .filter(|&i| free[i])
+            .map(|i| i as i32)
+            .collect();
+        PackedInt32Array::from(out.as_slice())
+    }
+
+    /// The end of BrokenFloor.tear: each `wall` of `hall` with only `wall` and `sky` beside
+    /// it turns to `sky`.
+    #[func]
+    fn fallen(
+        mut tiles: PackedByteArray,
+        hall: Rect2i,
+        wall: i32,
+        sky: i32,
+        width: i32,
+    ) -> PackedByteArray {
+        let t = tiles.as_mut_slice();
+        let b = Board::of(t.len(), width);
+        for y in hall.position.y..hall.end().y {
+            for x in hall.position.x..hall.end().x {
+                let stands = DIRS.iter().any(|(dx, dy)| {
+                    b.inside(x + dx, y + dy) && {
+                        let near = i32::from(t[b.index(x + dx, y + dy)]);
+                        near != wall && near != sky
+                    }
+                });
+                let i = b.index(x, y);
+                if i32::from(t[i]) == wall && !stands {
+                    t[i] = sky as u8;
+                }
+            }
+        }
+        tiles
+    }
+
+    /// PondGarden._noise: tile numbers of the solid tiles of cellular noise over `area`, row
+    /// by row, each tile drawn from `rng` at `chance`.
+    #[func]
+    fn noise(
+        area: Rect2i,
+        chance: f64,
+        passes: i32,
+        mut rng: Gd<RandomNumberGenerator>,
+        width: i32,
+    ) -> PackedInt32Array {
+        let (w, h) = (area.size.x, area.size.y);
+        let at = |x: i32, y: i32| (y * w + x) as usize;
+        let mut solid: Vec<bool> = (0..w * h)
+            .map(|_| f64::from(rng.randf()) < chance)
+            .collect();
+        for _ in 0..passes {
+            let mut next = vec![false; solid.len()];
+            for y in 0..h {
+                for x in 0..w {
+                    let near = DIRS
+                        .iter()
+                        .filter(|(dx, dy)| {
+                            let (nx, ny) = (x + dx, y + dy);
+                            nx >= 0 && ny >= 0 && nx < w && ny < h && solid[at(nx, ny)]
+                        })
+                        .count();
+                    next[at(x, y)] = near >= 5 || (near == 4 && solid[at(x, y)]);
+                }
+            }
+            solid = next;
+        }
+        let mut out = Vec::new();
+        for y in 0..h {
+            for x in 0..w {
+                if solid[at(x, y)] {
+                    out.push((area.position.y + y) * width + area.position.x + x);
+                }
+            }
+        }
+        PackedInt32Array::from(out.as_slice())
+    }
+
+    /// The straight rows Vault._row may choose from, each `count` tile numbers in a row: on
+    /// `floor` tiles of `hall`, not its middle, 2 to `near` tiles from `wall`.
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn lantern_rows(
+        tiles: PackedByteArray,
+        hall: Rect2i,
+        wall: Vector2i,
+        floor: i32,
+        near: i32,
+        count: i32,
+        gaps: PackedInt32Array,
+        sides: Array<Vector2i>,
+        width: i32,
+    ) -> PackedInt32Array {
+        let t = tiles.as_slice();
+        let b = Board::of(t.len(), width);
+        let (mid_x, mid_y) = (
+            hall.position.x + hall.size.x / 2,
+            hall.position.y + hall.size.y / 2,
+        );
+        let fits = |x: i32, y: i32| {
+            let from_wall = (x - wall.x).abs().max((y - wall.y).abs());
+            has(hall, x, y)
+                && (x, y) != (mid_x, mid_y)
+                && i32::from(t[b.index(x, y)]) == floor
+                && (2..=near).contains(&from_wall)
+        };
+        let sides: Vec<Vector2i> = sides.iter_shared().collect();
+        let mut out = Vec::new();
+        for y in hall.position.y..hall.end().y {
+            for x in hall.position.x..hall.end().x {
+                for d in &sides {
+                    for &gap in gaps.as_slice() {
+                        let along = |k: i32| (x + d.x * gap * k, y + d.y * gap * k);
+                        if (0..count).all(|k| fits(along(k).0, along(k).1)) {
+                            out.extend((0..count).map(|k| b.index(along(k).0, along(k).1) as i32));
+                        }
+                    }
+                }
+            }
+        }
+        PackedInt32Array::from(out.as_slice())
+    }
 }
 
 /// A flag for each tile on the board that `tiles` (Vector2i) names.

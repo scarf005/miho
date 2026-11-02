@@ -62,18 +62,7 @@ static func tear(w: World, hall: Rect2i) -> void:
 		if left <= 0 or free.is_empty():
 			break
 		left -= _hole(w, free, w.rng.randi_range(HOLE.x, HOLE.y))
-	for y in range(hall.position.y, hall.end.y):
-		for x in range(hall.position.x, hall.end.x):
-			if w.tile(Vector2i(x, y)) == World.WALL and not _stands(w, Vector2i(x, y)):
-				w.tiles[Grid.index(Vector2i(x, y))] = World.SKY
-
-
-## Whether something but wall and sky lies beside the wall at p.
-static func _stands(w: World, p: Vector2i) -> bool:
-	for d: Vector2i in Grid.DIRS:
-		if Grid.inside(p + d) and w.tile(p + d) not in [World.WALL, World.SKY]:
-			return true
-	return false
+	w.tiles = Native.fallen(w.tiles, hall, World.WALL, World.SKY, Grid.W)
 
 
 ## A hole of up to `size` tiles of `free` grown from a random one; the tiles it took, none
@@ -103,25 +92,10 @@ static func _hole(w: World, free: Dictionary, size: int) -> int:
 ## (patrols head there, and the start and the exit lie there) and clear of every way
 ## through a wall and of the galleries.
 static func _free(w: World, hall: Rect2i) -> Dictionary:
-	var roomy := PackedByteArray()
-	roomy.resize(w.tiles.size())
-	for r in w.rooms:
-		for y in range(r.position.y, r.end.y):
-			for x in range(r.position.x, r.end.x):
-				roomy[Grid.index(Vector2i(x, y))] = 1
-	var inside := hall.grow(-1)
 	var free := {}
-	for y in range(inside.position.y, inside.end.y):
-		for x in range(inside.position.x, inside.end.x):
-			if w.tile(Vector2i(x, y)) in [World.FLOOR, World.WALL]:
-				free[Vector2i(x, y)] = true
-	for y in range(hall.position.y, hall.end.y):
-		for x in range(hall.position.x, hall.end.x):
-			var p := Vector2i(x, y)
-			if w.open_floor(p) and roomy[Grid.index(p)] == 0:
-				for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
-					free.erase(p + d)
-	for r in w.rooms:
-		for d: Vector2i in Grid.DIRS + [Vector2i.ZERO]:
-			free.erase(FloorGen._centre(r) + d)
+	var tiles := Native.tearable(
+		w.tiles, Tiles.walk, w.rooms, hall, World.FLOOR, World.WALL, Grid.W
+	)
+	for i in tiles:
+		free[Grid.at(i)] = true
 	return free
