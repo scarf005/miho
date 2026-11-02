@@ -192,15 +192,41 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 ## Every creature of heaven of ALARMED wits that sees `caster` put on a guise
 ## hunts her from where she stands.
 static func _alarm(w: World, caster: Actor) -> void:
-	for a in w.actors.duplicate():
-		if (
-			a.alive()
-			and a.faction == Actor.HEAVEN
-			and Bestiary.wits(a.kind) >= ALARMED
-			and w.sees(a, caster.pos)
-			and not Hat.hidden(w, caster, a.pos)
-		):
+	for a in _watching(w, caster):
+		if Bestiary.wits(a.kind) >= ALARMED:
 			w.hunt_from(a, caster.pos)
+
+
+## The living creatures of heaven that see `caster`.
+static func _watching(w: World, caster: Actor) -> Array:
+	return w.actors.filter(
+		func(a):
+			return (
+				a.alive()
+				and a.faction == Actor.HEAVEN
+				and w.sees(a, caster.pos)
+				and not Hat.hidden(w, caster, a.pos)
+			)
+	)
+
+
+## The nearest creature that would see through the 둔갑 among `spells`, or null when
+## they hold none or none would: one that sees her and is sharp or hunts already.
+static func watcher(w: World, spells: Array) -> Actor:
+	if not spells.any(
+		func(s): return s.dir == Vector2i.ZERO and kind(Spell.make(s.cards)) == GUISE
+	):
+		return null
+	var me := w.player()
+	var foes := _watching(w, me).filter(
+		func(a): return Bestiary.wits(a.kind) >= ALARMED or a.alert == Actor.HUNT
+	)
+	foes.sort_custom(
+		func(a, b):
+			var near: int = Grid.cheb(a.pos, me.pos) - Grid.cheb(b.pos, me.pos)
+			return near < 0 or near == 0 and a.id < b.id
+	)
+	return null if foes.is_empty() else foes[0]
 
 
 ## The 그림자 on `a`: the wisps of its own that ride it.

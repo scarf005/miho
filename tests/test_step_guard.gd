@@ -43,8 +43,8 @@ func _blaze(m: Node, d := E) -> void:
 
 
 ## A creature under a lantern, so that Miho sees it from where she stands.
-func _foe(m: Node, at: Vector2i) -> Actor:
-	var a := FloorGen.spawn(m.world, &"dokkaebi", at)
+func _foe(m: Node, at: Vector2i, kind := &"dokkaebi") -> Actor:
+	var a := FloorGen.spawn(m.world, kind, at)
 	a.cooldown = 99
 	m.world.set_tile(at + Vector2i.UP, World.LANTERN)
 	m.world.sense()
@@ -317,3 +317,77 @@ func test_rest_works_with_no_enemy_in_sight() -> void:
 	await _settle(m)
 	assert_gt(m.world.round_no, round_no)
 	assert_eq(m.world.tails, m.world.max_tails())
+
+
+## 둔갑 in her hand, with a 도깨비 felled before.
+func _guise_in_hand(m: Node) -> void:
+	m.world.player().prey = &"dokkaebi"
+	m.world.tails = 5
+	m.world.cards.assign(Cards.ALL)
+	m.picked.assign([Cards.WOOD, Cards.EARTH, Cards.WOOD])
+
+
+func test_casting_a_guise_before_a_sharp_creature_asks_and_takes_no_turn() -> void:
+	var m := _keyboard()
+	_foe(m, ME + E * 3)
+	_guise_in_hand(m)
+	var round_no: int = m.world.round_no
+	_press(m, "Comma")
+	assert_false(m.world.player().guise)
+	assert_eq(m.world.round_no, round_no)
+	assert_string_contains(_prompt(m), Lang.t(Bestiary.info(&"dokkaebi").name))
+	assert_string_contains(_prompt(m), Guise.NAME[Guise.GUISE])
+	assert_string_ends_with(_prompt(m), "Y/N")
+
+
+func test_y_or_the_same_key_casts_the_guise_it_asked_about_and_the_creature_hunts() -> void:
+	for key in ["Y", "Comma"]:
+		var m := _keyboard()
+		var foe := _foe(m, ME + E * 3)
+		_guise_in_hand(m)
+		_press(m, "Comma")
+		_press(m, key)
+		await _settle(m)
+		assert_true(m.world.player().guise, key)
+		assert_eq(foe.alert, Actor.HUNT, key)
+		assert_true(m.guard.casting.is_empty(), key)
+
+
+func test_any_other_key_keeps_the_talismans_and_casts_nothing() -> void:
+	var m := _keyboard()
+	_foe(m, ME + E * 3)
+	_guise_in_hand(m)
+	var round_no: int = m.world.round_no
+	_press(m, "Comma")
+	_press(m, "N")
+	await _settle(m)
+	assert_false(m.world.player().guise)
+	assert_eq(m.world.round_no, round_no)
+	assert_eq(m.picked.size(), 3)
+	assert_false(_prompt(m).ends_with("Y/N"))
+
+
+func test_a_dull_creature_that_sees_the_guise_is_not_asked_about() -> void:
+	var m := _keyboard()
+	var foe := _foe(m, ME + E * 3, &"jangseung")
+	_guise_in_hand(m)
+	assert_true(m.world.sees(foe, ME), "it sees her")
+	_press(m, "Comma")
+	await _settle(m)
+	assert_true(m.world.player().guise)
+
+
+func test_a_sharp_creature_she_does_not_know_of_is_not_named() -> void:
+	var m := _keyboard()
+	var at := ME + E * 3
+	FloorGen.spawn(m.world, &"dokkaebi", at)
+	for x in range(-1, 2):
+		for y in range(-1, 2):
+			if x != 0 or y != 0:
+				m.world.set_tile(at + Vector2i(x, y), World.WALL)
+	m.world.sense()
+	m._forecast()
+	_guise_in_hand(m)
+	_press(m, "Comma")
+	await _settle(m)
+	assert_true(m.world.player().guise)

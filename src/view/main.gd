@@ -328,7 +328,7 @@ func _key(event: InputEventKey) -> void:
 		guard.sighted = Travel.in_sight(world)
 	match guard.reply(event, action):
 		&"yes":
-			_move(guard.asking)
+			guard.go(self)
 		&"no":
 			_unask()
 		&"":
@@ -346,7 +346,7 @@ func _do(action: StringName, shift: bool) -> void:
 	if action != &"":
 		WordHover.hold(self, false)
 	var eat := _eats_move()
-	if Keys.MOVES.get(action) != guard.asking:
+	if not guard.answers(action):
 		_unask()
 	if shutting:
 		shutting = false
@@ -668,18 +668,15 @@ func _move(d: Vector2i) -> void:
 	if StepGuard.danger(world, d, ahead.get(d)) and (held or guard.asking != d):
 		if not held:
 			guard.asking = d
-			_show_log()
-			var ask := StepGuard.question(world, d, touch.enabled)
-			term.log_lines.append([[[ask, Palette.TEXT]], 1.0])
-			sfx.play(&"warn")
+			StepGuard.ask(self, [[StepGuard.question(world, d, touch.enabled), Palette.TEXT]])
 		return
 	_act({t = &"move", dir = d})
 
 
 ## Drops the step prompt, if one is up.
 func _unask() -> void:
-	if guard.asking != Vector2i.ZERO:
-		guard.asking = Vector2i.ZERO
+	if guard.asked():
+		guard.drop()
 		_show_log()
 
 
@@ -688,7 +685,9 @@ func _act(action: Dictionary) -> Array:
 	if not world.can(action):
 		sfx.play(&"click")
 		return []
-	guard.asking = Vector2i.ZERO
+	if guard.holds_back(self, action):
+		return []
+	guard.drop()
 	busy = true
 	term.tints = {}
 	term.marks = {}

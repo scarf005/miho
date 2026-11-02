@@ -5,11 +5,17 @@ extends RefCounted
 ## waits in `asking` (the direction) until the same direction again, or Y, makes
 ## the step; anything else cancels it. A held key never steps there. A held
 ## direction key also stops once a creature is in sight that was not when the key
-## went down (`sighted`). This is view state: a prompt takes no turn and is not
-## in the save.
+## went down (`sighted`). A 둔갑 cast before a creature it would not fool asks too:
+## the prompt waits in `casting` (the spells) until the self key again, or Y, casts
+## them. This is view state: a prompt takes no turn and is not in the save.
+
+## What is asked before a 둔갑 a creature would see through.
+const WATCHED := "{0} 눈앞에서 {1}할까?"
 
 ## The direction a step waits to be confirmed in, or zero.
 var asking := Vector2i.ZERO
+## The spells a cast waits to be confirmed with, or none.
+var casting := []
 ## Ids of the creatures in sight at the last fresh key press.
 var sighted := {}
 ## The key that last answered the prompt: its repeats do nothing.
@@ -36,16 +42,62 @@ static func danger(w: World, d: Vector2i, f: Forecast) -> bool:
 ## steps; a bare modifier leaves the prompt up.
 func reply(event: InputEventKey, action: StringName) -> StringName:
 	if event.is_echo():
-		return &"ignore" if asking != Vector2i.ZERO or event.keycode == answered else &""
+		return &"ignore" if asked() or event.keycode == answered else &""
 	answered = KEY_NONE
-	if asking == Vector2i.ZERO:
+	if not asked():
 		return &""
 	if event.keycode in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:
 		return &"ignore"
-	if event.keycode != KEY_Y and event.keycode != KEY_N and Keys.MOVES.get(action) == asking:
+	if event.keycode != KEY_Y and event.keycode != KEY_N and answers(action):
 		return &""
 	answered = event.keycode
 	return &"yes" if event.keycode == KEY_Y else &"no"
+
+
+## Whether a prompt is up.
+func asked() -> bool:
+	return asking != Vector2i.ZERO or not casting.is_empty()
+
+
+## Takes the prompt down.
+func drop() -> void:
+	asking = Vector2i.ZERO
+	casting = []
+
+
+## Whether `action` is the prompt's own key, which goes on with what it asks about.
+func answers(action: StringName) -> bool:
+	return Keys.MOVES.get(action) == asking or action == &"self" and not casting.is_empty()
+
+
+## Goes on with what the prompt of the game `m` asks about.
+func go(m: Node) -> void:
+	if casting.is_empty():
+		m._move(asking)
+	else:
+		m._act({t = &"cast", spells = casting})
+
+
+## Asks `line` (runs) over the log of the game `m`.
+static func ask(m: Node, line: Array) -> void:
+	m._show_log()
+	m.term.log_lines.append([line, 1.0])
+	m.sfx.play(&"warn")
+
+
+## Whether the action waits on a prompt, now up: a 둔갑 cast that a creature she
+## knows of would see through (Guise.watcher).
+func holds_back(m: Node, action: Dictionary) -> bool:
+	if action.t != &"cast" or action.spells == casting:
+		return false
+	var foe := Guise.watcher(m.known, action.spells)
+	if foe == null:
+		return false
+	casting = action.spells
+	var args := [[foe.info().name, Palette.KIND[foe.kind]], [Guise.NAME[Guise.GUISE], Palette.TEXT]]
+	var line := Lang.runs(WATCHED, args, Palette.TEXT)
+	ask(m, line if m.touch.enabled else line + [[" Y/N", Palette.TEXT]])
+	return true
 
 
 ## What is asked before stepping `d`; the keys answer it unless `touch`.
