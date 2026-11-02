@@ -9,6 +9,10 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - A buff takes at least 3 talismans, has no time limit and can be dropped at will. User: "변신형 주문은 전부 최소 주문 3장 조합하게 하고 전부 유지시간은 무한대로 하되 스스로 해제 가능하게". 은신 and 둔갑 can be seen through. User: "은신과 둔갑은 파훼당할수 있게 해".
 - A creature with wits sees through a 둔갑 cast in front of it. User: "지능이 있는 적 눈앞에서 둔갑하면 소용없게, 지능이 없는 적을 추가로 만들어줘". 천년 이무기 is not fooled by 둔갑 either.
 - 분신 has 3 tails of its own and fights on its own. User: "분신은 꼬리 3개 전투 알아서 하게해 (spellforged servitor처럼)", "분신의 꼬리가 3개라는 뜻이고 주문 가격은 알아서 정해줘". The recipe is 여+토+화+목, so it costs what `Spell.COST` says for four cards. User: "여+토+화+목", "분신은 최대 둘까지만". A third pushes out the oldest, as DCSS `summoned_monster` does. 사령술 costs 7 tails and is the one buff with a time limit, the storey it is cast on. User: "7꼬리 주문, 한 층 내내 지속, 시야의 죽은 적을 발견하면 시귀/강시 등으로 되살아남". 시귀 and 강시 are now named 객귀 and 달걀귀신. User: "객귀와 달걀귀신 ㄱㄱ".
+- 사령술 and 윤회 are two spells. User: "윤회랑 별개의 사령술 주술을 추가하라 했는데?"
+- 낙뢰 strikes the first creature on its line and arcs from foe to foe. User: "`벼락` -> `낙뢰`, 체인 라이트닝같이 여러 적을 오가며 공격하게 해 (3칸 이내 적에게 옮겨붙음, 최대 10번까지)".
+- 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
+- A knocked 병풍 is heard 4 tiles. User: "병풍이 소음 6칸인건 말이 안되지 않아? 4칸으로 낮춰".
 - A plate goes off for Miho, a creature and a projectile. User: "함정은 {적/플레이어/투사체}로 작동하게해".
 - Before you add a tile, status, state or creature field, diff it against the existing table (src/core/tiles.gd, Actor, Info.state). If its rules match an existing entry, reuse that entry. Never add a themed name with the same rules.
 - Level design teaches by arrangement, not by text. A secret or puzzle looks like ordinary terrain. Examples: a plain wall in front of an empty space, or three dark lanterns in a row. Never add an artificial prop whose hover explains the solution.
@@ -44,6 +48,8 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `불이 붙었다` -> `대나무에 불이 붙었다`
   - `2층` -> `2층으로 올라갔다`
   - `비키면 헛손질하고 휘청인다` -> a coined word such as `헛손질` does not go in the 도감; say what happens in common words.
+  - `늪 가스` -> `늪 기체`. User: "영어는 가능한 한 지양해".
+  - The 사령술 hover is two lines. User: "사령술 설명이 완전 slop이야. 사람이었다면 이렇게 썼을꺼야: 지속 시간: 다음 층까지 / 시야에 보이는 시체를 아군으로 되살린다. 강한 적은 달걀귀신으로, 약한 적은 객귀로."
   - `냄새 추적` -> `후각이 뛰어나다`
   - `속지 않음: 교활함`, `둔갑하는 걸 보면 추격: 영리함`, `눈앞에서 쓰면 속지 않음: 영리함` -> `교활한 적, 후각이 뛰어난 적, 추격 중인 적에게는 효과가 없다.` User: "여전히 슬롭같음. 사람이었으면 둔갑 주문 설명엔 `*교활*한 적에게는 효과가 없다.` 정도로 쓰고". Who a spell works on is a plain sentence, with a label-and-list line only for numbers and tags.
     - `1초 뒤 되살아나는 시체` -> `객귀의 저주`. A thing's name is a name, and what it does goes in its entry. User: "이건 동작을 설명한건데 이걸 그대로 쓴다고? 명칭 `객귀의 저주` 로 바꿔".
