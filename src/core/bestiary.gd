@@ -24,7 +24,7 @@ extends RefCounted
 ## (Spell.price), in place of waiting `cd` rounds. It regrows one every
 ## World.TAIL_REGROW rounds, as Miho does her tails, picks what to cast from any
 ## rank on (Aim.at) and casts two at once when it can pay for both. It starts
-## with all of it (Actor.mana).
+## with all of it (Magic.mana).
 ## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
 ## tracks: follows Miho's scent while it rests or searches, and while it hunts her
 ## under her 은신 (Mind); her 둔갑 does not fool it (Guise.fools).

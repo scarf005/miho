@@ -26,5 +26,5 @@ static func wake(w: World, at: Vector2i, prey: Vector2i) -> void:
 	var a := FloorGen.spawn(w, KIND, at)
 	a.alert = Actor.HUNT
 	a.target = prey
-	a.cooldown = Bestiary.info(KIND).cd
+	a.magic.cooldown = Bestiary.info(KIND).cd
 	w.emit({t = &"wake", id = a.id, at = at})

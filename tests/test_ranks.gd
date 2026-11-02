@@ -42,7 +42,7 @@ func _hunter(w: World, kind: StringName, at: Vector2i, next := 0) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.alert = Actor.HUNT
 	a.target = ME
-	a.casts = next
+	a.magic.casts = next
 	w.sense()
 	return a
 
@@ -164,10 +164,10 @@ func test_from_the_fourth_rank_it_charges_two_spells_and_casts_both() -> void:
 	var post := _hunter(w, &"jangseung", ME + E * 4)
 	var events := w.act(WAIT)
 	assert_eq(_of(events, &"charge", post.id).size(), 2)
-	assert_eq(post.intent.size(), 2)
+	assert_eq(post.magic.intent.size(), 2)
 	events = w.act(WAIT)
 	assert_eq(_of(events, &"cast", post.id).size(), 2)
-	assert_eq(post.intent, [] as Array[Dictionary])
+	assert_eq(post.magic.intent, [] as Array[Dictionary])
 	var third := _world(5)
 	var one := _hunter(third, &"jangseung", ME + E * 4)
 	assert_eq(_of(third.act(WAIT), &"charge", one.id).size(), 1)
@@ -194,8 +194,8 @@ func test_a_water_jet_from_heaven_pushes_miho_back() -> void:
 	var w := _world(3)
 	var guard := _hunter(w, &"haetae", ME + E * 3, 1)
 	w.act(WAIT)
-	assert_eq(guard.intent.size(), 1)
-	assert_eq(Spell.make(guard.intent[0].cards).shape, Spell.SPRAY)
+	assert_eq(guard.magic.intent.size(), 1)
+	assert_eq(Spell.make(guard.magic.intent[0].cards).shape, Spell.SPRAY)
 	w.act(WAIT)
 	assert_eq(w.player().pos, ME + W)
 

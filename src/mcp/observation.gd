@@ -163,7 +163,7 @@ static func _ally(k: World, a: Actor) -> String:
 		"%s %s (%d,%d) hp %d/%d" % [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp]
 	)
 	if Bestiary.mana(a.kind) > 0:
-		line += ", tails %d/%d" % [a.mana, Bestiary.mana(a.kind)]
+		line += ", tails %d/%d" % [a.magic.mana, Bestiary.mana(a.kind)]
 	for cast: Array in a.repertoire():
 		line += ", casts " + Spell.make(cast).shown()
 	if a.fighting():
@@ -216,7 +216,7 @@ static func _creature(k: World, a: Actor) -> String:
 		line += ", leads a band"
 	if a.drumming():
 		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
-	for plan in a.intent:
+	for plan in a.magic.intent:
 		line += (
 			", charging %s aimed %s"
 			% [Bestiary.spell(a.kind, plan.cards).title(), NAMES.get(plan.dir, "?")]

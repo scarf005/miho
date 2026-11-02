@@ -40,7 +40,7 @@ func _busy(w: World, kind: StringName, led: bool, hunting: bool) -> Actor:
 	a.ailments.rooted = 3
 	a.ailments.stunned = 3
 	a.wary = 3
-	a.cooldown = 4
+	a.magic.cooldown = 4
 	a.lost = 1
 	if hunting:
 		a.alert = Actor.HUNT

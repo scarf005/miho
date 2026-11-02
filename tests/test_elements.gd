@@ -49,7 +49,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts: a 장승 (no element, 3 health).
 func _post(w: World, at: Vector2i, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

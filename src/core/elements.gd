@@ -143,7 +143,7 @@ static func root(w: World, a: Actor, rounds: int) -> void:
 
 static func stun(w: World, a: Actor, rounds: int) -> void:
 	a.ailments.stunned = maxi(a.ailments.stunned, rounds)
-	a.intent.clear()
+	a.magic.intent.clear()
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
 
 

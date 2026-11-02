@@ -52,7 +52,7 @@ func _shadow(w: World) -> Shot:
 
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

@@ -38,7 +38,7 @@ func _leaper(w: World, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.alert = Actor.HUNT
 	a.target = ME
-	a.casts = a.repertoire().find(Bestiary.LEAP)
+	a.magic.casts = a.repertoire().find(Bestiary.LEAP)
 	w.sense()
 	return a
 
@@ -66,16 +66,16 @@ func test_it_charges_the_leap_at_miho_in_line_and_lands_short_of_her() -> void:
 	var w := _world(DEEP)
 	var a := _leaper(w, ME + E * 7)
 	var events := w.act(WAIT)
-	assert_eq(a.intent.size(), 1, "one spell, never paired")
-	assert_true(_is_leap(a.intent[0]))
-	assert_eq(a.intent[0].dir, W)
+	assert_eq(a.magic.intent.size(), 1, "one spell, never paired")
+	assert_true(_is_leap(a.magic.intent[0]))
+	assert_eq(a.magic.intent[0].dir, W)
 	assert_eq(events.filter(func(e): return e.t == &"charge" and e.id == a.id).size(), 1)
 	events = w.act(WAIT)
 	var reach := Spell.make(Bestiary.LEAP).leap()
 	assert_eq(a.pos, ME + E * (7 - reach))
 	var leaps := events.filter(func(e): return e.t == &"leap" and e.id == a.id)
 	assert_eq(leaps.size(), 1)
-	assert_eq(a.casts, a.repertoire().find(Bestiary.LEAP) + 1)
+	assert_eq(a.magic.casts, a.repertoire().find(Bestiary.LEAP) + 1)
 
 
 func test_it_does_not_leap_past_miho_or_off_her_line() -> void:
@@ -169,7 +169,7 @@ func test_a_charging_dokkaebi_shows_the_leap_it_gathers() -> void:
 func _charged(w: World, at: Vector2i) -> Actor:
 	var a := _leaper(w, at)
 	w.act(WAIT)
-	assert_true(_is_leap(a.intent[0]))
+	assert_true(_is_leap(a.magic.intent[0]))
 	return a
 
 

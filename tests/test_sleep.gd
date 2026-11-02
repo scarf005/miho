@@ -37,7 +37,7 @@ func _hall() -> World:
 func _foe(w: World, kind: StringName, at: Vector2i, alert := Actor.REST) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.alert = alert
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

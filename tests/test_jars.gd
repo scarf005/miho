@@ -56,7 +56,7 @@ func _break(w: World, how: StringName, what: StringName) -> Array:
 
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -235,7 +235,7 @@ func test_a_hunter_follows_a_strong_trail_longer_than_a_plain_one() -> void:
 		var w := _world()
 		w.round_no = 100
 		var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(10, 8))
-		foe.cooldown = 99
+		foe.magic.cooldown = 99
 		var trail := Vector2i(11, 8)
 		w.scent.resize(w.tiles.size())
 		w.scent[Grid.index(trail)] = w.round_no + 1 - Scent.TRAIL_AGE - 1

@@ -72,7 +72,7 @@ func test_a_lone_fire_out_of_reach_is_never_charged() -> void:
 	var w := _world()
 	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
 	var a := _hunter(w, &"oedari", ME + Vector2i(3, 0))
-	a.cooldown = 0
+	a.magic.cooldown = 0
 	var events := w.act(WAIT)
 	assert_false(events.any(func(e): return e.t == &"charge"))
 	assert_eq(a.pos, ME + Vector2i(2, 0))
@@ -211,7 +211,7 @@ func test_a_plain_dokkaebi_keeps_throwing_wisps_below_the_third_rank() -> void:
 	var a := _hunter(w, &"dokkaebi", ME + Vector2i(4, 0))
 	w.sense()
 	for next in 2:
-		a.casts = next
+		a.magic.casts = next
 		var plans := Aim.at(w, a, w.player())
 		assert_eq(plans.size(), 1)
 		assert_eq(plans[0].cards, [Cards.FOX])
@@ -222,7 +222,7 @@ func test_it_sets_the_grass_under_miho_alight_in_place_of_a_blow() -> void:
 	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
 	w.tiles[Grid.index(ME)] = World.GRASS
 	var a := _hunter(w, &"oedari", ME + Vector2i(1, 0))
-	a.cooldown = 0
+	a.magic.cooldown = 0
 	var events := w.act(WAIT)
 	assert_true(events.any(func(e): return e.t == &"charge" and e.cards == [Cards.FIRE]))
 	assert_eq(w.player().hp, 3, "the charge is its turn")
@@ -234,5 +234,5 @@ func test_on_bare_floor_it_strikes_as_before() -> void:
 	var w := _world()
 	w.tiles[Grid.index(ME + Vector2i(0, -2))] = World.LANTERN
 	var a := _hunter(w, &"oedari", ME + Vector2i(1, 0))
-	a.cooldown = 0
+	a.magic.cooldown = 0
 	assert_true(w.act(WAIT).any(func(e): return e.t == &"melee" and e.id == a.id))

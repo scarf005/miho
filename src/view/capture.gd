@@ -204,7 +204,7 @@ func _stage(parts: PackedStringArray) -> void:
 		"at":
 			w.player().pos = xy
 		"foe":
-			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
+			FloorGen.spawn(w, StringName(parts[1]), xy).magic.cooldown = 99
 		"hunt":
 			Mind.hunt_from(w, w.actor_at(xy), w.player().pos)
 		"save":

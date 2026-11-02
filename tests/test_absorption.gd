@@ -41,7 +41,7 @@ func _world() -> World:
 ## A creature that neither moves nor casts, with health to spare.
 func _foe(w: World, kind: StringName, at := FOE) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.max_hp = 20
 	a.hp = 20
 	return a

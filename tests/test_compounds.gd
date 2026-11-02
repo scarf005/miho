@@ -56,7 +56,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts: a 장승 (no element, 3 health).
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -125,7 +125,7 @@ func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> vo
 	assert_gt(Compounds.HOT[Compounds.MOLTEN].harm, Compounds.HOT[Compounds.LAVA].harm)
 	w = _world()
 	var dog := FloorGen.spawn(w, &"haetae", ME + Vector2i(2, 0))
-	dog.cooldown = 99
+	dog.magic.cooldown = 99
 	dog.ailments.rooted = 9
 	w.sense()
 	events = w.act(_cast(FURNACE))
@@ -137,7 +137,7 @@ func test_heaven_walks_round_hot_ground() -> void:
 	var w := _world()
 	w.hot[ME + Vector2i(2, 0)] = Vector2i(Compounds.LAVA, 9)
 	var a := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(3, 0))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	a.alert = Actor.HUNT
 	a.target = ME

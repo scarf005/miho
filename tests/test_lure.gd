@@ -61,7 +61,7 @@ func _hovering(w: World, cards := [FOX]) -> Shot:
 func _sleeper(w: World, kind: StringName, at: Vector2i) -> Actor:
 	w.set_tile(at, World.BAMBOO)
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

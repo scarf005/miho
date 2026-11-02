@@ -48,7 +48,17 @@ func _press(key: String) -> InputEventKey:
 func _sig(w: World) -> Array:
 	var actors := w.actors.map(
 		func(a):
-			return [a.id, a.pos, a.hp, a.alert, a.target, a.lost, a.cooldown, a.intent, a.sees_me]
+			return [
+				a.id,
+				a.pos,
+				a.hp,
+				a.alert,
+				a.target,
+				a.lost,
+				a.magic.cooldown,
+				a.magic.intent,
+				a.sees_me
+			]
 	)
 	return [w.round_no, w.rng.state, actors, w.seen, w.known, w.scent, w.heard, w.events.size()]
 
@@ -105,7 +115,7 @@ func test_a_creature_out_of_sight_tells_its_hidden_state_on_hover() -> void:
 	a.alert = Actor.SEARCH
 	a.target = Vector2i(12, 3)
 	a.lost = 4
-	a.cooldown = 2
+	a.magic.cooldown = 2
 	a.sees_me = false
 	assert_eq(w.seen[Grid.index(a.pos)], 0)
 	var text := Info.plain(DebugView.at(w, a.pos))

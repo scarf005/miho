@@ -472,7 +472,7 @@ static func _casts(a: Actor) -> Array:
 	var own: bool = a.info().get("tails", false)
 	if has_mana:
 		var left := Lang.t("꼬리: %d/%d" if own else "마력: %d/%d")
-		out.append([[left % [a.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
+		out.append([[left % [a.magic.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
 		out.append([_regrows()])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
 		out.append([[Lang.t("동시 주술: %d개") % Aim.CASTS, Palette.TEXT]])
@@ -492,10 +492,10 @@ static func _casts(a: Actor) -> Array:
 		if own or not has_mana:
 			parts.append_array(_effects(group))
 		var keys := group.map(func(s): return s.key())
-		if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
+		if a.magic.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
 			parts.append([[Lang.t("모으는 중"), Palette.HURT]])
-		elif a.cooldown > 0:
-			parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.cooldown))
+		elif a.magic.cooldown > 0:
+			parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.magic.cooldown))
 		out.append(_row(parts))
 	return out
 

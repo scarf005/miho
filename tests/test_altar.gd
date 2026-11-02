@@ -53,7 +53,7 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
 	a.hp = 1
 	a.max_hp = 1
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.home += E
 	return a
 

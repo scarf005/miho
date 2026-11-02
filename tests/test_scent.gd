@@ -34,7 +34,7 @@ func _world() -> World:
 ## A dokkaebi that lost Miho and heads for the spot it last saw her.
 func _hunter(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.alert = Actor.HUNT
 	a.target = w.player().pos
 	return a
@@ -184,7 +184,7 @@ func test_a_new_storey_starts_without_scent() -> void:
 func test_searching_lasts_search_rounds() -> void:
 	var w := _world()
 	var a := FloorGen.spawn(w, &"jangseung", Vector2i(5, 8))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.alert = Actor.SEARCH
 	a.target = a.pos
 	assert_eq(World.SEARCH_ROUNDS, 15)

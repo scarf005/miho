@@ -52,7 +52,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## listed health (Bestiary hp) whatever the storey's rank.
 func _post(w: World, at: Vector2i, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = Bestiary.hp(kind, 1)
 	a.max_hp = a.hp
 	w.sense()
@@ -309,7 +309,7 @@ func test_the_preview_shows_who_catches_alight() -> void:
 func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2, &"dokkaebi")
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var before := w.clone()
 	var events := w.act(_cast([FOX, FIRE]))
 	var log := Messages.of(before, w, events).map(Messages.plain)

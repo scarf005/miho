@@ -34,7 +34,7 @@ func _world() -> World:
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	# One step from its home, it is awake: a creature at its home sleeps.
 	a.home += E
 	return a
@@ -256,7 +256,7 @@ func test_a_bulgae_hit_by_a_fire_orb_from_the_dark_hunts_miho_and_closes_in() ->
 	assert_false(foe.sees_me, "it cannot see her in the dark")
 	assert_eq(foe.alert, Actor.HUNT)
 	assert_eq(foe.target, ME)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var gap := Grid.cheb(foe.pos, ME)
 	w.act(WAIT)
 	assert_lt(Grid.cheb(foe.pos, ME), gap, "it comes for her")

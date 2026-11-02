@@ -98,7 +98,7 @@ static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 ## `a` leaves the board with no body, the events `told` telling how.
 static func _gone(w: World, a: Actor, told: Array) -> void:
 	a.hp = 0
-	a.intent.clear()
+	a.magic.intent.clear()
 	Mind.forget(w, a)
 	for e: Dictionary in told:
 		w.emit(e)

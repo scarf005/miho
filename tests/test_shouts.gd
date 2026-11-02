@@ -29,7 +29,7 @@ func _world() -> World:
 ## A creature searching the tile it stands on, so it is awake and not hunting.
 func _creature(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.alert = Actor.SEARCH
 	a.target = at
 	a.lost = -99

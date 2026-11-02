@@ -32,7 +32,7 @@ func _world() -> World:
 ## The wisp of `kind`, in flight towards Miho on the tile next to her.
 func _wisp(w: World, kind: StringName) -> Shot:
 	var foe := FloorGen.spawn(w, kind, FOE)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	Cast.cast(w, foe, Bestiary.spell(kind, foe.info().casts[0]), WEST)
 	var s: Shot = w.shots.back()
 	s.pos = ME + EAST

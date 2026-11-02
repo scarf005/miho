@@ -308,7 +308,7 @@ func test_a_creature_stepping_on_the_alarm_plate_in_sight_is_heard_once() -> voi
 	w._changed()
 	w.traps[PLATE] = World.TRAP_ALARM
 	var foe := FloorGen.spawn(w, &"dokkaebi", PLATE - E)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	w.sense()
 	var before := w.clone()
 	w.push(foe, E, 1)
@@ -320,7 +320,7 @@ func test_a_creature_stepping_on_the_alarm_plate_out_of_sight_is_heard_as_a_nois
 	var w := _world()
 	w.traps[FAR] = World.TRAP_ALARM
 	var foe := FloorGen.spawn(w, &"dokkaebi", FAR - E)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	w.sense()
 	var before := w.clone()
 	w.push(foe, E, 1)

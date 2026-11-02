@@ -21,7 +21,7 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 	if a.fighting() and a.ailments.blind <= 0:
 		doing = Lang.t("싸우는 중")
 	var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.alert, 1)])
-	var plans: Array = a.intent.map(func(p): return [Spell.make(p.cards), p.dir])
+	var plans: Array = a.magic.intent.map(func(p): return [Spell.make(p.cards), p.dir])
 	var named := func(p: Array) -> float: return t._cells(p[0].shown()) + 1.5
 	var wide: float = plans.reduce(func(n, p): return n + named.call(p), 0.0)
 	var x := t._cells(doing) + 0.5

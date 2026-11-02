@@ -102,7 +102,7 @@ func test_a_foe_falling_in_sight_rises_as_a_fighting_ally() -> void:
 	var w := _on()
 	var at := _fell(w, &"dokkaebi", 3)
 	var foe := FloorGen.spawn(w, &"dokkaebi", at + E * 2)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var events := w.act(WAIT)
 	var up: Array = _risen(w)
 	assert_eq(up.size(), 1)
@@ -168,7 +168,7 @@ func test_a_body_rises_once() -> void:
 func test_a_body_with_a_creature_on_it_rises_next_to_it() -> void:
 	var w := _on()
 	var at := _fell(w, &"dokkaebi", 3)
-	FloorGen.spawn(w, &"jangseung", at).cooldown = 99
+	FloorGen.spawn(w, &"jangseung", at).magic.cooldown = 99
 	w.act(WAIT)
 	assert_eq(Grid.cheb(_risen(w)[0].pos, at), 1)
 

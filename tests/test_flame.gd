@@ -72,7 +72,7 @@ func _dummy(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.hp = 30
 	a.max_hp = 30
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.ailments.stunned = 99
 	return a
 

@@ -809,7 +809,7 @@ static func _place(w: World, kind: StringName) -> Actor:
 ## A creature of `kind` at `at`, charging for a random while.
 static func _arrive(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := spawn(w, kind, at)
-	a.cooldown = w.rng.randi_range(1, Bestiary.info(kind).get("cd", 1))
+	a.magic.cooldown = w.rng.randi_range(1, Bestiary.info(kind).get("cd", 1))
 	return a
 
 
@@ -898,7 +898,7 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.rank = Bestiary.rank(w.depth)
 	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp
-	a.mana = Bestiary.mana(kind)
+	a.magic.mana = Bestiary.mana(kind)
 	w.actors.append(a)
 	if not a.info().has("group"):
 		Mind.enlist(w, a)

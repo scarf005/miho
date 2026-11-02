@@ -121,8 +121,8 @@ func test_a_clever_creature_casts_its_wisp_at_the_lit_tile_it_suspects_and_shows
 		a.target = ME
 		_wear(w, Guise.CLOAK)
 		assert_true(Hat.hidden(w, w.player(), a.pos))
-		assert_false(a.intent.is_empty(), "it charges when it cannot see her")
-		assert_eq(a.intent[0].dir, Vector2i(-1, 0))
+		assert_false(a.magic.intent.is_empty(), "it charges when it cannot see her")
+		assert_eq(a.magic.intent[0].dir, Vector2i(-1, 0))
 		var clung := false
 		for i in 4:
 			w.act(WAIT)
@@ -151,7 +151,7 @@ func test_a_creature_with_no_wisp_spell_does_not_throw() -> void:
 	var a := _foe(w, &"gamtu", ME + Vector2i(5, 0))
 	a.target = ME
 	_wear(w, Guise.CLOAK)
-	assert_true(a.intent.is_empty())
+	assert_true(a.magic.intent.is_empty())
 	assert_does_not_have(_types(w.act(WAIT)), &"charge")
 
 
@@ -161,7 +161,7 @@ func test_a_dull_creature_with_a_wisp_spell_does_not_throw() -> void:
 	var a := _foe(w, &"jiha", ME + Vector2i(5, 0))
 	a.target = ME
 	_wear(w, Guise.CLOAK)
-	assert_true(a.intent.is_empty())
+	assert_true(a.magic.intent.is_empty())
 	assert_does_not_have(_types(w.act(WAIT)), &"charge")
 
 
@@ -178,7 +178,7 @@ func test_a_tracker_sees_through_the_guise() -> void:
 	var w := _world()
 	_lit(w)
 	var a := _foe(w, &"bitjaru", ME + Vector2i(4, 0))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.act(_self(Guise.RECIPE[Guise.GUISE]))
 	assert_true(Guise.knows(w, a))
 	assert_eq(a.alert, Actor.HUNT)

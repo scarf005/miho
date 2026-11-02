@@ -5,7 +5,7 @@ extends RefCounted
 
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	w.emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
-	caster.casts += 1
+	caster.magic.casts += 1
 	Bunsin.learn(caster, spell, dir)
 	if Guise.cast(w, caster, spell, dir) or Bunsin.cast(w, caster, spell, dir):
 		return

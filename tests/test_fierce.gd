@@ -99,7 +99,7 @@ func test_standing_in_fierce_fire_costs_three_and_in_ordinary_fire_two() -> void
 func test_a_creature_alight_burns_for_two_even_on_fierce_ground() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"jangseung", ME + Vector2i(6, 0))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 9
 	foe.max_hp = 9
 	w.tiles[Grid.index(foe.pos)] = World.STRAW

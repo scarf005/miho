@@ -46,7 +46,7 @@ static func hurt(w: World, a: Actor, n: int, weak := false) -> void:
 			Mind.hurt(a)
 		return
 	w.emit({t = &"die", id = a.id, at = a.pos, foe = a.faction == Actor.HEAVEN})
-	a.intent.clear()
+	a.magic.intent.clear()
 	w._changed()
 	if a.is_miho():
 		w.outcome = &"lost"

@@ -238,7 +238,7 @@ func test_earth_that_fills_its_tile_ends_it_and_leaves_no_body() -> void:
 	w.tails = 3
 	var at := me.pos + E
 	var a := _ghost(w, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.tails = 1
 	var fill := {t = &"cast", spells = [{cards = [Cards.EARTH], dir = E}]}
 	assert_true(w.can(fill))
@@ -257,7 +257,7 @@ func test_a_flame_on_its_tile_finds_no_fuel_and_a_fire_wisp_sets_it_alight() -> 
 	w.cards.assign(Cards.ALL)
 	var at := me.pos + E
 	var a := _ghost(w, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	var hp := a.hp
 	w.tails = 3
 	w.act({t = &"cast", spells = [{cards = [Cards.FIRE], dir = E}]})

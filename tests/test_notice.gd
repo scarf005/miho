@@ -33,7 +33,7 @@ func _world() -> World:
 ## A creature next to SPOT, too far from Miho to see her.
 func _watcher(w: World, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, NEXT)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	# One step from its home, it is awake: a creature at its home sleeps.
 	a.home += Vector2i.RIGHT
 	return a
@@ -124,7 +124,7 @@ func test_a_fallen_creature_is_searched() -> void:
 	var w := _world()
 	var a := _watcher(w)
 	var other := FloorGen.spawn(w, &"dokkaebi", SPOT)
-	other.cooldown = 99
+	other.magic.cooldown = 99
 	Harm.hurt(w, other, 99)
 	assert_eq(w.changes[0].kind, &"body")
 	assert_eq(w.changes[0].at, SPOT)
@@ -187,7 +187,7 @@ func test_each_creature_reacts_on_its_own() -> void:
 	w.set_tile(SPOT, World.DOOR)
 	var a := _watcher(w)
 	var b := FloorGen.spawn(w, &"dokkaebi", SPOT + Vector2i(0, 1))
-	b.cooldown = 99
+	b.magic.cooldown = 99
 	Terrain.hit(w, SPOT)
 	w.act(WAIT)
 	assert_eq(a.alert, Actor.SEARCH)
@@ -220,7 +220,7 @@ func test_a_body_mark_stays_once_seen_and_is_cloned() -> void:
 	var w := _world()
 	var at := ME + Vector2i.RIGHT
 	var other := FloorGen.spawn(w, &"dokkaebi", at)
-	other.cooldown = 99
+	other.magic.cooldown = 99
 	Harm.hurt(w, other, 99)
 	w.act(WAIT)
 	assert_eq(w.bodies[at].kind, &"dokkaebi")
@@ -238,7 +238,7 @@ func test_a_body_mark_stays_once_seen_and_is_cloned() -> void:
 func test_a_body_out_of_sight_is_not_known_until_seen() -> void:
 	var w := _world()
 	var other := FloorGen.spawn(w, &"dokkaebi", SPOT)
-	other.cooldown = 99
+	other.magic.cooldown = 99
 	Harm.hurt(w, other, 99)
 	w.sense()
 	assert_false(w.bodies[SPOT].met)

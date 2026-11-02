@@ -45,7 +45,7 @@ func _self(cards: Array) -> Dictionary:
 
 func _foe(w: World, at: Vector2i, alert := Actor.SEARCH, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.alert = alert
 	a.target = at
 	return a

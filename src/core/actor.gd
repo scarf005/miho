@@ -10,18 +10,12 @@ const HUNT := 2
 var kind := &""
 var hp := 1
 var max_hp := 1
-var cooldown := 0
-## The spells being charged, each {cards, dir}; empty when not charging.
-var intent: Array[Dictionary] = []
 ## The rank of the storey it came to (Bestiary.rank): what it casts and its health.
 var rank := 1
 ## Rounds left of each condition and status (Status).
 var ailments: Ailments
-var casts := 0
-## The mana it has left to pay for spells with (Bestiary mana).
-var mana := 0
-## Rounds counted towards its next mana (Mind._regrow).
-var regrow := 0
+## What it casts with and charges (Magic).
+var magic: Magic
 var acted := 0
 var alert := REST
 ## Where it last saw Miho, or the spot it is searching.
@@ -61,15 +55,13 @@ var talon := false
 var cloak := false
 var flame := false
 var raise := false
-## The one spell it casts in place of those of its kind (`repertoire`), empty for
-## none. Miho's is the spell her next copy takes (Bunsin.learn).
-var imprint: Array[StringName] = []
 
 
 ## `bare` leaves the parts a copy replaces unbuilt (`clone`).
 func _init(bare := false) -> void:
 	if not bare:
 		ailments = Ailments.new()
+		magic = Magic.new()
 
 
 func alive() -> bool:
@@ -134,7 +126,7 @@ func nature_kind() -> StringName:
 ## Every spell it casts: the one it was imprinted with, else those of its rank
 ## (Bestiary.casts).
 func repertoire() -> Array:
-	return [imprint] if not imprint.is_empty() else Bestiary.casts(kind, rank)
+	return [magic.imprint] if not magic.imprint.is_empty() else Bestiary.casts(kind, rank)
 
 
 func clone() -> Actor:
@@ -145,11 +137,7 @@ func clone() -> Actor:
 	a.pos = pos
 	a.hp = hp
 	a.max_hp = max_hp
-	a.cooldown = cooldown
 	a.rank = rank
-	a.casts = casts
-	a.mana = mana
-	a.regrow = regrow
 	a.acted = acted
 	a.alert = alert
 	a.target = target
@@ -173,7 +161,6 @@ func clone() -> Actor:
 	a.flame = flame
 	a.raise = raise
 	a.ailments = ailments.copy()
-	a.intent = intent.duplicate(true)
+	a.magic = magic.copy()
 	a.marked.assign(marked)
-	a.imprint.assign(imprint)
 	return a

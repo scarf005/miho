@@ -46,7 +46,7 @@ func _light(w: World, p: Vector2i) -> void:
 ## A dokkaebi at `at` that casts its 도깨비불 east in the next round.
 func _caster(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.intent.assign([{cards = a.info().casts[0], dir = E}])
+	a.magic.intent.assign([{cards = a.info().casts[0], dir = E}])
 	w.sense()
 	return a
 
@@ -100,7 +100,7 @@ func test_a_wisp_banks_30_degrees_a_tile_and_a_homing_orb_45_for_every_fox() -> 
 func test_a_lone_wisp_turns_one_step_at_most_every_second_tile() -> void:
 	var w := _world(Vector2i(4, 12))
 	var foe := FloorGen.spawn(w, &"jangseung", Vector2i(12, 3))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	_put(w, Vector2i(13, 3), World.LANTERN)
 	w.sense()
 	var events := w.act({t = &"cast", spells = [{cards = [FOX], dir = E}]})
@@ -156,7 +156,7 @@ func test_a_hovering_wisp_stays_when_a_creature_comes_into_sight() -> void:
 	var wisp: Shot = w.shots[0]
 	var at := wisp.pos
 	var foe := FloorGen.spawn(w, &"jangseung", at + Vector2i(2, 1))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var events := w.act(WAIT) + w.act(WAIT)
 	assert_eq(_tiles(events), [])
 	assert_eq(wisp.pos, at)
@@ -166,9 +166,9 @@ func test_a_hovering_wisp_stays_when_a_creature_comes_into_sight() -> void:
 func test_a_wisp_whose_creature_dies_stays_where_it_was_with_another_in_sight() -> void:
 	var w := _world(Vector2i(4, 8))
 	var foe := FloorGen.spawn(w, &"jangseung", Vector2i(7, 8))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var other := FloorGen.spawn(w, &"jangseung", Vector2i(9, 10))
-	other.cooldown = 99
+	other.magic.cooldown = 99
 	_put(w, Vector2i(8, 9), World.LANTERN)
 	w.sense()
 	w.act({t = &"cast", spells = [{cards = [FOX], dir = E}]})

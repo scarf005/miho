@@ -33,7 +33,7 @@ func _world(depth := 2) -> World:
 
 func _foe(w: World, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

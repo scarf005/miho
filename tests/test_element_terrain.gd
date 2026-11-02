@@ -45,7 +45,7 @@ func _world() -> World:
 func _hall(at := FOE) -> World:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"jangseung", at)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 40
 	foe.max_hp = 40
 	w.sense()
@@ -131,7 +131,7 @@ func test_roots_do_not_break_the_outermost_ring() -> void:
 	var w := _world()
 	w.player().pos = edge - Vector2i(3, 0)
 	var foe := FloorGen.spawn(w, &"jangseung", edge)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 40
 	w.sense()
 	_put(w, edge + UP, World.WALL)

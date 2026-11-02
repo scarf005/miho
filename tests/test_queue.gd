@@ -256,7 +256,7 @@ func test_the_longest_spell_name_fits_the_screen_at_every_zoom_of_a_1280x720_win
 func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> void:
 	var m := _main()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 2
 	foe.max_hp = 2
 	m._forecast()
@@ -271,7 +271,7 @@ func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> v
 
 func test_each_wisps_aim_line_starts_on_the_tile_it_leaves_on() -> void:
 	var m := _main()
-	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8)).cooldown = 99
+	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8)).magic.cooldown = 99
 	m._forecast()
 	for k in ["1", "1"]:
 		_press(m, k)
@@ -325,7 +325,7 @@ func test_another_key_after_a_refused_talisman_lets_the_direction_walk() -> void
 func test_a_picked_talisman_aims_at_the_nearest_creature_and_space_hurls_it() -> void:
 	var m := _main()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	m._forecast()
 	_press(m, "2")
 	assert_eq(m.hover, foe.pos, "the cursor goes to the nearest creature in sight")
@@ -375,7 +375,7 @@ func test_f_picks_the_last_hurled_spell_again() -> void:
 func test_period_with_talismans_picked_hurls_at_the_cursor_too() -> void:
 	var m := _main()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	m._forecast()
 	_press(m, "2")
 	_press(m, "Period")

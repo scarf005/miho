@@ -85,7 +85,7 @@ static func end(w: World) -> void:
 	w.flares.clear()
 	for a in w.actors:
 		if a.alive():
-			a.cooldown = maxi(0, a.cooldown - 1)
+			a.magic.cooldown = maxi(0, a.magic.cooldown - 1)
 			Status.lapse(w, a, &"rooted")
 			Status.lapse(w, a, &"blind")
 			a.wary = maxi(0, a.wary - 1)

@@ -10,7 +10,7 @@ const CASTS := 2
 
 ## The spells `a` charges at `foe`, when it sees it: a plan for each, or none.
 ## Below Bestiary.PICKS it tries only the next of its spells in turn
-## (Actor.casts). From PICKS on it tries them all from that one, passes over
+## (Magic.casts). From PICKS on it tries them all from that one, passes over
 ## those that miss the foe or that the foe stops whole (Bestiary.absorbs; one
 ## it absorbs in part still hurts, half), and takes the first the foe is weak
 ## to and absorbs no part of, else the first; from Bestiary.DOUBLES on also the next after
@@ -88,7 +88,9 @@ static func keeps(a: Actor) -> bool:
 		return false
 	return a.repertoire().any(
 		func(cast):
-			return Spell.price(cast.size()) <= a.mana and Spell.make(cast).shape != Spell.SPRAY
+			return (
+				Spell.price(cast.size()) <= a.magic.mana and Spell.make(cast).shape != Spell.SPRAY
+			)
 	)
 
 
@@ -98,11 +100,11 @@ static func keeps(a: Actor) -> bool:
 ## leaves on open tiles of its own (`_apart`).
 static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var first := _dearest(w, a, foe, a.mana, [])
+	var first := _dearest(w, a, foe, a.magic.mana, [])
 	if first.is_empty():
 		return out
 	out.append(first)
-	var left := a.mana - Spell.price(first.cards.size())
+	var left := a.magic.mana - Spell.price(first.cards.size())
 	var taken := _departs(w, a, first)
 	var skip := [first.cards]
 	while true:
@@ -198,7 +200,7 @@ static func _turn(a: Actor) -> Array:
 		list = list.filter(func(c): return c != Bestiary.KINDLE)
 	if list.is_empty():
 		return []
-	var start := a.casts % list.size()
+	var start := a.magic.casts % list.size()
 	var out := list.slice(start) + list.slice(0, start)
 	return out if a.rank >= Bestiary.PICKS else out.slice(0, 1)
 
@@ -207,7 +209,7 @@ static func _turn(a: Actor) -> Array:
 static func _cheap(a: Actor, list: Array) -> Array:
 	var out := []
 	for n in range(1, Spell.MAX_SLOTS + 1):
-		if Spell.price(n) > a.mana:
+		if Spell.price(n) > a.magic.mana:
 			break
 		out.append_array(list.filter(func(c): return c.size() == n and not _dark(c)))
 	return out

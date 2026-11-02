@@ -53,7 +53,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts, `x` east and `y` south of Miho.
 func _post(w: World, x: int, y := 0) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", ME + Vector2i(x, y))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = HEALTH
 	a.max_hp = HEALTH
 	w.sense()

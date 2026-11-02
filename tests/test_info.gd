@@ -348,7 +348,7 @@ func test_a_searching_creature_tells_how_many_more_looks_before_it_rests() -> vo
 	foe.alert = Actor.SEARCH
 	foe.target = foe.pos
 	foe.lost = 4
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var left := World.SEARCH_ROUNDS + 1 - foe.lost
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: %d번 더" % left)
 	for i in left - 1:
@@ -365,7 +365,7 @@ func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void
 	foe.target = foe.pos
 	foe.lost = World.SEARCH_ROUNDS + 3
 	foe.wary = 2
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: 경계가 끝날 때까지")
 	Mind.search(w, foe)
 	assert_eq(foe.alert, Actor.SEARCH, "wary: keeps looking")

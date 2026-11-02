@@ -50,7 +50,7 @@ func _world() -> World:
 ## A copy on `at`, its spell `spell` (none when empty).
 func _copy(w: World, at: Vector2i, spell := []) -> Actor:
 	var a := FloorGen.spawn(w, Cards.BUNSIN, at)
-	a.imprint.assign(spell)
+	a.magic.imprint.assign(spell)
 	return a
 
 
@@ -58,7 +58,7 @@ func _copy(w: World, at: Vector2i, spell := []) -> Actor:
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
 	a.hp = 40
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -112,7 +112,7 @@ func test_miho_pays_the_table_price_and_the_copy_stands_on_the_aimed_tile() -> v
 	var copy := w.actor_at(ME + E)
 	assert_not_null(copy)
 	assert_true(copy.ally())
-	assert_eq(copy.mana, Bunsin.TAILS, "its tails are its own")
+	assert_eq(copy.magic.mana, Bunsin.TAILS, "its tails are its own")
 	assert_true(events.any(func(e): return e.t == &"ally" and e.id == copy.id))
 
 
@@ -196,14 +196,14 @@ func test_the_copy_needs_a_free_tile_along_a_line() -> void:
 func test_the_copy_takes_the_last_spell_she_threw_that_its_tails_pay_for() -> void:
 	var w := _world()
 	_cast(w, BUNSIN, E)
-	assert_true(w.actor_at(ME + E).imprint.is_empty(), "none thrown yet")
+	assert_true(w.actor_at(ME + E).magic.imprint.is_empty(), "none thrown yet")
 	_cast(w, CHEAP, W)
 	_cast(w, DEAR, W)
 	assert_gt(Spell.make(DEAR).cost(), Bunsin.TAILS)
 	assert_false(Bunsin.imprints(Spell.make(BUNSIN), E), "it never takes its own spell")
 	w.tails = w.max_tails()
 	_cast(w, BUNSIN, Vector2i(0, -1))
-	assert_eq(w.actor_at(ME + Vector2i(0, -1)).imprint, Spell.make(CHEAP).cards)
+	assert_eq(w.actor_at(ME + Vector2i(0, -1)).magic.imprint, Spell.make(CHEAP).cards)
 
 
 func test_a_copy_with_no_spell_walks_to_a_foe_and_claws_it() -> void:
@@ -255,8 +255,8 @@ func test_a_copy_casts_its_spell_and_spends_its_own_tails() -> void:
 	var foe := _post(w, ME + Vector2i(6, 0))
 	var tails := w.tails
 	w.act(WAIT)
-	assert_false(copy.intent.is_empty(), "it charges")
-	assert_eq(copy.mana, Bunsin.TAILS - Spell.price(CHEAP.size()))
+	assert_false(copy.magic.intent.is_empty(), "it charges")
+	assert_eq(copy.magic.mana, Bunsin.TAILS - Spell.price(CHEAP.size()))
 	var events := w.act(WAIT)
 	var thrown := events.filter(func(e): return e.t == &"spawn" and e.faction == Actor.FOX)
 	assert_eq(thrown.size(), 1)
@@ -267,23 +267,23 @@ func test_a_copy_casts_its_spell_and_spends_its_own_tails() -> void:
 func test_at_no_tails_a_copy_claws_and_its_tails_grow_back() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E, CHEAP)
-	copy.mana = 0
+	copy.magic.mana = 0
 	var foe := _post(w, copy.pos + E)
 	var events := w.act(WAIT)
-	assert_true(copy.intent.is_empty(), "nothing to pay with")
+	assert_true(copy.magic.intent.is_empty(), "nothing to pay with")
 	assert_true(_hurt(events, foe), "so it claws")
 	_rounds(w, World.TAIL_REGROW)
-	assert_gt(copy.mana + copy.regrow, 0, "they grow back")
+	assert_gt(copy.magic.mana + copy.magic.regrow, 0, "they grow back")
 
 
 func test_a_spell_too_dear_for_the_tails_left_is_not_cast() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E, CHEAP)
-	copy.mana = Spell.price(CHEAP.size()) - 1
-	copy.regrow = 0
+	copy.magic.mana = Spell.price(CHEAP.size()) - 1
+	copy.magic.regrow = 0
 	_post(w, ME + Vector2i(6, 0))
 	w.act(WAIT)
-	assert_true(copy.intent.is_empty())
+	assert_true(copy.magic.intent.is_empty())
 
 
 func test_a_copy_with_tails_stands_off_and_one_without_walks_in() -> void:
@@ -293,8 +293,8 @@ func test_a_copy_with_tails_stands_off_and_one_without_walks_in() -> void:
 	w.act(WAIT)
 	assert_gt(Grid.cheb(copy.pos, foe.pos), 1, "it does not walk up to claw")
 	for i in 4:
-		copy.mana = 0
-		copy.intent.clear()
+		copy.magic.mana = 0
+		copy.magic.intent.clear()
 		w.act(WAIT)
 	assert_eq(Grid.cheb(copy.pos, foe.pos), 1, "with none left it walks up")
 
@@ -304,8 +304,8 @@ func test_an_ally_holds_back_a_spell_that_would_catch_her() -> void:
 	var copy := _copy(w, ME + W, CHEAP)
 	_post(w, ME + Vector2i(3, 0))
 	w.act(WAIT)
-	assert_true(copy.intent.is_empty(), "she stands on the line")
-	assert_eq(copy.mana, Bunsin.TAILS)
+	assert_true(copy.magic.intent.is_empty(), "she stands on the line")
+	assert_eq(copy.magic.mana, Bunsin.TAILS)
 
 
 func test_a_shot_of_an_ally_turns_a_foe_on_the_ally_and_not_on_miho() -> void:
@@ -358,7 +358,7 @@ func test_a_saved_run_with_a_copy_replays_to_the_same_world() -> void:
 	assert_gt(gone, 0, "a third pushed one out")
 	var back := SaveGame.load_from(PATH)
 	assert_true(back.replay())
-	var state := func(a: Actor) -> Array: return [a.id, a.pos, a.hp, a.mana, a.imprint]
+	var state := func(a: Actor) -> Array: return [a.id, a.pos, a.hp, a.magic.mana, a.magic.imprint]
 	assert_eq(str(back.world.actors.map(state)), str(w.actors.map(state)))
 	assert_eq(back.world.rng.state, w.rng.state)
 
@@ -489,7 +489,7 @@ func test_the_log_tells_the_copy_appearing_and_its_spell_as_its_own() -> void:
 	var lines := Messages.of(before, w, _cast(w, BUNSIN, E)).map(Messages.plain)
 	assert_has(lines, "분신이 나타났다")
 	var copy := w.actor_at(ME + E)
-	copy.imprint.assign(CHEAP)
+	copy.magic.imprint.assign(CHEAP)
 	var foe := _post(w, ME + Vector2i(4, 0))
 	var told := []
 	for i in 6:
@@ -504,7 +504,7 @@ func test_the_log_tells_the_copy_appearing_and_its_spell_as_its_own() -> void:
 func test_the_hover_of_a_copy_counts_the_tails_it_has_left() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E, CHEAP)
-	copy.mana = 2
+	copy.magic.mana = 2
 	var text := str(Info.creature(w, copy))
 	assert_string_contains(text, "꼬리: 2/%d" % Bunsin.TAILS)
 	assert_false(text.contains("당신을"), "what it sees of her changes nothing")

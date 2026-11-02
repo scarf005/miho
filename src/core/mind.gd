@@ -35,20 +35,20 @@ static func enlist(w: World, a: Actor) -> void:
 	a.rival = 0
 	a.grudge = 0
 	a.alert = Actor.REST
-	a.intent.clear()
+	a.magic.intent.clear()
 	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
 
 
 ## One round of spent mana growing back, as Round._regrow does for tails; it
 ## runs before the creature casts.
 static func _regrow(a: Actor) -> void:
-	if a.mana >= Bestiary.mana(a.kind):
-		a.regrow = 0
+	if a.magic.mana >= Bestiary.mana(a.kind):
+		a.magic.regrow = 0
 		return
-	a.regrow += 1
-	if a.regrow >= World.TAIL_REGROW:
-		a.regrow = 0
-		a.mana += World.TAIL_REGROWN
+	a.magic.regrow += 1
+	if a.magic.regrow >= World.TAIL_REGROW:
+		a.magic.regrow = 0
+		a.magic.mana += World.TAIL_REGROWN
 
 
 static func heaven_phase(w: World) -> void:
@@ -68,10 +68,10 @@ static func heaven_phase(w: World) -> void:
 			Status.lapse(w, a, &"stunned")
 			continue
 		perceive(w, a)
-		if not a.intent.is_empty():
-			var plans: Array[Dictionary] = a.intent.duplicate()
-			a.intent.clear()
-			a.cooldown = a.info().get("cd", 0)
+		if not a.magic.intent.is_empty():
+			var plans: Array[Dictionary] = a.magic.intent.duplicate()
+			a.magic.intent.clear()
+			a.magic.cooldown = a.info().get("cd", 0)
 			for plan in plans:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
 					Cast.cast(w, a, Bestiary.spell(a.kind, plan.cards), plan.dir)
@@ -213,7 +213,7 @@ static func sleep(w: World, a: Actor) -> void:
 	a.rival = 0
 	a.grudge = 0
 	a.sees_me = false
-	a.intent.clear()
+	a.magic.intent.clear()
 	w._changed()
 	w.emit({t = &"sleep", id = a.id, at = a.pos})
 
@@ -249,7 +249,7 @@ static func _fight(w: World, a: Actor) -> bool:
 		if near and not a.ally():
 			_melee(w, a, rival, melee)
 			return true
-		if a.cooldown <= 0 and _charge(w, a, Aim.spared(w, a, rival)):
+		if a.magic.cooldown <= 0 and _charge(w, a, Aim.spared(w, a, rival)):
 			return true
 		if near:
 			_melee(w, a, rival, melee)
@@ -307,10 +307,10 @@ static func hunt(w: World, a: Actor) -> void:
 	if a.sees_me:
 		var melee: Dictionary = a.info().get("melee", {})
 		if not melee.is_empty() and Grid.cheb(a.pos, me.pos) == 1:
-			if a.cooldown > 0 or not _charge(w, a, Aim.kindle(w, a, me)):
+			if a.magic.cooldown > 0 or not _charge(w, a, Aim.kindle(w, a, me)):
 				_melee(w, a, me, melee)
 			return
-		if a.cooldown <= 0 and _charge(w, a, Aim.at(w, a, me)):
+		if a.magic.cooldown <= 0 and _charge(w, a, Aim.at(w, a, me)):
 			return
 		if a.ailments.rooted <= 0:
 			_chase(w, a)
@@ -356,7 +356,7 @@ static func _track(w: World, a: Actor) -> bool:
 ## A clever creature that cannot see Miho under her 은신 throws a wisp at where it
 ## suspects her (Aim.suspected).
 static func _suspect(w: World, a: Actor) -> bool:
-	return a.cooldown <= 0 and _charge(w, a, Aim.suspected(w, a))
+	return a.magic.cooldown <= 0 and _charge(w, a, Aim.suspected(w, a))
 
 
 ## Goes to the spot, throwing a wisp at it first when it lies in the dark or it
@@ -364,7 +364,7 @@ static func _suspect(w: World, a: Actor) -> bool:
 static func search(w: World, a: Actor) -> void:
 	if Terrain.relight_beside(w, a) or _suspect(w, a) or _track(w, a):
 		return
-	if a.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
+	if a.magic.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
 		return
 	if a.ailments.rooted > 0:
 		return
@@ -423,10 +423,10 @@ static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void
 static func _charge(w: World, a: Actor, plans: Array[Dictionary]) -> bool:
 	if plans.is_empty():
 		return false
-	a.intent.assign(plans)
+	a.magic.intent.assign(plans)
 	for plan in plans:
 		if Bestiary.mana(a.kind) > 0:
-			a.mana -= Spell.price(plan.cards.size())
+			a.magic.mana -= Spell.price(plan.cards.size())
 		w.emit({t = &"charge", id = a.id, cards = plan.cards.duplicate(), dir = plan.dir})
 	return true
 

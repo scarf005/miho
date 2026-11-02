@@ -53,7 +53,7 @@ func _leap(cards: Array, dir := E) -> Dictionary:
 ## A dokkaebi at its listed health (Bestiary hp), whatever the storey's rank.
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = Bestiary.hp(&"dokkaebi", 1)
 	a.max_hp = a.hp
 	return a

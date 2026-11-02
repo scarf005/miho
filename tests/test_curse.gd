@@ -59,7 +59,7 @@ func _doomed(what: StringName, depth := 2, round_no := 0) -> World:
 ## A creature that never walks or sleeps, in the hall, `reach` tiles south of Miho.
 func _watcher(w: World, reach: int) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", ME + Vector2i(0, reach))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 

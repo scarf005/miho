@@ -45,7 +45,7 @@ func _blaze(m: Node, d := E) -> void:
 ## A creature under a lantern, so that Miho sees it from where she stands.
 func _foe(m: Node, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(m.world, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	m.world.set_tile(at + Vector2i.UP, World.LANTERN)
 	m.world.sense()
 	m._forecast()
@@ -164,7 +164,7 @@ func test_a_bare_shift_leaves_the_prompt_up() -> void:
 func test_a_creature_on_fire_or_a_plate_is_clawed_without_asking() -> void:
 	var m := _keyboard()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", ME + E)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var hp := foe.hp
 	_blaze(m)
 	_press(m, "Right")
@@ -229,7 +229,7 @@ func test_a_plate_not_found_yet_is_stepped_on_without_asking() -> void:
 func test_harm_beside_a_creature_does_not_ask() -> void:
 	var m := _keyboard()
 	var foe := _foe(m, ME + Vector2i(3, 0))
-	foe.cooldown = 0
+	foe.magic.cooldown = 0
 	foe.alert = Actor.HUNT
 	m._forecast()
 	_press(m, "Right")

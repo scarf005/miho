@@ -109,7 +109,7 @@ func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.hp = BIG
 	a.max_hp = BIG
-	a.cooldown = BIG
+	a.magic.cooldown = BIG
 	return a
 
 
@@ -257,7 +257,7 @@ func _blow(kind: StringName, r: int) -> Dictionary:
 			var w := _arena.clone()
 			var foe := _foe(w, kind, MIHO_AT + EAST * d)
 			foe.rank = r
-			foe.casts = start
+			foe.magic.casts = start
 			var plans := Aim.at(w, foe, w.player())
 			w.events = []
 			for plan in plans:

@@ -54,7 +54,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts, with health to spare.
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.max_hp = 9
 	a.hp = 9
 	return a
@@ -188,7 +188,7 @@ func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
 	var w := _world()
 	var centre := ME + E * 6
 	var sleeper := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(-2, 3))
-	sleeper.cooldown = 99
+	sleeper.magic.cooldown = 99
 	w.sense()
 	_now(w, _made(&"beacon"))
 	assert_eq(sleeper.alert, Actor.SEARCH)
@@ -416,7 +416,7 @@ func test_conquest_hurts_every_foe_in_sight_and_doubles_it_for_one_with_a_weakne
 	var w := _world()
 	var plain := _post(w, ME + E * 3)
 	var weak := FloorGen.spawn(w, &"cheonnyeon", ME + E * 5)
-	weak.cooldown = 99
+	weak.magic.cooldown = 99
 	weak.max_hp = 20
 	weak.hp = 20
 	_wall_across(w, ME.x + 8)

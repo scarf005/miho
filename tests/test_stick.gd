@@ -36,7 +36,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 

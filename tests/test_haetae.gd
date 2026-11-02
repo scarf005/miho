@@ -45,7 +45,7 @@ func test_a_haetae_beside_miho_in_the_dark_stays_and_strikes_for_three() -> void
 func test_a_creature_lining_up_holds_its_tile_beside_miho_in_the_dark() -> void:
 	var w := _dark_hall(3)
 	var a := _hunter(w, &"imugi", ME + Vector2i.RIGHT)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	for i in 4:
 		w.act({t = &"wait"})
 		assert_eq(a.pos, ME + Vector2i.RIGHT, "round %d" % i)
@@ -56,6 +56,6 @@ func test_a_creature_lining_up_in_the_light_still_steps_back_to_shoot() -> void:
 	w.tiles[Grid.index(ME + Vector2i.UP)] = World.LANTERN
 	w.sense()
 	var a := _hunter(w, &"imugi", ME + Vector2i.RIGHT)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.act({t = &"wait"})
 	assert_gt(Grid.cheb(a.pos, ME), 1)

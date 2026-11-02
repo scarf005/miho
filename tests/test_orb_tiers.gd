@@ -43,7 +43,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts, with 20 health and no weakness.
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = 20
 	a.max_hp = 20
 	return a
@@ -150,7 +150,7 @@ func test_a_blast_hurts_twice_over_what_is_weak_to_it() -> void:
 	var w := _world()
 	_post(w, ME + Vector2i(2, 0))
 	var weak := FloorGen.spawn(w, &"bulgae", ME + Vector2i(2, 1))
-	weak.cooldown = 99
+	weak.magic.cooldown = 99
 	weak.hp = 20
 	var spell := Spell.make(_copies(3, [Cards.WATER]))
 	assert_true(Bestiary.weak(weak.kind, spell), "a fire beast is weak to water")
@@ -162,7 +162,7 @@ func test_a_blast_does_not_hurt_what_eats_the_spell() -> void:
 	var w := _world()
 	_post(w, ME + Vector2i(2, 0))
 	var eater := FloorGen.spawn(w, &"haetae", ME + Vector2i(2, 1))
-	eater.cooldown = 99
+	eater.magic.cooldown = 99
 	var spell := Spell.make(_copies(3, [Cards.FIRE]))
 	assert_true(Bestiary.absorbs(eater.kind, spell))
 	var hp := eater.hp
@@ -249,8 +249,8 @@ func test_a_creature_casts_the_orb_of_its_storey_and_it_strikes_for_the_copies()
 		var w := _world()
 		w.depth = row[0]
 		var foe := FloorGen.spawn(w, &"imugi", ME + Vector2i(3, 0))
-		foe.cooldown = 99
-		foe.intent.assign([{cards = foe.repertoire()[0], dir = -E}])
+		foe.magic.cooldown = 99
+		foe.magic.intent.assign([{cards = foe.repertoire()[0], dir = -E}])
 		var me := w.player()
 		me.hp = 9
 		me.max_hp = 9
@@ -343,7 +343,7 @@ func test_a_blast_stays_on_the_storey_where_the_orb_struck() -> void:
 	var w := _world()
 	w.stairs = ME + E
 	var caster := FloorGen.spawn(w, &"imugi", ME - E * 3)
-	caster.cooldown = 99
+	caster.magic.cooldown = 99
 	w.player().hp = 50
 	Cast.cast(w, caster, Spell.make(_copies(3, [WATER])), E)
 	var kinds := w.act({t = &"wait"}).map(func(e): return e.t)
@@ -354,9 +354,9 @@ func test_a_blast_stays_on_the_storey_where_the_orb_struck() -> void:
 func test_a_creatures_charged_twin_flies_the_line_it_drew() -> void:
 	var w := _world()
 	var caster := FloorGen.spawn(w, &"imugi", ME - E * 2)
-	caster.cooldown = 99
+	caster.magic.cooldown = 99
 	caster.alert = Actor.HUNT
-	caster.intent.assign([{cards = _copies(4), dir = E}])
+	caster.magic.intent.assign([{cards = _copies(4), dir = E}])
 	w.player().hp = 50
 	w.act({t = &"move", dir = Vector2i(0, -1)})
 	assert_eq(w.shots.map(func(s): return s.dir), [E, E])

@@ -94,14 +94,16 @@ static func creature(a: Actor) -> Array:
 
 ## The spell clock: the aim and talismans being charged, else the wait left.
 static func _clock(a: Actor) -> Array:
-	if a.intent.is_empty():
-		var text := Lang.t("%d초 뒤 주술") % a.cooldown if a.cooldown > 0 else Lang.t("주술 가능")
+	if a.magic.intent.is_empty():
+		var text := (
+			Lang.t("%d초 뒤 주술") % a.magic.cooldown if a.magic.cooldown > 0 else Lang.t("주술 가능")
+		)
 		if Bestiary.mana(a.kind) > 0:
-			text = Lang.t("마력 %d/%d") % [a.mana, Bestiary.mana(a.kind)]
+			text = Lang.t("마력 %d/%d") % [a.magic.mana, Bestiary.mana(a.kind)]
 		return [[text, Palette.TEXT]]
 	var glyphs := func(cards: Array) -> String:
 		return "".join(cards.map(func(c): return Lang.t(Cards.GLYPH[c], "talisman")))
-	var aimed := a.intent.map(
+	var aimed := a.magic.intent.map(
 		func(plan): return "%s %s" % [Palette.BOLT[plan.dir], glyphs.call(plan.cards)]
 	)
 	return [[Lang.t("조준 %s") % " ".join(aimed), Palette.HURT]]

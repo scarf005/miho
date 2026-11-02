@@ -316,8 +316,8 @@ func _actor_row(a: Actor) -> Array:
 		a.pos,
 		a.hp,
 		a.max_hp,
-		a.cooldown,
-		_plain(a.intent),
+		a.magic.cooldown,
+		_plain(a.magic.intent),
 		a.rank,
 		a.ailments.rooted,
 		a.ailments.stunned,
@@ -325,9 +325,9 @@ func _actor_row(a: Actor) -> Array:
 		a.ailments.wet,
 		a.ailments.alight,
 		a.ailments.frozen,
-		a.casts,
-		a.mana,
-		a.regrow,
+		a.magic.casts,
+		a.magic.mana,
+		a.magic.regrow,
 		a.acted,
 		a.alert,
 		a.target,
@@ -351,7 +351,7 @@ func _actor_row(a: Actor) -> Array:
 		a.cloak,
 		a.flame,
 		a.raise,
-		_plain(a.imprint)
+		_plain(a.magic.imprint)
 	]
 
 

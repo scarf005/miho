@@ -182,7 +182,7 @@ static func hall(rank := 0) -> World:
 	me.max_hp = MIHO_HP
 	me.hp = MIHO_HP - World.HEAL
 	me.pos = HALL.position + Vector2i(LEFT + ME, HALL.size.y / 2)
-	me.imprint.assign(IMPRINT)
+	me.magic.imprint.assign(IMPRINT)
 	w.start = me.pos
 	w.actors.append(me)
 	return w
@@ -282,7 +282,7 @@ static func _doll(w: World, key: Variant, p: Vector2i) -> void:
 static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 	var a := FloorGen.spawn(w, kind, p)
 	if mark != "k" and mark != "J":
-		a.cooldown = NEVER
+		a.magic.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1
 	if mark in ["d", "i", "k", "m"]:

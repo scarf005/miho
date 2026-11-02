@@ -44,7 +44,7 @@ func _cast(cards: Array, dir := Vector2i.ZERO) -> Dictionary:
 ## A creature that stands and fights, with health to spare.
 func _foe(w: World, at: Vector2i, alert := Actor.SEARCH) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.alert = alert
 	a.target = at
 	a.hp = 99

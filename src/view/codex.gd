@@ -170,7 +170,7 @@ static func foe(kind: StringName, at_rank := 1) -> Actor:
 	a.rank = at_rank
 	a.hp = Bestiary.hp(kind, at_rank)
 	a.max_hp = a.hp
-	a.mana = Bestiary.mana(kind)
+	a.magic.mana = Bestiary.mana(kind)
 	return a
 
 

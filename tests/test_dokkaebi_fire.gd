@@ -32,7 +32,7 @@ func _world() -> World:
 
 func _foe(w: World, kind: StringName) -> Actor:
 	var a := FloorGen.spawn(w, kind, FOE)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 

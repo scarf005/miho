@@ -47,7 +47,7 @@ func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.alert = Actor.HUNT
 	a.target = ME
 	a.home = at + Vector2i(0, 3)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = 9
 	a.max_hp = 9
 	return a
@@ -57,12 +57,12 @@ func test_the_first_creature_in_the_line_falls_asleep_unhurt_and_the_next_does_n
 	var w := _world()
 	var first := _hunter(w, &"imugi", ME + E * 2)
 	var second := _hunter(w, &"imugi", ME + E * 4)
-	first.intent.assign([{cards = [Cards.FOX], dir = Vector2i(-1, 0)}])
+	first.magic.intent.assign([{cards = [Cards.FOX], dir = Vector2i(-1, 0)}])
 	var events := w.act(_cast())
 	assert_true(first.asleep())
 	assert_eq(first.alert, Actor.REST)
 	assert_eq(first.hp, first.max_hp)
-	assert_true(first.intent.is_empty(), "the spell it charged is dropped")
+	assert_true(first.magic.intent.is_empty(), "the spell it charged is dropped")
 	assert_eq(events.filter(func(e): return e.t == &"sleep").map(func(e): return e.id), [first.id])
 	assert_false(second.asleep())
 	assert_eq(second.alert, Actor.HUNT)
