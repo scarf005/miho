@@ -76,7 +76,7 @@ func test_a_screen_blocks_walking_and_sight_but_not_light_until_knocked_flat() -
 	assert_true(w.open_floor(AT))
 	assert_false(w.opaque(AT), "sight clears")
 	var thud: Dictionary = _noises(events)[0]
-	assert_eq([thud.word, thud.loud], ["쿵", World.THUD])
+	assert_eq([thud.word, thud.loud], ["쿵", World.KNOCK])
 
 
 func test_a_jar_clangs_and_breaks_to_walkable_pieces() -> void:
