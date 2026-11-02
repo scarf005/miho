@@ -25,8 +25,8 @@ extends RefCounted
 const REAPER := &"reaper"
 const SIGHT := &"sight"
 const BODY := &"body"
-## The lasting curses by the name the status row and the 도감 give them.
-const NAME := {REAPER: "저승의 저주", SIGHT: "시선의 저주"}
+## The curses by the name the 도감 gives them, and the status row the lasting ones.
+const NAME := {REAPER: "저승의 저주", SIGHT: "시선의 저주", BODY: "객귀의 저주"}
 ## Rounds 저승사자 comes sooner.
 const SOONER := 100
 ## Rounds its omen comes before it.
@@ -37,7 +37,7 @@ const MORE_SIGHT := 2
 const RISE_ROUNDS := 1
 ## The storey from which a body rises as Raise.STRONG.
 const STRONG_FROM := 5
-## What a lasting curse does, as the 도감 tells it (Info.CONDITIONS).
+## What a curse does, as the 도감 tells it (Info.CONDITIONS).
 const ONLY_THERE := "걸린 층에서만 효과가 있다."
 const TOLD := {
 	REAPER:
@@ -48,6 +48,12 @@ const TOLD := {
 		ONLY_THERE,
 	],
 	SIGHT: [["적의 어두운 곳 시야: +%d칸", MORE_SIGHT], ONLY_THERE],
+	BODY:
+	[
+		["시체: %d초 뒤 되살아남", RISE_ROUNDS],
+		["되살아난 적: %s", Bestiary.KINDS[Raise.WEAK]["name"]],
+		["%d층부터: %s", STRONG_FROM, Bestiary.KINDS[Raise.STRONG]["name"]],
+	],
 }
 
 

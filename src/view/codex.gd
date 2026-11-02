@@ -184,9 +184,10 @@ static func detail(entry: Dictionary) -> Array:
 ## `lines` cut to rows `width` cells wide. A line of parts with a SEP run
 ## between them breaks only between its parts, the rest of it indented under the
 ## first. Any other line breaks after a space, or inside a word wider than the row.
+## Its known words are coloured first, since a name of two words is cut in two here.
 static func flow(lines: Array, width: float) -> Array:
 	var out := []
-	for line: Array in lines:
+	for line: Array in Keywords.lines(lines):
 		if line.any(func(run: Array): return run[0] == SEP):
 			out.append_array(_by_parts(line, width))
 		else:

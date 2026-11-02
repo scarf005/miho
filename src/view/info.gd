@@ -57,6 +57,7 @@ const CONDITIONS := {
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
+	Curse.NAME[Curse.BODY]: Curse.TOLD[Curse.BODY],
 }
 ## How a clever creature looks for Miho under her 은신 (Aim.suspected).
 const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
@@ -66,7 +67,6 @@ const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비
 ## (Jars.chances) and what it does. The hover over a jar does not tell them.
 static func jar_facts() -> Array:
 	var curses: Array = Curse.NAME.values().map(func(n): return Lang.t(n))
-	curses.append(Lang.t("%d초 뒤 되살아나는 시체") % Curse.RISE_ROUNDS)
 	var does := {
 		&"empty": "",
 		&"water":

@@ -12,7 +12,9 @@ extends RefCounted
 ## found whole, or with a particle after it; inside a longer word it is not.
 
 ## Conditions besides Status.NAME that harm their holder, and those that help it.
-const HARM := ["묶임", "기절", "눈멂", Curse.NAME[Curse.REAPER], Curse.NAME[Curse.SIGHT]]
+const HARM := [
+	"묶임", "기절", "눈멂", Curse.NAME[Curse.REAPER], Curse.NAME[Curse.SIGHT], Curse.NAME[Curse.BODY]
+]
 const BOON := [
 	Guise.NAME[Guise.GUISE],
 	Guise.NAME[Guise.TALON],

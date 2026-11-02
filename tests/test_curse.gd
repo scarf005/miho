@@ -474,6 +474,6 @@ func test_every_curse_named_in_a_jars_entry_is_coloured_whole() -> void:
 func test_the_curse_of_the_body_has_an_entry_and_an_example_that_rises() -> void:
 	assert_ne(Keywords.locate("객귀의 저주"), Vector2i(-1, -1))
 	assert_false(Info.plain(Info.jar_facts()).contains("되살아나는 시체"))
-	var risen := func(a): return a.kind == Raise.WEAK
+	var risen := func(a): return Raise.undead(a.kind)
 	assert_true(_example(Curse.BODY).actors.any(risen), "the body gets up")
 	assert_false(_example(Curse.BODY, &"empty").actors.any(risen), "only by the doll")

@@ -2121,8 +2121,17 @@ msgstr ", enemies that see it search this tile"
 msgid ", 무작위 저주: %s"
 msgstr ", a random curse: %s"
 
-msgid "%d초 뒤 되살아나는 시체"
-msgstr "a corpse that rises in %d s"
+msgid "객귀의 저주"
+msgstr "Curse of the Wandering Ghost"
+
+msgid "시체: %d초 뒤 되살아남"
+msgstr "Body: rises in %d s"
+
+msgid "되살아난 적: %s"
+msgstr "Rises as: %s"
+
+msgid "%d층부터: %s"
+msgstr "From storey %d: %s"
 
 msgid "저승의 저주"
 msgstr "Curse of the Underworld"

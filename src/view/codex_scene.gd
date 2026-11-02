@@ -79,6 +79,7 @@ const TABLE := {
 	Guise.NAME[Guise.RAISE]: [RISES, ">s>....", Guise.RECIPE[Guise.RAISE]],
 	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],
 	Curse.NAME[Curse.SIGHT]: ["  @D J", "c..", [Cards.ORB]],
+	Curse.NAME[Curse.BODY]: ["  @D", CASTS, [Cards.ORB]],
 	&"elixir": ["  @ E", ">>"],
 	&"peach": ["  @ P", ">>."],
 	Jars.KIMCHI: ["  @ K", ">>."],
@@ -272,7 +273,7 @@ static func _doll(w: World, key: Variant, p: Vector2i) -> void:
 	var curse: StringName = Curse.NAME.find_key(key)
 	if curse == Curse.REAPER:
 		w.round_no = World.REAPER_OMEN
-	else:
+	elif curse == Curse.SIGHT:
 		for at in LANTERNS:
 			w.set_tile(CORNER + at, World.LANTERN_OUT)
 	while Curse.pick(w.clone()) != curse:
