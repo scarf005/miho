@@ -17,6 +17,8 @@ const TABS := ["적", "주문", "조합", "아이템", "지형지물", "상태�
 const SIDE_X := 13.0
 const ME := Vector2i(4, 8)
 const AT := Vector2i(5, 8)
+## The run between the parts of a row (`flow` breaks only at it).
+const SEP := " · "
 
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
@@ -177,31 +179,75 @@ static func detail(entry: Dictionary) -> Array:
 	return entry.lines.call()
 
 
-## `lines` cut to rows `width` cells wide, breaking after a space, or inside a
-## word wider than the row.
+## `lines` cut to rows `width` cells wide. A line of parts with a SEP run
+## between them breaks only between its parts, the rest of it indented under the
+## first. Any other line breaks after a space, or inside a word wider than the row.
 static func flow(lines: Array, width: float) -> Array:
 	var out := []
 	for line: Array in lines:
-		var row := []
-		var x := 0.0
-		for run: Array in line:
-			for m in _words.search_all(run[0]):
-				var word := m.get_string()
-				if x > 0.0 and x + Term._cells(word) > width:
-					out.append(row)
-					row = []
-					x = 0.0
-					word = word.lstrip(" ")
-				while Term._cells(word) > width:
-					var cut := 1
-					while Term._cells(word.left(cut + 1)) <= width:
-						cut += 1
-					out.append(row + [Keywords.piece(run, word.left(cut))])
-					row = []
-					word = word.substr(cut)
-				row.append(Keywords.piece(run, word))
-				x += Term._cells(word)
+		if line.any(func(run: Array): return run[0] == SEP):
+			out.append_array(_by_parts(line, width))
+		else:
+			out.append_array(_by_words(line, width))
+	return out
+
+
+static func _by_parts(line: Array, width: float) -> Array:
+	var parts := [[]]
+	for run: Array in line:
+		if run[0] == SEP:
+			parts.append([])
+		else:
+			parts.back().append(run)
+	var out := []
+	var row := []
+	var x := 0.0
+	for part: Array in parts:
+		var size := Term._cells("".join(part.map(func(run): return run[0])))
+		var sep := Term._cells(SEP) if x > 0.0 else 0.0
+		if x > 0.0 and x + sep + size > width:
+			out.append(row)
+			row = [["  ", Palette.DIM]]
+			x = Term._cells("  ")
+			sep = 0.0
+		if x + sep + size > width:
+			var words := _by_words(part, width - x)
+			out.append(row + words[0])
+			out.append_array(words.slice(1))
+			row = []
+			x = 0.0
+			continue
+		if sep > 0.0:
+			row.append([SEP, Palette.DIM])
+		row.append_array(part)
+		x += sep + size
+	if not row.is_empty():
 		out.append(row)
+	return out
+
+
+static func _by_words(line: Array, width: float) -> Array:
+	var out := []
+	var row := []
+	var x := 0.0
+	for run: Array in line:
+		for m in _words.search_all(run[0]):
+			var word := m.get_string()
+			if x > 0.0 and x + Term._cells(word) > width:
+				out.append(row)
+				row = []
+				x = 0.0
+				word = word.lstrip(" ")
+			while Term._cells(word) > width:
+				var cut := 1
+				while Term._cells(word.left(cut + 1)) <= width:
+					cut += 1
+				out.append(row + [Keywords.piece(run, word.left(cut))])
+				row = []
+				word = word.substr(cut)
+			row.append(Keywords.piece(run, word))
+			x += Term._cells(word)
+	out.append(row)
 	return out
 
 

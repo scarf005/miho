@@ -144,7 +144,7 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 		text[kind] = Info.plain(Info.creature_facts(Codex.foe(kind), []))
 	var melee: Dictionary = Bestiary.info(&"oedari").melee
 	assert_string_contains(
-		text[&"oedari"], "근접: 씨름\n  피해: %d\n  던짐: %d칸" % [melee.damage, melee.throw]
+		text[&"oedari"], "근접: 씨름 · 피해: %d · 던짐: %d칸" % [melee.damage, melee.throw]
 	)
 	assert_string_contains(text[&"bujigaengi"], "등불 켜기")
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")

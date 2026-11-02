@@ -213,7 +213,7 @@ func test_hover_and_codex_tell_the_spells_and_health_of_its_rank() -> void:
 	var text := Info.plain(Info.creature(w, guard))
 	assert_string_contains(text, "물줄기")
 	assert_string_contains(text, "동시 주술: 2개")
-	assert_eq(text.count("모으는 중."), 2)
+	assert_eq(text.count("모으는 중"), 2)
 	var shallow := _world(1)
 	var low := Info.plain(Info.creature(shallow, _hunter(shallow, &"haetae", ME + E * 3)))
 	assert_false(low.contains("물줄기"))
@@ -242,6 +242,5 @@ func test_a_creature_lists_a_spell_name_once_with_its_differing_values_on_one_li
 	var lines := Info._casts(foe).map(func(l): return "".join(l.map(func(r): return r[0])))
 	for title: String in titles:
 		assert_eq(lines.filter(func(l): return l.begins_with("주술: " + title)).size(), 1, title)
-	assert_eq(
-		lines.filter(func(l): return l.strip_edges().begins_with("모양: ")).size(), 1, str(lines)
-	)
+	var quake: String = lines.filter(func(l): return l.begins_with("주술: 지진"))[0]
+	assert_true(quake.contains(" · 범위: ") and quake.contains(", "), quake)

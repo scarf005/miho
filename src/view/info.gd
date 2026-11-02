@@ -303,30 +303,23 @@ static func _name_of(w: World, b: Actor) -> String:
 	return Lang.t(b.info().name if b != null and Hat.shown(w, b) else "무언가")
 
 
-## What it strikes and casts with, what it eats and what it leaves.
+## What it is like, what it strikes with, what it eats and what it leaves, then
+## the spells it casts: the list that grows longest comes last (DCSS
+## `_monster_stat_description`). Its attack and each spell are one row.
 static func _arms(a: Actor, held: Array) -> Array:
 	var spec := a.info()
 	var lines := []
-	var elements := Bestiary.elements(a.kind)
-	if spec.has("melee"):
-		lines.append([[Lang.t("근접: %s") % Lang.t(spec.melee.name), Palette.TEXT]])
-		lines.append(_amount("  피해: ", spec.melee.damage))
-		var throw: int = spec.melee.get("throw", 0)
-		if throw > 0:
-			lines.append([[Lang.t("  던짐: %d칸") % throw, Palette.TEXT]])
-		var root: int = spec.melee.get("root", 0)
-		if root > 0:
-			lines.append([[Lang.t("  묶임: %d초") % root, Palette.TEXT]])
-	lines.append_array(_casts(a))
-	var traits := _traits(a, elements)
+	var traits := _traits(a, Bestiary.elements(a.kind))
 	var tags := traits.filter(func(t): return not t.contains(": "))
-	lines.append([[" · ".join(tags), Palette.DIM]])
+	lines.append(_row(tags.map(func(t): return [[t, Palette.DIM]])))
 	for t: String in traits.filter(func(t): return t.contains(": ")):
 		lines.append([[t, Palette.DIM]])
 	if not spec.get("shout", {}).is_empty():
 		lines.append([[Lang.t("말할 수 있다."), Palette.DIM]])
 	if spec.get("hat", false):
 		lines.append([[Lang.t("은신."), Palette.DIM]])
+	if spec.has("melee"):
+		lines.append(_melee(spec.melee))
 	var eats: StringName = spec.get("eats", &"")
 	if eats != &"":
 		lines.append(
@@ -345,7 +338,31 @@ static func _arms(a: Actor, held: Array) -> Array:
 				[Lang.t("%s 부적") % Lang.t(Cards.NAME[drop]), Palette.CARD[drop]]
 			]
 		)
+	lines.append_array(_casts(a))
 	return lines
+
+
+## Parts (each a list of runs) on one row, a " · " between them.
+static func _row(parts: Array) -> Array:
+	var out := []
+	for part: Array in parts:
+		if not out.is_empty():
+			out.append([Codex.SEP, Palette.DIM])
+		out.append_array(part)
+	return out
+
+
+## Its attack as one row: how it strikes, then the harm, the throw and the roots
+## it has (DCSS `_monster_attacks_description`).
+static func _melee(melee: Dictionary) -> Array:
+	var parts := [[[Lang.t("근접: %s") % Lang.t(melee.name), Palette.TEXT]]]
+	if melee.damage > 0:
+		parts.append(SpellInfo._line("피해", str(melee.damage), Palette.HURT))
+	if melee.get("throw", 0) > 0:
+		parts.append(SpellInfo._line("던짐", Lang.t("%d칸") % melee.throw))
+	if melee.get("root", 0) > 0:
+		parts.append(SpellInfo._line("묶임", Lang.t("%d초") % melee.root))
+	return _row(parts)
 
 
 ## Miho herself: tails, claws, conditions and how visible she is. Her footsteps
@@ -470,9 +487,11 @@ static func _status(a: Actor) -> Array:
 	return [line] + SpellInfo.status_does(key).map(func(d): return [["  " + d, Palette.TEXT]])
 
 
-## Each spell it casts at its rank, with its cooldown, harm and noise, and how
-## many it casts at once from Bestiary.DOUBLES. One with mana shows its mana and
-## each spell's price on a line of its own.
+## Each spell it casts at its rank as one row: its name, its cooldown, the harm
+## and reach for this caster (SpellInfo.cast) and whether it is charging it (DCSS
+## `_describe_book`). How many it casts at once is from Bestiary.DOUBLES. One with
+## mana shows its mana first and each spell's price in place of the rest: its
+## thirty spells would not fit the hover otherwise.
 static func _casts(a: Actor) -> Array:
 	var out := []
 	var has_mana := Bestiary.mana(a.kind) > 0
@@ -483,23 +502,20 @@ static func _casts(a: Actor) -> Array:
 		out.append([[Lang.t("동시 주술: %d개") % Aim.CASTS, Palette.TEXT]])
 	for group: Array in _by_title(a):
 		var spell: Spell = group[0]
-		var line: Array = [
-			[Lang.t("주술: "), Palette.TEXT], [spell.shown(), Palette.card(spell.slots.back())]
+		var parts: Array = [
+			[[Lang.t("주술: "), Palette.TEXT], [spell.shown(), Palette.card(spell.slots.back())]]
 		]
 		if has_mana:
-			var costs := group.map(func(s): return str(s.cost()))
-			line.append([Lang.t(" · 마력: %s") % _joined(costs), Palette.DIM])
-		out.append(line)
-		if has_mana:
-			continue
-		out.append([[Lang.t("  간격: %d초") % a.info().cd, Palette.DIM]])
-		var keys := group.map(func(s): return s.key())
-		if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
-			out.append([[Lang.t("  모으는 중."), Palette.HURT]])
-		elif a.cooldown > 0:
-			out.append([[Lang.t("  다음: %d초 뒤") % a.cooldown, Palette.DIM]])
-		for detail in _merged(group):
-			out.append([["  " + detail, Palette.DIM]])
+			parts.append(SpellInfo._line("마력", _joined(group.map(func(s): return str(s.cost())))))
+		else:
+			parts.append(SpellInfo._line("간격", Lang.t("%d초") % a.info().cd))
+			parts.append_array(_effects(group))
+			var keys := group.map(func(s): return s.key())
+			if a.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
+				parts.append([[Lang.t("모으는 중"), Palette.HURT]])
+			elif a.cooldown > 0:
+				parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.cooldown))
+		out.append(_row(parts))
 	return out
 
 
@@ -514,22 +530,16 @@ static func _by_title(a: Actor) -> Array:
 	return groups.values()
 
 
-## The detail lines of spells of one name: a label once, its differing values
-## joined in order; a line with no label once.
-static func _merged(group: Array) -> Array[String]:
+## The harm and reach of the spells of one name: a label once, its differing
+## values joined in order.
+static func _effects(group: Array) -> Array:
 	var values := {}
 	for spell: Spell in group:
-		for detail in _spell_details(spell):
-			var cut := detail.find(": ")
-			var label: String = detail.substr(0, cut) if cut >= 0 else detail
-			if not values.has(label):
-				values[label] = []
-			if cut >= 0:
-				values[label].append(detail.substr(cut + 2))
-	var out: Array[String] = []
-	for label: String in values:
-		out.append("%s: %s" % [label, _joined(values[label])] if values[label] else label)
-	return out
+		for e: Array in SpellInfo.cast(spell):
+			values.get_or_add(e[0], [e[2], []])[1].append(e[1])
+	return values.keys().map(
+		func(label): return SpellInfo._line(label, _joined(values[label][1]), values[label][0])
+	)
 
 
 static func _joined(values: Array) -> String:
@@ -538,45 +548,6 @@ static func _joined(values: Array) -> String:
 		if not v in unique:
 			unique.append(v)
 	return ", ".join(unique)
-
-
-## The elements of a spell its title does not tell (SpellInfo.elements), harm,
-## a homing orb's turn, the burst of a fire orb and noise of a spell, one short
-## line each; a spray's
-## shape and effect (SpellInfo._spray) and a leap's (SpellInfo.leap) in place of the harm and burst.
-static func _spell_details(s: Spell) -> Array[String]:
-	if s.shape in [Spell.SPRAY, Spell.LEAP]:
-		var lines: Array[String] = []
-		var facts := SpellInfo.leap(s)
-		if s.shape == Spell.SPRAY:
-			facts = SpellInfo._spray(s) + SpellInfo._lines(SpellInfo._sounds(s))
-		for line: Array in facts:
-			lines.append("".join(line.map(func(run): return run[0])))
-		return lines
-	var near := s.damage(0)
-	var far := s.damage(Spell.MOMENTUM)
-	var out: Array[String] = [Lang.t("피해: %d") % near]
-	if far > near:
-		out.append(Lang.t(SpellInfo.FAR) % Spell.MOMENTUM + ": %d" % far)
-	if s.pierces():
-		out.append("%s: %s" % SpellInfo.PIERCE.map(Lang.t))
-	if s.homing():
-		out.append(Lang.t("회전: 칸당 %s") % Lang.t(SpellInfo._turn(s.turn())))
-	if SpellInfo.elements(s) != "":
-		out.push_front(Lang.t("원소: %s") % SpellInfo.elements(s))
-	if s.accel() > 0:
-		out.append(Lang.t("%s: 초당 %d칸") % [Lang.t(SpellInfo.ACCEL), s.accel()])
-	if s.edged():
-		for part: Array in SpellInfo.blast(s):
-			out.append("%s: %s" % part.map(Lang.t))
-	elif s.orb and s.has(Cards.FIRE):
-		out.append(Lang.t("폭발 피해: %d") % (World.FIRE_DAMAGE + s.extra(Cards.FIRE)))
-	for c in s.compounds():
-		for part: Array in SpellInfo.compound(c):
-			out.append("%s: %s" % part.map(Lang.t))
-	for part: Array in SpellInfo._sounds(s):
-		out.append("%s: %s" % part.map(Lang.t))
-	return out
 
 
 static func _traits(a: Actor, elements: Array) -> Array:

@@ -244,6 +244,28 @@ static func ward(s: Spell) -> Array:
 	]
 
 
+## What a creature's spell asks the player to dodge, as [label, value, color]:
+## the element a name does not tell, the harm of a hit when it has any, how far
+## a homing orb turns, and how far a spray reaches. Everything else of it is in
+## its own 도감 entry.
+static func cast(s: Spell) -> Array:
+	var gun := s.shape == Spell.SPRAY and s.level() > 0 and s.slots[0] == Cards.METAL
+	var harm := (
+		Spray.GUN_HARM if gun else (0 if s.shape in [Spell.SPRAY, Spell.LEAP] else s.damage(0))
+	)
+	var out := []
+	if elements(s) != "":
+		out.append(["원소", elements(s), Palette.TEXT])
+	if harm > 0:
+		out.append(["피해", str(harm), Palette.HURT])
+	if s.homing():
+		out.append(["회전", Lang.t("칸당 %s") % Lang.t(_turn(s.turn())), Palette.TEXT])
+	if s.shape == Spell.SPRAY and Spray.reach(s) > 0:
+		var unit := "%d걸음" if Spray.form(s) == Spray.ROOTS else "%d칸"
+		out.append(["범위", Lang.t(unit) % Spray.reach(s), Palette.TEXT])
+	return out
+
+
 ## Shape and effect of a spray, with every number, a short line each.
 static func _spray(s: Spell) -> Array:
 	var level := s.level()

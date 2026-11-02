@@ -729,11 +729,8 @@ msgstr "Something"
 msgid "근접: %s"
 msgstr "Melee: %s"
 
-msgid "  피해: "
-msgstr "  Damage: "
-
-msgid "  던짐: %d칸"
-msgstr "  Throw: %d tiles"
+msgid "던짐"
+msgstr "Throw"
 
 msgid "말할 수 있다."
 msgstr "Can speak."
@@ -807,23 +804,20 @@ msgstr "Mana: %d/%d"
 msgid "주술: "
 msgstr "Casting: "
 
-msgid "  간격: %d초"
-msgstr "  Interval: %d s"
+msgid "간격"
+msgstr "Interval"
 
-msgid "  모으는 중."
-msgstr "  Charging."
+msgid "모으는 중"
+msgstr "Charging"
 
-msgid "  다음: %d초 뒤"
-msgstr "  Next: in %d s"
+msgid "다음"
+msgstr "Next"
 
-msgid "피해: %d"
-msgstr "Damage: %d"
+msgid "%d초 뒤"
+msgstr "in %d s"
 
-msgid "원소: %s"
-msgstr "Element: %s"
-
-msgid "폭발 피해: %d"
-msgstr "Blast damage: %d"
+msgid "마력"
+msgstr "Mana"
 
 msgid "순찰"
 msgstr "Patrols"
@@ -1993,14 +1987,8 @@ msgctxt "word"
 msgid "불"
 msgstr "fire"
 
-msgid "  묶임: %d초"
-msgstr "  Rooted: %d s"
-
 msgid "  최대 양: %d"
 msgstr "  Max amount: %d"
-
-msgid " · 마력: %s"
-msgstr " · Mana: %s"
 
 msgid " 부적"
 msgstr " talisman"
@@ -2052,9 +2040,6 @@ msgstr "%s, creatures"
 
 msgid "%s: 맨 앞, 또는 %s"
 msgstr "%s: at the front, or %s"
-
-msgid "%s: 초당 %d칸"
-msgstr "%s: %d tiles/s"
 
 msgid "%s마다: +%d초"
 msgstr "Per %s: +%d s"
@@ -2889,9 +2874,6 @@ msgstr "Regen: every %d s, %d"
 
 msgid "회전"
 msgstr "Turn"
-
-msgid "회전: 칸당 %s"
-msgstr "Turn: %s per tile"
 
 msgid "횟수: 적마다 한 번"
 msgstr "Times: once per enemy"

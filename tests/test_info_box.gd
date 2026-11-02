@@ -109,11 +109,20 @@ func test_the_hover_box_loses_no_line_and_keeps_them_in_order() -> void:
 				var said := ""
 				for line: Array in hovers[name]:
 					said += "".join(line.map(func(run): return run[0])) + "\n"
+				# A row broken between its parts leaves its " · " out.
 				assert_eq(
-					drawn.replace(" ", "").replace("\n", ""),
-					said.replace(" ", "").replace("\n", ""),
+					drawn.replace(" ", "").replace("·", "").replace("\n", ""),
+					said.replace(" ", "").replace("·", "").replace("\n", ""),
 					"%s %s %s" % [name, view, zoom]
 				)
+
+
+func test_a_row_breaks_between_its_parts_and_indents_the_rest() -> void:
+	var parts := ["가나다 라", "마바사", "아자차"]
+	var row := Info._row(parts.map(func(p: String): return [[p, Color.WHITE]]))
+	var room := 2.0 * Term._cells(parts[0]) + Term._cells(Codex.SEP) + 0.1
+	var rows := Codex.flow([row], room).map(func(r): return Info.plain([r]))
+	assert_eq(rows, ["가나다 라 · 마바사", "  아자차"])
 
 
 func test_the_hover_box_sits_on_the_far_side_of_the_map_from_the_cursor() -> void:

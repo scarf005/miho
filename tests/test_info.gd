@@ -148,10 +148,10 @@ func test_a_creature_tells_what_it_strikes_with() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
 	var told := {
-		&"dokkaebi": "근접: 방망이\n  피해: 1",
-		&"bulgae": "근접: 이빨\n  피해: 1",
-		&"bulgasari": "근접: 이빨\n  피해: 1",
-		&"saja": "근접: 오랏줄\n  피해: 1",
+		&"dokkaebi": "근접: 방망이 · 피해: 1",
+		&"bulgae": "근접: 이빨 · 피해: 1",
+		&"bulgasari": "근접: 이빨 · 피해: 1",
+		&"saja": "근접: 오랏줄 · 피해: 1",
 	}
 	for kind: StringName in told:
 		assert_string_contains(
@@ -316,26 +316,17 @@ func test_a_creature_in_fire_tells_the_harm_unless_it_eats_fire() -> void:
 	assert_false(Info.plain(Info.creature(w, dog)).contains("불타는 칸 위"))
 
 
-func test_a_creature_tells_the_harm_and_noise_of_what_it_casts() -> void:
-	var w := _hall()
-	var at := w.player().pos + Vector2i(1, 0)
-	var orb := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
+func test_a_creature_tells_each_spell_on_one_row_with_its_harm_and_reach() -> void:
 	var cast := Spell.make(Bestiary.casts(&"jangseung", 1)[0])
-	assert_string_contains(
-		orb,
-		(
-			"피해: %d\n  %d칸 이상 날아간 뒤 피해: %d"
-			% [cast.damage(0), Spell.MOMENTUM, cast.damage(Spell.MOMENTUM)]
-		)
-	)
-	var orb_spell := Spell.make([Cards.ORB])
-	var noise := [orb_spell.cast_noise(), orb_spell.burst_noise()]
-	assert_string_contains(orb, "소음: %d\n  충돌 소음: %d" % noise)
-	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
-	var molten: Dictionary = Compounds.HOT[Compounds.MOLTEN]
-	assert_string_contains(boss, "  %s: %d초" % [molten.name, Compounds.HOT_ROUNDS])
-	var water := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
-	assert_string_contains(water, "소음: 없음")
+	var pole := Info.plain(Info.creature_facts(Codex.foe(&"jangseung"), []))
+	var row := "주술: %s · 간격: " % Bestiary.spell(&"jangseung", cast.cards).shown()
+	assert_string_contains(pole, row)
+	assert_string_contains(pole, " · 피해: %d" % cast.damage(0))
+	var jet := Info.plain(Info.creature_facts(Codex.foe(&"haetae", 4), [])).split("\n")
+	var rows := Array(jet).filter(func(l: String): return l.begins_with("주술: 물줄기"))
+	var jet_row: String = rows[0]
+	assert_true(jet_row.contains(" · 범위: "), jet_row)
+	assert_false(jet_row.contains("피해"), "a spell that harms nothing has no harm part")
 
 
 func test_miho_tells_her_claws_and_conditions() -> void:

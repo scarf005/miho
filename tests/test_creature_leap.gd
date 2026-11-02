@@ -151,9 +151,8 @@ func test_hover_and_codex_list_the_leap_with_its_numbers() -> void:
 	var text := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi", DEEP), []))
 	var leap := Bestiary.spell(&"dokkaebi", Bestiary.LEAP)
 	assert_string_contains(text, "주술: " + leap.title())
-	assert_string_contains(text, "착지 소음: %d" % Leap.LOUD)
 	var line := text.substr(text.find("주술: " + leap.title()))
-	assert_false(line.split("\n")[1].contains("피해"), "a leap hurts no one")
+	assert_false(line.split("\n")[0].contains("피해"), "a leap hurts no one")
 	var shallow := Info.plain(Info.creature_facts(Codex.foe(&"dokkaebi", 2), []))
 	assert_false(shallow.contains(leap.title()))
 
@@ -163,7 +162,7 @@ func test_a_charging_dokkaebi_shows_the_leap_it_gathers() -> void:
 	var a := _leaper(w, ME + E * 7)
 	w.act(WAIT)
 	var text := Info.plain(Info.creature(w, a))
-	assert_string_contains(text, "모으는 중.")
+	assert_string_contains(text, "모으는 중")
 
 
 ## A dokkaebi that charged the leap at Miho in the round before.

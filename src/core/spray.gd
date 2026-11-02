@@ -307,6 +307,32 @@ static func form(spell: Spell) -> StringName:
 	return SHAPE[spell.slots[0]][0]
 
 
+## How far ahead of the caster `cover` reaches for `spell`: tiles, steps for
+## roots; 0 for a spray that covers all the caster sees.
+static func reach(spell: Spell) -> int:
+	var level := spell.level()
+	match spell.slots[0] if level > 0 else &"":
+		Cards.FIRE:
+			return FAN[level - 1]
+		Cards.WATER:
+			return JET[level - 1]
+		Cards.METAL:
+			return shotgun(level) if level >= SHOTGUN_LEVEL else PISTOL
+		Cards.EARTH:
+			return QUAKE[level - 1]
+		Cards.WOOD:
+			return ROOT_REACH[level - 1]
+	var shape: Array = SHAPE[spell.slots[0]]
+	match shape[0]:
+		SIGHT:
+			return 0
+		ROOTS:
+			return ROOT_REACH[ROOTS_LEVEL - 1]
+		BURST, BREACH, ACROSS:
+			return shape[1]
+	return shape[1] + spell.grown(spell.slots[0])
+
+
 ## Whether `cover` can hold a tile of kind `t` for `spell`.
 static func holds(spell: Spell, t: int) -> bool:
 	var walk: bool = Tiles.walk[t] == 1
