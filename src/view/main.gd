@@ -694,6 +694,7 @@ func _act(action: Dictionary) -> Array:
 	term.marks = {}
 	term.lines = []
 	term.info = []
+	term.example = {}
 	term.cursor = Vector2i(-1, -1)
 	var before := world.clone()
 	var depth := world.depth
@@ -889,6 +890,8 @@ func _open(kind: StringName) -> void:
 	menu.buffs = Guise.worn(world, world.player())
 	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
+	term.info = []
+	term.example = {}
 	term.panel = menu.panel()
 
 
@@ -953,6 +956,7 @@ func _quit() -> void:
 func _close() -> void:
 	overlay = &""
 	term.panel = {}
+	_refresh()
 	if touch.enabled:
 		_fit()
 

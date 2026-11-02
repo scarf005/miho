@@ -105,7 +105,7 @@ static func _inspect(m: Node) -> void:
 	term.subject = ""
 	term.cursor = Vector2i(-1, -1)
 	var cards := []
-	if m.state == &"play" and term.hint.is_empty():
+	if m.state == &"play" and m.overlay == &"" and term.hint.is_empty():
 		cards = _tell(m)
 	term.example = SpellScene.of(cards) if not cards.is_empty() else {}
 
