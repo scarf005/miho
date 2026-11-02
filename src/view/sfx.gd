@@ -398,7 +398,9 @@ static func sound_of(e: Dictionary) -> StringName:
 	match e.t:
 		&"move":
 			return WORDS.get(e.word, &"step")
-		&"leap", &"swap":
+		&"leap":
+			return &"hiss"
+		&"swap":
 			return &"foxfire"
 		&"crumble":
 			return &"fall"
