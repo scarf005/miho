@@ -45,13 +45,15 @@ static func cast(w: World, caster: Actor, spell: Spell, _dir: Vector2i) -> bool:
 
 static func _beacon(w: World, caster: Actor) -> void:
 	var spell := Spell.make(HOMING)
-	w.noise(
-		caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id
+	Hearing.noise(
+		w, caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id
 	)
 	for d in Grid.DIRS:
 		var a := w.actor_at(caster.pos + d)
 		if w.open_air(caster.pos + d) and (a == null or a.faction != caster.faction):
-			w._step(w._spawn(caster, spell, d, Homing.targets(w, caster, spell, d)[0]))
+			Flight.step(
+				w, Flight.spawn(w, caster, spell, d, Homing.targets(w, caster, spell, d)[0])
+			)
 
 
 static func _furnace(w: World, caster: Actor) -> void:
@@ -78,11 +80,11 @@ static func _furnace(w: World, caster: Actor) -> void:
 static func turn(w: World, a: Actor) -> bool:
 	if a.kind != FURNACE:
 		return false
-	var foe := w.actor(a.rival) if a.fighting() else null
-	if foe != null and foe.alive() and Hat.sees(w, a, foe) and a.acted % FIRE_ROUNDS == 0:
+	var foe := w.actor(a.ties.rival) if a.fighting() else null
+	if foe != null and foe.alive() and Hat.sees(w, a, foe) and a.brain.acted % FIRE_ROUNDS == 0:
 		var dir := Grid.nearest_dir(foe.pos - a.pos)
 		if not _catches_own(w, a, dir):
-			w.cast(a, Spell.make(ORB), dir)
+			Cast.cast(w, a, Spell.make(ORB), dir)
 	return true
 
 

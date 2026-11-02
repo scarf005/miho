@@ -32,7 +32,7 @@ func _world() -> World:
 	me.hp = 3
 	me.max_hp = 3
 	me.pos = ME
-	me.prey = &"dokkaebi"
+	me.buffs.prey = &"dokkaebi"
 	w.actors.append(me)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
@@ -121,7 +121,7 @@ func test_no_buff_ends_by_time() -> void:
 func test_every_buff_but_raise_stays_on_her_up_a_storey_and_down_again() -> void:
 	var w := World.create(5)
 	w.cards.assign(Cards.ALL)
-	w.player().prey = &"dokkaebi"
+	w.player().buffs.prey = &"dokkaebi"
 	_wear_all(w)
 	var down := w.clone()
 	w.act(WAIT)
@@ -145,7 +145,7 @@ func test_the_shadow_stays_on_her_through_a_fall() -> void:
 	w.player().hp = 9
 	Storeys.leave(w)
 	Storeys.enter(w, 2)
-	w.cast(w.player(), Spell.make(Guise.RECIPE[Guise.SHADOW]), Vector2i.ZERO)
+	Cast.cast(w, w.player(), Spell.make(Guise.RECIPE[Guise.SHADOW]), Vector2i.ZERO)
 	Fall._drop(w, w.player(), w.player().pos)
 	assert_eq(w.depth, 1)
 	assert_eq(Guise.shadows(w, w.player())[0].pos, w.player().pos)
@@ -183,7 +183,7 @@ func test_dropping_is_legal_only_for_a_buff_she_wears_and_not_while_stunned() ->
 	_wear(w, Guise.CLOAK)
 	assert_false(w.can(_drop(Guise.TALON)), "another one")
 	assert_true(w.can(_drop(Guise.CLOAK)))
-	w.player().stunned = 2
+	w.player().ailments.stunned = 2
 	assert_false(w.can(_drop(Guise.CLOAK)), "stunned")
 
 
@@ -242,8 +242,8 @@ func test_the_hover_tells_the_talon_harm_by_creature() -> void:
 	var plain := FloorGen.spawn(w, &"imugi", ME + Vector2i(2, 0))
 	var eater := FloorGen.spawn(w, &"bulgasari", ME + Vector2i(3, 0))
 	_wear(w, Guise.TALON)
-	assert_eq(w.claw_harm(w.player(), false, plain), World.CLAW + Guise.TALON_HARM)
-	assert_eq(w.claw_harm(w.player(), false, eater), World.CLAW + Guise.TALON_ABSORBED)
+	assert_eq(Harm.claw_harm(w.player(), false, plain), World.CLAW + Guise.TALON_HARM)
+	assert_eq(Harm.claw_harm(w.player(), false, eater), World.CLAW + Guise.TALON_ABSORBED)
 	var sneak := World.CLAW * World.SNEAK + Guise.TALON_ABSORBED
 	assert_string_contains(Info.plain(Info.creature(w, eater)), "기습 피해: %d" % sneak)
 
@@ -281,7 +281,7 @@ func test_g_with_one_buff_drops_it_and_takes_a_round() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "G")
 	await _settle(m)
-	assert_false(m.world.player().cloak)
+	assert_false(m.world.player().buffs.cloak)
 	assert_eq(m.world.round_no, round_no + 1)
 	assert_eq(m.overlay, &"")
 

@@ -186,7 +186,7 @@ func test_exploring_waits_while_an_awake_creature_is_in_sight() -> void:
 	var w := _world()
 	assert_false(Travel.watched(w))
 	var foe := FloorGen.spawn(w, &"imugi", Vector2i(12, 8))
-	foe.home = foe.pos
+	foe.brain.home = foe.pos
 	assert_true(foe.asleep())
 	assert_false(Travel.watched(w), "one asleep")
 	foe.pos += Vector2i(1, 0)
@@ -236,13 +236,13 @@ func test_a_statue_in_sight_blocks_exploring_only_while_it_hunts() -> void:
 	assert_false(post.asleep(), "a 장승 never sleeps")
 	assert_true(Travel.in_sight(w).has(post.id))
 	assert_false(Travel.watched(w), "it has not noticed her and cannot walk into her way")
-	post.alert = Actor.SEARCH
+	post.brain.alert = Actor.SEARCH
 	assert_false(Travel.watched(w))
-	post.alert = Actor.HUNT
+	post.brain.alert = Actor.HUNT
 	assert_true(Travel.watched(w))
 	var other := FloorGen.spawn(w, &"dokkaebi", Vector2i(13, 8))
-	post.alert = Actor.REST
-	other.home = other.pos + Vector2i(1, 0)
+	post.brain.alert = Actor.REST
+	other.brain.home = other.pos + Vector2i(1, 0)
 	assert_true(Travel.watched(w), "one that walks still counts")
 
 

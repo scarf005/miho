@@ -151,9 +151,9 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 	var w: World = m.world
 	var me: Vector2i = w.player().pos
 	var foe := FloorGen.spawn(w, &"imugi", me + Vector2i(0, -2))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var spell := Bestiary.spell(&"imugi", [Cards.ORB])
-	var shot: Shot = w._spawn(foe, spell, Vector2i(0, 1), 0)
+	var shot: Shot = Flight.spawn(w, foe, spell, Vector2i(0, 1), 0)
 	shot.pos = me + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)
@@ -167,7 +167,7 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 func test_miho_casts_her_own_shot_in_a_hover_box() -> void:
 	var m := _main()
 	var w: World = m.world
-	var shot: Shot = w._spawn(w.player(), Spell.make([Cards.ORB]), Vector2i(0, -1), 0)
+	var shot: Shot = Flight.spawn(w, w.player(), Spell.make([Cards.ORB]), Vector2i(0, -1), 0)
 	shot.pos = w.player().pos + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)

@@ -16,7 +16,7 @@ func _foe_hover(touch := false) -> Node:
 	m.glass.visible = false
 	m.term.banner_lines.clear()
 	var at := _me(m) + Vector2i(1, 0)
-	FloorGen.spawn(m.world, KIND, at).cooldown = 99
+	FloorGen.spawn(m.world, KIND, at).magic.cooldown = 99
 	m.world.sense()
 	m.term.show_world(m.world)
 	m._forecast()
@@ -231,7 +231,7 @@ func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -
 	var m := _foe_hover()
 	var far := Vector2i(1, 1)
 	var hidden := FloorGen.spawn(m.world, &"dokkaebi", far)
-	hidden.cooldown = 99
+	hidden.magic.cooldown = 99
 	m.debugging = true
 	m.hover = hidden.pos
 	m._refresh()

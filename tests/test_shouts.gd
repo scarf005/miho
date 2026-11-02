@@ -29,10 +29,10 @@ func _world() -> World:
 ## A creature searching the tile it stands on, so it is awake and not hunting.
 func _creature(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
-	a.alert = Actor.SEARCH
-	a.target = at
-	a.lost = -99
+	a.magic.cooldown = 99
+	a.brain.alert = Actor.SEARCH
+	a.brain.target = at
+	a.brain.lost = -99
 	return a
 
 
@@ -44,7 +44,7 @@ func test_a_creature_that_notices_miho_shouts_its_word() -> void:
 	var w := _world()
 	var a := _creature(w, &"dokkaebi", ME + Vector2i(1, 0))
 	var events := w.act(WAIT)
-	assert_eq(a.alert, Actor.HUNT)
+	assert_eq(a.brain.alert, Actor.HUNT)
 	var cry: Dictionary = Bestiary.info(&"dokkaebi").shout
 	assert_eq(_shouts(events).map(func(e): return [e.id, e.word]), [[a.id, cry.word]])
 	var noise := events.filter(func(e): return e.t == &"noise" and e.word == cry.word)
@@ -65,30 +65,30 @@ func test_those_in_earshot_search_where_the_shouter_saw_miho() -> void:
 	var near := _creature(w, &"imugi", shouter.pos + Vector2i(loud, 0))
 	var far := _creature(w, &"imugi", shouter.pos + Vector2i(loud + 1, 0))
 	var deaf := _creature(w, &"jangseung", shouter.pos + Vector2i(0, 2))
-	var spot := far.target
+	var spot := far.brain.target
 	w.act(WAIT)
-	assert_eq(near.alert, Actor.SEARCH)
-	assert_eq(near.target, ME, "where the shouter saw Miho")
-	assert_eq(far.target, spot, "out of earshot")
-	assert_eq(deaf.target, deaf.pos, "deaf")
+	assert_eq(near.brain.alert, Actor.SEARCH)
+	assert_eq(near.brain.target, ME, "where the shouter saw Miho")
+	assert_eq(far.brain.target, spot, "out of earshot")
+	assert_eq(deaf.brain.target, deaf.pos, "deaf")
 
 
 func test_a_hunter_keeps_its_own_quarry() -> void:
 	var w := _world()
 	_creature(w, &"bulgae", ME + Vector2i(1, 0))
 	var hunter := _creature(w, &"imugi", ME + Vector2i(4, 0))
-	hunter.alert = Actor.HUNT
-	hunter.target = Vector2i(20, 3)
+	hunter.brain.alert = Actor.HUNT
+	hunter.brain.target = Vector2i(20, 3)
 	w.act(WAIT)
-	assert_eq(hunter.alert, Actor.HUNT)
-	assert_ne(hunter.target, ME)
+	assert_eq(hunter.brain.alert, Actor.HUNT)
+	assert_ne(hunter.brain.target, ME)
 
 
 func test_a_silent_kind_makes_no_sound_when_it_notices() -> void:
 	for kind in Bestiary.KINDS:
 		if kind != &"miho" and not Bestiary.info(kind).has("shout"):
 			var w := _world()
-			w.hunt_from(_creature(w, kind, ME + Vector2i(1, 0)), ME)
+			Mind.hunt_from(w, _creature(w, kind, ME + Vector2i(1, 0)), ME)
 			assert_eq(_shouts(w.events), [], kind)
 			assert_eq(w.events.filter(func(e): return e.t == &"noise"), [], kind)
 
@@ -113,7 +113,7 @@ func test_the_log_tells_a_shout_in_sight_and_one_heard_out_of_it() -> void:
 	var hunter := _creature(far, &"bulgae", Vector2i(12, 8))
 	far.sense()
 	before = far.clone()
-	far.hunt_from(hunter, ME)
+	Mind.hunt_from(far, hunter, ME)
 	var heard := Messages.of(before, far, far.events).map(Messages.plain)
 	assert_has(heard, "멀리서 %s 소리를 들었다" % Bestiary.info(&"bulgae").shout.word)
 

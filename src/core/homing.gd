@@ -32,7 +32,7 @@ extends RefCounted
 ## lone wisp (30°) one step at most every second tile.
 ## With no such neighbour it flies straight on, and so may lose its creature
 ## round a corner it cannot turn. A wisp that has struck sticks to its creature
-## and steers no more, nor does one that hovers (World._step).
+## and steers no more, nor does one that hovers (Flight.step).
 
 ## Turns tried, in steps of Spell.TURN_STEP from the heading.
 const TURNS := [0, -1, 1, -2, 2, -3, 3, 4]
@@ -53,7 +53,7 @@ static func targets(w: World, caster: Actor, spell: Spell, dir := Vector2i.ZERO)
 	var twins := spell.orb and out.size() > 1 and (caster.faction == Actor.FOX or spell.turn() > 0)
 	if spell.turn() == 0 and not twins:
 		return out
-	var rival := caster.rival if caster.fighting() else 0
+	var rival := caster.ties.rival if caster.fighting() else 0
 	var foes := w.actors.filter(
 		func(a):
 			var foe: bool = a.id == rival if rival != 0 else a.faction != caster.faction

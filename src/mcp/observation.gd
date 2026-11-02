@@ -51,16 +51,16 @@ static func text(world: World) -> String:
 		"talismans: " + ", ".join(_cards(k)),
 		"Miho at (%d,%d)" % [me.pos.x, me.pos.y],
 	]
-	if me.guise:
-		out.append("in guise as %s" % Bestiary.info(me.form).name)
-	if me.talon:
+	if me.buffs.guise:
+		out.append("in guise as %s" % Bestiary.info(me.buffs.form).name)
+	if me.buffs.talon:
 		out.append("claws harm %d more" % Guise.TALON_HARM)
-	if me.cloak:
+	if me.buffs.cloak:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
-	if me.flame:
+	if me.buffs.flame:
 		var line := "fire creature: no harm from fire, lightning harms only wet, water harms twice"
 		out.append("%s, fire spells harm %d more" % [line, Guise.FLAME_HARM])
-	if me.raise:
+	if me.buffs.raise:
 		out.append(
 			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
 		)
@@ -164,11 +164,11 @@ static func _ally(k: World, a: Actor) -> String:
 		"%s %s (%d,%d) hp %d/%d" % [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp]
 	)
 	if Bestiary.mana(a.kind) > 0:
-		line += ", tails %d/%d" % [a.mana, Bestiary.mana(a.kind)]
+		line += ", tails %d/%d" % [a.magic.mana, Bestiary.mana(a.kind)]
 	for cast: Array in a.repertoire():
 		line += ", casts " + Spell.make(cast).shown()
 	if a.fighting():
-		var rival := k.actor(a.rival)
+		var rival := k.actor(a.ties.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
 	if not Legal.makes_way(a):
 		line += ", cannot trade places"
@@ -180,7 +180,7 @@ static func _ally(k: World, a: Actor) -> String:
 static func _creature(k: World, a: Actor) -> String:
 	var line := (
 		"%s %s (%d,%d) hp %d/%d, %s"
-		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.alert]]
+		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.brain.alert]]
 	)
 	if Guise.knows(k, a):
 		line += ", sees Miho"
@@ -189,35 +189,35 @@ static func _creature(k: World, a: Actor) -> String:
 			", sees Miho but not through her "
 			+ ("guise" if Guise.fools(a, k.player()) else "cloak")
 		)
-	elif a.alert == Actor.HUNT and not a.info().get("hunts", false):
+	elif a.brain.alert == Actor.HUNT and not a.info().get("hunts", false):
 		line += ", tracking scent"
 	for c in [
-		[a.blind, "blind"],
-		[a.rooted, "rooted"],
-		[a.stunned, "stunned"],
-		[a.wet, "wet"],
-		[a.alight, "alight"],
-		[a.frozen, "frozen"]
+		[a.ailments.blind, "blind"],
+		[a.ailments.rooted, "rooted"],
+		[a.ailments.stunned, "stunned"],
+		[a.ailments.wet, "wet"],
+		[a.ailments.alight, "alight"],
+		[a.ailments.frozen, "frozen"]
 	]:
 		if c[0] > 0:
 			line += ", %s %d" % [c[1], c[0]]
-	if a.wary > 0:
-		line += ", wary %d" % a.wary
+	if a.brain.wary > 0:
+		line += ", wary %d" % a.brain.wary
 	line += ", wits " + WITS[Bestiary.wits(a.kind)]
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
 	if a.fighting():
-		var rival := k.actor(a.rival)
+		var rival := k.actor(a.ties.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
-	if a.leader != 0:
-		var lead := k.actor(a.leader)
+	if a.ties.leader != 0:
+		var lead := k.actor(a.ties.leader)
 		line += ", follows " + (lead.info().name if lead != null else "something unseen")
-	elif k.actors.any(func(b): return b.leader == a.id):
+	elif k.actors.any(func(b): return b.ties.leader == a.id):
 		line += ", leads a band"
 	if a.drumming():
-		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]
-	for plan in a.intent:
+		line += ", running to the drum at (%d,%d)" % [a.brain.drum.x, a.brain.drum.y]
+	for plan in a.magic.intent:
 		line += (
 			", charging %s aimed %s"
 			% [Bestiary.spell(a.kind, plan.cards).title(), NAMES.get(plan.dir, "?")]

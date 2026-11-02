@@ -13,7 +13,7 @@ func _foe_hover(touch := false) -> Node:
 	m.glass.visible = false
 	m.term.banner_lines.clear()
 	var at := _me(m) + Vector2i(3, 0)
-	FloorGen.spawn(m.world, &"jangseung", at).cooldown = 99
+	FloorGen.spawn(m.world, &"jangseung", at).magic.cooldown = 99
 	m.world.sense()
 	m.term.show_world(m.world)
 	m._forecast()

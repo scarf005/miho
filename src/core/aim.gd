@@ -10,7 +10,7 @@ const CASTS := 2
 
 ## The spells `a` charges at `foe`, when it sees it: a plan for each, or none.
 ## Below Bestiary.PICKS it tries only the next of its spells in turn
-## (Actor.casts). From PICKS on it tries them all from that one, passes over
+## (Magic.casts). From PICKS on it tries them all from that one, passes over
 ## those that miss the foe or that the foe stops whole (Bestiary.absorbs; one
 ## it absorbs in part still hurts, half), and takes the first the foe is weak
 ## to and absorbs no part of, else the first; from Bestiary.DOUBLES on also the next after
@@ -91,7 +91,9 @@ static func keeps(a: Actor) -> bool:
 		return false
 	return a.repertoire().any(
 		func(cast):
-			return Spell.price(cast.size()) <= a.mana and Spell.make(cast).shape != Spell.SPRAY
+			return (
+				Spell.price(cast.size()) <= a.magic.mana and Spell.make(cast).shape != Spell.SPRAY
+			)
 	)
 
 
@@ -101,11 +103,11 @@ static func keeps(a: Actor) -> bool:
 ## leaves on open tiles of its own (`_apart`).
 static func _buy(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var first := _dearest(w, a, foe, a.mana, [])
+	var first := _dearest(w, a, foe, a.magic.mana, [])
 	if first.is_empty():
 		return out
 	out.append(first)
-	var left := a.mana - Spell.price(first.cards.size())
+	var left := a.magic.mana - Spell.price(first.cards.size())
 	var taken := _departs(w, a, first)
 	var skip := [first.cards]
 	while true:
@@ -145,7 +147,11 @@ static func _dearest(w: World, a: Actor, foe: Actor, mana: int, skip: Array) -> 
 static func _moot(spell: Spell, foe: Actor) -> bool:
 	if spell.shape != Spell.SPRAY:
 		return false
-	var marks := {Cards.WOOD: foe.rooted, Cards.WATER: foe.wet, Cards.FIRE: foe.alight}
+	var marks := {
+		Cards.WOOD: foe.ailments.rooted,
+		Cards.WATER: foe.ailments.wet,
+		Cards.FIRE: foe.ailments.alight
+	}
 	var held: Array = spell.slots.reduce(func(all, slot): return all + Cards.parts(slot), [])
 	return held.all(func(e): return marks.get(e, 0) > 0)
 
@@ -197,7 +203,7 @@ static func _turn(a: Actor) -> Array:
 		list = list.filter(func(c): return c != Bestiary.KINDLE)
 	if list.is_empty():
 		return []
-	var start := a.casts % list.size()
+	var start := a.magic.casts % list.size()
 	var out := list.slice(start) + list.slice(0, start)
 	return out if a.rank >= Bestiary.PICKS else out.slice(0, 1)
 
@@ -206,7 +212,7 @@ static func _turn(a: Actor) -> Array:
 static func _cheap(a: Actor, list: Array) -> Array:
 	var out := []
 	for n in range(1, Spell.MAX_SLOTS + 1):
-		if Spell.price(n) > a.mana:
+		if Spell.price(n) > a.magic.mana:
 			break
 		out.append_array(list.filter(func(c): return c.size() == n and not _dark(c)))
 	return out
@@ -245,7 +251,7 @@ static func _leaps(plan: Dictionary) -> bool:
 ## tile free of fire, hot ground and plates it keeps off.
 static func _leap(w: World, a: Actor, spell: Spell, foe: Actor) -> Dictionary:
 	var dir := Grid.line_dir(a.pos, foe.pos)
-	if dir == Vector2i.ZERO or a.rooted > 0:
+	if dir == Vector2i.ZERO or a.ailments.rooted > 0:
 		return {}
 	var to := Leap.landing(w, a.pos, dir, spell.leap())
 	var safe := not (w.burning.has(to) or w.hot.has(to) or Traps.bars(w, a, to))
@@ -283,7 +289,7 @@ static func _spray(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 ## turn that is one (`_turn`).
 static func searchlight(w: World, a: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	return out if w.lit(a.target) else _throw(w, a, a.target, _turn(a))
+	return out if w.lit(a.brain.target) else _throw(w, a, a.brain.target, _turn(a))
 
 
 ## A wisp a clever creature (from Bestiary.SHARP) throws at the tile it suspects
@@ -295,11 +301,11 @@ static func suspected(w: World, a: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if (
 		Bestiary.wits(a.kind) < Bestiary.SHARP
-		or not w.player().cloak
+		or not w.player().buffs.cloak
 		or w.shots.any(func(s): return s.caster == a.id and not s.gone)
 	):
 		return out
-	var spot := a.target
+	var spot := a.brain.target
 	if a.info().get("tracks", false) and Scent.next(w, a) != a.pos:
 		spot = Scent.ahead(w, a, Spell.RANGE)
 	var list := _cheap(a, a.repertoire()) if Bestiary.mana(a.kind) > 0 else a.repertoire()

@@ -114,7 +114,7 @@ static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 	var more := Guise.flame_harm(w, s.caster, s.spell) if n > 0 else 0
 	var m := dealt(a, s.spell, n + more)
 	if m > 0:
-		w.hurt(a, m, Bestiary.weak(a.nature_kind(), s.spell))
+		Harm.hurt(w, a, m, Bestiary.weak(a.nature_kind(), s.spell))
 
 
 ## How many times as hard 전기 (Spell.electric) hits `a`: WEAK on a wet creature
@@ -122,7 +122,7 @@ static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 ## GROUNDS, else once. It is never more.
 static func charge(a: Actor) -> int:
 	var mine := Bestiary.elements(a.nature_kind())
-	if a.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
+	if a.ailments.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
 		return WEAK
 	return 0 if GROUNDS.any(func(e): return mine.has(e)) else 1
 
@@ -131,19 +131,19 @@ static func charge(a: Actor) -> int:
 static func shock(w: World, a: Actor, n: int, rounds: int) -> void:
 	var k := charge(a)
 	if k > 0:
-		w.hurt(a, n * k, k > 1)
+		Harm.hurt(w, a, n * k, k > 1)
 		if a.alive():
 			stun(w, a, rounds)
 
 
 static func root(w: World, a: Actor, rounds: int) -> void:
-	a.rooted = maxi(a.rooted, rounds)
+	a.ailments.rooted = maxi(a.ailments.rooted, rounds)
 	w.emit({t = &"root", id = a.id, rounds = rounds})
 
 
 static func stun(w: World, a: Actor, rounds: int) -> void:
-	a.stunned = maxi(a.stunned, rounds)
-	a.intent.clear()
+	a.ailments.stunned = maxi(a.ailments.stunned, rounds)
+	a.magic.intent.clear()
 	w.emit({t = &"stun", id = a.id, rounds = rounds})
 
 
@@ -169,7 +169,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 	for d in Grid.DIRS:
 		var p := at + d
 		if fire:
-			w.ignite(p)
+			Terrain.ignite(w, p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
 			if Bestiary.absorbs(b.nature_kind(), spell):
@@ -285,7 +285,7 @@ static func grow(w: World, tiles: Array[Vector2i]) -> void:
 ## loud as one that struck.
 static func fade(w: World, s: Shot) -> void:
 	if s.spell.mortar() or s.spell.blasts():
-		w.noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
+		Hearing.noise(w, s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.mortar():
 		Compounds.land(w, s, s.pos)
 	elif s.spell.blasts():
@@ -293,7 +293,7 @@ static func fade(w: World, s: Shot) -> void:
 
 
 ## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
-## lighting it as it moves (World.move). It stays a shot, so it hovers where
+## lighting it as it moves (Walk.move). It stays a shot, so it hovers where
 ## `a` fell when `a` dies.
 static func stick(w: World, s: Shot, a: Actor) -> void:
 	s.gone = false
@@ -329,11 +329,11 @@ static func land(w: World, s: Shot) -> void:
 		return
 	s.life = Spell.WISP_LIFE
 	w.emit({t = &"land", shot = s.id, at = s.pos})
-	w._effects(s, s.pos)
+	Flight.effects(w, s, s.pos)
 
 
 ## The first flight of `s`: one tile, or all of it for a bolt.
 static func loose(w: World, s: Shot) -> void:
-	w._step(s)
+	Flight.step(w, s)
 	while bolt(s.spell) and not s.gone:
-		w._step(s)
+		Flight.step(w, s)

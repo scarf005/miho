@@ -5,8 +5,8 @@ extends RefCounted
 ## projectile cannot fly over or a closed door, such as a wall or a lantern.
 ## She lands on the farthest tile she clears that she can stand on
 ## (World.vacant), never on the sky: with none the leap cannot be cast, nor
-## while she is rooted. The landing is a step onto that tile (World.move and
-## World.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
+## while she is rooted. The landing is a step onto that tile (Walk.move and
+## Walk.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
 ## scent there alone, so a hunter on her trail loses it. A wall right past the landing
 ## takes one hit for each tile of the leap left, as a pushed creature's does (Fall.slam),
 ## and the leaper none. The rest of the spell
@@ -17,7 +17,7 @@ extends RefCounted
 ## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
 ## where it is, unless she cannot stand there (the sky). Each trade is a step
-## (World.move) and heard SWAP_LOUD tiles at both tiles. The 도약 is spent on the
+## (Walk.move) and heard SWAP_LOUD tiles at both tiles. The 도약 is spent on the
 ## first stop or strike either way: the projectile goes on as the spell
 ## without it.
 
@@ -55,7 +55,7 @@ static func open(w: World, a: Actor, spell: Spell, dir: Vector2i) -> bool:
 		return Bunsin.open(w, a.pos + dir)
 	if spell.shape != Spell.LEAP:
 		return Terrain.throwable(w, spell, a.pos + dir, dir)
-	return a.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
+	return a.ailments.rooted <= 0 and landing(w, a.pos, dir, spell.leap()) != a.pos
 
 
 ## The one tile `spell` along `d` from `from` ends on, when it names one: the landing
@@ -66,26 +66,26 @@ static func aimed(w: World, from: Vector2i, d: Vector2i, spell: Spell) -> Vector
 
 static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	var to := landing(w, a.pos, dir, spell.leap())
-	if a.rooted > 0 or to == a.pos:
+	if a.ailments.rooted > 0 or to == a.pos:
 		return
 	var depth := w.depth
 	var left := spell.leap() - Grid.cheb(a.pos, to)
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
 	for i in Grid.cheb(a.pos, to) - 1:
 		Gas.add(w, a.pos + dir * i, Gas.STEAM, Compounds.STEAM)
-	w.move(a, to)
+	Walk.move(w, a, to)
 	if w.depth != depth or not a.alive():
 		return
-	w.noise(to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
+	Hearing.noise(w, to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
 	if left > 0 and Fall.WALLS.has(w.tile(to + dir)):
 		Fall.slam(w, to + dir, left, a.id, a.faction == Actor.FOX)
 	if a.is_miho():
 		Scent.lay(w, to)
-		if w.arrive(a):
+		if Walk.arrive(w, a):
 			return
 	var rest := spell.rest()
 	if rest != null:
-		w.cast(a, rest, dir)
+		Cast.cast(w, a, rest, dir)
 
 
 ## Projectile `s` has ended at its tile, where `a` stands (or null): its caster
@@ -103,14 +103,14 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 	var depth := w.depth
 	w.emit({t = &"swap", id = me.id, from = from, to = to, other = a.id if trade else 0})
 	if trade:
-		w.move(a, from)
-	w.move(me, to)
+		Walk.move(w, a, from)
+	Walk.move(w, me, to)
 	if trade:
 		Fall.traded(w, a, me, depth)
 	if w.depth != depth or not me.alive():
 		return
 	for p in [from, to]:
-		w.noise(p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
+		Hearing.noise(w, p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
 	if me.is_miho():
 		Scent.lay(w, to)
-		w.arrive(me)
+		Walk.arrive(w, me)

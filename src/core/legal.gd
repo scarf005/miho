@@ -24,26 +24,30 @@ static func action(w: World, what: Dictionary) -> bool:
 static func move(w: World, dir: Vector2i) -> bool:
 	var me := w.player()
 	var to := me.pos + dir
-	if me.stunned > 0 or Grid.cheb(to, me.pos) != 1:
+	if me.ailments.stunned > 0 or Grid.cheb(to, me.pos) != 1:
 		return false
 	var foe := w.actor_at(to)
 	if foe != null and foe.faction != me.faction:
 		return true
 	if foe != null and not makes_way(foe):
 		return false
-	return Terrain.knockable(w.tile(to)) or (me.rooted <= 0 and w.open_floor(to))
+	return Terrain.knockable(w.tile(to)) or (me.ailments.rooted <= 0 and w.open_floor(to))
 
 
 ## An ally she can trade places with: as DCSS swap_check, one that is not held fast.
 static func makes_way(a: Actor) -> bool:
-	return a.rooted <= 0 and a.stunned <= 0 and a.info().get("move", &"static") != &"static"
+	return (
+		a.ailments.rooted <= 0
+		and a.ailments.stunned <= 0
+		and a.info().get("move", &"static") != &"static"
+	)
 
 
 ## An open door next to Miho with nothing in it.
 static func close(w: World, dir: Vector2i) -> bool:
 	var to := w.player().pos + dir
 	return (
-		w.player().stunned <= 0
+		w.player().ailments.stunned <= 0
 		and Grid.DIRS.has(dir)
 		and w.tile(to) == World.DOOR_OPEN
 		and not w.burning.has(to)
@@ -57,7 +61,7 @@ static func close(w: World, dir: Vector2i) -> bool:
 ## cost no more than the unspent tails.
 static func cast(w: World, spells: Array) -> bool:
 	var me := w.player()
-	if me.stunned > 0 or spells.is_empty():
+	if me.ailments.stunned > 0 or spells.is_empty():
 		return false
 	var cost := 0
 	var aims := {}
@@ -79,4 +83,4 @@ static func cast(w: World, spells: Array) -> bool:
 
 ## A buff on Miho that she drops (Guise.dispel).
 static func dispel(w: World, kind: Variant) -> bool:
-	return w.player().stunned <= 0 and Guise.worn(w, w.player()).has(kind)
+	return w.player().ailments.stunned <= 0 and Guise.worn(w, w.player()).has(kind)

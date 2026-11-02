@@ -293,10 +293,10 @@ func test_a_dark_tile_tells_how_far_heaven_sees_in_the_dark() -> void:
 func test_a_creature_tells_its_conditions_with_seconds_left() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.blind = 2
-	foe.rooted = 3
-	foe.stunned = 1
-	foe.wary = 7
+	foe.ailments.blind = 2
+	foe.ailments.rooted = 3
+	foe.ailments.stunned = 1
+	foe.brain.wary = 7
 	var text := Info.plain(Info.creature(w, foe))
 	for part in ["눈멂: 2초", "묶임: 3초", "기절: 1초", "경계: 7초"]:
 		assert_string_contains(text, part)
@@ -332,8 +332,8 @@ func test_a_creature_tells_each_spell_on_one_row_with_its_harm_and_reach() -> vo
 func test_miho_tells_her_claws_and_conditions() -> void:
 	var w := _hall()
 	var me := w.player()
-	me.blind = 2
-	me.rooted = 1
+	me.ailments.blind = 2
+	me.ailments.rooted = 1
 	var text := Info.plain(Info.creature(w, me))
 	assert_string_contains(text, "발톱 피해: %d\n기습 피해: %d" % [World.CLAW, World.CLAW * World.SNEAK])
 	assert_false(text.contains("시야"))
@@ -345,33 +345,33 @@ func test_miho_tells_her_claws_and_conditions() -> void:
 func test_a_searching_creature_tells_how_many_more_looks_before_it_rests() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
-	foe.lost = 4
-	foe.cooldown = 99
-	var left := World.SEARCH_ROUNDS + 1 - foe.lost
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
+	foe.brain.lost = 4
+	foe.magic.cooldown = 99
+	var left := World.SEARCH_ROUNDS + 1 - foe.brain.lost
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: %d번 더" % left)
 	for i in left - 1:
 		Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.SEARCH, "still searching after one look fewer")
+	assert_eq(foe.brain.alert, Actor.SEARCH, "still searching after one look fewer")
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.REST, "rests after the told number of looks")
+	assert_eq(foe.brain.alert, Actor.REST, "rests after the told number of looks")
 
 
 func test_a_wary_searching_creature_tells_it_rests_when_no_longer_wary() -> void:
 	var w := _hall()
 	var foe := FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(3, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
-	foe.lost = World.SEARCH_ROUNDS + 3
-	foe.wary = 2
-	foe.cooldown = 99
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
+	foe.brain.lost = World.SEARCH_ROUNDS + 3
+	foe.brain.wary = 2
+	foe.magic.cooldown = 99
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "수색: 경계가 끝날 때까지")
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.SEARCH, "wary: keeps looking")
-	foe.wary = 0
+	assert_eq(foe.brain.alert, Actor.SEARCH, "wary: keeps looking")
+	foe.brain.wary = 0
 	Mind.search(w, foe)
-	assert_eq(foe.alert, Actor.REST, "rests at the first look once no longer wary")
+	assert_eq(foe.brain.alert, Actor.REST, "rests at the first look once no longer wary")
 
 
 func test_sky_and_deep_water_are_tagged_impassable_and_the_tag_tells_what_crosses_them() -> void:
@@ -406,7 +406,7 @@ func test_the_hover_of_electricity_is_a_tag_and_the_glossary_tells_its_rows() ->
 func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "당신을 추격 중이다")
 	assert_string_contains(text, "당신을 볼 수 있다")
@@ -417,8 +417,8 @@ func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
 func test_a_searcher_bound_for_your_tile_tells_so_and_not_how_many_looks_are_left() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = w.player().pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = w.player().pos
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "당신에게 오는 중")
 	assert_false(text.contains("소음"), "it may be after a spell it saw: %s" % text)
@@ -429,9 +429,9 @@ func test_a_hunter_fighting_a_rival_does_not_also_say_it_hunts_you() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
 	var rival := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(2, 0))
-	foe.alert = Actor.HUNT
-	foe.rival = rival.id
-	foe.grudge = 3
+	foe.brain.alert = Actor.HUNT
+	foe.ties.rival = rival.id
+	foe.ties.grudge = 3
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "싸우는 중")
 	assert_false(text.contains("추격"), text)
@@ -440,8 +440,8 @@ func test_a_hunter_fighting_a_rival_does_not_also_say_it_hunts_you() -> void:
 func test_a_searcher_elsewhere_is_only_searching() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "수색 중")
 	assert_string_contains(text, "수색: ")
@@ -458,8 +458,8 @@ func test_a_tracker_on_your_trail_tells_so() -> void:
 			kind = k
 	assert_ne(kind, &"")
 	var foe := FloorGen.spawn(w, kind, w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
 	w.scent.resize(w.tiles.size())
 	w.round_no = 5
 	var ahead := foe.pos + Vector2i(1, 0)

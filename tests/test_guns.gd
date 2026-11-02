@@ -53,7 +53,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts, `x` east and `y` south of Miho.
 func _post(w: World, x: int, y := 0) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", ME + Vector2i(x, y))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = HEALTH
 	a.max_hp = HEALTH
 	w.sense()
@@ -294,7 +294,7 @@ func test_a_mortar_is_a_gun_that_flashes_and_booms() -> void:
 	var bang: Dictionary = events.filter(func(e): return e.t == &"noise")[0]
 	assert_eq([bang.word, bang.loud], ["쾅", Elements.CANNON_LOUD])
 	var flash := _world()
-	flash.cast(flash.player(), Spell.make([ORB, EARTH, METAL]), E)
+	Cast.cast(flash, flash.player(), Spell.make([ORB, EARTH, METAL]), E)
 	assert_has(flash.flares, ME)
 
 
@@ -373,5 +373,5 @@ func test_five_fires_cover_a_fan_of_radius_six() -> void:
 	var reached := _post(w, 6)
 	var past := _post(w, 7)
 	w.act(_cast(_n(FIRE, 5)))
-	assert_gt(reached.alight, 0)
-	assert_eq(past.alight, 0)
+	assert_gt(reached.ailments.alight, 0)
+	assert_eq(past.ailments.alight, 0)

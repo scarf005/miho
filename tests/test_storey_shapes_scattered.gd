@@ -47,7 +47,7 @@ func test_every_storey_of_bridges_has_planks_and_the_exit_stays_in_reach_once_th
 			assert_false(planks.is_empty(), _label(w))
 			var v := w.clone()
 			for p: Vector2i in planks:
-				v.ignite(p)
+				Terrain.ignite(v, p)
 			for i in World.BURN_ROUNDS:
 				Terrain.burn(v, [])
 			if v.depth != w.depth:

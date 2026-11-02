@@ -53,7 +53,7 @@ func _leap(cards: Array, dir := E) -> Dictionary:
 ## A dokkaebi at its listed health (Bestiary hp), whatever the storey's rank.
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = Bestiary.hp(&"dokkaebi", 1)
 	a.max_hp = a.hp
 	return a
@@ -230,10 +230,10 @@ func test_a_leap_clears_creatures_and_ponds_but_never_lands_on_them() -> void:
 
 func test_a_rooted_or_stunned_miho_cannot_leap() -> void:
 	var w := _world()
-	w.player().rooted = 2
+	w.player().ailments.rooted = 2
 	assert_false(w.can(_leap(LEAP)))
-	w.player().rooted = 0
-	w.player().stunned = 1
+	w.player().ailments.rooted = 0
+	w.player().ailments.stunned = 1
 	assert_false(w.can(_leap(LEAP)))
 
 
@@ -412,7 +412,7 @@ func _until_still(w: World, cards: Array, rounds := 6) -> Array[Dictionary]:
 func test_an_orb_with_leap_trades_places_with_the_creature_it_strikes() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(7, 8))
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	var events := _until_still(w, [Cards.ORB] + LEAP)
 	assert_eq(w.player().pos, Vector2i(7, 8))
 	assert_eq(foe.pos, ME)
@@ -424,7 +424,7 @@ func test_an_orb_with_leap_trades_places_with_the_creature_it_strikes() -> void:
 func test_an_orb_with_leap_that_kills_takes_miho_where_the_creature_stood() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(8, 8))
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	_until_still(w, [Cards.ORB] + LEAP)
 	assert_false(foe.alive(), "a run-up hits for 2")
 	assert_eq(w.player().pos, Vector2i(8, 8))
@@ -457,7 +457,7 @@ func test_a_projectile_that_stops_over_the_sky_takes_miho_nowhere() -> void:
 func test_a_wisp_that_swaps_with_a_creature_rides_it_to_miho_s_old_tile() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(6, 8))
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	_until_still(w, [Cards.FOX] + LEAP)
 	assert_eq(foe.pos, ME, "they traded places")
 	assert_eq(w.shots.map(func(s): return s.pos), [ME], "the wisp sits on the creature it rides")
@@ -466,7 +466,7 @@ func test_a_wisp_that_swaps_with_a_creature_rides_it_to_miho_s_old_tile() -> voi
 func test_the_log_tells_the_swap() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(6, 8))
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	var before := w.clone()
 	var lines := Messages.of(before, w, _until_still(w, [Cards.ORB] + LEAP)).map(Messages.plain)
 	assert_has(lines, "도깨비와 자리를 바꿨다")
@@ -490,7 +490,7 @@ func test_the_info_tells_the_swap_and_its_sound() -> void:
 func test_a_swap_never_puts_miho_on_a_pond() -> void:
 	var w := _world()
 	var foe := _foe(w, Vector2i(6, 8))
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	w.set_tile(foe.pos, World.POND)
 	_until_still(w, [Cards.FOX] + LEAP)
 	assert_eq(w.player().pos, ME)
@@ -534,7 +534,7 @@ func test_a_leap_still_clears_a_creature_unharmed() -> void:
 	var w := _world()
 	var foe := _foe(w, w.player().pos + E)
 	var hp := foe.hp
-	w.cast(w.player(), Spell.make(LEAP), E)
+	Cast.cast(w, w.player(), Spell.make(LEAP), E)
 	assert_eq(foe.hp, hp)
 
 

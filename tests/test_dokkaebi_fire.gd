@@ -32,7 +32,7 @@ func _world() -> World:
 
 func _foe(w: World, kind: StringName) -> Actor:
 	var a := FloorGen.spawn(w, kind, FOE)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -46,7 +46,7 @@ func test_the_plain_dokkaebi_casts_a_lone_wisp_with_no_element() -> void:
 func test_the_plain_dokkaebi_s_wisp_sticks_to_miho_and_does_no_harm() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi")
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	var events := w.act(WAIT)
 	assert_true(events.any(func(e): return e.t == &"stick" and e.id == w.player().id))
 	assert_false(events.any(func(e): return e.t in [&"ignite", &"hurt"]))
@@ -67,7 +67,7 @@ func test_the_poker_dokkaebi_casts_foxfire_with_fire_and_comes_deeper() -> void:
 func test_its_wisp_sets_miho_alight_where_it_strikes() -> void:
 	var w := _world()
 	var foe := _foe(w, &"bujigaengi")
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	var events := w.act(WAIT)
 	assert_true(
 		events.any(func(e): return e.t == &"ignite" and e.at == ME), "the tile under Miho burns"
@@ -84,7 +84,7 @@ func test_its_wisp_leaves_bare_floor_unburnt_while_it_flies_and_hovers() -> void
 	var foe := _foe(w, &"bujigaengi")
 	for y in range(1, Grid.H - 1):
 		w.tiles[Grid.index(Vector2i(5, y))] = World.WALL
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	for i in 6:
 		w.act(WAIT)
 	assert_true(w.burning.is_empty())
@@ -115,7 +115,7 @@ func test_the_charge_line_and_the_projectile_hover_name_it() -> void:
 		var charge := {t = &"charge", id = foe.id, cards = cards, dir = WEST}
 		var line := "%s가 도깨비불을 모으기 시작했다" % foe.info().name
 		assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), [line])
-		w.cast(foe, Bestiary.spell(foe.kind, cards), WEST)
+		Cast.cast(w, foe, Bestiary.spell(foe.kind, cards), WEST)
 		var text := Info.plain(SpellInfo.shot(w, w.shots[0]))
 		assert_string_contains(text, "적의 도깨비불")
 		assert_eq(text.contains("오행: 불"), kind == &"bujigaengi", kind)
@@ -129,7 +129,7 @@ func test_only_miho_s_wisps_are_called_foxfire() -> void:
 	var foe := _foe(w, &"bulgae")
 	var charge := {t = &"charge", id = foe.id, cards = [Cards.FOX, Cards.FIRE], dir = WEST}
 	assert_eq(Messages.of(w, w, [charge]).map(Messages.plain), ["불개가 불 혼불을 모으기 시작했다"])
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 혼불")
-	w.cast(w.player(), own, Vector2i(1, 0))
+	Cast.cast(w, w.player(), own, Vector2i(1, 0))
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "당신의 불 여우불")

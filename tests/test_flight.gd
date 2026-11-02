@@ -31,9 +31,9 @@ func _world() -> World:
 func _flyer(w: World, at: Vector2i, kind := &"samjogo") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.hp = 9
-	a.cooldown = 99
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.magic.cooldown = 99
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	return a
 
 
@@ -60,7 +60,7 @@ func test_a_flyer_can_end_a_step_over_the_sky_and_does_not_fall() -> void:
 	var w := _world()
 	w.set_tile(ME + E * 2, World.SKY)
 	var a := _flyer(w, ME + E * 3)
-	w.move(a, ME + E * 2)
+	Walk.move(w, a, ME + E * 2)
 	assert_eq(a.pos, ME + E * 2)
 	assert_true(a.alive())
 	assert_true(w.actors.has(a))
@@ -73,14 +73,14 @@ func test_a_flyer_touches_nothing_on_the_ground() -> void:
 	w.traps[to] = World.TRAP_COLLAPSE
 	w.set_tile(to, World.THORNS)
 	var from := w.events.size()
-	w.move(a, to)
+	Walk.move(w, a, to)
 	assert_true(a.alive())
 	assert_eq(a.hp, 9, "thorns do not prick it")
 	assert_false(w.events.slice(from).any(func(e): return e.t == &"trap"), "no plate goes off")
 	var mud := to + E
 	w.set_tile(mud, World.MUD)
-	w.move(a, mud)
-	assert_eq(a.rooted, 0, "mud does not hold it")
+	Walk.move(w, a, mud)
+	assert_eq(a.ailments.rooted, 0, "mud does not hold it")
 
 
 func test_a_flyer_on_a_rotten_board_or_a_noisy_one_leaves_it_as_it_is() -> void:
@@ -89,8 +89,8 @@ func test_a_flyer_on_a_rotten_board_or_a_noisy_one_leaves_it_as_it_is() -> void:
 	var rotten := ME + E * 3
 	w.set_tile(rotten, World.BOARD_ROTTEN)
 	var from := w.events.size()
-	w.move(a, rotten)
-	w.move(a, rotten + E)
+	Walk.move(w, a, rotten)
+	Walk.move(w, a, rotten + E)
 	assert_eq(w.tile(rotten), World.BOARD_ROTTEN)
 	var moves := w.events.slice(from).filter(func(e): return e.t == &"move")
 	assert_true(moves.all(func(e): return e.loud == 0), "no step is heard")
@@ -128,7 +128,7 @@ func test_a_flyer_felled_over_the_sky_leaves_no_body_there() -> void:
 	var w := _world()
 	var a := _flyer(w, ME + E * 2)
 	w.set_tile(a.pos, World.SKY)
-	w.hurt(a, a.hp)
+	Harm.hurt(w, a, a.hp)
 	assert_false(w.bodies.has(a.pos))
 
 
@@ -136,7 +136,7 @@ func test_a_flyer_felled_over_floor_leaves_a_body() -> void:
 	var w := _world()
 	var a := _flyer(w, ME + E * 2)
 	var at := a.pos
-	w.hurt(a, a.hp)
+	Harm.hurt(w, a, a.hp)
 	assert_true(w.bodies.has(at))
 
 
@@ -147,9 +147,9 @@ func test_a_bat_flits_about_one_move_in_three() -> void:
 	var rounds := 300
 	for i in rounds:
 		a.pos = ME + E * 12
-		a.alert = Actor.HUNT
-		a.sees_me = true
-		a.target = ME
+		a.brain.alert = Actor.HUNT
+		a.brain.sees_me = true
+		a.brain.target = ME
 		Mind.heaven_phase(w)
 		away += 1 if a.pos.x >= ME.x + 12 else 0
 	assert_between(away, 40, 110, "of %d moves it did not close in on %d" % [rounds, away])
@@ -162,8 +162,8 @@ func test_a_bat_next_to_miho_sometimes_flits_instead_of_biting() -> void:
 	var rounds := 300
 	for i in rounds:
 		a.pos = ME + E
-		a.alert = Actor.HUNT
-		a.sees_me = true
+		a.brain.alert = Actor.HUNT
+		a.brain.sees_me = true
 		var from := w.events.size()
 		Mind.heaven_phase(w)
 		if w.events.slice(from).any(func(e): return e.t == &"melee"):

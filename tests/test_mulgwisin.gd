@@ -87,7 +87,7 @@ func test_it_swims_up_to_her_when_she_stands_on_the_shore() -> void:
 	var w := _shore()
 	w.player().pos = Vector2i(SHORE - 1, 8)
 	var a := _ghost(w, Vector2i(POND_END, 8))
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.sense()
 	for i in 20:
 		w.player().hp = w.player().max_hp
@@ -101,7 +101,7 @@ func test_she_is_safe_once_no_water_lies_next_to_her() -> void:
 	var w := _shore()
 	w.player().pos = Vector2i(SHORE - 2, 8)
 	var a := _ghost(w, Vector2i(SHORE, 8))
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.sense()
 	for i in 30:
 		w.act(WAIT)
@@ -152,7 +152,7 @@ func test_the_log_tells_nothing_of_it_while_it_is_unseen() -> void:
 	var at := Vector2i(SHORE + 2, 8)
 	var a := _ghost(w, at)
 	assert_eq(w.seen[Grid.index(at)], 1, "she sees the water")
-	w.hunt_from(a, w.player().pos)
+	Mind.hunt_from(w, a, w.player().pos)
 	w.player().pos = Vector2i(SHORE - 1, 8)
 	a.pos = at + E
 	w.sense()
@@ -171,7 +171,7 @@ func test_a_blow_binds_her_and_drags_her_onto_the_shallows_beside_it() -> void:
 	w.act(WAIT)
 	var me := w.player()
 	assert_eq(me.hp, me.max_hp - Bestiary.info(KIND).melee.damage)
-	assert_gt(me.rooted, 0, "she is bound")
+	assert_gt(me.ailments.rooted, 0, "she is bound")
 	assert_true(_water(w, me.pos), "on water: %s" % me.pos)
 	assert_eq(Grid.cheb(me.pos, a.pos), 1, "beside it")
 	assert_false(w.can({t = &"move", dir = W}), "she cannot walk off")
@@ -188,7 +188,7 @@ func test_with_only_the_pond_beside_her_she_is_bound_where_she_stands() -> void:
 	w.sense()
 	var from := me.pos
 	w.act(WAIT)
-	assert_gt(me.rooted, 0)
+	assert_gt(me.ailments.rooted, 0)
 	assert_eq(me.pos, from, "the pond cannot hold her")
 
 
@@ -199,7 +199,7 @@ func test_on_the_water_already_she_is_not_dragged() -> void:
 	var a := _ghost(w, Vector2i(SHORE + 1, 9))
 	w.sense()
 	w.act(WAIT)
-	assert_gt(me.rooted, 0)
+	assert_gt(me.ailments.rooted, 0)
 	assert_eq(me.pos, Vector2i(SHORE, 8))
 	assert_eq(a.pos, Vector2i(SHORE + 1, 9))
 
@@ -214,7 +214,7 @@ func test_she_comes_free_while_it_holds_her_and_can_walk_away() -> void:
 	w.sense()
 	w.act(WAIT)
 	var bound_for := 0
-	while me.rooted > 0 and bound_for < 10:
+	while me.ailments.rooted > 0 and bound_for < 10:
 		bound_for += 1
 		w.act(WAIT)
 	assert_lt(bound_for, 10, "a blow on one bound does not bind her longer")
@@ -238,7 +238,7 @@ func test_earth_that_fills_its_tile_ends_it_and_leaves_no_body() -> void:
 	w.tails = 3
 	var at := me.pos + E
 	var a := _ghost(w, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.tails = 1
 	var fill := {t = &"cast", spells = [{cards = [Cards.EARTH], dir = E}]}
 	assert_true(w.can(fill))
@@ -257,18 +257,18 @@ func test_a_flame_on_its_tile_finds_no_fuel_and_a_fire_wisp_sets_it_alight() -> 
 	w.cards.assign(Cards.ALL)
 	var at := me.pos + E
 	var a := _ghost(w, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	var hp := a.hp
 	w.tails = 3
 	w.act({t = &"cast", spells = [{cards = [Cards.FIRE], dir = E}]})
 	assert_eq(w.tile(at), World.POND)
 	assert_false(w.burning.has(at))
-	assert_eq([a.hp, a.alight], [hp, 0])
+	assert_eq([a.hp, a.ailments.alight], [hp, 0])
 	w.act({t = &"cast", spells = [{cards = [Cards.FOX, Cards.FIRE], dir = E}]})
 	assert_eq(w.tile(at), World.POND)
 	assert_false(w.burning.has(at))
 	assert_lt(a.hp, hp)
-	assert_gt(a.alight, 0)
+	assert_gt(a.ailments.alight, 0)
 
 
 func test_any_change_of_its_tile_from_water_ends_it() -> void:
@@ -296,9 +296,9 @@ func test_what_is_clawed_dead_leaves_a_body_that_rises_on_land() -> void:
 	var me := w.player()
 	me.pos = Vector2i(SHORE - 1, 8)
 	var a := _ghost(w, Vector2i(SHORE + 1, 8))
-	w.hurt(a, a.hp)
+	Harm.hurt(w, a, a.hp)
 	assert_true(w.bodies.has(a.pos), "a body on the water")
-	me.raise = true
+	me.buffs.raise = true
 	w.sense()
 	Raise.tick(w)
 	var risen := w.actors.filter(func(b): return b.ally())
@@ -311,13 +311,13 @@ func test_it_is_fooled_by_a_guise_like_any_dull_creature() -> void:
 	var w := _shore()
 	var me := w.player()
 	me.pos = Vector2i(SHORE - 1, 8)
-	me.guise = true
-	me.form = &"dokkaebi"
+	me.buffs.guise = true
+	me.buffs.form = &"dokkaebi"
 	var a := _ghost(w, Vector2i(SHORE, 8))
 	w.sense()
 	w.act(WAIT)
 	assert_eq(me.hp, me.max_hp, "it does not know her")
-	assert_ne(a.alert, Actor.HUNT)
+	assert_ne(a.brain.alert, Actor.HUNT)
 
 
 func test_a_forecast_of_a_seen_one_agrees_with_the_round() -> void:
@@ -330,7 +330,7 @@ func test_a_forecast_of_a_seen_one_agrees_with_the_round() -> void:
 	assert_eq(f.hurt_me(), Bestiary.info(KIND).melee.damage)
 	assert_eq(f.after.player().hp, me.hp)
 	assert_eq(f.after.player().pos, me.pos)
-	assert_eq(f.after.player().rooted, me.rooted)
+	assert_eq(f.after.player().ailments.rooted, me.ailments.rooted)
 
 
 func test_a_forecast_does_not_name_one_gone_in_the_same_round_as_having_noticed_her() -> void:
@@ -352,10 +352,12 @@ func test_a_preview_on_a_clone_equals_the_round_itself() -> void:
 		var mine := w.player()
 		var clone := ahead.player()
 		assert_eq(
-			[clone.pos, clone.hp, clone.rooted], [mine.pos, mine.hp, mine.rooted], "me %d" % i
+			[clone.pos, clone.hp, clone.ailments.rooted],
+			[mine.pos, mine.hp, mine.ailments.rooted],
+			"me %d" % i
 		)
 		var b := ahead.actor(a.id)
-		assert_eq([b.pos, b.hp, b.alert], [a.pos, a.hp, a.alert], "it %d" % i)
+		assert_eq([b.pos, b.hp, b.brain.alert], [a.pos, a.hp, a.brain.alert], "it %d" % i)
 
 
 func test_a_saved_run_with_a_seize_plays_back_the_same() -> void:
@@ -375,12 +377,14 @@ func test_a_saved_run_with_a_seize_plays_back_the_same() -> void:
 			assert_true(w.can(action), str(action))
 			w.act(action)
 			run.record(action, 0, false)
-		assert_gt(w.player().rooted + (w.player().max_hp - w.player().hp), 0, "she was seized")
+		assert_gt(
+			w.player().ailments.rooted + (w.player().max_hp - w.player().hp), 0, "she was seized"
+		)
 		var back := SaveGame.load_from(PATH)
 		assert_true(back.replay())
 		var me := back.world.player()
 		var was := w.player()
-		assert_eq([me.pos, me.hp, me.rooted], [was.pos, was.hp, was.rooted])
+		assert_eq([me.pos, me.hp, me.ailments.rooted], [was.pos, was.hp, was.ailments.rooted])
 		assert_eq(back.world.rng.state, w.rng.state)
 		return
 	fail_test("no seed has a shallow tile by the floor")
@@ -409,8 +413,8 @@ func test_it_stands_on_water_alone_on_every_storey_it_is_planned_for() -> void:
 			for a in w.actors.filter(func(b): return b.kind == KIND):
 				placed += 1
 				assert_true(_water(w, a.pos), "seed %d at %s" % [s, a.pos])
-				assert_eq(a.leader, 0, "no band leads it")
-				assert_false(w.actors.any(func(b): return b.leader == a.id), "it leads none")
+				assert_eq(a.ties.leader, 0, "no band leads it")
+				assert_false(w.actors.any(func(b): return b.ties.leader == a.id), "it leads none")
 	assert_gt(placed, 0)
 
 

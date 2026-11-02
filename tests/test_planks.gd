@@ -36,7 +36,7 @@ func _world(depth := 2) -> World:
 
 
 func _burn_out(w: World, p: Vector2i) -> void:
-	w.ignite(p)
+	Terrain.ignite(w, p)
 	for i in World.BURN_ROUNDS:
 		Terrain.burn(w, [])
 
@@ -74,7 +74,7 @@ func test_wild_fire_turns_each_plank_it_reaches_to_sky_whatever_the_seed() -> vo
 	for seed_value in SEEDS:
 		var w := _world()
 		w.rng.seed = seed_value
-		w.ignite(AT, false, true)
+		Terrain.ignite(w, AT, false, true)
 		for i in 60:
 			Terrain.burn(w, [])
 		for x in range(11, 14):
@@ -111,8 +111,8 @@ func test_miho_on_a_plank_falls_a_storey_after_the_creatures_on_the_others() -> 
 	var me := w.player()
 	me.pos = AT
 	var foe := FloorGen.spawn(w, &"dokkaebi", AT + Vector2i.RIGHT)
-	w.ignite(AT)
-	w.ignite(AT + Vector2i.RIGHT)
+	Terrain.ignite(w, AT)
+	Terrain.ignite(w, AT + Vector2i.RIGHT)
 	for i in World.BURN_ROUNDS:
 		Terrain.burn(w, [])
 	assert_eq(w.depth, 2)

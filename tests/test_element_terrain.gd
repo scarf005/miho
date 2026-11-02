@@ -45,7 +45,7 @@ func _world() -> World:
 func _hall(at := FOE) -> World:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"jangseung", at)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 40
 	foe.max_hp = 40
 	w.sense()
@@ -131,7 +131,7 @@ func test_roots_do_not_break_the_outermost_ring() -> void:
 	var w := _world()
 	w.player().pos = edge - Vector2i(3, 0)
 	var foe := FloorGen.spawn(w, &"jangseung", edge)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	foe.hp = 40
 	w.sense()
 	_put(w, edge + UP, World.WALL)
@@ -172,7 +172,7 @@ func test_water_makes_ash_green_and_still_puts_fire_out() -> void:
 	var w := _hall()
 	_put(w, FOE + UP, World.ASH)
 	_put(w, FOE + DOWN, World.GRASS)
-	w.ignite(FOE + DOWN)
+	Terrain.ignite(w, FOE + DOWN)
 	_fire(w, [FOX, WATER])
 	assert_eq(w.tile(FOE + UP), World.GRASS)
 	assert_false(w.burning.has(FOE + DOWN))
@@ -214,7 +214,7 @@ func test_steam_does_not_bake_mud() -> void:
 func test_a_burning_tile_that_is_cut_stops_burning() -> void:
 	var w := _hall()
 	_put(w, FOE + UP, World.GRASS)
-	w.ignite(FOE + UP)
+	Terrain.ignite(w, FOE + UP)
 	_fire(w, [FOX, METAL])
 	assert_eq(w.tile(FOE + UP), World.FLOOR)
 	assert_false(w.burning.has(FOE + UP))

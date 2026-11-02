@@ -56,7 +56,7 @@ func _break(w: World, how: StringName, what: StringName) -> Array:
 
 func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -140,7 +140,7 @@ func _put_round(w: World, at: Vector2i) -> void:
 	w.set_tile(at + Vector2i(0, 1), World.BOARD)
 	w.set_tile(at + Vector2i(0, -1), World.LANTERN)
 	w.traps[at + Vector2i(1, 0)] = World.TRAP_ALARM
-	w.ignite(at + Vector2i(0, 1))
+	Terrain.ignite(w, at + Vector2i(0, 1))
 
 
 func test_kimchi_lies_where_the_jar_stood() -> void:
@@ -172,8 +172,8 @@ func test_a_fallen_scarecrow_sends_the_creatures_that_see_it_to_search_there() -
 		var at := AT if how == &"bump" else FAR
 		assert_eq(Notice.at(w, at).get("kind"), &"scarecrow", str(how))
 		if how == &"bump":
-			assert_eq(foe.alert, Actor.SEARCH)
-			assert_eq(foe.target, at)
+			assert_eq(foe.brain.alert, Actor.SEARCH)
+			assert_eq(foe.brain.target, at)
 
 
 # --- kimchi ---------------------------------------------------------------------
@@ -205,7 +205,7 @@ func test_kimchi_stays_while_she_is_at_full_health_and_she_keeps_her_scent() -> 
 func test_she_eats_the_kimchi_under_her_once_she_is_hurt() -> void:
 	var w := _kimchi(3)
 	w.act({t = &"move", dir = E})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	w.act({t = &"wait"})
 	assert_eq(w.player().hp, 3)
 	assert_true(Jars.spots(w).is_empty())
@@ -235,7 +235,7 @@ func test_a_hunter_follows_a_strong_trail_longer_than_a_plain_one() -> void:
 		var w := _world()
 		w.round_no = 100
 		var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(10, 8))
-		foe.cooldown = 99
+		foe.magic.cooldown = 99
 		var trail := Vector2i(11, 8)
 		w.scent.resize(w.tiles.size())
 		w.scent[Grid.index(trail)] = w.round_no + 1 - Scent.TRAIL_AGE - 1
@@ -295,7 +295,7 @@ func test_miho_beside_a_jar_of_beans_is_not_stunned() -> void:
 	_jar(w, AT, &"beans")
 	Structures.broke(w, World.JAR, AT)
 	assert_eq(Grid.cheb(w.player().pos, AT), 1)
-	assert_eq(w.player().stunned, 0)
+	assert_eq(w.player().ailments.stunned, 0)
 
 
 func test_beans_make_the_stun_sound_once_for_a_creature() -> void:

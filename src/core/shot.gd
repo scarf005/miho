@@ -1,17 +1,14 @@
 class_name Shot
-extends RefCounted
+extends Entity
 ## A projectile in flight: a foxfire wisp or an orb. A homing one chases the
 ## creature `target` (an actor id, 0 for none), banking `turn` degrees a tile
 ## (Spell.turn) in `bank` and spending them on its turns (Homing.steer).
 ## `flown` counts the tiles it has flown. A wisp that struck a creature rides
-## it: `host` is its actor id, and `pos` follows it (World.move) while it lives.
+## it: `host` is its actor id, and `pos` follows it (Walk.move) while it lives.
 ## A piercing wisp (Spell.pierces) has `pierced` the wall it went through.
 
-var id := 0
-var faction := Actor.FOX
 var caster := 0
 var spell: Spell
-var pos := Vector2i.ZERO
 var origin := Vector2i.ZERO
 var dir := Vector2i.ZERO
 var life := 0
@@ -24,8 +21,24 @@ var host := 0
 var pierced := false
 ## The arcs 낙뢰 has made (Compounds.arc).
 var arcs := 0
-## Rounds it has flown (World._shots_phase): an orb gains Spell.accel a round.
+## Rounds it has flown (Flight.phase): an orb gains Spell.accel a round.
 var age := 0
+
+
+func _init() -> void:
+	faction = FOX
+
+
+## A new shot of `spell` on the tile of `caster`, with a new id; not yet in `w.shots`.
+static func of(w: World, caster: Actor, spell: Spell) -> Shot:
+	var s := Shot.new()
+	s.id = w.new_id()
+	s.faction = caster.faction
+	s.caster = caster.id
+	s.spell = spell
+	s.pos = caster.pos
+	s.origin = caster.pos
+	return s
 
 
 ## Tiles between the caster and this shot, which sets orb damage.

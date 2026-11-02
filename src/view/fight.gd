@@ -2,7 +2,7 @@ class_name Fight
 extends RefCounted
 ## Auto-fight, as DCSS's Tab (autofight.lua): strike the nearest hostile in
 ## sight when it is next to Miho, else take one step towards it. Of several
-## next to her it picks one caught unawares (World.caught_unawares, the sneak
+## next to her it picks one caught unawares (Harm.caught_unawares, the sneak
 ## attack). Like DCSS it refuses when she is at or under half her health
 ## (autofight_stop 50).
 
@@ -29,7 +29,7 @@ static func targets(w: World) -> Array[Actor]:
 
 static func _rank(w: World, a: Actor) -> int:
 	var d := Grid.cheb(a.pos, w.player().pos)
-	return d * 2 + (1 if d > 1 or not w.caught_unawares(a) else 0)
+	return d * 2 + (1 if d > 1 or not Harm.caught_unawares(w, a) else 0)
 
 
 ## The move that claws the first target next to Miho, or steps along the
@@ -50,7 +50,7 @@ static func step(w: World) -> Dictionary:
 	return {}
 
 
-## A creature her claws would catch unawares (World._claw): next to Miho, or
+## A creature her claws would catch unawares (Harm.claw): next to Miho, or
 ## asleep in sight.
 static func sneakable(w: World, a: Actor) -> bool:
 	var near := Grid.cheb(a.pos, w.player().pos) == 1
@@ -59,5 +59,5 @@ static func sneakable(w: World, a: Actor) -> bool:
 		and a.faction != Actor.FOX
 		and (near or a.asleep() and w.seen[Grid.index(a.pos)] == 1)
 		and Hat.shown(w, a)
-		and w.caught_unawares(a)
+		and Harm.caught_unawares(w, a)
 	)

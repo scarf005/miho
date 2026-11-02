@@ -78,7 +78,7 @@ func test_a_flying_shot_on_the_map_shows_its_spell() -> void:
 	var me: Vector2i = m.world.player().pos
 	m.world.cards.assign(Cards.ALL)
 	m.world.tails = m.world.max_tails()
-	m.world.cast(m.world.player(), Spell.make([Cards.FOX]), Vector2i(1, 0))
+	Cast.cast(m.world, m.world.player(), Spell.make([Cards.FOX]), Vector2i(1, 0))
 	m.world.sense()
 	m.known = m.world.known_clone()
 	var shot: Shot = m.world.shots[0]

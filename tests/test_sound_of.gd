@@ -310,7 +310,7 @@ func test_a_creature_stepping_on_the_alarm_plate_in_sight_is_heard_once() -> voi
 	w._changed()
 	w.traps[PLATE] = World.TRAP_ALARM
 	var foe := FloorGen.spawn(w, &"dokkaebi", PLATE - E)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	w.sense()
 	var before := w.clone()
 	w.push(foe, E, 1)
@@ -322,7 +322,7 @@ func test_a_creature_stepping_on_the_alarm_plate_out_of_sight_is_heard_as_a_nois
 	var w := _world()
 	w.traps[FAR] = World.TRAP_ALARM
 	var foe := FloorGen.spawn(w, &"dokkaebi", FAR - E)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	w.sense()
 	var before := w.clone()
 	w.push(foe, E, 1)
@@ -335,7 +335,7 @@ func _step_onto(tile: int, wet := 0) -> Dictionary:
 	var w := _world()
 	w.tiles[Grid.index(w.player().pos + E)] = tile
 	w._changed()
-	w.player().wet = wet
+	w.player().ailments.wet = wet
 	var step: Dictionary = w.act({t = &"move", dir = E}).filter(func(e): return e.t == &"move")[0]
 	return {sound = Sfx.sound_of(step), db = Sfx.level_of(step)}
 

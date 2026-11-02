@@ -54,7 +54,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts, with health to spare.
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.max_hp = 9
 	a.hp = 9
 	return a
@@ -145,7 +145,7 @@ func test_a_5dan_costs_seven_tails_and_miho_has_them_on_the_seventh_storey() -> 
 ## or looks again. Returns the events.
 func _now(w: World, cards: Array, dir := E, by: Actor = null) -> Array:
 	w.events = []
-	w.cast(w.player() if by == null else by, Spell.make(cards), dir)
+	Cast.cast(w, w.player() if by == null else by, Spell.make(cards), dir)
 	return w.events
 
 
@@ -167,7 +167,7 @@ func test_beacon_hurls_a_homing_orb_of_lava_along_each_open_way_and_nothing_else
 	_put(w, ME + E, World.WALL)
 	_put(w, ME + Vector2i(-1, 1), World.LANTERN_OUT)
 	var ally := FloorGen.spawn(w, Forge.FURNACE, ME + Vector2i(0, -1))
-	ally.cooldown = 99
+	ally.magic.cooldown = 99
 	_put(w, ME + Vector2i(1, 1), World.GRASS)
 	w.sense()
 	_now(w, _made(&"beacon"))
@@ -246,7 +246,7 @@ func test_mist_lays_fog_round_miho_and_washes_the_scent_without_striking_anyone(
 	assert_eq(Gas.at(w, ME + E * 4).y, Gas.MAX)
 	assert_false(w.gas.has(ME + E * 5), "four tiles")
 	assert_eq(w.scent[Grid.index(ME + E * 3)], 0)
-	assert_eq(foe.alert, Actor.REST, "no one is struck")
+	assert_eq(foe.brain.alert, Actor.REST, "no one is struck")
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 
 
@@ -324,12 +324,12 @@ func test_discord_sets_the_nearest_pairs_of_seen_foes_on_each_other_whatever_the
 	var d := _post(w, ME + Vector2i(11, -1))
 	var lone := _post(w, ME + Vector2i(-8, 2))
 	var events := _now(w, _made(&"discord"))
-	assert_eq([a.rival, b.rival], [b.id, a.id])
-	assert_eq([c.rival, d.rival], [d.id, c.id])
-	assert_eq([a.grudge, c.grudge], [Mind.GRUDGE_ROUNDS, Mind.GRUDGE_ROUNDS])
-	assert_eq(lone.rival, 0, "an odd one out")
+	assert_eq([a.ties.rival, b.ties.rival], [b.id, a.id])
+	assert_eq([c.ties.rival, d.ties.rival], [d.id, c.id])
+	assert_eq([a.ties.grudge, c.ties.grudge], [Mind.GRUDGE_ROUNDS, Mind.GRUDGE_ROUNDS])
+	assert_eq(lone.ties.rival, 0, "an odd one out")
 	assert_eq(_of(events, &"feud").size(), 4)
-	assert_eq(a.alert, Actor.REST, "no one is struck")
+	assert_eq(a.brain.alert, Actor.REST, "no one is struck")
 
 
 func test_discord_does_nothing_when_a_creature_of_heaven_casts_it() -> void:
@@ -338,7 +338,7 @@ func test_discord_does_nothing_when_a_creature_of_heaven_casts_it() -> void:
 	var a := _post(w, ME + E * 5)
 	var b := _post(w, ME + E * 6)
 	var events := _now(w, _made(&"discord"), W, caster)
-	assert_eq([a.rival, b.rival, caster.rival], [0, 0, 0])
+	assert_eq([a.ties.rival, b.ties.rival, caster.ties.rival], [0, 0, 0])
 	assert_true(_of(events, &"feud").is_empty())
 	assert_eq(w.player().hp, w.player().max_hp)
 
@@ -362,7 +362,7 @@ func test_thunder_strikes_the_first_creature_on_its_line_and_is_heard_and_seen()
 	var far := _post(w, ME + E * 2 + E * (Compounds.ARC_REACH + 1))
 	var events := w.act(_cast(_made(&"thunder")))
 	assert_eq(_first(events, first.id), Compounds.THUNDER)
-	assert_eq(first.stunned, Compounds.THUNDER_STUN - 1)
+	assert_eq(first.ailments.stunned, Compounds.THUNDER_STUN - 1)
 	assert_eq(far.hp, far.max_hp, "out of reach of the arc")
 	var booms := _of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM)
 	assert_false(booms.is_empty())
@@ -379,9 +379,9 @@ func test_thunder_arcs_to_a_foe_within_reach_and_not_through_a_wall() -> void:
 	_put(w, first.pos + E, World.WALL)
 	var events := w.act(_cast(_made(&"thunder")))
 	assert_eq(_first(events, next.id), Compounds.THUNDER)
-	assert_eq(next.stunned, Compounds.THUNDER_STUN - 1)
+	assert_eq(next.ailments.stunned, Compounds.THUNDER_STUN - 1)
 	assert_eq(walled.hp, walled.max_hp, "the wall stops the arc")
-	assert_eq(next.alert, Actor.HUNT, "it is struck like the first")
+	assert_eq(next.brain.alert, Actor.HUNT, "it is struck like the first")
 
 
 func test_thunder_goes_back_and_forth_between_two_foes_for_all_its_arcs() -> void:
@@ -408,7 +408,7 @@ func test_thunder_never_arcs_to_its_caster_or_her_allies() -> void:
 	var first := _post(w, ME + E * 2)
 	var ally := _post(w, ME + Vector2i(1, 1))
 	ally.faction = Actor.FOX
-	ally.stunned = 9
+	ally.ailments.stunned = 9
 	var struck := _struck(w.act(_cast(_made(&"thunder"))))
 	assert_eq(struck, [first.id])
 
@@ -458,12 +458,12 @@ func test_thunder_hurts_a_wet_creature_and_a_water_creature_twice_but_not_four_t
 	var w := _world()
 	var dry := _post(w, ME + E * 2)
 	var wet := _post(w, ME + E * 3)
-	wet.wet = Status.WET
+	wet.ailments.wet = Status.WET
 	var of_water := _post(w, ME + E * 4)
 	of_water.kind = water
 	var both := _post(w, ME + E * 5)
 	both.kind = water
-	both.wet = Status.WET
+	both.ailments.wet = Status.WET
 	var events := w.act(_cast(_made(&"thunder")))
 	assert_eq(_first(events, dry.id), Compounds.THUNDER)
 	for foe in [wet, of_water, both]:
@@ -476,13 +476,13 @@ func test_stillness_sends_the_hunters_in_reach_to_search_where_they_stand() -> v
 	var far := _post(w, ME + E * 10)
 	var asleep := _post(w, ME + Vector2i(-3, 2))
 	for foe in [near, far]:
-		foe.alert = Actor.HUNT
-		foe.target = ME
+		foe.brain.alert = Actor.HUNT
+		foe.brain.target = ME
 	Scent.lay(w, ME + E * 2)
 	var events := _now(w, _made(&"stillness"))
-	assert_eq([near.alert, near.target], [Actor.SEARCH, near.pos])
-	assert_eq(far.alert, Actor.HUNT, "past six tiles")
-	assert_eq(asleep.alert, Actor.REST)
+	assert_eq([near.brain.alert, near.brain.target], [Actor.SEARCH, near.pos])
+	assert_eq(far.brain.alert, Actor.HUNT, "past six tiles")
+	assert_eq(asleep.brain.alert, Actor.REST)
 	assert_eq(w.scent[Grid.index(ME + E * 2)], 0)
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 
@@ -491,7 +491,7 @@ func test_stillness_cast_by_a_creature_of_heaven_leaves_miho_as_she_was() -> voi
 	var w := _world()
 	var caster := _caster(w, ME + E * 3)
 	var events := _now(w, _made(&"stillness"), W, caster)
-	assert_eq(w.player().alert, Actor.REST)
+	assert_eq(w.player().brain.alert, Actor.REST)
 	assert_eq(w.player().hp, w.player().max_hp)
 	assert_true(_of(events, &"hurt").is_empty())
 
@@ -506,7 +506,7 @@ func test_samsara_heals_the_caster_a_point_and_stuns_every_foe_in_sight() -> voi
 	var events := _now(w, _made(Cards.SAMSARA))
 	assert_eq(w.player().hp, 2)
 	assert_eq(_of(events, &"heal").size(), 1)
-	assert_eq([near.stunned, far.stunned, hidden.stunned], [2, 2, 0])
+	assert_eq([near.ailments.stunned, far.ailments.stunned, hidden.ailments.stunned], [2, 2, 0])
 	events = _now(w, _made(Cards.SAMSARA))
 	assert_eq(w.player().hp, 3)
 	events = _now(w, _made(Cards.SAMSARA))
@@ -519,7 +519,7 @@ func test_samsara_cast_by_a_creature_of_heaven_heals_it_and_stuns_miho() -> void
 	var caster := _caster(w, ME + E * 3)
 	var events := _now(w, _made(Cards.SAMSARA), W, caster)
 	assert_eq(caster.hp, 2)
-	assert_eq(w.player().stunned, 2)
+	assert_eq(w.player().ailments.stunned, 2)
 	assert_true(_of(events, &"heal").is_empty(), "the log tells only Miho's")
 
 
@@ -527,7 +527,7 @@ func test_conquest_hurts_every_foe_in_sight_and_doubles_it_for_one_with_a_weakne
 	var w := _world()
 	var plain := _post(w, ME + E * 3)
 	var weak := FloorGen.spawn(w, &"cheonnyeon", ME + E * 5)
-	weak.cooldown = 99
+	weak.magic.cooldown = 99
 	weak.max_hp = 20
 	weak.hp = 20
 	_wall_across(w, ME.x + 8)
@@ -555,7 +555,7 @@ func test_dragon_fells_the_walls_and_pushes_the_foes_out_farthest_first_and_stun
 	assert_eq(inner.pos, ME + E * 5, "room was made for it")
 	assert_eq(west.pos, ME + Vector2i(-6, 0))
 	for foe in [inner, outer, west]:
-		assert_eq(foe.stunned, Compounds.DRAGON_STUN - 1)
+		assert_eq(foe.ailments.stunned, Compounds.DRAGON_STUN - 1)
 	assert_eq([w.player().pos, w.player().hp], [ME, 3])
 	assert_false(_of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM).is_empty())
 
@@ -573,7 +573,7 @@ func test_a_4dan_or_5dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends()
 		side = _post(w, ME + Vector2i(2, 1))
 		w.act(_cast([form] + _made(Cards.SAMSARA)))
 		assert_eq(w.player().hp, 2, str(form))
-		assert_gt(side.stunned, 0, str(form))
+		assert_gt(side.ailments.stunned, 0, str(form))
 		w = _world()
 		hit = _post(w, ME + E * 2)
 		side = _post(w, ME + Vector2i(2, 1))

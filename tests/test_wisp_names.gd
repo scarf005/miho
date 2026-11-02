@@ -38,7 +38,7 @@ func test_each_of_two_wisps_is_named_alone_in_the_log_and_the_hover() -> void:
 	w.sense()
 	var foe := FloorGen.spawn(w, &"dokkaebi", Codex.ME + Vector2i(2, 0))
 	foe.hp = 99
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var before := w.clone()
 	var events := w.act(
 		{t = &"cast", spells = [{cards = [Cards.FOX, Cards.FOX], dir = Vector2i(1, 0)}]}
@@ -57,7 +57,7 @@ func test_one_of_two_flying_is_named_alone_in_its_hover_and_on_the_death_screen(
 	var w := Codex.stage()
 	var two := Spell.make([Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB])
 	assert_string_contains(two.title(), "2발", "the spell keeps its count where it is cast")
-	var s := w._spawn(w.player(), two, Vector2i(1, 0), 0)
+	var s := Flight.spawn(w, w.player(), two, Vector2i(1, 0), 0)
 	assert_false(Info.plain(SpellInfo.shot(w, s)).contains("2발"))
 	var line := Banner._by(w, {by = w.player().id, spell = two.tag()})
 	assert_false(line.contains("2발"), line)

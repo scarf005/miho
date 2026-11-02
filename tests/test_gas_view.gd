@@ -53,7 +53,7 @@ func test_a_creature_in_steam_in_sight_is_named_in_the_log() -> void:
 	var w := _hall()
 	var at := ME + Vector2i(2, 0)
 	var foe := FloorGen.spawn(w, &"jangseung", at)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	_block(w, at + Vector2i(1, 0), 1, Gas.STEAM, Gas.MAX)
 	w.sense()
 	var before := w.clone()
@@ -65,7 +65,7 @@ func test_steam_out_of_sight_gives_no_line() -> void:
 	var w := _hall()
 	var far := Vector2i(30, 8)
 	var foe := FloorGen.spawn(w, &"jangseung", far)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	_block(w, far, 1, Gas.STEAM, Gas.MAX)
 	w.sense()
 	var before := w.clone()

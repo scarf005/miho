@@ -16,7 +16,7 @@ static func telegraphs(t: Term, actors: Dictionary) -> void:
 		var a: Actor = actors[id]
 		if a.is_miho() or not t._revealed(a.pos):
 			continue
-		for plan in a.intent:
+		for plan in a.magic.intent:
 			var spell := Spell.make(plan.cards)
 			var ray := Forecast.ray(t.world, a.pos, plan.dir)
 			if spell.shape == Spell.SPRAY:

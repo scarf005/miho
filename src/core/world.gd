@@ -20,7 +20,7 @@ extends RefCounted
 ## next to it, until noise or a wound wakes it; a patrol, which walks while it
 ## rests, and a 장승, never sleep. Claws strike three times as hard at a creature that is
 ## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
-## caught_unawares), so Miho can creep up on a sleeper. A creature
+## Harm.caught_unawares), so Miho can creep up on a sleeper. A creature
 ## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
 ## sees Miho one tile farther in the dark.
 ##
@@ -154,6 +154,33 @@ const COURTYARD := 43
 const STATUE := 44
 const BOARD_ROTTEN := 45
 
+## The World fields that belong to the storey Miho is on, but its creatures.
+const STOREY: Array[String] = [
+	"tiles",
+	"rooms",
+	"start",
+	"stairs",
+	"elixir",
+	"peaches",
+	"jars",
+	"burning",
+	"wild",
+	"gas",
+	"vents",
+	"wet",
+	"hot",
+	"traps",
+	"secrets",
+	"seals",
+	"sites",
+	"tail_bonus",
+	"changes",
+	"bodies",
+	"known",
+	"round_no",
+	"curses",
+]
+
 var depth := 1
 var tiles := PackedByteArray()
 var rooms: Array[Rect2i] = []
@@ -246,29 +273,10 @@ static func create(seed_value: int) -> World:
 func clone() -> World:
 	var w := World.new()
 	w.depth = depth
-	w.tiles = tiles.duplicate()
-	w.rooms = rooms.duplicate()
-	w.start = start
-	w.stairs = stairs
-	w.elixir = elixir
-	w.peaches = peaches.duplicate()
-	w.jars = jars.duplicate()
+	for f in STOREY:
+		w.set(f, copied(get(f)))
 	w.pungent = pungent
-	w.curses = curses.duplicate()
 	w.strong = strong.duplicate()
-	w.burning = burning.duplicate()
-	w.wild = wild.duplicate()
-	w.gas = gas.duplicate()
-	w.vents = vents.duplicate()
-	w.changes = changes.duplicate(true)
-	w.bodies = bodies.duplicate(true)
-	w.wet = wet.duplicate()
-	w.hot = hot.duplicate()
-	w.traps = traps.duplicate()
-	w.secrets = secrets.duplicate()
-	w.seals = seals.duplicate(true)
-	w.sites.assign(sites.duplicate(true))
-	w.tail_bonus = tail_bonus
 	w.storeys = storeys.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
@@ -279,16 +287,21 @@ func clone() -> World:
 	w.regrow = regrow
 	w.cheats = cheats.duplicate()
 	w.cards = cards.duplicate()
-	w.round_no = round_no
 	w.outcome = outcome
 	w.rng.seed = rng.seed
 	w.rng.state = rng.state
 	w.seen = seen.duplicate()
 	w.dim = dim.duplicate()
-	w.known = known.duplicate()
 	w.heard = heard.duplicate()
 	w.scent = scent.duplicate()
 	return w
+
+
+## A table of a storey as its own copy: a list or a table with what it holds, a mask.
+static func copied(v: Variant) -> Variant:
+	if v is Array or v is Dictionary:
+		return v.duplicate(true)
+	return v.duplicate() if v is PackedByteArray else v
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
@@ -443,7 +456,7 @@ func fov(p: Vector2i) -> PackedByteArray:
 ## Whether `a` sees tile p now. Sight is symmetric, so this is read from p's side.
 ## A blinded fox still feels what is next to her; blinded heaven sees nothing.
 func sees(a: Actor, p: Vector2i) -> bool:
-	return _reaches(a, p) and (a.blind > 0 or fov(p)[Grid.index(a.pos)] == 1)
+	return _reaches(a, p) and (a.ailments.blind > 0 or fov(p)[Grid.index(a.pos)] == 1)
 
 
 ## Every tile `a` sees now; one field from its own side, as sight is symmetric.
@@ -452,14 +465,14 @@ func view_of(a: Actor) -> PackedByteArray:
 	var out := PackedByteArray()
 	out.resize(tiles.size())
 	for i in out.size():
-		out[i] = 1 if _reaches(a, Grid.at(i)) and (a.blind > 0 or view[i] == 1) else 0
+		out[i] = 1 if _reaches(a, Grid.at(i)) and (a.ailments.blind > 0 or view[i] == 1) else 0
 	return out
 
 
 func _reaches(a: Actor, p: Vector2i) -> bool:
 	if a.asleep():
 		return false
-	if a.blind > 0:
+	if a.ailments.blind > 0:
 		return a.faction == Actor.FOX and Grid.cheb(a.pos, p) <= 1
 	if hides(p) and Grid.cheb(a.pos, p) > 1:
 		return false
@@ -481,60 +494,7 @@ func preview(action: Dictionary) -> World:
 
 
 func act(action: Dictionary) -> Array[Dictionary]:
-	events = []
-	heard = []
-	_changed()
-	if not can(action) or Cheat.handled(self, action):
-		return events
-	var me := player()
-	_regrow()
-	var alight := burning.keys()
-	Status.lapse(self, me, &"stunned")
-	match action.t:
-		&"move":
-			var to: Vector2i = me.pos + action.dir
-			var foe := actor_at(to)
-			if foe != null and foe.faction != me.faction:
-				_claw(me, foe)
-			elif Terrain.knockable(tile(to)):
-				Terrain.knock(self, me, to)
-			elif tile(to) == DOOR:
-				Terrain.open_door(self, me, to)
-			else:
-				var storey := depth
-				if foe != null:
-					move(foe, me.pos)
-				move(me, to)
-				if foe != null:
-					Fall.traded(self, foe, me, storey)
-				if depth == storey:
-					Scent.lay(self, to)
-					if arrive(me):
-						return events
-		&"close":
-			Terrain.close_door(self, me, me.pos + action.dir)
-		&"dispel":
-			Guise.dispel(self, me, action.kind)
-		&"cast":
-			for one: Dictionary in action.spells:
-				var spell := Spell.make(one.cards)
-				tails -= Cheat.cost(self, spell)
-				cast(me, spell, one.dir)
-	_shots_phase()
-	Mind.heaven_phase(self)
-	Terrain.burn(self, alight)
-	Compounds.tick(self)
-	Gas.tick(self)
-	Status.tick(self)
-	Vault.tick(self)
-	EventRooms.tick(self)
-	Statues.tick(self)
-	Guise.tick(self)
-	Lure.tick(self)
-	_end_round()
-	sense()
-	Raise.tick(self)
-	return events
+	return Round.run(self, action)
 
 
 ## Updates what Miho sees, makes out in the dark or in bamboo, and remembers.
@@ -564,86 +524,10 @@ func _changed() -> void:
 	_shade = PackedByteArray()
 
 
-## A step; into a closed door it slides the door open instead and stays put.
-## The step event carries the tread: the word of the tile stepped onto and how
-## far it is heard, which sound the step.
-func move(a: Actor, to: Vector2i) -> void:
-	if tile(to) == DOOR:
-		Terrain.open_door(self, a, to)
-		return
-	var from := a.pos
-	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
-	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
-	emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
-	a.pos = to
-	for s in shots:
-		if s.host == a.id and not s.gone:
-			s.pos = to
-			emit({t = &"ride", shot = s.id, to = to})
-	_changed()
-	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
-	Terrain.stepped(self, a, from, to)
-
-
-## Miho has come onto her tile, by a step or a push: the stairs take her up,
-## the elixir wins, a peach heals, a scroll gives its talisman. True when the
-## storey or the run ends.
-func arrive(me: Actor) -> bool:
-	if me.pos == stairs:
-		_ascend()
-		return true
-	if me.pos == elixir:
-		outcome = &"won"
-		emit({t = &"won"})
-		return true
-	if peaches.has(me.pos):
-		peaches.erase(me.pos)
-		var grew := me.hp >= me.max_hp
-		me.max_hp += HEAL if grew else 0
-		me.hp += HEAL
-		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew, peach = true})
-	Scrolls.arrive(self, me)
-	Jars.arrive(self, me)
-	EventRooms.arrive(self, me)
-	return false
-
-
 ## Slides a creature up to n tiles along dir, off the edge into the sky if
 ## nothing stops it (see Fall).
 func push(a: Actor, dir: Vector2i, n: int) -> void:
 	Fall.push(self, a, dir, n)
-
-
-## Spreads a noise around walls. Miho hears every noise in range but her side's;
-## heaven creatures that hear an alarm go to search its spot, or `spot` when given.
-func noise(
-	at: Vector2i, loud: int, word: String, alarm: bool, by: int, spot := Vector2i(-1, -1)
-) -> void:
-	if loud <= 0:
-		return
-	var dist: PackedInt32Array = Grid.search(at, Masks.heard(self), loud).dist
-	var me := player()
-	var d := dist[Grid.index(me.pos)]
-	var maker := actor(by)
-	var heard_it := (maker == null or maker.faction != me.faction) and d >= 0 and d <= loud
-	if heard_it:
-		heard.append({at = at, word = word})
-	emit({t = &"noise", at = at, word = word, loud = loud, heard = heard_it})
-	if not alarm:
-		return
-	for a in actors:
-		if (
-			a.alive()
-			and a.faction == Actor.HEAVEN
-			and a.id != by
-			and a.alert != Actor.HUNT
-			and not a.info().get("deaf", false)
-		):
-			var da := dist[Grid.index(a.pos)]
-			if da >= 0 and da <= loud:
-				a.alert = Actor.SEARCH
-				a.target = at if spot.x < 0 else spot
-				a.lost = 0
 
 
 func set_tile(p: Vector2i, t: int) -> void:
@@ -651,344 +535,3 @@ func set_tile(p: Vector2i, t: int) -> void:
 		wet.erase(p)
 	tiles[Grid.index(p)] = t
 	_changed()
-
-
-## Whether a claw at `a` is a sneak attack: it is off guard (not hunting) and
-## does not see Miho, or does not know her in guise (Guise); a sleeping or
-## blind creature sees nothing, but a blind hunter is on guard.
-func caught_unawares(a: Actor) -> bool:
-	return a.alert != Actor.HUNT and not Guise.knows(self, a)
-
-
-## The harm a claw of `me` at `foe` does: CLAW, SNEAK times that on a sneak attack,
-## and what 쇠발톱 adds (Guise.talon_harm).
-func claw_harm(me: Actor, sneak: bool, foe: Actor = null) -> int:
-	return CLAW * (SNEAK if sneak else 1) + Guise.talon_harm(me, foe)
-
-
-func _claw(me: Actor, foe: Actor) -> void:
-	var sneak := caught_unawares(foe)
-	var n := claw_harm(me, sneak, foe)
-	emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
-	noise(foe.pos, 1 if sneak else 3, "퍽", true, me.id)
-	hurt(foe, n)
-	if foe.alive():
-		Mind.provoke(self, foe, me)
-		hunt_from(foe, me.pos)
-
-
-## `a` hunts Miho from `at`; starting to, it notices her and shouts (Mind.shout).
-func hunt_from(a: Actor, at: Vector2i) -> void:
-	var fresh := a.alert != Actor.HUNT
-	if fresh:
-		emit({t = &"notice", id = a.id, at = a.pos})
-		Drums.plan(self, a)
-	a.alert = Actor.HUNT
-	a.target = at
-	a.lost = 0
-	if fresh:
-		Mind.shout(self, a)
-
-
-func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir, bolt = Elements.bolt(spell)})
-	caster.casts += 1
-	Bunsin.learn(caster, spell, dir)
-	if Guise.cast(self, caster, spell, dir) or Bunsin.cast(self, caster, spell, dir):
-		return
-	if Forge.cast(self, caster, spell, dir):
-		return
-	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
-		(Leap if spell.shape == Spell.LEAP else Spray).cast(self, caster, spell, dir)
-		return
-	if spell.gun():
-		flares.append(caster.pos)
-	noise(caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id)
-	var targets := Homing.targets(self, caster, spell, dir)
-	var heads := Homing.headings(self, caster, spell, dir, targets)
-	for i in heads.size():
-		var s := _spawn(caster, spell, heads[i], targets[i])
-		if spell.orb:
-			# An orb that leaves on the line of one before it trails it from the caster.
-			if not heads.slice(0, i).has(heads[i]):
-				_step(s)
-		elif heads[i] == dir:
-			Elements.loose(self, s)
-		else:
-			_fly(s, s.pos + s.dir)
-			s.dir = Homing.facing(self, s)
-
-
-func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
-	var s := Shot.new()
-	s.id = new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = spell
-	s.pos = caster.pos
-	s.origin = caster.pos
-	s.dir = dir
-	s.life = spell.life()
-	s.target = target
-	s.turn = spell.turn()
-	shots.append(s)
-	_changed()
-	emit(
-		{
-			t = &"spawn",
-			shot = s.id,
-			at = s.pos,
-			faction = s.faction,
-			cards = spell.cards,
-			target = target,
-			bolt = Elements.bolt(spell)
-		}
-	)
-	return s
-
-
-func _shots_phase() -> void:
-	var top := Spell.BULLET_SPEED
-	for s: Shot in shots:
-		top = maxi(top, s.pace())
-	for sub in top:
-		for s: Shot in shots.duplicate():
-			if not s.gone and sub < s.pace() and s.dir != Vector2i.ZERO and not rides(s):
-				_step(s)
-	for s: Shot in shots:
-		if not s.gone and s.dir != Vector2i.ZERO and not rides(s):
-			s.age += 1
-	_prune()
-
-
-func _fly(s: Shot, to: Vector2i) -> void:
-	emit({t = &"fly", shot = s.id, from = s.pos, to = to})
-	s.pos = to
-	s.flown += 1
-	_changed()
-	if s.spell.has(Cards.FIRE):
-		ignite(to)
-	if actor_at(to) == null:
-		Traps.fly(self, s)
-
-
-## One tile of flight. Orbs burst on walls and closed doors; every projectile
-## strikes the creature it reaches; a wisp stops and hovers at a wall or after
-## Spell.RANGE tiles, chasing or not, and flies no more; a piercing one goes on
-## through creatures and a wall (Elements.bore, pass_through).
-func _step(s: Shot) -> void:
-	if s.turn > 0:
-		s.dir = Homing.steer(self, s)
-		var t := actor(s.target)
-		if t != null and t.pos == s.pos and not s.spell.pierces():
-			s.gone = true
-			_strike(s, t)
-			return
-	var to := s.pos + s.dir
-	if s.spell.pierces() and Elements.bore(self, s, to):
-		to += s.dir
-	elif not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
-		if s.spell.orb:
-			var struck := tile(to)
-			_burst(s)
-			Terrain.smash(self, s, to, struck)
-		else:
-			Elements.land(self, s)
-		return
-	var a := actor_at(to)
-	if a != null:
-		_fly(s, to)
-		if s.spell.pierces():
-			s.gone = not Elements.pass_through(self, s, a)
-			return
-		s.gone = true
-		_strike(s, a)
-		return
-	var o := shot_at(to, s)
-	if o != null and not (s.spell.orb and o.spell.orb and s.caster == o.caster):
-		if s.spell.orb and o.spell.orb:
-			emit({t = &"clash", shot = s.id, other = o.id, at = to})
-			s.gone = true
-			o.gone = true
-			_changed()
-			return
-		if s.spell.orb:
-			o.gone = true
-			emit({t = &"snuff", shot = o.id, at = to})
-		elif o.spell.orb:
-			Elements.land(self, s)
-			return
-	_fly(s, to)
-	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
-		Elements.land(self, s)
-	elif not s.gone and Forge.lobbed(s.spell) and s.flown >= Forge.RANGE:
-		_burst(s)
-
-
-func _burst(s: Shot) -> void:
-	emit({t = &"burst", shot = s.id, at = s.pos, cards = s.spell.cards})
-	s.gone = true
-	_changed()
-	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
-	if s.spell.blasts():
-		Elements.splash(self, s, s.pos, null)
-	_effects(s, s.pos, s.pos + s.dir)
-
-
-## A thud happens wherever the spell ends; fire sets that tile alight and
-## relights the lanterns next to it, except the one an orb just struck, water
-## douses lanterns and flames, a wood orb grows a wall (Elements), and each
-## compound acts round where it ends (Compounds); 도약 brings Miho (Leap.swap).
-func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
-	if s.spell.has(Cards.EARTH):
-		noise(at, THUD, "쿵", true, s.caster)
-	if s.spell.has(Cards.FIRE):
-		ignite(at)
-	Terrain.touch(self, s, at, struck)
-	if s.spell.orb and s.spell.has(Cards.WOOD):
-		Elements.sprout(self, s, at)
-	Compounds.land(self, s, at)
-	s.dir = Vector2i.ZERO
-	Leap.swap(self, s, actor_at(at))
-
-
-func _strike(s: Shot, a: Actor) -> void:
-	var spell := s.spell
-	var at := a.pos
-	emit(
-		{
-			t = &"hit",
-			shot = s.id,
-			id = a.id,
-			at = at,
-			by = s.caster,
-			title = spell.title(),
-			cards = spell.cards,
-			spell = spell.tag()
-		}
-	)
-	noise(at, spell.burst_noise(), "쾅", true, s.caster)
-	var storey := depth
-	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))) or depth != storey:
-		return
-	if spell.blasts():
-		Elements.splash(self, s, at, a)
-	_effects(s, at)
-	if not spell.orb and not spell.gun():
-		Elements.stick(self, s, a)
-
-
-## Whether `s` rides a living creature, and so neither flies nor strikes again.
-func rides(s: Shot) -> bool:
-	var a := actor(s.host)
-	return a != null and a.alive()
-
-
-func hurt(a: Actor, n: int, weak := false) -> void:
-	if not a.alive() or Cheat.immune(self, a):
-		return
-	var shatter := Status.shatter(a)
-	n *= Status.SHATTER if shatter else 1
-	a.hp -= n
-	emit({t = &"hurt", id = a.id, n = n, hp = a.hp, at = a.pos, weak = weak, shatter = shatter})
-	Guise.hurt(self, a)
-	if a.alive():
-		if shatter:
-			emit({t = &"thaw", id = a.id, at = a.pos})
-		if a.faction == Actor.HEAVEN:
-			noise(a.pos, CRY, "끽", true, a.id)
-			Mind.hurt(a)
-		return
-	emit({t = &"die", id = a.id, at = a.pos, foe = a.faction == Actor.HEAVEN})
-	a.intent.clear()
-	_changed()
-	if a.is_miho():
-		outcome = &"lost"
-		emit({t = &"lost"})
-		return
-	Mind.forget(self, a)
-	if a.ally():
-		return
-	Notice.fallen(self, a)
-	tails = mini(max_tails(), tails + 1)
-	emit({t = &"soul", id = a.id, at = a.pos})
-	Scrolls.drop(self, a)
-
-
-## Sets p alight if it is flammable, or whatever it is when `force`d; a
-## `wildfire` always spreads. Water never burns.
-func ignite(p: Vector2i, force := false, wildfire := false) -> void:
-	Gas.light(self, p)
-	if (
-		(force or Tiles.burns[tile(p)] == 1)
-		and not burning.has(p)
-		and not Tiles.of(tile(p), "douses")
-	):
-		burning[p] = BURN_ROUNDS
-		if wildfire:
-			wild[p] = true
-		else:
-			wild.erase(p)
-		Scent.clear(self, p)
-		_changed()
-		emit({t = &"ignite", at = p})
-
-
-## One round of a spent tail growing back, counted before the action: the round
-## a tail is spent in does not count, and nothing counts while none is missing.
-func _regrow() -> void:
-	if tails >= max_tails():
-		regrow = 0
-		return
-	regrow += 1
-	if regrow >= TAIL_REGROW:
-		regrow = 0
-		tails += TAIL_REGROWN
-
-
-func _end_round() -> void:
-	Drums.dry(self)
-	flares.clear()
-	for a in actors:
-		if a.alive():
-			a.cooldown = maxi(0, a.cooldown - 1)
-			Status.lapse(self, a, &"rooted")
-			Status.lapse(self, a, &"blind")
-			a.wary = maxi(0, a.wary - 1)
-			a.grudge = maxi(0, a.grudge - 1)
-	pungent = maxi(0, pungent - 1)
-	Jars.arrive(self, player())
-	for s in shots:
-		if not s.gone and s.life > 0:
-			s.life -= 1
-			if s.life == 0:
-				s.gone = true
-				emit({t = &"fade", shot = s.id, at = s.pos})
-				Elements.fade(self, s)
-	_prune()
-	round_no += 1
-	Curse.tick(self)
-
-
-func _prune() -> void:
-	var before := shots.size() + actors.size()
-	shots.assign(shots.filter(func(s): return not s.gone))
-	actors.assign(actors.filter(func(a): return a.alive() or a.is_miho()))
-	if shots.size() + actors.size() != before:
-		_changed()
-
-
-func _ascend() -> void:
-	var party := Storeys.followers(self)
-	Storeys.leave(self)
-	Storeys.enter(self, depth + 1)
-	Storeys.bring(self, party)
-	regrow = 0
-	tails = max_tails()
-	_changed()
-	emit({t = &"ascend", depth = depth})
-	var me := player()
-	if me.hp < me.max_hp:
-		me.hp += HEAL
-		emit({t = &"heal", id = me.id, hp = me.hp})
-	sense()

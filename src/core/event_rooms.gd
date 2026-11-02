@@ -85,7 +85,7 @@ static func doorways(w: World, r: Rect2i) -> Array[Vector2i]:
 	return out.filter(func(p): return w.open_floor(p) or w.secrets.has(p))
 
 
-## Miho has come onto her tile (World.arrive).
+## Miho has come onto her tile (Walk.arrive).
 static func arrive(w: World, me: Actor) -> void:
 	Yard.arrive(w, me)
 	Library.arrive(w, me)

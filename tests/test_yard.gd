@@ -88,7 +88,7 @@ func test_some_storeys_have_a_yard_with_a_guard_and_a_stand_in_a_room_of_their_o
 			found += 1
 			assert_eq(w.sites.size() + w.seals.size(), 1, "one event room: " + _label(w))
 			assert_eq(w.tile(site.at), World.TALISMAN)
-			var guards := w.actors.filter(func(a): return a.guard)
+			var guards := w.actors.filter(func(a): return a.brain.guard)
 			assert_eq(guards.size(), 1, _label(w))
 			assert_eq(guards[0].kind, &"jangseung")
 			assert_eq(Grid.cheb(guards[0].pos, site.at), 1, "by the stand")
@@ -114,7 +114,7 @@ func test_make_lays_the_guard_the_stand_the_pillars_and_the_grove_far_from_the_d
 	var w := _yard()
 	assert_eq(w.sites, [{kind = &"yard", at = STAND, card = Cards.WATER}])
 	assert_eq(_guard(w).kind, &"jangseung")
-	assert_true(_guard(w).guard)
+	assert_true(_guard(w).brain.guard)
 	assert_eq(w.tile(STAND), World.TALISMAN)
 	for dy in [-1, 1]:
 		assert_eq(w.tile(GUARD + Vector2i(-Yard.PILLARS, dy)), World.PILLAR)
@@ -154,7 +154,7 @@ func test_a_room_with_sky_where_any_part_of_the_yard_would_lie_is_refused() -> v
 func test_the_storeys_that_laid_a_yard_over_the_sky_keep_their_guard_on_the_ground() -> void:
 	var guards := 0
 	for w in _storeys:
-		for a in w.actors.filter(func(a): return a.guard):
+		for a in w.actors.filter(func(a): return a.brain.guard):
 			guards += 1
 			assert_true(w.open_floor(a.pos), _label(w))
 	assert_gte(guards, YARDS)
@@ -176,7 +176,7 @@ func test_the_guard_never_sleeps_and_sees_whoever_walks_into_the_lit_yard() -> v
 	w.sense()
 	assert_eq(w.view_of(guard)[Grid.index(me.pos)], 1, "in the open")
 	w.act(WAIT)
-	assert_eq(guard.alert, Actor.HUNT)
+	assert_eq(guard.brain.alert, Actor.HUNT)
 
 
 func test_bamboo_and_the_shade_of_a_pillar_hide_miho_from_the_guard() -> void:
@@ -194,7 +194,7 @@ func test_bamboo_and_the_shade_of_a_pillar_hide_miho_from_the_guard() -> void:
 func test_a_clone_keeps_the_guard_awake() -> void:
 	var w := _yard()
 	var c := w.clone()
-	assert_true(c.actor(_guard(w).id).guard)
+	assert_true(c.actor(_guard(w).id).brain.guard)
 	assert_false(c.actor(_guard(w).id).asleep())
 
 

@@ -31,7 +31,7 @@ func _world(depth := 2) -> World:
 
 func _foe(w: World, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -54,19 +54,19 @@ func test_the_alarm_plate_sends_every_resting_creature_to_search_it() -> void:
 	var far := _foe(w, Vector2i(50, 24))
 	var near := _foe(w, Vector2i(10, 20))
 	var hunter := _foe(w, Vector2i(30, 4))
-	hunter.alert = Actor.HUNT
-	hunter.target = Vector2i(2, 2)
+	hunter.brain.alert = Actor.HUNT
+	hunter.brain.target = Vector2i(2, 2)
 	var deaf := _foe(w, Vector2i(40, 20), &"jangseung")
 	var events := w.act({t = &"move", dir = E})
 	var gong := events.filter(func(e): return e.t == &"noise" and e.word == Traps.GONG)
 	assert_eq(gong.size(), 1)
 	assert_eq(gong[0].loud, Drums.LOUD, "the whole storey")
 	for a in [far, near]:
-		assert_eq(a.alert, Actor.SEARCH)
-		assert_eq(a.target, PLATE)
-	assert_eq(hunter.alert, Actor.HUNT, "a hunter keeps hunting")
-	assert_eq(hunter.target, Vector2i(2, 2))
-	assert_eq(deaf.alert, Actor.REST, "a deaf creature does not hear")
+		assert_eq(a.brain.alert, Actor.SEARCH)
+		assert_eq(a.brain.target, PLATE)
+	assert_eq(hunter.brain.alert, Actor.HUNT, "a hunter keeps hunting")
+	assert_eq(hunter.brain.target, Vector2i(2, 2))
+	assert_eq(deaf.brain.alert, Actor.REST, "a deaf creature does not hear")
 
 
 func test_the_alarm_plate_goes_off_again_for_every_step() -> void:
@@ -86,9 +86,9 @@ func test_a_creature_pushed_onto_the_alarm_plate_rings_it_for_the_others() -> vo
 	var other := _foe(w, Vector2i(40, 20))
 	w.push(pushed, E, 1)
 	assert_eq(pushed.pos, PLATE)
-	assert_eq(other.alert, Actor.SEARCH)
-	assert_eq(other.target, PLATE)
-	assert_ne(pushed.alert, Actor.SEARCH, "not the one that rang it")
+	assert_eq(other.brain.alert, Actor.SEARCH)
+	assert_eq(other.brain.target, PLATE)
+	assert_ne(pushed.brain.alert, Actor.SEARCH, "not the one that rang it")
 
 
 ## Keeps the hall as the storey below, as if Miho had climbed from it.
@@ -225,9 +225,9 @@ func test_the_vine_plate_roots_everyone_in_the_three_by_three_for_the_set_rounds
 	var beside := _foe(w, PLATE + Vector2i(1, 1))
 	var apart := _foe(w, PLATE + Vector2i(2, 0), &"jangseung")
 	var events := w.act({t = &"move", dir = E})
-	assert_eq(w.player().rooted, Traps.ROOT_ROUNDS - 1, "one round of it has passed")
-	assert_eq(beside.rooted, Traps.ROOT_ROUNDS - 1)
-	assert_eq(apart.rooted, 0, "two tiles from the plate")
+	assert_eq(w.player().ailments.rooted, Traps.ROOT_ROUNDS - 1, "one round of it has passed")
+	assert_eq(beside.ailments.rooted, Traps.ROOT_ROUNDS - 1)
+	assert_eq(apart.ailments.rooted, 0, "two tiles from the plate")
 	assert_eq(events.filter(func(e): return e.t == &"root").size(), 2)
 	assert_false(w.can({t = &"move", dir = E}), "she cannot step")
 	var rounds := 0
@@ -243,9 +243,9 @@ func test_a_creature_pushed_onto_the_vine_plate_roots_itself_and_its_neighbours(
 	var foe := _foe(w, PLATE - E)
 	var next_to := _foe(w, PLATE + Vector2i(0, -1))
 	w.push(foe, E, 1)
-	assert_eq(foe.rooted, Traps.ROOT_ROUNDS)
-	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
-	assert_eq(w.player().rooted, 0)
+	assert_eq(foe.ailments.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(next_to.ailments.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(w.player().ailments.rooted, 0)
 
 
 # --- who walks onto them ------------------------------------------------------
@@ -263,7 +263,7 @@ func test_a_hunter_crosses_a_plate_that_is_the_only_way_and_sets_it_off() -> voi
 	_walled_column(w, 9, 8)
 	_plate(w, Vector2i(9, 8), World.TRAP_ALARM)
 	var foe := _foe(w, Vector2i(14, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	var gongs := 0
 	for i in 8:
 		gongs += w.act(WAIT).filter(func(e): return e.t == &"trap" and e.id == foe.id).size()
@@ -276,11 +276,11 @@ func test_a_hunter_does_not_step_aside_for_a_plate_on_its_straight_line() -> voi
 	for y in range(6, 11):
 		_plate(w, Vector2i(8, y), World.TRAP_VINE)
 	var foe := _foe(w, Vector2i(10, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	w.act(WAIT)
 	w.act(WAIT)
 	assert_true(w.traps.has(foe.pos), "at %s" % foe.pos)
-	assert_gt(foe.rooted, 0, "its own vines hold it")
+	assert_gt(foe.ailments.rooted, 0, "its own vines hold it")
 
 
 func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() -> void:
@@ -288,11 +288,11 @@ func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() ->
 	_walled_column(w, 9, 8)
 	_plate(w, Vector2i(9, 8), World.TRAP_COLLAPSE)
 	var foe := _foe(w, Vector2i(11, 8))
-	w.hunt_from(foe, w.player().pos)
+	Mind.hunt_from(w, foe, w.player().pos)
 	for i in 4:
 		w.act(WAIT)
 	assert_false(foe.alive())
-	assert_eq(w.player().prey, foe.kind, "a fall gives what a kill does")
+	assert_eq(w.player().buffs.prey, foe.kind, "a fall gives what a kill does")
 
 
 func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:
@@ -300,8 +300,8 @@ func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:
 	w.player().pos = Vector2i(2, 20)
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var foe := _foe(w, Vector2i(14, 8))
-	foe.alert = Actor.SEARCH
-	foe.target = PLATE
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = PLATE
 	var nearest := 99
 	for i in 12:
 		w.act(WAIT)
@@ -315,7 +315,7 @@ func test_the_searchers_an_alarm_plate_calls_do_not_ring_it_again() -> void:
 	w.player().pos = Vector2i(2, 20)
 	_plate(w, PLATE, World.TRAP_ALARM)
 	var foes := [_foe(w, PLATE + Vector2i(6, 0)), _foe(w, PLATE + Vector2i(0, 6))]
-	w.noise(PLATE, Drums.LOUD, Traps.GONG, true, 0)
+	Hearing.noise(w, PLATE, Drums.LOUD, Traps.GONG, true, 0)
 	for i in 20:
 		assert_false(w.act(WAIT).any(func(e): return e.t == &"trap"), "round %d" % i)
 	assert_eq(foes.filter(func(a): return Grid.cheb(a.pos, PLATE) <= 2).size(), 2, "they came")
@@ -326,7 +326,7 @@ func test_an_ally_on_the_hunt_walks_round_a_plate() -> void:
 	_plate(w, PLATE, World.TRAP_FIRE)
 	var friend := _foe(w, PLATE - E)
 	friend.faction = Actor.FOX
-	friend.alert = Actor.HUNT
+	friend.brain.alert = Actor.HUNT
 	assert_true(Traps.bars(w, friend, PLATE))
 	friend.faction = Actor.HEAVEN
 	assert_false(Traps.bars(w, friend, PLATE))
@@ -344,14 +344,14 @@ func _trail(w: World) -> Actor:
 func test_a_trail_of_scent_leads_a_hunter_onto_a_plate() -> void:
 	var w := _world()
 	var foe := _trail(w)
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	assert_eq(Scent.next(w, foe), PLATE + E)
 
 
 func test_a_trail_of_scent_does_not_lead_a_searcher_onto_a_plate() -> void:
 	var w := _world()
 	var foe := _trail(w)
-	foe.alert = Actor.SEARCH
+	foe.brain.alert = Actor.SEARCH
 	assert_eq(Scent.next(w, foe), PLATE, "the trail goes over the plate, so it stays")
 
 
@@ -360,14 +360,14 @@ func test_a_trail_of_scent_does_not_lead_a_searcher_onto_a_plate() -> void:
 
 ## What Miho hurled from (4, 8) east, an orb unless `cards` says otherwise.
 func _shot(w: World, cards := [Cards.ORB]) -> Shot:
-	return w._spawn(w.player(), Spell.make(cards), E, 0)
+	return Flight.spawn(w, w.player(), Spell.make(cards), E, 0)
 
 
 func _fly_on(w: World, s: Shot, tiles: int) -> Array:
 	var from := w.events.size()
 	for i in tiles:
 		if not s.gone:
-			w._step(s)
+			Flight.step(w, s)
 	return w.events.slice(from)
 
 
@@ -377,8 +377,8 @@ func test_an_orb_over_an_alarm_plate_calls_the_storey() -> void:
 	var far := _foe(w, Vector2i(50, 24))
 	var events := _fly_on(w, _shot(w), 3)
 	assert_eq(_types(events).count(&"trap"), 1)
-	assert_eq(far.alert, Actor.SEARCH)
-	assert_eq(far.target, PLATE)
+	assert_eq(far.brain.alert, Actor.SEARCH)
+	assert_eq(far.brain.target, PLATE)
 	assert_true(events.any(func(e): return e.t == &"noise" and e.word == Traps.GONG and e.heard))
 
 
@@ -387,9 +387,9 @@ func test_a_shot_of_heaven_sets_a_plate_off_too() -> void:
 	_plate(w, PLATE, World.TRAP_VINE)
 	var foe := _foe(w, PLATE - E - E)
 	var next_to := _foe(w, PLATE + Vector2i(0, 1))
-	var s := w._spawn(foe, Spell.make([Cards.ORB]), E, 0)
+	var s := Flight.spawn(w, foe, Spell.make([Cards.ORB]), E, 0)
 	_fly_on(w, s, 2)
-	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
+	assert_eq(next_to.ailments.rooted, Traps.ROOT_ROUNDS)
 	assert_false(s.gone, "it flies on")
 
 
@@ -416,7 +416,7 @@ func test_a_shot_falls_through_a_collapsing_floor_and_does_not_burst() -> void:
 func test_a_wisp_at_the_end_of_its_range_does_not_land_after_falling() -> void:
 	var w := _world()
 	var spell := Spell.make([Cards.FOX])
-	var s := w._spawn(w.player(), spell, E, 0)
+	var s := Flight.spawn(w, w.player(), spell, E, 0)
 	s.flown = Spell.RANGE - 1
 	_plate(w, s.pos + E, World.TRAP_COLLAPSE)
 	assert_false(_types(_fly_on(w, s, 1)).has(&"land"))
