@@ -53,3 +53,14 @@ func test_fire_is_heard_up_to_ten_tiles() -> void:
 	assert_eq(Sfx.nearest_fire(w), NONE, "eleven tiles away")
 	_burn(w, ME + Vector2i(Sfx.FIRE_RANGE, 0))
 	assert_eq(Sfx.nearest_fire(w), ME + Vector2i(Sfx.FIRE_RANGE, 0), "ten tiles away")
+
+
+func test_when_a_track_ends_the_next_plays_and_all_come_round() -> void:
+	var sfx := Sfx.new()
+	add_child_autofree(sfx)
+	var heard := {}
+	for i in Sfx.MUSIC.size():
+		assert_not_null(sfx._music.stream, "a track plays")
+		heard[sfx._music.stream.resource_path] = true
+		sfx._music.finished.emit()
+	assert_eq(heard.size(), Sfx.MUSIC.size())

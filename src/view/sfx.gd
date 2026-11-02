@@ -2,10 +2,15 @@ class_name Sfx
 extends Node2D
 ## Plays a sound for each event the screen shows, from where it happens, so a
 ## noise heard in the dark comes from its side and fades with distance. The
-## music loops under them from the start, at its own volume.
+## music's tracks follow one another under them, at their own volume.
 
 const DIR := "res://assets/sfx/%s.ogg"
-const MUSIC := "res://assets/music/ambient.ogg"
+const MUSIC := [
+	"res://assets/music/ambient.ogg",
+	"res://assets/music/bell.ogg",
+	"res://assets/music/bow.ogg",
+	"res://assets/music/drum.ogg",
+]
 ## Music level at full music volume, against the sound effects.
 const MUSIC_DB := 0.0
 const FIRE := "res://assets/sfx/fire_loop.ogg"
@@ -212,12 +217,12 @@ const WORDS := {
 
 ## Every stream is read once for the whole run, not once per Sfx.
 static var _streams := {}
-static var _music_stream: AudioStream
 static var _fire_stream: AudioStream
 
 var listener: AudioListener2D
 var _flat := {}
 var _music: AudioStreamPlayer
+var _track := randi() % MUSIC.size()
 var _fire: AudioStreamPlayer2D
 var _fade: Tween
 var _lit := false
@@ -231,13 +236,14 @@ func _ready() -> void:
 		for n in NAMES:
 			if ResourceLoader.exists(DIR % n):
 				_streams[n] = load(DIR % n)
-		_music_stream = load(MUSIC) if ResourceLoader.exists(MUSIC) else null
+		for track: String in MUSIC:
+			if ResourceLoader.exists(track):
+				_streams[track] = load(track)
 		_fire_stream = load(FIRE) if ResourceLoader.exists(FIRE) else null
-	if _music_stream != null:
-		_music = AudioStreamPlayer.new()
-		_music.stream = _music_stream
-		add_child(_music)
-		_music.play()
+	_music = AudioStreamPlayer.new()
+	_music.finished.connect(_next_track)
+	add_child(_music)
+	_next_track()
 	if _fire_stream != null:
 		_fire = AudioStreamPlayer2D.new()
 		_fire.stream = _fire_stream
@@ -246,10 +252,15 @@ func _ready() -> void:
 		add_child(_fire)
 
 
+func _next_track() -> void:
+	_track = (_track + 1) % MUSIC.size()
+	_music.stream = _streams.get(MUSIC[_track])
+	_music.play()
+
+
 ## Sets the music volume, 0-100; silent at 0.
 func set_music(volume: int) -> void:
-	if _music != null:
-		_music.volume_db = maxf(linear_to_db(volume / 100.0) + MUSIC_DB, -80.0)
+	_music.volume_db = maxf(linear_to_db(volume / 100.0) + MUSIC_DB, -80.0)
 
 
 ## The burning tile Miho sees nearest, within FIRE_RANGE, or (-1, -1).
