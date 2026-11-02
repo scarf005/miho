@@ -89,8 +89,16 @@ func test_options_step_and_wrap() -> void:
 		seen.append(menu.settings.zoom)
 	assert_eq(seen, [1.0, 1.25, 1.5, 0.0])
 	_select(menu, &"crt")
+	assert_eq(menu.settings.crt, 50)
 	menu.key(_press("Right"))
-	assert_false(menu.settings.crt)
+	assert_eq(menu.settings.crt, 60)
+	for i in 12:
+		menu.key(_press("Left"))
+	assert_eq(menu.settings.crt, 0, "stops at 0")
+	var crt: Array = menu.panel().rows[Menu.OPTIONS.find(&"crt")]
+	assert_eq(crt[1][0], "꺼짐", "no effect is shown where the strength is set")
+	menu.key(_press("Right"))
+	assert_eq(menu.panel().rows[Menu.OPTIONS.find(&"crt")][1][0], "10")
 	_select(menu, &"restart")
 	menu.use()
 	assert_eq(menu.use(), &"restart")

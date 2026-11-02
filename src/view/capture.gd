@@ -28,6 +28,7 @@ extends Node
 ## --replay=seconds also saves out-replay.png that long into the first
 ## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
 ## --lang=en shows English (Korean otherwise).
+## --crt=n sets the CRT strength, 0-100 (50 by default).
 ## Runs start from default settings and keys, and never save them. They keep no
 ## run either, unless --save=path names a file (a title that offers to continue
 ## it takes Enter, not any key, to start).
@@ -61,6 +62,7 @@ static func attach(main: Node) -> void:
 	main.settings.path = ""
 	main.settings.zoom = float(args.get("zoom", "0"))
 	main.settings.language = args.get("lang", "ko")
+	main.settings.crt = clampi(int(args.get("crt", str(Crt.MIDDLE))), 0, 100)
 	Keys.reset()
 	main._apply()
 	var c := Capture.new()
@@ -250,4 +252,5 @@ static func _press(k: String, pressed: bool, echo: bool) -> void:
 ## Where a point in the term's space shows on the screen, as a pointer finds it.
 func _screen(local: Vector2) -> Vector2:
 	var drawn: Vector2 = main.term.get_global_transform() * local
-	return Crt.seen(drawn, get_viewport().get_visible_rect().size) if main.glass.visible else drawn
+	var view := get_viewport().get_visible_rect().size
+	return Crt.seen(drawn, view, main.settings.crt) if main.glass.visible else drawn

@@ -379,7 +379,7 @@ func test_a_tap_on_a_row_of_the_options_acts_on_it_and_a_row_is_at_least_44_css_
 	m._open(&"options")
 	var apart: float = PanelView.stride * Term.CELL.y * m.term.scale.y / m.touch.dpr
 	assert_gte(apart, TARGET)
-	var before: bool = m.settings.crt
+	var before: int = m.settings.crt
 	m.menu.selected = 0
 	_finger(m, _rows(m, Menu.OPTIONS.find(&"crt")))
 	assert_ne(m.settings.crt, before)

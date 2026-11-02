@@ -388,7 +388,7 @@ func _change(step: int) -> StringName:
 		&"music":
 			settings.music = clampi(settings.music + step * 10, 0, 100)
 		&"crt":
-			settings.crt = not settings.crt
+			settings.crt = clampi(settings.crt + step * 10, 0, 100)
 		&"zoom":
 			settings.zoom = _cycle(Settings.ZOOMS, settings.zoom, step)
 		&"speed":
@@ -477,7 +477,7 @@ func _options() -> Array:
 	var values := {
 		&"volume": str(settings.volume) if settings.volume > 0 else Lang.t("꺼짐"),
 		&"music": str(settings.music) if settings.music > 0 else Lang.t("꺼짐"),
-		&"crt": _on(settings.crt),
+		&"crt": str(settings.crt) if settings.crt > 0 else Lang.t("꺼짐"),
 		&"zoom": Lang.t("맞춤") if settings.zoom == 0.0 else str(settings.zoom),
 		&"language": Lang.NAMES[StringName(settings.language)],
 		&"speed": "%dx" % int(settings.speed),
