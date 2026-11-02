@@ -26,7 +26,7 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 	Terrain.crumble(w, a, from)
 	Terrain.trample(w, to)
 	Compounds.step(w, a, to)
-	Traps.step(w, a, Grid.line_dir(from, to))
+	Traps.enter(w, a, Grid.line_dir(from, to))
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,

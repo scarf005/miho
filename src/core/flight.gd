@@ -55,7 +55,7 @@ static func fly(w: World, s: Shot, to: Vector2i) -> void:
 	if s.spell.has(Cards.FIRE):
 		Terrain.ignite(w, to)
 	if w.actor_at(to) == null:
-		Traps.fly(w, s)
+		Traps.enter(w, s, s.dir)
 
 
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile

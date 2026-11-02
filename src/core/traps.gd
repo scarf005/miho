@@ -83,32 +83,40 @@ static func bars(w: World, a: Actor, p: Vector2i) -> bool:
 	return w.traps.has(p) and (a.ally() or a.alert != Actor.HUNT)
 
 
-## `a` has stepped onto `a.pos` moving along `dir`: a plate there goes off.
-static func step(w: World, a: Actor, dir: Vector2i) -> void:
-	var kind: int = w.traps.get(a.pos, -1)
+## `e` has come onto `e.pos` moving along `dir`: a plate there goes off. A projectile
+## is only asked with nobody on the tile. Its gong is heard by Miho whoever cast it,
+## for she did not press it herself.
+static func enter(w: World, e: Entity, dir: Vector2i) -> void:
+	var kind: int = w.traps.get(e.pos, -1)
 	if kind < 0:
 		return
-	w.emit({t = &"trap", id = a.id, at = a.pos, kind = kind, depth = w.depth})
-	if kind == World.TRAP_COLLAPSE:
-		Fall.drop(w, a, a.pos)
+	w.emit(_trap_event(w, e, kind))
+	if kind != World.TRAP_COLLAPSE:
+		_go_off(w, kind, e.pos, dir, 0 if e is Shot else e.id)
+	elif e is Shot:
+		_drop(w, e)
 	else:
-		_go_off(w, kind, a.pos, dir, a.id)
+		Fall.drop(w, e, e.pos)
 
 
-## `s` has flown onto `s.pos`, with nobody on it: a plate there goes off. Its gong is
-## heard by Miho whoever cast it, for she did not press it herself.
-static func fly(w: World, s: Shot) -> void:
-	var kind: int = w.traps.get(s.pos, -1)
-	if kind < 0:
-		return
-	var spell := s.spell.tag()
-	w.emit({t = &"trap", shot = s.id, spell = spell, at = s.pos, kind = kind, depth = w.depth})
-	if kind == World.TRAP_COLLAPSE:
-		s.gone = true
-		w.emit({t = &"fade", shot = s.id, at = s.pos, dropped = true, spell = spell})
-		w._changed()
-	else:
-		_go_off(w, kind, s.pos, s.dir, 0)
+static func _trap_event(w: World, e: Entity, kind: int) -> Dictionary:
+	if e is Shot:
+		return {
+			t = &"trap",
+			shot = e.id,
+			spell = e.spell.tag(),
+			at = e.pos,
+			kind = kind,
+			depth = w.depth
+		}
+	return {t = &"trap", id = e.id, at = e.pos, kind = kind, depth = w.depth}
+
+
+## A projectile over a collapsing floor falls out of play.
+static func _drop(w: World, s: Shot) -> void:
+	s.gone = true
+	w.emit({t = &"fade", shot = s.id, at = s.pos, dropped = true, spell = s.spell.tag()})
+	w._changed()
 
 
 static func _go_off(w: World, kind: int, at: Vector2i, dir: Vector2i, by: int) -> void:
