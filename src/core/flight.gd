@@ -7,13 +7,7 @@ extends RefCounted
 
 
 static func spawn(w: World, caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
-	var s := Shot.new()
-	s.id = w.new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = spell
-	s.pos = caster.pos
-	s.origin = caster.pos
+	var s := Shot.of(w, caster, spell)
 	s.dir = dir
 	s.life = spell.life()
 	s.target = target

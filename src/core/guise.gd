@@ -196,13 +196,8 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	for old in shadows(w, caster):
 		old.gone = true
 		w.emit({t = &"fade", shot = old.id, at = old.pos})
-	var s := Shot.new()
-	s.id = w.new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = dark(spell)
+	var s := Shot.of(w, caster, dark(spell))
 	s.spell.called = NAME[SHADOW]
-	s.origin = caster.pos
 	w.shots.append(s)
 	Elements.stick(w, s, caster)
 	s.life = 0

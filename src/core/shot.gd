@@ -27,6 +27,18 @@ func _init() -> void:
 	faction = FOX
 
 
+## A new shot of `spell` on the tile of `caster`, with a new id; not yet in `w.shots`.
+static func of(w: World, caster: Actor, spell: Spell) -> Shot:
+	var s := Shot.new()
+	s.id = w.new_id()
+	s.faction = caster.faction
+	s.caster = caster.id
+	s.spell = spell
+	s.pos = caster.pos
+	s.origin = caster.pos
+	return s
+
+
 ## Tiles between the caster and this shot, which sets orb damage.
 func distance() -> int:
 	return Grid.cheb(origin, pos)
