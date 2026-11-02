@@ -247,3 +247,20 @@ func test_the_keys_page_wraps_and_a_click_selects_a_row_without_binding() -> voi
 	assert_true(menu.waiting)
 	assert_eq(menu.click(4, -1), &"", "a click while a key is awaited does nothing")
 	assert_eq(menu.selected, 2)
+
+
+func test_a_click_lowers_a_full_slider_to_nothing() -> void:
+	var menu := _options()
+	for option: StringName in [&"volume", &"music", &"crt"]:
+		menu.settings.set(option, 90)
+		var row := Menu.OPTIONS.find(option)
+		assert_eq(menu.click(row, -1), &"changed", option)
+		assert_eq(menu.settings.get(option), 100, option)
+		menu.click(row, -1)
+		assert_eq(menu.settings.get(option), 0, "%s goes round" % option)
+		menu.click(row, -1)
+		assert_eq(menu.settings.get(option), 10, option)
+	_select(menu, &"crt")
+	menu.settings.crt = 100
+	menu.key(_press("Right"))
+	assert_eq(menu.settings.crt, 100, "the Right key stops at the top")

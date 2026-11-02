@@ -220,3 +220,21 @@ func test_a_count_of_one_reads_in_the_singular() -> void:
 	assert_eq(Lang.singular("Fall: 1 floors, 1 more times"), "Fall: 1 floor, 1 more time")
 	Lang.use(&"ko")
 	assert_eq(Lang.singular("1 tiles"), "1 tiles")
+
+
+func test_the_log_page_follows_a_language_chosen_in_the_same_menu() -> void:
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	add_child_autofree(m)
+	m.settings.path = ""
+	m.settings.language = "ko"
+	m._apply()
+	m.messages.add_round(World.create(7), World.create(7), [{t = &"ascend", depth = 2}])
+	m._open(&"options")
+	m.menu.selected = Menu.OPTIONS.find(&"language")
+	var right := Keys.event("Right")
+	right.pressed = true
+	m._panel_input(right)
+	assert_eq(m.settings.language, "en")
+	m.menu.page = &"log"
+	assert_eq(Messages.plain(m.menu.panel().rows[0]), "Climbed to Floor 2")
