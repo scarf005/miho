@@ -73,3 +73,4 @@ Passing tests and lint do not prove a lane is done. Before merging a lane that c
 2. Drive the changed UI with `just shot ... --keys=...` and look at the frames.
 3. Check that each new event maps to a sound.
 4. Fix the whole class of a reported defect, not only the quoted line.
+5. After the merge, run `just launch-check` from the main checkout, the one the user plays from. A frame or a test run in a lane worktree does not prove that checkout starts. User: "설마 게임 실행이 되는지조차 확인 안하고 커밋한건 아니겠지".
