@@ -162,13 +162,7 @@ static func _word(spell: Spell) -> String:
 
 ## `caster` sprays `spell` along `dir`.
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	var s := Shot.new()
-	s.id = w.new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = spell
-	s.pos = caster.pos
-	s.origin = caster.pos
+	var s := Shot.of(w, caster, spell)
 	var level := spell.level()
 	var lead := spell.slots[0]
 	# A quake and roots go every way: struck creatures cannot tell a line.
