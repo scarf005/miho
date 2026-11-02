@@ -183,6 +183,34 @@ bench: rust
     {{ godot }} --headless --path . -s tools/bench_codex.gd
     {{ godot }} --headless --path . -s tools/bench_example.gd
 
+# Replay the saved runs of tools/oracle/ and compare their hashes with tools/oracle.expected; exits 1 on any difference.
+oracle: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    mkdir -p build
+    {{ godot }} --headless --path . -s tools/oracle.gd > build/oracle.log 2>&1
+    status=$?
+    rg -x '[0-9a-z-]+ [0-9a-f]{64}' build/oracle.log > build/oracle.out
+    if [ "$status" -ne 0 ] || rg -q 'SCRIPT ERROR' build/oracle.log; then
+        rg -v '^(Initialize godot-rust|Godot Engine|[0-9a-z-]+ [0-9a-f]{64}$)' build/oracle.log >&2
+        diff tools/oracle.expected build/oracle.out
+        exit 1
+    fi
+    diff tools/oracle.expected build/oracle.out || exit 1
+    echo "oracle ok: $(tail -n 1 build/oracle.out)"
+
+# Play the bot again, write tools/oracle/*.cfg and tools/oracle.expected, and print what the runs cover; only for a change of rules on purpose.
+oracle-record: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    {{ godot }} --headless --path . -s tools/oracle.gd -- --record | rg -v '^(Initialize godot-rust|Godot Engine)'
+
+# Print the oracle hash of one save file that is not in the set; exits 1 for a save of another version.
+oracle-save path: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    {{ godot }} --headless --path . -s tools/oracle.gd -- --save={{ path }} | rg -v '^(Initialize godot-rust|Godot Engine)'
+
 # Time one read and one clone of 40 creatures in each storage shape of docs/plan-ecs.md.
 bench-storage: rust import
     {{ godot }} --headless --path . -s tools/bench_storage.gd
