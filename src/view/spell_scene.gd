@@ -25,7 +25,7 @@ static var _plans := {}
 ## The example of the spell of `cards`: data only, so that a list of entries costs nothing; it
 ## is planned when it is played (`ready`).
 static func of(cards: Array) -> Dictionary:
-	return {key = &"", spell = cards}
+	return {key = &"", spell = cards.duplicate()}
 
 
 ## The example of a talisman `c` held 1 to Spell.MAX_SLOTS times over, one after the other.
