@@ -49,6 +49,7 @@ func _main(touch := true) -> Node:
 	add_child_autofree(m)
 	m._new_run(3)
 	m.state = &"play"
+	m.term.speed = 1000.0
 	m.world = _hall()
 	m.settings.spells = {}
 	m.settings.path = ""

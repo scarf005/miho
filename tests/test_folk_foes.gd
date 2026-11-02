@@ -8,6 +8,12 @@ const E := Vector2i(1, 0)
 const FIRST := {&"gangcheori": 5, &"eodeopsini": 6, &"dueoksini": 7}
 
 
+func before_all() -> void:
+	for depth in range(1, World.FLOORS + 1):
+		for seed in 4:
+			Built.storey(seed, depth)
+
+
 ## An open hall, Miho at ME by a lantern, on storey `depth`.
 func _world(depth := 7) -> World:
 	var w := World.new()

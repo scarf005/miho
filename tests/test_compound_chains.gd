@@ -357,19 +357,31 @@ func test_a_wisp_that_stops_at_a_wall_still_knows_its_line() -> void:
 
 
 func test_a_compound_preview_equals_the_round() -> void:
-	_preview_equals_round([])
+	_preview_equals_round([], NEW)
+
+
+func test_a_high_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([], HIGH)
 
 
 func test_a_fox_compound_preview_equals_the_round() -> void:
-	_preview_equals_round([FOX])
+	_preview_equals_round([FOX], NEW)
+
+
+func test_a_high_fox_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([FOX], HIGH)
 
 
 func test_an_orb_compound_preview_equals_the_round() -> void:
-	_preview_equals_round([ORB])
+	_preview_equals_round([ORB], NEW)
 
 
-func _preview_equals_round(form: Array) -> void:
-	for c: StringName in NEW + HIGH:
+func test_a_high_orb_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([ORB], HIGH)
+
+
+func _preview_equals_round(form: Array, compounds: Array) -> void:
+	for c: StringName in compounds:
 		for dir: Vector2i in [E, W, SE]:
 			var w := _world()
 			for x in range(2, Grid.W - 2, 3):
