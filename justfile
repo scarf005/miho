@@ -181,6 +181,10 @@ i18n-check: rust
     rg -v '^(Initialize godot-rust|Godot Engine)' <<<"$out" || true
     exit "$status"
 
+# Print, per storey, how many of N builds place a creature of a kind: just placed mulgwisin 50
+placed kind seeds="50": rust
+    {{ godot }} --headless --path . -s tools/placed.gd -- {{ kind }} {{ seeds }} | rg '^storey'
+
 # Print how often each event room appears and can be opened over N seeds x 9 storeys.
 event-rooms seeds="200": rust
     {{ godot }} --headless --path . --import

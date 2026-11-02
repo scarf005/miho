@@ -3040,3 +3040,37 @@ msgstr "It ends when you change storeys, and the risen stay behind."
 
 msgid "이 층에 남는다."
 msgstr "Stays on this storey."
+
+msgid "물귀신"
+msgstr "Drowned Ghost"
+
+msgctxt "creature"
+msgid "물"
+msgstr "M"
+
+msgid "손아귀"
+msgstr "grip"
+
+msgid "잡혀"
+msgstr "seized"
+
+msgid "수중"
+msgstr "Aquatic"
+
+msgid "이동: %s"
+msgstr "Moves on: %s"
+
+msgid "끌어당김"
+msgstr "Drags"
+
+msgid "끌려갔다"
+msgstr "got dragged"
+
+msgid "서 있는 물이 없어지면 사라진다."
+msgstr "It vanishes when the water under it is gone."
+
+msgid "물 밖에서 맞으면 적 옆의 빈 %s 끌려간다."
+msgstr "Struck out of the water, you are dragged to a free %s beside it."
+
+msgid "풀린 뒤에야 다시 묶을 수 있다."
+msgstr "It can bind you again only once you are free."

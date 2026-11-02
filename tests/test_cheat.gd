@@ -179,8 +179,10 @@ func test_one_talisman_or_all_of_them_are_granted_once() -> void:
 
 func test_summon_stands_a_creature_of_that_kind_on_the_tile() -> void:
 	var w := _hall()
+	var at := Vector2i(10, 8)
+	w.tiles[Grid.index(at)] = World.SHALLOW
+	w._changed()
 	for kind in Codex.foes():
-		var at := Vector2i(10, 8)
 		_do(w, &"summon", {kind = kind, at = at})
 		assert_eq(w.actor_at(at).kind, kind)
 		assert_false(w.can({t = &"cheat", cmd = &"summon", kind = kind, at = at}), "occupied")

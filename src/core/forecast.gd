@@ -79,6 +79,7 @@ func read(round_events: Array[Dictionary]) -> void:
 				harm[e.id] = harm.get(e.id, 0) + e.n
 			&"die":
 				deaths[e.id] = true
+				noticed.erase(e.id)
 			&"notice":
 				noticed[e.id] = true
 			&"fall":

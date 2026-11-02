@@ -87,7 +87,7 @@ func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_once_seals_
 			assert_gt(dist[Grid.index(exit)], -1, "%s exit" % label)
 			for p in w.peaches:
 				assert_gt(dist[Grid.index(p)], -1, "%s peach" % label)
-			for a in w.actors:
+			for a in w.actors.filter(func(b): return not Bestiary.swims(b.kind)):
 				assert_gt(dist[Grid.index(a.pos)], -1, "%s creature" % label)
 	)
 

@@ -233,6 +233,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [_ill(after, id, "기절했다")])
 		&"push":
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["밀려났다", TEXT]])
+		&"pull":
+			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["끌려갔다", TEXT]])
 		&"leap":
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["멀리 뛰었다", TEXT]])
 		&"swap":

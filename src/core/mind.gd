@@ -59,6 +59,9 @@ static func heaven_phase(w: World) -> void:
 			return
 		if not a.alive() or a.is_miho() or not w.actors.has(a):
 			continue
+		if Bestiary.swims(a.kind) and Tiles.water[w.tile(a.pos)] != 1:
+			Fall.stranded(w, a)
+			continue
 		a.acted += 1
 		_regrow(a)
 		if a.stunned > 0:
@@ -393,8 +396,11 @@ static func _melee(w: World, a: Actor, target: Actor, melee: Dictionary) -> void
 	w.noise(target.pos, 3, "퍽", true, a.id)
 	w.hurt(target, melee.damage)
 	provoke(w, target, a)
-	if melee.get("root", 0) > 0 and target.alive():
+	var seizes: bool = melee.get("pull", false)
+	if melee.get("root", 0) > 0 and target.alive() and not (seizes and target.rooted > 0):
 		Elements.root(w, target, melee.root)
+		if seizes:
+			Fall.pull(w, target, a)
 	if melee.get("throw", 0) > 0 and target.alive():
 		w.push(target, target.pos - a.pos, melee.throw)
 
@@ -415,7 +421,7 @@ static func _charge(w: World, a: Actor, plans: Array[Dictionary]) -> bool:
 static func _chase(w: World, a: Actor) -> void:
 	var me := w.player()
 	match a.info().get("move", &"static"):
-		&"approach":
+		&"approach", &"water":
 			_step_to(w, a, me.pos, 1)
 		&"slow":
 			if a.acted % 2 == 0:
@@ -424,12 +430,19 @@ static func _chase(w: World, a: Actor) -> void:
 			_align(w, a, me)
 
 
-## Free tiles, never into fire, onto hot ground or onto a plate.
+## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground or onto a
+## plate.
 static func _walkable(w: World, a: Actor) -> Callable:
+	var ground := Bestiary.ground(a.kind)
 	return func(p):
 		return (
 			p == a.pos
-			or (w.vacant(p) and not w.burning.has(p) and not w.hot.has(p) and not w.traps.has(p))
+			or (
+				w.vacant(p, ground)
+				and not w.burning.has(p)
+				and not w.hot.has(p)
+				and not w.traps.has(p)
+			)
 		)
 
 

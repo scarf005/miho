@@ -24,6 +24,7 @@ extends RefCounted
 ## this tile kind, until Miho finds it.
 ## opens: it shuts the way now and is gone in time (a veil goes out), so the
 ## storey is whole without it (FloorGen.connected).
+## water: what moves on water can be here (Bestiary.swims).
 ## reacts: element -> what it becomes when a spell
 ## with that element reaches it (Terrain.react), by the cycles of 오행: 쇠 cuts
 ## what grows, 나무 cracks walls, 흙 fills water, 물 makes ash green, 불 bakes mud.
@@ -69,7 +70,7 @@ const ROWS := {
 		reacts = CUT,
 	},
 	World.BOARD: {name = "마루", walk = true, burns = true, tread = [3, "삐걱"]},
-	World.POND: {name = "연못", reacts = FILL},
+	World.POND: {name = "연못", water = true, reacts = FILL},
 	World.ASH: {name = "재", walk = true, reacts = {Cards.WATER: World.GRASS}},
 	World.LANTERN_BROKEN: {name = "부서진 등불", walk = true},
 	World.WALL_CRACKED:
@@ -135,6 +136,7 @@ const ROWS := {
 	{
 		name = "얕은 물",
 		walk = true,
+		water = true,
 		tread = [2, "철벅"],
 		douses = true,
 		scentless = true,
@@ -213,6 +215,7 @@ const DEFAULT := {
 	gas = true,
 	trap = false,
 	opens = false,
+	water = false,
 	reacts = {},
 }
 
@@ -226,6 +229,7 @@ static var knock := _flags("knock")
 static var wall := _flags("wall")
 static var gas := _flags("gas")
 static var opens := _flags("opens")
+static var water := _flags("water")
 ## Walkable once everything that `opens` has.
 static var reachable := Grid.table(func(t): return of(t, "walk") or of(t, "opens"))
 

@@ -18,7 +18,8 @@ extends RefCounted
 ## glyph: the syllable drawn for it. melee: what it strikes Miho with when next
 ## to her: its name, the verb the log ends in ("맞아", "물려") and the damage,
 ## and `throw`, how many tiles the blow pushes her back (into the sky she falls),
-## and `root`, how many rounds it roots her (Elements.root).
+## and `root`, how many rounds it roots her (Elements.root), and `pull`: it binds only
+## one not bound already and drags her to its side (Fall.pull).
 ## mana: it pays for its spells with mana, at the price of Miho's tails
 ## (Spell.price), in place of waiting `cd` rounds. It regrows one every
 ## World.TAIL_REGROW rounds, as Miho does her tails, picks what to cast from any
@@ -28,7 +29,9 @@ extends RefCounted
 ## tracks: follows Miho's scent while it rests or searches, and while it hunts her
 ## under her 은신 (Mind); her 둔갑 does not fool it (Guise.fools).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
-## move: approach, align (gets in line for an orb), slow, or static.
+## move: approach, align (gets in line for an orb), slow, static, or water: it approaches
+## over water tiles only, waits with its eyes open, comes in no band, and is gone when
+## its tile is water no more (Mind.heaven_phase, Brogue MONST_RESTRICTED_TO_LIQUID).
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" absorbs the fire of a spell (해태 guards against fire): a spell
 ## whose elements are all fire is stopped whole, effects and all; one with other
@@ -47,9 +50,10 @@ extends RefCounted
 ## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
 ## From sharp on it throws a wisp at where it suspects her under 은신 (Aim.suspected).
 ## From sharp on it hunts her at once when it sees her cast 둔갑, and a cunning one is never
-## fooled by it (Guise). 객귀 and 달걀귀신, the dull and spell-less dead, are of the group `undead`.
-## hat: wears the invisibility hat, seen only from the next tile or with a wisp
-## clinging to it (Hat).
+## fooled by it (Guise). 객귀, 달걀귀신 and 물귀신, the dull and spell-less dead, are of the group
+## `undead`.
+## hat: wears the invisibility hat, or lies under the water, seen only from the next
+## tile or with a wisp clinging to it (Hat).
 ## A creature's elements are those of the spells it casts (Spell.nature). A
 ## spell with an element beating one of them hits it twice as hard (Cards.BEATS),
 ## and only once as hard when it is partly absorbed too (Elements.dealt). 전기
@@ -72,6 +76,7 @@ const HEALTH := {
 	&"jangseung": [3, 4, 6, 8, 9],
 	&"gaekgwi": [3, 4, 4, 4, 4],
 	&"dalgyal": [4, 5, 6, 7, 8],
+	&"mulgwisin": [3, 4, 4, 4, 4],
 	&"imugi": [2, 3, 3, 3, 3],
 	&"bulgae": [4, 5, 5, 5, 5],
 	&"haetae": [4, 5, 7, 9, 10],
@@ -274,6 +279,16 @@ const KINDS := {
 		deaf = true,
 		wits = 0,
 		patrol = true,
+	},
+	&"mulgwisin":
+	{
+		name = "물귀신",
+		glyph = "물",
+		group = &"undead",
+		melee = {name = "손아귀", hit = "잡혀", damage = 1, root = 2, pull = true},
+		move = &"water",
+		wits = 0,
+		hat = true,
 	},
 	&"imugi":
 	{
@@ -563,8 +578,19 @@ static func bands(kind: StringName) -> bool:
 	return (
 		spec.has("group")
 		and spec.get("move", &"static") != &"static"
+		and not swims(kind)
 		and not spec.get("boss", false)
 	)
+
+
+## Whether creatures of `kind` move only on water (Tiles water).
+static func swims(kind: StringName) -> bool:
+	return info(kind).get("move", &"") == &"water"
+
+
+## The tile table of where a creature of `kind` can stand.
+static func ground(kind: StringName) -> PackedByteArray:
+	return Tiles.water if swims(kind) else Tiles.walk
 
 
 ## The elements of `spell` that `kind` absorbs: only fire, for a fire absorber.

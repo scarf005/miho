@@ -14,6 +14,12 @@ static var _fly := Grid.table(
 )
 static var _air := Grid.table(func(t): return Tiles.of(t, "walk") or t == World.SKY)
 static var _hides := Grid.table(func(t): return t == World.BAMBOO)
+static var _wade := Grid.table(func(t): return Tiles.of(t, "walk") or Tiles.of(t, "water"))
+
+
+## Floor and water, which a creature's way from the start is counted across (FloorGen).
+static func wade(w: World) -> PackedByteArray:
+	return Grid.mask(w.tiles, _wade)
 
 
 ## Floor and sky, which a falling Miho comes down across (Fall).
@@ -64,7 +70,7 @@ static func opened(w: World, blocked: Array = []) -> PackedByteArray:
 
 ## A creature's `test` of the tiles it may step on (its own among them) for every tile.
 static func walk(w: World, a: Actor, test: Callable) -> PackedByteArray:
-	return floor_of(w, odd(w) + [a.pos], test)
+	return Grid.mask(w.tiles, Bestiary.ground(a.kind), odd(w) + [a.pos], test)
 
 
 ## The tiles a noise spreads over: all but walls.

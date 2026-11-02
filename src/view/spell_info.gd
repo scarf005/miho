@@ -34,6 +34,12 @@ const CROSSED := [World.SKY, World.POND]
 const ROOT_STOPS := [World.SKY, World.POND, World.WALL, World.BRIDGE]
 
 
+## The names of the tile kinds whose `column` holds (Tiles), in the language shown.
+static func tiles_with(column: String) -> Array:
+	var kinds := Tiles.ROWS.keys().filter(func(t): return Tiles.of(t, column))
+	return kinds.map(func(t): return Lang.t(Tiles.of(t, "name")))
+
+
 ## A shape a spell takes: its name, the talismans that make it, and its numbers.
 static func shape(kind: StringName) -> Array:
 	if kind == Spell.SPRAY:

@@ -115,6 +115,7 @@ const KIND := {
 	&"jangseung": Color(0.82, 0.64, 0.42),
 	&"gaekgwi": Color(0.62, 0.62, 0.5),
 	&"dalgyal": Color(0.35, 0.6, 0.58),
+	&"mulgwisin": Color(0.7, 0.88, 0.78),
 	&"imugi": Color(0.5, 0.8, 0.55),
 	&"bulgae": Color(1.0, 0.55, 0.2),
 	&"haetae": Color(0.55, 0.85, 0.95),

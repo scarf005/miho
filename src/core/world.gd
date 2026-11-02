@@ -371,8 +371,8 @@ func shot_at(p: Vector2i, except: Shot = null) -> Shot:
 
 
 ## Creatures may share a tile with a hovering wisp; it strikes only when it chases.
-func vacant(p: Vector2i) -> bool:
-	if not open_floor(p) or actor_at(p) != null:
+func vacant(p: Vector2i, ground := Tiles.walk) -> bool:
+	if ground[tile(p)] != 1 or actor_at(p) != null:
 		return false
 	var s := shot_at(p)
 	return s == null or not s.spell.orb and s.dir == Vector2i.ZERO

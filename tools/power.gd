@@ -31,6 +31,7 @@ const ALL_KINDS: Array[StringName] = [
 	&"jangseung",
 	&"gaekgwi",
 	&"dalgyal",
+	&"mulgwisin",
 	&"imugi",
 	&"bulgae",
 	&"haetae",
@@ -103,6 +104,8 @@ func _hall() -> World:
 
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
+	if Bestiary.swims(kind):
+		w.set_tile(at, World.SHALLOW)
 	var a := FloorGen.spawn(w, kind, at)
 	a.hp = BIG
 	a.max_hp = BIG
@@ -202,9 +205,9 @@ func _measure(cards: Array, kind: StringName) -> Dictionary:
 func _profile(kind: StringName) -> String:
 	var info := Bestiary.info(kind)
 	var weak := ",".join(Bestiary.weak_to(kind).map(func(c): return String(c)))
-	var tag := "%s|%s|%s|%s|%s"
+	var tag := "%s|%s|%s|%s|%s|%s"
 	var facts := [info.get("absorb", ""), info.get("eats", ""), weak, Bestiary.burns(kind)]
-	return tag % (facts + [info.get("hat", false)])
+	return tag % (facts + [info.get("hat", false), Bestiary.swims(kind)])
 
 
 ## Measures every spell of `keys` not yet measured against creatures like `kind`.

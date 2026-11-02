@@ -76,10 +76,7 @@ static func glossary() -> Dictionary:
 	var burn := Lang.t("불타는 시간: %d초") % World.BURN_ROUNDS
 	var night: int = World.NIGHT[Actor.HEAVEN]
 	var no_sleep := Lang.t(NO_SLEEP) + "."
-	var scentless := Tiles.ROWS.keys().filter(func(t): return Tiles.of(t, "scentless"))
-	var no_scent := ", ".join(
-		scentless.map(func(t): return Lang.t(Tiles.of(t, "name"))) + [Lang.t("불타는 칸")]
-	)
+	var no_scent := ", ".join(SpellInfo.tiles_with("scentless") + [Lang.t("불타는 칸")])
 	return {
 		ALLY: ["자리 바꿈: 걸어 들어갈 때", Lang.t("함께 올라감: %d칸 안에 있을 때") % Storeys.FOLLOW],
 		"가연성":
@@ -120,6 +117,20 @@ static func glossary() -> Dictionary:
 		],
 		"순찰": ["쉴 때: 방 사이를 돌아다님", no_sleep, "무리: 대장을 따라다님"],
 		"고정": ["움직이지 않음.", no_sleep],
+		"수중":
+		[
+			Lang.t("이동: %s") % ", ".join(SpellInfo.tiles_with("water")),
+			no_sleep,
+			"서 있는 물이 없어지면 사라진다."
+		],
+		"끌어당김":
+		[
+			(
+				Lang.t("물 밖에서 맞으면 적 옆의 빈 %s 끌려간다.")
+				% StepGuard.toward(Lang.t(Tiles.of(World.SHALLOW, "name")))
+			),
+			"풀린 뒤에야 다시 묶을 수 있다."
+		],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
 		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
 		SMELL:
@@ -442,6 +453,8 @@ static func _melee(melee: Dictionary) -> Array:
 		parts.append(SpellInfo._line("던짐", Lang.t("%d칸") % melee.throw))
 	if melee.get("root", 0) > 0:
 		parts.append(SpellInfo._line("묶임", Lang.t("%d초") % melee.root))
+	if melee.get("pull", false):
+		parts.append([[Lang.t("끌어당김"), Palette.TEXT]])
 	return _row(parts)
 
 
@@ -654,6 +667,8 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append(Lang.t("순찰"))
 	if spec.get("move", &"static") == &"static":
 		out.append(Lang.t("고정"))
+	if Bestiary.swims(a.kind):
+		out.append(Lang.t("수중"))
 	if spec.get("step", 0) > 0:
 		out.append(Lang.t("발소리: %d칸") % spec.step)
 	if elements.has(Cards.WOOD):

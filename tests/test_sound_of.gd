@@ -18,6 +18,7 @@ const SOUNDS := [
 	[{t = &"raise"}, &"root"],
 	[{t = &"unraise"}, &"hiss"],
 	[{t = &"crumble"}, &"fall"],
+	[{t = &"pull"}, &"splash"],
 	[{t = &"spot"}, &"tick"],
 	[{t = &"fade", dropped = true}, &"hiss"],
 	[{t = &"cheat", cmd = &"god", on = true}, &"click"],

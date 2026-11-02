@@ -45,6 +45,7 @@ const PLAN := {
 		&"oedari",
 		&"bujigaengi",
 		&"gaekgwi",
+		&"mulgwisin",
 		&"jangseung",
 		&"jangseung",
 	],
@@ -70,6 +71,7 @@ const PLAN := {
 		&"oedari",
 		&"bitjaru",
 		&"gaekgwi",
+		&"mulgwisin",
 		&"gamtu",
 		&"jangseung",
 		&"jangseung",
@@ -795,7 +797,7 @@ static func _place(w: World, kind: StringName) -> Actor:
 	elif info.get("move", &"static") == &"static":
 		spot = _by_lantern(w)
 	if spot.x < 0:
-		spot = _random_spot(w, FOE_DISTANCE)
+		spot = _random_spot(w, FOE_DISTANCE, Vector2i(-1, -1), Bestiary.ground(kind))
 	return _arrive(w, kind, spot) if spot.x >= 0 else null
 
 
@@ -828,14 +830,17 @@ static func _by_lantern(w: World) -> Vector2i:
 	return spots[w.rng.randi_range(0, spots.size() - 1)]
 
 
-## A free room tile at least `min_dist` steps from the start and more than
-## START_CLEAR tiles from it; within BAND_SPREAD of `near` and in its room when
-## that is given.
-static func _random_spot(w: World, min_dist: int, near := Vector2i(-1, -1)) -> Vector2i:
-	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+## A free room tile of `ground` (floor unless given) at least `min_dist` steps from the
+## start, wading included, and more than START_CLEAR tiles from it; within BAND_SPREAD
+## of `near` and in its room when that is given.
+static func _random_spot(
+	w: World, min_dist: int, near := Vector2i(-1, -1), ground := Tiles.walk
+) -> Vector2i:
+	var open := Masks.floor_of(w) if ground == Tiles.walk else Masks.wade(w)
+	var dist: PackedInt32Array = Grid.search(w.start, open).dist
 	var free := Grid.mask(
 		w.tiles,
-		Tiles.walk,
+		ground,
 		Masks.odd(w) + w.peaches + [w.stairs, w.elixir],
 		func(p):
 			return (
@@ -843,7 +848,7 @@ static func _random_spot(w: World, min_dist: int, near := Vector2i(-1, -1)) -> V
 				and p != w.elixir
 				and not w.peaches.has(p)
 				and not w.traps.has(p)
-				and w.vacant(p)
+				and w.vacant(p, ground)
 			)
 	)
 	var spots := Native.spots(

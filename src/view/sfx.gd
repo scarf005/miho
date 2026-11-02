@@ -153,6 +153,7 @@ const LEVEL := {
 	&"feud": -4.0,
 	&"noise": -8.0,
 	&"push": -4.0,
+	&"pull": -4.0,
 	&"smash": -4.0,
 	&"jar": -4.0,
 	&"douse": -4.0,
@@ -455,6 +456,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"stone" if Raise.undead(e.kind) else &"foxfire"
 		&"crumble":
 			return &"fall"
+		&"pull":
+			return &"splash"
 		&"cast", &"hit", &"burst", &"splash":
 			var sounds := _spell_sounds(e)
 			return &"" if sounds.is_empty() else sounds[0]

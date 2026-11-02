@@ -47,13 +47,53 @@ static func drop(w: World, a: Actor, into: Vector2i) -> void:
 		_drop(w, a, into)
 
 
+## `by` drags `a` off dry ground to its side: to the free walkable water tile next to both
+## that is nearest `by`. With none, or on water already, `a` stays where it is. Miho takes
+## what lies there, as on a push.
+static func pull(w: World, a: Actor, by: Actor) -> void:
+	if Tiles.water[w.tile(a.pos)] == 1:
+		return
+	var to := a.pos
+	var near := INF
+	for d in Grid.DIRS:
+		var p := a.pos + d
+		var gap := Vector2(p - by.pos).length()
+		if (
+			Tiles.water[w.tile(p)] == 1
+			and w.vacant(p)
+			and not w.traps.has(p)
+			and Grid.cheb(p, by.pos) == 1
+			and gap < near
+		):
+			to = p
+			near = gap
+	if to == a.pos:
+		return
+	w.emit({t = &"pull", id = a.id, at = a.pos})
+	w.move(a, to)
+	if a.is_miho():
+		w.arrive(a)
+
+
+## A creature that moves on water stands on a tile that is water no more: it is gone with
+## no body, and one of heaven gives what a fall does.
+static func stranded(w: World, a: Actor) -> void:
+	_gone(w, a, [{t = &"die", id = a.id, at = a.pos, foe = not a.ally(), gone = true}])
+
+
 ## A creature falls from the edge at `into`; one of heaven gives what a fall does.
 static func _lose(w: World, a: Actor, into: Vector2i) -> void:
+	var fell := {t = &"fall", id = a.id, from = a.pos, at = into}
+	_gone(w, a, [fell, {t = &"die", id = a.id, at = a.pos, foe = not a.ally()}])
+
+
+## `a` leaves the board with no body, the events `told` telling how.
+static func _gone(w: World, a: Actor, told: Array) -> void:
 	a.hp = 0
 	a.intent.clear()
 	Mind.forget(w, a)
-	w.emit({t = &"fall", id = a.id, from = a.pos, at = into})
-	w.emit({t = &"die", id = a.id, at = a.pos, foe = not a.ally()})
+	for e: Dictionary in told:
+		w.emit(e)
 	if not a.ally():
 		w.player().prey = a.kind
 		w.tails = mini(w.max_tails(), w.tails + 1)

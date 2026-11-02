@@ -100,13 +100,14 @@ func asleep() -> bool:
 
 
 ## Whether it can sleep at all: a creature of heaven that does not patrol, always
-## hunt or stand fixed (the tags 순찰, 위치 감지 and 고정).
+## hunt, stand fixed or live under water (the tags 순찰, 위치 감지, 고정 and 수중).
 func sleeps() -> bool:
 	return (
 		faction == HEAVEN
 		and not info().get("patrol", false)
 		and not info().get("hunts", false)
 		and info().get("move", &"static") != &"static"
+		and not Bestiary.swims(kind)
 	)
 
 

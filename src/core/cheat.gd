@@ -99,7 +99,7 @@ static func can(w: World, action: Dictionary) -> bool:
 		&"damage":
 			return foe_ok and action.n >= 1
 		&"move_foe":
-			return foe_ok and _free(w, action.at)
+			return foe_ok and _free(w, action.at, Bestiary.ground(foe.kind))
 		&"floor":
 			return action.depth >= 1 and action.depth <= World.FLOORS and action.depth != w.depth
 		&"card":
@@ -108,7 +108,9 @@ static func can(w: World, action: Dictionary) -> bool:
 			return Cards.ALL.any(func(c): return not w.cards.has(c))
 		&"summon":
 			return (
-				Bestiary.KINDS.has(action.kind) and action.kind != &"miho" and _free(w, action.at)
+				Bestiary.KINDS.has(action.kind)
+				and action.kind != &"miho"
+				and _free(w, action.at, Bestiary.ground(action.kind))
 			)
 		&"heal":
 			return me.hp < me.max_hp
@@ -173,8 +175,8 @@ static func _carry(w: World, a: Actor, to: Vector2i) -> void:
 
 
 ## A free tile a creature may stand on: no creature, no closed door.
-static func _free(w: World, p: Vector2i) -> bool:
-	return Grid.inside(p) and w.vacant(p) and w.tile(p) != World.DOOR
+static func _free(w: World, p: Vector2i, ground := Tiles.walk) -> bool:
+	return Grid.inside(p) and w.vacant(p, ground) and w.tile(p) != World.DOOR
 
 
 ## Takes `a` off the board without a fall: no body, no scroll, no tail.
