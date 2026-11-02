@@ -161,7 +161,7 @@ static func _lines(m: Node) -> Array:
 
 
 ## The name of the 도감 entry that the box of `_lines` tells of, or empty when it
-## has none (Miho herself, the debug view, a tile Miho does not know). It is
+## has none (Miho herself, a tile Miho does not know). The debug view knows all. It is
 ## taken from the thing itself, in the order of `_lines`: a queue slot is its
 ## spell when that is one talisman, else the talisman at the slot; a saved spell
 ## its name; a talisman itself; a creature its kind; a projectile its spell; a
@@ -182,18 +182,18 @@ static func _named(m: Node) -> String:
 		return "" if s == null else _spell(s)
 	if m.hover_card != &"":
 		return _talisman(m.hover_card)
-	if m.hover_status or m.debugging or not Grid.inside(m.hover):
+	if m.hover_status or not Grid.inside(m.hover):
 		return ""
-	var w: World = m.known
+	var w: World = m.world if m.debugging else m.known
 	var i := Grid.index(m.hover)
-	if w.seen[i] == 1:
+	if m.debugging or w.seen[i] == 1:
 		var a := w.actor_at(m.hover)
-		if a != null and Hat.shown(w, a):
+		if a != null and (m.debugging or Hat.shown(w, a)):
 			return "" if a.is_miho() else Lang.t(a.info().name)
 		var shot := w.shot_at(m.hover)
 		if shot != null:
 			return _spell(shot.spell, shot.faction == Actor.FOX)
-	if w.known[i] == 0:
+	if not m.debugging and w.known[i] == 0:
 		return ""
 	if Scrolls.card_at(w, m.hover) != &"":
 		return Lang.t("주문서")
