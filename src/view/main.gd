@@ -341,6 +341,9 @@ func _key(event: InputEventKey) -> void:
 ## What a key means, or a button of the touch screen: `action` is a Keys action,
 ## `shift` holds a spell with a direction.
 func _do(action: StringName, shift: bool) -> void:
+	if action == &"describe":
+		WordLink.describe(self)
+		return
 	if action != &"":
 		WordHover.hold(self, false)
 	var eat := _eats_move()

@@ -417,15 +417,15 @@ static func _entry(
 	return {glyph = glyph, color = color, name = Lang.t(name), lines = lines, scene = scene}
 
 
+## The name of a plain talisman's entry.
+static func talisman_name(c: StringName) -> String:
+	return Lang.t("%s 부적") % Lang.t(Cards.NAME[c])
+
+
 ## A talisman: its example plays it 1 to Spell.MAX_SLOTS times over (SpellScene.counts).
 static func _talisman(c: StringName) -> Dictionary:
 	var lines := func(): return SpellInfo.stacked(c)
-	var out := _entry(
-		Lang.t(Cards.GLYPH[c], "talisman"),
-		Palette.CARD[c],
-		Lang.t("%s 부적") % Lang.t(Cards.NAME[c]),
-		lines
-	)
+	var out := _entry(Lang.t(Cards.GLYPH[c], "talisman"), Palette.CARD[c], talisman_name(c), lines)
 	out.scene = SpellScene.counts(c)
 	return out
 

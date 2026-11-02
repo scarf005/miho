@@ -611,32 +611,43 @@ static func terrain(w: World, p: Vector2i) -> Array:
 	return lines
 
 
+## The name a tile's hover heads with, before it is translated.
+static func tile_name(w: World, p: Vector2i) -> String:
+	return _lies(w, p, [Tiles.of(w.tile(p), "name"), []])[0]
+
+
+## What lies on tile `p` besides its own kind, as [name, notes]: the stairs, a
+## pickup or a scroll; else `plain`, the same pair for the tile's kind.
+static func _lies(w: World, p: Vector2i, plain: Array) -> Array:
+	if p == w.stairs:
+		return ["계단", [Lang.t("체력: +%d") % World.HEAL, "꼬리: 모두 회복"]]
+	if p == w.elixir:
+		return ["영약", ["효과: 사람이 됨"]]
+	if w.peaches.has(p):
+		return ["복숭아", [Lang.t("체력: +%d") % World.HEAL, Lang.t("가득 찼을 때 최대 체력: +%d") % World.HEAL]]
+	if Jars.spots(w).has(p):
+		return [
+			Jars.name_of(Jars.KIMCHI),
+			[
+				Lang.t("체력: +%d") % World.HEAL,
+				Lang.t("먹은 뒤 냄새: %d초 동안 진함") % Jars.PUNGENT_ROUNDS,
+			]
+		]
+	if Scrolls.card_at(w, p) != &"":
+		return [Lang.t("%s 주문서") % Lang.t(Cards.NAME[Scrolls.card_at(w, p)]), plain[1]]
+	return plain
+
+
 ## What a tile is and does, whatever the light: the 도감's text. The hover also
 ## tells how much gas lies on it (`now`).
 static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var t := w.tile(p)
-	var name: String = Tiles.of(t, "name")
 	var breakable := Terrain.breakable(w, p)
 	var burns := w.burning.has(p) and w.seen[Grid.index(p)] == 1
-	var notes := _notes(t, breakable, burns, Terrain.plank(w, p))
+	var lies := _lies(w, p, [Tiles.of(t, "name"), _notes(t, breakable, burns, Terrain.plank(w, p))])
+	var name: String = lies[0]
+	var notes: Array = lies[1]
 	var health: int = Tiles.of(t, "health") if breakable else 0
-	if p == w.stairs:
-		name = "계단"
-		notes = [Lang.t("체력: +%d") % World.HEAL, "꼬리: 모두 회복"]
-	elif p == w.elixir:
-		name = "영약"
-		notes = ["효과: 사람이 됨"]
-	elif w.peaches.has(p):
-		name = "복숭아"
-		notes = [Lang.t("체력: +%d") % World.HEAL, Lang.t("가득 찼을 때 최대 체력: +%d") % World.HEAL]
-	elif Jars.spots(w).has(p):
-		name = Jars.name_of(Jars.KIMCHI)
-		notes = [
-			Lang.t("체력: +%d") % World.HEAL,
-			Lang.t("먹은 뒤 냄새: %d초 동안 진함") % Jars.PUNGENT_ROUNDS,
-		]
-	elif Scrolls.card_at(w, p) != &"":
-		name = Lang.t("%s 주문서") % Lang.t(Cards.NAME[Scrolls.card_at(w, p)])
 	var head := [[Lang.t(name), Palette.TEXT]]
 	if health > 0:
 		head.append([" " + hearts(health, health), Palette.HURT])

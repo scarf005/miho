@@ -27,8 +27,26 @@ static func open(m: Node, local: Vector2) -> bool:
 	var word := WordHover.word_at(m.term, local)
 	if word == "":
 		return WordHover.on_pin(m.term, local)
+	_show(m, word)
+	return true
+
+
+## The describe key: the 도감 opens on the entry of the hover box that is open, or
+## of the one Shift keeps, as a click on a word of it would. Nothing else happens
+## (no round, no log line) for a box with no entry. Whether it opened.
+static func describe(m: Node) -> bool:
+	var t: Term = m.term
+	var word: String = t.pin.get("word", "") if not t.pin.is_empty() else t.subject
+	if word == "" or t.info.is_empty() and t.pin.is_empty():
+		return false
+	if m.state != &"play" or m.overlay != &"":
+		return false
+	_show(m, word)
+	return true
+
+
+static func _show(m: Node, word: String) -> void:
 	m._open(&"codex")
 	m.menu.codex.link(word, false)
 	m.term.panel = m.menu.panel()
 	m.sfx.play(&"click")
-	return true

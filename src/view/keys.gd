@@ -63,6 +63,7 @@ const ACTIONS := {
 	&"explore": ["자동 탐험", ["O"]],
 	&"fight": ["자동 공격", ["Tab"]],
 	&"look": ["살펴보기", ["X"]],
+	&"describe": ["자세히 보기", ["M"]],
 	&"rest": ["쉬기", ["Z"]],
 	&"close": ["문 닫기", ["C"]],
 	&"exclude": ["위험구역 표시", ["V"]],
@@ -112,7 +113,8 @@ static func event(key: String) -> InputEventKey:
 
 
 ## The action a key press means: one bound with exactly its modifiers, else a
-## move bound without them (Shift with a direction holds a spell). Empty if none.
+## move bound without them (Shift with a direction holds a spell), or the describe
+## key, which reads the box Shift keeps. Empty if none.
 ## A press of Ctrl alone is read as Ctrl without the modifier it sets.
 static func action_of(e: InputEvent) -> StringName:
 	if e is InputEventKey and e.keycode == KEY_CTRL and e.ctrl_pressed:
@@ -121,7 +123,7 @@ static func action_of(e: InputEvent) -> StringName:
 	for action in ACTIONS:
 		if e.is_action(action, true):
 			return action
-	for action in MOVES:
+	for action in MOVES.keys() + [&"describe"]:
 		if e.is_action(action):
 			return action
 	return &""

@@ -46,7 +46,11 @@ static func hold(m: Node, down: bool) -> void:
 		var lines: Array = t.info if on_map else t.hint
 		if lines.is_empty() or not t.pin.is_empty():
 			return
-		var box := {lines = lines, fit = t.info_fit() if on_map else t.hint_fit()}
+		var box := {
+			lines = lines,
+			fit = t.info_fit() if on_map else t.hint_fit(),
+			word = t.subject if on_map else ""
+		}
 		if not on_map:
 			t.hint = []
 		t.pin = box

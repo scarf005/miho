@@ -75,6 +75,9 @@ var example := {}:
 		if v != example:
 			example = v
 			sim = ExampleSim.swap(self, sim, example)
+## Set by the game with `info`: the name of the 도감 entry it tells of, or empty
+## when it has none (Preview.subject); the describe key opens it.
+var subject := ""
 ## Set by the game: the 도감 entry (WordHover) of the word the pointer is over in
 ## a panel, the log or a kept box, and the cell the pointer is in, which the box is
 ## drawn under.
@@ -82,9 +85,9 @@ var hint: Array = []:
 	set(v):
 		hint = Keywords.lines(v)
 var hint_at := Vector2.ZERO
-## The box Shift keeps where it is (WordHover.hold): {lines, fit} of the hover box
-## that was open, drawn as it was and read for its words. A new `info` or `panel`
-## ends it.
+## The box Shift keeps where it is (WordHover.hold): {lines, fit, word} of the hover
+## box that was open (`word` its `subject`), drawn as it was and read for its words.
+## A new `info` or `panel` ends it.
 var pin := {}
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.

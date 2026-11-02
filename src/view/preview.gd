@@ -102,6 +102,7 @@ static func _inspect(m: Node) -> void:
 	if not term.pin.is_empty():
 		return
 	term.info = []
+	term.subject = ""
 	term.cursor = Vector2i(-1, -1)
 	var cards := []
 	if m.state == &"play" and term.hint.is_empty():
@@ -114,25 +115,106 @@ static func _inspect(m: Node) -> void:
 static func _tell(m: Node) -> Array:
 	var term: Term = m.term
 	term.cursor = m.hover
+	var lines := _lines(m)
+	var word := subject(m) if not lines.is_empty() else ""
+	var row := detail_row()
+	var shown: bool = word != "" and not row.is_empty() and not m.touch.enabled
+	term.info = lines + [row] if shown else lines
+	term.subject = word
+	return _cards(m)
+
+
+## The cards of the one spell the box tells of, or none.
+static func _cards(m: Node) -> Array:
 	if m.hover_slot >= 0:
-		term.info = SpellInfo.slot(Spell.make(m.picked), m.hover_slot)
 		return m.picked
 	if m.hover_spell != "":
-		var saved := Spell.from_key(m.hover_spell)
-		term.info = SpellInfo.spell(saved)
-		return saved.cards
+		return Spell.from_key(m.hover_spell).cards
 	if m.hover_card != &"":
-		term.info = SpellInfo.hovered(m.hover_card, m.picked)
 		return Cards.made_of(m.hover_card)
 	if m.hover_status:
-		term.info = Info.creature(m.known, m.known.player())
 		return []
+	var shot := Info.shot_at(m.known, m.hover)
+	return shot.spell.cards if shot != null and not m.debugging else []
+
+
+## The hover lines of what the pointer or the look cursor is over.
+static func _lines(m: Node) -> Array:
+	if m.hover_slot >= 0:
+		return SpellInfo.slot(Spell.make(m.picked), m.hover_slot)
+	if m.hover_spell != "":
+		return SpellInfo.spell(Spell.from_key(m.hover_spell))
+	if m.hover_card != &"":
+		return SpellInfo.hovered(m.hover_card, m.picked)
+	if m.hover_status:
+		return Info.creature(m.known, m.known.player())
 	var lines: Array = DebugView.at(m.world, m.hover) if m.debugging else Info.at(m.known, m.hover)
-	term.info = (
+	return (
 		m.menu.debug.head()
 		+ lines
 		+ m.excluded.lines(m.hover, m.zone)
 		+ Info.ahead(m.world, m.ahead, m.hover)
 	)
-	var shot := Info.shot_at(m.known, m.hover)
-	return shot.spell.cards if shot != null and not m.debugging else []
+
+
+## The name of the 도감 entry that the box of `_lines` tells of, or empty when it
+## has none (Miho herself, the debug view, a tile Miho does not know). It is
+## taken from the thing itself, in the order of `_lines`: a queue slot is its
+## spell when that is one talisman, else the talisman at the slot; a saved spell
+## its name; a talisman itself; a creature its kind; a projectile its spell; a
+## tile what lies on it.
+static func subject(m: Node) -> String:
+	var word := _named(m)
+	return word if word != "" and Keywords.locate(word).x >= 0 else ""
+
+
+static func _named(m: Node) -> String:
+	if m.hover_slot >= 0:
+		var s := Spell.make(m.picked)
+		if s == null:
+			return ""
+		return _spell(s) if s.cards.size() == 1 else _talisman(s.slots[m.hover_slot])
+	if m.hover_spell != "":
+		var s := Spell.from_key(m.hover_spell)
+		return "" if s == null else _spell(s)
+	if m.hover_card != &"":
+		return _talisman(m.hover_card)
+	if m.hover_status or m.debugging or not Grid.inside(m.hover):
+		return ""
+	var w: World = m.known
+	var i := Grid.index(m.hover)
+	if w.seen[i] == 1:
+		var a := w.actor_at(m.hover)
+		if a != null and Hat.shown(w, a):
+			return "" if a.faction == Actor.FOX else Lang.t(a.info().name)
+		var shot := w.shot_at(m.hover)
+		if shot != null:
+			return _spell(shot.spell, shot.faction == Actor.FOX)
+	if w.known[i] == 0:
+		return ""
+	if Scrolls.card_at(w, m.hover) != &"":
+		return Lang.t("주문서")
+	return Lang.t(Info.tile_name(w, m.hover))
+
+
+## The entry name of a spell: its own title when the 도감 lists it, else, for
+## Miho's, its shape (a creature's wisp has no shape entry of Miho's).
+static func _spell(s: Spell, own := true) -> String:
+	var word := s.shown()
+	if Keywords.locate(word).x >= 0 or not own:
+		return word
+	return Lang.t(Spell.SHAPE_NAME.get(s.shape, SpellInfo.SPRAY_NAME))
+
+
+## The entry name of a talisman: a compound has its own, a plain one is a 부적.
+static func _talisman(c: StringName) -> String:
+	return Lang.t(Cards.NAME[c]) if Cards.compounds().has(c) else Codex.talisman_name(c)
+
+
+## The last row of a box that has an entry: the key of `describe`, at body size as a key
+## that is the content of its line is, then 자세히. Empty when the action has no key.
+static func detail_row() -> Array:
+	var keys := Keys.keys_of(&"describe")
+	if keys.is_empty():
+		return []
+	return [[Keys.label(keys[0]), Palette.TEXT], [" " + Lang.t("자세히"), Palette.DIM]]
