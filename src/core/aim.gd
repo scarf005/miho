@@ -232,11 +232,37 @@ static func _spray(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 ## turn that is one (`_turn`).
 static func searchlight(w: World, a: Actor) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var r := Grid.cheb(a.pos, a.target)
-	var dir := Grid.nearest_dir(a.target - a.pos)
-	if w.lit(a.target) or r < 2 or r > Spell.RANGE or not w.open_air(a.pos + dir):
+	return out if w.lit(a.target) else _throw(w, a, a.target, _turn(a))
+
+
+## A wisp a clever creature (from Bestiary.SHARP) throws at the tile it suspects
+## while Miho is under her 은신, lit or not, with none of its own still out: the
+## spot it goes to, or for a tracker on her trail a tile up the trail. Any of its
+## spells that is a wisp will do. Only clever ones clue in, as in DCSS
+## (_monster_guesses_invis_player).
+static func suspected(w: World, a: Actor) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if (
+		Bestiary.wits(a.kind) < Bestiary.SHARP
+		or not w.player().cloak
+		or w.shots.any(func(s): return s.caster == a.id and not s.gone)
+	):
 		return out
-	for cast: Array in _turn(a):
+	var spot := a.target
+	if a.info().get("tracks", false) and Scent.next(w, a) != a.pos:
+		spot = Scent.ahead(w, a, Spell.RANGE)
+	var list := _cheap(a, a.repertoire()) if Bestiary.mana(a.kind) > 0 else a.repertoire()
+	return _throw(w, a, spot, list)
+
+
+## The first wisp in `list` that `a` can throw towards `spot`, as a plan, or none.
+static func _throw(w: World, a: Actor, spot: Vector2i, list: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var r := Grid.cheb(a.pos, spot)
+	var dir := Grid.nearest_dir(spot - a.pos)
+	if r < 2 or r > Spell.RANGE or not w.open_air(a.pos + dir):
+		return out
+	for cast: Array in list:
 		var spell := Spell.make(cast)
 		if spell != null and spell.shape == Spell.WISP:
 			out.append({cards = cast, dir = dir})

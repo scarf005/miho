@@ -25,7 +25,8 @@ extends RefCounted
 ## rank on (Aim.at) and casts two at once when it can pay for both. It starts
 ## with all of it (Actor.mana).
 ## stokes: when awake, lights a dark lantern beside it before anything else (Mind).
-## tracks: follows Miho's scent while it rests or searches (Mind).
+## tracks: follows Miho's scent while it rests or searches, and while it hunts her
+## under her 은신 (Mind); her 둔갑 does not fool it (Guise.fools).
 ## step: how far its footsteps are heard (0 is silent). deaf: ignores noise.
 ## move: approach, align (gets in line for an orb), slow, or static.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
@@ -42,6 +43,7 @@ extends RefCounted
 ## wits: how well it reads a projectile it sees fly (Mind): 0 dull, 1 sharp, 2
 ## cunning. A dull creature looks at the spot, a sharp one at where it came from,
 ## a cunning one hunts from there. One struck by a projectile of Miho's hunts her.
+## From sharp on it throws a wisp at where it suspects her under 은신 (Aim.suspected).
 ## hat: wears the invisibility hat, seen only from the next tile or with a wisp
 ## clinging to it (Hat).
 ## A creature's elements are those of the spells it casts (Spell.nature). A

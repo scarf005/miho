@@ -243,7 +243,10 @@ static func hunt(w: World, a: Actor) -> void:
 		if a.rooted <= 0:
 			_step_to(w, a, me.pos, 1)
 		return
-	if a.pos != a.target and a.lost < World.SEARCH_ROUNDS:
+	if _suspect(w, a):
+		return
+	var by_nose: bool = me.cloak and a.info().get("tracks", false)
+	if not by_nose and a.pos != a.target and a.lost < World.SEARCH_ROUNDS:
 		a.lost += 1
 		if a.rooted > 0 or _step_to(w, a, a.target):
 			return
@@ -274,10 +277,16 @@ static func _track(w: World, a: Actor) -> bool:
 	return true
 
 
-## Goes to the spot, throwing a wisp at it first when it lies in the dark.
-## Next to a lantern that went out, it lights it again first.
+## A clever creature that cannot see Miho under her 은신 throws a wisp at where it
+## suspects her (Aim.suspected).
+static func _suspect(w: World, a: Actor) -> bool:
+	return a.cooldown <= 0 and _charge(w, a, Aim.suspected(w, a))
+
+
+## Goes to the spot, throwing a wisp at it first when it lies in the dark or it
+## suspects Miho there. Next to a lantern that went out, it lights it again first.
 static func search(w: World, a: Actor) -> void:
-	if Terrain.relight_beside(w, a) or _track(w, a):
+	if Terrain.relight_beside(w, a) or _suspect(w, a) or _track(w, a):
 		return
 	if a.cooldown <= 0 and _charge(w, a, Aim.searchlight(w, a)):
 		return
