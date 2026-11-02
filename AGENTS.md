@@ -11,6 +11,12 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 분신 has 3 tails of its own and fights on its own. User: "분신은 꼬리 3개 전투 알아서 하게해 (spellforged servitor처럼)", "분신의 꼬리가 3개라는 뜻이고 주문 가격은 알아서 정해줘". The recipe is 여+토+화+목, so it costs what `Spell.COST` says for four cards. User: "여+토+화+목", "분신은 최대 둘까지만". A third pushes out the oldest, as DCSS `summoned_monster` does. 사령술 costs 7 tails and is the one buff with a time limit, the storey it is cast on. User: "7꼬리 주문, 한 층 내내 지속, 시야의 죽은 적을 발견하면 시귀/강시 등으로 되살아남". 시귀 and 강시 are now named 객귀 and 달걀귀신. User: "객귀와 달걀귀신 ㄱㄱ".
 - 사령술 and 윤회 are two spells. User: "윤회랑 별개의 사령술 주술을 추가하라 했는데?"
 - 낙뢰 strikes the first creature on its line and arcs from foe to foe. User: "`벼락` -> `낙뢰`, 체인 라이트닝같이 여러 적을 오가며 공격하게 해 (3칸 이내 적에게 옮겨붙음, 최대 10번까지)".
+- A leap strikes what it collides with by the tiles it has left, as a knockback does, and the leaper takes nothing. A creature is leapt over; a wall is what it collides with. User: "넉백 규칙 아까 말했잖아? 도약하면 마찬가지로 똑같은 원리로 충돌한 대상에 피해주게 해. 단, 도약한 대상은 피해를 입지 않음", "나무 1장마다 +1칸이 아니라 +3칸으로 바꿔".
+- 오작교 bridges the sky along the aimed way. User: "오작교 7x7 말고 해당 방향으로 8x3으로 바꿔줘".
+- 용암 is 구+불+흙, an orb that does not home: range 5, speed 2, bursts when spent, 3x3 hot iron. 봉화 hurls it homing in 8 directions. 용광로 is 구+불+흙+쇠: a furnace on a random free tile within 3 that hurls it every 2 s at a foe in sight. Without 구 they are no spell. User: "용암은 용암 구슬을 발사하는 주문으로 바꿔 (구+불+흙)", "봉화는 8방향으로 '유도' 용암 구슬 발사하는 주문으로 바꿔", "3칸 이내 범위에 무작위로 1개".
+- A plain orb and 비격진 differ: 비격진 bursts 2 tiles round with its own wave. User: "이제 일반 구슬도 폭발하면서 비격진이랑 일반 구슬이랑 차이가 없어 차별화시켜."
+- A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?"
+- Flyers: 박쥐 on low storeys, 삼족오 of fire on high ones. User: "비행형 적 박쥐 (저층)와 삼족오(불, 고층) 추가해."
 - 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
 - A knocked 병풍 is heard 4 tiles. User: "병풍이 소음 6칸인건 말이 안되지 않아? 4칸으로 낮춰".
 - A plate goes off for Miho, a creature and a projectile. User: "함정은 {적/플레이어/투사체}로 작동하게해".
@@ -57,6 +63,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
     - `1초 뒤 되살아나는 시체` -> `객귀의 저주`. A thing's name is a name, and what it does goes in its entry. User: "이건 동작을 설명한건데 이걸 그대로 쓴다고? 명칭 `객귀의 저주` 로 바꿔".
   - `흙: 진흙` -> `흙 주문: 진흙이 됨`. User: "의미불명".
   - `주문과 멀리뛰기로만 건널 수 있다.` -> `이동 불가.`. User: "그냥 `이동 불가.` 태그면 끝 아닌가".
+- A click on a suggested spell or a saved spell fills the queue. User: "클릭하면 당연히 프리셋으로 채워줄줄 알았는데 아니야". The keyboard alone can aim at Miho. User: "키보드만으로 스스로를 겨눌 방법이 없어". Explore never takes the stairs. User: "자동탐색 했는데 그냥 다음 층으로 올라가버림. 이래선 안됨".
 - A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯".
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 - One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
