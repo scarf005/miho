@@ -46,7 +46,10 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `비키면 헛손질하고 휘청인다` -> a coined word such as `헛손질` does not go in the 도감; say what happens in common words.
   - `냄새 추적` -> `후각이 뛰어나다`
   - `속지 않음: 교활함`, `둔갑하는 걸 보면 추격: 영리함`, `눈앞에서 쓰면 속지 않음: 영리함` -> `교활한 적, 후각이 뛰어난 적, 추격 중인 적에게는 효과가 없다.` User: "여전히 슬롭같음. 사람이었으면 둔갑 주문 설명엔 `*교활*한 적에게는 효과가 없다.` 정도로 쓰고". Who a spell works on is a plain sentence, with a label-and-list line only for numbers and tags.
-  - A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯".
+    - `1초 뒤 되살아나는 시체` -> `객귀의 저주`. A thing's name is a name, and what it does goes in its entry. User: "이건 동작을 설명한건데 이걸 그대로 쓴다고? 명칭 `객귀의 저주` 로 바꿔".
+  - `흙: 진흙` -> `흙 주문: 진흙이 됨`. User: "의미불명".
+  - `주문과 멀리뛰기로만 건널 수 있다.` -> `이동 불가.`. User: "그냥 `이동 불가.` 태그면 끝 아닌가".
+- A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯".
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 - One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
 - Every bare tag that carries a rule has an entry in `Glossary.rows`, its rule read from the code that applies it. A tag whose rule changes nothing the player does is deleted. Every name that has an entry in any 도감 tab (`Codex.entries`, so a new entry needs no list) is a word: in the 도감 detail, the spellbook detail, the log and help pages and the log over the map, the pointer over it shows the entry in a box under the pointer, and a left click or a tap opens that entry in its own tab, Esc going back (Keywords, WordHover, WordLink). A name is found whole or before a particle, never inside a longer word. A hover box follows the pointer, so while Shift is held (a long press on touch) the box that is open stays and its words work the same way (`WordHover.hold`, `Term.pin`): the map, sidebar creature, status row, talisman, saved spell and queue slot boxes and a word box on a page.
@@ -61,6 +64,10 @@ Every list, menu and scrolling pane follows standard conventions:
 - The selection stays in view. Esc closes and returns to where the list was opened.
 - Every screen is reachable from the Esc menu.
 - A shortcut label beside what it stands for (a talisman number, a saved spell key) is small and dim, one look on every screen (`Term._key`): `1~7` are easy to remember, so the label never competes with the glyph. A key that is itself the content of a line, as in the help and key pages, stays body size.
+
+An example in the 도감 is picked, never only watched. A creature's example has a part for its strike and for each spell, and the creature does them itself. User: "1~5단계까지 진행되는거 계속 바라만 봐야함", "적 주문 보여주는건데 플레이어가 주문 시전하는거로 보여주는거", "근접공격, 주문들 각각 선택해서 볼수있게 해".
+
+A run that has ended has nothing to lose, so a new run starts at once, by R too. User: "ctrl+q는 원래 살았을때 재시작 키여서 y/n 요구하는건데 왜 죽었을때도 요구해? 의미없잖음".
 
 Every player-visible event has a fitting sound:
 - Terrain footsteps sound by tile.
