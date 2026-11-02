@@ -130,7 +130,7 @@ const GROUPS := {
 const WISP_NAME := {&"dokkaebi": "도깨비불", &"underworld": "저승불", &"": "혼불"}
 
 const KINDS := {
-	&"miho": {name = "미호", glyph = "@", hp = 3},
+	&"miho": {name = "당신", glyph = "@", hp = 3},
 	&"dokkaebi":
 	{
 		name = "도깨비",

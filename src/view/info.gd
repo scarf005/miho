@@ -76,28 +76,28 @@ static func glossary() -> Dictionary:
 		"순찰": ["쉴 때: 방 사이를 돌아다님", no_sleep, "무리: 대장을 따라다님"],
 		"고정": ["움직이지 않음.", no_sleep],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
-		"위치 감지": ["추격: 항상", "보지 못해도 미호를 쫓아감", no_sleep],
-		"냄새 추적": ["쉬거나 수색 중: 미호의 냄새를 따라감", Lang.t("남은 냄새: %d초 이내") % Scent.TRAIL_AGE],
+		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
+		"냄새 추적": ["쉬거나 수색 중: 당신의 냄새를 따라감", Lang.t("남은 냄새: %d초 이내") % Scent.TRAIL_AGE],
 		"등불 켜기": ["깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"],
 		"밝음": ["적에게 보임: 시야 안 어디서나"],
 		"어두움":
 		[
 			Lang.t("적에게 보임: %d칸 안") % night,
 			Lang.t("경계한 적: %d칸 안") % (night + World.WARY_SIGHT),
-			Lang.t("미호가 보는 거리: %d칸") % World.NIGHT[Actor.FOX],
+			Lang.t("당신이 보는 거리: %d칸") % World.NIGHT[Actor.FOX],
 		],
-		"외침": ["시작: 추격을 시작할 때", "들은 적: 추격 중이 아니면 미호를 본 곳을 수색", "듣지 못하는 적: 소음 면역"],
+		"외침": ["시작: 추격을 시작할 때", "들은 적: 추격 중이 아니면 당신을 본 곳을 수색", "듣지 못하는 적: 소음 면역"],
 		"수색":
 		[
 			"시작: 소음, 흔적, 날아오는 주문",
 			"그 칸으로 이동",
 			Lang.t("둘러봄: %d번") % World.SEARCH_ROUNDS,
 			"끝: 쉬는 중",
-			"미호를 보면: 추격 중",
+			"당신을 보면: 추격 중",
 		],
 		"추격":
 		[
-			"시작: 미호를 봄, 주문에 맞음",
+			"시작: 당신을 봄, 주문에 맞음",
 			"놓치면: 마지막으로 본 곳, 냄새를 따라감",
 			"끝: 수색 중",
 		],
@@ -105,13 +105,13 @@ static func glossary() -> Dictionary:
 		"소음":
 		[
 			"범위: 소음 값만큼의 칸, 벽을 돌아서",
-			"미호는 범위 안의 소음을 모두 들을 수 있다.",
+			"당신은 범위 안의 소음을 모두 들을 수 있다.",
 			"적: 소음이 난 곳을 수색",
 			"추격 중인 적: 수색하지 않음",
 		],
 		"냄새":
 		[
-			"남김: 미호가 선 칸",
+			"남김: 당신이 선 칸",
 			Lang.t("남는 시간: %d초") % Scent.TRAIL_AGE,
 			Lang.t("진한 냄새 남는 시간: %d초") % (Scent.TRAIL_AGE + Scent.STRONG_EXTRA),
 			Lang.t("안 남는 칸: %s") % no_scent,
@@ -219,9 +219,11 @@ static func creature_facts(a: Actor, held: Array) -> Array:
 
 
 static func _head(a: Actor) -> Array:
-	return [
+	var head := [
 		[Lang.t(a.info().name) + " ", Palette.KIND[a.kind]], [hearts(a.hp, a.max_hp), Palette.HURT]
 	]
+	Lang.capitalize(head)
+	return head
 
 
 ## Name and health, elements, weakness and immunities.
@@ -276,12 +278,12 @@ static func _situation(w: World, a: Actor) -> Array:
 	if a.drumming():
 		lines.append([[Lang.t("북 치러 가는 중."), Palette.SOUND]])
 	if Guise.knows(w, a):
-		lines.append([[Lang.t("미호를 볼 수 있다"), Palette.HURT]])
+		lines.append([[Lang.t("당신을 볼 수 있다"), Palette.HURT]])
 	elif w.sees(a, w.player().pos):
 		var kind := Guise.GUISE if Guise.fools(a, w.player()) else Guise.CLOAK
-		lines.append([[Lang.t("%s한 미호를 알아볼 수 없다") % Lang.t(Guise.NAME[kind]), Palette.SIDE[0]]])
+		lines.append([[Lang.t("%s한 당신을 알아볼 수 없다") % Lang.t(Guise.NAME[kind]), Palette.SIDE[0]]])
 	else:
-		lines.append([[Lang.t("미호를 볼 수 없다"), Palette.SIDE[0]]])
+		lines.append([[Lang.t("당신을 볼 수 없다"), Palette.SIDE[0]]])
 	if w.caught_unawares(a):
 		lines.append(_amount("기습 피해: ", w.claw_harm(w.player(), true)))
 	return lines
@@ -704,8 +706,8 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
 		World.DRUM:
 			out.append(Lang.t("칠 때 소음: 층 전체"))
-			out.append(Lang.t("북소리를 들은 적: 북 친 적이 미호를 마지막으로 본 곳을 수색"))
-			out.append(Lang.t("북 치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안") % Drums.REACH)
+			out.append(Lang.t("북소리를 들은 적: 북 친 적이 당신을 마지막으로 본 곳을 수색"))
+			out.append(Lang.t("북 치는 적: 당신을 쫓는 영리한 적, 걸어서 %d칸 안") % Drums.REACH)
 			out.append(Lang.t("찢어짐: 구슬, 부딪침"))
 		World.LANTERN:
 			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)

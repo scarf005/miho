@@ -82,7 +82,7 @@ static func particle(word: String, closed: String, open: String) -> String:
 ## A sentence as runs: `template` (a message id) in `base` colour with `{0}`,
 ## `{1}` ... replaced by the runs `args`, whose text is translated. In Korean a
 ## particle pair right after a placeholder (`{0}이/가`) becomes the one that
-## fits the word.
+## fits the word. In English the player's `{0}'s` is `your`.
 static func runs(template: String, args: Array, base: Color) -> Array:
 	var text := t(template)
 	var out := []
@@ -93,6 +93,9 @@ static func runs(template: String, args: Array, base: Color) -> Array:
 		arg[0] = t(arg[0])
 		out.append(arg)
 		at = m.get_end()
+		if arg[0] == "you" and text.substr(at, 2) == "'s":
+			arg[0] = "your"
+			at += 2
 		var pair := _particle.search(text, at)
 		if pair != null and pair.get_start() == at:
 			var forms := pair.get_string().split("/")

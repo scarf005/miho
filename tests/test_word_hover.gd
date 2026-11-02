@@ -109,8 +109,8 @@ func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -
 	m.term.log_lines = []
 	for i in row:
 		m.term.log_lines.append([[["·", Palette.TEXT]], 1.0])
-	m.term.log_lines.append([[["미호가 불붙음 상태다", Palette.TEXT]], 1.0])
-	var local := _over(Term.MAP.x + 0.5 + Term._cells("미호가 ") + 0.5, row)
+	m.term.log_lines.append([[["당신이 불붙음 상태다", Palette.TEXT]], 1.0])
+	var local := _over(Term.MAP.x + 0.5 + Term._cells("당신이 ") + 0.5, row)
 	var move := InputEventMouseMotion.new()
 	move.position = m.term.get_global_transform() * local
 	m._unhandled_input(move)

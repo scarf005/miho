@@ -100,7 +100,7 @@ func test_a_homing_shot_in_flight_tells_whom_it_chases_and_how_it_turns() -> voi
 	s.turn = s.spell.turn()
 	s.life = 4
 	var text := Info.plain(SpellInfo.shot(w, s))
-	for part in ["미호의 유도 구슬", "피해: 1", "대상: 해태", "회전: 90°", "초당 2칸", "남은 시간: 4초"]:
+	for part in ["당신의 유도 구슬", "피해: 1", "대상: 해태", "회전: 90°", "초당 2칸", "남은 시간: 4초"]:
 		assert_string_contains(text, part)
 
 

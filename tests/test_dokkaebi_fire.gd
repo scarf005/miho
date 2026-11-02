@@ -132,4 +132,4 @@ func test_only_miho_s_wisps_are_called_foxfire() -> void:
 	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), WEST)
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), "적의 불 혼불")
 	w.cast(w.player(), own, Vector2i(1, 0))
-	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "미호의 불 여우불")
+	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[1])), "당신의 불 여우불")

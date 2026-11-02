@@ -69,12 +69,12 @@ func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 func test_the_hover_of_a_creature_keeps_its_state_lines() -> void:
 	var w := Codex.stage()
 	var hover := _text(Info.creature(w, FloorGen.spawn(w, &"dokkaebi", FAR)))
-	for part in ["순찰 중", "미호를 볼 수 없다", "기습 피해: 3"]:
+	for part in ["순찰 중", "당신을 볼 수 없다", "기습 피해: 3"]:
 		assert_string_contains(hover, part)
 
 
 func test_no_entry_tells_how_it_stands_now() -> void:
-	var now := ["미호를 볼 수 있다", "미호를 볼 수 없다", "둔갑한 미호를 알아볼 수 없다", "기습 피해", "남은 둘러보기"]
+	var now := ["당신을 볼 수 있다", "당신을 볼 수 없다", "둔갑한 당신을 알아볼 수 없다", "기습 피해", "남은 둘러보기"]
 	var light := ["어두움", "대숲 속:", "안 보임"]
 	for tab in Codex.TABS.size():
 		for e in Codex.entries(tab):

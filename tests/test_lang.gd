@@ -238,3 +238,18 @@ func test_the_log_page_follows_a_language_chosen_in_the_same_menu() -> void:
 	assert_eq(m.settings.language, "en")
 	m.menu.page = &"log"
 	assert_eq(Messages.plain(m.menu.panel().rows[0]), "Climbed to Floor 2")
+
+
+func test_the_log_and_the_hover_call_the_player_you() -> void:
+	var w := World.create(7)
+	var me := w.player()
+	var quench := func() -> String:
+		var lines := Messages.new()
+		lines.add_round(w, w, [{t = &"quench", id = me.id}])
+		return Messages.plain(Messages.shown(lines.lines[0]))
+	Lang.use(&"ko")
+	assert_eq(quench.call(), "당신의 불이 꺼졌다")
+	assert_true(Info.plain(Info.creature(w, me)).begins_with("당신 "))
+	Lang.use(&"en")
+	assert_eq(quench.call(), "Your fire went out")
+	assert_true(Info.plain(Info.creature(w, me)).begins_with("You "))

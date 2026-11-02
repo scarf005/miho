@@ -191,7 +191,7 @@ func test_look_describes_known_tiles_only() -> void:
 	var me := tools.world.player().pos
 	var here := _call(tools, "look", {x = me.x, y = me.y})
 	assert_false(here.error)
-	assert_string_contains(here.text, "미호")
+	assert_string_contains(here.text, "당신")
 	var far := _call(tools, "look", {x = 55, y = 0})
 	assert_false(far.error)
 	assert_string_contains(far.text, "unknown")

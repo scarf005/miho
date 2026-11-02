@@ -1638,8 +1638,8 @@ msgstr "Damage to an enemy next to you"
 msgid "%d칸 앞 %s"
 msgstr "%d tiles ahead %s"
 
-msgid "보이는 적 모두, 미호"
-msgstr "All visible enemies, Miho"
+msgid "보이는 적 모두, 당신"
+msgstr "All visible enemies, you"
 
 msgid "보이는 적 모두"
 msgstr "All visible enemies"
@@ -1707,8 +1707,8 @@ msgstr "First wall within %d tiles of the stop and the tiles beside it"
 msgid "멈춘 곳 %s"
 msgstr "Stop point %s"
 
-msgid "미호의 "
-msgstr "Miho's "
+msgid "당신의 "
+msgstr "Your "
 
 msgid "적의 "
 msgstr "Enemy's "
@@ -2086,8 +2086,8 @@ msgstr "Turns to %s"
 msgid "%s키를 눌러 기록 보기"
 msgstr "Press %s to view the log"
 
-msgid "%s한 미호를 알아볼 수 없다"
-msgstr "Does not recognize Miho under %s"
+msgid "%s한 당신을 알아볼 수 없다"
+msgstr "Does not recognize you under %s"
 
 msgid "+%d칸"
 msgstr "+%d tiles"
@@ -2257,8 +2257,8 @@ msgstr "Ends: resting"
 msgid "나왔다"
 msgstr "came out"
 
-msgid "남김: 미호가 선 칸"
-msgstr "Leaves: Miho's tile"
+msgid "남김: 당신이 선 칸"
+msgstr "Leaves: your tile"
 
 msgid "남는 시간: %d초"
 msgstr "Time remaining: %d s"
@@ -2276,7 +2276,7 @@ msgid "냄새가 남지 않음."
 msgstr "Leaves no scent."
 
 msgid "놓치면: 마지막으로 본 곳, 냄새를 따라감"
-msgstr "If it loses Miho: goes to the last place it saw her, follows the scent"
+msgstr "If it loses you: goes to the last place it saw you, follows the scent"
 
 msgid "다른 부적과 섞을 수 없는 주문이다"
 msgstr "This spell cannot be mixed with other talismans"
@@ -2323,8 +2323,8 @@ msgstr "Back"
 msgid "듣지 못하는 적: 소음 면역"
 msgstr "Enemies that cannot hear: immune to noise"
 
-msgid "들은 적: 추격 중이 아니면 미호를 본 곳을 수색"
-msgstr "Enemy that hears: if not chasing, searches where it saw Miho"
+msgid "들은 적: 추격 중이 아니면 당신을 본 곳을 수색"
+msgstr "Enemy that hears: if not chasing, searches where it saw you"
 
 msgid "등불 켜기"
 msgstr "Lights lanterns"
@@ -2395,23 +2395,23 @@ msgstr "Close"
 msgid "물: %d초 동안 소음 없음"
 msgstr "Water: silent for %d s"
 
-msgid "미호 칸, 계단으로 가는 길이 끊기는 칸"
-msgstr "Miho's tile, tiles that cut the way to the stairs"
+msgid "당신이 선 칸, 계단으로 가는 길이 끊기는 칸"
+msgstr "Your tile, tiles that cut the way to the stairs"
 
-msgid "미호가 보는 거리: %d칸"
-msgstr "Distance Miho sees: %d tiles"
+msgid "당신이 보는 거리: %d칸"
+msgstr "Distance you see: %d tiles"
 
-msgid "미호는 범위 안의 소음을 모두 들을 수 있다."
-msgstr "Miho hears every noise in the area."
+msgid "당신은 범위 안의 소음을 모두 들을 수 있다."
+msgstr "You hear every noise in the area."
 
-msgid "미호를 보면: 추격 중"
-msgstr "Sees Miho: chasing"
+msgid "당신을 보면: 추격 중"
+msgstr "Sees you: chasing"
 
-msgid "미호를 볼 수 없다"
-msgstr "Cannot see Miho"
+msgid "당신을 볼 수 없다"
+msgstr "Cannot see you"
 
-msgid "미호를 볼 수 있다"
-msgstr "Can see Miho"
+msgid "당신을 볼 수 있다"
+msgstr "Can see you"
 
 msgid "발견: 밝은 칸 또는 %d칸 안"
 msgstr "Spotted: on a lit tile or within %d tiles"
@@ -2482,8 +2482,8 @@ msgstr "Visible enemies, nearest first, as far as remaining health goes"
 msgid "보이지 않음."
 msgstr "Cannot be seen."
 
-msgid "보지 못해도 미호를 쫓아감"
-msgstr "Chases Miho without seeing her"
+msgid "보지 못해도 당신을 쫓아감"
+msgstr "Chases you without seeing you"
 
 msgid "부술 수 없다."
 msgstr "Cannot be broken."
@@ -2506,14 +2506,14 @@ msgstr "Enemies within a %d° fan"
 msgid "북 치기: 추격 중 걸어서 %d칸 안"
 msgstr "Drum beating: while chasing, within %d tiles on foot"
 
-msgid "북 치는 적: 미호를 쫓는 영리한 적, 걸어서 %d칸 안"
-msgstr "Drum beater: a sharp enemy chasing Miho, within %d tiles on foot"
+msgid "북 치는 적: 당신을 쫓는 영리한 적, 걸어서 %d칸 안"
+msgstr "Drum beater: a sharp enemy chasing you, within %d tiles on foot"
 
 msgid "북: %d초 동안 소음 없음"
 msgstr "Drum: silent for %d s"
 
-msgid "북소리를 들은 적: 북 친 적이 미호를 마지막으로 본 곳을 수색"
-msgstr "Enemy that hears the drum: searches where the beater last saw Miho"
+msgid "북소리를 들은 적: 북 친 적이 당신을 마지막으로 본 곳을 수색"
+msgstr "Enemy that hears the drum: searches where the beater last saw you"
 
 msgid "불붙음: 불이 든 주문에 맞을 때"
 msgstr "Burning: when hit by a spell with fire"
@@ -2590,8 +2590,8 @@ msgstr "Teleport"
 msgid "순간이동했다"
 msgstr "Teleported"
 
-msgid "쉬거나 수색 중: 미호의 냄새를 따라감"
-msgstr "While resting or searching: follows Miho's scent"
+msgid "쉬거나 수색 중: 당신의 냄새를 따라감"
+msgstr "While resting or searching: follows your scent"
 
 msgid "쉴 때: 방 사이를 돌아다님"
 msgstr "When resting: wanders between rooms"
@@ -2623,8 +2623,8 @@ msgstr "Blocks sight."
 msgid "시야를 막지 않음."
 msgstr "Does not block sight."
 
-msgid "시작: 미호를 봄, 주문에 맞음"
-msgstr "Starts: sees Miho, hit by a spell"
+msgid "시작: 당신을 봄, 주문에 맞음"
+msgstr "Starts: sees you, hit by a spell"
 
 msgid "시작: 소음, 흔적, 날아오는 주문"
 msgstr "Starts: noise, trace, incoming spell"
@@ -2964,3 +2964,6 @@ msgstr "Turns to {0}"
 
 msgid "멈춘 곳 %s의 %s"
 msgstr "In the %s at the stop: %s"
+
+msgid "당신"
+msgstr "you"

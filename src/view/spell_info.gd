@@ -336,7 +336,7 @@ static func _form(s: Spell) -> Array:
 		Spray.AROUND:
 			return [["모양", Lang.t("둘레 %d칸") % n]]
 		Spray.SIGHT:
-			return [["대상", "보이는 적 모두, 미호" if shape.size() > 2 else "보이는 적 모두"]]
+			return [["대상", "보이는 적 모두, 당신" if shape.size() > 2 else "보이는 적 모두"]]
 		Spray.ROOTS:
 			var deepest := Spray.ROOTS_LEVEL - 1
 			return [
@@ -455,7 +455,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				["땅", Tiles.of(World.SKY, "name")],
 				["그 칸의 적", "추락"],
-				["꺼지지 않는 칸", "미호 칸, 계단으로 가는 길이 끊기는 칸"],
+				["꺼지지 않는 칸", "당신이 선 칸, 계단으로 가는 길이 끊기는 칸"],
 			]
 		&"newmoon":
 			return [["꺼짐", "불, 등불"]]
@@ -526,7 +526,7 @@ static func behind() -> String:
 ## A projectile in flight, from what Miho knows of `w`.
 static func shot(w: World, s: Shot) -> Array:
 	var spell := s.spell
-	var side := Lang.t("미호의 " if s.faction == Actor.FOX else "적의 ")
+	var side := Lang.t("당신의 " if s.faction == Actor.FOX else "적의 ")
 	var lines := [
 		[[side, Palette.SIDE[s.faction]], [spell.shown(), Palette.shot_color(spell, s.faction)]]
 	]
