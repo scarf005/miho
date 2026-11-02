@@ -42,9 +42,9 @@ func _head(w: World) -> String:
 func test_a_blow_from_a_seen_creature_names_it() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i.RIGHT)
-	foe.alert = 2
+	foe.brain.alert = 2
 	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), foe.info().name + "에게 쓰러졌다")
 
 
@@ -53,7 +53,7 @@ func test_a_blow_from_an_unseen_creature_names_nobody() -> void:
 	var foe := _foe(w, ME + Vector2i.RIGHT)
 	w.seen[Grid.index(foe.pos)] = 0
 	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "쓰러졌다")
 
 
@@ -62,7 +62,7 @@ func test_a_spell_names_its_caster_when_seen_and_itself_either_way() -> void:
 	var foe := _foe(w, ME + Vector2i(2, 0))
 	var hit := {t = &"hit", shot = 1, id = w.player().id, at = ME, by = foe.id, title = "불길"}
 	w.emit(hit)
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), foe.info().name + "의 불길에 쓰러졌다")
 	w.seen[Grid.index(foe.pos)] = 0
 	assert_eq(_head(w), "불길에 쓰러졌다")
@@ -71,7 +71,7 @@ func test_a_spell_names_its_caster_when_seen_and_itself_either_way() -> void:
 func test_her_own_spell_is_named_alone() -> void:
 	var w := _world()
 	w.emit({t = &"splash", at = ME, by = w.player().id, title = "여우불"})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "여우불에 쓰러졌다")
 
 
@@ -80,19 +80,19 @@ func test_an_earlier_wound_is_not_the_cause_of_a_later_one() -> void:
 	w.player().hp = 2
 	var foe := _foe(w, ME + Vector2i.RIGHT)
 	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
-	w.hurt(w.player(), 1)
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "쓰러졌다")
 
 
 func test_fire_and_a_fall_read_as_such() -> void:
 	var w := _world()
 	w.emit({t = &"burn", at = ME, id = w.player().id})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "불에 타 쓰러졌다")
 	var fell := _world()
 	fell.emit({t = &"fall", id = fell.player().id, from = ME, at = ME, depth = 1})
-	fell.hurt(fell.player(), 1)
+	Harm.hurt(fell, fell.player(), 1)
 	assert_eq(_head(fell), "떨어져 쓰러졌다")
 
 
@@ -119,7 +119,7 @@ func test_a_wound_with_its_own_cause_is_not_blamed_on_an_older_event() -> void:
 	var w := _world()
 	w.emit({t = &"splash", at = ME, by = w.player().id, title = "여우불"})
 	w.emit({t = &"scald", id = w.player().id, at = ME, kind = Gas.STEAM})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), Gas.of(Gas.STEAM, "name") + "에 쓰러졌다")
 
 
@@ -129,14 +129,14 @@ func test_an_unseen_blow_is_not_blamed_on_an_older_event() -> void:
 	w.seen[Grid.index(foe.pos)] = 0
 	w.emit({t = &"burn", at = ME, id = w.player().id})
 	w.emit({t = &"melee", id = foe.id, target = w.player().id, at = ME, n = 1})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "쓰러졌다")
 
 
 func test_a_blast_far_from_her_is_not_the_cause() -> void:
 	var w := _world()
 	w.emit({t = &"splash", at = ME + Vector2i(5, 0), by = w.player().id, title = "여우불"})
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(_head(w), "쓰러졌다")
 
 

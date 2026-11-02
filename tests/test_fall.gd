@@ -40,7 +40,7 @@ func _world(depth := 2) -> World:
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -213,7 +213,7 @@ func test_the_preview_of_a_fall_equals_the_fall() -> void:
 ## Miho takes the stairs up.
 func _climb(w: World) -> void:
 	w.player().pos = w.stairs
-	w.arrive(w.player())
+	Walk.arrive(w, w.player())
 
 
 ## A free floor tile with no plate, away from the start and the stairs.

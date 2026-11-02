@@ -75,7 +75,7 @@ func test_the_hover_and_the_dogam_colour_a_word_the_same() -> void:
 	var at := ME + Vector2i(1, 0)
 	w.set_tile(at, World.STRAW)
 	var foe := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(0, 1))
-	foe.rooted = 3
+	foe.ailments.rooted = 3
 	w.sense()
 	term.info = Info.at(w, at)
 	var hover_fierce := _run(term.info, "인화성")

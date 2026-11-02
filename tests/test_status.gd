@@ -52,7 +52,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## listed health (Bestiary hp) whatever the storey's rank.
 func _post(w: World, at: Vector2i, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	a.hp = Bestiary.hp(kind, 1)
 	a.max_hp = a.hp
 	w.sense()
@@ -70,8 +70,8 @@ func _forecast_is_the_round(w: World, action: Dictionary) -> void:
 	for a in w.actors:
 		var b := f.after.actor(a.id)
 		assert_eq(
-			[b.wet, b.alight, b.frozen, b.rooted, b.hp],
-			[a.wet, a.alight, a.frozen, a.rooted, a.hp],
+			[b.ailments.wet, b.ailments.alight, b.ailments.frozen, b.ailments.rooted, b.hp],
+			[a.ailments.wet, a.ailments.alight, a.ailments.frozen, a.ailments.rooted, a.hp],
 			"%s %s" % [action, a.kind]
 		)
 	assert_eq(f.after.burning, w.burning, str(action))
@@ -84,8 +84,8 @@ func test_a_water_wisp_wets_whoever_stands_round_where_it_ends() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2)
 	var events := w.act(_cast([FOX, WATER]))
-	assert_eq(foe.wet, Status.WET - 1, "wet, a round of it gone")
-	assert_eq(w.player().wet, 0, "Miho stands outside the 3x3")
+	assert_eq(foe.ailments.wet, Status.WET - 1, "wet, a round of it gone")
+	assert_eq(w.player().ailments.wet, 0, "Miho stands outside the 3x3")
 	assert_eq(_of(events, &"wet").size(), 1)
 	assert_eq(Status.of(foe), &"wet")
 
@@ -94,7 +94,7 @@ func test_a_water_orb_bursting_next_to_miho_wets_her_too() -> void:
 	var w := _world()
 	_put(w, ME + E * 2, World.WALL)
 	w.act(_cast([ORB, WATER]))
-	assert_eq(w.player().wet, Status.WET - 1)
+	assert_eq(w.player().ailments.wet, Status.WET - 1)
 
 
 func test_a_jet_wets_the_creature_it_pushes() -> void:
@@ -102,7 +102,7 @@ func test_a_jet_wets_the_creature_it_pushes() -> void:
 	var foe := _post(w, ME + E * 2)
 	w.act(_cast([WATER]))
 	assert_eq(foe.pos, ME + E * 3, "pushed")
-	assert_eq(foe.wet, Status.WET - 1)
+	assert_eq(foe.ailments.wet, Status.WET - 1)
 
 
 func test_steam_wets_whoever_stands_in_it() -> void:
@@ -111,21 +111,21 @@ func test_steam_wets_whoever_stands_in_it() -> void:
 	for p in Spray.square(w, foe.pos):
 		Gas.put(w, p, Gas.STEAM, Gas.MAX)
 	w.act(WAIT)
-	assert_eq(foe.wet, Status.WET - 1)
-	assert_eq(w.player().wet, 0, "no steam on her")
+	assert_eq(foe.ailments.wet, Status.WET - 1)
+	assert_eq(w.player().ailments.wet, 0, "no steam on her")
 
 
 func test_a_wet_step_splashes_two_tiles_and_alarms_heaven() -> void:
 	var w := _world()
 	var near := _post(w, ME + W + Vector2i(0, -2), &"imugi")
 	var far := _post(w, ME + W + Vector2i(0, -3), &"imugi")
-	w.player().wet = Status.WET
+	w.player().ailments.wet = Status.WET
 	var events := w.act({t = &"move", dir = W})
 	var noises := _of(events, &"noise").filter(func(e): return e.at == ME + W)
 	assert_eq(noises.size(), 1)
 	assert_eq([noises[0].word, noises[0].loud], [Status.SPLASH_WORD, Status.SPLASH])
-	assert_eq(near.alert, Actor.SEARCH, "two tiles off, it heard her")
-	assert_eq(far.alert, Actor.REST, "three tiles off, it did not")
+	assert_eq(near.brain.alert, Actor.SEARCH, "two tiles off, it heard her")
+	assert_eq(far.brain.alert, Actor.REST, "three tiles off, it did not")
 
 
 func test_a_dry_step_on_floor_is_silent() -> void:
@@ -137,16 +137,16 @@ func test_a_dry_step_on_floor_is_silent() -> void:
 func test_a_wet_step_into_mud_is_still_silent() -> void:
 	var w := _world()
 	_put(w, ME + W, World.MUD)
-	w.player().wet = Status.WET
+	w.player().ailments.wet = Status.WET
 	var events := w.act({t = &"move", dir = W})
 	assert_true(_of(events, &"noise").is_empty())
 
 
 func test_a_louder_tread_keeps_its_reach_but_splashes() -> void:
 	var a := Actor.new()
-	a.wet = 1
+	a.ailments.wet = 1
 	assert_eq(Status.tread(a, [4, "삐걱"]), [4, Status.SPLASH_WORD])
-	a.wet = 0
+	a.ailments.wet = 0
 	assert_eq(Status.tread(a, [4, "삐걱"]), [4, "삐걱"])
 
 
@@ -157,7 +157,7 @@ func test_wet_lasts_its_rounds_then_dries() -> void:
 	var dried := []
 	for i in Status.WET:
 		dried.append(_of(w.act(WAIT), &"dry").size())
-	assert_eq(foe.wet, 0)
+	assert_eq(foe.ailments.wet, 0)
 	assert_eq(dried, [0, 0, 0, 1], "dry at the end of its last round")
 
 
@@ -166,7 +166,7 @@ func test_fire_that_strikes_a_wet_creature_dries_it_and_lights_nothing() -> void
 	var foe := _post(w, ME + E * 2)
 	Status.soak(w, foe)
 	var events := w.act(_cast([FOX, FIRE]))
-	assert_eq(foe.wet, 0)
+	assert_eq(foe.ailments.wet, 0)
 	assert_eq(_of(events, &"dry").size(), 1)
 	assert_false(w.burning.has(foe.pos), "no fire under it")
 	assert_eq(foe.hp, 3 - 1, "the wisp still hurts")
@@ -178,7 +178,7 @@ func test_a_burning_tile_dries_whoever_stands_in_it() -> void:
 	Status.soak(w, foe)
 	w.burning[foe.pos] = World.BURN_ROUNDS
 	w.act(WAIT)
-	assert_eq(foe.wet, 0)
+	assert_eq(foe.ailments.wet, 0)
 	assert_eq(foe.hp, 3 - World.FIRE_DAMAGE, "and it burns as before")
 
 
@@ -201,7 +201,7 @@ func test_the_hover_and_the_log_tell_of_wet() -> void:
 	assert_false(text.contains(Status.SPLASH_WORD), text)
 	var log := Messages.of(before, w, events).map(Messages.plain)
 	assert_has(log, "장승이 젖었다")
-	w.player().wet = 2
+	w.player().ailments.wet = 2
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), Status.NAME[&"wet"])
 
 
@@ -222,17 +222,17 @@ func test_a_fire_wisp_sets_a_creature_alight_and_it_burns_from_the_next_round() 
 		hp.append(foe.hp)
 	assert_eq(hp, [9 - 1, 9 - 3, 9 - 5, 9 - 5], "the wisp's 1, then 2 a round for two rounds")
 	assert_eq(quenched, [0, 1, 0], "out at the end of its third round")
-	assert_eq(foe.alight, 0)
+	assert_eq(foe.ailments.alight, 0)
 
 
 func test_fire_never_sets_miho_alight_only_her_tile_which_she_steps_off() -> void:
 	var w := _world()
 	var dog := _post(w, ME + E * 2, &"bujigaengi")
-	dog.rooted = 99
-	w.cast(dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
+	dog.ailments.rooted = 99
+	Cast.cast(w, dog, Bestiary.spell(dog.kind, dog.info().casts[0]), W)
 	w.sense()
 	w.act(WAIT)
-	assert_eq(w.player().alight, 0)
+	assert_eq(w.player().ailments.alight, 0)
 	assert_true(w.burning.has(ME), "her tile burns instead")
 	assert_eq(w.player().hp, 3 - 1)
 	w.act({t = &"move", dir = W})
@@ -253,10 +253,10 @@ func test_a_hunter_at_one_health_and_one_alight_still_come_at_miho() -> void:
 	_put(w, ME + Vector2i(0, -3), World.LANTERN)
 	var weak := _post(w, ME + E * 4, &"dokkaebi")
 	weak.hp = 1
-	weak.alert = Actor.HUNT
+	weak.brain.alert = Actor.HUNT
 	var burning := _post(w, ME + W * 4, &"dokkaebi")
 	burning.hp = 9
-	burning.alert = Actor.HUNT
+	burning.brain.alert = Actor.HUNT
 	Status.ignite(w, burning)
 	w.sense()
 	w.act(WAIT)
@@ -272,7 +272,7 @@ func test_water_puts_a_creature_alight_out_and_wets_it() -> void:
 	Status.ignite(w, foe)
 	var events := w.act(_cast([FOX, WATER]))
 	assert_eq(_of(events, &"quench").size(), 1)
-	assert_eq([foe.alight, foe.wet], [0, Status.WET - 1])
+	assert_eq([foe.ailments.alight, foe.ailments.wet], [0, Status.WET - 1])
 	assert_eq(foe.hp, 3 - 1, "the wisp's 1; put out before it burned")
 
 
@@ -280,7 +280,7 @@ func test_a_burning_tile_adds_nothing_to_a_creature_alight() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 4)
 	foe.hp = 9
-	foe.alight = Status.ALIGHT
+	foe.ailments.alight = Status.ALIGHT
 	w.burning[foe.pos] = World.BURN_ROUNDS
 	w.act(WAIT)
 	assert_eq(foe.hp, 9 - World.FIRE_DAMAGE)
@@ -291,10 +291,10 @@ func test_fire_that_does_not_harm_wood_still_sets_it_alight() -> void:
 	var wood := _post(w, ME + E * 2, &"cheonha")
 	wood.hp = 9
 	w.act(_cast([ORB, FIRE]))
-	assert_gt(wood.alight, 0)
+	assert_gt(wood.ailments.alight, 0)
 	var metal := _post(w, ME + Vector2i(2, 3), &"jiha")
 	w.act(_cast([ORB, FIRE], Vector2i(2, 3).sign()))
-	assert_eq(metal.alight, 0, "an orb lights only wood")
+	assert_eq(metal.ailments.alight, 0, "an orb lights only wood")
 
 
 func test_the_preview_shows_who_catches_alight() -> void:
@@ -309,7 +309,7 @@ func test_the_preview_shows_who_catches_alight() -> void:
 func test_the_hover_and_the_log_tell_of_fire_on_a_creature() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2, &"dokkaebi")
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var before := w.clone()
 	var events := w.act(_cast([FOX, FIRE]))
 	var log := Messages.of(before, w, events).map(Messages.plain)
@@ -330,7 +330,9 @@ func test_frost_freezes_a_creature_so_it_cannot_move() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2)
 	var events := w.act(_cast(FROST))
-	assert_eq([foe.frozen, foe.rooted], [Compounds.FROST - 1, Compounds.FROST - 1])
+	assert_eq(
+		[foe.ailments.frozen, foe.ailments.rooted], [Compounds.FROST - 1, Compounds.FROST - 1]
+	)
 	assert_eq(Status.of(foe), &"frozen")
 	assert_eq(_of(events, &"freeze")[0].rounds, Compounds.FROST)
 
@@ -340,8 +342,11 @@ func test_frost_on_a_wet_creature_freezes_it_twice_as_long() -> void:
 	var foe := _post(w, ME + E * 2)
 	Status.soak(w, foe)
 	w.act(_cast(FROST))
-	assert_eq([foe.frozen, foe.rooted], [2 * Compounds.FROST - 1, 2 * Compounds.FROST - 1])
-	assert_eq(foe.wet, 0, "the water is ice now")
+	assert_eq(
+		[foe.ailments.frozen, foe.ailments.rooted],
+		[2 * Compounds.FROST - 1, 2 * Compounds.FROST - 1]
+	)
+	assert_eq(foe.ailments.wet, 0, "the water is ice now")
 
 
 func test_the_next_harm_to_a_frozen_creature_is_doubled_and_frees_it() -> void:
@@ -352,7 +357,7 @@ func test_the_next_harm_to_a_frozen_creature_is_doubled_and_frees_it() -> void:
 	var events := w.act(_cast([ORB]))
 	var hurts := _of(events, &"hurt")
 	assert_eq([hurts[0].n, hurts[0].shatter], [2, true], "the orb's 1, doubled")
-	assert_eq([foe.frozen, foe.rooted], [0, 0], "the ice broke")
+	assert_eq([foe.ailments.frozen, foe.ailments.rooted], [0, 0], "the ice broke")
 	events = w.act(_cast([ORB]))
 	assert_eq(_of(events, &"hurt")[0].n, 1, "once only")
 
@@ -363,7 +368,7 @@ func test_fire_thaws_a_frozen_creature_instead_of_setting_it_alight() -> void:
 	Status.freeze(w, foe, Compounds.FROST)
 	var events := w.act(_cast([FIRE, FIRE, FIRE]))
 	assert_eq(_of(events, &"thaw").size(), 1)
-	assert_eq([foe.frozen, foe.rooted, foe.alight], [0, 0, 0])
+	assert_eq([foe.ailments.frozen, foe.ailments.rooted, foe.ailments.alight], [0, 0, 0])
 
 
 func test_frost_puts_fire_out_and_water_does_not_wet_ice() -> void:
@@ -371,10 +376,10 @@ func test_frost_puts_fire_out_and_water_does_not_wet_ice() -> void:
 	var foe := _post(w, ME + E * 2)
 	Status.ignite(w, foe)
 	w.act(_cast(FROST))
-	assert_eq(foe.alight, 0)
-	assert_gt(foe.frozen, 0)
+	assert_eq(foe.ailments.alight, 0)
+	assert_gt(foe.ailments.frozen, 0)
 	Status.soak(w, foe)
-	assert_eq(foe.wet, 0)
+	assert_eq(foe.ailments.wet, 0)
 
 
 func test_the_ice_melts_after_its_rounds() -> void:
@@ -385,14 +390,14 @@ func test_the_ice_melts_after_its_rounds() -> void:
 	for i in Compounds.FROST:
 		thawed.append(_of(w.act(WAIT), &"thaw").size())
 	assert_eq(thawed, [0, 1])
-	assert_eq([foe.frozen, foe.rooted], [0, 0])
+	assert_eq([foe.ailments.frozen, foe.ailments.rooted], [0, 0])
 
 
 func test_frozen_miho_cannot_step_and_takes_double_harm() -> void:
 	var w := _world()
 	Status.freeze(w, w.player(), Compounds.FROST)
 	assert_false(w.can({t = &"move", dir = W}))
-	w.hurt(w.player(), 1)
+	Harm.hurt(w, w.player(), 1)
 	assert_eq(w.player().hp, 3 - 2)
 	assert_true(w.can({t = &"move", dir = W}), "the ice broke")
 
@@ -429,9 +434,9 @@ func _told(before: World, w: World, events: Array) -> Array:
 func test_the_log_tells_when_each_hold_on_a_creature_lets_go() -> void:
 	var w := _world()
 	var foe := _post(w, ME + E * 2)
-	foe.rooted = 1
-	foe.stunned = 1
-	foe.blind = 1
+	foe.ailments.rooted = 1
+	foe.ailments.stunned = 1
+	foe.ailments.blind = 1
 	var before := w.clone()
 	var events := w.act(WAIT)
 	assert_eq(_told(before, w, events), ["장승이 정신을 차렸다", "장승이 풀려났다", "장승이 다시 볼 수 있게 되었다"])
@@ -440,8 +445,8 @@ func test_the_log_tells_when_each_hold_on_a_creature_lets_go() -> void:
 
 func test_miho_is_told_by_name_when_she_is_free_again() -> void:
 	var w := _world()
-	w.player().stunned = 1
-	w.player().rooted = 2
+	w.player().ailments.stunned = 1
+	w.player().ailments.rooted = 2
 	var before := w.clone()
 	assert_eq(_told(before, w, w.act(WAIT)), ["정신을 차렸다"])
 	before = w.clone()
@@ -477,7 +482,7 @@ func test_a_blow_that_breaks_the_ice_tells_that_it_melted() -> void:
 	Status.freeze(w, foe, Compounds.FROST)
 	var before := w.clone()
 	w.events = []
-	w.hurt(foe, 1)
+	Harm.hurt(w, foe, 1)
 	assert_eq(_of(w.events, &"thaw").size(), 1)
 	assert_eq(_told(before, w, w.events).slice(0, 2), ["장승이 피해를 2 입었다", "장승이 녹았다"])
 
@@ -494,11 +499,11 @@ func test_frost_on_a_wet_creature_tells_that_it_dried() -> void:
 func test_a_new_storey_frees_miho_and_says_so() -> void:
 	var w := World.create(1)
 	var me := w.player()
-	me.rooted = 2
-	me.stunned = 2
+	me.ailments.rooted = 2
+	me.ailments.stunned = 2
 	me.pos = w.stairs
-	w.arrive(me)
+	Walk.arrive(w, me)
 	assert_eq(w.depth, 2)
-	assert_eq([me.rooted, me.stunned], [0, 0])
+	assert_eq([me.ailments.rooted, me.ailments.stunned], [0, 0])
 	assert_eq(_of(w.events, &"unroot").size(), 1)
 	assert_eq(_of(w.events, &"unstun").size(), 1)

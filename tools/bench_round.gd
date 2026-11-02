@@ -18,7 +18,7 @@ func _init() -> void:
 				Gas.put(w, Vector2i(x, y), Gas.FOG, Gas.MAX)
 		w._changed()
 		var t := Time.get_ticks_usec()
-		w._shots_phase()
+		Flight.phase(w)
 		cost.shots += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
 		Mind.heaven_phase(w)
@@ -31,7 +31,7 @@ func _init() -> void:
 		cost.gas += Time.get_ticks_usec() - t
 		tiles += w.gas.size()
 		t = Time.get_ticks_usec()
-		w._end_round()
+		Round.end(w)
 		cost.end += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
 		w.sense()

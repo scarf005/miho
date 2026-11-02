@@ -59,7 +59,7 @@ func _doomed(what: StringName, depth := 2, round_no := 0) -> World:
 ## A creature that never walks or sleeps, in the hall, `reach` tiles south of Miho.
 func _watcher(w: World, reach: int) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", ME + Vector2i(0, reach))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -184,8 +184,8 @@ func test_under_the_sight_curse_a_creature_notices_her_where_it_would_not_have()
 	var foes := [_watcher(cursed, reach), _watcher(plain, reach)]
 	cursed.act(BUMP)
 	plain.act(BUMP)
-	assert_eq(foes[0].alert, Actor.HUNT)
-	assert_ne(foes[1].alert, Actor.HUNT)
+	assert_eq(foes[0].brain.alert, Actor.HUNT)
+	assert_ne(foes[1].brain.alert, Actor.HUNT)
 
 
 func test_rust_and_gdscript_sight_agree_under_the_sight_curse() -> void:
@@ -272,7 +272,7 @@ func test_what_rises_goes_by_the_storey() -> void:
 
 func test_raising_the_dead_does_not_take_the_body_in_the_jar() -> void:
 	var w := _doomed(Curse.BODY)
-	w.player().raise = true
+	w.player().buffs.raise = true
 	w.act(BUMP)
 	assert_true(w.bodies.has(AT), "it lies its second")
 	w.act(WAIT)
@@ -347,7 +347,7 @@ func _state(w: World) -> Array:
 		w.round_no,
 		w.rng.state,
 		w.tiles,
-		w.actors.map(func(a): return [a.id, a.kind, a.pos, a.hp, a.alert, a.faction]),
+		w.actors.map(func(a): return [a.id, a.kind, a.pos, a.hp, a.brain.alert, a.faction]),
 	]
 
 
@@ -430,8 +430,10 @@ func test_the_examples_in_the_codex_show_what_each_curse_does() -> void:
 	var watcher := func(a): return a.kind == &"jangseung"
 	assert_true(_example(Curse.REAPER).actors.any(saja), "the reaper comes at once")
 	assert_false(_example(Curse.REAPER, &"empty").actors.any(saja), "only by the doll")
-	assert_eq(_example(Curse.SIGHT).actors.filter(watcher)[0].alert, Actor.HUNT, "seen in the dark")
-	assert_ne(_example(Curse.SIGHT, &"empty").actors.filter(watcher)[0].alert, Actor.HUNT)
+	assert_eq(
+		_example(Curse.SIGHT).actors.filter(watcher)[0].brain.alert, Actor.HUNT, "seen in the dark"
+	)
+	assert_ne(_example(Curse.SIGHT, &"empty").actors.filter(watcher)[0].brain.alert, Actor.HUNT)
 
 
 func test_the_rising_is_told_as_a_line_when_she_sees_it() -> void:

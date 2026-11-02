@@ -31,7 +31,7 @@ static func usable(w: World, p: Vector2i) -> bool:
 ## `a` has just started hunting: it plans to drum if it is sharp enough, can
 ## move, and a drum is within REACH steps; the nearest one.
 static func plan(w: World, a: Actor) -> void:
-	a.drum = NONE
+	a.brain.drum = NONE
 	if Bestiary.wits(a.kind) < Bestiary.SHARP or a.info().get("move", &"static") == &"static":
 		return
 	var dist := _dist(w, a)
@@ -40,7 +40,7 @@ static func plan(w: World, a: Actor) -> void:
 	while i >= 0:
 		var stand := _stand(dist, Grid.at(i))
 		if usable(w, Grid.at(i)) and not stand.is_empty() and stand.steps < best:
-			a.drum = Grid.at(i)
+			a.brain.drum = Grid.at(i)
 			best = stand.steps
 		i = w.tiles.find(World.DRUM, i + 1)
 
@@ -49,40 +49,40 @@ static func plan(w: World, a: Actor) -> void:
 ## blow when it stands beside it. False when it has no drum to go to (or cannot
 ## go now), and it hunts as usual.
 static func go(w: World, a: Actor) -> bool:
-	if a.drum == NONE or a.rooted > 0:
+	if a.brain.drum == NONE or a.ailments.rooted > 0:
 		return false
-	var stand := _stand(_dist(w, a), a.drum)
-	if not usable(w, a.drum) or stand.is_empty():
-		a.drum = NONE
+	var stand := _stand(_dist(w, a), a.brain.drum)
+	if not usable(w, a.brain.drum) or stand.is_empty():
+		a.brain.drum = NONE
 		return false
 	if stand.steps == 0:
 		strike(w, a)
-		a.drum = NONE
+		a.brain.drum = NONE
 		return true
 	if Mind._step_to(w, a, stand.at):
 		return true
-	a.drum = NONE
+	a.brain.drum = NONE
 	return false
 
 
 ## `a` beats the drum it stands beside.
 static func strike(w: World, a: Actor) -> void:
-	var wet := w.wet.has(a.drum)
-	w.emit({t = &"drum", id = a.id, at = a.drum, wet = wet})
+	var wet := w.wet.has(a.brain.drum)
+	w.emit({t = &"drum", id = a.id, at = a.brain.drum, wet = wet})
 	if wet:
 		return
-	w.noise(a.drum, LOUD, "둥", false, a.id)
+	Hearing.noise(w, a.brain.drum, LOUD, "둥", false, a.id)
 	for b in w.actors:
 		if (
 			b.alive()
 			and b != a
 			and b.faction == Actor.HEAVEN
-			and b.alert != Actor.HUNT
+			and b.brain.alert != Actor.HUNT
 			and not b.info().get("deaf", false)
 		):
-			b.alert = Actor.SEARCH
-			b.target = a.target
-			b.lost = 0
+			b.brain.alert = Actor.SEARCH
+			b.brain.target = a.brain.target
+			b.brain.lost = 0
 
 
 ## A drum wet for WET_ROUNDS from now.

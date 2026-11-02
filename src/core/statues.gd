@@ -24,7 +24,7 @@ static func tick(w: World) -> void:
 static func wake(w: World, at: Vector2i, prey: Vector2i) -> void:
 	w.set_tile(at, World.FLOOR)
 	var a := FloorGen.spawn(w, KIND, at)
-	a.alert = Actor.HUNT
-	a.target = prey
-	a.cooldown = Bestiary.info(KIND).cd
+	a.brain.alert = Actor.HUNT
+	a.brain.target = prey
+	a.magic.cooldown = Bestiary.info(KIND).cd
 	w.emit({t = &"wake", id = a.id, at = at})

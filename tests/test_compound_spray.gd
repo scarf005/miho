@@ -52,7 +52,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts: a 장승 (no element, 3 health).
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -157,7 +157,9 @@ func test_a_spray_preview_equals_the_round() -> void:
 		for a in w.actors:
 			var b := f.after.actor(a.id)
 			assert_eq(
-				[b.pos, b.rooted, b.stunned], [a.pos, a.rooted, a.stunned], "%s %d" % [q, a.id]
+				[b.pos, b.ailments.rooted, b.ailments.stunned],
+				[a.pos, a.ailments.rooted, a.ailments.stunned],
+				"%s %d" % [q, a.id]
 			)
 		assert_eq(f.after.tiles, w.tiles, str(q))
 		assert_eq([f.after.hot, f.after.gas, f.after.burning], [w.hot, w.gas, w.burning], str(q))

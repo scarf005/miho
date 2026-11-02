@@ -83,11 +83,7 @@ static func scorches(w: World, p: Vector2i) -> bool:
 static func tick(w: World) -> void:
 	if w.tiles.find(World.VEIL) < 0:
 		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	for a in w.actors.duplicate():
 		if a.alive() and scorches(w, a.pos):
 			w.emit({t = &"burn", at = a.pos, id = a.id})
-			if Bestiary.absorbs(a.nature_kind(), flame):
-				w.emit({t = &"absorb", id = a.id, at = a.pos})
-			else:
-				w.hurt(a, World.FIRE_DAMAGE)
+			Harm.fire(w, a, World.FIRE_DAMAGE, a.pos)

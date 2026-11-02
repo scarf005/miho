@@ -37,7 +37,7 @@ func _put(w: World, p: Vector2i, t: int) -> void:
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -70,7 +70,7 @@ func test_a_closed_door_blocks_sight_but_light_passes() -> void:
 	var w := _world()
 	_put(w, Vector2i(13, 8), World.LANTERN)
 	var far := _foe(w, &"jangseung", Vector2i(12, 8))
-	far.home += E  # awake: one at its home sleeps
+	far.brain.home += E  # awake: one at its home sleeps
 	w.sense()
 	assert_true(w.opaque(DOOR_AT))
 	assert_false(w.blocks_light(DOOR_AT))
@@ -132,17 +132,17 @@ func test_miho_sliding_a_door_wakes_heaven_within_its_reach_only() -> void:
 	var near := _foe(w, &"imugi", DOOR_AT + Vector2i(2, 0))
 	var far := _foe(w, &"imugi", DOOR_AT + Vector2i(Terrain.SLIDE + 2, 0))
 	w.act({t = &"move", dir = E})
-	assert_eq(near.alert, Actor.SEARCH)
-	assert_eq(near.target, DOOR_AT)
-	assert_eq(far.alert, Actor.REST)
+	assert_eq(near.brain.alert, Actor.SEARCH)
+	assert_eq(near.brain.target, DOOR_AT)
+	assert_eq(far.brain.alert, Actor.REST)
 
 
 func test_a_hunting_creature_opens_a_door_on_its_path_and_leaves_it_open() -> void:
 	var w := _world()
 	w.player().pos = Vector2i(5, 8)
 	var foe := _foe(w, &"dokkaebi", Vector2i(11, 8))
-	foe.alert = Actor.HUNT
-	foe.target = w.player().pos
+	foe.brain.alert = Actor.HUNT
+	foe.brain.target = w.player().pos
 	var events := w.act(WAIT)
 	assert_eq(w.tile(DOOR_AT), World.DOOR_OPEN)
 	assert_eq(foe.pos, Vector2i(11, 8), "opening spent its move")
@@ -159,12 +159,12 @@ func test_a_creatures_door_does_not_wake_other_heaven() -> void:
 	var w := _world()
 	w.player().pos = Vector2i(2, 8)
 	var foe := _foe(w, &"dokkaebi", Vector2i(11, 8))
-	foe.alert = Actor.HUNT
-	foe.target = w.player().pos
+	foe.brain.alert = Actor.HUNT
+	foe.brain.target = w.player().pos
 	var sleeper := _foe(w, &"imugi", Vector2i(12, 9))
 	w.act(WAIT)
 	assert_eq(w.tile(DOOR_AT), World.DOOR_OPEN)
-	assert_eq(sleeper.alert, Actor.REST)
+	assert_eq(sleeper.brain.alert, Actor.REST)
 
 
 func test_a_door_burns_open_or_shut() -> void:
@@ -192,7 +192,7 @@ func test_a_preview_of_opening_or_closing_a_door_equals_the_real_round() -> void
 	for action in [{t = &"move", dir = E}, {t = &"close", dir = E}]:
 		var w := _world()
 		_put(w, DOOR_AT, World.DOOR if action.t == &"move" else World.DOOR_OPEN)
-		_foe(w, &"imugi", Vector2i(12, 8)).alert = Actor.SEARCH
+		_foe(w, &"imugi", Vector2i(12, 8)).brain.alert = Actor.SEARCH
 		var ahead := w.preview(action)
 		w.act(action)
 		assert_eq(ahead.tiles, w.tiles, str(action))

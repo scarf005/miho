@@ -28,4 +28,4 @@ static func spill(w: World, at: Vector2i) -> void:
 		ring.append(at + d)
 	Compounds.heat(w, ring, Compounds.LAVA)
 	for p in ring:
-		w.ignite(p)
+		Terrain.ignite(w, p)

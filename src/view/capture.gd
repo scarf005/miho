@@ -132,7 +132,7 @@ func _send(k: String) -> void:
 			main._forecast()
 		"kill":
 			var foe: Actor = main.world.actor_at(Vector2i(int(parts[1]), int(parts[2])))
-			main.world.hurt(foe, foe.hp)
+			Harm.hurt(main.world, foe, foe.hp)
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
@@ -147,9 +147,9 @@ func _send(k: String) -> void:
 				"hp":
 					w.actor_at(at).hp = int(parts[1])
 				"chase":
-					w.hunt_from(w.actor_at(at), w.player().pos)
+					Mind.hunt_from(w, w.actor_at(at), w.player().pos)
 				"follow":
-					w.actor_at(at).leader = (
+					w.actor_at(at).ties.leader = (
 						w.actor_at(w.player().pos + Vector2i(int(parts[1]), int(parts[2]))).id
 					)
 			main.term.show_world(main.world)
@@ -206,9 +206,9 @@ func _stage(parts: PackedStringArray) -> void:
 		"at":
 			w.player().pos = xy
 		"foe":
-			FloorGen.spawn(w, StringName(parts[1]), xy).cooldown = 99
+			FloorGen.spawn(w, StringName(parts[1]), xy).magic.cooldown = 99
 		"hunt":
-			w.hunt_from(w.actor_at(xy), w.player().pos)
+			Mind.hunt_from(w, w.actor_at(xy), w.player().pos)
 		"save":
 			main.term.saved[StringName(parts[1])] = parts[2]
 		"card":

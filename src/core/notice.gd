@@ -79,15 +79,15 @@ static func at(w: World, p: Vector2i) -> Dictionary:
 ## `a` looks at every change it sees and has not seen before, then searches the
 ## latest of them. A walled-in tile is searched from the floor next to it.
 static func react(w: World, a: Actor) -> void:
-	var fresh := w.changes.filter(func(c): return not a.marked.has(c.id) and w.sees(a, c.at))
+	var fresh := w.changes.filter(func(c): return not a.brain.marked.has(c.id) and w.sees(a, c.at))
 	if fresh.is_empty():
 		return
 	for c in fresh:
-		a.marked.append(c.id)
+		a.brain.marked.append(c.id)
 	var c: Dictionary = fresh.back()
-	a.alert = Actor.SEARCH
-	a.target = _spot(w, a, c.at)
-	a.lost = 0
+	a.brain.alert = Actor.SEARCH
+	a.brain.target = _spot(w, a, c.at)
+	a.brain.lost = 0
 	w.emit({t = &"heed", id = a.id, at = a.pos, kind = c.kind})
 
 

@@ -56,7 +56,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts: a 장승 (no element, 3 health).
 func _post(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"jangseung", at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
 	return a
 
@@ -83,7 +83,7 @@ func test_wildfire_sets_the_fan_and_its_creatures_alight_and_always_spreads() ->
 	w.act(_cast([WOOD, FIRE]))
 	assert_true(w.burning.has(ME + Vector2i(2, 1)), "grass in the fan burns")
 	assert_true(w.wild.has(ME + Vector2i(2, 1)), "and always spreads")
-	assert_gt(foe.alight, 0, "the creature in it is alight")
+	assert_gt(foe.ailments.alight, 0, "the creature in it is alight")
 	assert_false(w.burning.has(ME + Vector2i(1, 1)), "bare floor does not burn")
 
 
@@ -125,8 +125,8 @@ func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> vo
 	assert_gt(Compounds.HOT[Compounds.MOLTEN].harm, Compounds.HOT[Compounds.LAVA].harm)
 	w = _world()
 	var dog := FloorGen.spawn(w, &"haetae", ME + Vector2i(2, 0))
-	dog.cooldown = 99
-	dog.rooted = 9
+	dog.magic.cooldown = 99
+	dog.ailments.rooted = 9
 	w.sense()
 	events = w.act(_cast(FURNACE))
 	assert_eq(_harm(events, dog.id), 0, "해태 eats fire")
@@ -137,10 +137,10 @@ func test_heaven_walks_round_hot_ground() -> void:
 	var w := _world()
 	w.hot[ME + Vector2i(2, 0)] = Vector2i(Compounds.LAVA, 9)
 	var a := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(3, 0))
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	w.sense()
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	var before := a.pos
 	w.act(WAIT)
 	assert_ne(a.pos, ME + Vector2i(2, 0))
@@ -168,8 +168,8 @@ func test_frost_freezes_the_first_creature_and_the_ponds_on_its_line() -> void:
 	var events := w.act(_cast([METAL, WATER]))
 	assert_eq([w.tile(ME + E), w.tile(ME + E * 2)], [World.ICE, World.ICE])
 	assert_true(w.open_floor(ME + E), "ice is walked")
-	assert_eq(foe.rooted, Compounds.FROST - 1, "frozen, a round of it gone")
-	assert_eq(behind.rooted, 0, "the line stops at the first")
+	assert_eq(foe.ailments.rooted, Compounds.FROST - 1, "frozen, a round of it gone")
+	assert_eq(behind.ailments.rooted, 0, "the line stops at the first")
 	assert_eq(_of(events, &"freeze").size(), 1)
 	assert_true(_of(events, &"noise").is_empty(), "silent")
 	w.act({t = &"move", dir = E})
@@ -179,12 +179,12 @@ func test_frost_freezes_the_first_creature_and_the_ponds_on_its_line() -> void:
 func test_rain_roots_the_3x3_and_douses_it() -> void:
 	var w := _world()
 	_put(w, ME + Vector2i(3, 1), World.BOARD)
-	w.ignite(ME + Vector2i(3, 1))
+	Terrain.ignite(w, ME + Vector2i(3, 1))
 	var foe := _post(w, ME + Vector2i(4, -1))
 	var events := w.act(_cast([WATER, WOOD]))
 	assert_false(w.burning.has(ME + Vector2i(3, 1)), "doused")
 	assert_eq(_of(events, &"root")[0].rounds, Compounds.RAIN)
-	assert_eq(foe.rooted, Compounds.RAIN - 1)
+	assert_eq(foe.ailments.rooted, Compounds.RAIN - 1)
 
 
 func test_steam_clouds_the_3x3_three_ahead_and_scalds_who_is_inside() -> void:
@@ -210,10 +210,10 @@ func test_thorns_grow_prick_and_hurt_whoever_steps_onto_them() -> void:
 	assert_eq(w.tile(ME + E), World.THORNS)
 	assert_eq(w.tile(foe.pos), World.THORNS, "under the creature too")
 	assert_eq(w.opaque(ME + E), false, "sight goes through")
-	foe.stunned = 9
+	foe.ailments.stunned = 9
 	var me := w.player()
 	var hp := me.hp
-	foe.stunned = 1
+	foe.ailments.stunned = 1
 	var before := w.clone()
 	events = w.act({t = &"move", dir = E})
 	assert_eq(me.hp, hp - Compounds.THORN, "a step onto thorns pricks")
@@ -229,10 +229,10 @@ func test_mud_slows_every_step_and_silences_it() -> void:
 	var heavy := FloorGen.spawn(w, &"bulgasari", ME + E * 4)
 	assert_gt(heavy.info().step, 0)
 	w.events = []
-	w.move(heavy, ME + E * 3)
+	Walk.move(w, heavy, ME + E * 3)
 	assert_true(_of(w.events, &"noise").is_empty(), "no footstep on mud")
 	w.events = []
-	w.move(heavy, ME + E * 4)
+	Walk.move(w, heavy, ME + E * 4)
 	assert_false(_of(w.events, &"noise").is_empty(), "but off it")
 	heavy.hp = 0
 	w.player().pos = ME + E
@@ -266,16 +266,26 @@ func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() ->
 		var at := foe.pos
 		match c:
 			&"wildfire":
-				assert_eq([foe.alight, side.alight], [Status.ALIGHT - 1, Status.ALIGHT - 1], c)
+				assert_eq(
+					[foe.ailments.alight, side.ailments.alight],
+					[Status.ALIGHT - 1, Status.ALIGHT - 1],
+					c
+				)
 			&"lava":
 				assert_true(w.hot.has(at) and w.hot.has(at + Vector2i(1, -1)), c)
 			&"shrapnel":
 				assert_eq(_harm(events, side.id), Compounds.MORTAR, c)
 				assert_eq(_harm(events, foe.id), 1 + Compounds.MORTAR, "orb and the burst")
 			&"frost":
-				assert_eq([foe.rooted, side.rooted], [Compounds.FROST - 1, Compounds.FROST - 1])
+				assert_eq(
+					[foe.ailments.rooted, side.ailments.rooted],
+					[Compounds.FROST - 1, Compounds.FROST - 1]
+				)
 			&"rain":
-				assert_eq([foe.rooted, side.rooted], [Compounds.RAIN - 1, Compounds.RAIN - 1])
+				assert_eq(
+					[foe.ailments.rooted, side.ailments.rooted],
+					[Compounds.RAIN - 1, Compounds.RAIN - 1]
+				)
 			&"steam":
 				assert_eq(Gas.at(w, at).x, Gas.STEAM, c)
 			&"thorn":
@@ -297,8 +307,8 @@ func test_a_wisp_carries_steam_and_more_copies_reach_farther() -> void:
 		var struck := _post(w, ME + E * 3)
 		var corner := _post(w, ME + Vector2i(5, 2))
 		w.act(_cast([ORB] + [METAL, WATER, METAL, WATER].slice(0, 2 * copies)))
-		assert_eq(struck.rooted, Compounds.FROST - 1)
-		assert_eq(corner.rooted, Compounds.FROST - 1 if copies == 2 else 0, "5x5 for two")
+		assert_eq(struck.ailments.rooted, Compounds.FROST - 1)
+		assert_eq(corner.ailments.rooted, Compounds.FROST - 1 if copies == 2 else 0, "5x5 for two")
 
 
 func test_a_carried_compound_preview_equals_the_round() -> void:
@@ -322,7 +332,7 @@ func test_a_carried_compound_preview_equals_the_round() -> void:
 				[f.after.hot, f.after.gas, f.after.burning], [w.hot, w.gas, w.burning], str(q)
 			)
 			for a in w.actors:
-				assert_eq(f.after.actor(a.id).rooted, a.rooted, str(q))
+				assert_eq(f.after.actor(a.id).ailments.rooted, a.ailments.rooted, str(q))
 
 
 func test_the_forecast_shows_the_ground_a_compound_changes() -> void:

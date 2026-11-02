@@ -129,7 +129,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 	match c:
 		&"wildfire":
 			for p in tiles:
-				w.ignite(p, false, true)
+				Terrain.ignite(w, p, false, true)
 		&"lava":
 			heat(w, tiles, LAVA)
 		&"frost":
@@ -220,7 +220,7 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)
 		&"stillness":
-			if a.faction == Actor.HEAVEN and a.alert == Actor.HUNT:
+			if a.faction == Actor.HEAVEN and a.brain.alert == Actor.HUNT:
 				Mind.lose(a)
 		&"thunder":
 			if a.alive():
@@ -241,7 +241,7 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 	match w.tile(to):
 		World.THORNS:
 			w.emit({t = &"prick", id = a.id, at = to})
-			w.hurt(a, THORN)
+			Harm.hurt(w, a, THORN)
 		World.MUD:
 			Elements.root(w, a, MUD)
 
@@ -250,17 +250,13 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 static func tick(w: World) -> void:
 	if w.outcome != &"" or w.hot.is_empty():
 		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var cooled := {}
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
 		if a != null:
 			w.emit({t = &"sear", id = a.id, at = p, kind = h.x})
-			if Bestiary.absorbs(a.nature_kind(), flame):
-				w.emit({t = &"absorb", id = a.id, at = p})
-			else:
-				w.hurt(a, HOT[h.x].harm)
+			Harm.fire(w, a, HOT[h.x].harm, p)
 		if h.y <= 1:
 			w.hot.erase(p)
 			cooled.get_or_add(h.x, []).append(p)
@@ -343,7 +339,7 @@ static func _explode(w: World, s: Shot, at: Vector2i, r: int) -> void:
 
 ## 봉화 is heard where it lands, and every dark lantern its caster sees lights.
 static func _signal(w: World, s: Shot, at: Vector2i) -> void:
-	w.noise(at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
+	Hearing.noise(w, at, BOOM, BEACON_WORD, s.faction == Actor.FOX, s.caster)
 	var me := w.actor(s.caster)
 	if me == null or not me.alive():
 		return

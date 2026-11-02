@@ -293,7 +293,7 @@ func test_steam_scalds_whoever_stands_in_it_each_round() -> void:
 	var w := _hall()
 	var at := ME + Vector2i(2, 0)
 	var foe := FloorGen.spawn(w, &"jangseung", at)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	_block(w, ME, 3, Gas.STEAM, Gas.MAX)
 	var hp := foe.hp
 	var events := w.act({t = &"wait"})

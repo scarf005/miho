@@ -36,7 +36,7 @@ func test_a_creature_that_heeds_a_change_is_named_in_the_log() -> void:
 func test_a_body_mark_tells_who_fell_and_that_the_seer_searches() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", AT)
-	w.hurt(foe, 99)
+	Harm.hurt(w, foe, 99)
 	w.sense()
 	var text := Info.plain(Info.terrain(w, AT))
 	assert_string_contains(text, "쓰러진 도깨비: 0초 전\n" + Info.TRACE)
@@ -61,7 +61,7 @@ func test_another_change_tells_its_age() -> void:
 func test_the_map_text_marks_a_seen_body() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"dokkaebi", AT)
-	w.hurt(foe, 99)
+	Harm.hurt(w, foe, 99)
 	w.sense()
 	var rows := Array(Observation.text(w).split("\n"))
 	var top := rows.find(rows.filter(func(r): return r.begins_with("map,"))[0])

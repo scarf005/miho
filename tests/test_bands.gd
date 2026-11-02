@@ -42,8 +42,8 @@ func _hall() -> World:
 
 func _band(w: World, leader: Actor, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.leader = leader.id
-	a.cooldown = 99
+	a.ties.leader = leader.id
+	a.magic.cooldown = 99
 	return a
 
 
@@ -54,7 +54,7 @@ func _storey(seed_value: int, depth: int) -> World:
 
 func _leaders(w: World) -> Array[Actor]:
 	var out: Array[Actor] = []
-	out.assign(w.actors.filter(func(a): return w.actors.any(func(b): return b.leader == a.id)))
+	out.assign(w.actors.filter(func(a): return w.actors.any(func(b): return b.ties.leader == a.id)))
 	return out
 
 
@@ -95,10 +95,10 @@ func test_each_follower_stands_beside_its_leader_in_one_room() -> void:
 			var w := _storey(seed_value, depth)
 			for lead in _leaders(w):
 				bands += 1
-				assert_eq(lead.leader, 0, "a leader follows nobody")
+				assert_eq(lead.ties.leader, 0, "a leader follows nobody")
 				var room := w.rooms.filter(func(r): return r.has_point(lead.pos))
 				assert_eq(room.size(), 1)
-				for f in w.actors.filter(func(a): return a.leader == lead.id):
+				for f in w.actors.filter(func(a): return a.ties.leader == lead.id):
 					var ctx := "seed %d depth %d %s" % [seed_value, depth, f.kind]
 					assert_true(Bestiary.allied(f.kind, lead.kind), ctx)
 					assert_lte(Grid.cheb(f.pos, lead.pos), FloorGen.BAND_SPREAD, ctx)
@@ -120,17 +120,17 @@ func test_every_creature_of_the_plan_still_spawns_and_is_deterministic() -> void
 		var guards := a.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
 		assert_eq(a.actors.size() - 1, want + guards, "depth %d" % depth)
 		assert_eq(
-			a.actors.map(func(x): return [x.kind, x.pos, x.leader]),
-			b.actors.map(func(x): return [x.kind, x.pos, x.leader])
+			a.actors.map(func(x): return [x.kind, x.pos, x.ties.leader]),
+			b.actors.map(func(x): return [x.kind, x.pos, x.ties.leader])
 		)
 
 
 func test_a_resting_follower_keeps_up_with_a_walking_leader() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
-	lead.cooldown = 99
+	lead.magic.cooldown = 99
 	var f := _band(w, lead, &"dokkaebi", Vector2i(30, 11))
-	lead.post = Vector2i(50, 8)
+	lead.brain.post = Vector2i(50, 8)
 	for i in 12:
 		w.act(WAIT)
 	assert_gt(lead.pos.x, 35, "the leader patrols")
@@ -140,11 +140,11 @@ func test_a_resting_follower_keeps_up_with_a_walking_leader() -> void:
 func test_a_follower_beside_its_leader_stays_put() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
-	lead.cooldown = 99
-	lead.post = lead.pos
+	lead.magic.cooldown = 99
+	lead.brain.post = lead.pos
 	var f := _band(w, lead, &"dokkaebi", Vector2i(31, 9))
 	var at := f.pos
-	f.post = f.pos
+	f.brain.post = f.pos
 	w.act(WAIT)
 	assert_eq(f.pos, at)
 
@@ -153,13 +153,13 @@ func test_a_sleeping_band_stays_asleep_and_wakes_alone() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"imugi", Vector2i(30, 8))
 	var f := _band(w, lead, &"imugi", Vector2i(32, 8))
-	lead.cooldown = 99
+	lead.magic.cooldown = 99
 	assert_true(lead.asleep())
 	assert_true(f.asleep())
 	w.act(WAIT)
 	assert_eq([lead.pos, f.pos], [Vector2i(30, 8), Vector2i(32, 8)])
-	lead.alert = Actor.SEARCH
-	lead.target = Vector2i(40, 8)
+	lead.brain.alert = Actor.SEARCH
+	lead.brain.target = Vector2i(40, 8)
 	w.act(WAIT)
 	assert_true(f.asleep(), "the leader moving off does not wake it")
 	assert_eq(f.pos, Vector2i(32, 8))
@@ -169,7 +169,7 @@ func test_a_follower_that_does_not_patrol_goes_home_to_sleep() -> void:
 	var w := _hall()
 	var lead := FloorGen.spawn(w, &"imugi", Vector2i(30, 8))
 	var f := _band(w, lead, &"imugi", Vector2i(32, 8))
-	lead.cooldown = 99
+	lead.magic.cooldown = 99
 	f.pos = Vector2i(34, 8)
 	w.act(WAIT)
 	assert_eq(f.pos, Vector2i(33, 8))
@@ -182,10 +182,10 @@ func test_when_the_leader_falls_the_band_scatters() -> void:
 	var g := _band(w, lead, &"bitjaru", Vector2i(31, 9))
 	var other := FloorGen.spawn(w, &"oedari", Vector2i(10, 4))
 	var kin := _band(w, other, &"dokkaebi", Vector2i(11, 4))
-	w.hurt(lead, 3)
+	Harm.hurt(w, lead, 3)
 	assert_false(lead.alive())
-	assert_eq([f.leader, g.leader], [0, 0])
-	assert_eq(kin.leader, other.id, "another band is left alone")
+	assert_eq([f.ties.leader, g.ties.leader], [0, 0])
+	assert_eq(kin.ties.leader, other.id, "another band is left alone")
 	assert_true(w.events.any(func(e): return e.t == &"scatter" and e.id == lead.id))
 	assert_eq(w.events.filter(func(e): return e.t == &"scatter").size(), 1)
 
@@ -197,13 +197,13 @@ func test_a_leader_pushed_into_the_sky_scatters_the_band_too() -> void:
 	var f := _band(w, lead, &"dokkaebi", Vector2i(29, 8))
 	w.push(lead, Vector2i(1, 0), 1)
 	assert_false(lead.alive())
-	assert_eq(f.leader, 0)
+	assert_eq(f.ties.leader, 0)
 
 
 func test_a_lone_creature_falling_scatters_nothing() -> void:
 	var w := _hall()
 	var lone := FloorGen.spawn(w, &"oedari", Vector2i(30, 8))
-	w.hurt(lone, 3)
+	Harm.hurt(w, lone, 3)
 	assert_false(w.events.any(func(e): return e.t == &"scatter"))
 
 
@@ -243,7 +243,7 @@ func test_the_agent_tells_the_band_and_the_log_tells_no_scattering() -> void:
 	var before := w.clone()
 	var events: Array[Dictionary] = []
 	w.events = events
-	w.hurt(lead, 1)
+	Harm.hurt(w, lead, 1)
 	var lines := Messages.of(before, w, events).map(func(l): return Messages.plain(l))
 	assert_true(events.any(func(e): return e.t == &"scatter"), "the band scatters")
 	assert_false(lines.any(func(l): return l.contains("무리")), str(lines))
@@ -253,4 +253,4 @@ func test_the_agent_tells_the_band_and_the_log_tells_no_scattering() -> void:
 	var text := Observation.text(again)
 	assert_string_contains(text, "leads a band")
 	assert_string_contains(text, "follows 외다리 도깨비")
-	assert_eq(f.leader, 0)
+	assert_eq(f.ties.leader, 0)

@@ -61,7 +61,7 @@ func _hovering(w: World, cards := [FOX]) -> Shot:
 func _sleeper(w: World, kind: StringName, at: Vector2i) -> Actor:
 	w.set_tile(at, World.BAMBOO)
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -111,9 +111,9 @@ func test_heaven_searches_the_yelp_but_a_cunning_creature_where_it_was_thrown_fr
 	var far := _sleeper(w, &"imugi", HOVER + Vector2i(9, 0))
 	_hovering(w)
 	w.act(WAIT)
-	assert_eq([sharp.alert, sharp.target], [Actor.SEARCH, HOVER])
-	assert_eq([cunning.alert, cunning.target], [Actor.SEARCH, ME])
-	assert_eq(far.alert, Actor.REST, "out of earshot")
+	assert_eq([sharp.brain.alert, sharp.brain.target], [Actor.SEARCH, HOVER])
+	assert_eq([cunning.brain.alert, cunning.brain.target], [Actor.SEARCH, ME])
+	assert_eq(far.brain.alert, Actor.REST, "out of earshot")
 
 
 func test_the_forecast_hears_the_yelp_the_round_does() -> void:
@@ -132,7 +132,7 @@ func test_the_log_tells_a_yelp_in_sight_and_a_yelp_heard_from_the_dark() -> void
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
 	assert_has(lines, "여우불이 캥 울었다")
 	var blind := _world()
-	blind.player().blind = 5
+	blind.player().ailments.blind = 5
 	blind.sense()
 	var s := _hovering(blind)
 	s.pos = ME + Vector2i(3, 0)

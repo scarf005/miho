@@ -34,7 +34,7 @@ static func tick(w: World) -> void:
 			s.gone
 			or s.faction != Actor.FOX
 			or s.dir != Vector2i.ZERO
-			or w.rides(s)
+			or Flight.rides(w, s)
 			or s.life <= 0
 			or s.life % EVERY != 0
 			or not lures(s.spell)
@@ -49,16 +49,16 @@ static func tick(w: World) -> void:
 static func _yelp(w: World, s: Shot) -> void:
 	var n := loud(s.spell)
 	w.emit({t = &"yelp", shot = s.id, at = s.pos, loud = n})
-	w.noise(s.pos, n, WORD, true, 0)
+	Hearing.noise(w, s.pos, n, WORD, true, 0)
 	var dist: PackedInt32Array = Grid.search(s.pos, Masks.heard(w), n).dist
 	for a in w.actors:
 		var d := dist[Grid.index(a.pos)]
 		if (
 			a.alive()
-			and a.alert == Actor.SEARCH
-			and a.target == s.pos
+			and a.brain.alert == Actor.SEARCH
+			and a.brain.target == s.pos
 			and Bestiary.wits(a.kind) == Bestiary.CUNNING
 			and d >= 0
 			and d <= n
 		):
-			a.target = s.origin
+			a.brain.target = s.origin

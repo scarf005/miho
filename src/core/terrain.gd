@@ -90,7 +90,7 @@ static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bo
 static func knock(w: World, me: Actor, at: Vector2i) -> void:
 	var sound: Array = Tiles.of(w.tile(at), "hit")
 	hit(w, at)
-	w.noise(at, sound[0], sound[1], true, me.id)
+	Hearing.noise(w, at, sound[0], sound[1], true, me.id)
 
 
 ## Whether `p` is a plank: 마루 with sky on two opposite sides.
@@ -113,7 +113,7 @@ static func crumble(w: World, by: Actor, at: Vector2i) -> void:
 		w.set_tile(at, gone)
 		Scrolls.displace(w, [at])
 		w.emit({t = &"crumble", at = at, was = was})
-		w.noise(at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
+		Hearing.noise(w, at, CRACK, "우지끈", by.faction == Actor.FOX, by.id)
 
 
 ## A creature steps onto reeds at `at`: they lie flat, and sight clears.
@@ -125,7 +125,7 @@ static func stepped(w: World, a: Actor, from: Vector2i, to: Vector2i) -> void:
 	crumble(w, a, from)
 	trample(w, to)
 	Compounds.step(w, a, to)
-	Traps.step(w, a, Grid.line_dir(from, to))
+	Traps.enter(w, a, Grid.line_dir(from, to))
 
 
 static func trample(w: World, at: Vector2i) -> void:
@@ -149,7 +149,7 @@ static func close_door(w: World, by: Actor, at: Vector2i) -> void:
 static func _slide(w: World, by: Actor, at: Vector2i, to: int, event: StringName) -> void:
 	w.set_tile(at, to)
 	w.emit({t = event, at = at, id = by.id})
-	w.noise(at, SLIDE, "드르륵", by.faction == Actor.FOX, by.id)
+	Hearing.noise(w, at, SLIDE, "드르륵", by.faction == Actor.FOX, by.id)
 
 
 ## An orb without water hits the lantern, closed door, window or wall it struck;
@@ -164,9 +164,9 @@ static func smash(w: World, s: Shot, at: Vector2i, struck: int) -> void:
 		while Elements.fells(s.spell) and wall(w.tile(at)) and breakable(w, at):
 			hit(w, at)
 		if wall(struck):
-			w.noise(at, World.THUD, "쿵", true, s.caster)
+			Hearing.noise(w, at, World.THUD, "쿵", true, s.caster)
 		elif struck == World.WINDOW:
-			w.noise(at, World.KNOCK, "쨍", true, s.caster)
+			Hearing.noise(w, at, World.KNOCK, "쨍", true, s.caster)
 
 
 ## Moves the tile one step along `breaks_to`, or straight `to` when given; `was`
@@ -282,6 +282,25 @@ static func wash(w: World, p: Vector2i) -> void:
 		w.emit({t = &"snuff", shot = o.id, at = p})
 
 
+## Sets p alight if it is flammable, or whatever it is when `force`d; a
+## `wildfire` always spreads. Water never burns.
+static func ignite(w: World, p: Vector2i, force := false, wildfire := false) -> void:
+	Gas.light(w, p)
+	if (
+		(force or Tiles.burns[w.tile(p)] == 1)
+		and not w.burning.has(p)
+		and not Tiles.of(w.tile(p), "douses")
+	):
+		w.burning[p] = World.BURN_ROUNDS
+		if wildfire:
+			w.wild[p] = true
+		else:
+			w.wild.erase(p)
+		Scent.clear(w, p)
+		w._changed()
+		w.emit({t = &"ignite", at = p})
+
+
 ## A lit lantern, a fire or a veil of dokkaebi fire on p goes out.
 static func douse(w: World, p: Vector2i) -> void:
 	if w.tile(p) == World.VEIL:
@@ -319,19 +338,15 @@ static func relight_beside(w: World, a: Actor) -> bool:
 static func burn(w: World, alight: Array) -> void:
 	if w.outcome != &"":
 		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var caught: Array[Vector2i] = []
 	var gone := {}
 	for p: Vector2i in w.burning.keys():
-		w.noise(p, World.CRACKLE, "타닥", true, 0)
+		Hearing.noise(w, p, World.CRACKLE, "타닥", true, 0)
 		var a := w.actor_at(p)
-		if a != null and alight.has(p) and a.alight <= 0:
+		if a != null and alight.has(p) and a.ailments.alight <= 0:
 			var fierce := Tiles.fierce[w.tile(p)] == 1
 			w.emit({t = &"burn", at = p, id = a.id, fierce = fierce})
-			if Bestiary.absorbs(a.nature_kind(), flame):
-				w.emit({t = &"absorb", id = a.id, at = p})
-			else:
-				w.hurt(a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)
+			if Harm.fire(w, a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE, p):
 				Status.dry(w, a)
 		caught.append_array(_catch(w, p))
 		w.burning[p] -= 1
@@ -356,11 +371,11 @@ static func burn(w: World, alight: Array) -> void:
 		caught.append_array(front)
 	for p in caught:
 		if not gone.has(p):
-			w.ignite(p)
+			ignite(w, p)
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
 		w.emit({t = &"crumble", at = p, was = World.BOARD})
-		w.noise(p, CRACK, "우지끈", true, 0)
+		Hearing.noise(w, p, CRACK, "우지끈", true, 0)
 	Scrolls.displace(w, gone.keys())
 	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))
 	falling.reverse()

@@ -31,7 +31,7 @@ func _world() -> World:
 
 func _creature(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -45,7 +45,7 @@ func _provoke(w: World, a: Actor, by: Actor) -> void:
 func _orb_at(w: World, caster: Actor, victim: Actor) -> Array:
 	var events: Array = []
 	var before := victim.hp
-	w.cast(caster, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, caster, Spell.make([Cards.ORB]), W)
 	for i in 4:
 		events.append_array(w.act(WAIT))
 		if victim.hp < before:
@@ -69,7 +69,7 @@ func test_a_creature_struck_by_another_group_fights_the_caster() -> void:
 	victim.hp = 5
 	var events := _orb_at(w, shooter, victim)
 	assert_lt(victim.hp, 5)
-	assert_eq(victim.rival, shooter.id)
+	assert_eq(victim.ties.rival, shooter.id)
 	assert_true(victim.fighting())
 	assert_true(events.any(func(e): return e.t == &"feud" and e.rival == shooter.id))
 
@@ -82,7 +82,7 @@ func test_one_of_its_own_group_hurts_it_but_starts_no_fight() -> void:
 		victim.hp = 5
 		var events := _orb_at(w, shooter, victim)
 		assert_lt(victim.hp, 5, "friendly fire still hurts")
-		assert_eq(victim.rival, 0)
+		assert_eq(victim.ties.rival, 0)
 		assert_false(events.any(func(e): return e.t == &"feud"))
 
 
@@ -95,7 +95,7 @@ func test_a_fighter_strikes_its_rival_before_miho_beside_it() -> void:
 	assert_eq(w.player().hp, 3)
 	assert_eq(rival.hp, 2)
 	assert_true(events.any(func(e): return e.t == &"melee" and e.target == rival.id))
-	assert_eq(fighter.alert, Actor.HUNT, "it saw Miho all the same")
+	assert_eq(fighter.brain.alert, Actor.HUNT, "it saw Miho all the same")
 
 
 func test_a_fighter_s_homing_spell_goes_for_its_rival() -> void:
@@ -123,8 +123,8 @@ func test_the_fight_ends_when_the_rival_falls() -> void:
 	var fighter := _creature(w, &"dokkaebi", Vector2i(20, 8))
 	var rival := _creature(w, &"jangseung", Vector2i(21, 8))
 	_provoke(w, fighter, rival)
-	w.hurt(rival, 9)
-	assert_eq(fighter.rival, 0)
+	Harm.hurt(w, rival, 9)
+	assert_eq(fighter.ties.rival, 0)
 
 
 func test_the_fight_ends_after_the_grudge_runs_out() -> void:
@@ -139,7 +139,7 @@ func test_the_fight_ends_after_the_grudge_runs_out() -> void:
 		events.append_array(w.act(WAIT))
 	assert_false(fighter.fighting())
 	events.append_array(w.act(WAIT))
-	assert_eq(fighter.rival, 0)
+	assert_eq(fighter.ties.rival, 0)
 	assert_true(events.any(func(e): return e.t == &"truce" and e.id == fighter.id))
 
 
@@ -148,9 +148,9 @@ func test_a_rival_striking_again_renews_the_grudge() -> void:
 	var fighter := _creature(w, &"dokkaebi", Vector2i(20, 8))
 	var rival := _creature(w, &"jangseung", Vector2i(26, 8))
 	_provoke(w, fighter, rival)
-	fighter.grudge = 2
+	fighter.ties.grudge = 2
 	_provoke(w, fighter, rival)
-	assert_eq(fighter.grudge, Mind.GRUDGE_ROUNDS)
+	assert_eq(fighter.ties.grudge, Mind.GRUDGE_ROUNDS)
 
 
 func test_harm_from_miho_ends_the_fight() -> void:
@@ -160,8 +160,8 @@ func test_harm_from_miho_ends_the_fight() -> void:
 	_provoke(w, fighter, rival)
 	fighter.hp = 9
 	w.act({t = &"move", dir = Vector2i(1, 0)})
-	assert_eq(fighter.rival, 0)
-	assert_eq(fighter.alert, Actor.HUNT)
+	assert_eq(fighter.ties.rival, 0)
+	assert_eq(fighter.brain.alert, Actor.HUNT)
 
 
 func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void:
@@ -170,9 +170,9 @@ func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void
 	var rival := _creature(w, &"imugi", Vector2i(26, 8))
 	_provoke(w, fighter, rival)
 	var events := w.act(WAIT)
-	assert_eq(fighter.rival, 0)
-	assert_eq(fighter.alert, Actor.SEARCH)
-	assert_eq(fighter.target, Vector2i(26, 8))
+	assert_eq(fighter.ties.rival, 0)
+	assert_eq(fighter.brain.alert, Actor.SEARCH)
+	assert_eq(fighter.brain.target, Vector2i(26, 8))
 	assert_true(events.any(func(e): return e.t == &"truce"))
 
 
@@ -214,7 +214,7 @@ func test_the_log_tells_the_fight() -> void:
 	victim.hp = 5
 	w.set_tile(ME + Vector2i(5, 1), World.LANTERN)
 	w.sense()
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	var lines := []
 	for i in 3:
 		var before := w.clone()
@@ -233,7 +233,7 @@ func test_the_log_names_the_creature_a_blow_strikes() -> void:
 	assert_has(lines, "도깨비의 방망이에 장승이 맞아 피해를 1 입었다")
 	var me := _world()
 	var foe := _creature(me, &"dokkaebi", ME + Vector2i(1, 0))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	me.sense()
 	before = me.clone()
 	assert_has(Messages.of(before, me, me.act(WAIT)).map(Messages.plain), "도깨비의 방망이에 맞아 피해를 1 입었다")

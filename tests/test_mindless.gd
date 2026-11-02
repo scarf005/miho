@@ -38,8 +38,8 @@ func _hall() -> World:
 
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	return a
 
 
@@ -62,7 +62,7 @@ func test_the_undead_of_a_storey_stand_in_one_band_led_by_the_dalgyal() -> void:
 		var w := Built.storey(s, 2)
 		var lead: Actor = w.actors.filter(func(a): return a.kind == &"dalgyal")[0]
 		var gaekgwi: Actor = w.actors.filter(func(a): return a.kind == &"gaekgwi")[0]
-		assert_eq(gaekgwi.leader, lead.id, "seed %d" % s)
+		assert_eq(gaekgwi.ties.leader, lead.id, "seed %d" % s)
 
 
 func test_a_gaekgwi_walks_at_her_and_strikes() -> void:
@@ -92,9 +92,9 @@ func test_a_dalgyal_does_not_hear_noise() -> void:
 	var w := _hall()
 	var dead := FloorGen.spawn(w, &"dalgyal", ME + E * 6)
 	var living := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(0, -4))
-	w.noise(ME, 12, "쾅", true, w.player().id)
-	assert_eq(living.alert, Actor.SEARCH, "a 도깨비 goes to look")
-	assert_eq(dead.alert, Actor.REST, "a 달걀귀신 does not")
+	Hearing.noise(w, ME, 12, "쾅", true, w.player().id)
+	assert_eq(living.brain.alert, Actor.SEARCH, "a 도깨비 goes to look")
+	assert_eq(dead.brain.alert, Actor.REST, "a 달걀귀신 does not")
 
 
 func test_the_forecast_of_a_round_with_the_dead_equals_the_round() -> void:
@@ -117,8 +117,8 @@ func test_a_whole_storey_with_the_dead_runs_rounds_alike_twice() -> void:
 		var w := Built.storey(3, 2)
 		for a in w.actors:
 			if a.kind in [&"gaekgwi", &"dalgyal"]:
-				a.alert = Actor.HUNT
-				a.target = w.player().pos
+				a.brain.alert = Actor.HUNT
+				a.brain.target = w.player().pos
 		for i in 12:
 			w.act(WAIT)
 		runs.append(w.actors.map(func(a): return [a.kind, a.pos, a.hp]))

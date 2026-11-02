@@ -162,13 +162,7 @@ static func _word(spell: Spell) -> String:
 
 ## `caster` sprays `spell` along `dir`.
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	var s := Shot.new()
-	s.id = w.new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = spell
-	s.pos = caster.pos
-	s.origin = caster.pos
+	var s := Shot.of(w, caster, spell)
 	var level := spell.level()
 	var lead := spell.slots[0]
 	# A quake and roots go every way: struck creatures cannot tell a line.
@@ -186,7 +180,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 			tiles = tiles
 		}
 	)
-	w.noise(caster.pos, noise(spell), _word(spell), caster.faction == Actor.FOX, caster.id)
+	Hearing.noise(w, caster.pos, noise(spell), _word(spell), caster.faction == Actor.FOX, caster.id)
 	Terrain.react(w, spell, tiles)
 	if Terrain.lights(spell):
 		_relight(w, caster, tiles)
@@ -577,7 +571,7 @@ static func _tell(w: World, s: Shot, a: Actor) -> void:
 
 static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for p in tiles:
-		w.ignite(p, false, level >= 3)
+		Terrain.ignite(w, p, false, level >= 3)
 	if level < 3:
 		return
 	for a in on(w, s, tiles):
@@ -658,7 +652,7 @@ static func _compound(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 		Compounds.tip(w, s, c, at)
 	for p in tiles:
 		if spell.has(Cards.FIRE):
-			w.ignite(p)
+			Terrain.ignite(w, p)
 		if spell.has(Cards.WATER):
 			Terrain.wash(w, p)
 		if spell.has(Cards.EARTH) and Terrain.wall(w.tile(p)) and Terrain.breakable(w, p):

@@ -748,7 +748,7 @@ func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
 		if a.faction != Actor.FOX and _visible(a.pos):
 			var mark := Perceived.mark_of(a)
 			if mark != "":
-				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.alert, 1)])
+				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.brain.alert, 1)])
 		_status(cell + Vector2(0, 0.55), a)
 	for p in marks:
 		var m: Array = marks[p]
@@ -978,7 +978,7 @@ func _small(cell: Vector2, s: String, color: Color) -> void:
 ## The marks of what holds `a`, small at `cell`: its status (Status.of), then
 ## rooted and stunned.
 func _status(cell: Vector2, a: Actor) -> void:
-	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.get(k) > 0)
+	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.ailments.get(k) > 0)
 	var marks: Array = held.map(func(k): return Palette.CONDITION[k])
 	if Palette.STATUS.has(Status.of(a)):
 		marks.push_front(Palette.STATUS[Status.of(a)])

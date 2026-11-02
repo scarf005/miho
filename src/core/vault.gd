@@ -97,4 +97,4 @@ static func tick(w: World) -> void:
 			w.set_tile(at, World.RUBBLE)
 			Notice.record(w, &"wall", at)
 			w.emit({t = &"collapse", at = at})
-			w.noise(at, World.THUD, "쿵", true, 0)
+			Hearing.noise(w, at, World.THUD, "쿵", true, 0)

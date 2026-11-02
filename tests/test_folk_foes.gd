@@ -39,9 +39,9 @@ func _world(depth := 7) -> World:
 
 func _hunter(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.alert = Actor.HUNT
-	a.target = ME
-	a.cooldown = 9 if Bestiary.mana(kind) == 0 else 0
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
+	a.magic.cooldown = 9 if Bestiary.mana(kind) == 0 else 0
 	w.sense()
 	return a
 
@@ -52,7 +52,7 @@ func test_the_reapers_rope_roots_miho_where_it_strikes() -> void:
 	var events := w.act(WAIT)
 	var rope: Dictionary = Bestiary.info(&"saja").melee
 	assert_eq(w.player().hp, 30 - rope.damage)
-	assert_eq(w.player().rooted, rope.root - 1, "the round that struck has passed")
+	assert_eq(w.player().ailments.rooted, rope.root - 1, "the round that struck has passed")
 	assert_true(events.any(func(e): return e.t == &"root" and e.id == w.player().id))
 	assert_false(w.can({t = &"move", dir = -E}), "she cannot step away")
 
@@ -63,7 +63,7 @@ func test_a_blow_without_a_rope_roots_nothing() -> void:
 		_hunter(w, kind, ME + E)
 		w.act(WAIT)
 		assert_lt(w.player().hp, 30, kind)
-		assert_eq(w.player().rooted, 0, kind)
+		assert_eq(w.player().ailments.rooted, 0, kind)
 
 
 func test_a_blow_that_kills_does_not_root() -> void:
@@ -80,14 +80,14 @@ func test_the_forecast_of_a_rope_equals_the_round() -> void:
 	var forecast := Forecast.of(w, WAIT)
 	w.act(WAIT)
 	var seen := forecast.after.player()
-	assert_eq([seen.hp, seen.rooted], [w.player().hp, w.player().rooted])
+	assert_eq([seen.hp, seen.ailments.rooted], [w.player().hp, w.player().ailments.rooted])
 	assert_eq(forecast.after.rng.state, w.rng.state)
 
 
 func test_the_forecast_of_each_new_kind_equals_the_round() -> void:
 	for kind in [&"saja"] + FIRST.keys():
 		var w := _world(9)
-		_hunter(w, kind, ME + E * 4).cooldown = 0
+		_hunter(w, kind, ME + E * 4).magic.cooldown = 0
 		_hunter(w, kind, ME + E)
 		var forecast := Forecast.of(w, WAIT)
 		w.act(WAIT)
@@ -111,45 +111,45 @@ func test_a_charge_pays_its_mana_and_a_creature_with_none_left_casts_nothing() -
 	var saja := _hunter(w, &"saja", ME + E * 4)
 	w.act(WAIT)
 	var spent := 0
-	for plan in saja.intent:
+	for plan in saja.magic.intent:
 		spent += Spell.price(plan.cards.size())
 	assert_gt(spent, 0)
-	assert_eq(saja.mana, 9 - spent)
-	saja.mana = 0
+	assert_eq(saja.magic.mana, 9 - spent)
+	saja.magic.mana = 0
 	assert_eq(Aim.at(w, saja, w.player()), [] as Array[Dictionary])
 
 
 func test_its_mana_regrows_one_in_the_rounds_miho_regrows_a_tail() -> void:
 	var w := _world()
 	var saja := FloorGen.spawn(w, &"saja", Vector2i(30, 8))
-	saja.mana = 0
-	saja.stunned = 99
+	saja.magic.mana = 0
+	saja.ailments.stunned = 99
 	for i in World.TAIL_REGROW * 4:
 		w.act(WAIT)
-	assert_eq(saja.mana, 4)
-	saja.mana = 9
+	assert_eq(saja.magic.mana, 4)
+	saja.magic.mana = 9
 	w.act(WAIT)
-	assert_eq(saja.mana, 9, "never past nine")
-	saja.mana = 8
+	assert_eq(saja.magic.mana, 9, "never past nine")
+	saja.magic.mana = 8
 	for i in World.TAIL_REGROW - 1:
 		w.act(WAIT)
-		assert_eq(saja.mana, 8, "a full wait from the moment it is spent")
+		assert_eq(saja.magic.mana, 8, "a full wait from the moment it is spent")
 	w.act(WAIT)
-	assert_eq(saja.mana, 9)
+	assert_eq(saja.magic.mana, 9)
 
 
 func test_a_spray_that_adds_nothing_is_not_bought() -> void:
 	var w := _world()
 	var saja := _hunter(w, &"saja", ME + E * 2)
-	saja.mana = 1
+	saja.magic.mana = 1
 	var fresh := Aim.at(w, saja, w.player())
 	assert_eq(fresh[0].cards, [Cards.WOOD], "the rope-spray first")
-	w.player().rooted = 3
+	w.player().ailments.rooted = 3
 	var held := Aim.at(w, saja, w.player())
 	assert_false(held.is_empty())
 	assert_ne(held[0].cards, [Cards.WOOD], "she is rooted already")
-	w.player().wet = 3
-	w.player().alight = 3
+	w.player().ailments.wet = 3
+	w.player().ailments.alight = 3
 	var marked := Aim.at(w, saja, w.player())
 	assert_true(marked.all(func(p): return p.cards.size() == 1))
 	assert_false(marked.any(func(p): return [Cards.WOOD, Cards.WATER, Cards.FIRE].has(p.cards[0])))
@@ -159,8 +159,8 @@ func test_a_blow_costs_the_reaper_no_mana() -> void:
 	var w := _world()
 	var saja := _hunter(w, &"saja", ME + E)
 	w.act(WAIT)
-	assert_eq(saja.mana, 9, "a blow costs no mana")
-	assert_gt(w.player().rooted, 0)
+	assert_eq(saja.magic.mana, 9, "a blow costs no mana")
+	assert_gt(w.player().ailments.rooted, 0)
 
 
 func test_each_new_kind_is_placed_from_its_storey_on_and_never_below() -> void:

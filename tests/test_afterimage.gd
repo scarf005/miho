@@ -75,7 +75,7 @@ func test_a_creature_that_walks_after_a_push_of_one_tile_leaves_no_copies() -> v
 	w.events = []
 	w.push(foe, E, 1)
 	w.emit({t = &"charge", id = foe.id, cards = [Cards.FOX], dir = E})
-	w.move(foe, foe.pos + E)
+	Walk.move(w, foe, foe.pos + E)
 	assert_eq(_tiles(Afterimage.plan(w.events), foe.id), [])
 
 

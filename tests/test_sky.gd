@@ -215,7 +215,7 @@ func test_miho_on_a_bridge_is_seen_from_afar_but_not_on_the_floor() -> void:
 	var w := _world()
 	_put(w, Vector2i(30, 8), World.BRIDGE)
 	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(10, 8))
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	w.player().pos = Vector2i(30, 9)
 	assert_false(w.sees(foe, w.player().pos), "dark floor: unseen")
 	w.player().pos = Vector2i(30, 8)
@@ -235,9 +235,9 @@ func test_sky_blocks_walking_but_not_sight_light_sound_or_spells() -> void:
 	assert_eq(w.fov(w.player().pos)[Grid.index(Vector2i(12, 8))], 1, "seen across the gap")
 	assert_true(w.lit(Vector2i(8, 8)), "light crosses it too")
 	var listener := FloorGen.spawn(w, &"imugi", Vector2i(10, 8))
-	listener.cooldown = 99
-	w.noise(Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
-	assert_eq(listener.alert, Actor.SEARCH, "sound crosses it")
+	listener.magic.cooldown = 99
+	Hearing.noise(w, Vector2i(5, 8), World.THUD, "쿵", true, w.player().id)
+	assert_eq(listener.brain.alert, Actor.SEARCH, "sound crosses it")
 	assert_true(w.can(_cast([Cards.FOX], E)), "a wisp is cast over sky")
 	var events := w.act(_cast([Cards.FOX], E)) + w.act(WAIT)
 	assert_true(
@@ -264,7 +264,7 @@ func test_walking_into_a_window_breaks_it_to_floor_with_a_clang_and_a_message() 
 	var at := Vector2i(5, 8)
 	_put(w, at, World.WINDOW)
 	var listener := FloorGen.spawn(w, &"imugi", Vector2i(8, 8))
-	listener.cooldown = 99
+	listener.magic.cooldown = 99
 	w.sense()
 	assert_true(w.can({t = &"move", dir = E}), "a window can be knocked")
 	var events := w.act({t = &"move", dir = E})
@@ -272,7 +272,7 @@ func test_walking_into_a_window_breaks_it_to_floor_with_a_clang_and_a_message() 
 	assert_eq(w.player().pos, Vector2i(4, 8), "the knock takes her move")
 	var clang: Dictionary = _noises(events)[0]
 	assert_eq([clang.word, clang.loud, clang.at], ["쨍", World.KNOCK, at])
-	assert_eq(listener.alert, Actor.SEARCH)
+	assert_eq(listener.brain.alert, Actor.SEARCH)
 	var lines := Messages.of(w, w, events).map(Messages.plain)
 	assert_eq(lines, ["창문이 깨졌다"])
 	w.act({t = &"move", dir = E})

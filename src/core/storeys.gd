@@ -13,39 +13,13 @@ extends RefCounted
 ## How near the stairs an ally stands to come along. She climbs on the step itself, so
 ## one right behind her is this far off when the step ends.
 const FOLLOW := 2
-## The World fields that belong to the storey Miho is on, but its creatures.
-const FIELDS: Array[String] = [
-	"tiles",
-	"rooms",
-	"start",
-	"stairs",
-	"elixir",
-	"peaches",
-	"jars",
-	"burning",
-	"wild",
-	"gas",
-	"vents",
-	"wet",
-	"hot",
-	"traps",
-	"secrets",
-	"seals",
-	"sites",
-	"tail_bonus",
-	"changes",
-	"bodies",
-	"known",
-	"round_no",
-	"curses",
-]
 
 
 ## Keeps the storey Miho is on as it is now.
 static func leave(w: World) -> void:
 	var kept := {}
-	for f in FIELDS:
-		kept[f] = _copy(w.get(f))
+	for f in World.STOREY:
+		kept[f] = World.copied(w.get(f))
 	kept.actors = w.actors.slice(1).map(func(a): return a.clone())
 	w.storeys[w.depth] = kept
 
@@ -70,11 +44,11 @@ static func bring(w: World, party: Array[Actor]) -> void:
 		if spot.x < 0:
 			continue
 		a.pos = spot
-		a.home = spot
-		a.post = spot
-		a.rival = 0
-		a.grudge = 0
-		a.intent.clear()
+		a.brain.home = spot
+		a.brain.post = spot
+		a.ties.rival = 0
+		a.ties.grudge = 0
+		a.magic.intent.clear()
 		w.actors.append(a)
 	Bunsin.cap(w)
 	w._changed()
@@ -83,7 +57,7 @@ static func bring(w: World, party: Array[Actor]) -> void:
 ## Puts Miho at the start of storey `depth`: the one kept there, or a new one
 ## the first time. Her scent and her projectiles but her 그림자 stay behind.
 static func enter(w: World, depth: int) -> void:
-	if w.player().raise:
+	if w.player().buffs.raise:
 		Guise.dispel(w, w.player(), Guise.RAISE)
 	w.depth = depth
 	w.scent.clear()
@@ -112,8 +86,8 @@ static func carry(w: World) -> void:
 static func _restore(w: World, depth: int) -> void:
 	var kept: Dictionary = w.storeys[depth]
 	w.storeys.erase(depth)
-	for f in FIELDS:
-		w.set(f, _copy(kept[f]))
+	for f in World.STOREY:
+		w.set(f, World.copied(kept[f]))
 	var me := w.player()
 	w.shots.clear()
 	w.actors.assign(kept.actors.map(func(a): return a.clone()))
@@ -127,9 +101,3 @@ static func _restore(w: World, depth: int) -> void:
 ## The tiles of the storey below, or none when it is not kept.
 static func below(w: World) -> PackedByteArray:
 	return w.storeys.get(w.depth - 1, {}).get("tiles", PackedByteArray())
-
-
-static func _copy(v: Variant) -> Variant:
-	if v is Array or v is Dictionary:
-		return v.duplicate(true)
-	return v.duplicate() if v is PackedByteArray else v

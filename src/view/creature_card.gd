@@ -17,11 +17,11 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 	t._text(at + Vector2(1.5, 0), Lang.t(a.info().name), Palette.KIND[a.kind])
 	t._pips(at + Vector2(0, 1), a.hp, a.max_hp, Palette.HURT, int(width) - 1)
 	t._status(at + Vector2(width - 1, 1), a)
-	var doing: String = Info.doing(t.world, a) if a.blind <= 0 else Lang.t("눈멂")
-	if a.fighting() and a.blind <= 0:
+	var doing: String = Info.doing(t.world, a) if a.ailments.blind <= 0 else Lang.t("눈멂")
+	if a.fighting() and a.ailments.blind <= 0:
 		doing = Lang.t("싸우는 중")
-	var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.alert, 1)])
-	var plans: Array = a.intent.map(func(p): return [Bestiary.spell(a.kind, p.cards), p.dir])
+	var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.brain.alert, 1)])
+	var plans: Array = a.magic.intent.map(func(p): return [Bestiary.spell(a.kind, p.cards), p.dir])
 	var named := func(p: Array) -> float: return t._cells(p[0].shown()) + 1.5
 	var wide: float = plans.reduce(func(n, p): return n + named.call(p), 0.0)
 	var x := t._cells(doing) + 0.5

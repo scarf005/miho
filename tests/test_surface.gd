@@ -84,8 +84,8 @@ func test_a_burning_creature_does_not_set_the_water_it_stands_in_alight() -> voi
 	var w := _world()
 	_put(w, Vector2i(5, 8), World.SHALLOW)
 	_put(w, Vector2i(6, 8), World.BOARD)
-	w.ignite(Vector2i(5, 8), true)
-	w.ignite(Vector2i(6, 8), true)
+	Terrain.ignite(w, Vector2i(5, 8), true)
+	Terrain.ignite(w, Vector2i(6, 8), true)
 	assert_false(w.burning.has(Vector2i(5, 8)))
 	assert_true(w.burning.has(Vector2i(6, 8)))
 
@@ -94,7 +94,7 @@ func test_grass_straw_and_leaves_burn_to_ash() -> void:
 	for kind in [World.GRASS, World.STRAW, World.LEAVES]:
 		var w := _world()
 		_put(w, NEXT, kind)
-		w.ignite(NEXT)
+		Terrain.ignite(w, NEXT)
 		for i in World.BURN_ROUNDS:
 			w.act(WAIT)
 		assert_eq(w.tile(NEXT), World.ASH, str(kind))
@@ -141,7 +141,7 @@ func test_a_creature_that_steps_on_reeds_flattens_them_too() -> void:
 	var w := _world()
 	_put(w, Vector2i(8, 8), World.REEDS)
 	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(9, 8))
-	w.move(foe, Vector2i(8, 8))
+	Walk.move(w, foe, Vector2i(8, 8))
 	assert_eq(w.tile(Vector2i(8, 8)), World.REEDS_FLAT)
 
 
@@ -204,7 +204,7 @@ func test_the_masks_agree_with_the_tests_over_every_new_kind() -> void:
 	for i in kinds.size():
 		_put(w, Vector2i(10 + i, 8), kinds[i])
 	w.burning[Vector2i(10, 8)] = 2
-	w.ignite(Vector2i(12, 8), true)
+	Terrain.ignite(w, Vector2i(12, 8), true)
 	w._changed()
 	var opaque := w.opaque_mask()
 	var shade := w.light_mask()

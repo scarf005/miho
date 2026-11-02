@@ -78,7 +78,7 @@ func test_a_creatures_leap_vents_the_same_trail() -> void:
 func test_a_creature_the_leap_flew_over_is_scalded_by_the_trail() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"jangseung", ME + E * 2)
-	foe.cooldown = 99
+	foe.magic.cooldown = 99
 	var hp := foe.hp
 	w.act(_cast(LEAP + [Cards.WOOD]))
 	assert_eq(foe.hp, hp - Gas.of(Gas.STEAM, "harm"))

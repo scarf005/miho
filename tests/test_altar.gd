@@ -53,15 +53,15 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
 	a.hp = 1
 	a.max_hp = 1
-	a.cooldown = 99
-	a.home += E
+	a.magic.cooldown = 99
+	a.brain.home += E
 	return a
 
 
 ## `a` falls near the altar in a round of its own.
 func _fall(w: World, a: Actor) -> void:
 	w.events = []
-	w.hurt(a, 1)
+	Harm.hurt(w, a, 1)
 	EventRooms.tick(w)
 
 
@@ -143,7 +143,7 @@ func test_a_fall_beyond_reach_or_of_miho_is_not_counted() -> void:
 	var me := w.player()
 	me.pos = ALTAR + Vector2i(1, 0)
 	w.events = []
-	w.hurt(me, 3)
+	Harm.hurt(w, me, 3)
 	EventRooms.tick(w)
 	assert_eq(w.sites[0].fallen, 1)
 

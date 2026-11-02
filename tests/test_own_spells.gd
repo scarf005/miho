@@ -44,9 +44,9 @@ func _cast(cards: Array, dir := Vector2i.ZERO) -> Dictionary:
 ## A creature that stands and fights, with health to spare.
 func _foe(w: World, at: Vector2i, alert := Actor.SEARCH) -> Actor:
 	var a := FloorGen.spawn(w, &"dokkaebi", at)
-	a.cooldown = 99
-	a.alert = alert
-	a.target = at
+	a.magic.cooldown = 99
+	a.brain.alert = alert
+	a.brain.target = at
 	a.hp = 99
 	a.max_hp = 99
 	return a
@@ -80,7 +80,7 @@ func test_a_creature_that_absorbs_iron_takes_less_from_the_talon() -> void:
 	var w := _world()
 	var foe := FloorGen.spawn(w, &"bulgasari", ME + E)
 	foe.hp = 99
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	w.act(_cast(TALON))
 	var harm := World.CLAW + Guise.TALON_ABSORBED
 	assert_eq(_claws(w.act({t = &"move", dir = E})), [harm])
@@ -116,16 +116,16 @@ func test_the_talon_goes_on_her_whatever_the_direction() -> void:
 	var w := _world()
 	assert_true(w.can(_cast(TALON, E)))
 	w.act(_cast(TALON, E))
-	assert_true(w.player().talon)
+	assert_true(w.player().buffs.talon)
 	assert_eq(w.shots.size(), 0, "nothing flies")
 
 
 func test_the_cloak_goes_on_her_only_with_no_direction() -> void:
 	var w := _world()
 	w.act(_cast(CLOAK, E))
-	assert_false(w.player().cloak, "hurled, it is a wisp")
+	assert_false(w.player().buffs.cloak, "hurled, it is a wisp")
 	w.act(_cast(CLOAK))
-	assert_true(w.player().cloak)
+	assert_true(w.player().buffs.cloak)
 
 
 func test_they_are_silent_and_hurt_nobody() -> void:
@@ -147,7 +147,7 @@ func test_with_the_cloak_a_creature_that_is_not_hunting_does_not_know_her() -> v
 	assert_true(Hat.hidden(w, w.player(), searcher.pos))
 	assert_false(Guise.knows(w, searcher))
 	w.act(WAIT)
-	assert_ne(searcher.alert, Actor.HUNT, "it goes on searching")
+	assert_ne(searcher.brain.alert, Actor.HUNT, "it goes on searching")
 
 
 func test_without_the_cloak_the_same_creature_hunts_her() -> void:
@@ -155,7 +155,7 @@ func test_without_the_cloak_the_same_creature_hunts_her() -> void:
 	_lit(w)
 	var searcher := _foe(w, ME + Vector2i(4, 0))
 	w.act(WAIT)
-	assert_eq(searcher.alert, Actor.HUNT)
+	assert_eq(searcher.brain.alert, Actor.HUNT)
 
 
 func test_the_cloak_fools_a_hunter_too_but_not_one_next_to_her() -> void:
@@ -164,8 +164,8 @@ func test_the_cloak_fools_a_hunter_too_but_not_one_next_to_her() -> void:
 	var far := _foe(w, ME + Vector2i(4, 0), Actor.HUNT)
 	var near := _foe(w, ME + Vector2i(0, -1), Actor.HUNT)
 	w.act(_cast(CLOAK))
-	assert_false(far.sees_me, "a hunter beyond the next tile loses sight of her")
-	assert_true(near.sees_me, "beside her it still sees her")
+	assert_false(far.brain.sees_me, "a hunter beyond the next tile loses sight of her")
+	assert_true(near.brain.sees_me, "beside her it still sees her")
 
 
 func test_a_wisp_clinging_to_her_shows_her() -> void:
@@ -200,8 +200,8 @@ func test_a_forecast_of_each_equals_the_round() -> void:
 		var forecast := Forecast.of(w, _cast(cards))
 		var played := w.act(_cast(cards))
 		assert_eq(forecast.events, played)
-		assert_eq(forecast.after.player().talon, w.player().talon)
-		assert_eq(forecast.after.player().cloak, w.player().cloak)
+		assert_eq(forecast.after.player().buffs.talon, w.player().buffs.talon)
+		assert_eq(forecast.after.player().buffs.cloak, w.player().buffs.cloak)
 
 
 func test_no_creature_casts_them() -> void:

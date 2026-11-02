@@ -33,7 +33,7 @@ func _world(depth := 2) -> World:
 
 func _foe(w: World, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -354,11 +354,11 @@ func test_a_shot_setting_a_plate_off_in_sight_is_told_in_the_log() -> void:
 	_lantern(w, PLATE + Vector2i(0, 2))
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	w.sense()
-	var s := w._spawn(w.player(), Spell.make([Cards.ORB]), E, 0)
+	var s := Flight.spawn(w, w.player(), Spell.make([Cards.ORB]), E, 0)
 	s.pos = PLATE - E
 	w.events.clear()
 	var before := w.clone()
-	w._step(s)
+	Flight.step(w, s)
 	w.sense()
 	var name := s.spell.shown()
 	var lines := _lines(before, w, w.events)
@@ -424,7 +424,7 @@ func test_arriving_on_a_new_storey_tells_the_plates_found_there_after_the_climb(
 	w.events.clear()
 	var before := w.clone()
 	w.player().pos = w.stairs
-	w.arrive(w.player())
+	Walk.arrive(w, w.player())
 	var types := _types(w.events)
 	assert_eq(types.slice(0, 2), [&"ascend", &"heal"])
 	for i in range(2, types.size()):

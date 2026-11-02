@@ -120,13 +120,13 @@ static func light(w: World, p: Vector2i) -> void:
 	for q in cloud:
 		w.gas.erase(q)
 	w.emit({t = &"blast", at = p, kind = kind, tiles = cloud})
-	w.noise(p, BLAST_LOUD, "쾅", false, -1)
+	Hearing.noise(w, p, BLAST_LOUD, "쾅", false, -1)
 	for q in cloud:
 		var a := w.actor_at(q)
 		if a != null:
-			w.hurt(a, BLAST)
+			Harm.hurt(w, a, BLAST)
 			Status.ignite(w, a)
-		w.ignite(q)
+		Terrain.ignite(w, q)
 	w._changed()
 
 
@@ -146,7 +146,7 @@ static func tick(w: World) -> void:
 		var kind := at(w, a.pos).x
 		if a.alive() and of(kind, "harm") > 0:
 			w.emit({t = &"scald", id = a.id, at = a.pos, kind = kind})
-			w.hurt(a, of(kind, "harm"))
+			Harm.hurt(w, a, of(kind, "harm"))
 		if a.alive() and of(kind, "wets"):
 			Status.soak(w, a)
 	for p: Vector2i in w.gas:

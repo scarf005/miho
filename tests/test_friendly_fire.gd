@@ -33,14 +33,14 @@ func _world() -> World:
 
 func _creature(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
 ## `caster` hurls the spell west and the round plays until it is spent.
 func _hurl(w: World, caster: Actor, cards: Array) -> Array:
 	var events: Array = []
-	w.cast(caster, Spell.make(cards), W)
+	Cast.cast(w, caster, Spell.make(cards), W)
 	for i in 6:
 		events.append_array(w.act(WAIT))
 	return events
@@ -127,14 +127,14 @@ func test_a_creature_hurt_by_another_becomes_wary_and_looks_around_only() -> voi
 	var shooter := _creature(w, &"imugi", SHOOTER)
 	var victim := _creature(w, &"imugi", VICTIM)
 	victim.hp = 5
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	for i in 3:
 		w.act(WAIT)
 	assert_lt(victim.hp, 5)
-	assert_gt(victim.wary, 0)
-	assert_eq(victim.alert, Actor.SEARCH)
-	assert_ne(victim.target, SHOOTER, "a sharp creature does not trace an ally's shot")
-	assert_eq(victim.target, VICTIM)
+	assert_gt(victim.brain.wary, 0)
+	assert_eq(victim.brain.alert, Actor.SEARCH)
+	assert_ne(victim.brain.target, SHOOTER, "a sharp creature does not trace an ally's shot")
+	assert_eq(victim.brain.target, VICTIM)
 
 
 func test_a_cunning_creature_hit_by_an_ally_does_not_hunt() -> void:
@@ -143,14 +143,14 @@ func test_a_cunning_creature_hit_by_an_ally_does_not_hunt() -> void:
 	var victim := _creature(w, &"cheonnyeon", VICTIM)
 	_hurl(w, shooter, [Cards.ORB])
 	assert_lt(victim.hp, 8)
-	assert_ne(victim.alert, Actor.HUNT)
+	assert_ne(victim.brain.alert, Actor.HUNT)
 
 
 func test_the_forecast_shows_the_harm_heaven_does_to_itself() -> void:
 	var w := _world()
 	var shooter := _creature(w, &"imugi", SHOOTER)
 	var victim := _creature(w, &"dokkaebi", VICTIM)
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	w.act(WAIT)
 	var p := w.preview(WAIT)
 	w.act(WAIT)
@@ -164,7 +164,7 @@ func test_the_log_names_both_creatures() -> void:
 	victim.hp = 5
 	w.set_tile(Vector2i(9, 9), World.LANTERN)
 	w.sense()
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	var lines := []
 	for i in 4:
 		var before := w.clone()
@@ -178,7 +178,7 @@ func test_the_log_does_not_name_a_caster_out_of_sight() -> void:
 	var victim := _creature(w, &"dokkaebi", Vector2i(6, 8))
 	victim.hp = 5
 	w.sense()
-	w.cast(shooter, Spell.make([Cards.ORB]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB]), W)
 	var lines := []
 	for i in 4:
 		var before := w.clone()
@@ -192,7 +192,7 @@ func test_the_log_marks_the_weakness_of_an_ally_hit() -> void:
 	_creature(w, &"cheonha", Vector2i(6, 8))
 	w.set_tile(Vector2i(9, 9), World.LANTERN)
 	w.sense()
-	w.cast(shooter, Spell.make([Cards.ORB, Cards.METAL]), W)
+	Cast.cast(w, shooter, Spell.make([Cards.ORB, Cards.METAL]), W)
 	var lines := []
 	for i in 4:
 		var before := w.clone()

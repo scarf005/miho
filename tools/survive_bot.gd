@@ -99,7 +99,7 @@ static func _choose(w: World, memory: Sightings) -> Dictionary:
 		return _fight(w, threats)
 	# A walker that hunts her but is out of reach: let the tails regrow, then go to it.
 	if threats.any(
-		func(a): return a.alert == Actor.HUNT and a.info().get("move", &"static") != &"static"
+		func(a): return a.brain.alert == Actor.HUNT and a.info().get("move", &"static") != &"static"
 	):
 		return {t = &"wait"} if w.tails < w.max_tails() else Fight.step(w)
 	if threats.is_empty() and w.tails < w.max_tails():

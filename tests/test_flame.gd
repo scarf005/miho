@@ -72,8 +72,8 @@ func _dummy(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
 	a.hp = 30
 	a.max_hp = 30
-	a.cooldown = 99
-	a.stunned = 99
+	a.magic.cooldown = 99
+	a.ailments.stunned = 99
 	return a
 
 
@@ -81,7 +81,7 @@ func _dummy(w: World, kind: StringName, at: Vector2i) -> Actor:
 ## events of the rounds that follow.
 func _shoot(w: World, at: Vector2i, cards: Array) -> Array[Dictionary]:
 	var shooter := _dummy(w, &"jangseung", at + Vector2i(GAP, 0))
-	w.cast(shooter, Spell.make(cards), WEST)
+	Cast.cast(w, shooter, Spell.make(cards), WEST)
 	var events: Array[Dictionary] = []
 	for i in 6:
 		events.append_array(w.act(WAIT))
@@ -115,9 +115,9 @@ func _dealt(cards: Array, worn: bool) -> int:
 func test_the_recipe_goes_on_her_and_thrown_it_is_a_spell_as_before() -> void:
 	var w := _world()
 	w.act(_throw(Guise.RECIPE[Guise.FLAME], EAST))
-	assert_false(w.player().flame, "thrown, it goes on no one")
+	assert_false(w.player().buffs.flame, "thrown, it goes on no one")
 	_wear(w)
-	assert_true(w.player().flame)
+	assert_true(w.player().buffs.flame)
 	assert_eq(Guise.worn(w, w.player()), [Guise.FLAME])
 	assert_eq(w.player().nature_kind(), Guise.FLAME_KIND)
 
@@ -189,7 +189,7 @@ func test_a_forecast_of_the_cast_and_of_the_round_equals_what_happens() -> void:
 	var cast := _self(Guise.RECIPE[Guise.FLAME])
 	var f := Forecast.of(w, cast)
 	assert_eq(f.events, w.act(cast))
-	assert_true(f.after.player().flame)
+	assert_true(f.after.player().buffs.flame)
 	w.tails = 9
 	_dummy(w, &"imugi", ME + Vector2i(GAP, 0))
 	var fire := _throw(FIRE_WISP, EAST)
@@ -203,7 +203,7 @@ func test_a_forecast_of_a_fire_shot_at_her_equals_the_round() -> void:
 	var w := _world()
 	_wear(w)
 	var shooter := _dummy(w, &"jangseung", ME + Vector2i(GAP, 0))
-	w.cast(shooter, Spell.make(FIRE_WISP), WEST)
+	Cast.cast(w, shooter, Spell.make(FIRE_WISP), WEST)
 	w.sense()
 	var f := Forecast.of(w, WAIT)
 	var events := w.act(WAIT)
@@ -223,9 +223,9 @@ func test_the_form_stays_up_a_storey_and_down_again() -> void:
 		Storeys.enter(w, at_storey)
 		w.sense()
 		w.act(WAIT)
-		assert_true(w.player().flame, "on storey %d" % at_storey)
+		assert_true(w.player().buffs.flame, "on storey %d" % at_storey)
 		assert_eq(w.player().nature_kind(), Guise.FLAME_KIND)
-	assert_true(down.player().flame, "a clone keeps it")
+	assert_true(down.player().buffs.flame, "a clone keeps it")
 	assert_eq(down.player().nature_kind(), Guise.FLAME_KIND)
 
 
@@ -234,14 +234,14 @@ func test_it_does_not_end_by_time() -> void:
 	_wear(w)
 	for i in 200:
 		w.act(WAIT)
-	assert_true(w.player().flame)
+	assert_true(w.player().buffs.flame)
 
 
 func test_dropping_it_takes_everything_back() -> void:
 	var w := _world()
 	_wear(w)
 	var events := w.act({t = &"dispel", kind = Guise.FLAME})
-	assert_false(w.player().flame)
+	assert_false(w.player().buffs.flame)
 	assert_eq(w.player().nature_kind(), &"miho")
 	assert_eq(Guise.worn(w, w.player()), [])
 	assert_true(events.any(func(e): return e.t == &"unflame"))
@@ -299,7 +299,7 @@ func test_a_save_replays_to_the_same_world() -> void:
 	var back := SaveGame.load_from(SAVE)
 	assert_not_null(back)
 	assert_true(back.replay())
-	assert_true(back.world.player().flame)
+	assert_true(back.world.player().buffs.flame)
 	assert_eq(back.world.player().hp, w.player().hp)
 	assert_eq(back.world.round_no, w.round_no)
 	assert_eq(back.world.rng.state, w.rng.state)

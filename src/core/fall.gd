@@ -11,7 +11,7 @@ extends RefCounted
 ## loses DAMAGE health for each storey fallen; her tails are kept up to what
 ## that storey allows. On the first storey she has nowhere to fall to, and
 ## stops at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
-## Miho takes them as if she had stepped there (World.arrive). A creature that
+## Miho takes them as if she had stepped there (Walk.arrive). A creature that
 ## slides at all gives one `push` event first, at the tile it slides from.
 ## A collapsing floor (Traps) drops a creature the same way, from where it stands.
 
@@ -38,8 +38,8 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 			return
 		if i == 0:
 			w.emit({t = &"push", id = a.id, at = a.pos})
-		w.move(a, to)
-		if a.is_miho() and w.arrive(a):
+		Walk.move(w, a, to)
+		if a.is_miho() and Walk.arrive(w, a):
 			return
 		if not a.alive() or w.depth != depth:
 			return
@@ -107,9 +107,9 @@ static func pull(w: World, a: Actor, by: Actor) -> void:
 	if to == a.pos:
 		return
 	w.emit({t = &"pull", id = a.id, at = a.pos})
-	w.move(a, to)
+	Walk.move(w, a, to)
 	if a.is_miho():
-		w.arrive(a)
+		Walk.arrive(w, a)
 
 
 ## A creature that moves on water stands on a tile that is water no more: it is gone with
@@ -127,15 +127,13 @@ static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 ## `a` leaves the board with no body, the events `told` telling how.
 static func _gone(w: World, a: Actor, told: Array) -> void:
 	a.hp = 0
-	a.intent.clear()
+	a.magic.intent.clear()
 	Mind.forget(w, a)
 	for e: Dictionary in told:
 		w.emit(e)
 	if not a.ally():
-		w.player().prey = a.kind
-		w.tails = mini(w.max_tails(), w.tails + 1)
-		w.emit({t = &"soul", id = a.id, at = a.pos})
-		Scrolls.drop(w, a)
+		w.player().buffs.prey = a.kind
+		Harm.reward(w, a)
 	w._changed()
 
 
@@ -154,7 +152,7 @@ static func _drop(w: World, me: Actor, into: Vector2i) -> void:
 	var spot := FloorGen.nearest_free(w, into, Masks.air(w))
 	me.pos = spot if spot.x >= 0 else w.start
 	Storeys.carry(w)
-	w.hurt(me, (top - w.depth) * DAMAGE)
+	Harm.hurt(w, me, (top - w.depth) * DAMAGE)
 	w.tails = mini(w.tails, w.max_tails())
 	w._changed()
 	w.sense()

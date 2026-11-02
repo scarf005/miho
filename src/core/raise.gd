@@ -5,7 +5,7 @@ extends RefCounted
 ## as DCSS Death Channel and Animate Dead raise the dead for their caster. No chance is
 ## involved. It takes the body's tile or the first free one next to it (`spot_of`); with
 ## none free it stays a body and tries again each round she sees it. What falls into the
-## sky leaves no body, and an ally leaves none (World.hurt), so what rises does not rise
+## sky leaves no body, and an ally leaves none (Harm.hurt), so what rises does not rise
 ## again. It stays on the storey it rose on when she leaves (Storeys.followers), and up
 ## when she drops the spell.
 
@@ -54,7 +54,7 @@ static func spot_of(w: World, at: Vector2i) -> Vector2i:
 ## The end of a round, once her sight is worked out: every body she sees rises, but one
 ## that rises for heaven (Curse).
 static func tick(w: World) -> void:
-	if not w.player().raise or w.outcome != &"":
+	if not w.player().buffs.raise or w.outcome != &"":
 		return
 	for at: Vector2i in w.bodies.keys():
 		var spot := spot_of(w, at)

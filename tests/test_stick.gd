@@ -36,7 +36,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 
 func _foe(w: World, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -68,7 +68,7 @@ func test_a_stuck_wisp_rides_the_creature_and_its_light_follows() -> void:
 	var foe: Actor = s[1]
 	var wisp: Shot = w.shots[0]
 	var to := Vector2i(7, 12)
-	w.move(foe, to)
+	Walk.move(w, foe, to)
 	assert_eq(wisp.pos, to, "on the creature's new tile")
 	assert_true(w.lit(to + Vector2i(2, 0)))
 	assert_false(w.lit(Vector2i(7, 8)), "the old tile is dark again")
@@ -107,7 +107,7 @@ func test_the_wisp_hovers_where_its_creature_died_for_the_rest_of_its_life() -> 
 	var foe: Actor = s[1]
 	var wisp: Shot = w.shots[0]
 	var at := foe.pos
-	w.hurt(foe, foe.hp)
+	Harm.hurt(w, foe, foe.hp)
 	w.act(WAIT)
 	assert_false(foe.alive())
 	assert_eq(w.shots.size(), 1)
@@ -137,13 +137,13 @@ func test_a_creature_that_eats_the_spell_gets_no_wisp() -> void:
 func test_a_heaven_wisp_sticks_to_miho_and_lights_her() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"bulgae", Vector2i(4, 8))
-	w.cast(foe, Spell.make([FOX]), E)
+	Cast.cast(w, foe, Spell.make([FOX]), E)
 	w.act(WAIT)
 	assert_eq(w.shots.size(), 1)
 	var wisp: Shot = w.shots[0]
 	assert_eq(wisp.pos, w.player().pos)
 	assert_true(w.lit(w.player().pos))
-	w.move(w.player(), Vector2i(9, 8))
+	Walk.move(w, w.player(), Vector2i(9, 8))
 	assert_eq(wisp.pos, Vector2i(9, 8), "it rides her")
 	assert_true(w.sees(foe, Vector2i(9, 8)), "heaven sees her in the light")
 
@@ -162,7 +162,7 @@ func test_a_clone_and_the_forecast_agree_on_a_stuck_wisp() -> void:
 	var s := _stuck()
 	var w: World = s[0]
 	var foe: Actor = s[1]
-	w.move(foe, Vector2i(7, 9))
+	Walk.move(w, foe, Vector2i(7, 9))
 	var copy := w.clone()
 	var wisp: Shot = copy.shots[0]
 	assert_eq(wisp.host, foe.id)
@@ -203,7 +203,7 @@ func test_the_log_tells_a_wisp_that_sticks_once_in_sight() -> void:
 func test_the_log_names_the_spell_a_creature_gives_its_wisp_and_speaks_to_miho() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
 	w.sense()
 	var before := w.clone()
 	var lines := Messages.of(before, w, w.act(WAIT)).map(Messages.plain)
@@ -240,7 +240,7 @@ func test_a_creature_tells_the_wisps_riding_it_and_the_rounds_they_have_left() -
 func test_miho_tells_a_wisp_riding_her_and_a_creature_without_one_tells_none() -> void:
 	var w := _world(Vector2i(8, 8))
 	var foe := _foe(w, &"dokkaebi", Vector2i(6, 8))
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), E)
 	w.act(WAIT)
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), "도깨비불 붙음: ")
 	assert_false(Info.plain(Info.creature(w, foe)).contains("붙음: "))

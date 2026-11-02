@@ -49,7 +49,7 @@ func _cast(cards: Array, dir := E) -> Dictionary:
 ## A creature that neither moves nor casts: a 장승 (no element, 3 health).
 func _post(w: World, at: Vector2i, kind := &"jangseung") -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.cooldown = 99
+	a.magic.cooldown = 99
 	return a
 
 
@@ -92,7 +92,7 @@ func test_a_fire_wisp_sets_any_creature_it_strikes_alight() -> void:
 	var foe := _post(w, ME + Vector2i(2, 0))
 	foe.hp = 9
 	w.act(_cast([FOX, FIRE]))
-	assert_gt(foe.alight, 0, "no wood, yet it burns")
+	assert_gt(foe.ailments.alight, 0, "no wood, yet it burns")
 	assert_eq(foe.hp, 9 - 1, "hit for 1; the flames it lit hurt from the next round")
 	w.act(WAIT)
 	assert_eq(foe.hp, 9 - 1 - World.FIRE_DAMAGE, "and each round after")
@@ -105,8 +105,8 @@ func _wisp_at_miho() -> World:
 	w.player().hp = 5
 	w.player().max_hp = 5
 	var foe := _post(w, ME + Vector2i(2, 0), &"bujigaengi")
-	foe.rooted = 99
-	w.cast(foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
+	foe.ailments.rooted = 99
+	Cast.cast(w, foe, Bestiary.spell(foe.kind, foe.info().casts[0]), -E)
 	w.sense()
 	return w
 
@@ -178,7 +178,7 @@ func test_a_fire_orb_sets_only_a_wood_creature_alight_and_bursts_round_it() -> v
 func test_a_water_wisp_is_silent_and_douses_the_fire_on_the_creature_it_strikes() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 0))
-	w.ignite(foe.pos, true)
+	Terrain.ignite(w, foe.pos, true)
 	var events := w.act(_cast([FOX, WATER]))
 	assert_true(_of(events, &"noise").all(func(e): return e.word != "휙"), "no cast sound")
 	assert_eq(Spell.make([FOX, WATER]).cast_noise(), 0)
@@ -191,7 +191,7 @@ func test_a_water_orb_douses_the_3x3_round_where_it_bursts_and_no_farther() -> v
 	_put(w, ME + Vector2i(4, 0), World.WALL)
 	for p: Vector2i in [ME + Vector2i(2, 1), ME + Vector2i(1, -1)]:
 		_put(w, p, World.BOARD)
-		w.ignite(p)
+		Terrain.ignite(w, p)
 	_put(w, ME + Vector2i(3, -1), World.LANTERN)
 	w.act(_cast([ORB, WATER]))
 	w.act(WAIT)
@@ -237,20 +237,20 @@ func test_a_gun_lights_the_casters_tile_for_the_round_it_fires() -> void:
 	for cards: Array in [[FOX, METAL], [ORB, METAL]]:
 		var w := _world()
 		assert_false(w.lit(ME))
-		w.cast(w.player(), Spell.make(cards), E)
+		Cast.cast(w, w.player(), Spell.make(cards), E)
 		assert_true(w.lit(ME), "the muzzle flash of %s" % [cards])
 		w.act(WAIT)
 		assert_false(w.lit(ME), "for that round only")
 	var watcher := _world()
 	var foe := _post(watcher, ME + Vector2i(-6, 0))
-	foe.home += E  # awake: one at its home sleeps
+	foe.brain.home += E  # awake: one at its home sleeps
 	watcher.act(_cast([FOX, METAL]))
-	assert_eq(foe.alert, Actor.HUNT, "a creature that sees the flash sees Miho")
+	assert_eq(foe.brain.alert, Actor.HUNT, "a creature that sees the flash sees Miho")
 	var quiet := _world()
 	var other := _post(quiet, ME + Vector2i(-6, 0))
-	other.home += E  # awake: one at its home sleeps
+	other.brain.home += E  # awake: one at its home sleeps
 	quiet.act(_cast([FOX]))
-	assert_ne(other.alert, Actor.HUNT, "a wisp gives her no light")
+	assert_ne(other.brain.alert, Actor.HUNT, "a wisp gives her no light")
 
 
 func test_a_cannonball_hits_harder_pushes_two_and_booms() -> void:
@@ -419,7 +419,7 @@ func test_a_wooden_wall_burns_to_ash() -> void:
 	var w := _world()
 	var at := ME + Vector2i(3, 0)
 	_put(w, at, World.WOOD_WALL)
-	w.ignite(at)
+	Terrain.ignite(w, at)
 	assert_true(w.burning.has(at))
 	assert_false(w.opaque(at), "nothing burning blocks sight")
 	for i in World.BURN_ROUNDS:
@@ -525,7 +525,9 @@ func _assert_forecast_is_exact(w: World, cards: Array) -> void:
 	for a in w.actors:
 		var b := f.after.actor(a.id)
 		assert_eq(
-			[b.pos, b.hp, b.rooted, b.stunned], [a.pos, a.hp, a.rooted, a.stunned], str(cards)
+			[b.pos, b.hp, b.ailments.rooted, b.ailments.stunned],
+			[a.pos, a.hp, a.ailments.rooted, a.ailments.stunned],
+			str(cards)
 		)
 	var grown: Array[Vector2i] = []
 	for e in _of(events, &"sprout"):

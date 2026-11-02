@@ -176,7 +176,7 @@ static func watched(w: World) -> bool:
 
 static func _watching(a: Actor) -> bool:
 	var stands: bool = a.info().get("move", &"static") == &"static"
-	return not a.asleep() and (a.alert == Actor.HUNT or not stands)
+	return not a.asleep() and (a.brain.alert == Actor.HUNT or not stands)
 
 
 ## Whether a walk must stop after a round from `before` to `after`: a creature
