@@ -101,6 +101,10 @@ test: rust
     echo "$SECONDS s on $jobs shards"
     exit "$failed"
 
+# Print digests of what seeds build and play, to hold a speed change to the same result.
+digest seeds="33" rounds="40": rust
+    {{ godot }} --headless --path . -s tools/storey_digest.gd -- {{ seeds }} {{ rounds }}
+
 # Print which shard runs which test script, from the times of the last run: just test-plan 10
 test-plan jobs:
     @LC_ALL=C wc -l tests/test_*.gd | rg -v ' total$' | awk -v times=build/test/times -v jobs={{ jobs }} -f tools/test_plan.awk
