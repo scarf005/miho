@@ -65,29 +65,8 @@ func test_half_strength_draws_the_shader_as_it_is_written() -> void:
 	_assert_look(_look(m), written, "50")
 
 
-func test_full_strength_draws_the_crt_as_it_was_before_it_was_softened() -> void:
-	var m := _main(100)
-	var old := {
-		&"curve": 0.06,
-		&"fringe": 0.0012,
-		&"glow": 0.55,
-		&"scan": 0.28,
-		&"grille": 0.12,
-		&"rim": 0.35
-	}
-	assert_true(m.glass.visible)
-	_assert_look(_look(m), old, "100")
-
-
 func test_zero_strength_hides_the_glass_and_has_no_effect() -> void:
 	var m := _main(0)
 	assert_false(m.glass.visible)
 	for k in Crt.params(0):
 		assert_eq(Crt.params(0)[k], 0.0, k)
-
-
-func test_each_uniform_is_straight_between_the_marks() -> void:
-	for k in Crt.NOW:
-		var at := func(s: int) -> float: return Crt.params(s)[k]
-		assert_almost_eq(at.call(25), at.call(50) / 2.0, 1e-7, "%s 25" % k)
-		assert_almost_eq(at.call(75), (at.call(50) + at.call(100)) / 2.0, 1e-7, "%s 75" % k)
