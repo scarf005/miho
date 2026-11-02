@@ -247,7 +247,7 @@ static func tick(w: World) -> void:
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
-		if a != null:
+		if a != null and not Bestiary.flies(a.kind):
 			w.emit({t = &"sear", id = a.id, at = p, kind = h.x})
 			Harm.fire(w, a, HOT[h.x].harm, p)
 		if h.y <= 1:
@@ -345,10 +345,10 @@ static func _renew(w: World, s: Shot) -> void:
 ## would cut her from the stairs (or the elixir), taken in the order of `tiles`.
 static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 	var me := w.player().pos
-	var guard := _linked(w, [])
+	var guard := linked(w, [])
 	var gone: Array[Vector2i] = []
 	for p in tiles:
-		if p != me and open(w, p) and (not guard or _linked(w, gone + [p])):
+		if p != me and open(w, p) and (not guard or linked(w, gone + [p])):
 			gone.append(p)
 	for p in gone:
 		w.hot.erase(p)
@@ -359,7 +359,7 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 
 ## Whether Miho can walk to the stairs (the elixir where there are none) with
 ## the tiles in `blocked` gone; false when there is no goal.
-static func _linked(w: World, blocked: Array) -> bool:
+static func linked(w: World, blocked: Array) -> bool:
 	var goal := w.stairs if Grid.inside(w.stairs) else w.elixir
 	if not Grid.inside(goal):
 		return false

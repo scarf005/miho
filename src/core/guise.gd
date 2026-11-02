@@ -143,7 +143,7 @@ static func mixed(spell: Spell) -> bool:
 static func why(a: Actor, spell: Spell, dir := Vector2i.ZERO) -> String:
 	if Forge.needs_orb(spell):
 		return NO_ORB
-	if dir != Vector2i.ZERO and not mixed(spell):
+	if (dir != Vector2i.ZERO or Forge.around(spell)) and not mixed(spell):
 		return ""
 	if mixed(spell):
 		return MIXED
@@ -171,7 +171,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if caster.buffs.guise:
 		unmask(w, caster, &"cast")
 	var own := kind(spell)
-	if dir != Vector2i.ZERO and not ANYWHERE.has(own):
+	if (dir != Vector2i.ZERO or Forge.around(spell)) and not ANYWHERE.has(own):
 		return false
 	match own:
 		GUISE:

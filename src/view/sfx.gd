@@ -202,6 +202,7 @@ const WORDS := {
 	"휙": &"foxfire",  # i18n: keep
 	"웅": &"orb",  # i18n: keep
 	"쾅": &"blast",  # i18n: keep
+	"콰르릉": &"thunder",  # i18n: keep
 	"탕": &"blast",  # i18n: keep
 	"화르륵": &"burn",  # i18n: keep
 	"쿵": &"blast",  # i18n: keep

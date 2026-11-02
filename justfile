@@ -163,6 +163,79 @@ artifact: web
     gzip -9 -c build/web/index.wasm > build/artifact/wasm-gz.wasm
     gzip -9 -c build/web/index.side.wasm > build/artifact/side-gz.wasm
 
+# Build the Rust extension for a download build with cargo-zigbuild (Android: the NDK): linux, windows, macos or android.
+rust-dist platform:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd rust
+    export CARGO_PROFILE_RELEASE_STRIP=symbols
+    case "{{ platform }}" in
+        # glibc 2.31 floor; copied over the desktop build, where native.gdextension looks for it.
+        linux)
+            cargo zigbuild --release --quiet --target x86_64-unknown-linux-gnu.2.31
+            install -D target/x86_64-unknown-linux-gnu/release/libmiho_native.so target/release/libmiho_native.so ;;
+        windows) cargo zigbuild --release --quiet --target x86_64-pc-windows-gnu ;;
+        macos) cargo zigbuild --release --quiet --target universal2-apple-darwin ;;
+        android)
+            ndk=${ANDROID_NDK_ROOT:-$(printf '%s\n' "${ANDROID_HOME:?}"/ndk/* | sort -V | tail -n 1)}
+            bin=$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
+            CC_aarch64_linux_android=$bin/aarch64-linux-android24-clang AR_aarch64_linux_android=$bin/llvm-ar \
+                CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$bin/aarch64-linux-android24-clang \
+                cargo build --release --quiet --target aarch64-linux-android ;;
+        *) echo "error: unknown platform {{ platform }}" >&2; exit 1 ;;
+    esac
+
+# Export a download build to build/dist as miho-<platform>.zip (.apk on android; MIHO_ANDROID_KEYSTORE with _USER and _PASSWORD signs it, else a throwaway key): just dist 0.3.1 linux
+dist version platform: rust import
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ just_executable() }} --justfile "{{ justfile() }}" --working-directory . rust-dist {{ platform }}
+    v={{ trim_start_match(version, "v") }}
+    code=$(awk -F. '{ print $1 * 10000 + $2 * 100 + $3 }' <<<"$v")
+    out=build/dist
+    conf=
+    mkdir -p "$out"
+    cp export_presets.cfg "$out/presets.bak"
+    trap 'mv "$out/presets.bak" export_presets.cfg; [ -z "$conf" ] || gio trash "$conf"' EXIT
+    sed -i -e "s|^version/name=.*|version/name=\"$v\"|" -e "s|^version/code=.*|version/code=$code|" \
+        -e "s|^application/short_version=.*|application/short_version=\"$v\"|" -e "s|^application/version=.*|application/version=\"$v\"|" \
+        -e "s|^application/file_version=.*|application/file_version=\"$v.0\"|" -e "s|^application/product_version=.*|application/product_version=\"$v.0\"|" \
+        export_presets.cfg
+    case "{{ platform }}" in
+        linux)
+            mkdir -p "$out/linux"
+            {{ godot }} --headless --path . --export-release Linux
+            (cd "$out/linux" && zip -X -q -r -FS ../miho-linux.zip .) ;;
+        windows)
+            mkdir -p "$out/windows"
+            {{ godot }} --headless --path . --export-release Windows
+            (cd "$out/windows" && zip -X -q -r -FS ../miho-windows.zip .) ;;
+        macos) {{ godot }} --headless --path . --export-release macOS ;;
+        android)
+            conf=$(mktemp -d -p "${XDG_CACHE_HOME:-$HOME/.cache}")
+            if [ -z "${MIHO_ANDROID_KEYSTORE:-}" ]; then
+                key="$conf/throwaway.keystore"
+                keytool -genkeypair -keystore "$key" -alias miho -keyalg RSA -keysize 2048 -validity 10000 \
+                    -storepass miho-throwaway -dname CN=miho 2>/dev/null
+                set -- "$key" miho miho-throwaway
+            else
+                set -- "$MIHO_ANDROID_KEYSTORE" "${MIHO_ANDROID_KEYSTORE_USER:?}" "${MIHO_ANDROID_KEYSTORE_PASSWORD:?}"
+            fi
+            XDG_CONFIG_HOME=$conf GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$1 GODOT_ANDROID_KEYSTORE_RELEASE_USER=$2 \
+                GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$3 {{ godot }} --headless --path . --export-release Android ;;
+        *) echo "error: unknown platform {{ platform }}" >&2; exit 1 ;;
+    esac
+
+# Push the builds in build/dist to the itch channels linux, windows, mac and android with the version: just itch-downloads 0.3.1
+itch-downloads version *platforms="linux windows macos android":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for p in {{ platforms }}; do
+        file=build/dist/miho-$p.zip
+        [ "$p" = android ] && file=build/dist/miho-android.apk
+        butler push "$file" "scarf005/miho:${p/macos/mac}" --userversion "{{ trim_start_match(version, "v") }}"
+    done
+
 # Save a scripted run's screenshot (see src/view/capture.gd), muted, in headless
 # gamescope: just shot .screenshots/x.png --seed=3 --keys=1,Right
 shot path *args: rust

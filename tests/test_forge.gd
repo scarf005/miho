@@ -168,3 +168,157 @@ func test_a_furnace_stays_on_its_storey() -> void:
 	assert_eq(w.depth, depth + 1)
 	assert_null(w.actor(f.id))
 	assert_true(w.storeys[depth].actors.any(func(a): return a.id == f.id))
+
+
+func test_a_leap_can_carry_a_lava_orb_to_where_it_lands() -> void:
+	var w := _world()
+	var cards: Array = Cards.recipe(Cards.VAULT) + LAVA
+	assert_true(w.can(_cast(cards)))
+	assert_eq(Guise.why(w.player(), Spell.make(cards), E), "")
+
+
+func test_a_blasting_mortar_is_drawn_like_any_burst() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	foe.max_hp = 99
+	foe.hp = 99
+	var events := w.act(_cast([ORB, ORB, ORB, EARTH, METAL]))
+	var splashes := events.filter(func(e): return e.t == &"splash")
+	assert_false(splashes.is_empty())
+	for e: Dictionary in splashes:
+		assert_false(Impact.flashes(e).is_empty())
+
+
+func test_a_furnace_hurls_at_every_rank_the_spell_it_lists() -> void:
+	var w := _world()
+	w.depth = World.FLOORS
+	var f := FloorGen.spawn(w, Forge.FURNACE, ME + Vector2i(0, 3))
+	var foe := _post(w, f.pos + E * 4)
+	foe.max_hp = 99
+	foe.hp = 99
+	for i in 2:
+		w.act(WAIT)
+	var thrown := w.shots.filter(func(s): return s.caster == f.id)
+	assert_false(thrown.is_empty())
+	assert_eq(thrown[0].spell.cards, Bestiary.casts(Forge.FURNACE, f.rank)[0])
+
+
+func test_a_furnace_never_shuts_her_off_from_the_way_up() -> void:
+	for n in 8:
+		var w := _world()
+		w.rng.seed = n + 1
+		for y in range(1, Grid.H - 1):
+			for x in range(1, Grid.W - 1):
+				if y != ME.y:
+					w.tiles[Grid.index(Vector2i(x, y))] = World.WALL
+		w.stairs = Vector2i(Grid.W - 2, ME.y)
+		w.sense()
+		w.act(_cast(FURNACE))
+		var f := _furnace(w)
+		assert_not_null(f)
+		assert_lt(f.pos.x, ME.x, "behind her on the corridor")
+
+
+func test_a_furnace_holds_its_fire_when_the_end_of_the_flight_would_catch_her() -> void:
+	var w := _world()
+	var f := FloorGen.spawn(w, Forge.FURNACE, ME - E * 5 + Vector2i(0, 1))
+	_post(w, f.pos + Vector2i(4, 1))
+	for i in 4:
+		w.act(WAIT)
+	assert_true(w.shots.is_empty(), "she stands by where it would burst")
+
+
+func test_no_creature_lists_a_dead_spell_and_the_reaper_aims_its_beacon() -> void:
+	var w := _world()
+	var saja := FloorGen.spawn(w, &"saja", ME + E * 3)
+	for kind: StringName in Bestiary.KINDS:
+		for cast: Array in Bestiary.casts(kind, 5):
+			assert_false(Forge.needs_orb(Spell.make(cast)), "%s %s" % [kind, cast])
+	var beacons := Bestiary.casts(&"saja", 5).filter(func(c): return Spell.make(c).has(&"beacon"))
+	assert_eq(beacons.size(), 1)
+	assert_false(Aim._spray(w, saja, beacons[0], w.player()).is_empty())
+
+
+func test_a_slot_in_a_queue_tells_its_own_talismans_and_price() -> void:
+	var head := Info.plain(SpellInfo.slot(Spell.make(LAVA), 1)).get_slice("\n", 0)
+	assert_string_contains(head, "꼬리: %d" % Spell.price(2))
+	assert_false(head.contains("구슬"), head)
+
+
+func test_a_flyer_takes_no_harm_from_hot_ground() -> void:
+	var w := _world()
+	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 3)
+	bat.cooldown = 99
+	bat.rooted = 9
+	var hp := bat.hp
+	Compounds.heat(w, [bat.pos], Compounds.MOLTEN)
+	w.act(WAIT)
+	assert_eq(bat.hp, hp)
+
+
+func test_a_creature_that_leaps_into_a_wall_does_not_call_its_side() -> void:
+	var w := _world()
+	var y := ME.y + 6
+	var sleeper := FloorGen.spawn(w, &"dokkaebi", Vector2i(Grid.W - 6, y))
+	sleeper.cooldown = 99
+	var leaper := FloorGen.spawn(w, &"dokkaebi", Vector2i(Grid.W - 3, y))
+	Leap.cast(w, leaper, Spell.make(Cards.recipe(Cards.VAULT)), E)
+	assert_eq(leaper.pos, Vector2i(Grid.W - 2, y))
+	assert_eq(sleeper.alert, Actor.REST, "no search for its own crash")
+
+
+func test_what_stands_round_her_is_cast_on_her_tile_too() -> void:
+	for cards: Array in [FURNACE, Cards.recipe(&"beacon")]:
+		var w := _world()
+		assert_eq(Guise.why(w.player(), Spell.make(cards)), "", str(cards))
+		assert_true(w.can(_cast(cards, Vector2i.ZERO)), str(cards))
+		var tails := w.tails
+		w.act(_cast(cards, Vector2i.ZERO))
+		assert_lt(w.tails, tails, str(cards))
+		assert_true(Guise.shadows(w, w.player()).is_empty(), "no dark wisp rides her")
+	var w := _world()
+	w.act(_cast(FURNACE, Vector2i.ZERO))
+	assert_not_null(_furnace(w))
+
+
+func test_a_furnace_stands_where_she_can_see_it() -> void:
+	for n in 8:
+		var w := _world()
+		w.rng.seed = n + 1
+		for y in range(ME.y - 3, ME.y + 4):
+			if y != ME.y + 1:
+				w.tiles[Grid.index(ME + Vector2i(1, y - ME.y))] = World.WALL
+		w.sense()
+		w.act(_cast(FURNACE))
+		var f := _furnace(w)
+		assert_not_null(f)
+		assert_true(w.sees(w.player(), f.pos), str(f.pos))
+
+
+func test_a_second_furnace_never_shuts_her_off_from_the_way_up() -> void:
+	for n in 40:
+		var w := _world()
+		w.rng.seed = n + 1
+		for y in range(1, Grid.H - 1):
+			for x in range(1, Grid.W - 1):
+				if y != ME.y and y != ME.y + 1:
+					w.tiles[Grid.index(Vector2i(x, y))] = World.WALL
+		for x in range(1, ME.x):
+			w.tiles[Grid.index(Vector2i(x, ME.y))] = World.WALL
+			w.tiles[Grid.index(Vector2i(x, ME.y + 1))] = World.WALL
+		w.stairs = Vector2i(Grid.W - 2, ME.y)
+		w.tails = 20
+		w.sense()
+		w.act(_cast(FURNACE))
+		w.act(_cast(FURNACE))
+		var furnaces := w.actors.filter(func(a): return a.kind == Forge.FURNACE)
+		assert_eq(furnaces.size(), 2)
+		assert_true(Compounds.linked(w, furnaces.map(func(a): return a.pos)), "seed %d" % (n + 1))
+
+
+func test_a_creature_keeps_a_lava_orb_until_its_foe_is_in_range() -> void:
+	var w := _world()
+	var saja := FloorGen.spawn(w, &"saja", ME + E * (Forge.RANGE + 2))
+	assert_true(Aim._reach(w, saja, LAVA, w.player()).is_empty())
+	saja.pos = ME + E * Forge.RANGE
+	assert_false(Aim._reach(w, saja, LAVA, w.player()).is_empty())

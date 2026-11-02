@@ -67,6 +67,8 @@ const PLAIN_SEEDS := [76, 82, 36]
 const PLAIN_ACTIONS := 330
 const RICH_SEEDS := [21, 22, 23, 24, 25, 26, 27, 28, 29]
 const RICH_ACTIONS := 190
+## The seed of the run of one forced scene (_forge).
+const FORGE_SEED := 30
 
 var _failed := false
 var _dice := RandomNumberGenerator.new()
@@ -404,13 +406,16 @@ func _record() -> void:
 	for k in RICH_SEEDS.size():
 		at += 1
 		_save_run(at, RICH_SEEDS[k], true, k)
+	_save_run(at + 1, FORGE_SEED, true, -1)
 
 
 func _save_run(number: int, seed_value: int, rich: bool, k := 0) -> void:
 	_dice.seed = seed_value * 7 + 1
 	var save := SaveGame.new(DIR.path_join("%02d.cfg" % number), seed_value)
 	var w := World.create(seed_value)
-	if rich:
+	if k < 0:
+		_forge(save, w)
+	elif rich:
 		_rich(save, w, k)
 	else:
 		_walk(save, w)
@@ -420,7 +425,7 @@ func _save_run(number: int, seed_value: int, rich: bool, k := 0) -> void:
 			"%02d: %s %d actions, %d kills, storey %d, %s"
 			% [
 				number,
-				"rich" if rich else "plain",
+				"forge" if k < 0 else ("rich" if rich else "plain"),
 				save.actions.size(),
 				save.kills,
 				w.depth,
@@ -540,6 +545,39 @@ func _rich(save: SaveGame, w: World, k: int) -> void:
 				_tour(w, queue)
 		else:
 			_play(save, w, _any_step(w))
+
+
+## A forced scene of 용광로 and 봉화: cast round her on her own tile and along a way, one furnace
+## after another so that a later one must keep her a way, among creatures it hurls lava at. Each
+## cast stands on an action that the hash takes a forecast of.
+func _forge(save: SaveGame, w: World) -> void:
+	for cmd in [&"cards", &"tails", &"god", &"reveal"]:
+		_play(save, w, {t = &"cheat", cmd = cmd})
+	_play(save, w, {t = &"cheat", cmd = &"floor", depth = 4})
+	for n in 4:
+		_play(save, w, _summon(w))
+	var furnace: Array = Cards.spell_of(&"furnace").duplicate()
+	var beacon: Array = Cards.spell_of(&"beacon").duplicate()
+	for scene in [
+		[furnace, Vector2i.ZERO],
+		[furnace, Vector2i.RIGHT],
+		[furnace, Vector2i.ZERO],
+		[beacon, Vector2i.ZERO],
+		[furnace, Vector2i.ZERO],
+		[beacon, Vector2i.LEFT],
+		[furnace, Vector2i.DOWN],
+		[furnace, Vector2i.ZERO]
+	]:
+		while save.actions.size() % FORECAST_EVERY != FORECAST_EVERY - 1:
+			_play(save, w, {t = &"wait"})
+		_play(save, w, {t = &"cheat", cmd = &"tails"})
+		_play(save, w, {t = &"cast", spells = [{cards = scene[0], dir = scene[1]}]})
+		for n in 4:
+			_play(save, w, {t = &"wait"})
+	for n in 20:
+		if not _play(save, w, _any_step(w)):
+			_play(save, w, {t = &"wait"})
+		_play(save, w, {t = &"wait"})
 
 
 ## On the last storey, a step onto the elixir.

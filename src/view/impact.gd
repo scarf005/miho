@@ -31,7 +31,7 @@ static func flashes(e: Dictionary) -> Array:
 	var spell := Spell.make(e.cards)
 	var at: Vector2i = e.at
 	var out := []
-	if spell.mortar():
+	if spell.mortar() and e.has("r"):
 		out.append([at, Color(1.0, 1.0, 0.9, 1.0), 0.0])
 		for p in Spray.ring(at, e.r):
 			var far := Grid.cheb(p, at)

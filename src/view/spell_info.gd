@@ -117,18 +117,17 @@ static func hovered(c: StringName, picked: Array[StringName]) -> Array:
 static func slot(s: Spell, i: int) -> Array:
 	if s.cards.size() == 1:
 		return spell(s)
-	return [_slot_head(s, i)] + (spell(s).slice(1) if s.slots.size() == 1 else spell(s))
+	var head := _slot_head(s.slots[i], Cards.recipe(s.slots[i]))
+	return [head] + (spell(s).slice(1) if s.slots.size() == 1 else spell(s))
 
 
 ## A compound talisman alone: its tails and parts, then what it does.
 static func combo(c: StringName) -> Array:
-	var s := Spell.make(Cards.spell_of(c))
-	return [_slot_head(s, s.slots.find(c))] + spell(s).slice(1)
-
-
-static func _slot_head(s: Spell, i: int) -> Array:
-	var c := s.slots[i]
 	var parts := Cards.spell_of(c)
+	return [_slot_head(c, parts)] + spell(Spell.make(parts)).slice(1)
+
+
+static func _slot_head(c: StringName, parts: Array) -> Array:
 	var head := [
 		[Lang.t(Cards.NAME[c]), Palette.card(c)],
 		[Lang.t(" · 꼬리: %d") % Spell.price(parts.size()), LABEL]
@@ -148,7 +147,7 @@ static func spell(s: Spell) -> Array:
 		return lines + ward(s)
 	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
 		return lines + _does(Cards.BUNSIN)
-	if s.has(&"beacon") or s.orb and s.has(Forge.FURNACE):
+	if Forge.around(s):
 		return lines + _does(&"beacon" if s.has(&"beacon") else Forge.FURNACE)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
@@ -469,6 +468,7 @@ static func compound(c: StringName) -> Array:
 				["쓰는 주문", Spell.make(Forge.ORB).shown()],
 				["발사 간격", Lang.t("%d초") % Forge.FIRE_ROUNDS],
 				["빛", Lang.t("%d칸") % Light.FIRE_RADIUS],
+				["소음", "없음"],
 			]
 		&"swamp":
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
@@ -490,6 +490,8 @@ static func compound(c: StringName) -> Array:
 			return [
 				["모양", Lang.t("%d방향") % Grid.DIRS.size()],
 				["쓰는 주문", Spell.make(Forge.HOMING).shown()],
+				["소음", "%d" % Spell.make(Forge.HOMING).cast_noise()],
+				["충돌 소음", "%d" % Spell.make(Forge.HOMING).burst_noise()],
 			]
 		&"magpie":
 			return [[_names([World.SKY]), Tiles.of(World.BRIDGE, "name")]]

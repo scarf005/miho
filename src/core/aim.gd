@@ -235,6 +235,8 @@ static func _reach(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 		return _homing(w, a, cast, Spell.RANGE if spell.shape == Spell.WISP else 6, foe)
 	var d := Grid.line_dir(a.pos, foe.pos)
 	var r := Grid.cheb(a.pos, foe.pos)
+	if Forge.lobbed(spell) and r > Forge.RANGE:
+		return {}
 	if d != Vector2i.ZERO and r >= 2 and w.clear_line(a.pos, foe.pos):
 		return {cards = cast, dir = d}
 	return {}
@@ -274,6 +276,9 @@ static func _homing(w: World, a: Actor, cast: Array, reach: int, foe: Actor) -> 
 ## direction to it.
 static func _spray(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 	var spell := Spell.make(cast)
+	if spell.has(&"beacon"):
+		var near := Grid.cheb(a.pos, foe.pos) <= Forge.RANGE
+		return {cards = cast, dir = Grid.nearest_dir(foe.pos - a.pos)} if near else {}
 	for dir in [Grid.line_dir(a.pos, foe.pos), Grid.nearest_dir(foe.pos - a.pos)]:
 		if dir != Vector2i.ZERO and Spray.cover(w, a, spell, dir).has(foe.pos):
 			return {cards = cast, dir = dir}

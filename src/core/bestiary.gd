@@ -118,7 +118,7 @@ const REAPER := [
 	[ORB, Cards.FIRE, Cards.METAL],
 	[FOX, ORB, Cards.WOOD],
 	[FOX, FOX, Cards.FIRE],
-	[Cards.FIRE, Cards.EARTH, Cards.METAL],
+	[ORB, Cards.FIRE, Cards.EARTH],
 	[Cards.WOOD, Cards.EARTH, Cards.WATER],
 	[FOX, ORB, Cards.WATER],
 	[FOX, FOX, ORB],
@@ -556,7 +556,7 @@ static func casts(kind: StringName, r: int) -> Array:
 	var out: Array = info(kind).get("casts", [])
 	for k in range(2, r + 1):
 		out = info(kind).get("ranks", {}).get(k, out)
-	return out.map(func(cast): return tiered(cast, r))
+	return out if kind == Forge.FURNACE else out.map(func(cast): return tiered(cast, r))
 
 
 ## `cast` with its 구 as many copies as rank `r` and ORB_EXTRA make, no more

@@ -8,3 +8,6 @@ reloadable = false
 
 linux.x86_64 = "res://rust/target/release/libmiho_native.so"
 web.wasm32 = "res://rust/target/wasm32-unknown-emscripten/release/miho_native.wasm"
+windows.x86_64 = "res://rust/target/x86_64-pc-windows-gnu/release/miho_native.dll"
+macos = "res://rust/target/universal2-apple-darwin/release/libmiho_native.dylib"
+android.arm64 = "res://rust/target/aarch64-linux-android/release/libmiho_native.so"
