@@ -487,7 +487,7 @@ func _look_key(action: StringName, far: bool) -> bool:
 	elif action == &"confirm":
 		var goal := hover
 		_stop_look()
-		if goal != world.player().pos:
+		if goal != world.player().pos or not picked.is_empty():
 			_use_tile(goal, false)
 	elif action in [&"cancel", &"look"]:
 		_stop_look()
@@ -566,28 +566,25 @@ func _again() -> void:
 ## nearest creature in sight, unless it is on one already.
 func _aim() -> void:
 	var foes := Fight.targets(world)
-	if picked.is_empty() or foes.is_empty() or foes.any(func(a): return a.pos == hover):
+	if picked.is_empty() or foes.any(func(a): return a.pos == hover):
 		return
-	_look_at(foes[0].pos)
+	if not foes.is_empty():
+		_look_at(foes[0].pos)
+	elif not Grid.inside(hover) and not touch.enabled:
+		_look_at(world.player().pos)
 
 
-## With talismans picked, Tab moves the cursor to the next creature in sight.
+## With talismans picked, Tab moves the cursor to the next creature in sight, then to Miho.
 func _aim_next() -> void:
-	var foes := Fight.targets(world)
-	if foes.is_empty():
-		_say("보이는 적이 없다")
-		sfx.play(&"click")
-		return
-	var at := foes.find_custom(func(a): return a.pos == hover)
-	_look_at(foes[(at + 1) % foes.size()].pos)
+	var stops: Array = Fight.targets(world).map(func(a): return a.pos) + [world.player().pos]
+	_look_at(stops[(stops.find(hover) + 1) % stops.size()])
 
 
-## Hurls the picked talismans towards the cursor; with none on a tile besides
-## Miho's it says so instead of passing the round.
+## Hurls the picked talismans towards the cursor, on Miho's own tile on her; with no
+## cursor it says so instead of passing the round.
 func _hurl_at_cursor() -> void:
-	var me := world.player().pos
-	if Grid.inside(hover) and hover != me:
-		_direction(Grid.nearest_dir(hover - me), false)
+	if Grid.inside(hover):
+		_direction(Grid.nearest_dir(hover - world.player().pos), false)
 	else:
 		_refuse("겨눌 곳이 없다")
 

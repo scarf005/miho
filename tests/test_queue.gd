@@ -348,6 +348,8 @@ func test_tab_moves_the_aim_to_the_next_creature_in_sight() -> void:
 	_press(m, "Tab")
 	assert_eq(m.hover, far.pos)
 	_press(m, "Tab")
+	assert_eq(m.hover, m.world.player().pos, "then on her")
+	_press(m, "Tab")
 	assert_eq(m.hover, near.pos, "and round again")
 	assert_eq(m.picked, [ORB] as Array[StringName], "Tab does not fight while aiming")
 
