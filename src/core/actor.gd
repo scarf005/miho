@@ -1,20 +1,13 @@
 class_name Actor
-extends RefCounted
-## A creature on the board. Faction FOX is Miho and her allies (Mind.enlist); HEAVEN
-## is everything else. A heaven creature is resting (asleep, unless it patrols),
+extends Entity
+## A creature on the board. A heaven creature is resting (asleep, unless it patrols),
 ## searching a spot it heard or saw something at, or hunting Miho after it saw her.
-
-const FOX := 0
-const HEAVEN := 1
 
 const REST := 0
 const SEARCH := 1
 const HUNT := 2
 
-var id := 0
 var kind := &""
-var faction := HEAVEN
-var pos := Vector2i.ZERO
 var hp := 1
 var max_hp := 1
 var cooldown := 0
