@@ -84,3 +84,7 @@ func test_a_bolt_thunders_when_it_is_loosed() -> void:
 	w.cast(_general(w), _bolt(), E)
 	var cast: Dictionary = w.events.filter(func(e): return e.t == &"cast")[0]
 	assert_has(Sfx.sounds_of(cast), &"thunder")
+
+
+func test_a_bolt_heard_out_of_sight_thunders() -> void:
+	assert_eq(Sfx.sound_of({t = &"noise", word = _bolt().cast_word()}), &"thunder")
