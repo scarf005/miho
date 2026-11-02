@@ -32,6 +32,9 @@ extends RefCounted
 ## move: approach, align (gets in line for an orb), slow, static, or water: it approaches
 ## over water tiles only, waits with its eyes open, comes in no band, and is gone when
 ## its tile is water no more (Mind.heaven_phase, Brogue MONST_RESTRICTED_TO_LIQUID).
+## flies: crosses sky and water and touches nothing on the ground (`ground`, Terrain.stepped,
+## Fall), as Brogue MONST_FLIES. flits: goes a random way one move in Mind.FLITS (Mind._flit),
+## as Brogue MONST_FLITS.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: &"fire" absorbs the fire of a spell (해태 guards against fire): a spell
 ## whose elements are all fire is stopped whole, effects and all; one with other
@@ -69,6 +72,8 @@ const RANKS := 5
 ## Miho's best cast; a 도깨비 and the fast or fragile kinds stay low.
 const HEALTH := {
 	&"dokkaebi": [2, 3, 3, 3, 3],
+	&"bakjwi": [1, 2, 2, 2, 2],
+	&"samjogo": [4, 5, 5, 5, 5],
 	&"oedari": [3, 4, 4, 4, 4],
 	&"bujigaengi": [2, 3, 3, 3, 3],
 	&"bitjaru": [2, 3, 3, 3, 3],
@@ -321,6 +326,33 @@ const KINDS := {
 		wits = 1,
 		patrol = true,
 		drop = Cards.FIRE,
+		absorb = &"fire",
+	},
+	&"bakjwi":
+	{
+		name = "박쥐",
+		glyph = "박",
+		group = &"beast",
+		melee = {name = "이빨", hit = "물려", damage = 1},
+		move = &"approach",
+		flies = true,
+		flits = true,
+		wits = 0,
+		patrol = true,
+	},
+	&"samjogo":
+	{
+		name = "삼족오",
+		glyph = "삼",
+		group = &"beast",
+		shout = {word = "까악", loud = 8},
+		melee = {name = "부리", hit = "쪼여", damage = 2},
+		casts = [[FOX, Cards.FIRE], [ORB, Cards.FIRE]],
+		cd = 3,
+		move = &"approach",
+		flies = true,
+		wits = 1,
+		patrol = true,
 		absorb = &"fire",
 	},
 	&"haetae":
@@ -590,7 +622,13 @@ static func swims(kind: StringName) -> bool:
 
 ## The tile table of where a creature of `kind` can stand.
 static func ground(kind: StringName) -> PackedByteArray:
+	if flies(kind):
+		return Masks.flown
 	return Tiles.water if swims(kind) else Tiles.walk
+
+
+static func flies(kind: StringName) -> bool:
+	return info(kind).get("flies", false)
 
 
 ## The elements of `spell` that `kind` absorbs: only fire, for a fire absorber.

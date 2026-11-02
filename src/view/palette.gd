@@ -120,6 +120,8 @@ const KIND := {
 	&"mulgwisin": Color(0.7, 0.88, 0.78),
 	&"imugi": Color(0.5, 0.8, 0.55),
 	&"bulgae": Color(1.0, 0.55, 0.2),
+	&"bakjwi": Color(0.68, 0.56, 0.8),
+	&"samjogo": Color(1.0, 0.8, 0.2),
 	&"haetae": Color(0.55, 0.85, 0.95),
 	&"cheonha": Color(0.4, 0.62, 1.0),
 	&"jiha": Color(0.95, 0.95, 0.9),

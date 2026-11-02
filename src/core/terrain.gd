@@ -117,6 +117,17 @@ static func crumble(w: World, by: Actor, at: Vector2i) -> void:
 
 
 ## A creature steps onto reeds at `at`: they lie flat, and sight clears.
+## `a` has moved from `from` to `to` on foot: what the ground does. One that flies touches
+## none of it (Bestiary.flies).
+static func stepped(w: World, a: Actor, from: Vector2i, to: Vector2i) -> void:
+	if Bestiary.flies(a.kind):
+		return
+	crumble(w, a, from)
+	trample(w, to)
+	Compounds.step(w, a, to)
+	Traps.step(w, a, Grid.line_dir(from, to))
+
+
 static func trample(w: World, at: Vector2i) -> void:
 	var was := w.tile(at)
 	var flat: int = Tiles.of(was, "trample")

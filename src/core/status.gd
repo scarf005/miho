@@ -27,6 +27,7 @@ extends RefCounted
 const WET := 4
 const SPLASH := 2
 const SPLASH_WORD := "철벅"
+const WINGS := "푸드덕"  # i18n: keep
 const ALIGHT := 3
 ## Times as long frost holds a wet creature, and times the harm it takes while
 ## frozen (`shatter`).
@@ -118,6 +119,8 @@ static func shatter(a: Actor) -> bool:
 ## How far `a`'s step onto a tile of `tread` ([loud, word], Tiles) is heard,
 ## and the word for it: a wet one splashes.
 static func tread(a: Actor, tread_of: Array) -> Array:
+	if Bestiary.flies(a.kind):
+		return [0, WINGS]
 	return [maxi(tread_of[0], SPLASH), SPLASH_WORD] if a.wet > 0 else tread_of
 
 

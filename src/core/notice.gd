@@ -39,7 +39,8 @@ static func smashed(w: World, was: int, at: Vector2i) -> void:
 
 ## A heaven creature fell on its tile: records it and leaves a body mark there.
 static func fallen(w: World, a: Actor) -> void:
-	lay(w, a.kind, a.pos)
+	if Tiles.walk[w.tile(a.pos)] == 1:
+		lay(w, a.kind, a.pos)
 
 
 ## A body of `kind` lies at `at` from now on, and creatures can notice it, unless one there

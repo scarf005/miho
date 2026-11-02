@@ -551,6 +551,10 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append(Lang.t("고정"))
 	if Bestiary.swims(a.kind):
 		out.append(Lang.t("수중"))
+	if Bestiary.flies(a.kind):
+		out.append(Lang.t("비행"))
+	if spec.get("flits", false):
+		out.append(Lang.t("불규칙한 움직임"))
 	if spec.get("step", 0) > 0:
 		out.append(Lang.t("발소리: %d칸") % spec.step)
 	if elements.has(Cards.WOOD):

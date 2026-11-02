@@ -218,6 +218,7 @@ const WORDS := {
 	"둥": &"drum",  # i18n: keep
 	"댕": &"gong",  # i18n: keep
 	"찌익": &"tear",  # i18n: keep
+	"푸드덕": &"hiss",  # i18n: keep
 	"타닥": &"burn",  # i18n: keep
 	"캥": &"foxfire",  # i18n: keep
 }

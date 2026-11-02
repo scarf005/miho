@@ -24,15 +24,17 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 	if not Grid.DIRS.has(dir):
 		return
 	var depth := w.depth
+	var flies := Bestiary.flies(a.kind)
+	var ground := Masks.flown if flies else Tiles.walk
 	for i in n:
 		var to := a.pos + dir
-		if w.tile(to) == World.SKY:
+		if w.tile(to) == World.SKY and not flies:
 			drop(w, a, to)
 			return
 		if WALLS.has(w.tile(to)):
 			_crash(w, a, to, n - i)
 			return
-		if not w.vacant(to):
+		if not w.vacant(to, ground):
 			return
 		if i == 0:
 			w.emit({t = &"push", id = a.id, at = a.pos})
@@ -61,6 +63,8 @@ static func _crash(w: World, a: Actor, at: Vector2i, left: int) -> void:
 ## happens to her on the first), and any other creature is gone. An ally does not
 ## come along.
 static func drop(w: World, a: Actor, into: Vector2i) -> void:
+	if Bestiary.flies(a.kind):
+		return
 	if not a.is_miho():
 		_lose(w, a, into)
 	elif w.depth > 1:

@@ -3176,3 +3176,41 @@ msgstr "Slammed into a wall and died"
 
 msgid "벽에 부딪히면 남은 칸 수만큼 벽과 함께 피해를 입는다."
 msgstr "Hitting a wall harms both by the tiles left."
+
+msgid "박쥐"
+msgstr "Bat"
+
+msgctxt "creature"
+msgid "박"
+msgstr "T"
+
+msgid "삼족오"
+msgstr "Samjok-o"
+
+msgctxt "creature"
+msgid "삼"
+msgstr "U"
+
+msgid "부리"
+msgstr "beak"
+
+msgid "쪼여"
+msgstr "pecked"
+
+msgid "까악"
+msgstr "Caw"
+
+msgid "비행"
+msgstr "Flies"
+
+msgid "불규칙한 움직임"
+msgstr "Moves erratically"
+
+msgid "%d번에 1번은 아무 방향으로 움직인다."
+msgstr "One move in %d goes a random way."
+
+msgid "넘을 수 있음: %s"
+msgstr "Crosses: %s"
+
+msgid "밟지 않음: 함정, %s"
+msgstr "Does not step on: plates, %s"

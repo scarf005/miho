@@ -582,10 +582,7 @@ func move(a: Actor, to: Vector2i) -> void:
 			emit({t = &"ride", shot = s.id, to = to})
 	_changed()
 	noise(to, loud, tread[1], a.faction == Actor.FOX, a.id)
-	Terrain.crumble(self, a, from)
-	Terrain.trample(self, to)
-	Compounds.step(self, a, to)
-	Traps.step(self, a, Grid.line_dir(from, to))
+	Terrain.stepped(self, a, from, to)
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,

@@ -25,9 +25,20 @@ extends RefCounted
 
 ## The creatures of each storey; a boss only comes to the last storey.
 const PLAN := {
-	1: [&"dokkaebi", &"dokkaebi", &"dokkaebi", &"gaekgwi", &"jangseung", &"jangseung"],
+	1:
+	[
+		&"bakjwi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"dokkaebi",
+		&"gaekgwi",
+		&"jangseung",
+		&"jangseung",
+	],
 	2:
 	[
+		&"bakjwi",
+		&"bakjwi",
 		&"bulgae",
 		&"oedari",
 		&"dokkaebi",
@@ -39,6 +50,8 @@ const PLAN := {
 	],
 	3:
 	[
+		&"bakjwi",
+		&"bakjwi",
 		&"haetae",
 		&"imugi",
 		&"imugi",
@@ -92,6 +105,7 @@ const PLAN := {
 	],
 	7:
 	[
+		&"samjogo",
 		&"dueoksini",
 		&"oedari",
 		&"bujigaengi",
@@ -108,6 +122,8 @@ const PLAN := {
 	],
 	8:
 	[
+		&"samjogo",
+		&"samjogo",
 		&"haetae",
 		&"haetae",
 		&"dueoksini",
@@ -124,6 +140,8 @@ const PLAN := {
 	],
 	9:
 	[
+		&"samjogo",
+		&"samjogo",
 		&"cheonnyeon",
 		&"dueoksini",
 		&"haetae",

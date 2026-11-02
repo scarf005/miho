@@ -80,7 +80,7 @@ static func _spotted(w: World, p: Vector2i, sprung: bool, was: PackedByteArray) 
 
 ## Whether `a` keeps off the plate at `p`, if there is one there.
 static func bars(w: World, a: Actor, p: Vector2i) -> bool:
-	return w.traps.has(p) and (a.ally() or a.alert != Actor.HUNT)
+	return w.traps.has(p) and (a.ally() or a.alert != Actor.HUNT) and not Bestiary.flies(a.kind)
 
 
 ## `a` has stepped onto `a.pos` moving along `dir`: a plate there goes off.

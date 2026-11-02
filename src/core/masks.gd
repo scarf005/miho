@@ -13,6 +13,10 @@ static var _fly := Grid.table(
 	func(t): return t != World.DOOR and (Tiles.of(t, "walk") or t == World.POND or t == World.SKY)
 )
 static var _air := Grid.table(func(t): return Tiles.of(t, "walk") or t == World.SKY)
+## What a creature that flies crosses (Bestiary.ground).
+static var flown := Grid.table(
+	func(t): return Tiles.of(t, "walk") or Tiles.of(t, "water") or t == World.SKY
+)
 static var _hides := Grid.table(func(t): return t == World.BAMBOO)
 static var _wade := Grid.table(func(t): return Tiles.of(t, "walk") or Tiles.of(t, "water"))
 

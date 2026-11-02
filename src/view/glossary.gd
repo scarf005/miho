@@ -72,6 +72,8 @@ static func rows() -> Dictionary:
 			Info.SUSPECTS,
 		],
 		"순찰": ["쉴 때: 방 사이를 돌아다님", no_sleep, "무리: 대장을 따라다님"],
+		"비행": _flight(),
+		"불규칙한 움직임": [Lang.t("%d번에 1번은 아무 방향으로 움직인다.") % Mind.FLITS],
 		"고정": ["움직이지 않음.", no_sleep],
 		"수중":
 		[
@@ -136,6 +138,15 @@ static func rows() -> Dictionary:
 			Lang.t("지워짐: %s") % ", ".join(_scent_erasers()),
 		],
 	}
+
+
+## What flying crosses and what it does not step on (Terrain.stepped).
+static func _flight() -> Array:
+	var names := func(ts): return ", ".join(ts.map(func(t): return Lang.t(Tiles.of(t, "name"))))
+	return [
+		Lang.t("넘을 수 있음: %s") % names.call([World.POND, World.SKY]),
+		Lang.t("밟지 않음: 함정, %s") % names.call([World.THORNS, World.MUD, World.BOARD_ROTTEN]),
+	]
 
 
 ## What 전기 does to a creature (Elements.charge), one `이름: 값` line each: the

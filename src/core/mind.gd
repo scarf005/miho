@@ -26,6 +26,8 @@ extends RefCounted
 ## the stairs (Storeys.followers), as in DCSS (swap_check, _tag_follower_at).
 
 const GRUDGE_ROUNDS := 10
+## A flitting creature goes a random way one move in this many (Brogue flits 33%).
+const FLITS := 3
 
 
 ## `a` is of Miho's side from now on, in her train, however it came to be.
@@ -76,7 +78,7 @@ static func heaven_phase(w: World) -> void:
 				if a.alive() and w.actors.has(a) and w.outcome == &"":
 					w.cast(a, Bestiary.spell(a.kind, plan.cards), plan.dir)
 			continue
-		if a.blind > 0 or _stoke(w, a) or _fight(w, a):
+		if _flit(w, a) or a.blind > 0 or _stoke(w, a) or _fight(w, a):
 			continue
 		match a.alert:
 			Actor.HUNT:
@@ -498,6 +500,16 @@ static func _step_to(w: World, a: Actor, goal: Vector2i, keep := 0) -> bool:
 	if best == a.pos:
 		return false
 	_walk(w, a, best)
+	return true
+
+
+## A flitting `a` awake goes a random way one move in FLITS, whatever it meant to do.
+static func _flit(w: World, a: Actor) -> bool:
+	if not a.info().get("flits", false) or a.rooted > 0 or a.asleep():
+		return false
+	if w.rng.randi_range(1, FLITS) != 1:
+		return false
+	_drift(w, a)
 	return true
 
 
