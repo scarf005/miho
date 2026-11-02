@@ -56,6 +56,12 @@ static func hurt(w: World, a: Actor, n: int, weak := false) -> void:
 	if a.ally():
 		return
 	Notice.fallen(w, a)
+	reward(w, a)
+
+
+## What Miho gets for a creature of heaven that is gone: a tail, its soul and the scroll
+## it leaves (Scrolls.drop).
+static func reward(w: World, a: Actor) -> void:
 	w.tails = mini(w.max_tails(), w.tails + 1)
 	w.emit({t = &"soul", id = a.id, at = a.pos})
 	Scrolls.drop(w, a)

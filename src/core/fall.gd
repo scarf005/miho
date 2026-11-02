@@ -104,9 +104,7 @@ static func _gone(w: World, a: Actor, told: Array) -> void:
 		w.emit(e)
 	if not a.ally():
 		w.player().prey = a.kind
-		w.tails = mini(w.max_tails(), w.tails + 1)
-		w.emit({t = &"soul", id = a.id, at = a.pos})
-		Scrolls.drop(w, a)
+		Harm.reward(w, a)
 	w._changed()
 
 
