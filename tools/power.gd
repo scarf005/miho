@@ -263,7 +263,7 @@ func _blow(kind: StringName, r: int) -> Dictionary:
 			for plan in plans:
 				w.cast(foe, Bestiary.spell(kind, plan.cards), plan.dir)
 			for i in 12:
-				w._shots_phase()
+				Flight.phase(w)
 			var n := 0
 			for e in w.events:
 				if e.t == &"hurt" and e.id == w.player().id:

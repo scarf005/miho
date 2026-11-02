@@ -22,7 +22,7 @@ var bank := 0
 var flown := 0
 var host := 0
 var pierced := false
-## Rounds it has flown (World._shots_phase): an orb gains Spell.accel a round.
+## Rounds it has flown (Flight.phase): an orb gains Spell.accel a round.
 var age := 0
 
 

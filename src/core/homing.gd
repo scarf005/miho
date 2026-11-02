@@ -32,7 +32,7 @@ extends RefCounted
 ## lone wisp (30°) one step at most every second tile.
 ## With no such neighbour it flies straight on, and so may lose its creature
 ## round a corner it cannot turn. A wisp that has struck sticks to its creature
-## and steers no more, nor does one that hovers (World._step).
+## and steers no more, nor does one that hovers (Flight.step).
 
 ## Turns tried, in steps of Spell.TURN_STEP from the heading.
 const TURNS := [0, -1, 1, -2, 2, -3, 3, 4]

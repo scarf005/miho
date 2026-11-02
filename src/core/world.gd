@@ -520,7 +520,7 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				var spell := Spell.make(one.cards)
 				tails -= Cheat.cost(self, spell)
 				cast(me, spell, one.dir)
-	_shots_phase()
+	Flight.phase(self)
 	Mind.heaven_phase(self)
 	Terrain.burn(self, alight)
 	Compounds.tick(self)
@@ -708,184 +708,16 @@ func cast(caster: Actor, spell: Spell, dir: Vector2i) -> void:
 	var targets := Homing.targets(self, caster, spell, dir)
 	var heads := Homing.headings(self, caster, spell, dir, targets)
 	for i in heads.size():
-		var s := _spawn(caster, spell, heads[i], targets[i])
+		var s := Flight.spawn(self, caster, spell, heads[i], targets[i])
 		if spell.orb:
 			# An orb that leaves on the line of one before it trails it from the caster.
 			if not heads.slice(0, i).has(heads[i]):
-				_step(s)
+				Flight.step(self, s)
 		elif heads[i] == dir:
-			_step(s)
+			Flight.step(self, s)
 		else:
-			_fly(s, s.pos + s.dir)
+			Flight.fly(self, s, s.pos + s.dir)
 			s.dir = Homing.facing(self, s)
-
-
-func _spawn(caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
-	var s := Shot.new()
-	s.id = new_id()
-	s.faction = caster.faction
-	s.caster = caster.id
-	s.spell = spell
-	s.pos = caster.pos
-	s.origin = caster.pos
-	s.dir = dir
-	s.life = spell.life()
-	s.target = target
-	s.turn = spell.turn()
-	shots.append(s)
-	_changed()
-	emit(
-		{
-			t = &"spawn",
-			shot = s.id,
-			at = s.pos,
-			faction = s.faction,
-			cards = spell.cards,
-			target = target
-		}
-	)
-	return s
-
-
-func _shots_phase() -> void:
-	var top := Spell.BULLET_SPEED
-	for s: Shot in shots:
-		top = maxi(top, s.pace())
-	for sub in top:
-		for s: Shot in shots.duplicate():
-			if not s.gone and sub < s.pace() and s.dir != Vector2i.ZERO and not rides(s):
-				_step(s)
-	for s: Shot in shots:
-		if not s.gone and s.dir != Vector2i.ZERO and not rides(s):
-			s.age += 1
-	_prune()
-
-
-func _fly(s: Shot, to: Vector2i) -> void:
-	emit({t = &"fly", shot = s.id, from = s.pos, to = to})
-	s.pos = to
-	s.flown += 1
-	_changed()
-	if s.spell.has(Cards.FIRE):
-		ignite(to)
-	if actor_at(to) == null:
-		Traps.fly(self, s)
-
-
-## One tile of flight. Orbs burst on walls and closed doors; every projectile
-## strikes the creature it reaches; a wisp stops and hovers at a wall or after
-## Spell.RANGE tiles, chasing or not, and flies no more; a piercing one goes on
-## through creatures and a wall (Elements.bore, pass_through).
-func _step(s: Shot) -> void:
-	if s.turn > 0:
-		s.dir = Homing.steer(self, s)
-		var t := actor(s.target)
-		if t != null and t.pos == s.pos and not s.spell.pierces():
-			s.gone = true
-			_strike(s, t)
-			return
-	var to := s.pos + s.dir
-	if s.spell.pierces() and Elements.bore(self, s, to):
-		to += s.dir
-	elif not open_air(to) or (s.spell.orb and tile(to) == DOOR and opaque(to)):
-		if s.spell.orb:
-			var struck := tile(to)
-			_burst(s)
-			Terrain.smash(self, s, to, struck)
-		else:
-			_land(s)
-		return
-	var a := actor_at(to)
-	if a != null:
-		_fly(s, to)
-		if s.spell.pierces():
-			s.gone = not Elements.pass_through(self, s, a)
-			return
-		s.gone = true
-		_strike(s, a)
-		return
-	var o := shot_at(to, s)
-	if o != null:
-		if s.spell.orb and o.spell.orb:
-			emit({t = &"clash", shot = s.id, other = o.id, at = to})
-			s.gone = true
-			o.gone = true
-			_changed()
-			return
-		if s.spell.orb:
-			o.gone = true
-			emit({t = &"snuff", shot = o.id, at = to})
-		elif o.spell.orb:
-			_land(s)
-			return
-	_fly(s, to)
-	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
-		_land(s)
-
-
-func _land(s: Shot) -> void:
-	s.life = Spell.WISP_LIFE
-	emit({t = &"land", shot = s.id, at = s.pos})
-	_effects(s, s.pos)
-
-
-func _burst(s: Shot) -> void:
-	emit({t = &"burst", shot = s.id, at = s.pos, cards = s.spell.cards})
-	s.gone = true
-	_changed()
-	noise(s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
-	if s.spell.blasts():
-		Elements.splash(self, s, s.pos, null)
-	_effects(s, s.pos, s.pos + s.dir)
-
-
-## A thud happens wherever the spell ends; fire sets that tile alight and
-## relights the lanterns next to it, except the one an orb just struck, water
-## douses lanterns and flames, a wood orb grows a wall (Elements), and each
-## compound acts round where it ends (Compounds); 도약 brings Miho (Leap.swap).
-func _effects(s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
-	if s.spell.has(Cards.EARTH):
-		noise(at, THUD, "쿵", true, s.caster)
-	if s.spell.has(Cards.FIRE):
-		ignite(at)
-	Terrain.touch(self, s, at, struck)
-	if s.spell.orb and s.spell.has(Cards.WOOD):
-		Elements.sprout(self, s, at)
-	Compounds.land(self, s, at)
-	s.dir = Vector2i.ZERO
-	Leap.swap(self, s, actor_at(at))
-
-
-func _strike(s: Shot, a: Actor) -> void:
-	var spell := s.spell
-	var at := a.pos
-	emit(
-		{
-			t = &"hit",
-			shot = s.id,
-			id = a.id,
-			at = at,
-			by = s.caster,
-			title = spell.title(),
-			cards = spell.cards,
-			spell = spell.tag()
-		}
-	)
-	noise(at, spell.burst_noise(), "쾅", true, s.caster)
-	var storey := depth
-	if not Elements.strike(self, s, a, spell.damage(Grid.cheb(s.origin, at))) or depth != storey:
-		return
-	if spell.blasts():
-		Elements.splash(self, s, at, a)
-	_effects(s, at)
-	if not spell.orb and not spell.gun():
-		Elements.stick(self, s, a)
-
-
-## Whether `s` rides a living creature, and so neither flies nor strikes again.
-func rides(s: Shot) -> bool:
-	var a := actor(s.host)
-	return a != null and a.alive()
 
 
 func hurt(a: Actor, n: int, weak := false) -> void:

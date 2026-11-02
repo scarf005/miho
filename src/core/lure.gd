@@ -34,7 +34,7 @@ static func tick(w: World) -> void:
 			s.gone
 			or s.faction != Actor.FOX
 			or s.dir != Vector2i.ZERO
-			or w.rides(s)
+			or Flight.rides(w, s)
 			or s.life <= 0
 			or s.life % EVERY != 0
 			or not lures(s.spell)

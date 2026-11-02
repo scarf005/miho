@@ -354,11 +354,11 @@ func test_a_shot_setting_a_plate_off_in_sight_is_told_in_the_log() -> void:
 	_lantern(w, PLATE + Vector2i(0, 2))
 	_plate(w, PLATE, World.TRAP_COLLAPSE)
 	w.sense()
-	var s := w._spawn(w.player(), Spell.make([Cards.ORB]), E, 0)
+	var s := Flight.spawn(w, w.player(), Spell.make([Cards.ORB]), E, 0)
 	s.pos = PLATE - E
 	w.events.clear()
 	var before := w.clone()
-	w._step(s)
+	Flight.step(w, s)
 	w.sense()
 	var name := s.spell.shown()
 	var lines := _lines(before, w, w.events)

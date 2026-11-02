@@ -360,14 +360,14 @@ func test_a_trail_of_scent_does_not_lead_a_searcher_onto_a_plate() -> void:
 
 ## What Miho hurled from (4, 8) east, an orb unless `cards` says otherwise.
 func _shot(w: World, cards := [Cards.ORB]) -> Shot:
-	return w._spawn(w.player(), Spell.make(cards), E, 0)
+	return Flight.spawn(w, w.player(), Spell.make(cards), E, 0)
 
 
 func _fly_on(w: World, s: Shot, tiles: int) -> Array:
 	var from := w.events.size()
 	for i in tiles:
 		if not s.gone:
-			w._step(s)
+			Flight.step(w, s)
 	return w.events.slice(from)
 
 
@@ -387,7 +387,7 @@ func test_a_shot_of_heaven_sets_a_plate_off_too() -> void:
 	_plate(w, PLATE, World.TRAP_VINE)
 	var foe := _foe(w, PLATE - E - E)
 	var next_to := _foe(w, PLATE + Vector2i(0, 1))
-	var s := w._spawn(foe, Spell.make([Cards.ORB]), E, 0)
+	var s := Flight.spawn(w, foe, Spell.make([Cards.ORB]), E, 0)
 	_fly_on(w, s, 2)
 	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
 	assert_false(s.gone, "it flies on")
@@ -416,7 +416,7 @@ func test_a_shot_falls_through_a_collapsing_floor_and_does_not_burst() -> void:
 func test_a_wisp_at_the_end_of_its_range_does_not_land_after_falling() -> void:
 	var w := _world()
 	var spell := Spell.make([Cards.FOX])
-	var s := w._spawn(w.player(), spell, E, 0)
+	var s := Flight.spawn(w, w.player(), spell, E, 0)
 	s.flown = Spell.RANGE - 1
 	_plate(w, s.pos + E, World.TRAP_COLLAPSE)
 	assert_false(_types(_fly_on(w, s, 1)).has(&"land"))
