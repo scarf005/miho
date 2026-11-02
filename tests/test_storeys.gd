@@ -5,9 +5,7 @@ const SEEDS := 4
 
 
 func _built(seed_value: int, depth: int) -> World:
-	var w := World.create(seed_value)
-	w.depth = depth
-	FloorGen.build(w)
+	var w := Built.storey(seed_value, depth)
 	return w
 
 
@@ -20,7 +18,7 @@ func test_the_tower_has_nine_storeys() -> void:
 
 
 func test_each_storey_has_its_own_creatures_and_one_tail_more() -> void:
-	var w := World.create(1)
+	var w := Built.world(1)
 	for depth in range(1, World.FLOORS + 1):
 		w.depth = depth
 		assert_true(FloorGen.PLAN.has(depth), "storey %d" % depth)

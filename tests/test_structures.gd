@@ -8,6 +8,14 @@ const AT := Vector2i(5, 8)
 const SEEDS := 12
 const KINDS := [World.SCREEN, World.JAR, World.CENSER, World.COURTYARD]
 
+var _storeys: Array[World] = []
+
+
+func before_all() -> void:
+	for seed_value in SEEDS:
+		for depth in range(1, World.FLOORS + 1):
+			_storeys.append(Built.storey(seed_value, depth))
+
 
 ## An open hall walled at the edges, with no light, Miho at (4, 8).
 func _world() -> World:
@@ -247,22 +255,18 @@ func test_the_log_tells_each_piece_breaking_where_miho_sees_it() -> void:
 
 func test_storeys_lay_each_kind_and_stay_whole() -> void:
 	var seen := {}
-	for seed_value in SEEDS:
-		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w)
-			var label := "seed %d storey %d" % [seed_value, depth]
-			assert_true(FloorGen.connected(w), label)
-			for kind: int in KINDS:
-				if w.tiles.has(kind):
-					seen[kind] = seen.get(kind, 0) + 1
-			for p: Vector2i in w.vents:
-				if w.vents[p] == Gas.INCENSE:
-					assert_eq(w.tile(p), World.CENSER, "incense comes from a censer: " + label)
-			for i in w.tiles.size():
-				if w.tiles[i] == World.CENSER:
-					assert_eq(w.vents.get(Grid.at(i)), Gas.INCENSE, "a censer breathes: " + label)
+	for w in _storeys:
+		var label := "seed %d storey %d" % [w.rng.seed, w.depth]
+		assert_true(FloorGen.connected(w), label)
+		for kind: int in KINDS:
+			if w.tiles.has(kind):
+				seen[kind] = seen.get(kind, 0) + 1
+		for p: Vector2i in w.vents:
+			if w.vents[p] == Gas.INCENSE:
+				assert_eq(w.tile(p), World.CENSER, "incense comes from a censer: " + label)
+		for i in w.tiles.size():
+			if w.tiles[i] == World.CENSER:
+				assert_eq(w.vents.get(Grid.at(i)), Gas.INCENSE, "a censer breathes: " + label)
 	for kind: int in KINDS:
 		assert_gt(seen.get(kind, 0), 10, "kind %d appears" % kind)
 

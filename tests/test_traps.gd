@@ -350,9 +350,7 @@ func test_a_plate_going_off_shows_a_popup_with_its_click() -> void:
 
 
 func test_arriving_on_a_new_storey_tells_the_plates_found_there_after_the_climb() -> void:
-	var w := World.create(2)
-	w.depth = 3
-	FloorGen.build(w)
+	var w := Built.storey(2, 3)
 	w.player().hp = 1
 	w.events.clear()
 	var before := w.clone()

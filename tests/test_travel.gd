@@ -213,7 +213,7 @@ func test_exploring_takes_no_step_while_an_awake_creature_is_in_sight() -> void:
 ## two tiles.
 func test_exploring_a_storey_with_creatures_never_steps_back_and_forth() -> void:
 	for seed_value in [2, 6, 7, 12]:
-		var w := World.create(seed_value)
+		var w := Built.world(seed_value)
 		var memory := Sightings.new()
 		var trail: Array[Vector2i] = []
 		for r in 400:

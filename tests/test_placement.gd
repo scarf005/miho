@@ -12,9 +12,7 @@ var _storeys_built: Array[World] = []
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(seed_value, depth)
 			_storeys_built.append(w)
 
 
@@ -226,8 +224,6 @@ func test_a_seed_and_depth_lay_the_same_patches_every_time() -> void:
 		for depth in [1, 3, 7]:
 			var tiles := []
 			for i in 2:
-				var w := World.create(seed_value)
-				w.depth = depth
-				FloorGen.build(w)
+				var w := Built.storey(seed_value, depth)
 				tiles.append(w.tiles)
 			assert_eq(tiles[0], tiles[1], "seed %d depth %d" % [seed_value, depth])

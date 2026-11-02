@@ -11,9 +11,7 @@ var _storeys: Array[World] = []
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(seed_value, depth)
 			_storeys.append(w)
 
 
@@ -103,9 +101,7 @@ func test_a_plate_that_would_cut_a_one_wide_room_in_two_is_taken_out_again() -> 
 func test_the_same_seed_lays_the_same_plates_and_finds_them_the_same_way() -> void:
 	var runs := []
 	for run in 2:
-		var w := World.create(5)
-		w.depth = 3
-		FloorGen.build(w)
+		var w := Built.storey(5, 3)
 		w.sense()
 		var events := []
 		for i in 30:

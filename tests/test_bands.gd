@@ -5,6 +5,13 @@ extends GutTest
 const WAIT := {t = &"wait"}
 const ME := Vector2i(4, 8)
 const SEEDS := [1, 2, 3, 5, 8]
+const DEPTHS := [1, 2, 3, 5, 8]
+
+
+func before_all() -> void:
+	for seed_value: int in SEEDS:
+		for depth: int in DEPTHS:
+			Built.storey(seed_value, depth)
 
 
 ## An unlit open hall, every tile known and seen, Miho at ME.
@@ -41,9 +48,7 @@ func _band(w: World, leader: Actor, kind: StringName, at: Vector2i) -> Actor:
 
 
 func _storey(seed_value: int, depth: int) -> World:
-	var w := World.create(seed_value)
-	w.depth = depth
-	FloorGen.build(w)
+	var w := Built.storey(seed_value, depth)
 	return w
 
 

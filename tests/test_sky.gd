@@ -7,6 +7,7 @@ const WAIT := {t = &"wait"}
 const SEEDS := 12
 
 var _storeys_built: Array[Array] = []
+var _pavilions_built: Array[Array] = []
 
 
 ## An open hall walled at the edges, with no light, Miho at (4, 8).
@@ -62,11 +63,11 @@ func _noises(events: Array) -> Array:
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(seed_value, depth)
 			w.sense()
 			_storeys_built.append([w, "seed %d storey %d" % [seed_value, depth]])
+			var kind := Built.storey(seed_value * World.FLOORS + depth, depth, Skeletons.PAVILIONS)
+			_pavilions_built.append([kind, "seed %d storey %d" % [seed_value, depth]])
 
 
 func _storeys(check: Callable) -> void:
@@ -108,26 +109,23 @@ func _pavilions(w: World) -> int:
 
 func test_pavilions_are_two_to_four_joined_by_bridges_across_gaps_of_three_to_six() -> void:
 	var counts := {}
-	for seed_value in SEEDS:
-		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value * World.FLOORS + depth)
-			w.depth = depth
-			FloorGen.build(w, Skeletons.PAVILIONS)
-			var label := "seed %d storey %d" % [seed_value, depth]
-			var n := _pavilions(w)
-			counts[n] = true
-			assert_between(n, 2, 4, label)
-			var bridges := 0
-			for y in Grid.H:
-				var run := 0
-				for x in Grid.W + 1:
-					if w.tile(Vector2i(x, y)) == World.BRIDGE:
-						run += 1
-						bridges += 1
-					elif run > 0:
-						assert_between(run, FloorGen.SKY_GAP.x, FloorGen.SKY_GAP.y, label)
-						run = 0
-			assert_gte(bridges, FloorGen.SKY_GAP.x * (n - 1), "%s joins every pavilion" % label)
+	for built in _pavilions_built:
+		var w: World = built[0]
+		var label: String = built[1]
+		var n := _pavilions(w)
+		counts[n] = true
+		assert_between(n, 2, 4, label)
+		var bridges := 0
+		for y in Grid.H:
+			var run := 0
+			for x in Grid.W + 1:
+				if w.tile(Vector2i(x, y)) == World.BRIDGE:
+					run += 1
+					bridges += 1
+				elif run > 0:
+					assert_between(run, FloorGen.SKY_GAP.x, FloorGen.SKY_GAP.y, label)
+					run = 0
+		assert_gte(bridges, FloorGen.SKY_GAP.x * (n - 1), "%s joins every pavilion" % label)
 	assert_eq(counts.keys().size(), 3, "2, 3 and 4 pavilions all turn up")
 
 

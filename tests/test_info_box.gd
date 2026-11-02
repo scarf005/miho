@@ -85,43 +85,71 @@ func _screen(view: Vector2, zoom: float, lines: Array) -> Array:
 	return [t, [Vector2i.ZERO, Vector2i(v.x - 1, 0), Vector2i(0, v.y - 1), v - Vector2i.ONE, v / 2]]
 
 
-func test_every_creature_hover_is_inside_the_screen_at_every_zoom_and_window() -> void:
-	var hovers := _hovers
-	for view: Vector2 in VIEWS:
-		for zoom: float in ZOOMS:
-			for name: String in hovers:
-				var screen := _screen(view, zoom, hovers[name])
-				var t: Term = screen[0]
-				var laid := t._info_layout(t.info)
-				for p in screen[1] + [null]:
-					var fit := t._info_at(laid.fit, laid.room, p)
-					var box := Rect2(fit.at, fit.cells * fit.scale)
-					var where := "%s %s zoom %s cursor %s: %s" % [name, view, zoom, p, box]
-					assert_true(Rect2(0, 0, t.cols, t.rows - 2).grow(0.001).encloses(box), where)
-					assert_gte(
-						fit.scale * t.scale.x, minf(InfoBox.READABLE, t.scale.x) - 0.001, where
-					)
+func test_every_creature_hover_is_inside_the_screen_in_a_wide_window_at_small_zooms() -> void:
+	_hovers_are_inside(VIEWS[0], ZOOMS.slice(0, 2))
 
 
-func test_the_hover_box_loses_no_line_and_keeps_them_in_order() -> void:
+func test_every_creature_hover_is_inside_the_screen_in_a_wide_window_at_large_zooms() -> void:
+	_hovers_are_inside(VIEWS[0], ZOOMS.slice(2))
+
+
+func test_every_creature_hover_is_inside_the_screen_in_a_tall_window_at_small_zooms() -> void:
+	_hovers_are_inside(VIEWS[1], ZOOMS.slice(0, 2))
+
+
+func test_every_creature_hover_is_inside_the_screen_in_a_tall_window_at_large_zooms() -> void:
+	_hovers_are_inside(VIEWS[1], ZOOMS.slice(2))
+
+
+func _hovers_are_inside(view: Vector2, zooms: Array) -> void:
 	var hovers := _hovers
-	for view: Vector2 in VIEWS:
-		for zoom: float in ZOOMS:
-			for name: String in hovers:
-				var screen := _screen(view, zoom, hovers[name])
-				var drawn := ""
-				for column: Array in screen[0]._info_fit().columns:
-					for line: Array in column[1]:
-						drawn += "".join(line.map(func(run): return run[0])) + "\n"
-				var said := ""
-				for line: Array in hovers[name]:
-					said += "".join(line.map(func(run): return run[0])) + "\n"
-				# A row broken between its parts leaves its " · " out.
-				assert_eq(
-					drawn.replace(" ", "").replace("·", "").replace("\n", ""),
-					said.replace(" ", "").replace("·", "").replace("\n", ""),
-					"%s %s %s" % [name, view, zoom]
-				)
+	for zoom: float in zooms:
+		for name: String in hovers:
+			var screen := _screen(view, zoom, hovers[name])
+			var t: Term = screen[0]
+			var laid := t._info_layout(t.info)
+			for p in screen[1] + [null]:
+				var fit := t._info_at(laid.fit, laid.room, p)
+				var box := Rect2(fit.at, fit.cells * fit.scale)
+				var where := "%s %s zoom %s cursor %s: %s" % [name, view, zoom, p, box]
+				assert_true(Rect2(0, 0, t.cols, t.rows - 2).grow(0.001).encloses(box), where)
+				assert_gte(fit.scale * t.scale.x, minf(InfoBox.READABLE, t.scale.x) - 0.001, where)
+
+
+func test_the_hover_box_loses_no_line_in_a_wide_window_at_small_zooms() -> void:
+	_hovers_lose_no_line(VIEWS[0], ZOOMS.slice(0, 2))
+
+
+func test_the_hover_box_loses_no_line_in_a_wide_window_at_large_zooms() -> void:
+	_hovers_lose_no_line(VIEWS[0], ZOOMS.slice(2))
+
+
+func test_the_hover_box_loses_no_line_in_a_tall_window_at_small_zooms() -> void:
+	_hovers_lose_no_line(VIEWS[1], ZOOMS.slice(0, 2))
+
+
+func test_the_hover_box_loses_no_line_in_a_tall_window_at_large_zooms() -> void:
+	_hovers_lose_no_line(VIEWS[1], ZOOMS.slice(2))
+
+
+func _hovers_lose_no_line(view: Vector2, zooms: Array) -> void:
+	var hovers := _hovers
+	for zoom: float in zooms:
+		for name: String in hovers:
+			var screen := _screen(view, zoom, hovers[name])
+			var drawn := ""
+			for column: Array in screen[0]._info_fit().columns:
+				for line: Array in column[1]:
+					drawn += "".join(line.map(func(run): return run[0])) + "\n"
+			var said := ""
+			for line: Array in hovers[name]:
+				said += "".join(line.map(func(run): return run[0])) + "\n"
+			# A row broken between its parts leaves its " · " out.
+			assert_eq(
+				drawn.replace(" ", "").replace("·", "").replace("\n", ""),
+				said.replace(" ", "").replace("·", "").replace("\n", ""),
+				"%s %s %s" % [name, view, zoom]
+			)
 
 
 func test_a_row_breaks_between_its_parts_and_indents_the_rest() -> void:

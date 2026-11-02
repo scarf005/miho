@@ -17,9 +17,7 @@ var _storeys: Array[World] = []
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in DEPTHS:
-			var w := World.create(seed_value * World.FLOORS + depth)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(seed_value * World.FLOORS + depth, depth)
 			_storeys.append(w)
 
 
@@ -148,9 +146,7 @@ func test_a_room_with_sky_where_any_part_of_the_yard_would_lie_is_refused() -> v
 
 func test_the_storeys_that_laid_a_yard_over_the_sky_keep_their_guard_on_the_ground() -> void:
 	for pair: Array in [[1383, 5], [1815, 5], [1899, 8], [2016, 8]]:
-		var w := World.create(pair[0])
-		w.depth = pair[1]
-		FloorGen.build(w)
+		var w := Built.storey(pair[0], pair[1])
 		for a in w.actors:
 			if a.guard:
 				assert_true(w.open_floor(a.pos), "seed %d storey %d" % pair)

@@ -18,6 +18,10 @@ const POPUP_LINE := {
 	&"trap": "밟았다",
 }
 
+## The log of the same rounds with the debug view off and on, and whether each showed it.
+var _logs := []
+var _shown := []
+
 
 ## An open hall, Miho at (4, 8), seeing only the tiles near her.
 func _world() -> World:
@@ -135,7 +139,7 @@ func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
 	var told_marks := 0
 	var popups := 0
 	for seed_value in SEEDS:
-		var w := World.create(seed_value)
+		var w := Built.world(seed_value)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_value
 		## id -> the mark Miho was last told since the creature came into sight.
@@ -189,20 +193,24 @@ func _main() -> Node:
 	return m
 
 
-func test_the_debug_view_does_not_change_the_log() -> void:
-	var logs := []
+func before_all() -> void:
 	for debugging in [false, true]:
 		var m := _main()
 		m.debugging = debugging
 		m._refresh()
-		assert_eq(not m.term.debug.is_empty(), debugging)
+		_shown.append(not m.term.debug.is_empty())
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 3
 		for round_no in 40:
 			await m._act(_action(m.world, rng))
-		logs.append(m.messages.lines.map(func(l): return l.text))
-	assert_gt(logs[0].size(), 0, "the rounds tell something")
-	assert_eq(logs[0], logs[1])
+		_logs.append(m.messages.lines.map(func(l): return l.text))
+		m.queue_free()
+
+
+func test_the_debug_view_does_not_change_the_log() -> void:
+	assert_eq(_shown, [false, true])
+	assert_gt(_logs[0].size(), 0, "the rounds tell something")
+	assert_eq(_logs[0], _logs[1])
 
 
 func test_a_noise_on_a_seen_tile_is_no_fact() -> void:

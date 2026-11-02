@@ -7,7 +7,7 @@ extends GutTest
 ## A storey with a creature in a doorway, a projectile in another, burning
 ## bamboo, a burning door and a dead creature left in a doorway.
 func _busy(seed_value: int) -> World:
-	var w := World.create(seed_value)
+	var w := Built.world(seed_value)
 	var doors: Array[Vector2i] = []
 	var bamboo: Array[Vector2i] = []
 	for i in w.tiles.size():
@@ -47,8 +47,11 @@ func test_a_walk_mask_agrees_with_the_test_on_every_tile_and_holds_the_walker() 
 		for a in w.actors:
 			var test := func(p): return p == a.pos or (w.vacant(p) and not w.burning.has(p))
 			var mask := Masks.walk(w, a, test)
+			var wrong: Array[Vector2i] = []
 			for i in mask.size():
-				assert_eq(mask[i] == 1, test.call(Grid.at(i)), "seed %d %s" % [s, Grid.at(i)])
+				if (mask[i] == 1) != test.call(Grid.at(i)):
+					wrong.append(Grid.at(i))
+			assert_eq(wrong, [] as Array[Vector2i], "seed %d tiles the mask gets wrong" % s)
 
 
 func test_the_travel_mask_agrees_with_travel_walkable_and_the_exclusions() -> void:
@@ -56,9 +59,12 @@ func test_the_travel_mask_agrees_with_travel_walkable_and_the_exclusions() -> vo
 		var w := _busy(s)
 		var avoid := {w.player().pos + Vector2i(1, 0): true}
 		var mask := Travel.open(w, avoid)
+		var wrong: Array[Vector2i] = []
 		for i in mask.size():
 			var p := Grid.at(i)
-			assert_eq(mask[i] == 1, Travel.walkable(w, p) and not avoid.has(p), "%d %s" % [s, p])
+			if (mask[i] == 1) != (Travel.walkable(w, p) and not avoid.has(p)):
+				wrong.append(p)
+		assert_eq(wrong, [] as Array[Vector2i], "seed %d tiles the mask gets wrong" % s)
 
 
 func test_mask_lets_the_test_decide_only_at_odd_tiles_on_the_board() -> void:

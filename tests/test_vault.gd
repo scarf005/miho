@@ -14,9 +14,7 @@ var _storeys: Array[World] = []
 func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(seed_value, depth)
 			_storeys.append(w)
 
 

@@ -160,9 +160,7 @@ func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_
 	var crossed := 0
 	for seed_value in 4:
 		for depth in [1, 3, 6, 9]:
-			var w := World.create(seed_value)
-			w.depth = depth
-			FloorGen.build(w, Skeletons.PAVILIONS)
+			var w := Built.storey(seed_value, depth, Skeletons.PAVILIONS)
 			w.tails = Spell.price(Spell.MAX_SLOTS)
 			w.cards.assign(Cards.ALL)
 			for i in w.tiles.size():

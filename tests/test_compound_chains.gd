@@ -357,43 +357,52 @@ func test_a_wisp_that_stops_at_a_wall_still_knows_its_line() -> void:
 
 
 func test_a_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([])
+
+
+func test_a_fox_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([FOX])
+
+
+func test_an_orb_compound_preview_equals_the_round() -> void:
+	_preview_equals_round([ORB])
+
+
+func _preview_equals_round(form: Array) -> void:
 	for c: StringName in NEW + HIGH:
-		for form in [[], [FOX], [ORB]]:
-			for dir: Vector2i in [E, W, SE]:
-				var w := _world()
-				for x in range(2, Grid.W - 2, 3):
-					_put(w, Vector2i(x, ME.y + 3), World.LANTERN)
-				_post(w, ME + dir * 2)
-				var wet := _post(w, ME + dir * 2 + Vector2i(-dir.y, dir.x))
-				wet.wet = Status.WET
-				w.player().hp = 1
-				_put(w, ME + dir * 2 + Vector2i(0, -1), World.POND)
-				_put(w, ME + dir * 4, World.WALL)
-				w.sense()
-				var q: Array = form + _made(c)
-				var f := Forecast.of(w, _cast(q, dir))
-				var events := w.act(_cast(q, dir))
-				var label := "%s %s" % [q, dir]
-				var harm := {}
-				for e in _of(events, &"hurt"):
-					harm[e.id] = harm.get(e.id, 0) + e.n
-				assert_eq(f.harm, harm, label)
-				assert_eq(f.after.tiles, w.tiles, label)
+		for dir: Vector2i in [E, W, SE]:
+			var w := _world()
+			for x in range(2, Grid.W - 2, 3):
+				_put(w, Vector2i(x, ME.y + 3), World.LANTERN)
+			_post(w, ME + dir * 2)
+			var wet := _post(w, ME + dir * 2 + Vector2i(-dir.y, dir.x))
+			wet.wet = Status.WET
+			w.player().hp = 1
+			_put(w, ME + dir * 2 + Vector2i(0, -1), World.POND)
+			_put(w, ME + dir * 4, World.WALL)
+			w.sense()
+			var q: Array = form + _made(c)
+			var f := Forecast.of(w, _cast(q, dir))
+			var events := w.act(_cast(q, dir))
+			var label := "%s %s" % [q, dir]
+			var harm := {}
+			for e in _of(events, &"hurt"):
+				harm[e.id] = harm.get(e.id, 0) + e.n
+			assert_eq(f.harm, harm, label)
+			assert_eq(f.after.tiles, w.tiles, label)
+			assert_eq([f.after.hot, f.after.gas, f.after.burning], [w.hot, w.gas, w.burning], label)
+			for a in w.actors:
+				var other := f.after.actor(a.id)
 				assert_eq(
-					[f.after.hot, f.after.gas, f.after.burning], [w.hot, w.gas, w.burning], label
+					[other.pos, other.rooted, other.frozen, other.alight, other.wet],
+					[a.pos, a.rooted, a.frozen, a.alight, a.wet],
+					label
 				)
-				for a in w.actors:
-					var other := f.after.actor(a.id)
-					assert_eq(
-						[other.pos, other.rooted, other.frozen, other.alight, other.wet],
-						[a.pos, a.rooted, a.frozen, a.alight, a.wet],
-						label
-					)
-					assert_eq(
-						[other.hp, other.stunned, other.alert, other.rival, other.grudge],
-						[a.hp, a.stunned, a.alert, a.rival, a.grudge],
-						label
-					)
+				assert_eq(
+					[other.hp, other.stunned, other.alert, other.rival, other.grudge],
+					[a.hp, a.stunned, a.alert, a.rival, a.grudge],
+					label
+				)
 
 
 func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:

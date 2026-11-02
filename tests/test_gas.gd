@@ -422,9 +422,7 @@ func test_a_preview_shows_the_gas_the_round_leaves() -> void:
 func test_the_same_seed_and_actions_leave_the_same_gas_and_events() -> void:
 	var runs := []
 	for i in 2:
-		var w := World.create(11)
-		w.depth = 2
-		FloorGen.build(w)
+		var w := Built.storey(11, 2)
 		w.sense()
 		var at := w.player().pos
 		_block(w, at, 2, Gas.STEAM, Gas.MAX)
@@ -453,9 +451,7 @@ func test_a_new_storey_starts_with_none_but_its_own_fog() -> void:
 
 ## A storey of tier 2 or more with fog ponds, built at `seed_value`.
 func _fog_storey(seed_value: int) -> World:
-	var w := World.create(seed_value)
-	w.depth = 2
-	FloorGen.build(w)
+	var w := Built.storey(seed_value, 2)
 	w.sense()
 	return w
 

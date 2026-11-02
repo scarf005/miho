@@ -19,6 +19,12 @@ const MADE_OF := {
 	&"swamp": [[World.MUD], [World.FLOOR]],
 }
 
+var _built: Array[Dictionary] = []
+
+
+func before_all() -> void:
+	_built = _storeys()
+
 
 ## Three rooms in a row, walled, with a doorway between each pair, on storey `depth`.
 func _plan(depth := 1, mid := MID) -> World:
@@ -429,9 +435,8 @@ func _storeys() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
-			var w := World.create(seed_value * World.FLOORS + depth)
-			w.depth = depth
-			out.append({w = w, set = FloorGen.build(w)})
+			var row := Built.made(seed_value * World.FLOORS + depth, depth)
+			out.append({w = row.w, set = row.made})
 	return out
 
 
@@ -448,7 +453,7 @@ func _is_built(w: World, kind: StringName, r: Rect2i) -> bool:
 
 func test_storeys_hold_each_set_room_from_its_tier_and_stay_whole() -> void:
 	var storeys := {}
-	for s in _storeys():
+	for s in _built:
 		var w: World = s.w
 		var label := "seed %d storey %d" % [w.rng.seed, w.depth]
 		assert_true(FloorGen.connected(w, w.traps.keys()), label)

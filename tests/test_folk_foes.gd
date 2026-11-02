@@ -162,9 +162,7 @@ func test_each_new_kind_is_placed_from_its_storey_on_and_never_below() -> void:
 		for depth in range(1, World.FLOORS + 1):
 			var found := 0
 			for seed in 4:
-				var w := World.create(seed)
-				w.depth = depth
-				FloorGen.build(w)
+				var w := Built.storey(seed, depth)
 				found += w.actors.filter(func(a): return a.kind == kind).size()
 			assert_eq(found > 0, depth >= FIRST[kind], "%s on storey %d" % [kind, depth])
 

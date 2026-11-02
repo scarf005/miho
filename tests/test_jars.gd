@@ -62,7 +62,7 @@ func _foe(w: World, at: Vector2i) -> Actor:
 
 
 func _jars_of(seed_value: int) -> Dictionary:
-	var w := World.create(seed_value)
+	var w := Built.world(seed_value)
 	return w.jars
 
 

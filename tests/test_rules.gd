@@ -564,7 +564,7 @@ func test_spent_tails_regrow_one_every_three_rounds_up_to_the_most_the_storey_al
 
 
 func test_a_tail_grows_on_every_storey() -> void:
-	var w := World.create(5)
+	var w := Built.world(5)
 	for case in [[1, 1], [2, 2], [3, 3], [5, 5], [8, 8], [9, 9]]:
 		w.depth = case[0]
 		assert_eq(w.max_tails(), case[1], "storey %d" % case[0])
@@ -572,9 +572,7 @@ func test_a_tail_grows_on_every_storey() -> void:
 
 func test_climbing_refills_the_tails_to_what_the_new_storey_allows() -> void:
 	for depth in [1, 4]:
-		var w := World.create(5)
-		w.depth = depth
-		FloorGen.build(w)
+		var w := Built.storey(5, depth)
 		w.tails = 0
 		w.actors[0].pos = w.stairs + WEST
 		if not w.vacant(w.stairs + WEST):
@@ -587,7 +585,7 @@ func test_climbing_refills_the_tails_to_what_the_new_storey_allows() -> void:
 func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 	var features := {World.BAMBOO: 0, World.POND: 0, World.BOARD: 0}
 	for seed_value in 20:
-		var w := World.create(seed_value)
+		var w := Built.world(seed_value)
 		for t in w.tiles:
 			if features.has(t):
 				features[t] += 1
@@ -621,7 +619,7 @@ func test_a_seed_builds_the_same_storey_every_time() -> void:
 
 
 func test_climbing_the_stairs_heals_one_up_to_full() -> void:
-	var w := World.create(5)
+	var w := Built.world(5)
 	var me := w.player()
 	for hp in [1, me.max_hp]:
 		me = w.player()
