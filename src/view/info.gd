@@ -330,7 +330,7 @@ static func _melee(melee: Dictionary) -> Array:
 ## Miho herself: tails, claws, conditions and how visible she is. Her footsteps
 ## are each tile's own (`_notes`).
 static func _miho(w: World, a: Actor, head: Array) -> Array:
-	var lines := [head] + _tails(w) + _claws(w, a)
+	var lines := [head] + _tails(w) + _claws(a)
 	lines.append_array(_conditions(w, a))
 	lines.append_array(_tags(Curse.worn(w).map(func(c): return Curse.NAME[c])))
 	lines.append_array(nature(a.nature_kind()))
@@ -347,7 +347,7 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 
 
 ## What Miho's claws do: plain, and to a creature caught unawares; a line each.
-static func _claws(w: World, a: Actor) -> Array:
+static func _claws(a: Actor) -> Array:
 	return [
 		_amount("발톱 피해: ", Harm.claw_harm(a, false)), _amount("기습 피해: ", Harm.claw_harm(a, true))
 	]

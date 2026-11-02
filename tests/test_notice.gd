@@ -258,7 +258,7 @@ func test_a_new_storey_forgets_the_changes() -> void:
 	var w := World.create(5)
 	w.changes.append({id = 0, kind = &"door", at = Vector2i(3, 3), round = 0})
 	w.bodies[Vector2i(3, 3)] = {kind = &"dokkaebi", round = 0, met = true}
-	w._ascend()
+	Round.ascend(w)
 	assert_true(w.changes.is_empty())
 	assert_true(w.bodies.is_empty())
 

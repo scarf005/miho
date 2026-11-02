@@ -34,7 +34,7 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 ## storey or the run ends.
 static func arrive(w: World, me: Actor) -> bool:
 	if me.pos == w.stairs:
-		w._ascend()
+		Round.ascend(w)
 		return true
 	if me.pos == w.elixir:
 		w.outcome = &"won"

@@ -31,7 +31,7 @@ func _init() -> void:
 		cost.gas += Time.get_ticks_usec() - t
 		tiles += w.gas.size()
 		t = Time.get_ticks_usec()
-		w._end_round()
+		Round.end(w)
 		cost.end += Time.get_ticks_usec() - t
 		t = Time.get_ticks_usec()
 		w.sense()

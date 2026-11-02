@@ -160,7 +160,7 @@ static func handled(w: World, action: Dictionary) -> bool:
 			e.on = on(w, action.cmd)
 	if action.cmd not in [&"damage", &"card", &"cards"]:
 		w.emit(e)
-	w._prune()
+	Round.prune(w)
 	w._changed()
 	w.sense()
 	return true

@@ -61,7 +61,7 @@ func _fell(w: World, kind: StringName, dx: int) -> Vector2i:
 	var at := ME + E * dx
 	var foe := FloorGen.spawn(w, kind, at)
 	Harm.hurt(w, foe, foe.hp)
-	w._prune()
+	Round.prune(w)
 	w.sense()
 	return at
 

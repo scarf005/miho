@@ -44,7 +44,7 @@ static func phase(w: World) -> void:
 	for s: Shot in w.shots:
 		if not s.gone and s.dir != Vector2i.ZERO and not rides(w, s):
 			s.age += 1
-	w._prune()
+	Round.prune(w)
 
 
 static func fly(w: World, s: Shot, to: Vector2i) -> void:

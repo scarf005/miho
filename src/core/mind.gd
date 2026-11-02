@@ -39,7 +39,7 @@ static func enlist(w: World, a: Actor) -> void:
 	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
 
 
-## One round of spent mana growing back, as World._regrow does for tails; it
+## One round of spent mana growing back, as Round._regrow does for tails; it
 ## runs before the creature casts.
 static func _regrow(a: Actor) -> void:
 	if a.mana >= Bestiary.mana(a.kind):
