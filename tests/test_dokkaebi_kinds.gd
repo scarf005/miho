@@ -148,7 +148,7 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 	)
 	assert_string_contains(text[&"bujigaengi"], "등불 켜기")
 	assert_string_contains(text[&"bujigaengi"], "면역: 불")
-	assert_string_contains(text[&"bitjaru"], "냄새 추적")
+	assert_string_contains(text[&"bitjaru"], "후각이 뛰어나다")
 	assert_false(text[&"bitjaru"].contains("말할 수 있다"))
 
 

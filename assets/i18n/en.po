@@ -1350,8 +1350,8 @@ msgstr "Left click yourself"
 msgid " 붙음"
 msgstr " clinging"
 
-msgid "속지 않는 적: 냄새 추적"
-msgstr "Not fooled: tracks scent"
+msgid "속지 않는 적: 후각이 뛰어나다"
+msgstr "Not fooled: keen smell"
 
 msgid "속지 않는 적"
 msgstr "Not fooled"
@@ -1362,8 +1362,8 @@ msgstr "Immune to %s"
 msgid "%s 면역인 적: +%d"
 msgstr "Immune to %s: +%d"
 
-msgid "쫓아오는 적: 냄새 추적"
-msgstr "Follows you: tracks scent"
+msgid "쫓아오는 적: 후각이 뛰어나다"
+msgstr "Follows you: keen smell"
 
 msgid "쫓아오는 적"
 msgstr "Follows you"
@@ -2254,8 +2254,8 @@ msgstr "Time remaining: %d s"
 msgid "남은 냄새: %d초 이내"
 msgstr "Scent left: within %d s"
 
-msgid "냄새 추적"
-msgstr "Scent tracking"
+msgid "후각이 뛰어나다"
+msgstr "Keen smell"
 
 msgid "지워짐: 냄새"
 msgstr "Erased: scent"

@@ -28,7 +28,7 @@ const CONDITIONS := {
 	[
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
 		"속는 적: 추격 중이 아닌 적",
-		"속지 않는 적: 냄새 추적",
+		"속지 않는 적: 후각이 뛰어나다",
 	],
 	Guise.NAME[Guise.TALON]:
 	[
@@ -38,7 +38,7 @@ const CONDITIONS := {
 	Guise.NAME[Guise.CLOAK]:
 	[
 		["보임: %d칸 안, 도깨비불 붙음", Hat.REACH],
-		"쫓아오는 적: 냄새 추적",
+		"쫓아오는 적: 후각이 뛰어나다",
 		["도깨비불을 쏘는 적: %s, %s", WITS[Bestiary.SHARP], WITS[Bestiary.CUNNING]],
 	],
 }
@@ -104,7 +104,7 @@ static func glossary() -> Dictionary:
 		"고정": ["움직이지 않음.", no_sleep],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
 		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
-		"냄새 추적":
+		"후각이 뛰어나다":
 		[
 			"쉬거나 수색 중: 당신의 냄새를 따라감",
 			"은신한 당신을 추격할 때: 냄새부터 따라감",
@@ -613,7 +613,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if spec.get("hunts", false):
 		out.append(Lang.t("위치 감지"))
 	if spec.get("tracks", false):
-		out.append(Lang.t("냄새 추적"))
+		out.append(Lang.t("후각이 뛰어나다"))
 	if spec.get("stokes", false):
 		out.append(Lang.t("등불 켜기"))
 	return out
