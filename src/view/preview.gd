@@ -113,6 +113,9 @@ static func _inspect(m: Node) -> void:
 ## Sets what the box under the pointer tells (`info`), and returns the cards of the one spell
 ## it is about, or none.
 static func _tell(m: Node) -> Array:
+	var held := Spell.make(m.picked)
+	if held == null or m.hover_slot >= held.slots.size():
+		m.hover_slot = -1
 	var term: Term = m.term
 	term.cursor = m.hover
 	var lines := _lines(m)
