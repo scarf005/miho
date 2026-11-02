@@ -84,3 +84,11 @@ func test_a_creature_the_spell_needs_stands_by_her_row_inside_the_hall() -> void
 		for foe: Actor in w.actors.slice(1):
 			assert_true(absi(foe.pos.y - w.player().pos.y) <= 1, "%s: by her row" % [cards])
 			assert_true(CodexScene.HALL.has_point(foe.pos), "%s: in the hall" % [cards])
+
+
+func test_a_queue_that_changes_later_does_not_change_the_example_made_from_it() -> void:
+	var queue := [Cards.FIRE, Cards.WATER]
+	SpellScene.ready(SpellScene.of(queue))
+	queue.clear()
+	var plan := SpellScene.ready(SpellScene.of([Cards.FIRE, Cards.WATER]))
+	assert_eq(plan.cards, [Cards.FIRE, Cards.WATER])
