@@ -2988,8 +2988,8 @@ msgstr "%s's tails"
 msgid "쓰는 주문"
 msgstr "Casts"
 
-msgid "마지막에 던진 꼬리 %d개 이하"
-msgstr "The last you threw for at most %d tails"
+msgid "당신이 마지막에 던진 것 (꼬리 %d개 이하)"
+msgstr "The last you threw (%d tails at most)"
 
 msgid "%s의 "
 msgstr "%s's "

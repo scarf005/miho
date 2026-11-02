@@ -469,7 +469,7 @@ static func compound(c: StringName) -> Array:
 				["체력", "%d" % Bestiary.hp(c, 1)],
 				[Lang.t("%s의 꼬리 수") % Lang.t(kind.name), "%d" % Bunsin.TAILS],
 				["발톱 피해", "%d" % kind.melee.damage],
-				["쓰는 주문", Lang.t("마지막에 던진 꼬리 %d개 이하") % Bunsin.TAILS],
+				["쓰는 주문", Lang.t("당신이 마지막에 던진 것 (꼬리 %d개 이하)") % Bunsin.TAILS],
 			]
 		&"palisade":
 			return [[Lang.t("%s 체력") % Lang.t(_wall()), "%d" % Tiles.of(World.WOOD_WALL, "health")]]
