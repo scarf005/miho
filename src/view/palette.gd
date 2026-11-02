@@ -68,7 +68,8 @@ const FIERCE_BURNING := ["§", Color(1.0, 0.95, 0.45), Color(0.8, 0.28, 0.03)]
 const HOT := ["☲", Color(1.0, 0.42, 0.16), Color(0.32, 0.08, 0.02)]
 const STAIRS := ["<", Color(0.92, 0.92, 1.0)]
 const ELIXIR := ["!", Color(1.0, 0.86, 0.3)]
-const PEACH := ["%", Color(1.0, 0.56, 0.62)]
+## The leaf behind it tells it from a body (BODY), which shares its glyph.
+const PEACH := ["%", Color(1.0, 0.56, 0.62), Color(0.1, 0.34, 0.16)]
 const KIMCHI := ["%", Color(0.95, 0.28, 0.16)]
 ## A scroll (Scrolls) is drawn in the colour of its card: CARD[card].
 const SCROLL := "?"

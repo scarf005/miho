@@ -136,7 +136,7 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main._forecast()
-		"tile", "jar", "trap", "at", "foe", "hunt", "card", "gas", "save":
+		"tile", "jar", "peach", "trap", "at", "foe", "hunt", "card", "gas", "save":
 			_stage(parts)
 		"hp", "chase", "follow", "lamp":
 			var w: World = main.world
@@ -199,6 +199,8 @@ func _stage(parts: PackedStringArray) -> void:
 			var jar := Vector2i(int(parts[1]), int(parts[2]))
 			w.set_tile(jar, World.JAR)
 			w.jars[jar] = StringName(parts[3])
+		"peach":
+			w.peaches.append(Vector2i(int(parts[1]), int(parts[2])))
 		"trap":
 			w.traps[Vector2i(int(parts[1]), int(parts[2]))] = int(parts[3])
 		"at":

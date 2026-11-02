@@ -631,6 +631,7 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		if not item.is_empty():
 			glyph = item[0]
 			fg = item[1]
+			bg = item[2] if item.size() > 2 else bg
 		var fire := _vis[i] == 1 and world.burning.has(p)
 		if fire:
 			var k := _flicker(i * 1.7, true)
@@ -657,7 +658,7 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		else:
 			var v := fg.get_luminance()
 			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
-			bg = Palette.MEMORY_BG
+			bg = Palette.MEMORY_BG if item.size() < 3 else Color(item[2] * 0.5, 1.0)
 		var sunk := t == World.SKY and below.size() > i and below[i] != World.SKY
 		glyph = " " if sunk else glyph
 		if _vis[i] == 1 and world.gas.has(p):
