@@ -115,13 +115,7 @@ func test_a_fire_wisp_beats_metal_for_two() -> void:
 	assert_eq(foe.hp, 9 - 2 - World.FIRE_DAMAGE, "and it burns, unweakened")
 
 
-func test_immunity_comes_first_and_the_weakness_does_not_break_it() -> void:
-	var w := _world()
-	var foe := _foe(w, &"haetae")
-	var types := w.act(_cast([ORB, Cards.EARTH, Cards.FIRE])).map(func(e): return e.t)
-	assert_has(types, &"absorb")
-	assert_does_not_have(types, &"hurt")
-	assert_eq(foe.hp, 4)
+func test_a_spell_stopped_whole_is_not_broken_by_the_weakness() -> void:
 	var starfish := _world()
 	var s := _foe(starfish, &"bulgasari")
 	var plain := starfish.act(_cast([ORB, Cards.WOOD])).map(func(e): return e.t)

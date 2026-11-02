@@ -37,7 +37,9 @@ extends RefCounted
 ## armour-piercing (`pierces`, 철갑탄); an orb that carries 유탄
 ## is a 비격진 (`mortar`), which bursts where it ends (Compounds).
 ## A compound is an element of its own (Compounds): it does not count as its
-## elements, but for what a creature is weak to or eats (`holds`).
+## elements for what a spell physically does (`holds`: fire spreading, washing,
+## wood catching fire). For what a creature is weak to, absorbs or eats it
+## counts as `nature`.
 
 const MAX_SLOTS := 5
 ## Tails a spell of 1 to 5 cards costs.
@@ -238,6 +240,20 @@ func has(card: StringName) -> bool:
 ## Whether an element is in the spell, alone or in a compound.
 func holds(element: StringName) -> bool:
 	return slots.any(func(slot): return Cards.parts(slot).has(element))
+
+
+## The elements the spell meets in a creature (Bestiary.weak, absorbs, eats),
+## each once, in 오행 order: those of every slot (Cards.nature).
+func nature() -> Array[StringName]:
+	var held: Array = slots.reduce(func(all, slot): return all + Cards.nature(slot), [])
+	var out: Array[StringName] = []
+	out.assign(Cards.ELEMENTS.filter(func(e): return held.has(e)))
+	return out
+
+
+## Whether the spell is of 전기 (Elements.charge): a slot of it.
+func electric() -> bool:
+	return slots.any(func(slot): return Cards.ELECTRIC.has(slot))
 
 
 ## The compound slots, each once, in queue order.

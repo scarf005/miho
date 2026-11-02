@@ -11,8 +11,9 @@ const CASTS := 2
 ## The spells `a` charges at `foe`, when it sees it: a plan for each, or none.
 ## Below Bestiary.PICKS it tries only the next of its spells in turn
 ## (Actor.casts). From PICKS on it tries them all from that one, passes over
-## those that miss the foe or that the foe absorbs, and takes the first the
-## foe is weak to, else the first; from Bestiary.DOUBLES on also the next after
+## those that miss the foe or that the foe stops whole (Bestiary.absorbs; one
+## it absorbs in part still hurts, half), and takes the first the foe is weak
+## to and absorbs no part of, else the first; from Bestiary.DOUBLES on also the next after
 ## it whose projectiles leave on tiles the first one's leave free (`_apart`).
 ## An orb needs a clear line; wisps and homing orbs only the foe in reach; a
 ## spray must cover the foe; a leap (`_leap`) only a foe in line that it lands short
@@ -30,7 +31,8 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 		return plans
 	var first := 0
 	for i in plans.size():
-		if Bestiary.weak(foe.kind, Spell.make(plans[i].cards)):
+		var spell := Spell.make(plans[i].cards)
+		if Bestiary.weak(foe.kind, spell) and not Bestiary.absorbs_part(foe.kind, spell):
 			first = i
 			break
 	var out: Array[Dictionary] = [plans[first]]

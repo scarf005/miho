@@ -261,6 +261,9 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}이/가 식었다", [_named(Compounds.HOT[e.kind].name)])
 		&"absorb":
 			return _t("{0}에게는 통하지 않았다", [who])
+		&"resist":
+			var taken := [Lang.t(Cards.NAME[e.taken[0]]), Palette.CARD[e.taken[0]]]
+			return _t("{0}이/가 {1}을/를 일부 막았다", [who, taken])
 		&"heed":
 			var what: String = Notice.LABEL[e.kind]
 			return _t("{0}이/가 {1}을/를 보고 살피러 갔다", [who, [what, TEXT]])

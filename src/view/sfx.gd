@@ -418,7 +418,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"blast"
 		&"clash", &"snuff", &"claw", &"melee", &"push":
 			return &"clash"
-		&"absorb":
+		&"absorb", &"resist":
 			return &"absorb"
 		&"heal":
 			return &"bite" if e.get("peach", false) or e.get("kimchi", false) else &"card"

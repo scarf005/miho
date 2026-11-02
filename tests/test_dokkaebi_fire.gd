@@ -96,14 +96,14 @@ func test_hover_names_the_spell_its_element_harm_and_the_weakness() -> void:
 	var poker := Info.plain(Info.creature(w, _foe(w, &"bujigaengi")))
 	assert_string_contains(poker, "주술: 도깨비불 · 간격: ")
 	assert_false(poker.contains("여우불"))
-	assert_string_contains(poker, " · 원소: 불 · 피해: 1")
+	assert_string_contains(poker, " · 오행: 불 · 피해: 1")
 	assert_string_contains(poker, "약점: 물\n")
 	var other := _world()
 	var plain := Info.plain(Info.creature(other, _foe(other, &"dokkaebi")))
 	var rows := Array(plain.split("\n")).filter(func(l: String): return l.begins_with("주술: 도깨비불"))
 	var row: String = rows[0]
 	assert_false(row.contains("피해"), "a wisp that harms no one has no harm part")
-	assert_false(plain.contains("원소"))
+	assert_false(plain.contains("오행"))
 	assert_false(plain.contains("약점"))
 
 
@@ -118,7 +118,7 @@ func test_the_charge_line_and_the_projectile_hover_name_it() -> void:
 		w.cast(foe, Bestiary.spell(foe.kind, cards), WEST)
 		var text := Info.plain(SpellInfo.shot(w, w.shots[0]))
 		assert_string_contains(text, "적의 도깨비불")
-		assert_eq(text.contains("원소: 불"), kind == &"bujigaengi", kind)
+		assert_eq(text.contains("오행: 불"), kind == &"bujigaengi", kind)
 		assert_string_contains(text, "피해: %d" % (1 if kind == &"bujigaengi" else 0))
 
 
