@@ -49,6 +49,7 @@ static func drop(w: World, a: Actor, into: Vector2i) -> void:
 ## A creature of heaven falls from the edge at `into`.
 static func _lose(w: World, a: Actor, into: Vector2i) -> void:
 	a.hp = 0
+	w.player().prey = a.kind
 	a.intent.clear()
 	Mind.forget(w, a)
 	w.emit({t = &"fall", id = a.id, from = a.pos, at = into})

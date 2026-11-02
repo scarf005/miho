@@ -19,8 +19,8 @@ extends RefCounted
 ## back); with none fallen yet it is refused with NO_PREY. A creature of heaven
 ## that is not hunting her does not know her (`fools`): seeing her does not
 ## start a hunt, its spells do not seek her, and her claws catch it unawares. A
-## hunter is not fooled, nor one of the kind of her form, nor a tracker (Bestiary
-## tracks): the form changes, the smell does not. It is silent. The guise ends at
+## hunter is not fooled, nor a tracker (Bestiary tracks): the form changes, the
+## smell does not. It is silent. The guise ends at
 ## the end of the round in which she has stood next to a creature of heaven BESIDE
 ## rounds in a row, when she casts any spell, or when she is hurt.
 ##
