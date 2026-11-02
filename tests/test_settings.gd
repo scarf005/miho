@@ -26,7 +26,7 @@ func test_options_and_bindings_round_trip() -> void:
 	var s := Settings.new()
 	s.volume = 40
 	s.music = 30
-	s.crt = false
+	s.crt = 30
 	s.zoom = 1.25
 	s.speed = 4.0
 	Keys.bind(&"explore", ["Shift+X", "Kp Add"])
@@ -145,3 +145,19 @@ func test_sound_is_silent_only_at_volume_zero() -> void:
 	assert_true(AudioServer.is_bus_mute(0))
 	s.volume = 100
 	s.apply_sound()
+
+
+func test_the_crt_is_at_half_strength_by_default() -> void:
+	assert_eq(Settings.new().crt, 50)
+	var s := Settings.new()
+	s.from_config(ConfigFile.new())
+	assert_eq(s.crt, 50)
+
+
+func test_a_saved_crt_on_loads_as_half_strength_and_off_as_none() -> void:
+	for saved in [[true, 50], [false, 0], [80, 80], [250, 100], [-3, 0], ["x", 50]]:
+		var c := ConfigFile.new()
+		c.set_value("settings", "crt", saved[0])
+		var s := Settings.new()
+		s.from_config(c)
+		assert_eq(s.crt, saved[1], str(saved[0]))

@@ -20,7 +20,8 @@ var path := PATH
 var volume := 100
 ## Music volume, 0-100, under the master volume.
 var music := 60
-var crt := true
+## CRT strength, 0-100; 50 is the middle (see Crt).
+var crt := Crt.MIDDLE
 var zoom := 0.0
 var speed := 1.0
 ## The highlight replay of each storey left behind: off, with no row in the options
@@ -66,7 +67,11 @@ func to_config() -> ConfigFile:
 func from_config(c: ConfigFile) -> void:
 	volume = clampi(int(c.get_value("settings", "volume", volume)), 0, 100)
 	music = clampi(int(c.get_value("settings", "music", music)), 0, 100)
-	crt = bool(c.get_value("settings", "crt", crt))
+	var shown = c.get_value("settings", "crt", crt)
+	if shown is bool:
+		crt = Crt.MIDDLE if shown else 0
+	elif shown is int or shown is float:
+		crt = clampi(int(shown), 0, 100)
 	zoom = _one_of(c.get_value("settings", "zoom", zoom), ZOOMS, zoom)
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)
 	spells = {}

@@ -130,7 +130,6 @@ func _ready() -> void:
 	glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	glass.material = ShaderMaterial.new()
 	glass.material.shader = preload("res://src/view/crt.gdshader")
-	glass.material.set_shader_parameter("curve", Crt.CURVE)
 	crt.add_child(glass)
 	add_child(crt)
 	get_viewport().size_changed.connect(_fit)
@@ -169,7 +168,10 @@ func _apply() -> void:
 	settings.apply_sound()
 	sfx.set_music(settings.music)
 	term.saved = settings.spells
-	glass.visible = settings.crt and not touch.enabled
+	glass.visible = settings.crt > 0 and not touch.enabled
+	var look := Crt.params(settings.crt)
+	for k in look:
+		glass.material.set_shader_parameter(k, look[k])
 	term.speed = settings.speed
 	_fit()
 
@@ -448,7 +450,7 @@ func _mouse() -> Vector2:
 
 func _local(screen: Vector2) -> Vector2:
 	if glass.visible:
-		screen = Crt.flat(screen, get_viewport().get_visible_rect().size)
+		screen = Crt.flat(screen, get_viewport().get_visible_rect().size, settings.crt)
 	return term.get_global_transform().affine_inverse() * screen
 
 
