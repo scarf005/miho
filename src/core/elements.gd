@@ -293,7 +293,7 @@ static func fade(w: World, s: Shot) -> void:
 
 
 ## A wisp that struck `a` and was not eaten rides it for WISP_LIFE rounds,
-## lighting it as it moves (World.move). It stays a shot, so it hovers where
+## lighting it as it moves (Walk.move). It stays a shot, so it hovers where
 ## `a` fell when `a` dies.
 static func stick(w: World, s: Shot, a: Actor) -> void:
 	s.gone = false

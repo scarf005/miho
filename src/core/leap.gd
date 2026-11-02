@@ -5,8 +5,8 @@ extends RefCounted
 ## projectile cannot fly over or a closed door, such as a wall or a lantern.
 ## She lands on the farthest tile she clears that she can stand on
 ## (World.vacant), never on the sky: with none the leap cannot be cast, nor
-## while she is rooted. The landing is a step onto that tile (World.move and
-## World.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
+## while she is rooted. The landing is a step onto that tile (Walk.move and
+## Walk.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
 ## scent there alone, so a hunter on her trail loses it. The rest of the spell
 ## is cast from the landing, unless she has left the storey or fallen. She
 ## vents steam to fly: Compounds.STEAM of it lies on the tiles she leaves, from the
@@ -15,7 +15,7 @@ extends RefCounted
 ## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
 ## where it is, unless she cannot stand there (the sky). Each trade is a step
-## (World.move) and heard SWAP_LOUD tiles at both tiles. The 도약 is spent on the
+## (Walk.move) and heard SWAP_LOUD tiles at both tiles. The 도약 is spent on the
 ## first stop or strike either way: the projectile goes on as the spell
 ## without it.
 
@@ -70,13 +70,13 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
 	for i in Grid.cheb(a.pos, to) - 1:
 		Gas.add(w, a.pos + dir * i, Gas.STEAM, Compounds.STEAM)
-	w.move(a, to)
+	Walk.move(w, a, to)
 	if w.depth != depth or not a.alive():
 		return
 	Hearing.noise(w, to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
 	if a.is_miho():
 		Scent.lay(w, to)
-		if w.arrive(a):
+		if Walk.arrive(w, a):
 			return
 	var rest := spell.rest()
 	if rest != null:
@@ -98,8 +98,8 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 	var depth := w.depth
 	w.emit({t = &"swap", id = me.id, from = from, to = to, other = a.id if trade else 0})
 	if trade:
-		w.move(a, from)
-	w.move(me, to)
+		Walk.move(w, a, from)
+	Walk.move(w, me, to)
 	if trade:
 		Fall.traded(w, a, me, depth)
 	if w.depth != depth or not me.alive():
@@ -108,4 +108,4 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 		Hearing.noise(w, p, SWAP_LOUD, SWAP_WORD, me.faction == Actor.FOX, me.id)
 	if me.is_miho():
 		Scent.lay(w, to)
-		w.arrive(me)
+		Walk.arrive(w, me)

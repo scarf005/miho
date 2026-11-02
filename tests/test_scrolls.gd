@@ -117,7 +117,7 @@ func test_a_push_onto_the_scroll_gives_it() -> void:
 func test_a_creature_stepping_onto_the_scroll_leaves_it_and_fire_and_water_spare_it() -> void:
 	var w := _world()
 	_kill(w, _foe(w))
-	w.move(_foe(w, FOE + Vector2i(0, 2)), FOE)
+	Walk.move(w, _foe(w, FOE + Vector2i(0, 2)), FOE)
 	w.ignite(FOE, true)
 	w.set_tile(FOE, World.POND)
 	assert_eq(_scroll(w).at, FOE)

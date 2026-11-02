@@ -68,7 +68,7 @@ func test_a_stuck_wisp_rides_the_creature_and_its_light_follows() -> void:
 	var foe: Actor = s[1]
 	var wisp: Shot = w.shots[0]
 	var to := Vector2i(7, 12)
-	w.move(foe, to)
+	Walk.move(w, foe, to)
 	assert_eq(wisp.pos, to, "on the creature's new tile")
 	assert_true(w.lit(to + Vector2i(2, 0)))
 	assert_false(w.lit(Vector2i(7, 8)), "the old tile is dark again")
@@ -143,7 +143,7 @@ func test_a_heaven_wisp_sticks_to_miho_and_lights_her() -> void:
 	var wisp: Shot = w.shots[0]
 	assert_eq(wisp.pos, w.player().pos)
 	assert_true(w.lit(w.player().pos))
-	w.move(w.player(), Vector2i(9, 8))
+	Walk.move(w, w.player(), Vector2i(9, 8))
 	assert_eq(wisp.pos, Vector2i(9, 8), "it rides her")
 	assert_true(w.sees(foe, Vector2i(9, 8)), "heaven sees her in the light")
 
@@ -162,7 +162,7 @@ func test_a_clone_and_the_forecast_agree_on_a_stuck_wisp() -> void:
 	var s := _stuck()
 	var w: World = s[0]
 	var foe: Actor = s[1]
-	w.move(foe, Vector2i(7, 9))
+	Walk.move(w, foe, Vector2i(7, 9))
 	var copy := w.clone()
 	var wisp: Shot = copy.shots[0]
 	assert_eq(wisp.host, foe.id)

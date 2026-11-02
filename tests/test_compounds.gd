@@ -229,10 +229,10 @@ func test_mud_slows_every_step_and_silences_it() -> void:
 	var heavy := FloorGen.spawn(w, &"bulgasari", ME + E * 4)
 	assert_gt(heavy.info().step, 0)
 	w.events = []
-	w.move(heavy, ME + E * 3)
+	Walk.move(w, heavy, ME + E * 3)
 	assert_true(_of(w.events, &"noise").is_empty(), "no footstep on mud")
 	w.events = []
-	w.move(heavy, ME + E * 4)
+	Walk.move(w, heavy, ME + E * 4)
 	assert_false(_of(w.events, &"noise").is_empty(), "but off it")
 	heavy.hp = 0
 	w.player().pos = ME + E

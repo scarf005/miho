@@ -497,7 +497,7 @@ func test_a_new_storey_frees_miho_and_says_so() -> void:
 	me.rooted = 2
 	me.stunned = 2
 	me.pos = w.stairs
-	w.arrive(me)
+	Walk.arrive(w, me)
 	assert_eq(w.depth, 2)
 	assert_eq([me.rooted, me.stunned], [0, 0])
 	assert_eq(_of(w.events, &"unroot").size(), 1)

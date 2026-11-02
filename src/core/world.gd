@@ -516,13 +516,13 @@ func act(action: Dictionary) -> Array[Dictionary]:
 			else:
 				var storey := depth
 				if foe != null:
-					move(foe, me.pos)
-				move(me, to)
+					Walk.move(self, foe, me.pos)
+				Walk.move(self, me, to)
 				if foe != null:
 					Fall.traded(self, foe, me, storey)
 				if depth == storey:
 					Scent.lay(self, to)
-					if arrive(me):
+					if Walk.arrive(self, me):
 						return events
 		&"close":
 			Terrain.close_door(self, me, me.pos + action.dir)
@@ -575,53 +575,6 @@ func _changed() -> void:
 	_fov.clear()
 	_opaque = PackedByteArray()
 	_shade = PackedByteArray()
-
-
-## A step; into a closed door it slides the door open instead and stays put.
-## The step event carries the tread: the word of the tile stepped onto and how
-## far it is heard, which sound the step.
-func move(a: Actor, to: Vector2i) -> void:
-	if tile(to) == DOOR:
-		Terrain.open_door(self, a, to)
-		return
-	var from := a.pos
-	var tread: Array = Status.tread(a, Tiles.of(tile(to), "tread"))
-	var loud := 0 if tile(to) == MUD else maxi(a.info().get("step", 0), tread[0])
-	emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
-	a.pos = to
-	for s in shots:
-		if s.host == a.id and not s.gone:
-			s.pos = to
-			emit({t = &"ride", shot = s.id, to = to})
-	_changed()
-	Hearing.noise(self, to, loud, tread[1], a.faction == Actor.FOX, a.id)
-	Terrain.crumble(self, a, from)
-	Terrain.trample(self, to)
-	Compounds.step(self, a, to)
-	Traps.step(self, a, Grid.line_dir(from, to))
-
-
-## Miho has come onto her tile, by a step or a push: the stairs take her up,
-## the elixir wins, a peach heals, a scroll gives its talisman. True when the
-## storey or the run ends.
-func arrive(me: Actor) -> bool:
-	if me.pos == stairs:
-		_ascend()
-		return true
-	if me.pos == elixir:
-		outcome = &"won"
-		emit({t = &"won"})
-		return true
-	if peaches.has(me.pos):
-		peaches.erase(me.pos)
-		var grew := me.hp >= me.max_hp
-		me.max_hp += HEAL if grew else 0
-		me.hp += HEAL
-		emit({t = &"heal", id = me.id, hp = me.hp, grew = grew, peach = true})
-	Scrolls.arrive(self, me)
-	Jars.arrive(self, me)
-	EventRooms.arrive(self, me)
-	return false
 
 
 ## Slides a creature up to n tiles along dir, off the edge into the sky if

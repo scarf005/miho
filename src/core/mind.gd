@@ -468,7 +468,7 @@ static func _step_to(w: World, a: Actor, goal: Vector2i, keep := 0) -> bool:
 			best_cost = cost
 	if best == a.pos:
 		return false
-	w.move(a, best)
+	Walk.move(w, a, best)
 	return true
 
 
@@ -481,7 +481,7 @@ static func _drift(w: World, a: Actor) -> void:
 		if walk.call(a.pos + d):
 			free.append(a.pos + d)
 	if not free.is_empty():
-		w.move(a, free[w.rng.randi_range(0, free.size() - 1)])
+		Walk.move(w, a, free[w.rng.randi_range(0, free.size() - 1)])
 
 
 static func _align(w: World, a: Actor, foe: Actor) -> void:
@@ -489,4 +489,4 @@ static func _align(w: World, a: Actor, foe: Actor) -> void:
 	if to == Vector2i(-1, -1):
 		_step_to(w, a, foe.pos, 2)
 	elif to != a.pos:
-		w.move(a, to)
+		Walk.move(w, a, to)

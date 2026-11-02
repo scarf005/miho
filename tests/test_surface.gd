@@ -141,7 +141,7 @@ func test_a_creature_that_steps_on_reeds_flattens_them_too() -> void:
 	var w := _world()
 	_put(w, Vector2i(8, 8), World.REEDS)
 	var foe := FloorGen.spawn(w, &"dokkaebi", Vector2i(9, 8))
-	w.move(foe, Vector2i(8, 8))
+	Walk.move(w, foe, Vector2i(8, 8))
 	assert_eq(w.tile(Vector2i(8, 8)), World.REEDS_FLAT)
 
 

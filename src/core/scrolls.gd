@@ -4,7 +4,7 @@ extends RefCounted
 ## Miho does not hold it. It lies in World.sites as {kind, at, card} on the
 ## corpse's tile, or the nearest tile that can hold one when that tile cannot:
 ## sky, a pond, a wall, the stairs, the elixir, a peach, a plate, another site
-## or a creature. Miho takes the talisman by coming onto the tile (World.arrive);
+## or a creature. Miho takes the talisman by coming onto the tile (Walk.arrive);
 ## creatures, fire and water leave it be. Where no tile can hold it, none drops.
 ## Ground that turns to sky under it sends it the same way (`displace`).
 

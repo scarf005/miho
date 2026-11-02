@@ -4,7 +4,7 @@ extends RefCounted
 ## creature `target` (an actor id, 0 for none), banking `turn` degrees a tile
 ## (Spell.turn) in `bank` and spending them on its turns (Homing.steer).
 ## `flown` counts the tiles it has flown. A wisp that struck a creature rides
-## it: `host` is its actor id, and `pos` follows it (World.move) while it lives.
+## it: `host` is its actor id, and `pos` follows it (Walk.move) while it lives.
 ## A piercing wisp (Spell.pierces) has `pierced` the wall it went through.
 
 var id := 0

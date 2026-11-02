@@ -10,7 +10,7 @@ extends RefCounted
 ## loses DAMAGE health for each storey fallen; her tails are kept up to what
 ## that storey allows. On the first storey she has nowhere to fall to, and
 ## stops at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
-## Miho takes them as if she had stepped there (World.arrive). A creature that
+## Miho takes them as if she had stepped there (Walk.arrive). A creature that
 ## slides at all gives one `push` event first, at the tile it slides from.
 ## A collapsing floor (Traps) drops a creature the same way, from where it stands.
 
@@ -30,8 +30,8 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 			return
 		if i == 0:
 			w.emit({t = &"push", id = a.id, at = a.pos})
-		w.move(a, to)
-		if a.is_miho() and w.arrive(a):
+		Walk.move(w, a, to)
+		if a.is_miho() and Walk.arrive(w, a):
 			return
 		if not a.alive() or w.depth != depth:
 			return
@@ -78,9 +78,9 @@ static func pull(w: World, a: Actor, by: Actor) -> void:
 	if to == a.pos:
 		return
 	w.emit({t = &"pull", id = a.id, at = a.pos})
-	w.move(a, to)
+	Walk.move(w, a, to)
 	if a.is_miho():
-		w.arrive(a)
+		Walk.arrive(w, a)
 
 
 ## A creature that moves on water stands on a tile that is water no more: it is gone with

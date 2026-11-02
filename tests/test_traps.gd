@@ -424,7 +424,7 @@ func test_arriving_on_a_new_storey_tells_the_plates_found_there_after_the_climb(
 	w.events.clear()
 	var before := w.clone()
 	w.player().pos = w.stairs
-	w.arrive(w.player())
+	Walk.arrive(w, w.player())
 	var types := _types(w.events)
 	assert_eq(types.slice(0, 2), [&"ascend", &"heal"])
 	for i in range(2, types.size()):

@@ -212,7 +212,7 @@ func test_the_preview_of_a_fall_equals_the_fall() -> void:
 ## Miho takes the stairs up.
 func _climb(w: World) -> void:
 	w.player().pos = w.stairs
-	w.arrive(w.player())
+	Walk.arrive(w, w.player())
 
 
 ## A free floor tile with no plate, away from the start and the stairs.
