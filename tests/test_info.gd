@@ -420,7 +420,7 @@ func test_a_searcher_on_your_noise_tells_so_and_not_how_many_looks_are_left() ->
 	foe.alert = Actor.SEARCH
 	foe.target = w.player().pos
 	var text := Info.plain(Info.creature(w, foe))
-	assert_string_contains(text, "당신의 소음을 쫓는 중")
+	assert_string_contains(text, "소음을 쫓는 중")
 	assert_false(text.contains("수색"), text)
 
 
@@ -452,4 +452,4 @@ func test_a_tracker_on_your_trail_tells_so() -> void:
 	var ahead := foe.pos + Vector2i(1, 0)
 	w.tiles[Grid.index(ahead)] = World.FLOOR
 	w.scent[Grid.index(ahead)] = 5
-	assert_string_contains(Info.plain(Info.creature(w, foe)), "당신의 냄새를 쫓는 중")
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "냄새를 쫓는 중")

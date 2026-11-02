@@ -231,8 +231,8 @@ static func doing(w: World, a: Actor) -> String:
 	if a.alert != Actor.SEARCH or a.ally():
 		return state(a)
 	if a.info().get("tracks", false) and a.rooted <= 0 and Scent.next(w, a) != a.pos:
-		return Lang.t("당신의 냄새를 쫓는 중")
-	return Lang.t("당신의 소음을 쫓는 중" if a.target == w.player().pos else STATE[Actor.SEARCH])
+		return Lang.t("냄새를 쫓는 중")
+	return Lang.t("소음을 쫓는 중" if a.target == w.player().pos else STATE[Actor.SEARCH])
 
 
 ## How a creature stands now: its state, conditions, whether it sees Miho and
