@@ -229,6 +229,8 @@ static func _reach(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 		return _homing(w, a, cast, Spell.RANGE if spell.shape == Spell.WISP else 6, foe)
 	var d := Grid.line_dir(a.pos, foe.pos)
 	var r := Grid.cheb(a.pos, foe.pos)
+	if Forge.lobbed(spell) and r > Forge.RANGE:
+		return {}
 	if d != Vector2i.ZERO and r >= 2 and w.clear_line(a.pos, foe.pos):
 		return {cards = cast, dir = d}
 	return {}

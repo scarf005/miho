@@ -228,7 +228,7 @@ func test_a_furnace_holds_its_fire_when_the_end_of_the_flight_would_catch_her() 
 	assert_true(w.shots.is_empty(), "she stands by where it would burst")
 
 
-func test_the_reaper_can_cast_every_spell_it_lists() -> void:
+func test_no_creature_lists_a_dead_spell_and_the_reaper_aims_its_beacon() -> void:
 	var w := _world()
 	var saja := FloorGen.spawn(w, &"saja", ME + E * 3)
 	for kind: StringName in Bestiary.KINDS:
