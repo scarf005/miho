@@ -490,7 +490,7 @@ const KINDS := {
 	Cards.BUNSIN:
 	{
 		name = "분신",
-		glyph = "분",
+		glyph = "@",
 		melee = {name = "발톱", hit = "긁혀", damage = World.CLAW},
 		mana = Bunsin.TAILS,
 		tails = true,

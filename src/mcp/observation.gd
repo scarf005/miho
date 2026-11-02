@@ -35,7 +35,8 @@ const LEGEND := (
 	+ "▫courtyard 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs !elixir "
-	+ "%peach, kimchi or fallen-creature(see look) ?scroll(see look) ●○*projectile @Miho"
+	+ "%peach, kimchi or fallen-creature(see look) ?scroll(see look) ●○*projectile "
+	+ "@Miho(or an allied 분신)"
 )
 
 

@@ -185,9 +185,9 @@ func test_the_fist_throws_miho_three_tiles_and_the_dark_one_walks_silent() -> vo
 	assert_true(moves.all(func(e): return e.loud == 0), "and made no sound")
 
 
-func test_every_glyph_is_one_creatures_alone() -> void:
+func test_every_glyph_is_one_creatures_alone_but_her_copy_s() -> void:
 	var seen := {}
-	for kind in Bestiary.KINDS:
+	for kind in Bestiary.KINDS.keys().filter(func(k): return k != Cards.BUNSIN):
 		var glyph: String = Bestiary.info(kind).glyph
 		assert_false(seen.has(glyph), "%s shares %s with %s" % [kind, glyph, seen.get(glyph)])
 		seen[glyph] = kind

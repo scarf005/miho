@@ -3029,10 +3029,6 @@ msgctxt "talisman"
 msgid "령"
 msgstr "N"
 
-msgctxt "creature"
-msgid "분"
-msgstr "C"
-
 msgid "아군"
 msgstr "Ally"
 
