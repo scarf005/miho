@@ -133,6 +133,8 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 						cards
 					)
 				)
+				if c == Cards.VAULT:
+					out.back().scene = SpellScene.leaps()
 		3:
 			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
 			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))

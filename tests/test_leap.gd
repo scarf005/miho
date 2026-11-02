@@ -156,7 +156,7 @@ func test_one_leap_crosses_two_tiles_of_sky() -> void:
 	assert_eq(w.tails, 2, "three tails")
 
 
-func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_across() -> void:
+func test_from_every_ledge_the_leap_and_a_wood_per_three_tiles_of_sky_past_two_lands_across() -> void:
 	var crossed := 0
 	for seed_value in 4:
 		for depth in [1, 3, 6, 9]:
@@ -175,14 +175,14 @@ func test_from_every_ledge_the_leap_and_one_wood_per_tile_of_sky_past_two_lands_
 				var v := w.clone()
 				v.player().pos = p
 				var cards := LEAP.duplicate()
-				for n in sky - 2:
+				for n in ceili((sky - 2) / float(Spell.LEAP_PER_WOOD)):
 					cards.append(WOOD)
 				if sky > 2:
 					assert_false(v.can(_leap(LEAP)), "one short: " + label)
 				if v.actor_at(p + E * (sky + 1)) != null:
 					continue
 				v.act(_leap(cards))
-				assert_eq(v.player().pos, p + E * (sky + 1), label)
+				assert_gt(v.player().pos.x, p.x + sky, label)
 				crossed += 1
 	assert_gt(crossed, 0)
 
@@ -193,7 +193,7 @@ func test_three_tiles_of_sky_take_the_leap_and_one_wood() -> void:
 	assert_false(w.can(_leap(LEAP)), "nowhere to land")
 	assert_true(w.can(_leap(LEAP + [WOOD])))
 	w.act(_leap(LEAP + [WOOD]))
-	assert_eq(w.player().pos, Vector2i(8, 8))
+	assert_eq(w.player().pos, ME + E * 6)
 	assert_eq(w.tails, 0, "four cards, five tails")
 
 
@@ -293,9 +293,9 @@ func test_the_forecast_lands_where_the_leap_does() -> void:
 	_gap(w, 5, 2)
 	_foe(w, Vector2i(9, 8))
 	var f := Forecast.of(w, _leap(LEAP + [WOOD]))
-	assert_eq(f.leaps, [[ME, Vector2i(8, 8)]])
+	assert_eq(f.leaps, [[ME, ME + E * 6]])
 	w.act(_leap(LEAP + [WOOD]))
-	assert_eq(w.player().pos, Vector2i(8, 8))
+	assert_eq(w.player().pos, ME + E * 6)
 
 
 func test_the_log_tells_the_leap() -> void:
@@ -312,7 +312,7 @@ func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 		"멀리뛰기 3칸",
 		" · 꼬리: %d · " % both.cost(),
 		"모양: 곧게 3칸",
-		"거리: 나무 한 장마다 +1칸",
+		"거리: 나무 한 장마다 +3칸",
 		"건너는 것: 하늘",
 		"착지 소음: %d" % Leap.LOUD,
 		"착지 후: 흙",

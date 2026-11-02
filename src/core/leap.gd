@@ -7,7 +7,9 @@ extends RefCounted
 ## (World.vacant), never on the sky: with none the leap cannot be cast, nor
 ## while she is rooted. The landing is a step onto that tile (World.move and
 ## World.arrive: stairs, traps, mud), heard LOUD tiles but on mud, and lays her
-## scent there alone, so a hunter on her trail loses it. The rest of the spell
+## scent there alone, so a hunter on her trail loses it. A wall right past the landing
+## takes one hit for each tile of the leap left, as a pushed creature's does (Fall.slam),
+## and the leaper none. The rest of the spell
 ## is cast from the landing, unless she has left the storey or fallen. She
 ## vents steam to fly: Compounds.STEAM of it lies on the tiles she leaves, from the
 ## one she starts on up to the third last, so that it does not spread onto her.
@@ -67,6 +69,7 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	if a.rooted > 0 or to == a.pos:
 		return
 	var depth := w.depth
+	var left := spell.leap() - Grid.cheb(a.pos, to)
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
 	for i in Grid.cheb(a.pos, to) - 1:
 		Gas.add(w, a.pos + dir * i, Gas.STEAM, Compounds.STEAM)
@@ -74,6 +77,8 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	if w.depth != depth or not a.alive():
 		return
 	w.noise(to, 0 if w.tile(to) == World.MUD else LOUD, WORD, a.faction == Actor.FOX, a.id)
+	if left > 0 and Fall.WALLS.has(w.tile(to + dir)):
+		Fall.slam(w, to + dir, left, a.id)
 	if a.is_miho():
 		Scent.lay(w, to)
 		if w.arrive(a):

@@ -48,15 +48,20 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 ## `a` slams into the wall at `at` with `left` tiles of the push to go, as DCSS
 ## `actor::collide`.
 static func _crash(w: World, a: Actor, at: Vector2i, left: int) -> void:
+	slam(w, at, left, a.id)
+	w.emit({t = &"crash", id = a.id, at = a.pos})
+	w.hurt(a, left)
+
+
+## The wall at `at` takes `left` hits from what ran into it, `by` a creature's id, and is heard.
+static func slam(w: World, at: Vector2i, left: int, by: int) -> void:
 	var sound: Array = (
 		[World.THUD, "쿵"] if Terrain.wall(w.tile(at)) else Tiles.of(w.tile(at), "hit")
 	)
 	for i in left:
 		if WALLS.has(w.tile(at)) and Terrain.breakable(w, at):
 			Terrain.hit(w, at)
-	w.noise(at, sound[0], sound[1], true, a.id)
-	w.emit({t = &"crash", id = a.id, at = a.pos})
-	w.hurt(a, left)
+	w.noise(at, sound[0], sound[1], true, by)
 
 
 ## `a` falls from its tile into the sky at `into`: Miho drops a storey (nothing

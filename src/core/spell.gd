@@ -10,7 +10,7 @@ extends RefCounted
 ## Every spell is hurled along one of eight lines, and grows with the cards it
 ## holds: one card is power 1.
 ## The shape is read top down: 도약 (Cards.VAULT) leading the queue leaps
-## Miho LEAP_BASE tiles and one more for every 목 slot right behind it, and
+## Miho LEAP_BASE tiles and LEAP_PER_WOOD more for every 목 slot right behind it, and
 ## casts the rest of the spell where she lands (Leap). 도약 last behind 여 or
 ## 구 swaps: Miho goes where the projectile ends, trading places with the
 ## creature it strikes (Leap.swap); 도약 anywhere else makes no spell. 여 and
@@ -63,7 +63,7 @@ const WISP_TURN := 30
 ## Tiles a leap reaches past the 도약 slot's own and one for every 목 behind it.
 const LEAP_BASE := 2
 ## Tiles one 목 slot behind a 도약 adds to a leap.
-const LEAP_PER_WOOD := 1
+const LEAP_PER_WOOD := 3
 ## The radius of the darkness a wisp of 수 carries, and what each 수 past the
 ## first adds.
 const DARK_RADIUS := 3
@@ -205,7 +205,7 @@ static func _shape(s: Spell) -> StringName:
 	return SPRAY if not s.slots.is_empty() else &""
 
 
-## Tiles a leap reaches: LEAP_BASE, one for its 도약 and one for every 목
+## Tiles a leap reaches: LEAP_BASE, one for its 도약 and LEAP_PER_WOOD for every 목
 ## slot right behind it.
 func leap() -> int:
 	return LEAP_BASE + 1 + _woods() * LEAP_PER_WOOD

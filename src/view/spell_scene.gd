@@ -22,6 +22,8 @@ const NEAR := 3
 ## Tiles up and down a wall runs when the spell does something only to a creature that
 ## cannot see Miho (고요), and tiles it stands before the creature.
 const BEHIND := 2
+## The most 목 behind a 도약 its example shows.
+const LEAP_WOODS := 3
 
 static var _plans := {}
 
@@ -41,6 +43,18 @@ static func counts(c: StringName) -> Dictionary:
 		cards.fill(c)
 		if Spell.make(cards) != null:
 			each.append(of(cards).merged({label = Lang.t("%d단계") % n}))
+	return {key = &"", each = each}
+
+
+## The example of 도약 alone and with 1 to LEAP_WOODS 목 behind it, a part for each.
+static func leaps() -> Dictionary:
+	var each := []
+	for n in LEAP_WOODS + 1:
+		var cards := Cards.recipe(Cards.VAULT).duplicate()
+		for i in n:
+			cards.append(Cards.WOOD)
+		var label := Lang.t("%s %d장") % [Lang.t(Cards.NAME[Cards.WOOD]), n]
+		each.append(of(cards).merged({label = Lang.t(Cards.NAME[Cards.VAULT]) if n == 0 else label}))
 	return {key = &"", each = each}
 
 

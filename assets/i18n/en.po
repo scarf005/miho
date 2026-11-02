@@ -888,8 +888,8 @@ msgstr "Stepped on: falls over"
 msgid "막음: 길, 시야, 빛"
 msgstr "Blocks: path, sight, light"
 
-msgid "부서짐: 구슬, 밀침"
-msgstr "Breaks: orb, push"
+msgid "부서짐: 구슬, 밀침, 도약"
+msgstr "Breaks: orb, push, leap"
 
 msgid "막음: 길, 시야"
 msgstr "Blocks: path, sight"
@@ -3214,3 +3214,12 @@ msgstr "Crosses: %s"
 
 msgid "밟지 않음: 함정, %s"
 msgstr "Does not step on: plates, %s"
+
+msgid "부딪친 벽의 피해"
+msgstr "Harm to the wall hit"
+
+msgid "남은 칸 수"
+msgstr "tiles left"
+
+msgid "%s %d장"
+msgstr "%s ×%d"
