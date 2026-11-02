@@ -22,6 +22,8 @@ var bank := 0
 var flown := 0
 var host := 0
 var pierced := false
+## The arcs 낙뢰 has made (Compounds.arc).
+var arcs := 0
 ## Rounds it has flown (World._shots_phase): an orb gains Spell.accel a round.
 var age := 0
 
@@ -49,6 +51,7 @@ func clone() -> Shot:
 	s.gone = gone
 	s.target = target
 	s.turn = turn
+	s.arcs = arcs
 	s.bank = bank
 	s.flown = flown
 	s.host = host

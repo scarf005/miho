@@ -31,8 +31,8 @@ extends RefCounted
 ## halved, rounded down and possibly to nothing, when part of the spell's
 ## elements are absorbed (Bestiary.absorbs_part), the effects staying; both make
 ## it once, and it is never more than twice. A spell whose elements are all
-## absorbed is stopped whole. 전기 (벼락) is no element: it hurts a creature with
-## 쇠 or 물, or a wet one, twice over; else a creature with 나무, 흙 or 불 is
+## absorbed is stopped whole. 전기 (낙뢰) is no element: it hurts a creature with
+## 쇠 or 물, or a wet one, twice over; else a creature with 흙 is
 ## immune to its harm and stun; any other takes it once (`charge`). Nothing of
 ## it is absorbed. Miho as 불여우 (Actor.nature_kind) meets them as a fire creature,
 ## and each harm of her spells that hold 불 is Guise.FLAME_HARM more (`harm`).

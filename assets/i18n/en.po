@@ -222,7 +222,7 @@ msgstr "New moon"
 msgid "이간질"
 msgstr "Discord"
 
-msgid "벼락"
+msgid "낙뢰"
 msgstr "Thunderbolt"
 
 msgid "고요"
@@ -2011,7 +2011,7 @@ msgid "이"
 msgstr "d"
 
 msgctxt "talisman"
-msgid "벼"
+msgid "낙"
 msgstr "t"
 
 msgctxt "talisman"
@@ -3159,3 +3159,9 @@ msgstr "Pick an example in the codex"
 
 msgid "[ ]"
 msgstr "[ ]"
+
+msgid "%d칸 안의 적, 최대 %d번"
+msgstr "Foes within %d tiles, up to %d times"
+
+msgid "옮겨붙음"
+msgstr "Arcs"

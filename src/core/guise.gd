@@ -308,7 +308,7 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 	return TALON_ABSORBED if eats else TALON_HARM
 
 
-## What 불여우 adds to the harm of a spell of `caster` that holds 불. 벼락 is no element.
+## What 불여우 adds to the harm of a spell of `caster` that holds 불. 낙뢰 is no element.
 static func flame_harm(w: World, caster: int, spell: Spell) -> int:
 	var me := w.actor(caster)
 	if me == null or not me.flame or spell.electric():

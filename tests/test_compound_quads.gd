@@ -351,8 +351,8 @@ func test_thunder_strikes_the_first_creature_on_its_line_and_is_heard_and_seen()
 func test_thunder_arcs_to_a_foe_within_reach_and_not_through_a_wall() -> void:
 	var w := _world()
 	var first := _post(w, ME + E * 2)
-	var next := _post(w, first.pos + Vector2i(1, Compounds.ARC_REACH))
-	var walled := _post(w, first.pos + E * 2)
+	var next := _tough(w, first.pos + Vector2i(-1, Compounds.ARC_REACH))
+	var walled := _post(w, first.pos + E * Compounds.ARC_REACH)
 	_put(w, first.pos + E, World.WALL)
 	var events := w.act(_cast(_made(&"thunder")))
 	assert_eq(_first(events, next.id), Compounds.THUNDER)
@@ -383,9 +383,9 @@ func test_thunder_arcs_to_the_foe_it_struck_least_then_the_nearest() -> void:
 func test_thunder_never_arcs_to_its_caster_or_her_allies() -> void:
 	var w := _world()
 	var first := _post(w, ME + E * 2)
-	var ally := _post(w, ME + E)
+	var ally := _post(w, ME + Vector2i(1, 1))
 	ally.faction = Actor.FOX
-	ally.pos = ME + Vector2i(1, 1)
+	ally.stunned = 9
 	var struck := _struck(w.act(_cast(_made(&"thunder"))))
 	assert_eq(struck, [first.id])
 

@@ -55,8 +55,8 @@ extends RefCounted
 ## 그믐 puts out the fires and lanterns it reaches.
 ## 이간질 sets the creatures it reaches against each other in pairs, the
 ## nearest first (Mind.feud), when Miho casts it.
-## 벼락 is 전기: it hurts each creature THUNDER and stuns it THUNDER_STUN as
-## Elements.charge says, and flashes.
+## 낙뢰 is 전기: it hurts a creature THUNDER and stuns it THUNDER_STUN as Elements.charge
+## says, and flashes. It arcs on (`arc`), as DCSS `_chain_lightning_to` does.
 ## 고요 sends the creatures hunting within its reach to search where they stand
 ## (Mind.lose) and washes the scent away.
 ## 5단, of all five, heard BOOM tiles but 윤회:
@@ -224,7 +224,9 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			if a.faction == Actor.HEAVEN and a.alert == Actor.HUNT:
 				Mind.lose(a)
 		&"thunder":
-			Elements.shock(w, a, THUNDER, THUNDER_STUN)
+			if a.alive():
+				Elements.shock(w, a, THUNDER, THUNDER_STUN)
+				arc(w, s, a)
 		Cards.SAMSARA:
 			Elements.stun(w, a, SAMSARA_STUN)
 		Cards.CONQUEST:
@@ -410,3 +412,43 @@ static func _feud(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			paired[pair[4]] = true
 			Mind.feud(w, foes[pair[3]], foes[pair[4]])
 			Mind.feud(w, foes[pair[4]], foes[pair[3]])
+
+
+## 낙뢰 goes on from `from`, which it just struck, to a foe of the caster that the tile sees
+## within ARC_REACH, until one cast has made ARCS arcs or none is left: never the one it
+## just struck, else the one struck least, then the nearest. Each arc is a spray of its own
+## along its path (Spray.along), so it shows on the aim and on the map.
+static func arc(w: World, s: Shot, from: Actor) -> void:
+	var struck := {from.id: 1}
+	var last := from
+	var at := from.pos
+	while s.arcs < ARCS:
+		var next := _next_arc(w, s, at, last, struck)
+		if next == null:
+			return
+		s.arcs += 1
+		struck[next.id] = struck.get(next.id, 0) + 1
+		Spray.along(w, s, at, next.pos)
+		at = next.pos
+		last = next
+		if Spray.reaches(w, s, next):
+			Elements.shock(w, next, THUNDER, THUNDER_STUN)
+			if next.alive():
+				Mind.struck(w, next, s)
+
+
+static func _next_arc(w: World, s: Shot, at: Vector2i, last: Actor, struck: Dictionary) -> Actor:
+	var view := w.fov(at)
+	var foes := w.actors.filter(
+		func(a: Actor) -> bool:
+			return (
+				a.alive()
+				and a != last
+				and a.faction != s.faction
+				and Grid.cheb(at, a.pos) <= ARC_REACH
+				and view[Grid.index(a.pos)] == 1
+			)
+	)
+	var rank := func(a: Actor) -> Array: return [struck.get(a.id, 0), Grid.cheb(at, a.pos), a.id]
+	foes.sort_custom(func(a, b): return rank.call(a) < rank.call(b))
+	return null if foes.is_empty() else foes[0]

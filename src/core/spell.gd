@@ -426,7 +426,7 @@ func speed() -> int:
 	return BULLET_SPEED if gun() else WISP_SPEED
 
 
-## A gun: a lone 쇠's spray, a bullet or a cannonball, 벼락, or a 비격진. Its
+## A gun: a lone 쇠's spray, a bullet or a cannonball, 낙뢰, or a 비격진. Its
 ## muzzle flash lights the caster's tile for the round it fires (World.flares).
 func gun() -> bool:
 	if shape == SPRAY:

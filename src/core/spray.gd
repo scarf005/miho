@@ -210,6 +210,26 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 					Mind.struck(w, a, s)
 
 
+## A spray of `s` running from `from` to `to`, `to` included, for what goes on from where
+## it struck (Compounds.arc).
+static func along(w: World, s: Shot, from: Vector2i, to: Vector2i) -> void:
+	var n := Grid.cheb(from, to)
+	var tiles: Array[Vector2i] = []
+	for i in range(1, n + 1):
+		tiles.append(Vector2i(Vector2(from).lerp(Vector2(to), float(i) / n).round()))
+	w.emit(
+		{
+			t = &"spray",
+			shot = s.id,
+			id = s.caster,
+			faction = s.faction,
+			cards = s.spell.cards,
+			at = from,
+			tiles = tiles
+		}
+	)
+
+
 ## Relights the dark lanterns the caster sees on or next to the tiles covered:
 ## a lantern stops a spray, so it is never among them when a line ends at it.
 static func _relight(w: World, caster: Actor, tiles: Array[Vector2i]) -> void:
@@ -257,7 +277,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 		SIGHT:
 			return sighted(w, caster, shape.size() > 2)
 		STRIKE:
-			return line(w, from, dir, n, true)
+			return line(w, from, dir, n, false)
 		ACROSS:
 			var mid := landing(w, from, dir, shape[1])
 			return Elements.growable(w, Elements.across(mid, dir, shape[2] + grown))

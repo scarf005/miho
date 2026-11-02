@@ -395,7 +395,7 @@ static func _form(s: Spell) -> Array:
 		Spray.SIGHT:
 			return [["대상", "보이는 적 모두, 당신" if shape.size() > 2 else "보이는 적 모두"]]
 		Spray.STRIKE:
-			return [["모양", Lang.t("곧게 %d칸") % n], ["관통", "적"]]
+			return [["모양", Lang.t("곧게 %d칸") % n]]
 	return [["모양", Lang.t("%d칸 안 첫 벽과 그 양옆") % n]]
 
 
@@ -501,6 +501,7 @@ static func compound(c: StringName) -> Array:
 			return [
 				["피해", "%d" % Compounds.THUNDER],
 				["기절", Lang.t("%d초") % Compounds.THUNDER_STUN],
+				["옮겨붙음", Lang.t("%d칸 안의 적, 최대 %d번") % [Compounds.ARC_REACH, Compounds.ARCS]],
 			]
 		&"stillness":
 			return [["추격 중인 적", "제자리 수색"], ["지워짐", "냄새"]]

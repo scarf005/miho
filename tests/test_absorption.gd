@@ -2,7 +2,7 @@ extends GutTest
 ## A spell meets a creature by its elements (Spell.nature): all of them
 ## absorbed stops it whole; some of them halve its harm and keep its effects;
 ## an element beating the creature's doubles the harm, never more than twice.
-## 전기 (벼락) follows the creature's elements and wetness instead.
+## 전기 (낙뢰) follows the creature's elements and wetness instead.
 
 const ORB := Cards.ORB
 const FIRE := Cards.FIRE
@@ -167,7 +167,7 @@ func test_a_spell_with_no_element_is_not_weak_hit_and_a_starfish_stops_it() -> v
 	assert_false(Bestiary.absorbs(foe.kind, Spell.make([Cards.FOX, FIRE, Cards.METAL])))
 
 
-## The events of 벼락 cast at one creature of `kind`, wet or not.
+## The events of 낙뢰 cast at one creature of `kind`, wet or not.
 func _zap(kind: StringName, wet := false) -> Dictionary:
 	var w := _world()
 	var foe := _foe(w, kind)

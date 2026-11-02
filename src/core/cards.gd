@@ -14,7 +14,7 @@ extends RefCounted
 ## What a spell meets in a creature is its elements (Spell.nature): a lone
 ## element is itself, a pair is both of its elements, a 3단 or more is what
 ## NATURE says, and 최면, 도약, 분신, 사령술, 은신, 오작교, 그믐, 이간질, 고요 and 윤회 have
-## none. 벼락 is no element but ELECTRIC.
+## none. 낙뢰 is no element but ELECTRIC.
 
 const FOX := &"fox"
 const ORB := &"orb"
@@ -135,7 +135,7 @@ const NAME := {
 	&"sinkhole": "땅꺼짐",
 	&"newmoon": "그믐",
 	&"discord": "이간질",
-	&"thunder": "벼락",
+	&"thunder": "낙뢰",
 	&"stillness": "고요",
 	SAMSARA: "윤회",
 	CONQUEST: "상극",
@@ -172,7 +172,7 @@ const GLYPH := {
 	&"sinkhole": "꺼",
 	&"newmoon": "믐",
 	&"discord": "이",
-	&"thunder": "벼",
+	&"thunder": "낙",
 	&"stillness": "고",
 	SAMSARA: "윤",
 	CONQUEST: "극",
