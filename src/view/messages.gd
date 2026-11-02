@@ -343,6 +343,8 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}을/를 찾았다", [_named(Tiles.of(e.kind, "name"))])
 		&"trap":
 			var plate := _named(Tiles.of(e.kind, "name"))
+			if e.has("shot"):
+				return _t("{0}이/가 {1}을/를 건드렸다", [[_title(e), TEXT], plate])
 			return _sub(before, after, id, "{0}이/가 {1}을/를 밟았다", "{0}을/를 밟았다", [plate])
 		&"trample":
 			return _t("{0}이/가 쓰러졌다", [_named(Tiles.of(e.was, "name"))])

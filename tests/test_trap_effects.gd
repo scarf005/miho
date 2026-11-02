@@ -1,5 +1,5 @@
 extends GutTest
-## Plates going off: each kind for Miho and for a creature, and heaven walking round them.
+## Plates going off: each kind for Miho, a creature and a projectile, and who walks round them.
 
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
@@ -248,7 +248,7 @@ func test_a_creature_pushed_onto_the_vine_plate_roots_itself_and_its_neighbours(
 	assert_eq(w.player().rooted, 0)
 
 
-# --- heaven walks round them -------------------------------------------------
+# --- who walks onto them ------------------------------------------------------
 
 
 func _walled_column(w: World, x: int, gap: int) -> void:
@@ -258,31 +258,41 @@ func _walled_column(w: World, x: int, gap: int) -> void:
 	w._changed()
 
 
-func test_a_hunter_never_steps_on_a_hidden_plate_and_still_reaches_miho() -> void:
-	var w := _world()
-	for y in range(6, 11):
-		_plate(w, Vector2i(8, y), World.TRAP_FIRE)
-	var foe := _foe(w, Vector2i(14, 8))
-	w.hunt_from(foe, w.player().pos)
-	var reached := false
-	for i in 40:
-		w.act(WAIT)
-		assert_false(w.traps.has(foe.pos), "round %d at %s" % [i, foe.pos])
-		reached = reached or Grid.cheb(foe.pos, w.player().pos) <= 1
-		if not w.player().alive():
-			break
-	assert_true(reached, "it came round")
-
-
-func test_heaven_does_not_cross_a_plate_that_is_the_only_way() -> void:
+func test_a_hunter_crosses_a_plate_that_is_the_only_way_and_sets_it_off() -> void:
 	var w := _world()
 	_walled_column(w, 9, 8)
 	_plate(w, Vector2i(9, 8), World.TRAP_ALARM)
 	var foe := _foe(w, Vector2i(14, 8))
 	w.hunt_from(foe, w.player().pos)
-	for i in 30:
+	var gongs := 0
+	for i in 8:
+		gongs += w.act(WAIT).filter(func(e): return e.t == &"trap" and e.id == foe.id).size()
+	assert_lt(foe.pos.x, 9, "it came through")
+	assert_eq(gongs, 1)
+
+
+func test_a_hunter_does_not_step_aside_for_a_plate_on_its_straight_line() -> void:
+	var w := _world()
+	for y in range(6, 11):
+		_plate(w, Vector2i(8, y), World.TRAP_VINE)
+	var foe := _foe(w, Vector2i(10, 8))
+	w.hunt_from(foe, w.player().pos)
+	w.act(WAIT)
+	w.act(WAIT)
+	assert_true(w.traps.has(foe.pos), "at %s" % foe.pos)
+	assert_gt(foe.rooted, 0, "its own vines hold it")
+
+
+func test_a_hunter_lured_over_a_collapsing_floor_falls_and_counts_as_a_kill() -> void:
+	var w := _world()
+	_walled_column(w, 9, 8)
+	_plate(w, Vector2i(9, 8), World.TRAP_COLLAPSE)
+	var foe := _foe(w, Vector2i(11, 8))
+	w.hunt_from(foe, w.player().pos)
+	for i in 4:
 		w.act(WAIT)
-		assert_gt(foe.pos.x, 9, "round %d" % i)
+	assert_false(foe.alive())
+	assert_eq(w.player().prey, foe.kind, "a fall gives what a kill does")
 
 
 func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:
@@ -300,24 +310,130 @@ func test_a_searcher_goes_to_the_alarm_plate_but_not_onto_it() -> void:
 	assert_eq(nearest, 1, "it stands beside it")
 
 
-func test_heaven_walks_round_a_found_plate_too() -> void:
+func test_the_searchers_an_alarm_plate_calls_do_not_ring_it_again() -> void:
 	var w := _world()
-	_walled_column(w, 9, 8)
-	_plate(w, Vector2i(9, 8), World.TRAP_FIRE)
-	w.tiles[Grid.index(Vector2i(9, 8))] = World.TRAP_FIRE
-	var foe := _foe(w, Vector2i(14, 8))
-	w.hunt_from(foe, w.player().pos)
+	w.player().pos = Vector2i(2, 20)
+	_plate(w, PLATE, World.TRAP_ALARM)
+	var foes := [_foe(w, PLATE + Vector2i(6, 0)), _foe(w, PLATE + Vector2i(0, 6))]
+	w.noise(PLATE, Drums.LOUD, Traps.GONG, true, 0)
 	for i in 20:
-		w.act(WAIT)
-		assert_gt(foe.pos.x, 9)
+		assert_false(w.act(WAIT).any(func(e): return e.t == &"trap"), "round %d" % i)
+	assert_eq(foes.filter(func(a): return Grid.cheb(a.pos, PLATE) <= 2).size(), 2, "they came")
 
 
-func test_a_trail_of_scent_does_not_lead_a_creature_onto_a_plate() -> void:
+func test_an_ally_on_the_hunt_walks_round_a_plate() -> void:
 	var w := _world()
+	_plate(w, PLATE, World.TRAP_FIRE)
+	var friend := _foe(w, PLATE - E)
+	friend.faction = Actor.FOX
+	friend.alert = Actor.HUNT
+	assert_true(Traps.bars(w, friend, PLATE))
+	friend.faction = Actor.HEAVEN
+	assert_false(Traps.bars(w, friend, PLATE))
+
+
+func _trail(w: World) -> Actor:
 	_plate(w, PLATE + E, World.TRAP_FIRE)
 	w.scent.resize(w.tiles.size())
 	w.scent[Grid.index(PLATE + E)] = 5
 	w.scent[Grid.index(PLATE)] = 2
-	var foe := _foe(w, PLATE)
 	w.round_no = 5
+	return _foe(w, PLATE)
+
+
+func test_a_trail_of_scent_leads_a_hunter_onto_a_plate() -> void:
+	var w := _world()
+	var foe := _trail(w)
+	foe.alert = Actor.HUNT
+	assert_eq(Scent.next(w, foe), PLATE + E)
+
+
+func test_a_trail_of_scent_does_not_lead_a_searcher_onto_a_plate() -> void:
+	var w := _world()
+	var foe := _trail(w)
+	foe.alert = Actor.SEARCH
 	assert_eq(Scent.next(w, foe), PLATE, "the trail goes over the plate, so it stays")
+
+
+# --- projectiles set them off -------------------------------------------------
+
+
+## What Miho hurled from (4, 8) east, an orb unless `cards` says otherwise.
+func _shot(w: World, cards := [Cards.ORB]) -> Shot:
+	return w._spawn(w.player(), Spell.make(cards), E, 0)
+
+
+func _fly_on(w: World, s: Shot, tiles: int) -> Array:
+	var from := w.events.size()
+	for i in tiles:
+		if not s.gone:
+			w._step(s)
+	return w.events.slice(from)
+
+
+func test_an_orb_over_an_alarm_plate_calls_the_storey() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_ALARM)
+	var far := _foe(w, Vector2i(50, 24))
+	var events := _fly_on(w, _shot(w), 3)
+	assert_eq(_types(events).count(&"trap"), 1)
+	assert_eq(far.alert, Actor.SEARCH)
+	assert_eq(far.target, PLATE)
+	assert_true(events.any(func(e): return e.t == &"noise" and e.word == Traps.GONG and e.heard))
+
+
+func test_a_shot_of_heaven_sets_a_plate_off_too() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_VINE)
+	var foe := _foe(w, PLATE - E - E)
+	var next_to := _foe(w, PLATE + Vector2i(0, 1))
+	var s := w._spawn(foe, Spell.make([Cards.ORB]), E, 0)
+	_fly_on(w, s, 2)
+	assert_eq(next_to.rooted, Traps.ROOT_ROUNDS)
+	assert_false(s.gone, "it flies on")
+
+
+func test_a_fire_plate_flames_on_along_the_flight_of_the_shot() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_FIRE)
+	_fly_on(w, _shot(w), 3)
+	for i in range(1, Traps.FLAME_REACH + 1):
+		assert_true(w.burning.has(PLATE + E * i), "tile %d" % i)
+
+
+func test_a_shot_falls_through_a_collapsing_floor_and_does_not_burst() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_COLLAPSE)
+	var s := _shot(w)
+	var events := _fly_on(w, s, 5)
+	assert_true(s.gone)
+	assert_eq(s.pos, PLATE)
+	assert_false(_types(events).has(&"burst"))
+	assert_eq(_types(events).count(&"fade"), 1)
+	assert_true(w.traps.has(PLATE), "the plate stays")
+
+
+func test_a_wisp_at_the_end_of_its_range_does_not_land_after_falling() -> void:
+	var w := _world()
+	var spell := Spell.make([Cards.FOX])
+	var s := w._spawn(w.player(), spell, E, 0)
+	s.flown = Spell.RANGE - 1
+	_plate(w, s.pos + E, World.TRAP_COLLAPSE)
+	assert_false(_types(_fly_on(w, s, 1)).has(&"land"))
+
+
+func test_a_shot_that_strikes_a_creature_on_a_plate_does_not_press_it() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_ALARM)
+	_foe(w, PLATE)
+	assert_false(_types(_fly_on(w, _shot(w), 3)).has(&"trap"))
+
+
+func test_a_spray_does_not_set_a_plate_off() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_ALARM)
+	w.tails = 9
+	w.cards.assign(Cards.ALL)
+	var events := w.act({t = &"cast", spells = [{cards = [Cards.WATER], dir = E}]})
+	assert_true(_types(events).has(&"spray"))
+	assert_false(_types(events).has(&"trap"))

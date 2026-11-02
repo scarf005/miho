@@ -43,7 +43,7 @@ static func clear(w: World, p: Vector2i) -> void:
 static func next(w: World, a: Actor) -> Vector2i:
 	if a.info().get("move", &"static") == &"static" or w.scent.size() != w.tiles.size():
 		return a.pos
-	return _fresher(w, a.pos)
+	return _fresher(w, a, a.pos)
 
 
 ## The tile `steps` along the trail from `a`, or the last one the trail reaches.
@@ -52,17 +52,18 @@ static func ahead(w: World, a: Actor, steps: int) -> Vector2i:
 	if at == a.pos:
 		return at
 	for i in steps - 1:
-		at = _fresher(w, at)
+		at = _fresher(w, a, at)
 	return at
 
 
-## The neighbour of `from` with the freshest scent, or `from` when none is fresher.
-static func _fresher(w: World, from: Vector2i) -> Vector2i:
+## The neighbour of `from` `a` can step to with the freshest scent, or `from` when none is
+## fresher.
+static func _fresher(w: World, a: Actor, from: Vector2i) -> Vector2i:
 	var best := from
 	var best_stamp := w.scent[Grid.index(from)]
 	for d in Grid.DIRS:
 		var p := from + d
-		if not Grid.inside(p) or not w.vacant(p) or w.burning.has(p) or w.traps.has(p):
+		if not Grid.inside(p) or not w.vacant(p) or w.burning.has(p) or Traps.bars(w, a, p):
 			continue
 		var stamp := w.scent[Grid.index(p)]
 		if stamp > best_stamp and w.round_no + 1 - stamp <= reach(w, p):

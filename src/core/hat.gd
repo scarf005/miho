@@ -26,6 +26,12 @@ static func hidden(w: World, a: Actor, from: Vector2i) -> bool:
 	)
 
 
+## Whether a hat hides the creature `id` from Miho, alive or not.
+static func veils(w: World, id: int) -> bool:
+	var a := w.actor(id)
+	return a != null and hidden(w, a, w.player().pos)
+
+
 ## Whether Miho sees creature `a`: she sees its tile and no hat hides it.
 static func shown(w: World, a: Actor) -> bool:
 	return w.seen[Grid.index(a.pos)] == 1 and not hidden(w, a, w.player().pos)

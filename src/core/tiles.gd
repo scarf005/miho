@@ -20,8 +20,8 @@ extends RefCounted
 ## creature steps off it (Terrain.crumble). scentless: a trail laid on it is lost.
 ## gas: gas can lie on it (Gas); walls, closed doors, windows, pillars and sky stop it.
 ## trap: a plate in the floor that goes off when a creature steps onto it (Traps).
-## Heaven walks round it, and so does a walk Miho has planned. It is floor, not
-## this tile kind, until Miho finds it.
+## Heaven walks round it until it hunts, and a walk Miho has planned walks round it
+## too. It is floor, not this tile kind, until Miho finds it.
 ## opens: it shuts the way now and is gone in time (a veil goes out), so the
 ## storey is whole without it (FloorGen.connected).
 ## water: what moves on water can be here (Bestiary.swims).

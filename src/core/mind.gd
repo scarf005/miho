@@ -431,7 +431,7 @@ static func _chase(w: World, a: Actor) -> void:
 
 
 ## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground or onto a
-## plate.
+## plate it keeps off (Traps.bars).
 static func _walkable(w: World, a: Actor) -> Callable:
 	var ground := Bestiary.ground(a.kind)
 	return func(p):
@@ -441,7 +441,7 @@ static func _walkable(w: World, a: Actor) -> Callable:
 				w.vacant(p, ground)
 				and not w.burning.has(p)
 				and not w.hot.has(p)
-				and not w.traps.has(p)
+				and not Traps.bars(w, a, p)
 			)
 		)
 

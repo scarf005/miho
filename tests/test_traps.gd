@@ -232,6 +232,58 @@ func test_a_walk_stops_when_a_plate_is_found_or_goes_off() -> void:
 	assert_false(Travel.interrupted(quiet, quiet, [], {}))
 
 
+func test_a_plate_a_hat_hides_the_presser_of_is_found_as_any_other_is() -> void:
+	var w := _world()
+	_lantern(w, PLATE + Vector2i(0, 2))
+	_plate(w, PLATE, World.TRAP_VINE)
+	var foe := _foe(w, PLATE - E, &"gamtu")
+	w.events.clear()
+	w.push(foe, E, 1)
+	w.sense()
+	assert_eq(w.tile(PLATE), World.TRAP_VINE)
+	assert_true(_types(w.events).has(&"find"), "nothing else tells of it")
+
+
+func test_a_walk_does_not_stop_for_a_plate_a_hat_hides_the_presser_of() -> void:
+	var w := _world()
+	_plate(w, PLATE, World.TRAP_VINE)
+	var foe := _foe(w, PLATE - E, &"gamtu")
+	foe.pos = PLATE
+	var before := w.clone()
+	var pressed := [{t = &"trap", id = foe.id, at = PLATE, kind = World.TRAP_VINE, depth = w.depth}]
+	before.seen[Grid.index(PLATE)] = 1
+	assert_false(Travel.interrupted(before, w, pressed, {}))
+
+
+func test_a_plate_that_went_off_as_she_lost_sight_of_it_is_found() -> void:
+	var w := _world()
+	for x in range(1, Grid.W - 1):
+		w.tiles[Grid.index(Vector2i(x, 12))] = World.WALL
+	_lantern(w, PLATE + Vector2i(0, 2))
+	assert_eq(w.seen[Grid.index(PLATE)], 1)
+	_plate(w, PLATE, World.TRAP_VINE)
+	var foe := _foe(w, PLATE - E)
+	w.push(foe, E, 1)
+	w.player().pos = Vector2i(4, 16)
+	w.sense()
+	assert_eq(w.seen[Grid.index(PLATE)], 0)
+	assert_eq(w.tile(PLATE), World.TRAP_VINE)
+
+
+func test_a_plate_that_goes_off_out_of_her_sight_stays_hidden() -> void:
+	var w := _world()
+	for x in range(1, Grid.W - 1):
+		w.tiles[Grid.index(Vector2i(x, 12))] = World.WALL
+	w._changed()
+	w.player().pos = Vector2i(4, 16)
+	w.sense()
+	_plate(w, PLATE, World.TRAP_VINE)
+	var foe := _foe(w, PLATE - E)
+	w.push(foe, E, 1)
+	w.sense()
+	assert_eq(w.tile(PLATE), World.FLOOR)
+
+
 # --- what the player is told -------------------------------------------------
 
 
@@ -240,14 +292,14 @@ func test_hovering_a_plate_tells_its_rule_from_the_constants() -> void:
 	var text := {}
 	for kind in KINDS:
 		text[kind] = Info.plain(_hover(w, kind))
-	assert_string_contains(text[World.TRAP_ALARM], "밟을 때 소음: 층 전체")
-	assert_string_contains(text[World.TRAP_COLLAPSE], "밟으면: 하늘로 추락")
+	assert_string_contains(text[World.TRAP_ALARM], "소음: 층 전체")
+	assert_string_contains(text[World.TRAP_COLLAPSE], "작동: 하늘로 추락")
 	assert_string_contains(text[World.TRAP_FIRE], "앞 %d칸에 불" % Traps.FLAME_REACH)
 	assert_string_contains(text[World.TRAP_VINE], "주위 3×3 모두 묶임\n묶임: %d초" % Traps.ROOT_ROUNDS)
 	for kind in KINDS:
 		assert_true(text[kind].split("\n").has("함정."), text[kind])
 	assert_has(Glossary.rows()["함정"], "발견: 밝은 칸 또는 %d칸 안" % Traps.REACH)
-	assert_has(Glossary.rows()["함정"], "적은 밟지 않음.")
+	assert_has(Glossary.rows()["함정"], "밟는 적: 추격 중인 적")
 
 
 func _hover(w: World, kind: int) -> Array:
@@ -295,6 +347,23 @@ func test_a_creature_stepping_on_a_plate_in_sight_is_told_in_the_log() -> void:
 	assert_has(lines, "도깨비가 덩굴 함정을 밟았다")
 	assert_has(lines, "도깨비가 묶였다")
 	assert_eq(w.tile(PLATE), World.TRAP_VINE, "seen going off, it is found")
+
+
+func test_a_shot_setting_a_plate_off_in_sight_is_told_in_the_log() -> void:
+	var w := _world()
+	_lantern(w, PLATE + Vector2i(0, 2))
+	_plate(w, PLATE, World.TRAP_COLLAPSE)
+	w.sense()
+	var s := w._spawn(w.player(), Spell.make([Cards.ORB]), E, 0)
+	s.pos = PLATE - E
+	w.events.clear()
+	var before := w.clone()
+	w._step(s)
+	w.sense()
+	var name := s.spell.shown()
+	var lines := _lines(before, w, w.events)
+	assert_eq(lines, ["%s이 허방다리를 건드렸다" % name, "%s이 사라졌다" % name])
+	assert_eq(w.tile(PLATE), World.TRAP_COLLAPSE, "seen going off, it is found")
 
 
 func test_a_creature_falling_through_a_plate_is_told_in_the_log() -> void:

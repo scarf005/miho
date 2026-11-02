@@ -725,14 +725,14 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 		World.MUD:
 			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
 		World.TRAP_ALARM:
-			out.append(Lang.t("밟을 때 소음: 층 전체"))
+			out.append(Lang.t("소음: 층 전체"))
 		World.TRAP_COLLAPSE:
-			out.append(Lang.t("밟으면: 하늘로 추락"))
+			out.append(Lang.t("작동: 하늘로 추락"))
 		World.TRAP_FIRE:
-			out.append(Lang.t("밟으면: 밟은 방향 앞 %d칸에 불") % Traps.FLAME_REACH)
+			out.append(Lang.t("작동: 진행 방향 앞 %d칸에 불") % Traps.FLAME_REACH)
 		World.TRAP_VINE:
 			var side := 2 * Traps.VINE_REACH + 1
-			out.append(Lang.t("밟으면: 주위 %d×%d 모두 묶임") % [side, side])
+			out.append(Lang.t("작동: 주위 %d×%d 모두 묶임") % [side, side])
 			out.append(Lang.t("묶임: %d초") % Traps.ROOT_ROUNDS)
 	if Tiles.of(t, "trap"):
 		out.append(Lang.t("함정."))

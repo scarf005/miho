@@ -39,7 +39,8 @@ extends RefCounted
 ## for a while (Mind).
 ##
 ## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
-## steps on it, and shows only on a lit tile or right next to Miho: see Traps.
+## steps on it or a shot flies over it, and shows only on a lit tile or right next to
+## Miho: see Traps.
 ## Some walls between rooms are hidden doors, found the same way.
 ##
 ## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
@@ -543,10 +544,11 @@ func sense() -> void:
 	if known.size() != tiles.size():
 		known.resize(tiles.size())
 	var sensed := Sight.sensed(self, me)
+	var was := seen
 	seen = sensed[0]
 	dim = sensed[1]
 	known = sensed[2]
-	Traps.find(self)
+	Traps.find(self, was)
 	Notice.remember(self)
 	Cheat.reveal(self)
 
@@ -766,6 +768,8 @@ func _fly(s: Shot, to: Vector2i) -> void:
 	_changed()
 	if s.spell.has(Cards.FIRE):
 		ignite(to)
+	if actor_at(to) == null:
+		Traps.fly(self, s)
 
 
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile
@@ -815,7 +819,7 @@ func _step(s: Shot) -> void:
 			_land(s)
 			return
 	_fly(s, to)
-	if not s.spell.orb and s.flown >= Spell.RANGE:
+	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
 		_land(s)
 
 

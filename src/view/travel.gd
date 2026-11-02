@@ -177,7 +177,10 @@ static func interrupted(before: World, after: World, events: Array, sighted: Dic
 				return true
 			&"notice", &"trap":
 				var i := Grid.index(e.at)
-				if before.seen[i] == 1 or after.seen[i] == 1:
+				if (
+					(before.seen[i] == 1 or after.seen[i] == 1)
+					and not Hat.veils(after, e.get("id", 0))
+				):
 					return true
 	for id in in_sight(after):
 		if not sighted.has(id):

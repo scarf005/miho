@@ -237,13 +237,13 @@ static func _leaps(plan: Dictionary) -> bool:
 
 
 ## A leap towards `foe` in line with `a`, when it lands short of the foe, on a
-## tile free of fire, hot ground and traps.
+## tile free of fire, hot ground and plates it keeps off.
 static func _leap(w: World, a: Actor, spell: Spell, foe: Actor) -> Dictionary:
 	var dir := Grid.line_dir(a.pos, foe.pos)
 	if dir == Vector2i.ZERO or a.rooted > 0:
 		return {}
 	var to := Leap.landing(w, a.pos, dir, spell.leap())
-	var safe := not (w.burning.has(to) or w.hot.has(to) or w.traps.has(to))
+	var safe := not (w.burning.has(to) or w.hot.has(to) or Traps.bars(w, a, to))
 	if to != a.pos and safe and Grid.cheb(a.pos, to) < Grid.cheb(a.pos, foe.pos):
 		return {cards = spell.cards, dir = dir}
 	return {}
