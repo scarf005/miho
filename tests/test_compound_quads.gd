@@ -320,22 +320,97 @@ func test_discord_does_nothing_when_a_creature_of_heaven_casts_it() -> void:
 	assert_eq(w.player().hp, w.player().max_hp)
 
 
-func test_thunder_pierces_every_creature_on_its_line_to_a_wall_and_is_heard_and_seen() -> void:
+## The creatures harmed in `events`, by id, in order.
+func _struck(events: Array) -> Array:
+	return _of(events, &"hurt").map(func(e): return e.id)
+
+
+## A post that outlasts every arc.
+func _tough(w: World, at: Vector2i) -> Actor:
+	var a := _post(w, at)
+	a.max_hp = 99
+	a.hp = 99
+	return a
+
+
+func test_thunder_strikes_the_first_creature_on_its_line_and_is_heard_and_seen() -> void:
 	var w := _world()
 	var first := _post(w, ME + E * 2)
-	var second := _post(w, ME + E * 4)
-	_put(w, ME + E * 6, World.WALL)
-	var behind := _post(w, ME + E * 8)
+	var far := _post(w, ME + E * 2 + E * (Compounds.ARC_REACH + 1))
 	var events := w.act(_cast(_made(&"thunder")))
-	for foe in [first, second]:
-		assert_eq(_first(events, foe.id), Compounds.THUNDER)
-		assert_eq(foe.stunned, Compounds.THUNDER_STUN - 1)
-	assert_eq(behind.hp, behind.max_hp, "the wall stops it")
+	assert_eq(_first(events, first.id), Compounds.THUNDER)
+	assert_eq(first.stunned, Compounds.THUNDER_STUN - 1)
+	assert_eq(far.hp, far.max_hp, "out of reach of the arc")
 	var booms := _of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM)
 	assert_false(booms.is_empty())
 	w = _world()
 	_now(w, _made(&"thunder"))
 	assert_true(w.flares.has(ME), "a flash on her tile")
+
+
+func test_thunder_arcs_to_a_foe_within_reach_and_not_through_a_wall() -> void:
+	var w := _world()
+	var first := _post(w, ME + E * 2)
+	var next := _post(w, first.pos + Vector2i(1, Compounds.ARC_REACH))
+	var walled := _post(w, first.pos + E * 2)
+	_put(w, first.pos + E, World.WALL)
+	var events := w.act(_cast(_made(&"thunder")))
+	assert_eq(_first(events, next.id), Compounds.THUNDER)
+	assert_eq(next.stunned, Compounds.THUNDER_STUN - 1)
+	assert_eq(walled.hp, walled.max_hp, "the wall stops the arc")
+	assert_eq(next.alert, Actor.HUNT, "it is struck like the first")
+
+
+func test_thunder_goes_back_and_forth_between_two_foes_for_all_its_arcs() -> void:
+	var w := _world()
+	var a := _tough(w, ME + E * 2)
+	var b := _tough(w, ME + E * 4)
+	var struck := _struck(w.act(_cast(_made(&"thunder"))))
+	assert_eq(struck.size(), Compounds.ARCS + 1)
+	for i in struck.size():
+		assert_eq(struck[i], a.id if i % 2 == 0 else b.id, "arc %d" % i)
+
+
+func test_thunder_arcs_to_the_foe_it_struck_least_then_the_nearest() -> void:
+	var w := _world()
+	var a := _tough(w, ME + E * 2)
+	var far := _tough(w, a.pos + E * Compounds.ARC_REACH)
+	var near := _tough(w, a.pos + Vector2i(1, 1))
+	var struck := _struck(w.act(_cast(_made(&"thunder"))))
+	assert_eq(struck.slice(0, 3), [a.id, near.id, far.id])
+
+
+func test_thunder_never_arcs_to_its_caster_or_her_allies() -> void:
+	var w := _world()
+	var first := _post(w, ME + E * 2)
+	var ally := _post(w, ME + E)
+	ally.faction = Actor.FOX
+	ally.pos = ME + Vector2i(1, 1)
+	var struck := _struck(w.act(_cast(_made(&"thunder"))))
+	assert_eq(struck, [first.id])
+
+
+func test_a_foes_thunder_arcs_to_miho() -> void:
+	var w := _world()
+	var caster := _post(w, ME + E * 4)
+	var first := _post(w, ME + E * 2)
+	first.faction = Actor.FOX
+	var s := Spell.make(_made(&"thunder"))
+	Spray.cast(w, caster, s, -E)
+	assert_lt(w.player().hp, w.player().max_hp)
+	assert_eq(caster.hp, caster.max_hp)
+
+
+func test_the_arcs_of_thunder_show_on_the_aim() -> void:
+	var w := _world()
+	var a := _post(w, ME + E * 2)
+	var b := _post(w, a.pos + Vector2i(2, 2))
+	var f := Forecast.of(w, _cast(_made(&"thunder")))
+	var tiles := []
+	for e in f.sprays:
+		tiles += e.tiles
+	assert_true(tiles.has(b.pos))
+	assert_true(tiles.has(a.pos + Vector2i(1, 1)), "the path between them")
 
 
 func test_thunder_hurts_a_wet_creature_and_a_water_creature_twice_but_not_four_times() -> void:

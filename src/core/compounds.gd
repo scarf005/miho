@@ -87,6 +87,9 @@ const BOOM := 12
 const BEACON_WORD := "화르륵"
 const THUNDER := 3
 const THUNDER_STUN := 2
+## How far 낙뢰 arcs from the creature it struck, and how many arcs one cast makes.
+const ARC_REACH := 3
+const ARCS := 10
 const SAMSARA_STUN := 2
 const CONQUEST_HARM := 3
 const DRAGON_PUSH := 3
