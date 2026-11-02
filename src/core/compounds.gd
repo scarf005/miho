@@ -246,17 +246,13 @@ static func step(w: World, a: Actor, to: Vector2i) -> void:
 static func tick(w: World) -> void:
 	if w.outcome != &"" or w.hot.is_empty():
 		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var cooled := {}
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
 		if a != null:
 			w.emit({t = &"sear", id = a.id, at = p, kind = h.x})
-			if Bestiary.absorbs(a.nature_kind(), flame):
-				w.emit({t = &"absorb", id = a.id, at = p})
-			else:
-				Harm.hurt(w, a, HOT[h.x].harm)
+			Harm.fire(w, a, HOT[h.x].harm, p)
 		if h.y <= 1:
 			w.hot.erase(p)
 			cooled.get_or_add(h.x, []).append(p)

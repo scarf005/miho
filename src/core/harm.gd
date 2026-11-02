@@ -59,6 +59,16 @@ static func hurt(w: World, a: Actor, n: int, weak := false) -> void:
 	reward(w, a)
 
 
+## Ground fire of `n` at `a`: a creature that absorbs fire takes it in (told at `at`),
+## else it is hurt. Whether it was hurt.
+static func fire(w: World, a: Actor, n: int, at: Vector2i) -> bool:
+	if Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE])):
+		w.emit({t = &"absorb", id = a.id, at = at})
+		return false
+	hurt(w, a, n)
+	return true
+
+
 ## What Miho gets for a creature of heaven that is gone: a tail, its soul and the scroll
 ## it leaves (Scrolls.drop).
 static func reward(w: World, a: Actor) -> void:

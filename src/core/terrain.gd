@@ -327,7 +327,6 @@ static func relight_beside(w: World, a: Actor) -> bool:
 static func burn(w: World, alight: Array) -> void:
 	if w.outcome != &"":
 		return
-	var flame := Spell.make([Cards.FOX, Cards.FIRE])
 	var caught: Array[Vector2i] = []
 	var gone := {}
 	for p: Vector2i in w.burning.keys():
@@ -336,10 +335,7 @@ static func burn(w: World, alight: Array) -> void:
 		if a != null and alight.has(p) and a.alight <= 0:
 			var fierce := Tiles.fierce[w.tile(p)] == 1
 			w.emit({t = &"burn", at = p, id = a.id, fierce = fierce})
-			if Bestiary.absorbs(a.nature_kind(), flame):
-				w.emit({t = &"absorb", id = a.id, at = p})
-			else:
-				Harm.hurt(w, a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE)
+			if Harm.fire(w, a, World.FIERCE_DAMAGE if fierce else World.FIRE_DAMAGE, p):
 				Status.dry(w, a)
 		caught.append_array(_catch(w, p))
 		w.burning[p] -= 1
