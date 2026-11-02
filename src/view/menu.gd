@@ -253,6 +253,7 @@ func save(slot: StringName) -> void:
 			settings.spells.erase(s)
 	if not had:
 		settings.spells[slot] = k
+	selected = mini(selected, maxi(0, spells().size() - 1))
 
 
 ## Menu movement `nav` on the page's list; what the game should do.
