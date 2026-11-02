@@ -45,7 +45,6 @@ const PLAN := {
 		&"oedari",
 		&"bujigaengi",
 		&"gaekgwi",
-		&"mulgwisin",
 		&"jangseung",
 		&"jangseung",
 	],
@@ -61,6 +60,7 @@ const PLAN := {
 		&"imugi",
 		&"imugi",
 		&"imugi",
+		&"mulgwisin",
 	],
 	5:
 	[
@@ -71,10 +71,10 @@ const PLAN := {
 		&"oedari",
 		&"bitjaru",
 		&"gaekgwi",
-		&"mulgwisin",
 		&"gamtu",
 		&"jangseung",
 		&"jangseung",
+		&"mulgwisin",
 	],
 	6:
 	[
@@ -88,6 +88,7 @@ const PLAN := {
 		&"imugi",
 		&"jangseung",
 		&"jangseung",
+		&"mulgwisin",
 	],
 	7:
 	[
@@ -103,6 +104,7 @@ const PLAN := {
 		&"imugi",
 		&"jangseung",
 		&"jangseung",
+		&"mulgwisin",
 	],
 	8:
 	[
@@ -118,6 +120,7 @@ const PLAN := {
 		&"jangseung",
 		&"jangseung",
 		&"jangseung",
+		&"mulgwisin",
 	],
 	9:
 	[
@@ -129,6 +132,7 @@ const PLAN := {
 		&"bujigaengi",
 		&"dokkaebi",
 		&"gangcheori",
+		&"mulgwisin",
 	],
 }
 ## Peaches grow on every odd storey from the third.

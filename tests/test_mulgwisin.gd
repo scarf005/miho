@@ -10,7 +10,7 @@ const ME := Vector2i(6, 8)
 ## Column of shallows; the pond lies from here + 1 eastward to POND_END.
 const SHORE := 8
 const POND_END := 14
-const PLANNED := [3, 5]
+const PLANNED := [4, 5, 6, 7, 8, 9]
 const SEEDS := 10
 const PATH := "user://test_mulgwisin.cfg"
 
