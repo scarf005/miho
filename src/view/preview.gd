@@ -17,6 +17,7 @@ static func point(m: Node, screen: Vector2) -> void:
 	var local: Vector2 = m._local(screen)
 	if m.overlay != &"" and term.pin.is_empty():
 		m.menu.point(PanelView.row_at(term, local))
+		m.menu.codex.lit = PanelView.choice_at(term, local)
 		term.panel = m.menu.panel()
 	var tile := term.tile_at(local)
 	if not Grid.inside(tile):
@@ -104,15 +105,15 @@ static func _inspect(m: Node) -> void:
 	term.info = []
 	term.subject = ""
 	term.cursor = Vector2i(-1, -1)
-	var cards := []
+	var example := {}
 	if m.state == &"play" and m.overlay == &"" and term.hint.is_empty():
-		cards = _tell(m)
-	term.example = SpellScene.of(cards) if not cards.is_empty() else {}
+		example = _tell(m)
+	term.example = example
 
 
-## Sets what the box under the pointer tells (`info`), and returns the cards of the one spell
-## it is about, or none.
-static func _tell(m: Node) -> Array:
+## Sets what the box under the pointer tells (`info`), and returns the example of the one
+## spell it is about, or none.
+static func _tell(m: Node) -> Dictionary:
 	var held := Spell.make(m.picked)
 	if held == null or m.hover_slot >= held.slots.size():
 		m.hover_slot = -1
@@ -124,21 +125,27 @@ static func _tell(m: Node) -> Array:
 	var shown: bool = word != "" and not row.is_empty() and not m.touch.enabled
 	term.info = lines + [row] if shown else lines
 	term.subject = word
-	return _cards(m)
+	return _example(m)
 
 
-## The cards of the one spell the box tells of, or none.
-static func _cards(m: Node) -> Array:
+## The example of the one spell the box tells of, or none: Miho casts hers, and a creature
+## its own.
+static func _example(m: Node) -> Dictionary:
+	var cards := []
 	if m.hover_slot >= 0:
-		return m.picked
-	if m.hover_spell != "":
-		return Spell.from_key(m.hover_spell).cards
-	if m.hover_card != &"":
-		return Cards.made_of(m.hover_card)
-	if m.hover_status:
-		return []
-	var shot := Info.shot_at(m.known, m.hover)
-	return shot.spell.cards if shot != null and not m.debugging else []
+		cards = m.picked
+	elif m.hover_spell != "":
+		cards = Spell.from_key(m.hover_spell).cards
+	elif m.hover_card != &"":
+		cards = Cards.made_of(m.hover_card)
+	elif not m.hover_status and not m.debugging:
+		var shot := Info.shot_at(m.known, m.hover)
+		if shot != null and shot.faction != Actor.FOX:
+			var by: Actor = m.world.actor(shot.caster)
+			return CodexScene.charged(by.kind if by != null else Codex.foes()[0], shot.spell.cards)
+		if shot != null:
+			cards = shot.spell.cards
+	return SpellScene.of(cards) if not cards.is_empty() else {}
 
 
 ## The hover lines of what the pointer or the look cursor is over.

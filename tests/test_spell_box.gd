@@ -36,23 +36,6 @@ func _play(sim: ExampleSim, rounds: int) -> void:
 		sim.rush()
 
 
-func test_the_talisman_entry_plays_one_to_five_copies_in_turn_and_starts_again() -> void:
-	var m := _main()
-	var sim := _sim(m)
-	m._open(&"codex")
-	m.menu.codex.go(1)
-	m.term.panel = m.menu.panel()
-	var turns := []
-	for k in 300:
-		_play(sim, 1)
-		if turns.is_empty() or turns.back() != sim._turn:
-			turns.append(sim._turn)
-	var want := range(Spell.MAX_SLOTS) + range(Spell.MAX_SLOTS)
-	assert_eq(turns.slice(0, want.size()), want, "1 to MAX_SLOTS, then again")
-	for i in sim._scenes.size():
-		assert_eq(sim._scenes[i].spell.size(), i + 1, "the turn of %d copies" % (i + 1))
-
-
 func test_a_hovered_spell_plays_in_its_box_and_closing_the_box_frees_its_world() -> void:
 	var m := _main()
 	assert_null(m.term.sim)

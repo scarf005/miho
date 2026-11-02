@@ -29,7 +29,7 @@ static func of(cards: Array) -> Dictionary:
 	return {key = &"", spell = cards.duplicate()}
 
 
-## The example of a talisman `c` held 1 to Spell.MAX_SLOTS times over, one after the other.
+## The example of a talisman `c` held 1 to Spell.MAX_SLOTS times over, a part for each.
 static func counts(c: StringName) -> Dictionary:
 	var each := []
 	for n in range(1, Spell.MAX_SLOTS + 1):
@@ -37,11 +37,11 @@ static func counts(c: StringName) -> Dictionary:
 		cards.resize(n)
 		cards.fill(c)
 		if Spell.make(cards) != null:
-			each.append(of(cards))
+			each.append(of(cards).merged({label = Lang.t("%d단계") % n}))
 	return {key = &"", each = each}
 
 
-## The scenes one entry plays, one after the other.
+## The scenes one entry can play, of which the player picks one (Codex.part).
 static func parts(scene: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if not scene.is_empty():

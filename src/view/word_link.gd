@@ -9,6 +9,10 @@ extends RefCounted
 ## A left click at `local` on the open page, which the page's own click meets
 ## when it is on no word: the 도감 opens on the word's entry.
 static func click(m: Node, local: Vector2) -> StringName:
+	var choice := PanelView.choice_at(m.term, local)
+	if choice >= 0:
+		m.menu.codex.part = choice
+		return &""
 	var word := WordHover.word_at(m.term, local)
 	if word == "" and WordHover.on_pin(m.term, local):
 		return &""

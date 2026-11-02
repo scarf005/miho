@@ -101,11 +101,12 @@ func test_a_creature_strikes_and_casts_each_spell_itself_in_its_examples() -> vo
 			var want: int = casts.size() + (1 if melee else 0)
 			assert_eq(parts.filter(func(p): return p.has("charged")).size(), casts.size(), kind)
 			assert_gte(parts.size(), want, kind)
+			assert_false(parts.is_empty(), kind)
 			for part: Dictionary in parts:
 				var what := "%s %d %s" % [kind, rank, part.label]
 				var w := CodexScene.build(part, rank)
 				var told := []
-				for action in CodexScene.actions(part, rank):
+				for action in CodexScene.actions(part):
 					assert_ne(action.t, &"cast", what)
 					if not w.can(action):
 						break
@@ -126,11 +127,12 @@ func test_every_part_of_a_creature_is_named() -> void:
 func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 	var m := _main()
 	var w: World = m.world
-	var at: Vector2i = w.player().pos + Vector2i(3, 0)
-	var foe := FloorGen.spawn(w, &"imugi", at)
+	var me: Vector2i = w.player().pos
+	var foe := FloorGen.spawn(w, &"imugi", me + Vector2i(0, -2))
 	foe.cooldown = 99
 	var spell := Bestiary.spell(&"imugi", [Cards.ORB])
-	var shot: Shot = w._spawn(foe, spell, Vector2i(-1, 0), 0)
+	var shot: Shot = w._spawn(foe, spell, Vector2i(0, 1), 0)
+	shot.pos = me + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)
 	m._forecast()
@@ -143,10 +145,26 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 func test_miho_casts_her_own_shot_in_a_hover_box() -> void:
 	var m := _main()
 	var w: World = m.world
-	var shot: Shot = w._spawn(w.player(), Spell.make([Cards.ORB]), Vector2i(1, 0), 0)
+	var shot: Shot = w._spawn(w.player(), Spell.make([Cards.ORB]), Vector2i(0, -1), 0)
+	shot.pos = w.player().pos + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)
 	m._forecast()
 	m.hover = shot.pos
 	m._refresh()
 	assert_eq(m.term.example.get("spell"), [Cards.ORB])
+
+
+func test_a_long_list_of_choices_keeps_the_picked_one_in_view() -> void:
+	var m := _main()
+	_codex(m, FOES)
+	m.menu.codex.select(Codex.foes().find(&"saja"))
+	m.menu.codex.room = Vector2i(66, 18)
+	m.term.panel = m.menu.panel()
+	_press(m, KEY_BRACKETLEFT)
+	var choices: Dictionary = m.term.panel.choices
+	assert_eq(choices.at, choices.names.size() - 1)
+	assert_gt(choices.top, 0)
+	assert_lt(choices.at, choices.top + choices.fit)
+	var row: Vector2 = choices.from + Vector2(1, choices.at - choices.top)
+	assert_eq(PanelView.choice_at(m.term, (row + Vector2(0.1, 0.5)) * Term.CELL), choices.at)

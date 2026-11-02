@@ -19,6 +19,8 @@ const ME := Vector2i(4, 8)
 const AT := Vector2i(5, 8)
 ## The run between the parts of a row (`flow` breaks only at it).
 const SEP := " · "
+## Rows an example keeps for the parts to pick from; a longer list scrolls.
+const LEAST_CHOICES := 3
 
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
 
@@ -30,6 +32,10 @@ var trail: Array = []
 var ahead: Array = []
 ## The rank of the storey Miho is on (Bestiary.rank): the creatures read as there.
 var rank := 1
+## The part of the selected entry's example that plays, and the one under the pointer.
+var part := 0
+var lit := -1
+var part_top := 0
 var selected := 0
 ## The first entry shown, and the entry the pointer is over (-1 for none).
 var top := 0
@@ -70,10 +76,9 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				var spec := Bestiary.info(kind)
 				var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
 				out.append(
-					_entry(
-						Lang.t(spec.glyph, "creature"), Palette.KIND[kind], spec.name, lines, kind
-					)
+					_entry(Lang.t(spec.glyph, "creature"), Palette.KIND[kind], spec.name, lines)
 				)
+				out.back().scene = CodexScene.foe(kind, at_rank)
 		1:
 			for c in Cards.FORMS + Cards.ELEMENTS:
 				out.append(_talisman(c))
@@ -264,6 +269,7 @@ func panel() -> Dictionary:
 	var fits := _lines_fit()
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
 	var shown := lines.slice(scroll, scroll + fits).map(_legible)
+	var example := _example(list[selected], _side_x(list))
 	return {
 		title = Lang.t("도감"),
 		tabs = TABS.map(Lang.t),
@@ -277,7 +283,8 @@ func panel() -> Dictionary:
 		opaque = true,
 		aside_up = scroll > 0,
 		aside_down = scroll + fits < lines.size(),
-		example = _example(list[selected], _side_x(list)),
+		example = example,
+		choices = _choices(list[selected], example),
 		shown = Vector2i(tab, selected),
 	}
 
@@ -285,10 +292,38 @@ func panel() -> Dictionary:
 ## The example beside `entry`, the selected one (CodexSim): empty when it has none or
 ## the screen has no room for one. A creature's reads as its entry does, at `rank`.
 func _example(entry: Dictionary, side: float) -> Dictionary:
-	var k := CodexSim.scale_for(room, side)
-	if entry.scene.is_empty() or k == 0.0:
+	var parts := SpellScene.parts(entry.scene)
+	var k := CodexSim.scale_for(
+		room, side, mini(parts.size(), LEAST_CHOICES) if parts.size() > 1 else 0
+	)
+	if parts.is_empty() or k == 0.0:
 		return {}
-	return {entry = [tab, selected], scene = entry.scene, rank = rank if tab == 0 else 0, scale = k}
+	part = posmod(part, parts.size())
+	return {
+		entry = [tab, selected, part],
+		scene = parts[part],
+		rank = rank if tab == 0 else 0,
+		scale = k,
+	}
+
+
+## The parts of `entry` to pick from, under its example, or none when it has one.
+func _choices(entry: Dictionary, example: Dictionary) -> Dictionary:
+	var parts := SpellScene.parts(entry.scene)
+	if example.is_empty() or parts.size() < 2:
+		return {}
+	var k: float = example.scale
+	var from := Vector2(room.x - CodexSim.beside(k) + 1.0, CodexSim.TOP + CodexScene.VIEW.y * k)
+	var fit: int = room.y - int(from.y) - int(CodexSim.FOOT)
+	part_top = ListNav.reveal(part_top, part, parts.size(), fit)
+	return {
+		names = parts.map(func(p): return p.label),
+		at = part,
+		lit = lit,
+		from = from,
+		top = part_top,
+		fit = fit,
+	}
 
 
 ## A line with the dim runs in plain text colour, so a whole page reads.
@@ -309,6 +344,9 @@ func key(e: InputEventKey, nav: StringName) -> StringName:
 		trail.clear()
 	if nav == &"back" or action == &"codex":
 		return &"close"
+	if e.keycode in [KEY_BRACKETLEFT, KEY_BRACKETRIGHT]:
+		part += 1 if e.keycode == KEY_BRACKETRIGHT else -1
+		return &""
 	var pick := int(action.trim_prefix("pick_")) if action.begins_with("pick_") else 0
 	if pick > 0 and pick <= TABS.size():
 		go(pick - 1)
@@ -328,6 +366,8 @@ func select(k: int) -> void:
 	if k != selected:
 		selected = k
 		scroll = 0
+		part = 0
+		part_top = 0
 	top = ListNav.reveal(top, selected, entries(tab).size(), _fits())
 
 
@@ -381,6 +421,8 @@ func _place() -> Array:
 func _return_to(place: Array) -> void:
 	tab = place[0]
 	selected = place[1]
+	part = 0
+	part_top = 0
 	top = place[2]
 	scroll = place[3]
 
@@ -388,6 +430,8 @@ func _return_to(place: Array) -> void:
 func go(t: int) -> void:
 	tab = t
 	selected = 0
+	part = 0
+	part_top = 0
 	top = 0
 	scroll = 0
 

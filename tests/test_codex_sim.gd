@@ -118,19 +118,10 @@ func test_what_every_scene_does_stays_in_the_window() -> void:
 				assert_true(window.has_point(w.player().pos), "%s: Miho stays" % e.name)
 
 
-func test_every_creature_entry_does_something_as_miho_waits() -> void:
-	for kind in Codex.foes():
-		var scene := CodexScene.of(kind)
-		var w := CodexScene.build(scene)
-		var events := []
-		for action in CodexScene.actions(scene):
-			events.append_array(w.act(action))
-		var acted := events.filter(func(e): return e.get("id", -1) != w.player().id)
-		assert_false(acted.is_empty(), "%s acts" % kind)
-
-
 func test_a_homing_shot_turns_after_miho_as_she_moves_in_the_scene() -> void:
-	var scene := CodexScene.of(&"dokkaebi")
+	var homing: Array = Bestiary.casts(&"dokkaebi", 1)[0]
+	assert_gt(Spell.make(homing).turn(), 0)
+	var scene := CodexScene.charged(&"dokkaebi", homing)
 	var w := CodexScene.build(scene)
 	var rows := {}
 	for action in CodexScene.actions(scene):
@@ -166,7 +157,7 @@ func test_a_scene_plays_the_same_every_time() -> void:
 
 func test_a_creature_scene_reads_at_the_rank_of_its_entry() -> void:
 	for rank in [1, Bestiary.RANKS]:
-		var w := CodexScene.build(CodexScene.of(&"dokkaebi"), rank)
+		var w := CodexScene.build(CodexScene.foe(&"dokkaebi", rank).each[0], rank)
 		assert_eq(w.actors[1].hp, Bestiary.hp(&"dokkaebi", rank))
 		assert_eq(Bestiary.rank(w.depth), rank)
 

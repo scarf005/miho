@@ -4,7 +4,7 @@ extends Term
 ## round after round through Term.play, over whatever shows an example: the 도감, the
 ## spellbook, the box of a hover. It has no link to the run, the log or the sound.
 ## Before each cast the tiles it would reach are tinted as the aim preview tints them
-## (SpellScene.reach). A scene with a list `each` plays one after the other.
+## (SpellScene.reach).
 
 ## Seconds before the first round, after each round, and before starting again.
 const START := 0.5
@@ -13,8 +13,7 @@ const REST := 1.0
 ## Seconds the tiles a cast reaches stay tinted before it is cast.
 const AIM := 0.8
 
-var _scenes: Array[Dictionary] = []
-var _turn := 0
+var _scene := {}
 var _rank := 0
 var _actions: Array[Dictionary] = []
 var _next := 0
@@ -50,9 +49,8 @@ func _process(delta: float) -> void:
 
 ## Plays `scene`, on a storey of rank `rank`, from its start.
 func show_scene(scene: Dictionary, rank := 0) -> void:
-	_scenes = SpellScene.parts(scene)
+	_scene = scene
 	_rank = rank
-	_turn = 0
 	speed = get_parent().speed
 	set_process(true)
 	visible = true
@@ -60,7 +58,7 @@ func show_scene(scene: Dictionary, rank := 0) -> void:
 
 
 func stop() -> void:
-	_scenes.clear()
+	_scene = {}
 	rush()
 	set_process(false)
 	visible = false
@@ -72,18 +70,17 @@ func _begin() -> void:
 	_flashes.clear()
 	_trails.clear()
 	_clear()
-	var scene := SpellScene.ready(_scenes[_turn])
-	_actions = CodexScene.actions(scene, _rank)
+	var scene := SpellScene.ready(_scene)
+	_actions = CodexScene.actions(scene)
 	show_world(CodexScene.build(scene, _rank))
 	_next = 0
 	_left = START
 
 
 ## The next round of the scene: a cast shows the tiles it reaches first. After the last,
-## the next scene of the list, or the scene again from its start.
+## the scene again from its start.
 func _play_next() -> void:
 	if _next >= _actions.size() or not world.can(_actions[_next]):
-		_turn = (_turn + 1) % _scenes.size()
 		_begin()
 		return
 	var action := _actions[_next]

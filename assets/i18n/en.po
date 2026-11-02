@@ -3146,3 +3146,15 @@ msgstr "Go back/forward in the codex"
 
 msgid "Alt+왼쪽/오른쪽"
 msgstr "Alt+Left/Right"
+
+msgid "%d단계"
+msgstr "Step %d"
+
+msgid "이동"
+msgstr "Moving"
+
+msgid "도감 예시 고르기"
+msgstr "Pick an example in the codex"
+
+msgid "[ ]"
+msgstr "[ ]"

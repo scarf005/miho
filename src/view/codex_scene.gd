@@ -3,14 +3,15 @@ extends RefCounted
 ## The example beside an entry of the 도감 (CodexSim) as data: a small lit hall,
 ## who stands where in it, and the actions Miho takes. `build` makes it a real World
 ## with its own seed, and `actions` the actions for World.act, so what the example
-## shows comes from the rules alone. An entry with no row has no example.
+## shows comes from the rules alone. An entry with no row has no example. A creature's example
+## has a part for its strike and for each of its spells at a rank (`foe`).
 ##
 ## A row is [map, do, cards]; `do` and `cards` may be left out. The map's rows are
 ## parted by "/" and centred in the hall's height, column 0 at the hall's left. It
 ## has a mark from MARKS, or one of:
 ## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
-## rest, w a dull one (장승) at rest with one health, J a 장승 that casts once it sees her, k the
-## creature the row is for, m that creature hunting her and casting nothing, D a jar with a doll
+## rest, w a dull one (장승) at rest with one health, J a 장승 that casts once it sees her, m the
+## creature the row is for, hunting her and casting nothing, D a jar with a doll
 ## that puts on her the curse the row is for (`_doll`), t the tile the row is for,
 ## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
 ## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
@@ -50,7 +51,14 @@ const MARKS := {
 	";": World.STRAW,
 	"l": World.LANTERN_OUT,
 }
-const HUNTER := "  @      k"
+const HUNTER := "  @      m"
+## A creature that walks to Miho and strikes, one that strikes where it stands, and one that
+## casts at her.
+const STRIKES := "  @  m"
+const BESIDE := "  @m"
+## How a creature moves that does not come up to Miho to strike.
+const STAYS_OFF := [&"static", &"water", &"align"]
+const AIMS := "  @   m"
 const WATCHES := "........"
 ## What Miho does before a creature whose spell homes, so that its shot turns after her.
 const DODGES := "^v^v^v^v"
@@ -126,15 +134,13 @@ const TABLE := {
 	&"gas3": ["    333/  @ 333/    333", "...."],
 	&"gas4": ["    444/  @ 444/    444", "c..", [Cards.FOX, Cards.FIRE]],
 	&"body": ["  @w", ">.."],
-	&"jangseung": ["  @   k", WATCHES],
-	&"dueoksini": ["  @   k", WATCHES],
 }
 
 
 ## The scene of table row `key`, its cards `cards` unless the row names its own, or
-## empty when there is no row. A creature with no row of its own hunts Miho as she waits.
+## empty when there is no row.
 static func of(key: Variant, cards := []) -> Dictionary:
-	var row: Array = TABLE.get(key, [HUNTER, WATCHES] if Codex.foes().has(key) else [])
+	var row: Array = TABLE.get(key, [])
 	if row.is_empty():
 		return {}
 	return {
@@ -145,6 +151,35 @@ static func of(key: Variant, cards := []) -> Dictionary:
 	}
 
 
+## The example of creature `kind` at rank `rank`: its strike, each of its spells at that rank,
+## and for one with neither, or none to strike with that moves, how it walks up to Miho.
+static func foe(kind: StringName, rank: int) -> Dictionary:
+	var spec := Bestiary.info(kind)
+	var move: StringName = spec.get("move", &"static")
+	var each := []
+	if spec.has("melee"):
+		var label := Lang.t("근접: %s") % Lang.t(spec.melee.name)
+		each.append(_foe_part(kind, BESIDE if move in STAYS_OFF else STRIKES, label))
+	elif move != &"static":
+		each.append(_foe_part(kind, HUNTER, Lang.t("이동")))
+	for cards: Array in Bestiary.casts(kind, rank):
+		each.append(charged(kind, cards))
+	return {key = kind, each = each}
+
+
+static func _foe_part(kind: StringName, map: String, label: String) -> Dictionary:
+	return {key = kind, map = map, cards = [], do = WATCHES, label = label}
+
+
+## The scene of creature `kind` with `cards` charged at Miho, cast the round she waits (Mind).
+static func charged(kind: StringName, cards: Array) -> Dictionary:
+	var turns := Spell.make(cards).turn() > 0
+	var label := Bestiary.spell(kind, cards).shown()
+	return _foe_part(kind, AIMS, label).merged(
+		{charged = cards, do = DODGES if turns else WATCHES}, true
+	)
+
+
 ## The scene as a World from its start, on a storey of rank `rank`; 0 for DEPTH.
 static func build(scene: Dictionary, rank := 0) -> World:
 	var w := hall(rank)
@@ -153,6 +188,9 @@ static func build(scene: Dictionary, rank := 0) -> World:
 	for y in rows.size():
 		for x in rows[y].length():
 			_place(w, scene.key, rows[y][x], Vector2i(HALL.position.x + LEFT + x, top + y))
+	if scene.has("charged"):
+		var by: Actor = w.actors.back()
+		by.intent.assign([{cards = scene.charged, dir = -EAST}])
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	w.sense()
@@ -189,11 +227,10 @@ static func hall(rank := 0) -> World:
 	return w
 
 
-## What the scene's Miho does, a round each, on a storey of rank `rank`; 0 for DEPTH.
-static func actions(scene: Dictionary, rank := 0) -> Array[Dictionary]:
+## What the scene's Miho does, a round each.
+static func actions(scene: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var letters: String = DODGES if _homes(scene, rank) else scene.do
-	for letter: String in letters:
+	for letter: String in scene.do:
 		match letter:
 			"c":
 				out.append({t = &"cast", spells = [{cards = scene.cards, dir = EAST}]})
@@ -212,14 +249,6 @@ static func actions(scene: Dictionary, rank := 0) -> Array[Dictionary]:
 	return out
 
 
-## Whether the scene is of a creature that casts a homing spell at `rank`.
-static func _homes(scene: Dictionary, rank: int) -> bool:
-	if not Codex.foes().has(scene.key) or scene.do != WATCHES:
-		return false
-	var at := rank if rank > 0 else Bestiary.rank(DEPTH)
-	return Bestiary.casts(scene.key, at).any(func(c): return Spell.make(c).turn() > 0)
-
-
 static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 	match mark:
 		" ":
@@ -235,8 +264,10 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			_doll(w, key, p)
 		"d", "z":
 			_foe(w, &"dokkaebi", p, mark)
-		"k", "m":
+		"m":
 			_foe(w, key, p, mark)
+			if Bestiary.info(key).get("move") == &"water":
+				w.set_tile(p, World.POND)
 		"t":
 			w.set_tile(p, key)
 			if key == World.JAR:
@@ -282,10 +313,10 @@ static func _doll(w: World, key: Variant, p: Vector2i) -> void:
 
 static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 	var a := FloorGen.spawn(w, kind, p)
-	if mark != "k" and mark != "J":
+	if mark != "J":
 		a.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1
-	if mark in ["d", "i", "k", "m"]:
+	if mark in ["d", "i", "m"]:
 		a.alert = Actor.HUNT
 		a.target = w.player().pos

@@ -60,6 +60,7 @@ static func draw(t: Term) -> void:
 		t._glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
 	if panel.get("aside_down", false):
 		t._glyph(Vector2(cols - 2, rows - 1), "▼", Palette.DIM)
+	_draw_choices(t, panel.get("choices", {}))
 	var shown := span(t)
 	for k in range(shown.x, mini(shown.x + shown.y, panel.rows.size())):
 		var y := 3 + (k - shown.x) * stride
@@ -78,6 +79,42 @@ static func draw(t: Term) -> void:
 		t._glyph(Vector2(1, 2), "▲", Palette.DIM)
 	if shown.x + shown.y < panel.rows.size():
 		t._glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
+
+
+## The parts of an example to pick from, one under another beneath it, with the keys.
+static func _draw_choices(t: Term, choices: Dictionary) -> void:
+	if choices.is_empty():
+		return
+	var last: int = mini(choices.top + choices.fit, choices.names.size())
+	for k in range(choices.top, last):
+		var at: Vector2 = choices.from + Vector2(0, k - choices.top)
+		if k == choices.at or k == choices.lit:
+			var alpha := 0.15 if k == choices.at else 0.07
+			t.draw_rect(
+				Rect2(at * Term.CELL, Vector2(t.cols - at.x, 1) * Term.CELL),
+				Color(Palette.TEXT, alpha)
+			)
+		t._text(at, choices.names[k], Palette.TEXT if k == choices.at else Palette.DIM)
+	if choices.top > 0:
+		t._glyph(choices.from - Vector2(1, 0), "▲", Palette.DIM)
+	if last < choices.names.size():
+		t._glyph(choices.from + Vector2(-1, choices.fit - 1), "▼", Palette.DIM)
+	var keys: Vector2 = (
+		choices.from + Vector2(t.cols - choices.from.x - 2.0, choices.at - choices.top)
+	)
+	t._key(keys, "[", Palette.DIM)
+	t._key(keys + Vector2(1, 0), "]", Palette.DIM)
+
+
+## The part of an example under a point in the term's space, or -1.
+static func choice_at(t: Term, local: Vector2) -> int:
+	var choices: Dictionary = t.panel.get("choices", {})
+	if choices.is_empty():
+		return -1
+	var k := floori(local.y / Term.CELL.y - choices.from.y) + int(choices.top)
+	var last: int = mini(choices.top + choices.fit, choices.names.size())
+	var on: bool = local.x / Term.CELL.x >= choices.from.x and k >= choices.top and k < last
+	return k if on else -1
 
 
 ## The column where a line of runs that starts at `x` ends.
