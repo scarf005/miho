@@ -100,6 +100,8 @@ static func swap(w: World, s: Shot, a: Actor) -> void:
 	if trade:
 		w.move(a, from)
 	w.move(me, to)
+	if trade:
+		Fall.traded(w, a, me, depth)
 	if w.depth != depth or not me.alive():
 		return
 	for p in [from, to]:

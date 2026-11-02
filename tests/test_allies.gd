@@ -539,3 +539,11 @@ func test_trading_places_off_a_rotten_board_drops_the_ally_through_it() -> void:
 	w.act({t = &"move", dir = E})
 	assert_eq(w.player().pos, ME + E)
 	assert_false(ally.alive(), "the board gave way under the ally")
+
+
+func test_after_a_fall_a_trade_does_not_read_the_old_tile_on_the_new_storey() -> void:
+	var w := _world()
+	var ally := _copy(w, ME + E)
+	w.set_tile(ally.pos, World.SKY)
+	Fall.traded(w, ally, w.player(), w.depth + 1)
+	assert_true(ally.alive())

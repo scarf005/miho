@@ -47,6 +47,14 @@ static func drop(w: World, a: Actor, into: Vector2i) -> void:
 		_drop(w, a, into)
 
 
+## `a` and `b` have just traded places: a rotten board one of them left gave way under the
+## other, who falls, unless a plate has taken Miho off `depth`, the storey of the trade, already.
+static func traded(w: World, a: Actor, b: Actor, depth: int) -> void:
+	for c: Actor in [a, b]:
+		if w.depth == depth and w.tile(c.pos) == World.SKY:
+			drop(w, c, c.pos)
+
+
 ## `by` drags `a` off dry ground to its side: to the free walkable water tile next to both
 ## that is nearest `by`. With none, or on water already, `a` stays where it is. Miho takes
 ## what lies there, as on a push.

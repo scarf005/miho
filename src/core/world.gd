@@ -504,6 +504,8 @@ func act(action: Dictionary) -> Array[Dictionary]:
 				if foe != null:
 					move(foe, me.pos)
 				move(me, to)
+				if foe != null:
+					Fall.traded(self, foe, me, storey)
 				if depth == storey:
 					Scent.lay(self, to)
 					if arrive(me):
