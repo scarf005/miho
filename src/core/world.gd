@@ -154,6 +154,33 @@ const COURTYARD := 43
 const STATUE := 44
 const BOARD_ROTTEN := 45
 
+## The World fields that belong to the storey Miho is on, but its creatures.
+const STOREY: Array[String] = [
+	"tiles",
+	"rooms",
+	"start",
+	"stairs",
+	"elixir",
+	"peaches",
+	"jars",
+	"burning",
+	"wild",
+	"gas",
+	"vents",
+	"wet",
+	"hot",
+	"traps",
+	"secrets",
+	"seals",
+	"sites",
+	"tail_bonus",
+	"changes",
+	"bodies",
+	"known",
+	"round_no",
+	"curses",
+]
+
 var depth := 1
 var tiles := PackedByteArray()
 var rooms: Array[Rect2i] = []
@@ -246,29 +273,10 @@ static func create(seed_value: int) -> World:
 func clone() -> World:
 	var w := World.new()
 	w.depth = depth
-	w.tiles = tiles.duplicate()
-	w.rooms = rooms.duplicate()
-	w.start = start
-	w.stairs = stairs
-	w.elixir = elixir
-	w.peaches = peaches.duplicate()
-	w.jars = jars.duplicate()
+	for f in STOREY:
+		w.set(f, copied(get(f)))
 	w.pungent = pungent
-	w.curses = curses.duplicate()
 	w.strong = strong.duplicate()
-	w.burning = burning.duplicate()
-	w.wild = wild.duplicate()
-	w.gas = gas.duplicate()
-	w.vents = vents.duplicate()
-	w.changes = changes.duplicate(true)
-	w.bodies = bodies.duplicate(true)
-	w.wet = wet.duplicate()
-	w.hot = hot.duplicate()
-	w.traps = traps.duplicate()
-	w.secrets = secrets.duplicate()
-	w.seals = seals.duplicate(true)
-	w.sites.assign(sites.duplicate(true))
-	w.tail_bonus = tail_bonus
 	w.storeys = storeys.duplicate()
 	for a in actors:
 		w.actors.append(a.clone())
@@ -279,16 +287,21 @@ func clone() -> World:
 	w.regrow = regrow
 	w.cheats = cheats.duplicate()
 	w.cards = cards.duplicate()
-	w.round_no = round_no
 	w.outcome = outcome
 	w.rng.seed = rng.seed
 	w.rng.state = rng.state
 	w.seen = seen.duplicate()
 	w.dim = dim.duplicate()
-	w.known = known.duplicate()
 	w.heard = heard.duplicate()
 	w.scent = scent.duplicate()
 	return w
+
+
+## A table of a storey as its own copy: a list or a table with what it holds, a mask.
+static func copied(v: Variant) -> Variant:
+	if v is Array or v is Dictionary:
+		return v.duplicate(true)
+	return v.duplicate() if v is PackedByteArray else v
 
 
 ## A copy holding only what Miho knows: creatures and projectiles out of her
