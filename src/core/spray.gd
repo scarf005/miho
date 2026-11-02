@@ -71,6 +71,8 @@ const BORE := &"bore"
 const BREACH := &"breach"
 ## Tiles across the line, where a wooden wall can grow.
 const ACROSS := &"across"
+## A band ahead of the caster, each of its lanes up to a wall.
+const BAND := &"band"
 ## Every tile within a radius of the caster, walls and all.
 const AROUND := &"around"
 ## The tiles of the creatures the caster sees, and her own tile if the third
@@ -102,7 +104,7 @@ const SHAPE := {
 	Cards.BUNSIN: [AROUND, 0],
 	Cards.RAISE: [AROUND, 0],
 	&"beacon": [BURST, 6, 1],
-	&"magpie": [AROUND, 3],
+	&"magpie": [BAND, 8, 3],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],
 	&"newmoon": [AROUND, 8],
@@ -273,6 +275,8 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return square(w, landing(w, from, dir, shape[1]), shape[2] + grown, true)
 		AROUND:
 			return square(w, from, n, true)
+		BAND:
+			return band(w, from, dir, n, shape[2])
 		SIGHT:
 			return sighted(w, caster, shape.size() > 2)
 		ACROSS:
@@ -346,7 +350,7 @@ static func holds(spell: Spell, t: int) -> bool:
 	if spell.level() == 0 and SHAPE[spell.slots[0]][1] + spell.grown(spell.slots[0]) == 0:
 		return walk
 	match form(spell):
-		AROUND, BREACH, CLEAVE:
+		AROUND, BREACH, CLEAVE, BAND:
 			return true
 		FAN_SHAPE, BURST:
 			return not Terrain.wall(t)
@@ -451,6 +455,21 @@ static func square(w: World, at: Vector2i, r := 1, walls := false) -> Array[Vect
 			var p := at + Vector2i(x, y)
 			if Grid.inside(p) and (walls or dist[Grid.index(p)] >= 0):
 				out.append(p)
+	return out
+
+
+## The `wide` tiles across the line at each of the `n` tiles along `dir` from `from`; a lane
+## ends at its first wall.
+static func band(w: World, from: Vector2i, dir: Vector2i, n: int, wide: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var shut := {}
+	for k in range(1, n + 1):
+		var row := Elements.across(from + dir * k, dir, wide)
+		for lane in row.size():
+			if not Grid.inside(row[lane]) or Terrain.wall(w.tile(row[lane])):
+				shut[lane] = true
+			if not shut.has(lane):
+				out.append(row[lane])
 	return out
 
 

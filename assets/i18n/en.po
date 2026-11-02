@@ -3223,3 +3223,6 @@ msgstr "tiles left"
 
 msgid "%s %d장"
 msgstr "%s ×%d"
+
+msgid "앞으로 %d×%d칸"
+msgstr "%d×%d tiles ahead"
