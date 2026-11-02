@@ -51,8 +51,16 @@ static func _beacon(w: World, caster: Actor) -> void:
 
 
 static func _furnace(w: World, caster: Actor) -> void:
+	var standing := w.actors.filter(func(a): return a.alive() and a.kind == FURNACE)
+	var fixed := standing.map(func(a): return a.pos)
+	var guard := Compounds.linked(w, fixed)
 	var free := Spray.square(w, caster.pos, REACH).filter(
-		func(p): return Compounds.open(w, p) and w.vacant(p)
+		func(p):
+			return (
+				Compounds.open(w, p)
+				and w.vacant(p)
+				and (not guard or Compounds.linked(w, fixed + [p]))
+			)
 	)
 	if free.is_empty():
 		return
