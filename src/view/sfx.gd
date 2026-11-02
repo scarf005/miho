@@ -376,8 +376,9 @@ static func dreaded(w: World, known: Dictionary) -> Array[Actor]:
 	var out: Array[Actor] = []
 	for id: int in Travel.in_sight(w):
 		var a := w.actor(id)
-		if not known.has(id) and a.info().get("group") in DREADED:
-			known[id] = true
+		var key := [w.get_instance_id(), id]
+		if not known.has(key) and a.info().get("group") in DREADED:
+			known[key] = true
 			out.append(a)
 	return out
 
