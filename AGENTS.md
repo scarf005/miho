@@ -5,6 +5,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 ## Concept
 
 - The magic system is 음양오행: shapes 여 and 구, and the five elements. A new spell is made by combining the existing talismans: pairs, then 상생 and 상극 chains of three, four and five (docs/plan-compounds.md). Never add a new talisman or card outside this system.
+- A buff, a spell cast on oneself, always holds 목. User: "버프형 주문은 반드시 목 있어야 함. 여 + 불 + 목, 여 + 수 + 목처럼".
 - Before you add a tile, status, state or creature field, diff it against the existing table (src/core/tiles.gd, Actor, Info.state). If its rules match an existing entry, reuse that entry. Never add a themed name with the same rules.
 - Level design teaches by arrangement, not by text. A secret or puzzle looks like ordinary terrain. Examples: a plain wall in front of an empty space, or three dark lanterns in a row. Never add an artificial prop whose hover explains the solution.
 - Never add a gameplay limit the user did not ask for: a damage cap, a balance ceiling, or a test that enforces one. A numeric limit a lane needs goes to the user first, in plain words.
