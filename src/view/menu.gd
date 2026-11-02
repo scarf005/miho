@@ -27,6 +27,8 @@ const LOOK := [
 	"살피는 중",
 	"방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반경), Esc 끝",
 ]
+## Enter or a click raises one of these, and from 100 takes it back to 0.
+const SLIDERS := [&"volume", &"music", &"crt"]
 const OPTIONS := [
 	&"close",
 	&"volume",
@@ -343,7 +345,7 @@ func _use_option() -> StringName:
 		&"seed":
 			copied = true
 			return row
-	return _change(1)
+	return _change(-10 if row in SLIDERS and settings.get(row) == 100 else 1)
 
 
 func _use_key_row() -> StringName:
