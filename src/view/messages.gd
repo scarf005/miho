@@ -205,7 +205,7 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"curse":
 			match e.what:
 				Curse.REAPER:
-					return _t("{0}이/가 길을 재촉했다", [_kind(&"saja")])
+					return _t("오한이 든다...")
 				Curse.SIGHT:
 					return _t("누군가가 지켜보는 느낌이 든다...")
 			var jar := _named(Tiles.of(World.JAR, "name"))
