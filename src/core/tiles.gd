@@ -24,6 +24,12 @@ extends RefCounted
 ## this tile kind, until Miho finds it.
 ## opens: it shuts the way now and is gone in time (a veil goes out), so the
 ## storey is whole without it (FloorGen.connected).
+## reacts: element -> [what it becomes, the word for the change] when a spell
+## with that element reaches it (Terrain.react), by the cycles of 오행: 쇠 cuts
+## what grows, 나무 cracks walls, 흙 fills water, 물 makes ash green, 불 bakes mud.
+
+const CUT := {Cards.METAL: [World.FLOOR, "베임"]}
+const FILL := {Cards.EARTH: [World.MUD, "메워짐"]}
 
 const ROWS := {
 	World.FLOOR: {name = "바닥", walk = true},
@@ -36,6 +42,7 @@ const ROWS := {
 		wall = true,
 		gas = false,
 		breaks_to = World.WALL_CRACKED,
+		reacts = {Cards.WOOD: [World.WALL_CRACKED, "금이 감"]},
 	},
 	World.DOOR:
 	{
@@ -59,10 +66,11 @@ const ROWS := {
 		burns = true,
 		tread = [2, "사각"],
 		scentless = true,
+		reacts = CUT,
 	},
 	World.BOARD: {name = "마루", walk = true, burns = true, tread = [3, "삐걱"]},
-	World.POND: {name = "연못"},
-	World.ASH: {name = "재", walk = true},
+	World.POND: {name = "연못", reacts = FILL},
+	World.ASH: {name = "재", walk = true, reacts = {Cards.WATER: [World.GRASS, "자람"]}},
 	World.LANTERN_BROKEN: {name = "부서진 등불", walk = true},
 	World.WALL_CRACKED:
 	{
@@ -73,6 +81,7 @@ const ROWS := {
 		wall = true,
 		gas = false,
 		breaks_to = World.RUBBLE,
+		reacts = {Cards.WOOD: [World.RUBBLE, "무너짐"]},
 	},
 	World.RUBBLE: {name = "무너진 벽", walk = true},
 	World.SKY: {name = "하늘", gas = false},
@@ -89,7 +98,7 @@ const ROWS := {
 		hit = [World.KNOCK, "찌익"],
 	},
 	World.DRUM_TORN: {name = "찢어진 북", walk = true},
-	World.GRASS: {name = "풀", walk = true, burns = true, spread = 0.15},
+	World.GRASS: {name = "풀", walk = true, burns = true, spread = 0.15, reacts = CUT},
 	World.STRAW: {name = "마른 짚", walk = true, burns = true, fierce = true, spread = 1.0},
 	World.REEDS:
 	{
@@ -101,8 +110,17 @@ const ROWS := {
 		spread = 1.0,
 		tread = [2, "바스락"],
 		trample = World.REEDS_FLAT,
+		reacts = CUT,
 	},
-	World.REEDS_FLAT: {name = "쓰러진 갈대", walk = true, burns = true, fierce = true, spread = 1.0},
+	World.REEDS_FLAT:
+	{
+		name = "쓰러진 갈대",
+		walk = true,
+		burns = true,
+		fierce = true,
+		spread = 1.0,
+		reacts = CUT,
+	},
 	World.LEAVES:
 	{
 		name = "낙엽",
@@ -113,7 +131,15 @@ const ROWS := {
 		tread = [2, "바스락"],
 		trample = World.FLOOR,
 	},
-	World.SHALLOW: {name = "얕은 물", walk = true, tread = [2, "철벅"], douses = true, scentless = true},
+	World.SHALLOW:
+	{
+		name = "얕은 물",
+		walk = true,
+		tread = [2, "철벅"],
+		douses = true,
+		scentless = true,
+		reacts = FILL,
+	},
 	World.PILLAR: {name = "기둥", sight = true, light = false, gas = false},
 	World.WOOD_WALL:
 	{
@@ -125,10 +151,12 @@ const ROWS := {
 		breaks_to = World.FLOOR,
 		gas = false,
 		hit = [World.KNOCK, "우지끈"],
+		reacts = CUT,
 	},
 	World.ICE: {name = "얼음", walk = true, douses = true},
-	World.THORNS: {name = "가시덤불", walk = true, burns = true},
-	World.MUD: {name = "진흙", walk = true, douses = true},
+	World.THORNS: {name = "가시덤불", walk = true, burns = true, reacts = CUT},
+	World.MUD:
+	{name = "진흙", walk = true, douses = true, reacts = {Cards.FIRE: [World.FLOOR, "마름"]}},
 	World.TRAP_ALARM: {name = "징 함정", walk = true, trap = true},
 	World.TRAP_COLLAPSE: {name = "허방다리", walk = true, trap = true},
 	World.TRAP_FIRE: {name = "불씨 함정", walk = true, trap = true},
@@ -194,6 +222,7 @@ const DEFAULT := {
 	gas = true,
 	trap = false,
 	opens = false,
+	reacts = {},
 }
 
 ## One byte per tile kind, 1 where the column holds: the tables Masks feeds to Rust.

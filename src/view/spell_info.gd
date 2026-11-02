@@ -127,13 +127,16 @@ static func spell(s: Spell) -> Array:
 		return lines
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
+		if s.level() > 0 and s.slots[0] != Cards.WOOD:
+			lines.append_array(_lines(_reacts(s, s.slots[0]), Palette.CARD[s.slots[0]]))
 		if not _flame(s):
 			lines.append(_line(MUZZLE[0], MUZZLE[1]) if s.gun() else _line("빛", "없음"))
 		return lines + _lines(_sounds(s)) + ward(s)
 	lines.append_array(_shape(s))
+	var where := "멈춘 곳 %s의 " % _square(Grid.NEAR)
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(_effect(s, e), Palette.CARD[e]))
+			lines.append_array(_lines(_effect(s, e) + _reacts(s, e, where), Palette.CARD[e]))
 	if s.has(Cards.WATER):
 		lines.append(_line(SOAK[0], SOAK[1], Palette.CARD[Cards.WATER]))
 	for c in s.compounds():
@@ -271,7 +274,7 @@ static func _compound(s: Spell) -> Array:
 		plain[Cards.EARTH].append(["벽", "금이 감"])
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(plain[e], Palette.CARD[e]))
+			lines.append_array(_lines(plain[e] + _reacts(s, e), Palette.CARD[e]))
 	if s.has(Cards.WATER):
 		lines.append(_line(SOAK[0], SOAK[1], Palette.CARD[Cards.WATER]))
 	return lines
@@ -635,6 +638,18 @@ static func _effect(s: Spell, e: StringName) -> Array:
 	if s.orb:
 		return [["벽", "한 번에 부술 수 있다"], thud]
 	return [["기절", "%d초" % (Elements.STUN + s.extra(e))], thud]
+
+
+## What element `e` of `s` does to the tiles it reaches (Terrain.react), as
+## [label, tiles] lines read from the Tiles rows, `where` before the tiles.
+static func _reacts(s: Spell, e: StringName, where := "") -> Array:
+	var changes := {}
+	if e in Terrain.reacting(s):
+		for t: int in Tiles.ROWS:
+			var change: Variant = Tiles.of(t, "reacts").get(e)
+			if change != null:
+				changes.get_or_add(change[1], []).append(Tiles.of(t, "name"))
+	return changes.keys().map(func(label): return [label, where + ", ".join(changes[label])])
 
 
 ## A lone 불's spray, whose 소음 line is in its own lines (`_spray`).

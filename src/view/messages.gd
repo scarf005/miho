@@ -181,7 +181,11 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"thaw":
 			return _subject(before, after, id) + [["녹았다", TEXT]]
 		&"become":
-			return _named(Tiles.of(e.tile, "name"), "이", "가") + [[" 생겼다", TEXT]]
+			var name: String = Tiles.of(e.tile, "name")
+			if e.has("was"):
+				var now := name + _particle(name, "이", "가") + " 되었다"
+				return _named(Tiles.of(e.was, "name"), "이", "가") + [[" " + now, TEXT]]
+			return _named(name, "이", "가") + [[" 생겼다", TEXT]]
 		&"heat":
 			return _named(Compounds.HOT[e.kind].name, "이", "가") + [[" 남았다", TEXT]]
 		&"cool":

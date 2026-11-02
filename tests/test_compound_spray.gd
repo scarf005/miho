@@ -226,7 +226,7 @@ func test_a_flame_hover_tells_range_shape_noise_harm_and_what_catches_fire() -> 
 	for level in range(1, 4):
 		var s := Spell.make(range(level).map(func(_i): return FIRE))
 		var rows := Info.plain(SpellInfo.spell(s)).split("\n")
-		assert_eq(rows.size(), 6, "title and five lines")
+		assert_eq(rows.size(), 7, "title, five lines and the mud it bakes")
 		assert_eq(rows[0].split(" · ")[0], "불길")
 		assert_eq(rows[1], "범위: %d칸" % Spray.FAN[level - 1])
 		assert_eq(rows[3], "소음: %d" % s.cast_noise())

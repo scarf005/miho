@@ -27,7 +27,7 @@ var noticed := {}
 var falls := {}
 ## Tiles where a wooden wall grows this round (Elements.sprout).
 var sprouts: Array[Vector2i] = []
-## Tiles a compound turns to another kind this round: position -> tile kind,
+## Tiles a compound or an element turns to another kind this round: position -> tile kind,
 ## and tiles it leaves hot (Compounds).
 var grounds := {}
 var heated: Array[Vector2i] = []

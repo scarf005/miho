@@ -650,6 +650,10 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append("번질 확률: %d%%" % spread)
 	if plank:
 		out.append("불탄 뒤: %s" % Tiles.of(World.SKY, "name"))
+	for e in Cards.ELEMENTS:
+		var change: Variant = Tiles.of(t, "reacts").get(e)
+		if change != null and (breakable or not Terrain.wall(t)):
+			out.append("%s: %s" % [change[1], Cards.NAME[e]])
 	return out
 
 

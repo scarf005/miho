@@ -23,6 +23,12 @@ extends RefCounted
 ## A closed door blocks sight, not light. An orb smashes a closed door to floor.
 ## An open door burns like a closed one.
 
+## Each lone element changes the tiles a spell reaches by the cycles of 오행
+## (`react`, the `reacts` column of Tiles): 쇠 cuts what grows to bare floor,
+## 나무 cracks walls and brings cracked ones down, 흙 fills ponds and shallows to
+## mud, 물 turns ash to grass, 불 bakes mud to floor. A projectile reaches the
+## 3x3 round where it ends, a spray the tiles it covers.
+##
 ## A drum tears to a flat torn drum when Miho walks into it or an orb strikes
 ## it (Drums); water wets it.
 ##
@@ -175,15 +181,73 @@ static func relight(w: World, p: Vector2i) -> void:
 		w.emit({t = &"relight", at = p})
 
 
+## The tiles of the 3x3 round where a spell ends.
+static func near(at: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
+		if Grid.inside(at + d):
+			out.append(at + d)
+	return out
+
+
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,
 ## and water douses lit lanterns and flames and washes away Miho's scent there.
+## Each element changes the tiles round it that its `reacts` row names.
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
-	for d: Vector2i in [Vector2i.ZERO] + Grid.DIRS:
-		var p := at + d
+	var tiles := near(at)
+	react(w, s.spell, tiles, struck)
+	for p in tiles:
 		if lights(s.spell) and p != struck:
 			relight(w, p)
-		if s.spell.has(Cards.WATER) and Grid.inside(p):
+		if s.spell.has(Cards.WATER):
 			wash(w, p)
+
+
+## The elements of `spell` that change tiles: each lone one, but 불 in steam.
+static func reacting(spell: Spell) -> Array[StringName]:
+	var out: Array[StringName] = []
+	out.assign(
+		Cards.ELEMENTS.filter(func(e): return spell.has(e) and (e != Cards.FIRE or lights(spell)))
+	)
+	return out
+
+
+## What the elements of `spell` do to `tiles`, but `except`: each tile takes the
+## first of them its row names (Tiles `reacts`). What a hit leaves of a tile is a
+## hit (`hit`), a wall that cannot break stays; any other change is told by one
+## `become` for each kind of tile and what it became.
+static func react(
+	w: World, spell: Spell, tiles: Array[Vector2i], except := Vector2i(-1, -1)
+) -> void:
+	var elements := reacting(spell)
+	var changes := {}
+	for p in tiles:
+		var was := w.tile(p)
+		var row: Dictionary = Tiles.of(was, "reacts")
+		var found := elements.filter(func(e): return row.has(e))
+		if found.is_empty() or p == except:
+			continue
+		var to: int = row[found[0]][0]
+		if to == Tiles.of(was, "breaks_to"):
+			if breakable(w, p):
+				hit(w, p)
+		else:
+			changes.get_or_add([was, to, found[0]], []).append(p)
+	for kind: Array in changes:
+		var at: Array = changes[kind]
+		for p: Vector2i in at:
+			w.burning.erase(p)
+			w.set_tile(p, kind[1])
+		w.emit(
+			{
+				t = &"become",
+				at = at[0],
+				tiles = at,
+				tile = kind[1],
+				was = kind[0],
+				element = kind[2]
+			}
+		)
 
 
 ## Water on p: Miho's scent washes away, the creature there and a drum get

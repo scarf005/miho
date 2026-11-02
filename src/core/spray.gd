@@ -193,6 +193,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		}
 	)
 	w.noise(caster.pos, noise(spell), _word(spell), caster.faction == Actor.FOX, caster.id)
+	Terrain.react(w, spell, tiles)
 	if Terrain.lights(spell):
 		_relight(w, caster, tiles)
 	if level == 0:
