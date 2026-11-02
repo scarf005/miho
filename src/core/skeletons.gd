@@ -117,8 +117,7 @@ static func routes_hold(w: World, skeleton: StringName, home: Rect2i, goal: Rect
 		return true
 	var left := Masks.floor_of(w, w.traps.keys() + planks(w), func(_p): return false)
 	var from := FloorGen._centre(home)
-	var to := Grid.index(FloorGen._centre(goal))
-	return two_ways(w, home, goal) and Grid.search(from, left).dist[to] >= 0
+	return two_ways(w, home, goal) and Grid.distance(from, left, FloorGen._centre(goal)) >= 0
 
 
 ## The tiles of the storey that burn away to sky (Terrain.plank).
@@ -175,21 +174,23 @@ static func _ruin(w: World) -> Dictionary:
 static func two_ways(w: World, home: Rect2i, goal: Rect2i) -> bool:
 	var open := Masks.floor_of(w, w.traps.keys(), func(_p): return false)
 	var from := home.position + home.size / 2
-	var to := Grid.index(goal.position + goal.size / 2)
+	var end := goal.position + goal.size / 2
+	var to := Grid.index(end)
 	var found := Grid.search(from, open)
 	if found.dist[to] < 0:
 		return false
+	var near_home := home.grow(NEAR_ENDS)
+	var near_goal := goal.grow(NEAR_ENDS)
+	var around := Grid.DIRS + [Vector2i.ZERO]
 	var tried := {}
 	var at: int = to
 	while at >= 0:
-		for d in Grid.DIRS + [Vector2i.ZERO]:
+		for d in around:
 			var mid: Vector2i = Grid.at(at) + d
-			if tried.has(mid) or home.grow(NEAR_ENDS).has_point(mid):
-				continue
-			if goal.grow(NEAR_ENDS).has_point(mid):
+			if tried.has(mid) or near_home.has_point(mid) or near_goal.has_point(mid):
 				continue
 			tried[mid] = true
-			if Grid.search(from, _without(open, mid)).dist[to] < 0:
+			if Grid.distance(from, _without(open, mid), end) < 0:
 				return false
 		at = found.parent[at]
 	return true
@@ -198,9 +199,9 @@ static func two_ways(w: World, home: Rect2i, goal: Rect2i) -> bool:
 ## `open` with the 3 by 3 tiles round `mid` shut.
 static func _without(open: PackedByteArray, mid: Vector2i) -> PackedByteArray:
 	var out := open.duplicate()
-	for d in Grid.DIRS + [Vector2i.ZERO]:
-		if Grid.inside(mid + d):
-			out[Grid.index(mid + d)] = 0
+	for y in range(maxi(mid.y - 1, 0), mini(mid.y + 2, Grid.H)):
+		for x in range(maxi(mid.x - 1, 0), mini(mid.x + 2, Grid.W)):
+			out[y * Grid.W + x] = 0
 	return out
 
 
@@ -273,7 +274,7 @@ static func _cross(w: World, court: Rect2i, links: Array) -> void:
 	)
 	var to := Vector2i(court.end.x + 1, mid.y) if along else Vector2i(mid.x, court.end.y + 1)
 	var dir: Vector2i = Vector2i.RIGHT if along else Vector2i.DOWN
-	if Grid.search(from, Masks.floor_of(w)).dist[Grid.index(to)] < FloorGen.APART:
+	if Grid.distance(from, Masks.floor_of(w), to) < FloorGen.APART:
 		return
 	links.append({at = from + dir, a = from, b = to})
 	var p := from + dir

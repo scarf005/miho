@@ -118,6 +118,45 @@ impl Native {
         out
     }
 
+    /// The `dist` that `search` gives at `to` (-1 when unreached), without the rest of the
+    /// board: the search stops when it reaches `to`.
+    #[func]
+    fn distance(from: Vector2i, open: PackedByteArray, to: Vector2i, width: i32) -> i32 {
+        let open = open.as_slice();
+        let b = Board::of(open.len(), width);
+        if !b.inside(from.x, from.y) || !b.inside(to.x, to.y) {
+            return -1;
+        }
+        let goal = b.index(to.x, to.y);
+        let mut dist = vec![-1i32; open.len()];
+        dist[b.index(from.x, from.y)] = 0;
+        if b.index(from.x, from.y) == goal {
+            return 0;
+        }
+        let mut queue = vec![(from.x, from.y)];
+        let mut head = 0;
+        while head < queue.len() {
+            let (x, y) = queue[head];
+            head += 1;
+            let d = dist[b.index(x, y)];
+            for (dx, dy) in DIRS {
+                let (qx, qy) = (x + dx, y + dy);
+                if !b.inside(qx, qy) {
+                    continue;
+                }
+                let j = b.index(qx, qy);
+                if dist[j] < 0 && open[j] != 0 {
+                    if j == goal {
+                        return d + 1;
+                    }
+                    dist[j] = d + 1;
+                    queue.push((qx, qy));
+                }
+            }
+        }
+        -1
+    }
+
     /// Sight.field: 1 for every tile visible from `origin` within `radius`.
     #[func]
     fn sight(

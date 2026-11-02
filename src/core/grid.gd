@@ -72,6 +72,11 @@ static func search(from: Vector2i, open: PackedByteArray, limit := -1) -> Dictio
 	return Native.search(from, open, limit, W)
 
 
+## `search(from, open).dist` at `to`, found without searching the rest of the board.
+static func distance(from: Vector2i, open: PackedByteArray, to: Vector2i) -> int:
+	return Native.distance(from, open, to, W)
+
+
 ## A mask of the board, one byte per tile: 1 where `test(p)` holds. Away from
 ## the tiles in `odd` the test must depend on the tile kind alone, as `table`
 ## gives it (1 at index t for kind t); at `odd` tiles `test` itself decides.

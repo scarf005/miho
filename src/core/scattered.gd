@@ -87,7 +87,7 @@ static func join(w: World, blocks: Array[Rect2i], links: Array) -> void:
 		for s: Dictionary in spans:
 			if not _clear(w, s):
 				continue
-			var dist: int = Grid.search(s.a, Masks.floor_of(w)).dist[Grid.index(s.b)]
+			var dist: int = Grid.distance(s.a, Masks.floor_of(w), s.b)
 			if dist >= FloorGen.APART if far else dist < 0:
 				if far:
 					links.append({at = s.a + s.dir * 2, a = s.a, b = s.b})

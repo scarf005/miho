@@ -197,7 +197,7 @@ static func _sound(w: World, skeleton: StringName) -> bool:
 	var open := Masks.floor_of(w, w.traps.keys(), func(_p): return false)
 	return (
 		connected(w, w.traps.keys())
-		and Grid.search(w.start, open).dist[Grid.index(exit)] >= 0
+		and Grid.distance(w.start, open, exit) >= 0
 		and not w.lit(w.start)
 		and w.lit(exit)
 		and w.rooms.size() >= MIN_ROOMS
@@ -313,7 +313,7 @@ static func pavilions(w: World) -> Dictionary:
 static func link_far(w: World, west: Rect2i, east: Rect2i, y: int, links: Array) -> bool:
 	var a := Vector2i(west.end.x - 2, y)
 	var b := Vector2i(east.position.x + 1, y)
-	var dist: int = Grid.search(a, Masks.floor_of(w)).dist[Grid.index(b)]
+	var dist: int = Grid.distance(a, Masks.floor_of(w), b)
 	if dist >= 0 and dist < APART:
 		return false
 	if dist >= 0:
@@ -450,11 +450,7 @@ static func _loops(w: World, spots: Array, links: Array, most := LOOPS) -> Array
 	for s: Array in spots:
 		var p: Vector2i = s[0]
 		var d: Vector2i = s[1]
-		if (
-			cut < most
-			and _walled(w, p, d)
-			and Grid.search(p - d, open).dist[Grid.index(p + d)] >= APART
-		):
+		if cut < most and _walled(w, p, d) and Grid.distance(p - d, open, p + d) >= APART:
 			_doorway(w, p)
 			open[Grid.index(p)] = 1
 			links.append({at = p, a = p - d, b = p + d})
