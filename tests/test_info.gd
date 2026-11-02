@@ -406,7 +406,7 @@ func test_the_hover_of_electricity_is_a_tag_and_the_glossary_tells_its_rows() ->
 func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.HUNT
+	foe.brain.alert = Actor.HUNT
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "당신을 추격 중이다")
 	assert_string_contains(text, "당신을 볼 수 있다")
@@ -417,8 +417,8 @@ func test_a_hunter_tells_that_it_hunts_apart_from_whether_it_sees_you() -> void:
 func test_a_searcher_bound_for_your_tile_tells_so_and_not_how_many_looks_are_left() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = w.player().pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = w.player().pos
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "당신에게 오는 중")
 	assert_false(text.contains("소음"), "it may be after a spell it saw: %s" % text)
@@ -429,9 +429,9 @@ func test_a_hunter_fighting_a_rival_does_not_also_say_it_hunts_you() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
 	var rival := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(2, 0))
-	foe.alert = Actor.HUNT
-	foe.rival = rival.id
-	foe.grudge = 3
+	foe.brain.alert = Actor.HUNT
+	foe.ties.rival = rival.id
+	foe.ties.grudge = 3
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "싸우는 중")
 	assert_false(text.contains("추격"), text)
@@ -440,8 +440,8 @@ func test_a_hunter_fighting_a_rival_does_not_also_say_it_hunts_you() -> void:
 func test_a_searcher_elsewhere_is_only_searching() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "수색 중")
 	assert_string_contains(text, "수색: ")
@@ -458,8 +458,8 @@ func test_a_tracker_on_your_trail_tells_so() -> void:
 			kind = k
 	assert_ne(kind, &"")
 	var foe := FloorGen.spawn(w, kind, w.player().pos + Vector2i(1, 0))
-	foe.alert = Actor.SEARCH
-	foe.target = foe.pos
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
 	w.scent.resize(w.tiles.size())
 	w.round_no = 5
 	var ahead := foe.pos + Vector2i(1, 0)

@@ -33,9 +33,9 @@ func _hunter(w: World, kind: StringName, dist: int) -> Actor:
 	var a := FloorGen.spawn(w, kind, ME + E * dist)
 	a.max_hp = 50
 	a.hp = 50
-	a.cooldown = 99
-	a.alert = Actor.HUNT
-	a.target = ME
+	a.magic.cooldown = 99
+	a.brain.alert = Actor.HUNT
+	a.brain.target = ME
 	return a
 
 

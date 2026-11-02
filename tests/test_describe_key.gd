@@ -231,7 +231,7 @@ func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -
 	var m := _foe_hover()
 	var far := Vector2i(1, 1)
 	var hidden := FloorGen.spawn(m.world, &"dokkaebi", far)
-	hidden.cooldown = 99
+	hidden.magic.cooldown = 99
 	m.debugging = true
 	m.hover = hidden.pos
 	m._refresh()
