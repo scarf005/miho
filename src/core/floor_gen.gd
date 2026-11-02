@@ -766,7 +766,7 @@ static func _bare(w: World, p: Vector2i) -> bool:
 ## The bands of `kinds`: for each group, its creatures that walk (Bestiary.bands)
 ## strongest first, dealt round and round into as few bands as keep each within
 ## BAND. A band's first kind leads it.
-static func bands(kinds: Array) -> Array:
+static func bands(kinds: Array, rank := 1) -> Array:
 	var groups := {}
 	for kind in kinds:
 		if Bestiary.bands(kind):
@@ -776,7 +776,8 @@ static func bands(kinds: Array) -> Array:
 	for members: Array in groups.values():
 		var order := range(members.size())
 		order.sort_custom(
-			func(i, j): return [-Bestiary.hp(members[i], 1), i] < [-Bestiary.hp(members[j], 1), j]
+			func(i, j):
+				return [-Bestiary.hp(members[i], rank), i] < [-Bestiary.hp(members[j], rank), j]
 		)
 		var count := ceili(float(members.size()) / BAND)
 		var split := []
@@ -795,7 +796,7 @@ static func _creatures(w: World) -> void:
 	for kind in PLAN[w.depth]:
 		if not Bestiary.bands(kind):
 			_place(w, kind)
-	for band in bands(PLAN[w.depth]):
+	for band in bands(PLAN[w.depth], Bestiary.rank(w.depth)):
 		var lead := _place(w, band[0])
 		for kind in band.slice(1):
 			var spot := Vector2i(-1, -1)
