@@ -19,6 +19,34 @@ static func show(m: Node) -> void:
 		m.term.banner_lines = over(m.world, m.kills, m.run_seed)
 		for i in [-1, -2]:
 			m.term.banner_lines[i] = m.touch.say(m.term.banner_lines[i], "")
+		if m.erasing:
+			m.term.banner_lines[-1] = _sure(m.touch)
+
+
+## Asks before the run in play or the ending on screen gives way to a new one; Y
+## answers (a second press of the button on a touch screen).
+static func ask(m: Node) -> void:
+	m.erasing = true
+	m.sfx.play(&"warn")
+	show(m)
+	if m.state == &"play":
+		m._show_log()
+		m.term.log_lines.append([[[_sure(m.touch), Palette.TEXT]], 1.0])
+
+
+## Takes the question back.
+static func keep(m: Node) -> void:
+	if m.state == &"title":
+		m._show_title()
+		return
+	m.erasing = false
+	show(m)
+	if m.state == &"play":
+		m._show_log()
+
+
+static func _sure(touch: Touch) -> String:
+	return touch.say(Lang.t(Menu.RESTART_SURE) + " Y/N", Lang.t(Menu.RESTART_SURE))
 
 
 ## The title's lines; it offers to continue when `pending` is a run on disk, or
@@ -35,7 +63,7 @@ static func title(pending: SaveGame, erasing: bool, touch: Touch) -> Array[Strin
 
 ## The lines of a run that ended in `w` with `kills` creatures put down.
 static func over(w: World, kills: int, seed_value: int) -> Array[String]:
-	var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["R"])[0]
+	var again: String = (Keys.keys_of(&"restart").map(Keys.label) + ["Ctrl+Q"])[0]
 	var log_key: String = (Keys.keys_of(&"log").map(Keys.label) + ["Ctrl+P"])[0]
 	return [
 		Lang.t("사람이 되었다", "banner") if w.outcome == &"won" else _fallen(w),

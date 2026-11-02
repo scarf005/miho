@@ -282,7 +282,7 @@ func _tap(pos: Vector2) -> void:
 	var local: Vector2 = main._local(pos)
 	var button := hud.button_at(term, local)
 	if main.erasing and button != &"new":
-		main._show_title()
+		Banner.keep(main)
 	if button != &"":
 		hud.pressed = button
 		hud.pressed_at = term._time

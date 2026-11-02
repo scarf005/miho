@@ -118,3 +118,82 @@ func test_a_map_tap_in_play_after_the_touch_erase_stays_in_play() -> void:
 	assert_false(m.erasing)
 	_finger(m, Vector2(300, 300))
 	assert_eq(m.state, &"play")
+
+
+func _ctrl_q() -> InputEventKey:
+	var e := _key_event(KEY_Q)
+	e.ctrl_pressed = true
+	return e
+
+
+func test_ctrl_q_in_play_asks_and_only_y_starts_a_new_run() -> void:
+	var m := _keyboard()
+	m.save_path = SAVE
+	m._new_run(3)
+	m.run.write()
+	var round_was: int = m.world.round_no
+	m._unhandled_input(_ctrl_q())
+	assert_eq(m.run_seed, 3, "the first press only asks")
+	assert_eq(m.world.round_no, round_was, "asking takes no round")
+	assert_string_ends_with(m.term.log_lines.back()[0][0][0], "Y/N")
+	m._unhandled_input(_key_event(KEY_N))
+	assert_eq(m.run_seed, 3, "N keeps the run")
+	assert_false(m.erasing)
+	assert_true(FileAccess.file_exists(SAVE))
+	m._unhandled_input(_ctrl_q())
+	m._unhandled_input(_key_event(KEY_Y))
+	assert_ne(m.world, null)
+	assert_false(m.erasing)
+	assert_eq(m.state, &"play")
+	assert_eq(m.world.round_no, 0)
+
+
+func test_r_no_longer_restarts() -> void:
+	var m := _keyboard()
+	m._new_run(3)
+	m._unhandled_input(_key_event(KEY_R))
+	assert_false(m.erasing)
+	assert_eq(m.run_seed, 3)
+
+
+func test_a_held_ctrl_q_does_not_answer_its_own_question() -> void:
+	var m := _keyboard()
+	m._new_run(3)
+	m._unhandled_input(_ctrl_q())
+	var echo := _ctrl_q()
+	echo.echo = true
+	m._unhandled_input(echo)
+	assert_true(m.erasing)
+
+
+func test_ctrl_q_on_the_ending_asks_first() -> void:
+	var m := _keyboard()
+	m._new_run(3)
+	m.state = &"over"
+	Banner.show(m)
+	var plain: Array = m.term.banner_lines.duplicate()
+	m._unhandled_input(_ctrl_q())
+	assert_eq(m.state, &"over")
+	assert_string_ends_with(m.term.banner_lines.back(), "Y/N")
+	m._unhandled_input(_key_event(KEY_N))
+	assert_eq(m.state, &"over")
+	assert_eq(m.term.banner_lines, plain)
+	m._unhandled_input(_ctrl_q())
+	m._unhandled_input(_key_event(KEY_Y))
+	assert_eq(m.state, &"play")
+
+
+func test_the_restart_button_of_the_touch_ending_asks_first() -> void:
+	var m := _phone()
+	m._new_run(3)
+	m.state = &"over"
+	Banner.show(m)
+	m._fit()
+	_finger(m, _hud(m, &"new"))
+	assert_eq(m.state, &"over", "the first tap only asks")
+	assert_false("Y/N" in m.term.banner_lines.back())
+	_finger(m, Vector2(300, 300))
+	assert_false(m.erasing)
+	_finger(m, _hud(m, &"new"))
+	_finger(m, _hud(m, &"new"))
+	assert_eq(m.state, &"play")

@@ -12,8 +12,8 @@ const SPEEDS := [1.0, 2.0, 4.0]
 ## Bumped when default keys change. Files saved before version 2 hold every
 ## action's keys; the ones that were defaults then (RETIRED) give way to the
 ## new defaults, while keys the player chose stay.
-const KEYS_VERSION := 2
-const RETIRED := {&"explore": ["X"], &"log": ["P"]}
+const KEYS_VERSION := 3
+const RETIRED := {&"explore": ["X"], &"log": ["P"], &"restart": ["R"]}
 
 var path := PATH
 ## Master volume, 0-100.

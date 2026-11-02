@@ -143,13 +143,15 @@ func _show_title(asking := false) -> void:
 	Banner.show(self)
 
 
-## The title's new run: with a run on disk it asks once, then erases it.
+## A new run: a run on disk or in play, or an ending on screen, asks once first.
 func _new_game() -> void:
-	if state == &"title" and pending != null and not erasing:
+	if erasing or state == &"title" and pending == null:
+		_restart()
+	elif state == &"title":
 		sfx.play(&"warn")
 		_show_title(true)
 	else:
-		_restart()
+		Banner.ask(self)
 
 
 ## Writes again the text kept from before a change of language: the banner, the
@@ -233,11 +235,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_panel_input(event)
 	elif menu.debug.asking():
 		menu.debug.pick(self, event)
-	elif state == &"title" and erasing:
-		if event is InputEventKey and event.keycode == KEY_Y:
+	elif erasing:
+		if press and event is InputEventKey and event.keycode == KEY_Y:
 			_restart()
-		else:
-			_show_title()
+		elif press:
+			Banner.keep(self)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
@@ -249,7 +251,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_begin()
 	elif state == &"over":
 		if Keys.action_of(event) == &"restart":
-			_restart()
+			_new_game()
 		elif Keys.action_of(event) == &"log":
 			_open(&"log")
 		elif _left_click(event) and term.banner_at(_local(event.position)) == Banner.SEED:
@@ -391,6 +393,8 @@ func _do(action: StringName, shift: bool) -> void:
 	elif action == &"look":
 		looking = true
 		_look_at(world.player().pos)
+	elif action == &"restart":
+		_new_game()
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 이미 다 자랐다")
 	elif action == &"close":
