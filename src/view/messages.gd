@@ -251,7 +251,10 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 		&"thaw":
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["녹았다", TEXT]])
 		&"become":
-			return _t("{0}이/가 생겼다", [_named(Tiles.of(e.tile, "name"))])
+			var name := _named(Tiles.of(e.tile, "name"))
+			if e.has("was"):
+				return _t("{0}이/가 {1}이/가 되었다", [_named(Tiles.of(e.was, "name")), name])
+			return _t("{0}이/가 생겼다", [name])
 		&"heat":
 			return _t("{0}이/가 남았다", [_named(Compounds.HOT[e.kind].name)])
 		&"cool":

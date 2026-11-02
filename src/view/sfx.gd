@@ -183,6 +183,13 @@ const JAR_SOUNDS := {
 }
 ## The sound of a tile that forms where a compound reaches; the others are silent.
 const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}
+## The sound of a tile an element changes (Terrain.react), by the element.
+const REACT := {
+	Cards.METAL: &"rustle",
+	Cards.EARTH: &"splash",
+	Cards.WATER: &"root",
+	Cards.FIRE: &"hiss",
+}
 const WORDS := {
 	"탁": &"step",  # i18n: keep
 	"휙": &"foxfire",  # i18n: keep
@@ -446,6 +453,8 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"unstun", &"unblind", &"untalon":
 			return &"tick"
 		&"become":
+			if e.has("element"):
+				return REACT[e.element]
 			return BECOME.get(e.get("tile", -1), &"")
 		&"gas":
 			return &"" if e.kind == Gas.SMOKE else &"hiss"

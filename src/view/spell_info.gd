@@ -133,6 +133,8 @@ static func spell(s: Spell) -> Array:
 		return lines
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
+		if s.level() > 0 and s.slots[0] != Cards.WOOD:
+			lines.append_array(_lines(_reacts(s, s.slots[0]), Palette.CARD[s.slots[0]]))
 		if not _flame(s):
 			lines.append(_pair(MUZZLE) if s.gun() else _line("빛", "없음"))
 		return lines + _lines(_sounds(s)) + ward(s)
@@ -141,7 +143,7 @@ static func spell(s: Spell) -> Array:
 		lines.append_array(_lines(blast(s), Palette.HURT))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(_effect(s, e), Palette.CARD[e]))
+			lines.append_array(_lines(_effect(s, e) + _reacts(s, e, true), Palette.CARD[e]))
 	if s.has(Cards.WATER):
 		lines.append(_pair(_soak(), Palette.CARD[Cards.WATER]))
 	for c in s.compounds():
@@ -309,7 +311,7 @@ static func _compound(s: Spell) -> Array:
 		plain[Cards.EARTH].append(["벽", "금이 감"])
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(plain[e], Palette.CARD[e]))
+			lines.append_array(_lines(plain[e] + _reacts(s, e), Palette.CARD[e]))
 	if s.has(Cards.WATER):
 		lines.append(_pair(_soak(), Palette.CARD[Cards.WATER]))
 	return lines
@@ -767,6 +769,32 @@ static func _effect(s: Spell, e: StringName) -> Array:
 	if s.orb:
 		return [["벽", "한 번에 부술 수 있다"], thud]
 	return [["기절", Lang.t("%d초") % (Elements.STUN + s.extra(e))], thud]
+
+
+## What element `e` of `s` makes of the tiles it reaches (Terrain.react), as
+## [what they become, tiles] lines read from the Tiles rows; `at_stop` for a
+## spell that reaches the round where it stops.
+static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
+	var changes := {}
+	if e in Terrain.reacting(s):
+		for t: int in Tiles.ROWS:
+			var change: Variant = Tiles.of(t, "reacts").get(e)
+			if change != null:
+				changes.get_or_add(change, []).append(Lang.t(Tiles.of(t, "name")))
+	return changes.keys().map(
+		func(to):
+			var from := ", ".join(changes[to])
+			return [
+				_becomes(to),
+				Lang.t("멈춘 곳 %s의 %s") % [_square(Grid.NEAR), from] if at_stop else from
+			]
+	)
+
+
+## The label of what turns into tile kind `to`: "바닥이 됨".
+static func _becomes(to: int) -> String:
+	var runs := Lang.runs("{0}이/가 됨", [[Tiles.of(to, "name"), LABEL]], LABEL)
+	return "".join(runs.map(func(r): return r[0]))
 
 
 ## A lone 불's spray, whose 소음 line is in its own lines (`_spray`).

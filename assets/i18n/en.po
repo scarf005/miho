@@ -2955,3 +2955,12 @@ msgstr "Forms"
 
 msgid "궤적"
 msgstr "Trail"
+
+msgid "{0}이/가 {1}이/가 되었다"
+msgstr "{0} became {1}"
+
+msgid "{0}이/가 됨"
+msgstr "Turns to {0}"
+
+msgid "멈춘 곳 %s의 %s"
+msgstr "In the %s at the stop: %s"
