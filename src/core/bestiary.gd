@@ -118,7 +118,7 @@ const REAPER := [
 	[ORB, Cards.FIRE, Cards.METAL],
 	[FOX, ORB, Cards.WOOD],
 	[FOX, FOX, Cards.FIRE],
-	[Cards.FIRE, Cards.EARTH, Cards.METAL],
+	[ORB, Cards.FIRE, Cards.EARTH],
 	[Cards.WOOD, Cards.EARTH, Cards.WATER],
 	[FOX, ORB, Cards.WATER],
 	[FOX, FOX, ORB],

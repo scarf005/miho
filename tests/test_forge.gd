@@ -234,9 +234,9 @@ func test_the_reaper_can_cast_every_spell_it_lists() -> void:
 	for kind: StringName in Bestiary.KINDS:
 		for cast: Array in Bestiary.casts(kind, 5):
 			assert_false(Forge.needs_orb(Spell.make(cast)), "%s %s" % [kind, cast])
-	var beacon := Cards.recipe(&"beacon")
-	assert_true(Bestiary.casts(&"saja", 5).has(beacon))
-	assert_false(Aim._spray(w, saja, beacon, w.player()).is_empty())
+	var beacons := Bestiary.casts(&"saja", 5).filter(func(c): return Spell.make(c).has(&"beacon"))
+	assert_eq(beacons.size(), 1)
+	assert_false(Aim._spray(w, saja, beacons[0], w.player()).is_empty())
 
 
 func test_a_slot_in_a_queue_tells_its_own_talismans_and_price() -> void:

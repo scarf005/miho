@@ -268,6 +268,9 @@ static func _homing(w: World, a: Actor, cast: Array, reach: int, foe: Actor) -> 
 ## direction to it.
 static func _spray(w: World, a: Actor, cast: Array, foe: Actor) -> Dictionary:
 	var spell := Spell.make(cast)
+	if spell.has(&"beacon"):
+		var near := Grid.cheb(a.pos, foe.pos) <= Forge.RANGE
+		return {cards = cast, dir = Grid.nearest_dir(foe.pos - a.pos)} if near else {}
 	for dir in [Grid.line_dir(a.pos, foe.pos), Grid.nearest_dir(foe.pos - a.pos)]:
 		if dir != Vector2i.ZERO and Spray.cover(w, a, spell, dir).has(foe.pos):
 			return {cards = cast, dir = dir}
