@@ -26,6 +26,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
 - A thing lists what it has. Never add a line that denies what another thing has: kimchi does not say `최대 체력: 오르지 않음` when the peach says `가득 찼을 때 최대 체력: +1`, and a wall does not say `부술 수 없다.` when a cracked wall says `부서짐: 구슬`. The same goes for what the player already assumes, such as `멈춤: 첫 적` beside `관통`, or `바닥이 됨: 풀` on a spell with `피해: 1`. User: "이 두 문장이 대체 뭔 가치가 있음". A negative stays only when nothing else tells it and the player would act otherwise: `적은 밟지 않음.`, `냄새가 남지 않음.`
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".
+- The one key label a hover box carries is the detail key, as DCSS `direction_chooser::print_key_hints` prints `v - describe`. User: "dcss/cataclysm처럼 상세보기 키를 UI에 표시해줘".
 - No onomatopoeia in hover or 도감, because rules use only the radius: write `소음: N`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
@@ -40,6 +41,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `불이 붙었다` -> `대나무에 불이 붙었다`
   - `2층` -> `2층으로 올라갔다`
   - `비키면 헛손질하고 휘청인다` -> a coined word such as `헛손질` does not go in the 도감; say what happens in common words.
+  - `냄새 추적` -> `후각이 뛰어나다`
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 - One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
 - Every bare tag that carries a rule has an entry in `Info.glossary`, its rule read from the code that applies it. A tag whose rule changes nothing the player does is deleted. Every name that has an entry in any 도감 tab (`Codex.entries`, so a new entry needs no list) is a word: in the 도감 detail, the spellbook detail, the log and help pages and the log over the map, the pointer over it shows the entry in a box under the pointer, and a left click or a tap opens that entry in its own tab, Esc going back (Keywords, WordHover, WordLink). A name is found whole or before a particle, never inside a longer word. A hover box follows the pointer, so while Shift is held (a long press on touch) the box that is open stays and its words work the same way (`WordHover.hold`, `Term.pin`): the map, sidebar creature, status row, talisman, saved spell and queue slot boxes and a word box on a page.
