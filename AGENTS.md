@@ -49,6 +49,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `2층` -> `2층으로 올라갔다`
   - `비키면 헛손질하고 휘청인다` -> a coined word such as `헛손질` does not go in the 도감; say what happens in common words.
   - `늪 가스` -> `늪 기체`. User: "영어는 가능한 한 지양해".
+  - `길 위의 투사체: 돌아서 감` -> `날아오는 투사체를 피할 수 있다.` User: "이게 대체 뭔소리임?!". What a creature can do is a sentence, not a label and a value glued from a code rule.
   - The 사령술 hover is two lines. User: "사령술 설명이 완전 slop이야. 사람이었다면 이렇게 썼을꺼야: 지속 시간: 다음 층까지 / 시야에 보이는 시체를 아군으로 되살린다. 강한 적은 달걀귀신으로, 약한 적은 객귀로."
   - `냄새 추적` -> `후각이 뛰어나다`
   - `속지 않음: 교활함`, `둔갑하는 걸 보면 추격: 영리함`, `눈앞에서 쓰면 속지 않음: 영리함` -> `교활한 적, 후각이 뛰어난 적, 추격 중인 적에게는 효과가 없다.` User: "여전히 슬롭같음. 사람이었으면 둔갑 주문 설명엔 `*교활*한 적에게는 효과가 없다.` 정도로 쓰고". Who a spell works on is a plain sentence, with a label-and-list line only for numbers and tags.
