@@ -499,3 +499,8 @@ func test_no_creature_but_the_reaper_casts_a_3dan_besides_the_leap() -> void:
 		for cards: Array in casts.filter(func(c): return c != Bestiary.LEAP):
 			for slot in Spell.make(cards).slots:
 				assert_lt(Cards.made_of(slot).size(), 3, "%s casts %s" % [kind, cards])
+
+
+func test_a_fifth_card_on_the_four_of_a_copy_still_makes_the_spell_it_would() -> void:
+	var cards := [Cards.FOX, Cards.WOOD, Cards.FIRE, Cards.EARTH, Cards.METAL]
+	assert_eq(Spell.make(cards).slots, [Cards.FOX, &"beacon"] as Array[StringName])

@@ -100,3 +100,13 @@ func test_a_waking_statue_and_a_guise_seen_through_add_the_eerie_sound() -> void
 	assert_eq(Sfx.sounds_of({t = &"wake"}), [&"stone", Sfx.EERIE] as Array[StringName])
 	assert_has(Sfx.sounds_of({t = &"unmask", why = &"beside"}), Sfx.EERIE)
 	assert_does_not_have(Sfx.sounds_of({t = &"unmask", why = &"dispel"}), Sfx.EERIE)
+
+
+func test_a_new_run_s_creature_is_a_bad_sign_whatever_its_id() -> void:
+	var known := {}
+	var first := _world()
+	_foe(first, &"saja", ME + Vector2i(2, 0))
+	Sfx.dreaded(first, known)
+	var next := _world()
+	var saja := _foe(next, &"saja", ME + Vector2i(2, 0))
+	assert_eq(Sfx.dreaded(next, known), [saja] as Array[Actor])

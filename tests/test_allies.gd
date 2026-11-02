@@ -509,3 +509,33 @@ func test_the_hover_of_a_copy_counts_the_tails_it_has_left() -> void:
 	var text := str(Info.creature(w, copy))
 	assert_string_contains(text, "꼬리: 2/%d" % Bunsin.TAILS)
 	assert_false(text.contains("당신을"), "what it sees of her changes nothing")
+
+
+func test_copies_that_come_upstairs_to_copies_left_there_are_cut_to_the_most() -> void:
+	var w := _world()
+	_copy(w, ME + E)
+	_copy(w, ME + W)
+	var party: Array[Actor] = [_copy(w, ME + E * 2), _copy(w, ME + W * 2)]
+	w.actors.assign(w.actors.filter(func(a): return not party.has(a)))
+	Storeys.bring(w, party)
+	var left := _copies(w).filter(func(a): return a.alive())
+	assert_eq(left, party, "the oldest, left upstairs, go")
+
+
+func test_trading_places_on_a_rotten_board_drops_her_through_it() -> void:
+	var w := _world()
+	var ally := _copy(w, ME + E)
+	w.set_tile(ME + E, World.BOARD_ROTTEN)
+	var depth := w.depth
+	w.act({t = &"move", dir = E})
+	assert_eq(ally.pos, ME)
+	assert_eq(w.depth, depth - 1, "the board that gave way under her let her fall")
+
+
+func test_trading_places_off_a_rotten_board_drops_the_ally_through_it() -> void:
+	var w := _world()
+	var ally := _copy(w, ME + E)
+	w.set_tile(ME, World.BOARD_ROTTEN)
+	w.act({t = &"move", dir = E})
+	assert_eq(w.player().pos, ME + E)
+	assert_false(ally.alive(), "the board gave way under the ally")

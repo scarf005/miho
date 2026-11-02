@@ -484,3 +484,13 @@ func test_the_info_tells_the_swap_and_its_sound() -> void:
 	var leap := " ".join(SpellInfo.shape(Spell.LEAP).map(Messages.plain))
 	assert_string_contains(leap, "바꿔치기", "the 도감 tells both uses")
 	assert_string_contains(leap, "만드는 법: 물+나무+불")
+
+
+func test_a_swap_never_puts_miho_on_a_pond() -> void:
+	var w := _world()
+	var foe := _foe(w, Vector2i(6, 8))
+	foe.stunned = 9
+	w.set_tile(foe.pos, World.POND)
+	_until_still(w, [Cards.FOX] + LEAP)
+	assert_eq(w.player().pos, ME)
+	assert_eq(foe.pos, Vector2i(6, 8))

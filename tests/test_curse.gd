@@ -443,3 +443,21 @@ func test_the_rising_is_told_as_a_line_when_she_sees_it() -> void:
 	var told := w.act(WAIT)
 	assert_true(Perceived.of(before, w, told).facts.any(func(f): return f.t == &"rise"))
 	assert_eq(Messages.of(before, w, told).size(), 1, "one line, its search mark told by it")
+
+
+func test_a_reaper_due_this_round_anyway_is_no_curse_to_pick() -> void:
+	for seed_value in SEEDS:
+		var w := _world(seed_value, 2, World.REAPER_ARRIVES - 1)
+		assert_ne(Curse.pick(w), Curse.REAPER)
+
+
+func test_a_creature_dying_on_a_rising_body_does_not_stop_it() -> void:
+	var w := _world()
+	var body := Notice.lay(w, Raise.WEAK, FAR_JAR)
+	body.rises = w.round_no + Curse.RISE_ROUNDS
+	Notice.lay(w, &"dokkaebi", FAR_JAR)
+	w.act(WAIT)
+	w.act(WAIT)
+	var risen := w.actor_at(FAR_JAR)
+	assert_not_null(risen)
+	assert_eq(risen.kind, Raise.WEAK)
