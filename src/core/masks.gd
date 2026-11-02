@@ -5,12 +5,14 @@ extends RefCounted
 ## World's own test at the tiles where creatures, projectiles or fire change
 ## what the tile kind alone says.
 
-static var _shade := Grid.table(func(t): return Tiles.light[t] == 0)
-static var _heard := Grid.table(func(t): return Tiles.wall[t] == 0)
+## Read from Tiles.of, not from the tables of Tiles: loading Tiles can load Masks, and
+## the tables of Tiles are empty until it has loaded.
+static var _shade := Grid.table(func(t): return not Tiles.of(t, "light"))
+static var _heard := Grid.table(func(t): return not Tiles.of(t, "wall"))
 static var _fly := Grid.table(
-	func(t): return t != World.DOOR and (Tiles.walk[t] == 1 or t == World.POND or t == World.SKY)
+	func(t): return t != World.DOOR and (Tiles.of(t, "walk") or t == World.POND or t == World.SKY)
 )
-static var _air := Grid.table(func(t): return Tiles.walk[t] == 1 or t == World.SKY)
+static var _air := Grid.table(func(t): return Tiles.of(t, "walk") or t == World.SKY)
 
 
 ## Floor and sky, which a falling Miho comes down across (Fall).

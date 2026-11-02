@@ -123,9 +123,9 @@ const NAME := {
 }
 
 ## Tiles roots grow under: ground, not bridges.
-static var _roots := Grid.table(func(t): return Tiles.walk[t] == 1 and t != World.BRIDGE)
+static var _roots := Grid.table(func(t): return Tiles.of(t, "walk") and t != World.BRIDGE)
 ## Tiles a burst spreads over: no walls.
-static var _air := Grid.table(func(t): return not Terrain.wall(t))
+static var _air := Grid.table(func(t): return not Tiles.of(t, "wall"))
 
 
 ## What the spray is called; a compound goes by its own name alone.
