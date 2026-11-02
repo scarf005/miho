@@ -528,7 +528,10 @@ static func _conditions(w: World, a: Actor) -> Array:
 			var runs := [[s.spell.shown(), Palette.card(s.spell.slots.back())]]
 			var clings := Lang.t(" 붙음: %d초") % s.life if s.life > 0 else Lang.t(" 붙음")
 			out.append(runs + [[clings, Palette.TEXT]])
-	if w.hot.has(a.pos):
+	if (
+		w.hot.has(a.pos)
+		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
+	):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
 		out.append([[Lang.t("%s 위: %d초") % [Lang.t(spec.name), h.y], Palette.TEXT]])

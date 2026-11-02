@@ -57,7 +57,15 @@ static func text(world: World) -> String:
 	if me.cloak:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
 	if me.flame:
-		out.append("fire creature: no harm from fire, fire spells harm %d more" % Guise.FLAME_HARM)
+		(
+			out
+			. append(
+				(
+					"fire creature: no harm from fire or lightning, water harms twice, fire spells harm %d more"
+					% Guise.FLAME_HARM
+				)
+			)
+		)
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":
@@ -205,7 +213,7 @@ static func _shot(k: World, s: Shot) -> String:
 			side,
 			s.spell.title(),
 			NAMES.get(s.dir, "none"),
-			s.spell.damage(s.distance()),
+			Guise.shot_harm(k, s),
 			s.pace() if s.dir != Vector2i.ZERO else 0
 		]
 	)

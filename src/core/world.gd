@@ -71,7 +71,7 @@ extends RefCounted
 ## the storey below. 도약 leaps her across it (Leap). Every storey she has left
 ## is kept as she left it (Storeys).
 ##
-## A spell cast with no direction goes on Miho: 그림자, 둔갑, 쇠발톱 or 은신 (Guise). A
+## A spell cast with no direction goes on Miho: a buff (Guise.RECIPE). A
 ## hovering wisp of 여 alone yelps, an alarm (Lure). Each storey climbed gives back
 ## one health. A storey may hold one event room, built by hand, whose reward is
 ## used on the spot: see EventRooms. The debug commands take no round: see Cheat.

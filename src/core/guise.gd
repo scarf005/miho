@@ -2,7 +2,7 @@ class_name Guise
 extends RefCounted
 ## 스스로에게 걸기: a spell cast with no direction (`,`, or a click on Miho's own
 ## tile) goes on the caster herself. Only the buffs, which change how she is
-## seen or what her claws do, take that aim (`kind`); any other is refused with
+## seen, what her claws do or her element, take that aim (`kind`); any other is refused with
 ## `only`. 쇠발톱 goes on her whatever the direction (ANYWHERE). A buff takes at
 ## least 3 talismans and holds 목. It has no time limit, stays on her from storey
 ## to storey, and she can drop it: one round, no tail (`dispel`).
@@ -237,10 +237,18 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 	return TALON_ABSORBED if eats else TALON_HARM
 
 
-## What 불여우 adds to the harm of a spell of `caster` that holds 불.
+## What 불여우 adds to the harm of a spell of `caster` that holds 불. 벼락 is no element.
 static func flame_harm(w: World, caster: int, spell: Spell) -> int:
 	var me := w.actor(caster)
-	return FLAME_HARM if me != null and me.flame and spell.holds(Cards.FIRE) else 0
+	if me == null or not me.flame or spell.electric():
+		return 0
+	return FLAME_HARM if spell.holds(Cards.FIRE) else 0
+
+
+## The harm a hit of the flying shot `s` does, by what 불여우 adds.
+static func shot_harm(w: World, s: Shot) -> int:
+	var n := s.spell.damage(s.distance())
+	return n + flame_harm(w, s.caster, s.spell) if n > 0 else n
 
 
 ## Whether `by` takes `a` for someone else: `a` is in guise and `by` is a creature

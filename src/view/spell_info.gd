@@ -551,7 +551,7 @@ static func shot(w: World, s: Shot) -> Array:
 		[[side, Palette.SIDE[s.faction]], [spell.shown(), Palette.shot_color(spell, s.faction)]]
 	]
 	lines.append_array(_nature(spell))
-	lines.append(_line("피해", str(spell.damage(s.distance())), Palette.HURT))
+	lines.append(_line("피해", str(Guise.shot_harm(w, s)), Palette.HURT))
 	if s.turn > 0:
 		var t := w.actor(s.target)
 		lines.append(_line("대상", "없음" if t == null else Lang.t(t.info().name)))
