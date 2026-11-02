@@ -194,11 +194,17 @@ func test_electricity_hurts_a_creature_of_metal_or_water_twice() -> void:
 		assert_true(got.stunned, kind)
 
 
-func test_electricity_does_nothing_to_a_dry_creature_of_wood_earth_or_fire() -> void:
-	for kind in [&"cheonha", &"dueoksini", &"bujigaengi"]:
+func test_electricity_does_nothing_to_a_dry_creature_of_earth() -> void:
+	var got := _zap(&"dueoksini")
+	assert_eq(got.harm, 0)
+	assert_false(got.stunned)
+
+
+func test_electricity_hurts_a_dry_creature_of_wood_or_fire_and_stuns_it() -> void:
+	for kind in [&"cheonha", &"bujigaengi"]:
 		var got := _zap(kind)
-		assert_eq(got.harm, 0, kind)
-		assert_false(got.stunned, kind)
+		assert_eq(got.harm, Compounds.THUNDER, kind)
+		assert_true(got.stunned, kind)
 
 
 func test_electricity_is_never_absorbed() -> void:
