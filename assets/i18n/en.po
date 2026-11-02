@@ -1353,17 +1353,17 @@ msgstr " clinging"
 msgid "속지 않음: %s, %s"
 msgstr "Not fooled: %s, %s"
 
-msgid "둔갑하는 걸 보면 추격: %s"
-msgstr "Hunts on seeing the disguise: %s"
+msgid "눈앞에서 쓰면 속지 않음: %s"
+msgstr "Not fooled if cast in its sight: %s"
 
-msgid "둔갑하는 걸 보면 추격"
-msgstr "Hunts on seeing the disguise"
+msgid "눈앞에서 쓰면 속지 않음"
+msgstr "Not fooled if cast in its sight"
 
-msgid "둔갑하는 걸 보면: 추격"
-msgstr "Sees the disguise: starts hunting"
+msgid "눈앞에서 둔갑: 추격"
+msgstr "Disguise in its sight: hunts"
 
-msgid "둔갑하는 걸 봐도: 속음"
-msgstr "Even if it sees the disguise: fooled"
+msgid "눈앞에서 둔갑: 속음"
+msgstr "Disguise in its sight: fooled"
 
 msgid "망자"
 msgstr "Undead"
