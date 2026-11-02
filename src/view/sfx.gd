@@ -394,6 +394,9 @@ static func _spell_sounds(e: Dictionary) -> Array[StringName]:
 	var out: Array[StringName] = []
 	var spell := Spell.make(e.get("cards", []))
 	var cast: bool = e.t == &"cast"
+	if cast and e.get("bolt", false):
+		out.append(&"thunder")
+		return out
 	if e.get("spray", false) or (spell != null and spell.shape == Spell.LEAP):
 		return out
 	if spell == null:

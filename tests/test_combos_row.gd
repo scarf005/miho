@@ -44,10 +44,10 @@ func test_a_compound_shows_only_when_her_most_tails_pay_for_it() -> void:
 	var m := _main()
 	m.term.fit(Vector2(1920, 1080), 0.0)
 	for depth in range(1, 8):
-		_hold(m, Cards.ELEMENTS + [Cards.FOX], depth)
+		_hold(m, Cards.ELEMENTS + [Cards.FOX, Cards.ORB], depth)
 		var shown := StatusBar.makeable(m.world)
 		for c in Cards.compounds():
-			var price := Spell.price(Cards.made_of(c).size())
+			var price := Spell.price(Cards.spell_of(c).size())
 			assert_eq(shown.has(c), price <= depth, "%s at depth %d" % [c, depth])
 
 
@@ -141,6 +141,7 @@ func _left_click(m: Node, cell: Vector2) -> void:
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
+	m.glass.visible = false
 	click.position = m.term.get_global_transform() * (cell * Term.CELL)
 	m._click(click)
 

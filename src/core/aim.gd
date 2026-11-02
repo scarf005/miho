@@ -59,14 +59,14 @@ static func at(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 static func spared(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 	var plans := at(w, a, foe)
 	if a.ally():
-		plans.assign(plans.filter(func(plan): return not _catches(w, a, plan, foe)))
+		plans.assign(plans.filter(func(plan): return not catches(w, a, plan, foe)))
 	return plans
 
 
 ## Whether `plan` of `a` would catch one of its own side: on the tiles a spray covers,
 ## on the line to `foe`, or round `foe` where a projectile that blasts or carries a
 ## compound ends.
-static func _catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
+static func catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 	var spell := Spell.make(plan.cards)
 	var tiles: Array[Vector2i] = []
 	if spell.shape == Spell.SPRAY:
@@ -75,7 +75,10 @@ static func _catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 		for i in range(1, Grid.cheb(a.pos, foe.pos)):
 			tiles.append(a.pos + plan.dir * i)
 		if spell.blasts() or not spell.compounds().is_empty():
-			tiles.append_array(Spray.square(w, foe.pos, Compounds.REACH, true))
+			var r := Compounds.REACH
+			for c: StringName in spell.compounds():
+				r = maxi(r, Compounds.reach(spell, c))
+			tiles.append_array(Spray.square(w, foe.pos, r, true))
 	return w.actors.any(
 		func(b): return b != a and b.alive() and b.faction == a.faction and tiles.has(b.pos)
 	)

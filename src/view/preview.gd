@@ -137,7 +137,7 @@ static func _example(m: Node) -> Dictionary:
 	elif m.hover_spell != "":
 		cards = Spell.from_key(m.hover_spell).cards
 	elif m.hover_card != &"":
-		cards = Cards.made_of(m.hover_card)
+		cards = Cards.spell_of(m.hover_card)
 	elif not m.hover_status:
 		var w: World = m.world if m.debugging else m.known
 		var shot: Shot = DebugView.shot_at(w, m.hover) if m.debugging else Info.shot_at(w, m.hover)

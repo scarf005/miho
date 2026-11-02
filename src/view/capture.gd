@@ -23,7 +23,8 @@ extends Node
 ## `shift` and `unshift` (Shift pressed and left up, to keep a box and click in it),
 ## `pause:seconds`, `walk:n` (n steps towards the stairs by direction keys),
 ## `hold:key:seconds`
-## (the key held down, repeating 30 times a second), or `snap` (saves a frame
+## (the key held down, repeating 30 times a second), `film:key:n:seconds` (n frames that far
+## apart while the round of that key plays, to see an animation), or `snap` (saves a frame
 ## in between as out-1.png, out-2.png ...). Keys may carry modifiers: Shift+Up.
 ## --depth=n builds the storeys up to n and puts Miho on n, with its tails.
 ## --replay=seconds also saves out-replay.png that long into the first
@@ -94,6 +95,12 @@ func _run() -> void:
 	await get_tree().create_timer(0.5).timeout
 	get_viewport().get_texture().get_image().save_png(shot)
 	get_tree().quit()
+
+
+## Saves a frame as the next of out-1.png, out-2.png ...
+func _snap() -> void:
+	frames += 1
+	get_viewport().get_texture().get_image().save_png(shot.get_basename() + "-%d.png" % frames)
 
 
 func _send(k: String) -> void:
@@ -170,9 +177,12 @@ func _send(k: String) -> void:
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":
-			frames += 1
-			var path := shot.get_basename() + "-%d.png" % frames
-			get_viewport().get_texture().get_image().save_png(path)
+			_snap()
+		"film":
+			_send(parts[1])
+			for i in int(parts[2]):
+				await get_tree().create_timer(float(parts[3])).timeout
+				_snap()
 		"pause":
 			await get_tree().create_timer(float(parts[1])).timeout
 		"hold":

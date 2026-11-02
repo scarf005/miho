@@ -142,7 +142,7 @@ static func title_at(t: Term, name: String) -> Vector2:
 static func makeable(w: World) -> Array:
 	return Cards.compounds().filter(
 		func(c):
-			var parts := Cards.made_of(c)
+			var parts := Cards.spell_of(c)
 			return parts.all(w.cards.has) and Spell.price(parts.size()) <= w.max_tails()
 	)
 
@@ -270,7 +270,7 @@ static func combo_at(t: Term, local: Vector2) -> StringName:
 ## spell's, or a compound's.
 static func preset_at(t: Term, local: Vector2) -> String:
 	var combo := combo_at(t, local)
-	return Spell.make(Cards.recipe(combo)).key() if combo != &"" else slot_at(t, local)
+	return Spell.make(Cards.spell_of(combo)).key() if combo != &"" else slot_at(t, local)
 
 
 ## The talisman or compound under a point in the term's space, or empty.

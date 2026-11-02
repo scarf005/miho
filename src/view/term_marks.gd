@@ -2,6 +2,11 @@ class_name TermMarks
 extends RefCounted
 ## Lines Term draws over the map to show where spells will go.
 
+## How many times a bolt flickers, the seconds between and the zigzag it draws in a cell.
+const ZAPS := 3
+const ZAP_GAP := 0.07
+const ZIGZAG := [Vector2(0.65, 0.05), Vector2(0.3, 0.52), Vector2(0.6, 0.52), Vector2(0.35, 0.95)]
+
 
 ## A charging creature's line for each spell (a spray's tiles), so every incoming
 ## spell is seen a round early; its edge has the caster's colour, so a line is told
@@ -54,3 +59,18 @@ static func paths(t: Term) -> void:
 				)
 				if k == 0:
 					t._glyph(t._cell(p), Palette.BOLT[s.dir], Color(c, 0.8))
+
+
+## A bolt on tile `at`: its streak flickers white and yellow a few times (Palette.ZAP).
+static func bolt(t: Term, at: Vector2i) -> void:
+	for k in ZAPS:
+		t._flash(at, Palette.ZAP[k % Palette.ZAP.size()], ZAP_GAP * k, true)
+
+
+## The zigzag of lightning across a cell: the pixel font has no glyph for it.
+static func zigzag(t: Term, cell: Vector2, color: Color) -> void:
+	var at := cell * Term.CELL
+	var points := PackedVector2Array()
+	for p: Vector2 in ZIGZAG:
+		points.append(at + p * Term.CELL)
+	t.draw_polyline(points, color, 2.0)

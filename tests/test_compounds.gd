@@ -10,8 +10,8 @@ const WATER := Cards.WATER
 const WOOD := Cards.WOOD
 const METAL := Cards.METAL
 const EARTH := Cards.EARTH
-## 용광로, the spell that leaves hot iron.
-const FURNACE := [FIRE, EARTH, METAL]
+## 용암, the orb that leaves hot iron.
+const LAVA := [ORB, FIRE, EARTH]
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
 const ME := Vector2i(20, 12)
@@ -87,15 +87,15 @@ func test_wildfire_sets_the_fan_and_its_creatures_alight_and_always_spreads() ->
 	assert_false(w.burning.has(ME + Vector2i(1, 1)), "bare floor does not burn")
 
 
-func test_lava_leaves_hot_ground_that_sears_whoever_stands_on_it_and_cools() -> void:
+func test_hot_ground_sears_whoever_stands_on_it_and_cools() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(3, 0))
 	foe.max_hp = 9
 	foe.hp = 9
-	var events := w.act(_cast([FIRE, EARTH]))
+	Compounds.heat(w, [ME + E, ME + E * 2, ME + E * 3], Compounds.LAVA)
+	var events := w.act(WAIT)
 	for k in range(1, 4):
 		assert_eq(w.hot.get(ME + E * k), Vector2i(Compounds.LAVA, Compounds.HOT_ROUNDS - 1), str(k))
-	assert_false(w.hot.has(ME + E * 4), "the line stops at the creature")
 	var harm: int = Compounds.HOT[Compounds.LAVA].harm
 	assert_eq(_harm(events, foe.id), harm, "seared as the round ends")
 	assert_eq(_of(events, &"sear").size(), 1)
@@ -112,7 +112,7 @@ func test_hot_ground_lies_only_on_dry_walkable_ground() -> void:
 	var w := _world()
 	_put(w, ME + E * 2, World.POND)
 	_put(w, ME + E * 3, World.SHALLOW)
-	w.act(_cast([FIRE, EARTH]))
+	Compounds.heat(w, [ME + E, ME + E * 2, ME + E * 3, ME + E * 4], Compounds.LAVA)
 	assert_eq(w.hot.keys(), [ME + E, ME + E * 4])
 	assert_eq(w.hot[ME + E].x, Compounds.LAVA)
 
@@ -120,7 +120,8 @@ func test_hot_ground_lies_only_on_dry_walkable_ground() -> void:
 func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 0))
-	var events := w.act(_cast(FURNACE))
+	Compounds.heat(w, [foe.pos], Compounds.MOLTEN)
+	var events := w.act(WAIT)
 	assert_eq(_harm(events, foe.id), Compounds.HOT[Compounds.MOLTEN].harm)
 	assert_gt(Compounds.HOT[Compounds.MOLTEN].harm, Compounds.HOT[Compounds.LAVA].harm)
 	w = _world()
@@ -128,7 +129,8 @@ func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> vo
 	dog.magic.cooldown = 99
 	dog.ailments.rooted = 9
 	w.sense()
-	events = w.act(_cast(FURNACE))
+	Compounds.heat(w, [dog.pos], Compounds.MOLTEN)
+	events = w.act(WAIT)
 	assert_eq(_harm(events, dog.id), 0, "해태 eats fire")
 	assert_false(_of(events, &"absorb").is_empty())
 
@@ -340,8 +342,10 @@ func test_the_forecast_shows_the_ground_a_compound_changes() -> void:
 	var f := Forecast.of(w, _cast([EARTH, WATER]))
 	assert_eq(f.grounds.size(), 9)
 	assert_eq(f.grounds[ME + E * 2], World.MUD)
-	f = Forecast.of(w, _cast([FIRE, EARTH]))
-	assert_eq(f.heated, [ME + E, ME + E * 2, ME + E * 3, ME + E * 4] as Array[Vector2i])
+	var foe := _post(w, ME + E * 2)
+	f = Forecast.of(w, _cast(LAVA))
+	assert_has(f.heated, foe.pos)
+	assert_eq(f.heated.size(), 9)
 
 
 func test_the_log_tells_what_each_compound_leaves() -> void:
@@ -349,8 +353,7 @@ func test_the_log_tells_what_each_compound_leaves() -> void:
 		[METAL, WATER]: "%s 얼어붙었다",
 		[EARTH, WATER]: "진흙이 생겼다",
 		[METAL, WOOD]: "가시덤불이 생겼다",
-		[FIRE, EARTH]: "%s이 남았다" % Compounds.HOT[Compounds.LAVA].name,
-		FURNACE: "%s가 남았다" % Compounds.HOT[Compounds.MOLTEN].name,
+		LAVA: "%s가 남았다" % Compounds.HOT[Compounds.MOLTEN].name,
 	}
 	for q: Array in rows:
 		var w := _world()
@@ -370,7 +373,8 @@ func test_the_log_tells_what_each_compound_leaves() -> void:
 	var foe := _post(w, ME + E * 2)
 	foe.max_hp = 9
 	foe.hp = 9
-	w.act(_cast([FIRE, EARTH]))
+	Compounds.heat(w, [foe.pos], Compounds.LAVA)
+	w.act(WAIT)
 	before = w.clone()
 	events = w.act(WAIT)
 	var hot: String = Compounds.HOT[Compounds.LAVA].name

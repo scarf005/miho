@@ -194,7 +194,7 @@ func test_a_compound_cast_on_empty_ground_is_heard() -> void:
 		w.set_tile(w.player().pos + Vector2i(0, -2), World.LANTERN)
 		w.sense()
 		var before := w.clone()
-		w.act({t = &"cast", spells = [{cards = Cards.recipe(c), dir = E}]})
+		w.act({t = &"cast", spells = [{cards = Cards.spell_of(c), dir = E}]})
 		assert_false(_heard(before, w).all(func(n): return n == &""), c)
 
 

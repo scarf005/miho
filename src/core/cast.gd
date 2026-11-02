@@ -4,10 +4,14 @@ extends RefCounted
 
 
 static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
-	w.emit({t = &"cast", id = caster.id, cards = spell.cards, dir = dir})
+	w.emit(
+		{t = &"cast", id = caster.id, cards = spell.cards, dir = dir, bolt = Elements.bolt(spell)}
+	)
 	caster.magic.casts += 1
 	Bunsin.learn(caster, spell, dir)
 	if Guise.cast(w, caster, spell, dir) or Bunsin.cast(w, caster, spell, dir):
+		return
+	if Forge.cast(w, caster, spell, dir):
 		return
 	if spell.shape in [Spell.LEAP, Spell.SPRAY]:
 		(Leap if spell.shape == Spell.LEAP else Spray).cast(w, caster, spell, dir)
@@ -26,7 +30,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 			if not heads.slice(0, i).has(heads[i]):
 				Flight.step(w, s)
 		elif heads[i] == dir:
-			Flight.step(w, s)
+			Elements.loose(w, s)
 		else:
 			Flight.fly(w, s, s.pos + s.dir)
 			s.dir = Homing.facing(w, s)

@@ -637,7 +637,7 @@ func _direction(d: Vector2i, hold: bool) -> void:
 			_move(d)
 		return
 	var spell := Spell.make(picked)
-	var why := Guise.why(world.player(), spell) if d == Vector2i.ZERO or Guise.mixed(spell) else ""
+	var why := Guise.why(world.player(), spell, d)
 	if why != "":
 		_refuse(why)
 		return

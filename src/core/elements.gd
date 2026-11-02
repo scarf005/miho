@@ -315,3 +315,25 @@ static func stick(w: World, s: Shot, a: Actor) -> void:
 			spell = s.spell.tag()
 		}
 	)
+
+
+## A creature's 번개 (Bestiary.spell): a bullet that crosses its range at once and stays nowhere.
+static func bolt(s: Spell) -> bool:
+	return s.bullet() and s.wisp_name != ""
+
+
+## `s` reaches the end of its flight: a wisp hovers there, a bolt is gone.
+static func land(w: World, s: Shot) -> void:
+	if bolt(s.spell):
+		s.gone = true
+		return
+	s.life = Spell.WISP_LIFE
+	w.emit({t = &"land", shot = s.id, at = s.pos})
+	Flight.effects(w, s, s.pos)
+
+
+## The first flight of `s`: one tile, or all of it for a bolt.
+static func loose(w: World, s: Shot) -> void:
+	Flight.step(w, s)
+	while bolt(s.spell) and not s.gone:
+		Flight.step(w, s)

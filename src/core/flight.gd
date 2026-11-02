@@ -21,7 +21,8 @@ static func spawn(w: World, caster: Actor, spell: Spell, dir: Vector2i, target: 
 			at = s.pos,
 			faction = s.faction,
 			cards = spell.cards,
-			target = target
+			target = target,
+			bolt = Elements.bolt(spell)
 		}
 	)
 	return s
@@ -73,7 +74,7 @@ static func step(w: World, s: Shot) -> void:
 			_burst(w, s)
 			Terrain.smash(w, s, to, struck)
 		else:
-			_land(w, s)
+			Elements.land(w, s)
 		return
 	var a := w.actor_at(to)
 	if a != null:
@@ -85,7 +86,7 @@ static func step(w: World, s: Shot) -> void:
 		strike(w, s, a)
 		return
 	var o := w.shot_at(to, s)
-	if o != null:
+	if o != null and not (s.spell.orb and o.spell.orb and s.caster == o.caster):
 		if s.spell.orb and o.spell.orb:
 			w.emit({t = &"clash", shot = s.id, other = o.id, at = to})
 			s.gone = true
@@ -96,17 +97,13 @@ static func step(w: World, s: Shot) -> void:
 			o.gone = true
 			w.emit({t = &"snuff", shot = o.id, at = to})
 		elif o.spell.orb:
-			_land(w, s)
+			Elements.land(w, s)
 			return
 	fly(w, s, to)
 	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
-		_land(w, s)
-
-
-static func _land(w: World, s: Shot) -> void:
-	s.life = Spell.WISP_LIFE
-	w.emit({t = &"land", shot = s.id, at = s.pos})
-	_effects(w, s, s.pos)
+		Elements.land(w, s)
+	elif not s.gone and Forge.lobbed(s.spell) and s.flown >= Forge.RANGE:
+		_burst(w, s)
 
 
 static func _burst(w: World, s: Shot) -> void:
@@ -116,14 +113,14 @@ static func _burst(w: World, s: Shot) -> void:
 	Hearing.noise(w, s.pos, s.spell.burst_noise(), "쾅", true, s.caster)
 	if s.spell.blasts():
 		Elements.splash(w, s, s.pos, null)
-	_effects(w, s, s.pos, s.pos + s.dir)
+	effects(w, s, s.pos, s.pos + s.dir)
 
 
 ## A thud happens wherever the spell ends; fire sets that tile alight and
 ## relights the lanterns next to it, except the one an orb just struck, water
 ## douses lanterns and flames, a wood orb grows a wall (Elements), and each
 ## compound acts round where it ends (Compounds); 도약 brings Miho (Leap.swap).
-static func _effects(w: World, s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
+static func effects(w: World, s: Shot, at: Vector2i, struck := Vector2i(-1, -1)) -> void:
 	if s.spell.has(Cards.EARTH):
 		Hearing.noise(w, at, World.THUD, "쿵", true, s.caster)
 	if s.spell.has(Cards.FIRE):
@@ -157,7 +154,7 @@ static func strike(w: World, s: Shot, a: Actor) -> void:
 		return
 	if spell.blasts():
 		Elements.splash(w, s, at, a)
-	_effects(w, s, at)
+	effects(w, s, at)
 	if not spell.orb and not spell.gun():
 		Elements.stick(w, s, a)
 

@@ -122,13 +122,13 @@ static func slot(s: Spell, i: int) -> Array:
 
 ## A compound talisman alone: its tails and parts, then what it does.
 static func combo(c: StringName) -> Array:
-	var s := Spell.make(Cards.recipe(c))
-	return [_slot_head(s, 0)] + spell(s).slice(1)
+	var s := Spell.make(Cards.spell_of(c))
+	return [_slot_head(s, s.slots.find(c))] + spell(s).slice(1)
 
 
 static func _slot_head(s: Spell, i: int) -> Array:
 	var c := s.slots[i]
-	var parts := Cards.recipe(c)
+	var parts := Cards.spell_of(c)
 	var head := [
 		[Lang.t(Cards.NAME[c]), Palette.card(c)],
 		[Lang.t(" · 꼬리: %d") % Spell.price(parts.size()), LABEL]
@@ -148,6 +148,8 @@ static func spell(s: Spell) -> Array:
 		return lines + ward(s)
 	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
 		return lines + _does(Cards.BUNSIN)
+	if s.has(&"beacon") or s.orb and s.has(Forge.FURNACE):
+		return lines + _does(&"beacon" if s.has(&"beacon") else Forge.FURNACE)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -382,7 +384,7 @@ static func _form(s: Spell) -> Array:
 	match shape[0]:
 		Spray.FAN_SHAPE:
 			return _fan(n)
-		Spray.LINE, Spray.BORE:
+		Spray.LINE:
 			return [["모양", Lang.t("곧게 %d칸") % n]]
 		Spray.BURST, Spray.BREACH:
 			var size := _square(shape[2] + s.grown(lead))
@@ -392,6 +394,8 @@ static func _form(s: Spell) -> Array:
 			return [["모양", Lang.t("%d칸 앞에서 직각으로 %d칸") % [shape[1], wide]]]
 		Spray.AROUND:
 			return [["모양", Lang.t("둘레 %d칸") % n]]
+		Spray.BAND:
+			return [["모양", Lang.t("앞으로 %d×%d칸") % [n, shape[2]]]]
 		Spray.SIGHT:
 			return [["대상", "보이는 적 모두, 당신" if shape.size() > 2 else "보이는 적 모두"]]
 	return [["모양", Lang.t("%d칸 안 첫 벽과 그 양옆") % n]]
@@ -420,7 +424,7 @@ static func compound(c: StringName) -> Array:
 				["초당 피해", "%d" % World.FIRE_DAMAGE]
 			]
 		&"lava":
-			return hot.call(Compounds.LAVA)
+			return hot.call(Compounds.MOLTEN)
 		&"shrapnel":
 			return [["피해", "%d" % Compounds.SHRAPNEL]]
 		&"frost":
@@ -458,8 +462,14 @@ static func compound(c: StringName) -> Array:
 			return [
 				["꺼짐", "불, 등불"], ["땅", name], ["밟으면", Lang.t("묶임 %d초") % Compounds.MUD], _soak()
 			]
-		&"furnace":
-			return hot.call(Compounds.MOLTEN) + [["무너짐", "끝 벽"]]
+		Forge.FURNACE:
+			return [
+				["대상", Lang.t("%d칸 안 무작위 빈 칸") % Forge.REACH],
+				["체력", "%d" % Bestiary.hp(c, 1)],
+				["쓰는 주문", Spell.make(Forge.ORB).shown()],
+				["발사 간격", Lang.t("%d초") % Forge.FIRE_ROUNDS],
+				["빛", Lang.t("%d칸") % Light.FIRE_RADIUS],
+			]
 		&"swamp":
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
 		&"hypnosis":
@@ -477,9 +487,10 @@ static func compound(c: StringName) -> Array:
 		&"palisade":
 			return [[Lang.t("%s 체력") % Lang.t(_wall()), "%d" % Tiles.of(World.WOOD_WALL, "health")]]
 		&"beacon":
-			return (
-				compound(&"wildfire") + [["다시 켜짐", "보이는 꺼진 등불"], ["끝 칸 소음", "%d" % Compounds.BOOM]]
-			)
+			return [
+				["모양", Lang.t("%d방향") % Grid.DIRS.size()],
+				["쓰는 주문", Spell.make(Forge.HOMING).shown()],
+			]
 		&"magpie":
 			return [[_names([World.SKY]), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":
@@ -743,8 +754,11 @@ static func _shape(s: Spell) -> Array:
 			lines.append(_line("모양", _orbs(s, Spell.SHAPE_NAME[Spell.ORB])))
 			if s.shots() > 1:
 				lines.append(_line("대상", _arc()))
-			lines.append(_line("경로", "벽까지 직선"))
+			if not Forge.lobbed(s):
+				lines.append(_line("경로", "벽까지 직선"))
 			lines.append_array(_orb_harm(s))
+	if Forge.lobbed(s):
+		lines.append(_line("사거리", Lang.t("%d칸") % Forge.RANGE))
 	lines.append(_line("속도", Lang.t("초당 %d칸") % s.speed()))
 	if s.accel() > 0:
 		lines.append(_line(ACCEL, Lang.t("초당 %d칸") % s.accel()))
@@ -874,7 +888,7 @@ static func _light(l: Dictionary) -> String:
 ## hits or bursts.
 static func _sounds(s: Spell) -> Array:
 	if s.cast_noise() == 0:
-		return [] if s.has(&"beacon") or _flame(s) else [["소음", "없음"]]
+		return [] if _flame(s) else [["소음", "없음"]]
 	var out := [] if _flame(s) else [["소음", "%d" % s.cast_noise()]]
 	if s.burst_noise() > 0:
 		out.append(["충돌 소음", "%d" % s.burst_noise()])

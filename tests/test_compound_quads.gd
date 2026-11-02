@@ -162,55 +162,79 @@ func _caster(w: World, at: Vector2i) -> Actor:
 	return a
 
 
-func test_beacon_sets_a_wildfire_is_heard_at_its_end_and_lights_the_lanterns_in_sight() -> void:
+func test_beacon_hurls_a_homing_orb_of_lava_along_each_open_way_and_nothing_else() -> void:
 	var w := _world()
-	var centre := ME + E * 6
-	_put(w, centre, World.GRASS)
-	_put(w, centre + Vector2i(1, 1), World.GRASS)
-	_wall_across(w, ME.x + 12)
-	_put(w, ME + Vector2i(3, -2), World.LANTERN_OUT)
-	_put(w, Vector2i(ME.x + 15, ME.y - 2), World.LANTERN_OUT)
-	var foe := _post(w, centre + E)
-	w.sense()
-	var events := w.act(_cast(_made(&"beacon")))
-	assert_true(w.wild.has(centre) and w.wild.has(centre + Vector2i(1, 1)), "a fire that spreads")
-	assert_gt(foe.ailments.alight, 0)
-	assert_eq(w.tile(ME + Vector2i(3, -2)), World.LANTERN, "the dark lantern in sight")
-	assert_eq(w.tile(Vector2i(ME.x + 15, ME.y - 2)), World.LANTERN_OUT, "behind the wall")
-	var calls := _of(events, &"noise").filter(func(e): return e.word == Compounds.BEACON_WORD)
-	assert_eq(calls.size(), 1)
-	assert_eq([calls[0].at, calls[0].loud], [centre, Compounds.BOOM])
-	var at_me := _of(events, &"noise").filter(func(e): return e.at == ME and e.loud > 0)
-	assert_true(at_me.is_empty(), "nothing is heard where it was cast")
-
-
-func test_a_beacon_wakes_the_creature_that_hears_it_to_search_the_end() -> void:
-	var w := _world()
-	var centre := ME + E * 6
-	var sleeper := FloorGen.spawn(w, &"dokkaebi", ME + Vector2i(-2, 3))
-	sleeper.magic.cooldown = 99
+	_put(w, ME + E, World.WALL)
+	_put(w, ME + Vector2i(-1, 1), World.LANTERN_OUT)
+	var ally := FloorGen.spawn(w, Forge.FURNACE, ME + Vector2i(0, -1))
+	ally.magic.cooldown = 99
+	_put(w, ME + Vector2i(1, 1), World.GRASS)
 	w.sense()
 	_now(w, _made(&"beacon"))
-	assert_eq(sleeper.brain.alert, Actor.SEARCH)
-	assert_eq(sleeper.brain.target, centre)
+	assert_eq(w.shots.size(), 5, "eight, less a wall, a lantern and an ally")
+	assert_true(w.wild.is_empty(), "no wildfire of its own")
+	assert_eq(w.tile(ME + Vector2i(-1, 1)), World.LANTERN_OUT, "no lantern lit")
+	assert_true(w.shots.all(func(s): return Forge.lobbed(s.spell) and s.spell.homing()))
 
 
-func test_magpie_bridges_the_sky_on_the_seven_by_seven_round_her_and_nothing_else() -> void:
+func test_the_orbs_of_a_beacon_turn_on_a_foe_and_do_not_put_each_other_out() -> void:
 	var w := _world()
-	var inside := [ME + E * 2, ME + E * 3, ME + Vector2i(-3, 3), ME + Vector2i(3, -3)]
+	var foe := _post(w, ME + Vector2i(4, 3))
+	foe.max_hp = 9
+	foe.hp = 9
+	w.sense()
+	var events := w.act(_cast(_made(&"beacon")))
+	assert_true(_of(events, &"clash").is_empty())
+	var near_foe := w.shots.filter(func(s): return Grid.cheb(s.pos, foe.pos) <= 2)
+	assert_gt(near_foe.size(), 1, "from more than the way that points at it")
+	while not w.shots.is_empty():
+		w.act({t = &"wait"})
+	assert_lt(foe.hp, 9)
+	assert_eq(w.hot[foe.pos].x, Compounds.MOLTEN)
+
+
+func test_magpie_bridges_the_sky_eight_ahead_and_three_across_and_nothing_else() -> void:
+	var w := _world()
+	var inside := [ME + E, ME + E * 8, ME + Vector2i(3, 1), ME + Vector2i(8, -1)]
 	for p: Vector2i in inside:
 		_put(w, p, World.SKY)
-	_put(w, ME + Vector2i(1, 1), World.WALL)
-	_put(w, ME + Vector2i(2, 2), World.SKY)
-	_put(w, ME + E * 4, World.SKY)
-	_put(w, ME + Vector2i(0, 2), World.POND)
+	_put(w, ME + Vector2i(0, 1), World.SKY)
+	_put(w, ME + E * 9, World.SKY)
+	_put(w, ME + Vector2i(3, 2), World.SKY)
+	_put(w, ME + Vector2i(2, 0), World.POND)
 	var events := w.act(_cast(_made(&"magpie")))
-	for p: Vector2i in inside + [ME + Vector2i(2, 2)]:
+	for p: Vector2i in inside:
 		assert_eq(w.tile(p), World.BRIDGE, str(p))
 		assert_true(w.open_floor(p), "it can be walked")
-	assert_eq(w.tile(ME + E * 4), World.SKY, "past three tiles")
-	assert_eq(w.tile(ME + Vector2i(0, 2)), World.POND, "a pond stays")
+	assert_eq(w.tile(ME + Vector2i(0, 1)), World.SKY, "behind where it starts")
+	assert_eq(w.tile(ME + E * 9), World.SKY, "past eight tiles")
+	assert_eq(w.tile(ME + Vector2i(3, 2)), World.SKY, "past three across")
+	assert_eq(w.tile(ME + Vector2i(2, 0)), World.POND, "a pond stays")
 	assert_eq(_of(events, &"become").size(), 1)
+
+
+func test_a_wall_ends_only_its_own_lane_of_magpie() -> void:
+	var w := _world()
+	_put(w, ME + E * 2, World.WALL)
+	for p: Vector2i in [ME + E * 3, ME + Vector2i(3, 1)]:
+		_put(w, p, World.SKY)
+	w.act(_cast(_made(&"magpie")))
+	assert_eq(w.tile(ME + E * 3), World.SKY, "past the wall on its lane")
+	assert_eq(w.tile(ME + Vector2i(3, 1)), World.BRIDGE, "the lane beside it goes on")
+
+
+func test_magpie_aimed_on_a_diagonal_leaves_no_gap_in_its_band() -> void:
+	var w := _world()
+	var dir := Vector2i(1, 1)
+	var band := Spray.band(w, ME, dir, 8, 3)
+	for p: Vector2i in band:
+		_put(w, p, World.SKY)
+	w.act(_cast(_made(&"magpie"), dir))
+	for p: Vector2i in band:
+		assert_eq(w.tile(p), World.BRIDGE, str(p))
+	assert_eq(band.size(), 24)
+	for k in range(1, 8):
+		assert_true(w.open_floor(ME + dir * k + Vector2i(1, 0)), "a step off the middle")
 
 
 func test_mist_lays_fog_round_miho_and_washes_the_scent_without_striking_anyone() -> void:

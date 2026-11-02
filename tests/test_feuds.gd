@@ -55,7 +55,7 @@ func _orb_at(w: World, caster: Actor, victim: Actor) -> Array:
 
 func test_every_creature_of_heaven_has_a_group() -> void:
 	for kind in Bestiary.KINDS:
-		if kind != &"miho" and kind != Cards.BUNSIN:
+		if not kind in [&"miho", Cards.BUNSIN, Forge.FURNACE]:
 			assert_true(Bestiary.GROUPS.has(Bestiary.info(kind).get("group", &"")), kind)
 	assert_true(Bestiary.allied(&"dokkaebi", &"dokkaebi"))
 	assert_true(Bestiary.allied(&"cheonha", &"jangseung"))

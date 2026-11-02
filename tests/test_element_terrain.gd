@@ -262,7 +262,7 @@ func test_a_spray_hover_names_only_the_tiles_it_reaches() -> void:
 	var talons := Cards.recipe(&"talon") + Cards.recipe(&"talon")
 	var spells := [[FIRE], [WATER], [METAL], [METAL, METAL], [EARTH], [WOOD, FIRE, WOOD], talons]
 	for c: StringName in Cards.TRIPLES.keys() + Cards.PAIRS.keys():
-		spells.append(Cards.recipe(c))
+		spells.append(Cards.spell_of(c))
 	var kinds := [World.WALL, World.WALL_CRACKED, World.WOOD_WALL, World.POND, World.GRASS]
 	var placed := [Spray.SIGHT, Spray.ROOTS, Spray.ACROSS, Spray.CLEAVE]
 	for picked: Array in spells:

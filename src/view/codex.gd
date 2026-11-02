@@ -122,7 +122,7 @@ static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
 				out.append(_entry(",", color, Guise.NAME[kind], lines, kind, s.cards))
 			for c in Cards.compounds():
 				var lines := func(): return SpellInfo.combo(c)
-				var cards := Cards.recipe(c)
+				var cards := Cards.spell_of(c)
 				out.append(
 					_entry(
 						Lang.t(Cards.GLYPH[c], "talisman"),
