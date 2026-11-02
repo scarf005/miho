@@ -86,9 +86,8 @@ func test_each_buff_holds_wood_and_goes_on_her_in_every_card_order() -> void:
 		assert_true(Spell.make(cards).holds(Cards.WOOD), kind)
 		for order: Array in _orders(cards):
 			var s := Spell.make(order)
-			var wears := kind != Guise.RAISE or s.slots == ([Cards.SAMSARA] as Array[StringName])
-			assert_eq(Guise.kind(s), kind if wears else &"", str(order))
-			assert_eq(_world().can(_self(order)), wears, str(order))
+			assert_eq(Guise.kind(s), kind, str(order))
+			assert_true(_world().can(_self(order)), str(order))
 
 
 func test_more_water_widens_the_shadow_in_every_order() -> void:

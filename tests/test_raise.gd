@@ -70,10 +70,10 @@ func _risen(w: World) -> Array:
 	return w.actors.filter(Raise.risen)
 
 
-func test_it_costs_seven_tails_and_goes_on_her_in_the_order_of_samsara() -> void:
+func test_it_costs_seven_tails_and_goes_on_her() -> void:
 	var w := _world()
 	assert_true(Spell.make(RAISE).holds(Cards.WOOD))
-	assert_eq(Spell.make(RAISE).slots, [Cards.SAMSARA] as Array[StringName])
+	assert_eq(Spell.make(RAISE).cards.size(), 5)
 	w.act(_cast())
 	assert_eq(w.tails, 9 - 7)
 	assert_eq(Guise.worn(w, w.player()), [Guise.RAISE])
@@ -85,15 +85,31 @@ func test_seven_tails_are_needed() -> void:
 	assert_false(w.can(_cast()))
 
 
-func test_hurled_it_stays_samsara() -> void:
+func test_cast_any_way_it_goes_on_her() -> void:
 	var w := _world()
 	w.act({t = &"cast", spells = [{cards = RAISE, dir = E}]})
+	assert_true(w.player().raise)
+
+
+func test_samsara_is_another_spell_thrown_and_never_worn() -> void:
+	var w := _world()
+	var made := Cards.recipe(Cards.SAMSARA)
+	assert_ne(Spell.make(made).slots, Spell.make(RAISE).slots)
+	assert_false(w.can({t = &"cast", spells = [{cards = made, dir = Vector2i.ZERO}]}))
+	w.act({t = &"cast", spells = [{cards = made, dir = E}]})
 	assert_false(w.player().raise)
 
 
-func test_the_other_five_element_spells_do_not_go_on_her() -> void:
+func test_its_cards_make_it_in_any_order() -> void:
+	var turned := RAISE.duplicate()
+	turned.reverse()
+	assert_eq(Spell.make(turned).slots, Spell.make(RAISE).slots)
+	assert_eq(Guise.kind(Spell.make(turned)), Guise.RAISE)
+
+
+func test_the_five_element_spells_do_not_go_on_her() -> void:
 	var w := _world()
-	for slot: StringName in [Cards.CONQUEST, Cards.DRAGON]:
+	for slot: StringName in [Cards.SAMSARA, Cards.CONQUEST, Cards.DRAGON]:
 		var hers := {t = &"cast", spells = [{cards = Cards.recipe(slot), dir = Vector2i.ZERO}]}
 		assert_false(w.can(hers), slot)
 
