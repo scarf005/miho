@@ -12,6 +12,9 @@ These rules come from repeated user corrections. Every lane reads this file befo
 
 ## Player-facing text (hover, sidebar, 도감, log)
 
+- Read the reference first. Before you add or change a line for a kind of thing, read the code that shows the same kind of thing in an open-source roguelike, and name the function in your report. A shape that no reference uses needs a stated reason. User: "슬롭 지적의 원인은 너가 다른 오픈소스 로그라이크의 ui코드 조사를 충분히 안해서". References:
+  - DCSS, `/home/scarf/repo/crawl/crawl-ref/source/describe.cc`: `_monster_stat_description`, `_monster_attacks_description`, `_monster_spells_description`, `get_feature_desc`, `get_cloud_desc`, `_player_spell_desc`, `_get_spell_description`; `describe-spells.cc`: `_describe_book`.
+  - Brogue CE, `/home/scarf/repo/etc/roguelike-algorithms/vendor/brogue-ce/src/brogue/`: `Monsters.c` `monsterDetails`, `getMonsterAbilitiesText`; `Items.c` `itemDetails`.
 - Write `이름: 값` or a bare tag: `모양: 유도 구슬`, `피해: 2`, `소음: 3`, `가연성.`, `면역: 불`.
 - A status a spell causes is one line with the status word coloured. The status has its entry in the 도감 상태이상 tab.
 - Never type a game value into a string: a spell name, a recipe, a list of spells, a count, a radius or a chance comes from its table or constant, so a change to the data changes the text. Use `"스스로에겐 %s만 걸 수 있다"` with the list filled from the table, never `그림자(여+수)나 둔갑(목+토)`.
