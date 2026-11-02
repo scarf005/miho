@@ -21,6 +21,8 @@ const FEWEST := 8
 ## The chance that a bridge is planks.
 const PLANKS := 0.5
 
+static var _bridge_kinds := PackedByteArray([World.WALL, World.FLOOR, World.SKY, World.BRIDGE])
+
 
 ## The skeleton: pavilions over the whole map. Bridges first, so that a wall between two
 ## rooms a walk round joins has no door yet: half of those get one, far doorways, and
@@ -80,53 +82,24 @@ static func _pavilion(w: World, stretch: Rect2i) -> Rect2i:
 ## Bridges between `blocks`: first where no walk joins the two ends yet, then where the
 ## walk round is at least FloorGen.APART (each joins `links`). Some then turn to planks.
 static func join(w: World, blocks: Array[Rect2i], links: Array) -> void:
-	var spans := _spans(blocks)
-	FloorGen.shuffle(w.rng, spans)
+	# In Rust. A way can be laid from room floor through a plain stretch of wall to room
+	# floor, over sky with sky on both sides, so that no bridge runs beside another.
+	var made := Native.join(
+		blocks, w.tiles, Tiles.walk, w.secrets.keys(), w.rng, _bridge_kinds, FloorGen.APART, Grid.W
+	)
+	w.tiles = made[0]
+	var flat: PackedInt32Array = made[1]
 	var laid := []
-	for far: bool in [false, true]:
-		for s: Dictionary in spans:
-			if not _clear(w, s):
-				continue
-			var dist: int = Grid.distance(s.a, Masks.floor_of(w), s.b)
-			if dist >= FloorGen.APART if far else dist < 0:
-				if far:
-					links.append({at = s.a + s.dir * 2, a = s.a, b = s.b})
-				_lay(w, s, World.BRIDGE)
-				laid.append(s)
+	for i in range(0, flat.size(), 7):
+		var s := {
+			a = Vector2i(flat[i], flat[i + 1]),
+			b = Vector2i(flat[i + 2], flat[i + 3]),
+			dir = Vector2i(flat[i + 4], flat[i + 5]),
+		}
+		if flat[i + 6] == 1:
+			links.append({at = s.a + s.dir * 2, a = s.a, b = s.b})
+		laid.append(s)
 	_planks(w, laid)
-
-
-## Every straight way between two of `blocks`, east or south: {a, b, dir}, the tiles
-## just inside the walls it goes through and its direction.
-static func _spans(blocks: Array[Rect2i]) -> Array:
-	var out := []
-	for a in blocks:
-		for b in blocks:
-			if a.end.x <= b.position.x:
-				for y in range(maxi(a.position.y, b.position.y) + 1, mini(a.end.y, b.end.y) - 1):
-					var from := Vector2i(a.end.x - 2, y)
-					out.append({a = from, b = Vector2i(b.position.x + 1, y), dir = Vector2i.RIGHT})
-			if a.end.y <= b.position.y:
-				for x in range(maxi(a.position.x, b.position.x) + 1, mini(a.end.x, b.end.x) - 1):
-					var from := Vector2i(x, a.end.y - 2)
-					out.append({a = from, b = Vector2i(x, b.position.y + 1), dir = Vector2i.DOWN})
-	return out
-
-
-## Whether span `s` can be laid: from room floor through a plain stretch of wall to room
-## floor, over sky with sky on both sides, so that no bridge runs beside another.
-static func _clear(w: World, s: Dictionary) -> bool:
-	if w.tile(s.a) != World.FLOOR or w.tile(s.b) != World.FLOOR:
-		return false
-	if not FloorGen._walled(w, s.a + s.dir, s.dir) or not FloorGen._walled(w, s.b - s.dir, s.dir):
-		return false
-	var side := Vector2i(s.dir.y, s.dir.x)
-	var p: Vector2i = s.a + s.dir * 2
-	while p != s.b - s.dir:
-		if w.tile(p) != World.SKY or w.tile(p + side) != World.SKY or w.tile(p - side) != World.SKY:
-			return false
-		p += s.dir
-	return true
 
 
 ## Lays span `s` in tile `t`, with an opening in the wall at each end.

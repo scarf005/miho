@@ -210,8 +210,12 @@ const WORDS := {
 	"캥": &"foxfire",  # i18n: keep
 }
 
+## Every stream is read once for the whole run, not once per Sfx.
+static var _streams := {}
+static var _music_stream: AudioStream
+static var _fire_stream: AudioStream
+
 var listener: AudioListener2D
-var _streams := {}
 var _flat := {}
 var _music: AudioStreamPlayer
 var _fire: AudioStreamPlayer2D
@@ -223,22 +227,20 @@ func _ready() -> void:
 	listener = AudioListener2D.new()
 	add_child(listener)
 	listener.make_current()
-	for n in NAMES:
-		if ResourceLoader.exists(DIR % n):
-			_streams[n] = load(DIR % n)
-			var p := AudioStreamPlayer.new()
-			p.stream = _streams[n]
-			p.max_polyphony = 4
-			add_child(p)
-			_flat[n] = p
-	if ResourceLoader.exists(MUSIC):
+	if _streams.is_empty():
+		for n in NAMES:
+			if ResourceLoader.exists(DIR % n):
+				_streams[n] = load(DIR % n)
+		_music_stream = load(MUSIC) if ResourceLoader.exists(MUSIC) else null
+		_fire_stream = load(FIRE) if ResourceLoader.exists(FIRE) else null
+	if _music_stream != null:
 		_music = AudioStreamPlayer.new()
-		_music.stream = load(MUSIC)
+		_music.stream = _music_stream
 		add_child(_music)
 		_music.play()
-	if ResourceLoader.exists(FIRE):
+	if _fire_stream != null:
 		_fire = AudioStreamPlayer2D.new()
-		_fire.stream = load(FIRE)
+		_fire.stream = _fire_stream
 		_fire.max_distance = FIRE_RANGE * Term.CELL.y
 		_fire.attenuation = 1.2
 		add_child(_fire)
@@ -288,8 +290,15 @@ func watch(w: World, centre: Callable) -> void:
 
 ## A sound with no place: interface and storey changes.
 func play(n: StringName) -> void:
-	if _flat.has(n):
-		_flat[n].play()
+	if not _streams.has(n):
+		return
+	if not _flat.has(n):
+		var p := AudioStreamPlayer.new()
+		p.stream = _streams[n]
+		p.max_polyphony = 4
+		add_child(p)
+		_flat[n] = p
+	_flat[n].play()
 
 
 ## A sound at a point in this node's space; quieter when heard, not seen.

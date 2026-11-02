@@ -58,39 +58,30 @@ static func beside(lines: Array, room: Rect2, cell: Vector2i, least := READABLE)
 ## `rows` in the fewest columns at the largest scale down to `least` that fit
 ## `room`, or nothing.
 static func _fit(rows: Array, room: Vector2, least: float, extra := Vector2.ZERO) -> Dictionary:
-	var widths := rows.map(_width)
-	for k in ceili((1.0 - least) / SHRINK) + 1:
-		var scale := 1.0 - k * SHRINK
-		for n in range(1, rows.size() + 1):
-			var height := ceili(rows.size() / float(n))
-			var columns := []
-			var x := 0.5
-			var first := 0
-			while first < rows.size():
-				var end := _end(rows, first, height)
-				columns.append([x, rows.slice(first, end)])
-				x += widths.slice(first, end).max() + GAP
-				first = end
-			var fit := {scale = scale, cells = Vector2(x - GAP + 0.5, height), columns = columns}
-			if extra != Vector2.ZERO:
-				fit.cells = Vector2(x + extra.x + 0.5, maxf(height, extra.y + 1.0))
-				fit.example = Vector2(x, 0.5)
-			if fit.cells.x * scale <= room.x and fit.cells.y * scale <= room.y:
-				return fit
-	return {}
+	# In Rust: a column never ends between a line and the indented lines under it.
+	var found := Native.fit(
+		PackedFloat64Array(rows.map(_width)),
+		PackedByteArray(rows.map(_indented)),
+		room,
+		least,
+		SHRINK,
+		GAP,
+		extra
+	)
+	if found.is_empty():
+		return {}
+	var columns := []
+	for i in range(4, found.size(), 3):
+		columns.append([found[i], rows.slice(int(found[i + 1]), int(found[i + 2]))])
+	var fit := {scale = found[0], cells = Vector2(found[1], found[2]), columns = columns}
+	if extra != Vector2.ZERO:
+		fit.example = Vector2(found[3], 0.5)
+	return fit
 
 
-## Where a column of at most `height` rows from `first` ends: never between a
-## line and the indented lines under it.
-static func _end(rows: Array, first: int, height: int) -> int:
-	var end := mini(first + height, rows.size())
-	while end < rows.size() and end > first + 1 and _indented(rows[end]):
-		end -= 1
-	return end
-
-
-static func _indented(line: Array) -> bool:
-	return not line.is_empty() and String(line[0][0]).begins_with("  ")
+## 1 for a line that is indented, 0 for one that is not.
+static func _indented(line: Array) -> int:
+	return 1 if not line.is_empty() and String(line[0][0]).begins_with("  ") else 0
 
 
 static func _width(line: Array) -> float:
