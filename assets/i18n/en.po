@@ -1350,20 +1350,8 @@ msgstr "Left click yourself"
 msgid " 붙음"
 msgstr " clinging"
 
-msgid "속지 않음: %s, %s"
-msgstr "Not fooled: %s, %s"
-
-msgid "눈앞에서 쓰면 속지 않음: %s"
-msgstr "Not fooled if cast in its sight: %s"
-
-msgid "눈앞에서 쓰면 속지 않음"
-msgstr "Not fooled if cast in its sight"
-
 msgid "눈앞에서 둔갑: 추격"
 msgstr "Disguise in its sight: hunts"
-
-msgid "눈앞에서 둔갑: 속음"
-msgstr "Disguise in its sight: fooled"
 
 msgid "망자"
 msgstr "Undead"
@@ -1377,26 +1365,11 @@ msgstr "gnawing"
 msgid "강시"
 msgstr "Gangsi"
 
-msgid "속지 않음"
-msgstr "Not fooled"
-
 msgid "%s 면역인 적"
 msgstr "Immune to %s"
 
 msgid "%s 면역인 적: +%d"
 msgstr "Immune to %s: +%d"
-
-msgid "쫓아옴: 후각이 뛰어나다"
-msgstr "Follows you: keen smell"
-
-msgid "쫓아옴"
-msgstr "Follows you"
-
-msgid "도깨비불을 쏘는 적: %s, %s"
-msgstr "Shoots a wisp: %s, %s"
-
-msgid "도깨비불을 쏘는 적"
-msgstr "Shoots a wisp"
 
 msgid "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
 msgstr "Lost you in cloak: shoots a wisp at a suspected tile"
@@ -2559,12 +2532,6 @@ msgstr "New run"
 msgid "소금"
 msgstr "Salt"
 
-msgid "속는 적"
-msgstr "Fooled enemies"
-
-msgid "속는 적: 추격 중이 아닌 적"
-msgstr "Fooled enemies: enemies not chasing"
-
 msgid "속도"
 msgstr "Speed"
 
@@ -3025,3 +2992,27 @@ msgstr "The last you threw (%d tails at most)"
 
 msgid "%s의 "
 msgstr "%s's "
+
+msgid "둔한"
+msgstr "dull"
+
+msgid "영리한"
+msgstr "sharp"
+
+msgid "교활한"
+msgstr "cunning"
+
+msgid "후각이 뛰어난"
+msgstr "keen-nosed"
+
+msgid "%s 적, %s 적, 추격 중인 적에게는 효과가 없다."
+msgstr "No effect on %s foes, %s foes or foes hunting you."
+
+msgid "%s 적은 쫓아온다."
+msgstr "%s foes follow you."
+
+msgid "%s 적과 %s 적은 의심 가는 칸에 도깨비불을 쏜다."
+msgstr "%s foes and %s foes shoot wisps at tiles they suspect."
+
+msgid "{0} 눈앞에서 {1}할까?"
+msgstr "{1} in front of {0}?"

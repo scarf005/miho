@@ -10,8 +10,17 @@ extends RefCounted
 
 const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
+## WITS as a word before a noun: 교활한 적, which the 도감 links to 교활함 (Keywords).
+const WITS_WHO := ["둔한", "영리한", "교활한"]
 ## The tag of a creature that follows Miho by her scent (Bestiary tracks), told in the glossary.
 const SMELL := "후각이 뛰어나다"
+const SMELL_WHO := "후각이 뛰어난"
+## Who 둔갑 does not fool, and how a creature finds her under 은신.
+const NOT_FOOLED := ["%s 적, %s 적, 추격 중인 적에게는 효과가 없다.", WITS_WHO[Guise.SEES_THROUGH], SMELL_WHO]
+const CLOAK_SMELT := ["%s 적은 쫓아온다.", SMELL_WHO]
+const CLOAK_SHOT := [
+	"%s 적과 %s 적은 의심 가는 칸에 도깨비불을 쏜다.", WITS_WHO[Bestiary.SHARP], WITS_WHO[Bestiary.CUNNING]
+]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
 ## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
@@ -31,8 +40,7 @@ const CONDITIONS := {
 	"둔갑":
 	[
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
-		"속는 적: 추격 중이 아닌 적",
-		["속지 않음: %s, %s", SMELL, WITS[Guise.SEES_THROUGH]],
+		NOT_FOOLED,
 	],
 	Guise.NAME[Guise.TALON]:
 	[
@@ -42,8 +50,8 @@ const CONDITIONS := {
 	Guise.NAME[Guise.CLOAK]:
 	[
 		["보임: %d칸 안, 도깨비불 붙음", Hat.REACH],
-		"쫓아옴: 후각이 뛰어나다",
-		["도깨비불을 쏘는 적: %s, %s", WITS[Bestiary.SHARP], WITS[Bestiary.CUNNING]],
+		CLOAK_SMELT,
+		CLOAK_SHOT,
 	],
 	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM]],
 }
@@ -97,7 +105,7 @@ static func glossary() -> Dictionary:
 		],
 		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
-		"둔함": ["주문을 보면: 날아가는 칸을 수색", "눈앞에서 둔갑: 속음"],
+		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
 		"영리함":
 		["주문을 보면: 쏜 곳을 수색", "눈앞에서 둔갑: 추격", Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH, SUSPECTS],
 		"교활함":
@@ -231,14 +239,7 @@ static func condition_facts(name: String) -> Array:
 	if name == Guise.NAME[Guise.FLAME]:
 		lines.append_array(nature(Guise.FLAME_KIND))
 	lines.append_array(_tags(CONDITIONS[name]))
-	if name == Guise.NAME[Guise.GUISE]:
-		lines.append([[Lang.t("눈앞에서 쓰면 속지 않음: %s") % alarmed(), Palette.TEXT]])
 	return lines
-
-
-## The wits fooled unless they see her put on the guise (Guise.ALARMED to SEES_THROUGH).
-static func alarmed() -> String:
-	return ", ".join(range(Guise.ALARMED, Guise.SEES_THROUGH).map(func(i): return Lang.t(WITS[i])))
 
 
 ## Lines of text: a string, or a format string and its numbers; each in the language shown.

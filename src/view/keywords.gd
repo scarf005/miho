@@ -159,6 +159,8 @@ static func _entries() -> Dictionary:
 				var key := _key(tabs[tab][k].name)
 				if not at.has(key):
 					at[key] = Vector2i(tab, k)
+		for i in Info.WITS.size():
+			at[_key(Lang.t(Info.WITS_WHO[i]))] = at[_key(Lang.t(Info.WITS[i]))]
 		var names := at.keys()
 		names.sort_custom(func(a: String, b: String): return a.length() > b.length())
 		var sorted := {}

@@ -289,7 +289,7 @@ func test_the_detail_follows_the_selected_entry_and_the_status_tab_tells_each_st
 			assert_string_contains(text, does)
 	for word in ["묶임", "기절", "둔갑"]:
 		assert_has(names, word)
-	assert_string_contains(_text(Codex.detail(_entry(tab, "둔갑"))), "속는 적: 추격 중이 아닌 적")
+	assert_string_contains(_text(Codex.detail(_entry(tab, "둔갑"))), Info._text(Info.NOT_FOOLED))
 	assert_eq(panel.aside[0][0][0], names[0], "the detail opens on the first status")
 	menu.key(_press("Down"))
 	assert_eq(menu.panel().aside[0][0][0], names[1], "Down moves to the next status")
