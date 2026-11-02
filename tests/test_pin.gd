@@ -197,3 +197,26 @@ func test_the_box_of_a_word_on_a_page_is_kept_too_and_its_words_link() -> void:
 	var selected: int = m.menu.codex.selected
 	_click(m, inner)
 	assert_ne([m.menu.codex.tab, m.menu.codex.selected], [tab, selected], "its entry is open")
+
+
+func test_a_page_covers_the_box_and_the_example_and_shift_keeps_nothing_there() -> void:
+	var m := _foe_hover()
+	assert_false(m.term.info.is_empty(), "the creature shows a box")
+	m._open(&"options")
+	assert_true(m.term.info.is_empty())
+	_shift(m, true)
+	assert_true(m.term.pin.is_empty())
+	_shift(m, false)
+	m._close()
+	assert_false(m.term.info.is_empty(), "the box is back with the page gone")
+
+
+func test_a_talisman_under_the_pointer_plays_no_example_over_a_page() -> void:
+	var m := _foe_hover()
+	m.hover_card = Cards.FOX
+	m._refresh()
+	assert_false(m.term.example.is_empty(), "the talisman plays its example on the map")
+	m._open(&"spells")
+	assert_true(m.term.example.is_empty(), "opening the page stops it")
+	m._refresh()
+	assert_true(m.term.example.is_empty(), "the pointer on the talisman row does not start it")
