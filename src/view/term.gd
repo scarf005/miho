@@ -148,6 +148,7 @@ var _shot_light := {}
 ## shot id -> the tiles it last flew through, newest last (TRAIL of them).
 var _trails := {}
 var _time := 0.0
+var _bubbles := Bubbles.new()
 
 
 func _ready() -> void:
@@ -228,6 +229,7 @@ func _process(delta: float) -> void:
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
 	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
+	_popups.append_array(_bubbles.rise(world, delta, now))
 	queue_redraw()
 
 
@@ -541,7 +543,7 @@ func _draw_game() -> void:
 			continue
 		var k: float = (_time - p.born) / p.life
 		var c: Color = p.color
-		var at := _cell(p.at) + Vector2(0, -POPUP_ABOVE - 0.6 * k)
+		var at := _cell(p.at) + Vector2(0, p.get("above", -POPUP_ABOVE) - 0.6 * k)
 		if p.text.length() == 1:
 			_glyph(at, p.text, Color(c, 1.0 - k * k))
 		else:

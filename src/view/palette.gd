@@ -83,6 +83,7 @@ const GAS := {
 }
 ## What harms its holder, what helps it, and the plainer red of harm done to a
 ## creature, which Miho is glad of.
+const BUBBLE := Color(0.75, 0.9, 1.0)
 const BAD := Color(1.0, 0.4, 0.34)
 const GOOD := Color(0.45, 0.9, 0.5)
 const BAD_FOE := Color(0.86, 0.62, 0.58)
