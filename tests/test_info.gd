@@ -384,3 +384,19 @@ func test_sky_and_ponds_tell_that_spells_and_leaps_cross_them() -> void:
 	w.tiles[Grid.index(p)] = World.SKY
 	var sky := Info.plain(Info.terrain_facts(w, p))
 	assert_string_contains(sky, "사라짐: 추락한 적\n층당 추락 피해: 1")
+
+
+func test_a_compound_hover_tells_its_elements_and_one_with_none_tells_nothing() -> void:
+	var furnace := Info.plain(SpellInfo.combo(&"furnace"))
+	assert_string_contains(furnace, "오행: 불+쇠\n")
+	for c in [&"hypnosis", &"thunder", Cards.VAULT]:
+		assert_false(Info.plain(SpellInfo.combo(c)).contains("오행:"), c)
+
+
+func test_the_hover_of_electricity_is_a_tag_and_the_glossary_tells_its_rows() -> void:
+	var text := Info.plain(SpellInfo.combo(&"thunder"))
+	assert_string_contains(text, "\n전기.\n")
+	assert_false(text.contains("젖음"), "the glossary holds it")
+	var rows: Array = Info.glossary()[Info.ELECTRIC]
+	assert_eq(rows.size(), Elements.CONDUCTS.size() + 1 + Elements.GROUNDS.size())
+	assert_true(rows.any(func(r: String): return r.begins_with("젖음: ")))

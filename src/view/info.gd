@@ -12,6 +12,8 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
+## The tag of 전기 (Cards.ELECTRIC), told in the glossary.
+const ELECTRIC := "전기"
 ## The state of a sleeper (Actor.asleep), and the tag of a creature that never
 ## sleeps (Actor.sleeps).
 const ASLEEP := "자는 중"
@@ -72,7 +74,13 @@ static func glossary() -> Dictionary:
 		],
 		"함정": [Lang.t("발견: 밝은 칸 또는 %d칸 안") % Traps.REACH, "적은 밟지 않음."],
 		"흔적": ["수색하는 적: 추격 중이 아닌 적", "횟수: 적마다 한 번"],
-		"약점": [Lang.t("피해: ×%d") % Elements.WEAK, "대상: 그 원소가 든 주문"],
+		"약점":
+		[
+			Lang.t("피해: ×%d") % Elements.WEAK,
+			"대상: 그 원소가 든 주문",
+			Lang.t("피해 절반인 주문: ×%d") % (Elements.WEAK / Elements.HALF),
+		],
+		ELECTRIC: _shocks(),
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
 		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
 		"영리함": ["주문을 보면: 쏜 곳을 수색", Lang.t("북 치기: 추격 중 걸어서 %d칸 안") % Drums.REACH],
@@ -127,6 +135,19 @@ static func glossary() -> Dictionary:
 			Lang.t("지워짐: %s") % ", ".join(_scent_erasers()),
 		],
 	}
+
+
+## What 전기 does to a creature (Elements.charge), one `이름: 값` line each: the
+## elements that double its harm, wet, and those that make a dry creature immune.
+static func _shocks() -> Array:
+	var twice := Lang.t("피해 ×%d") % Elements.WEAK
+	var out := []
+	for e in Elements.CONDUCTS:
+		out.append("%s %s: %s" % [Lang.t("오행"), Lang.t(Cards.NAME[e]), twice])
+	out.append("%s: %s" % [Lang.t(Status.NAME[&"wet"]), twice])
+	for e in Elements.GROUNDS:
+		out.append("%s %s: %s" % [Lang.t("오행"), Lang.t(Cards.NAME[e]), Lang.t("면역")])
+	return out
 
 
 ## The lines a jar's entry adds in the 도감: each thing it can hold with its chance
@@ -413,6 +434,9 @@ static func _immunities(a: Actor) -> Array:
 	match spec.get("absorb", &""):
 		&"fire":
 			out.append(_immune("불 주문, 불타는 칸", Palette.CARD[Cards.FIRE]))
+			out.append(
+				[[Lang.t("피해 절반: "), Palette.DIM], [Lang.t("불이 섞인 주문"), Palette.CARD[Cards.FIRE]]]
+			)
 		&"nofire":
 			out.append(_immune("불 없는 주문", Palette.DIM))
 	if spec.get("deaf", false):

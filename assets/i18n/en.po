@@ -1683,8 +1683,20 @@ msgstr "Your "
 msgid "적의 "
 msgstr "Enemy's "
 
-msgid "원소"
-msgstr "Element"
+msgid "오행"
+msgstr "Elements"
+
+msgid "전기"
+msgstr "Electric"
+
+msgid "피해 절반인 주문: ×%d"
+msgstr "Half-damage spells: ×%d"
+
+msgid "피해 절반: "
+msgstr "Half damage: "
+
+msgid "불이 섞인 주문"
+msgstr "Spells with fire mixed in"
 
 msgid "초당 %d칸"
 msgstr "%d tiles/s"

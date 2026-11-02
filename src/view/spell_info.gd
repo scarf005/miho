@@ -149,6 +149,7 @@ static func spell(s: Spell) -> Array:
 			)
 			lines.append_array(spell(then).slice(1))
 		return lines
+	lines.append_array(_nature(s))
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
 		if s.level() > 0:
@@ -171,7 +172,7 @@ static func spell(s: Spell) -> Array:
 		if Guise.ANYWHERE.has(c):
 			continue
 		lines.append(_line(Cards.NAME[c], _carried(s, c), Palette.card(c)))
-		lines.append_array(_lines(compound(c), Palette.card(c)))
+		lines.append_array(_does(c))
 	if s.swaps():
 		lines.append_array(_swap())
 	lines.append(_line("빛", _light(s.light(Actor.FOX))))
@@ -254,8 +255,8 @@ static func cast(s: Spell) -> Array:
 		Spray.GUN_HARM if gun else (0 if s.shape in [Spell.SPRAY, Spell.LEAP] else s.damage(0))
 	)
 	var out := []
-	if elements(s) != "":
-		out.append(["원소", elements(s), Palette.TEXT])
+	if _tells_nature(s):
+		out.append(["오행", _nature_text(s), Palette.TEXT])
 	if harm > 0:
 		out.append(["피해", str(harm), Palette.HURT])
 	if s.homing():
@@ -338,7 +339,7 @@ static func _compound(s: Spell) -> Array:
 	var shape: Array = Spray.SHAPE[s.slots[0]]
 	var lines := _lines(_form(s))
 	for c in s.compounds():
-		lines.append_array(_lines(compound(c), Palette.card(c)))
+		lines.append_array(_does(c))
 	var plain := {
 		Cards.FIRE: [["불타는 칸", "가연성·인화성 칸"], ["불붙음", "나무 적"], ["다시 켜짐", "꺼진 등불"]],
 		Cards.WATER:
@@ -380,6 +381,14 @@ static func _form(s: Spell) -> Array:
 		Spray.STRIKE:
 			return [["모양", Lang.t("곧게 %d칸") % n], ["관통", "적"]]
 	return [["모양", Lang.t("%d칸 안 첫 벽과 그 양옆") % n]]
+
+
+## What compound `c` does, as lines in its colour: its numbers, then the tag of 전기.
+static func _does(c: StringName) -> Array:
+	var lines := _lines(compound(c), Palette.card(c))
+	if Cards.ELECTRIC.has(c):
+		lines.append([[Lang.t(Info.ELECTRIC) + ".", Palette.TEXT]])
+	return lines
 
 
 ## What compound `c` does where it reaches, as [label, value] lines (Compounds).
@@ -466,7 +475,6 @@ static func compound(c: StringName) -> Array:
 			return [
 				["피해", "%d" % Compounds.THUNDER],
 				["기절", Lang.t("%d초") % Compounds.THUNDER_STUN],
-				["젖음", Lang.t("피해 ×%d") % Elements.WEAK],
 			]
 		&"stillness":
 			return [["추격 중인 적", "제자리 수색"], ["지워짐", "냄새"]]
@@ -532,8 +540,7 @@ static func shot(w: World, s: Shot) -> Array:
 	var lines := [
 		[[side, Palette.SIDE[s.faction]], [spell.shown(), Palette.shot_color(spell, s.faction)]]
 	]
-	if elements(spell) != "":
-		lines.append(_line("원소", elements(spell)))
+	lines.append_array(_nature(spell))
 	lines.append(_line("피해", str(spell.damage(s.distance())), Palette.HURT))
 	if s.turn > 0:
 		var t := w.actor(s.target)
@@ -554,14 +561,28 @@ static func shot(w: World, s: Shot) -> Array:
 	return lines
 
 
-## The elements a spell a creature calls by its own name carries, "·" between
-## them; "" when it carries none or its title tells them.
-static func elements(s: Spell) -> String:
-	var names: Array[String] = []
-	for c in s.elements():
-		if s.called != "" and not names.has(Lang.t(Cards.NAME[c])):
-			names.append(Lang.t(Cards.NAME[c]))
-	return "·".join(names)
+## Whether the spell tells its elements (Spell.nature): it has some and its title
+## does not, since a compound or a creature's own name stands for them. A title
+## that names every element ("불×2 구슬") needs no line saying it again.
+static func _tells_nature(s: Spell) -> bool:
+	return not s.nature().is_empty() and (s.called != "" or not s.compounds().is_empty())
+
+
+## The elements of the spell, "+" between them.
+static func _nature_text(s: Spell) -> String:
+	return "+".join(s.nature().map(func(e): return Lang.t(Cards.NAME[e])))
+
+
+## "오행: 불+쇠" with each name in its colour, as the creature's line has it; no
+## line for a spell with no element or one whose title names them.
+static func _nature(s: Spell) -> Array:
+	if not _tells_nature(s):
+		return []
+	var line := [[Lang.t("오행: "), LABEL]]
+	for i in s.nature().size():
+		var e: StringName = s.nature()[i]
+		line.append([("+" if i > 0 else "") + Lang.t(Cards.NAME[e]), Palette.CARD[e]])
+	return [line]
 
 
 ## A turn of `degrees` a tile.
