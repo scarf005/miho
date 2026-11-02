@@ -577,7 +577,8 @@ static func _windows(w: World) -> void:
 
 
 ## Walls over the windows an event room left with no sky on one side or no room
-## on the other (a room laid over the sky inside it floors it).
+## on the other (a room laid over the sky inside it floors it), and over any beside a
+## hidden door, which stands in plain wall (`_walled`).
 static func _shut_windows(w: World) -> void:
 	for i in w.tiles.size():
 		if w.tiles[i] != World.WINDOW:
@@ -588,6 +589,7 @@ static func _shut_windows(w: World) -> void:
 			faces.size() != 1
 			or Terrain.wall(w.tile(p - faces[0]))
 			or w.tile(p - faces[0]) == World.SKY
+			or Placement.SIDES.any(func(d): return w.secrets.has(p + d))
 		):
 			w.tiles[i] = World.WALL
 	w._changed()
