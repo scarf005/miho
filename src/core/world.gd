@@ -218,6 +218,8 @@ var heard: Array[Dictionary] = []
 var scent := PackedInt32Array()
 var _light := PackedVector3Array()
 var _light_dirty := true
+## 1 for every tile `lit`, read off `_light` with it.
+var _lit := PackedByteArray()
 var _fov := {}
 var _opaque := PackedByteArray()
 var _shade := PackedByteArray()
@@ -315,7 +317,9 @@ func max_tails() -> int:
 
 
 func tile(p: Vector2i) -> int:
-	return tiles[Grid.index(p)] if Grid.inside(p) else WALL
+	if p.x >= 0 and p.y >= 0 and p.x < Grid.W and p.y < Grid.H:
+		return tiles[p.y * Grid.W + p.x]
+	return WALL
 
 
 ## Creatures can walk here.
@@ -409,12 +413,19 @@ func light() -> PackedVector3Array:
 			while i >= 0:
 				_light[i] += Light.MOON
 				i = tiles.find(t, i + 1)
+		_lit = Native.lit(_light, Light.LIT)
 		_light_dirty = false
 	return _light
 
 
+func _lit_mask() -> PackedByteArray:
+	if _light_dirty:
+		light()
+	return _lit
+
+
 func lit(p: Vector2i) -> bool:
-	return Grid.inside(p) and Light.level(light()[Grid.index(p)]) >= Light.LIT
+	return Grid.inside(p) and _lit_mask()[p.y * Grid.W + p.x] == 1
 
 
 ## Tiles in line of sight from p, lit or not (cached until something moves).
@@ -522,24 +533,12 @@ func act(action: Dictionary) -> Array[Dictionary]:
 func sense() -> void:
 	_changed()
 	var me := player()
-	var from := fov(me.pos)
-	seen = PackedByteArray()
-	seen.resize(tiles.size())
-	dim = seen.duplicate()
 	if known.size() != tiles.size():
 		known.resize(tiles.size())
-	var clear := not opaque(me.pos)
-	for i in tiles.size():
-		if from[i] == 0:
-			continue
-		var p := Grid.at(i)
-		# Sight is symmetric between clear tiles, so her own field answers for them.
-		if _reaches(me, p) and ((clear and not opaque(p)) or sees(me, p)):
-			seen[i] = 1
-			known[i] = 1
-		elif me.blind <= 0 and (Grid.cheb(p, me.pos) <= DIM or (hides(p) and lit(p))):
-			dim[i] = 1
-			known[i] = 1
+	var sensed := Sight.sensed(self, me)
+	seen = sensed[0]
+	dim = sensed[1]
+	known = sensed[2]
 	Traps.find(self)
 	Notice.remember(self)
 	Cheat.reveal(self)

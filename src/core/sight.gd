@@ -11,3 +11,24 @@ extends RefCounted
 ## In Rust, rust/src/lib.rs.
 static func field(origin: Vector2i, radius: int, opaque: PackedByteArray) -> PackedByteArray:
 	return Native.sight(origin, radius, opaque, Grid.W)
+
+
+## What `me` senses now, [seen, dim, known]: World.seen, World.dim and World.known once it has
+## looked round. Its own field answers for the clear tiles, as sight is symmetric between them.
+## In Rust, rust/src/lib.rs.
+static func sensed(w: World, me: Actor) -> Array:
+	return Native.sense(
+		me.pos,
+		World.NIGHT[me.faction] + (World.WARY_SIGHT if me.wary > 0 else 0),
+		me.asleep(),
+		me.blind > 0,
+		me.faction == Actor.FOX,
+		w.fov(me.pos),
+		w.opaque_mask(),
+		Masks.hides(w),
+		w._lit_mask(),
+		w.known,
+		World.VIEW,
+		World.DIM,
+		Grid.W
+	)

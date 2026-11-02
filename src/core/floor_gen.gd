@@ -173,6 +173,9 @@ const WINDOWS := 0.35
 ## The share of doors that start open.
 const OPEN_DOORS := 0.3
 
+## The tile kinds Native.doorways deals in.
+static var _door_kinds := PackedByteArray([World.WALL, World.FLOOR, World.DOOR, World.DOOR_OPEN])
+
 
 ## Builds the storey on `skeleton` (Skeletons.pick when none is given); returns the
 ## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
@@ -398,47 +401,23 @@ static func _split(
 static func _doorways(w: World, galleries: Array[Rect2i]) -> Array:
 	var parts := w.rooms.duplicate()
 	parts.append_array(galleries)
-	var part := PackedInt32Array()
-	part.resize(w.tiles.size())
-	part.fill(-1)
-	for k in parts.size():
-		for y in range(parts[k].position.y, parts[k].end.y):
-			for x in range(parts[k].position.x, parts[k].end.x):
-				part[Grid.index(Vector2i(x, y))] = k
-	var joined := range(parts.size())
-	var spots := []
-	var tiles := w.tiles
-	for i in tiles.size():
-		if tiles[i] != World.WALL:
-			continue
-		var x := i % Grid.W
-		var y := i / Grid.W
-		if x > 0 and x < Grid.W - 1:
-			var a := part[i - 1]
-			var b := part[i + 1]
-			if a >= 0 and b >= 0 and a != b:
-				spots.append([Vector2i(x, y), Vector2i.RIGHT, a, b])
-		if y > 0 and y < Grid.H - 1:
-			var a := part[i - Grid.W]
-			var b := part[i + Grid.W]
-			if a >= 0 and b >= 0 and a != b:
-				spots.append([Vector2i(x, y), Vector2i.DOWN, a, b])
-	var open := Masks.floor_of(w)
-	for k in parts.size():
-		var dist: PackedInt32Array = Grid.search(parts[k].position, open).dist
-		for j in parts.size():
-			if dist[Grid.index(parts[j].position)] >= 0:
-				joined[_root(joined, j)] = _root(joined, k)
-	shuffle(w.rng, spots)
+	var cut := Native.doorways(
+		parts,
+		w.tiles,
+		Masks.floor_of(w),
+		w.secrets.keys(),
+		w.rng,
+		_door_kinds,
+		DOORS,
+		OPEN_DOORS,
+		Grid.W
+	)
+	w.tiles = cut[0]
+	var spots: PackedInt32Array = cut[1]
 	var left := []
-	for s: Array in spots:
-		var a := _root(joined, s[2])
-		var b := _root(joined, s[3])
-		if a == b or not _walled(w, s[0], s[1]):
-			left.append(s)
-			continue
-		joined[a] = b
-		_doorway(w, s[0])
+	for i in range(0, spots.size(), 4):
+		var across := Vector2i.DOWN if spots[i + 1] == 1 else Vector2i.RIGHT
+		left.append([Grid.at(spots[i]), across, spots[i + 2], spots[i + 3]])
 	return left
 
 
@@ -468,13 +447,6 @@ static func _doorway(w: World, p: Vector2i) -> void:
 	if w.rng.randf() < DOORS:
 		t = World.DOOR_OPEN if w.rng.randf() < OPEN_DOORS else World.DOOR
 	w.tiles[Grid.index(p)] = t
-
-
-## The part that stands for every part joined with `k`.
-static func _root(joined: Array, k: int) -> int:
-	while joined[k] != k:
-		k = joined[k]
-	return k
 
 
 ## Shuffles `a` with a generator of the world's, so that a seed builds the same storey.
@@ -599,30 +571,9 @@ static func _bridge(w: World, west: Rect2i, east: Rect2i, y: int) -> void:
 ## room floor behind them, never two side by side and never on the map's outer
 ## ring.
 static func _windows(w: World) -> void:
-	var tiles := w.tiles
-	# Tile offsets of up, down, left, right and the side of each (the two sides are either way).
-	var steps := [-Grid.W, Grid.W, -1, 1]
-	var sides := [-1, -1, -Grid.W, -Grid.W]
-	for y in range(1, Grid.H - 1):
-		for x in range(1, Grid.W - 1):
-			var i := y * Grid.W + x
-			if tiles[i] != World.WALL:
-				continue
-			for k in 4:
-				var step: int = steps[k]
-				var side: int = sides[k]
-				if (
-					tiles[i + step] == World.SKY
-					and tiles[i - step] == World.FLOOR
-					and tiles[i + side] != World.SKY
-					and tiles[i - side] != World.SKY
-					and tiles[i + side] != World.WINDOW
-					and tiles[i - side] != World.WINDOW
-					and w.rng.randf() < WINDOWS
-				):
-					tiles[i] = World.WINDOW
-					break
-	w.tiles = tiles
+	w.tiles = Native.windows(
+		w.tiles, w.rng, World.WALL, World.SKY, World.FLOOR, World.WINDOW, WINDOWS, Grid.W
+	)
 
 
 ## Walls over the windows an event room left with no sky on one side or no room
@@ -643,9 +594,7 @@ static func _shut_windows(w: World) -> void:
 
 
 static func _fill(w: World, r: Rect2i, t: int) -> void:
-	for y in range(r.position.y, r.end.y):
-		for x in range(r.position.x, r.end.x):
-			w.tiles[Grid.index(Vector2i(x, y))] = t
+	w.tiles = Native.fill(w.tiles, r, t, Grid.W)
 
 
 ## Whether every open tile is reachable from the first room, walking round the
@@ -653,11 +602,8 @@ static func _fill(w: World, r: Rect2i, t: int) -> void:
 ## the sealing walls of treasure rooms (World.seals); and every lantern of a
 ## sealing wall can be stood beside while the wall stands.
 static func connected(w: World, blocked: Array = []) -> bool:
-	var open := Masks.opened(w, blocked)
-	var dist: PackedInt32Array = Grid.search(_centre(w.rooms[0]), open).dist
-	for i in open.size():
-		if open[i] == 1 and dist[i] < 0:
-			return false
+	if not Native.whole(_centre(w.rooms[0]), Masks.opened(w, blocked), Grid.W):
+		return false
 	if w.seals.is_empty():
 		return true
 	var shut := Masks.floor_of(w, blocked, func(_p): return false)
@@ -861,9 +807,8 @@ static func _arrive(w: World, kind: StringName, at: Vector2i) -> Actor:
 static func _by_lantern(w: World) -> Vector2i:
 	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var spots: Array[Vector2i] = []
-	for i in w.tiles.size():
-		if w.tiles[i] != World.LANTERN:
-			continue
+	var i := w.tiles.find(World.LANTERN)
+	while i >= 0:
 		for d in Grid.DIRS:
 			var p: Vector2i = Grid.at(i) + d
 			if (
@@ -875,6 +820,7 @@ static func _by_lantern(w: World) -> Vector2i:
 				and Grid.cheb(p, w.start) > START_CLEAR
 			):
 				spots.append(p)
+		i = w.tiles.find(World.LANTERN, i + 1)
 	if spots.is_empty():
 		return Vector2i(-1, -1)
 	return spots[w.rng.randi_range(0, spots.size() - 1)]
@@ -885,27 +831,25 @@ static func _by_lantern(w: World) -> Vector2i:
 ## that is given.
 static func _random_spot(w: World, min_dist: int, near := Vector2i(-1, -1)) -> Vector2i:
 	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
-	var spots: Array[Vector2i] = []
-	for r in w.rooms:
-		if near.x >= 0 and not r.has_point(near):
-			continue
-		for y in range(r.position.y, r.end.y):
-			for x in range(r.position.x, r.end.x):
-				var p := Vector2i(x, y)
-				if (
-					dist[y * Grid.W + x] >= min_dist
-					and (near.x < 0 or Grid.cheb(p, near) <= BAND_SPREAD)
-					and Grid.cheb(p, w.start) > START_CLEAR
-					and p != w.stairs
-					and p != w.elixir
-					and not w.peaches.has(p)
-					and not w.traps.has(p)
-					and w.vacant(p)
-				):
-					spots.append(p)
+	var free := Grid.mask(
+		w.tiles,
+		Tiles.walk,
+		Masks.odd(w) + w.peaches + [w.stairs, w.elixir],
+		func(p):
+			return (
+				p != w.stairs
+				and p != w.elixir
+				and not w.peaches.has(p)
+				and not w.traps.has(p)
+				and w.vacant(p)
+			)
+	)
+	var spots := Native.spots(
+		w.rooms, free, dist, min_dist, w.start, START_CLEAR, near, BAND_SPREAD, Grid.W
+	)
 	if spots.is_empty():
 		return Vector2i(-1, -1)
-	return spots[w.rng.randi_range(0, spots.size() - 1)]
+	return Grid.at(spots[w.rng.randi_range(0, spots.size() - 1)])
 
 
 ## Where a resting patrol heads next: the middle of a random room.

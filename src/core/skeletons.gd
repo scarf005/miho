@@ -172,37 +172,14 @@ static func _ruin(w: World) -> Dictionary:
 ## away from them cuts it. A block that cuts it stands on every route, so only
 ## those on the shortest one are tried.
 static func two_ways(w: World, home: Rect2i, goal: Rect2i) -> bool:
-	var open := Masks.floor_of(w, w.traps.keys(), func(_p): return false)
-	var from := home.position + home.size / 2
-	var end := goal.position + goal.size / 2
-	var to := Grid.index(end)
-	var found := Grid.search(from, open)
-	if found.dist[to] < 0:
-		return false
-	var near_home := home.grow(NEAR_ENDS)
-	var near_goal := goal.grow(NEAR_ENDS)
-	var around := Grid.DIRS + [Vector2i.ZERO]
-	var tried := {}
-	var at: int = to
-	while at >= 0:
-		for d in around:
-			var mid: Vector2i = Grid.at(at) + d
-			if tried.has(mid) or near_home.has_point(mid) or near_goal.has_point(mid):
-				continue
-			tried[mid] = true
-			if Grid.distance(from, _without(open, mid), end) < 0:
-				return false
-		at = found.parent[at]
-	return true
-
-
-## `open` with the 3 by 3 tiles round `mid` shut.
-static func _without(open: PackedByteArray, mid: Vector2i) -> PackedByteArray:
-	var out := open.duplicate()
-	for y in range(maxi(mid.y - 1, 0), mini(mid.y + 2, Grid.H)):
-		for x in range(maxi(mid.x - 1, 0), mini(mid.x + 2, Grid.W)):
-			out[y * Grid.W + x] = 0
-	return out
+	return Native.two_ways(
+		home.position + home.size / 2,
+		Masks.floor_of(w, w.traps.keys(), func(_p): return false),
+		goal.position + goal.size / 2,
+		home.grow(NEAR_ENDS),
+		goal.grow(NEAR_ENDS),
+		Grid.W
+	)
 
 
 ## The ring: a hall RING_HALL wide round a court of sky, rooms outside it on all
@@ -469,18 +446,8 @@ static func _door(w: World, a: Rect2i, b: Rect2i) -> bool:
 ## The wall tiles with `a` on one side and `b` on the other.
 static func _door_spots(w: World, a: Rect2i, b: Rect2i) -> Array[Vector2i]:
 	var spots: Array[Vector2i] = []
-	for y in range(a.position.y - 1, a.end.y + 1):
-		for x in range(a.position.x - 1, a.end.x + 1):
-			var p := Vector2i(x, y)
-			for d: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
-				if (
-					w.tile(p) == World.WALL
-					and (
-						(a.has_point(p - d) and b.has_point(p + d))
-						or (b.has_point(p - d) and a.has_point(p + d))
-					)
-				):
-					spots.append(p)
+	for i in Native.door_spots(w.tiles, a, b, World.WALL, Grid.W):
+		spots.append(Grid.at(i))
 	return spots
 
 

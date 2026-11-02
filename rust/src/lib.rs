@@ -1,11 +1,14 @@
 //! Board primitives the rules call many times a round: breadth-first search,
-//! shadowcast sight and light, and a round of gas. GDScript reaches them through
-//! Grid.search, Sight.field, Light.spread/field and Gas.spread, passing masks
-//! (one byte per tile, row by row) instead of callables, so no call goes back to
+//! shadowcast sight and light, a round of gas, what Miho senses and the loops of
+//! storey generation. GDScript reaches them through Grid.search, Sight.field,
+//! Light.spread/field, Gas.spread, World.sense and FloorGen, passing masks (one
+//! byte per tile, row by row) instead of callables, so no call goes back to
 //! GDScript per tile. Results match the GDScript originals bit for bit: saved
 //! runs replay their actions, so the same order, tie-breaks and float precision
-//! are kept.
+//! are kept. A loop that draws random numbers draws them from the World's own
+//! RandomNumberGenerator, in the same order and count as it did in GDScript.
 
+use godot::classes::RandomNumberGenerator;
 use godot::prelude::*;
 
 struct MihoNative;
@@ -50,6 +53,133 @@ impl Board {
     fn index(self, x: i32, y: i32) -> usize {
         (y * self.w + x) as usize
     }
+
+    fn at(self, i: usize) -> (i32, i32) {
+        (i as i32 % self.w, i as i32 / self.w)
+    }
+}
+
+/// Rect2i.has_point.
+fn has(r: Rect2i, x: i32, y: i32) -> bool {
+    x >= r.position.x && y >= r.position.y && x < r.end().x && y < r.end().y
+}
+
+/// A board's rows as bits, so that a search that needs no parents takes a word at a time.
+/// Grid.W is 56.
+const MOST_ROWS: usize = 32;
+type Rows = [u64; MOST_ROWS];
+
+fn rows_of(open: &[u8], b: Board) -> Rows {
+    let mut rows = [0u64; MOST_ROWS];
+    for (row, line) in rows.iter_mut().zip(open.chunks_exact(b.w as usize)) {
+        for (x, &o) in line.iter().enumerate() {
+            *row |= ((o != 0) as u64) << x;
+        }
+    }
+    rows
+}
+
+/// Breadth-first search from `from`, which need not be open itself and lies on the board,
+/// across `open`: the steps to `goal` (-1 when unreached), or -1 with every tile it
+/// reaches in `seen` when there is no goal.
+fn walk(open: &Rows, b: Board, from: (i32, i32), goal: Option<(i32, i32)>, seen: &mut Rows) -> i32 {
+    assert!(b.w <= 64 && b.h as usize <= MOST_ROWS);
+    let full = u64::MAX >> (64 - b.w);
+    let rows = b.h as usize;
+    let wide = |f: u64| (f | f << 1 | f >> 1) & full;
+    *seen = [0; MOST_ROWS];
+    let (mut now, mut fresh) = ([0u64; MOST_ROWS], [0u64; MOST_ROWS]);
+    now[from.1 as usize] = 1 << from.0;
+    seen[from.1 as usize] = now[from.1 as usize];
+    if goal == Some(from) {
+        return 0;
+    }
+    let mut steps = 0;
+    loop {
+        steps += 1;
+        let mut any = 0;
+        let (mut above, mut here) = (0, wide(now[0]));
+        for y in 0..rows {
+            let below = if y + 1 < rows { wide(now[y + 1]) } else { 0 };
+            fresh[y] = (above | here | below) & open[y] & !seen[y];
+            seen[y] |= fresh[y];
+            any |= fresh[y];
+            (above, here) = (here, below);
+        }
+        if any == 0 {
+            return -1;
+        }
+        if let Some((gx, gy)) = goal
+            && seen[gy as usize] >> gx & 1 == 1
+        {
+            return steps;
+        }
+        std::mem::swap(&mut now, &mut fresh);
+    }
+}
+
+/// Parents and distances of a breadth-first search, as `Native.search` gives them.
+fn search(from: Vector2i, open: &[u8], limit: i32, b: Board) -> (Vec<i32>, Vec<i32>) {
+    let mut dist = vec![-1i32; open.len()];
+    let mut parent = dist.clone();
+    if b.inside(from.x, from.y) {
+        dist[b.index(from.x, from.y)] = 0;
+        let mut queue = Vec::with_capacity(open.len());
+        queue.push((from.x, from.y));
+        let mut head = 0;
+        while head < queue.len() {
+            let (x, y) = queue[head];
+            head += 1;
+            let i = b.index(x, y);
+            if dist[i] == limit {
+                continue;
+            }
+            for (dx, dy) in DIRS {
+                let (qx, qy) = (x + dx, y + dy);
+                if !b.inside(qx, qy) {
+                    continue;
+                }
+                let j = b.index(qx, qy);
+                if dist[j] < 0 && open[j] != 0 {
+                    dist[j] = dist[i] + 1;
+                    parent[j] = i as i32;
+                    queue.push((qx, qy));
+                }
+            }
+        }
+    }
+    (dist, parent)
+}
+
+/// The tile kinds and chances of FloorGen._doorway.
+struct Doorway {
+    floor: u8,
+    door: u8,
+    door_open: u8,
+    doors: f64,
+    open_doors: f64,
+}
+
+impl Doorway {
+    fn cut(&self, tile: &mut u8, rng: &mut Gd<RandomNumberGenerator>) {
+        let mut t = self.floor;
+        if (rng.randf() as f64) < self.doors {
+            t = if (rng.randf() as f64) < self.open_doors {
+                self.door_open
+            } else {
+                self.door
+            };
+        }
+        *tile = t;
+    }
+}
+
+/// FloorGen._root.
+fn root(joined: &[usize], mut k: usize) -> usize {
+    while joined[k] != k {
+        k = joined[k];
+    }
+    k
 }
 
 #[derive(GodotClass)]
@@ -78,34 +208,7 @@ impl Native {
     #[func]
     fn search(from: Vector2i, open: PackedByteArray, limit: i32, width: i32) -> VarDictionary {
         let open = open.as_slice();
-        let b = Board::of(open.len(), width);
-        let mut dist = vec![-1i32; open.len()];
-        let mut parent = dist.clone();
-        if b.inside(from.x, from.y) {
-            dist[b.index(from.x, from.y)] = 0;
-            let mut queue = vec![(from.x, from.y)];
-            let mut head = 0;
-            while head < queue.len() {
-                let (x, y) = queue[head];
-                head += 1;
-                let i = b.index(x, y);
-                if dist[i] == limit {
-                    continue;
-                }
-                for (dx, dy) in DIRS {
-                    let (qx, qy) = (x + dx, y + dy);
-                    if !b.inside(qx, qy) {
-                        continue;
-                    }
-                    let j = b.index(qx, qy);
-                    if dist[j] < 0 && open[j] != 0 {
-                        dist[j] = dist[i] + 1;
-                        parent[j] = i as i32;
-                        queue.push((qx, qy));
-                    }
-                }
-            }
-        }
+        let (dist, parent) = search(from, open, limit, Board::of(open.len(), width));
         let mut out = VarDictionary::new();
         out.set(
             &StringName::from("dist").to_variant(),
@@ -127,34 +230,418 @@ impl Native {
         if !b.inside(from.x, from.y) || !b.inside(to.x, to.y) {
             return -1;
         }
-        let goal = b.index(to.x, to.y);
-        let mut dist = vec![-1i32; open.len()];
-        dist[b.index(from.x, from.y)] = 0;
-        if b.index(from.x, from.y) == goal {
-            return 0;
+        let mut seen = [0; MOST_ROWS];
+        let goal = Some((to.x, to.y));
+        walk(&rows_of(open, b), b, (from.x, from.y), goal, &mut seen)
+    }
+
+    /// Whether a search from `from` reaches every tile whose `open` byte is not 0.
+    #[func]
+    fn whole(from: Vector2i, open: PackedByteArray, width: i32) -> bool {
+        let open = open.as_slice();
+        let b = Board::of(open.len(), width);
+        let rows = rows_of(open, b);
+        let mut seen = [0; MOST_ROWS];
+        if b.inside(from.x, from.y) {
+            walk(&rows, b, (from.x, from.y), None, &mut seen);
         }
-        let mut queue = vec![(from.x, from.y)];
-        let mut head = 0;
-        while head < queue.len() {
-            let (x, y) = queue[head];
-            head += 1;
-            let d = dist[b.index(x, y)];
-            for (dx, dy) in DIRS {
-                let (qx, qy) = (x + dx, y + dy);
-                if !b.inside(qx, qy) {
+        rows.iter().zip(&seen).all(|(r, s)| r & !s == 0)
+    }
+
+    /// Skeletons.two_ways once `open` is known: `from` reaches `end`, and no block of 3 by
+    /// 3 tiles on the shortest walk between them, its middle outside `near_home` and
+    /// `near_goal`, cuts them apart.
+    #[func]
+    fn two_ways(
+        from: Vector2i,
+        open: PackedByteArray,
+        end: Vector2i,
+        near_home: Rect2i,
+        near_goal: Rect2i,
+        width: i32,
+    ) -> bool {
+        let open = open.as_slice();
+        let b = Board::of(open.len(), width);
+        let (dist, parent) = search(from, open, -1, b);
+        let to = b.index(end.x, end.y);
+        if dist[to] < 0 {
+            return false;
+        }
+        let rows = rows_of(open, b);
+        let full = u64::MAX >> (64 - b.w);
+        let mut seen = [0; MOST_ROWS];
+        // A middle may lie one tile off the board.
+        let mut tried = vec![false; ((b.w + 2) * (b.h + 2)) as usize];
+        let mut at = to as i32;
+        while at >= 0 {
+            let (ax, ay) = b.at(at as usize);
+            for (dx, dy) in DIRS.into_iter().chain([(0, 0)]) {
+                let (mx, my) = (ax + dx, ay + dy);
+                let slot = ((my + 1) * (b.w + 2) + mx + 1) as usize;
+                if tried[slot] || has(near_home, mx, my) || has(near_goal, mx, my) {
                     continue;
                 }
-                let j = b.index(qx, qy);
-                if dist[j] < 0 && open[j] != 0 {
-                    if j == goal {
-                        return d + 1;
-                    }
-                    dist[j] = d + 1;
-                    queue.push((qx, qy));
+                tried[slot] = true;
+                let mut left = rows;
+                let span = (0b111u64 << (mx + 1) >> 2) & full;
+                for y in (my - 1).max(0)..(my + 2).min(b.h) {
+                    left[y as usize] &= !span;
+                }
+                let goal = Some((end.x, end.y));
+                if walk(&left, b, (from.x, from.y), goal, &mut seen) < 0 {
+                    return false;
+                }
+            }
+            at = parent[at as usize];
+        }
+        true
+    }
+
+    /// FloorGen._fill: `tiles` with the tiles of `r` set to `t`.
+    #[func]
+    fn fill(mut tiles: PackedByteArray, r: Rect2i, t: i32, width: i32) -> PackedByteArray {
+        let out = tiles.as_mut_slice();
+        let len = out.len() as i32;
+        for y in r.position.y..r.end().y {
+            for x in r.position.x..r.end().x {
+                let i = y * width + x;
+                // As a PackedByteArray index in GDScript: below 0 counts from the end.
+                let i = if i < 0 { i + len } else { i };
+                if (0..len).contains(&i) {
+                    out[i as usize] = t as u8;
                 }
             }
         }
-        -1
+        tiles
+    }
+
+    /// FloorGen._windows: a window at the chance `chance` on each wall that faces sky one
+    /// way and floor the other, with neither sky nor a window on its two sides.
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn windows(
+        mut tiles: PackedByteArray,
+        mut rng: Gd<RandomNumberGenerator>,
+        wall: i32,
+        sky: i32,
+        floor: i32,
+        window: i32,
+        chance: f64,
+        width: i32,
+    ) -> PackedByteArray {
+        let t = tiles.as_mut_slice();
+        let (w, h) = (width as isize, t.len() as isize / width as isize);
+        let (wall, sky, floor, window) = (wall as u8, sky as u8, floor as u8, window as u8);
+        for y in 1..h - 1 {
+            for x in 1..w - 1 {
+                let i = y * w + x;
+                if t[i as usize] != wall {
+                    continue;
+                }
+                for (step, side) in [(-w, -1), (w, -1), (-1, -w), (1, -w)] {
+                    if t[(i + step) as usize] == sky
+                        && t[(i - step) as usize] == floor
+                        && t[(i + side) as usize] != sky
+                        && t[(i - side) as usize] != sky
+                        && t[(i + side) as usize] != window
+                        && t[(i - side) as usize] != window
+                        && (rng.randf() as f64) < chance
+                    {
+                        t[i as usize] = window;
+                        break;
+                    }
+                }
+            }
+        }
+        tiles
+    }
+
+    /// FloorGen._doorways: doorways in the walls between `parts` (rooms, then galleries);
+    /// parts a walk over `open` already joins count as one. `kinds` are the tile kinds wall,
+    /// floor, door and open door; `secrets` the hidden doors (World.secrets). [tiles, the
+    /// spots left as 4 ints each: tile, 0 across x or 1 across y, part, part].
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn doorways(
+        parts: Array<Rect2i>,
+        mut tiles: PackedByteArray,
+        open: PackedByteArray,
+        secrets: VarArray,
+        mut rng: Gd<RandomNumberGenerator>,
+        kinds: PackedByteArray,
+        doors: f64,
+        open_doors: f64,
+        width: i32,
+    ) -> VarArray {
+        let [wall, floor, door, door_open] = kinds.as_slice()[..4] else {
+            panic!("doorways: kinds are wall, floor, door, open door")
+        };
+        let doorway = Doorway {
+            floor,
+            door,
+            door_open,
+            doors,
+            open_doors,
+        };
+        let open = open.as_slice();
+        let t = tiles.as_mut_slice();
+        let b = Board::of(t.len(), width);
+        let parts: Vec<Rect2i> = parts.iter_shared().collect();
+        let mut part = vec![-1i32; t.len()];
+        for (k, r) in parts.iter().enumerate() {
+            for y in r.position.y..r.end().y {
+                for x in r.position.x..r.end().x {
+                    part[b.index(x, y)] = k as i32;
+                }
+            }
+        }
+        let mut spots: Vec<[i32; 4]> = Vec::new();
+        for (i, &kind) in t.iter().enumerate() {
+            if kind != wall {
+                continue;
+            }
+            let (x, y) = b.at(i);
+            if x > 0 && x < b.w - 1 {
+                let (p, q) = (part[i - 1], part[i + 1]);
+                if p >= 0 && q >= 0 && p != q {
+                    spots.push([i as i32, 0, p, q]);
+                }
+            }
+            if y > 0 && y < b.h - 1 {
+                let (p, q) = (part[i - b.w as usize], part[i + b.w as usize]);
+                if p >= 0 && q >= 0 && p != q {
+                    spots.push([i as i32, 1, p, q]);
+                }
+            }
+        }
+        let mut joined: Vec<usize> = (0..parts.len()).collect();
+        let rows = rows_of(open, b);
+        let mut seen = [0; MOST_ROWS];
+        for (k, from) in parts.iter().enumerate() {
+            walk(
+                &rows,
+                b,
+                (from.position.x, from.position.y),
+                None,
+                &mut seen,
+            );
+            for (j, to) in parts.iter().enumerate() {
+                if seen[to.position.y as usize] >> to.position.x & 1 == 1 {
+                    let (rj, rk) = (root(&joined, j), root(&joined, k));
+                    joined[rj] = rk;
+                }
+            }
+        }
+        for i in (1..spots.len()).rev() {
+            let j = rng.randi_range(0, i as i32) as usize;
+            spots.swap(i, j);
+        }
+        let mut hidden = vec![false; t.len()];
+        for s in secrets.iter_shared() {
+            let p: Vector2i = s.to();
+            if b.inside(p.x, p.y) {
+                hidden[b.index(p.x, p.y)] = true;
+            }
+        }
+        let mut left: Vec<i32> = Vec::new();
+        for s in &spots {
+            let (x, y) = b.at(s[0] as usize);
+            let (rp, rq) = (root(&joined, s[2] as usize), root(&joined, s[3] as usize));
+            // FloorGen._walled: a wall, with wall and no hidden door on the two sides.
+            let (sx, sy) = if s[1] == 0 { (0, 1) } else { (1, 0) };
+            let side = |px: i32, py: i32| {
+                !b.inside(px, py) || (t[b.index(px, py)] == wall && !hidden[b.index(px, py)])
+            };
+            let walled = t[s[0] as usize] == wall && side(x + sx, y + sy) && side(x - sx, y - sy);
+            if rp == rq || !walled {
+                left.extend(s);
+                continue;
+            }
+            joined[rp] = rq;
+            doorway.cut(&mut t[s[0] as usize], &mut rng);
+        }
+        let mut out = VarArray::new();
+        out.push(&tiles.to_variant());
+        out.push(&PackedInt32Array::from(left.as_slice()).to_variant());
+        out
+    }
+
+    /// Skeletons._door_spots: the wall tiles with `a` on one side and `b` on the other,
+    /// each once for each way across, as tile numbers.
+    #[func]
+    fn door_spots(
+        tiles: PackedByteArray,
+        a: Rect2i,
+        b: Rect2i,
+        wall: i32,
+        width: i32,
+    ) -> PackedInt32Array {
+        let t = tiles.as_slice();
+        let board = Board::of(t.len(), width);
+        let mut out = Vec::new();
+        for y in a.position.y - 1..a.end().y + 1 {
+            for x in a.position.x - 1..a.end().x + 1 {
+                if !board.inside(x, y) || t[board.index(x, y)] as i32 != wall {
+                    continue;
+                }
+                for (dx, dy) in [(1, 0), (0, 1)] {
+                    let (x0, y0, x1, y1) = (x - dx, y - dy, x + dx, y + dy);
+                    if (has(a, x0, y0) && has(b, x1, y1)) || (has(b, x0, y0) && has(a, x1, y1)) {
+                        out.push(y * width + x);
+                    }
+                }
+            }
+        }
+        PackedInt32Array::from(out.as_slice())
+    }
+
+    /// Placement._spots: tile numbers of the tiles of kind `on` in `rooms` but `skip`, in
+    /// order, without the `blocked` tiles.
+    #[func]
+    fn room_tiles(
+        rooms: Array<Rect2i>,
+        skip: Rect2i,
+        tiles: PackedByteArray,
+        on: i32,
+        blocked: VarArray,
+        width: i32,
+    ) -> PackedInt32Array {
+        let t = tiles.as_slice();
+        let b = Board::of(t.len(), width);
+        let mut free: Vec<bool> = t.iter().map(|&k| k as i32 == on).collect();
+        for p in blocked.iter_shared() {
+            let p: Vector2i = p.to();
+            if b.inside(p.x, p.y) {
+                free[b.index(p.x, p.y)] = false;
+            }
+        }
+        let mut out = Vec::new();
+        for r in rooms.iter_shared() {
+            if r == skip {
+                continue;
+            }
+            for y in r.position.y..r.end().y {
+                for x in r.position.x..r.end().x {
+                    if free[b.index(x, y)] {
+                        out.push(y * width + x);
+                    }
+                }
+            }
+        }
+        PackedInt32Array::from(out.as_slice())
+    }
+
+    /// FloorGen._random_spot: tile numbers of the `free` tiles in `rooms`, at least `least`
+    /// steps by `dist` and more than `clear` tiles from `start`; within `spread` of `near`
+    /// and in its room when `near` is given (its x is 0 or more).
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn spots(
+        rooms: Array<Rect2i>,
+        free: PackedByteArray,
+        dist: PackedInt32Array,
+        least: i32,
+        start: Vector2i,
+        clear: i32,
+        near: Vector2i,
+        spread: i32,
+        width: i32,
+    ) -> PackedInt32Array {
+        let (free, dist) = (free.as_slice(), dist.as_slice());
+        let b = Board::of(free.len(), width);
+        let cheb = |x: i32, y: i32, p: Vector2i| (x - p.x).abs().max((y - p.y).abs());
+        let mut out = Vec::new();
+        for r in rooms.iter_shared() {
+            if near.x >= 0 && !has(r, near.x, near.y) {
+                continue;
+            }
+            for y in r.position.y..r.end().y {
+                for x in r.position.x..r.end().x {
+                    let i = b.index(x, y);
+                    if free[i] != 0
+                        && dist[i] >= least
+                        && (near.x < 0 || cheb(x, y, near) <= spread)
+                        && cheb(x, y, start) > clear
+                    {
+                        out.push(i as i32);
+                    }
+                }
+            }
+        }
+        PackedInt32Array::from(out.as_slice())
+    }
+
+    /// World.sense: what Miho at `me` sees and makes out in the dark, of the tiles in
+    /// `view` (her own field). `reach` is how far she sees in the dark. `asleep` and `blind`
+    /// are her states, `fox` whether a blind creature feels the tiles next to it. `opaque`,
+    /// `hides` and `lit` are World.opaque, World.hides and World.lit for every tile. `sight`
+    /// is World.VIEW, `dim` is World.DIM. [seen, dim, known], `known` added to.
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn sense(
+        me: Vector2i,
+        reach: i32,
+        asleep: bool,
+        blind: bool,
+        fox: bool,
+        view: PackedByteArray,
+        opaque: PackedByteArray,
+        hides: PackedByteArray,
+        lit: PackedByteArray,
+        mut known: PackedByteArray,
+        sight: i32,
+        dim: i32,
+        width: i32,
+    ) -> VarArray {
+        let (view, opaque, hides, lit) = (
+            view.as_slice(),
+            opaque.as_slice(),
+            hides.as_slice(),
+            lit.as_slice(),
+        );
+        let b = Board::of(view.len(), width);
+        let mut seen_out = vec![0u8; view.len()];
+        let mut dim_out = vec![0u8; view.len()];
+        let know = known.as_mut_slice();
+        let clear = b.inside(me.x, me.y) && opaque[b.index(me.x, me.y)] == 0;
+        for (i, _) in view.iter().enumerate().filter(|&(_, &v)| v != 0) {
+            let (x, y) = b.at(i);
+            let near = (x - me.x).abs().max((y - me.y).abs());
+            let reaches = if asleep {
+                false
+            } else if blind {
+                fox && near <= 1
+            } else {
+                (hides[i] == 0 || near <= 1) && (near <= reach || lit[i] == 1)
+            };
+            if reaches
+                && ((clear && opaque[i] == 0)
+                    || blind
+                    || sees(Vector2i::new(x, y), me, sight, opaque, b))
+            {
+                seen_out[i] = 1;
+                know[i] = 1;
+            } else if !blind && (near <= dim || (hides[i] == 1 && lit[i] == 1)) {
+                dim_out[i] = 1;
+                know[i] = 1;
+            }
+        }
+        let mut out = VarArray::new();
+        out.push(&PackedByteArray::from(seen_out.as_slice()).to_variant());
+        out.push(&PackedByteArray::from(dim_out.as_slice()).to_variant());
+        out.push(&known.to_variant());
+        out
+    }
+
+    /// 1 for every tile of `light` whose brightest channel (Light.level) reaches `least`.
+    #[func]
+    fn lit(light: PackedVector3Array, least: f64) -> PackedByteArray {
+        let out: Vec<u8> = light
+            .as_slice()
+            .iter()
+            .map(|c| ((c.x as f64).max(c.y as f64).max(c.z as f64).max(0.0) >= least) as u8)
+            .collect();
+        PackedByteArray::from(out.as_slice())
     }
 
     /// Sight.field: 1 for every tile visible from `origin` within `radius`.
@@ -249,11 +736,12 @@ fn sight(origin: Vector2i, radius: i32, opaque: &[u8], b: Board) -> Vec<u8> {
     }
     seen[b.index(origin.x, origin.y)] = 1;
     let mut cast = Cast {
-        seen: &mut seen,
+        mark: |i: usize| seen[i] = 1,
         opaque,
         b,
         origin,
         radius,
+        deepest: radius,
     };
     for quadrant in 0..4 {
         cast.scan(quadrant, 1, -1.0, 1.0);
@@ -261,15 +749,45 @@ fn sight(origin: Vector2i, radius: i32, opaque: &[u8], b: Board) -> Vec<u8> {
     seen
 }
 
-struct Cast<'a> {
-    seen: &'a mut [u8],
+/// `sight(origin, radius, opaque, b)` at `target`, which lies on the board: only the rows of
+/// the quadrants that hold `target`, up to its own row, are scanned.
+fn sees(origin: Vector2i, target: Vector2i, radius: i32, opaque: &[u8], b: Board) -> bool {
+    if !b.inside(origin.x, origin.y) {
+        return false;
+    }
+    if origin == target {
+        return true;
+    }
+    let at = b.index(target.x, target.y);
+    let (dx, dy) = (target.x - origin.x, target.y - origin.y);
+    let mut hit = false;
+    for (quadrant, depth, col) in [(0, -dy, dx), (1, dx, dy), (2, dy, dx), (3, -dx, dy)] {
+        if depth >= 1 && col.abs() <= depth {
+            let mut cast = Cast {
+                mark: |i: usize| hit |= i == at,
+                opaque,
+                b,
+                origin,
+                radius,
+                deepest: depth,
+            };
+            cast.scan(quadrant, 1, -1.0, 1.0);
+        }
+    }
+    hit
+}
+
+struct Cast<'a, F: FnMut(usize)> {
+    mark: F,
     opaque: &'a [u8],
     b: Board,
     origin: Vector2i,
     radius: i32,
+    /// The last row worth scanning.
+    deepest: i32,
 }
 
-impl Cast<'_> {
+impl<F: FnMut(usize)> Cast<'_, F> {
     fn tile(&self, quadrant: i32, depth: i32, col: i32) -> (i32, i32) {
         let o = self.origin;
         match quadrant {
@@ -281,7 +799,7 @@ impl Cast<'_> {
     }
 
     fn scan(&mut self, quadrant: i32, depth: i32, mut start: f64, end: f64) {
-        if depth > self.radius {
+        if depth > self.radius || depth > self.deepest {
             return;
         }
         let reach = (self.radius as f64 + 0.5) * (self.radius as f64 + 0.5);
@@ -296,7 +814,7 @@ impl Cast<'_> {
             let c = col as f64;
             let symmetric = c >= d * start && c <= d * end;
             if inside && (wall || symmetric) && ((depth * depth + col * col) as f64) <= reach {
-                self.seen[self.b.index(x, y)] = 1;
+                (self.mark)(self.b.index(x, y));
             }
             let slope = (2.0 * c - 1.0) / (2.0 * d);
             if prev == 1 && !wall {

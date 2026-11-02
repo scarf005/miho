@@ -13,6 +13,7 @@ static var _fly := Grid.table(
 	func(t): return t != World.DOOR and (Tiles.of(t, "walk") or t == World.POND or t == World.SKY)
 )
 static var _air := Grid.table(func(t): return Tiles.of(t, "walk") or t == World.SKY)
+static var _hides := Grid.table(func(t): return t == World.BAMBOO)
 
 
 ## Floor and sky, which a falling Miho comes down across (Fall).
@@ -39,6 +40,11 @@ static func opaque(w: World) -> PackedByteArray:
 ## World.blocks_light for every tile.
 static func shade(w: World) -> PackedByteArray:
 	return Grid.mask(w.tiles, _shade, w.burning.keys(), w.blocks_light)
+
+
+## World.hides for every tile.
+static func hides(w: World) -> PackedByteArray:
+	return Grid.mask(w.tiles, _hides, w.burning.keys(), w.hides)
 
 
 ## World.open_floor for every tile, but `test` decides at the `extra` tiles.

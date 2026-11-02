@@ -180,7 +180,7 @@ static func scatter(w: World, goal: Rect2i) -> void:
 			if spots.is_empty():
 				break
 			if rng.randi_range(1, 100) <= row.chance:
-				lay(w, row, spots[rng.randi_range(0, spots.size() - 1)], rng)
+				lay(w, row, Grid.at(spots[rng.randi_range(0, spots.size() - 1)]), rng)
 	w._changed()
 
 
@@ -191,18 +191,10 @@ static func count(row: Dictionary, depth: int, rng: RandomNumberGenerator) -> in
 	return mini(row.count[2], hundredths / 100 + extra)
 
 
-## The tiles `row` may start on: free tiles of `row.on` in a room but `goal`.
-static func _spots(w: World, row: Dictionary, goal: Rect2i) -> Array[Vector2i]:
-	var out: Array[Vector2i] = []
-	var tiles := w.tiles
-	var on: int = row.on
-	for r in w.rooms:
-		if r != goal:
-			for y in range(r.position.y, r.end.y):
-				for x in range(r.position.x, r.end.x):
-					if tiles[y * Grid.W + x] == on and _clear(w, Vector2i(x, y)):
-						out.append(Vector2i(x, y))
-	return out
+## The tile numbers `row` may start on: free tiles of `row.on` in a room but `goal`.
+static func _spots(w: World, row: Dictionary, goal: Rect2i) -> PackedInt32Array:
+	var blocked: Array = w.gas.keys() + w.traps.keys() + [w.start, w.stairs, w.elixir]
+	return Native.room_tiles(w.rooms, goal, w.tiles, row.on, blocked, Grid.W)
 
 
 static func _free(w: World, p: Vector2i, row: Dictionary) -> bool:
