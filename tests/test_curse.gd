@@ -459,3 +459,21 @@ func test_a_creature_dying_on_a_rising_body_does_not_stop_it() -> void:
 	var risen := w.actor_at(FAR_JAR)
 	assert_not_null(risen)
 	assert_eq(risen.kind, Raise.WEAK)
+
+
+func test_every_curse_named_in_a_jars_entry_is_coloured_whole() -> void:
+	var bad := ""
+	for row: Array in Keywords.lines(Codex.flow(Info.jar_facts(), 60.0)):
+		for run: Array in row:
+			if run[1] == Palette.BAD:
+				bad += run[0]
+	for name: String in Curse.NAME.values() + ["객귀의 저주"]:
+		assert_string_contains(bad, name)
+
+
+func test_the_curse_of_the_body_has_an_entry_and_an_example_that_rises() -> void:
+	assert_ne(Keywords.locate("객귀의 저주"), Vector2i(-1, -1))
+	assert_false(Info.plain(Info.jar_facts()).contains("되살아나는 시체"))
+	var risen := func(a): return a.kind == Raise.WEAK
+	assert_true(_example(Curse.BODY).actors.any(risen), "the body gets up")
+	assert_false(_example(Curse.BODY, &"empty").actors.any(risen), "only by the doll")
