@@ -51,7 +51,7 @@ const HALF := 2
 ## The elements that make 전기 hit WEAK times as hard, and those that make a dry
 ## creature immune to its harm and its stun (`charge`).
 const CONDUCTS: Array[StringName] = [Cards.METAL, Cards.WATER]
-const GROUNDS: Array[StringName] = [Cards.WOOD, Cards.EARTH, Cards.FIRE]
+const GROUNDS: Array[StringName] = [Cards.EARTH]
 
 
 ## `s` strikes `a` for `n` before weakness: unless `a` stops the spell whole, it
