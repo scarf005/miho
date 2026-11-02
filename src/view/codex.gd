@@ -26,6 +26,8 @@ var tab := 0
 ## The entries a link was followed from, as [tab, selected, top, scroll], the
 ## last one the latest; Esc goes back along them.
 var trail: Array = []
+## The entries gone back from, the next one last, as a browser's forward goes.
+var ahead: Array = []
 ## The rank of the storey Miho is on (Bestiary.rank): the creatures read as there.
 var rank := 1
 var selected := 0
@@ -349,7 +351,8 @@ func link(word: String, keep: bool) -> void:
 	if at.x < 0 or at == Vector2i(tab, selected):
 		return
 	if keep:
-		trail.append([tab, selected, top, scroll])
+		trail.append(_place())
+	ahead.clear()
 	go(at.x)
 	select(at.y)
 
@@ -358,12 +361,27 @@ func link(word: String, keep: bool) -> void:
 func back() -> bool:
 	if trail.is_empty():
 		return false
-	var from: Array = trail.pop_back()
-	tab = from[0]
-	selected = from[1]
-	top = from[2]
-	scroll = from[3]
+	ahead.append(_place())
+	_return_to(trail.pop_back())
 	return true
+
+
+## Goes forward again to the entry `back` left.
+func forward() -> void:
+	if not ahead.is_empty():
+		trail.append(_place())
+		_return_to(ahead.pop_back())
+
+
+func _place() -> Array:
+	return [tab, selected, top, scroll]
+
+
+func _return_to(place: Array) -> void:
+	tab = place[0]
+	selected = place[1]
+	top = place[2]
+	scroll = place[3]
 
 
 func go(t: int) -> void:

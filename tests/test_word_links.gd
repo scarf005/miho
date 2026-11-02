@@ -166,3 +166,87 @@ func test_the_entry_a_page_shows_is_not_a_word_of_its_own_title() -> void:
 			var word := WordHover.word_at(m.term, (Vector2(x, y) + Vector2(0.5, 0.5)) * Term.CELL)
 			if word != "":
 				assert_ne(Keywords.locate(word), own, word)
+
+
+func _linked(m: Node) -> Array:
+	m._open(&"codex")
+	m.menu.codex.go(4)
+	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
+	m.term.panel = m.menu.panel()
+	var from: Array = [m.menu.codex.tab, m.menu.codex.selected]
+	var at := _cell(m.term, "가연성")
+	_click(m, _over(m, at.x, int(at.y)))
+	return from
+
+
+func _press(m: Node, keys: String) -> void:
+	var e := Keys.event(keys)
+	e.pressed = true
+	m._unhandled_input(e)
+
+
+func _place(m: Node) -> Array:
+	return [m.menu.codex.tab, m.menu.codex.selected]
+
+
+func test_alt_and_the_arrows_go_back_and_forward_along_the_links_and_change_no_tab() -> void:
+	var m := _game()
+	var from := _linked(m)
+	var there := _place(m)
+	_press(m, "Alt+Left")
+	assert_eq(_place(m), from)
+	assert_eq(m.overlay, &"codex")
+	_press(m, "Alt+Right")
+	assert_eq(_place(m), there)
+	_press(m, "Alt+Right")
+	assert_eq(_place(m), there, "nothing further on")
+
+
+func test_the_side_buttons_of_a_mouse_go_back_and_forward_along_the_links() -> void:
+	var m := _game()
+	var from := _linked(m)
+	var there := _place(m)
+	_click(m, Vector2.ZERO, MOUSE_BUTTON_XBUTTON1)
+	assert_eq(_place(m), from)
+	_click(m, Vector2.ZERO, MOUSE_BUTTON_XBUTTON2)
+	assert_eq(_place(m), there)
+
+
+func test_esc_goes_back_so_that_forward_can_return() -> void:
+	var m := _game()
+	_linked(m)
+	var there := _place(m)
+	_esc(m)
+	_press(m, "Alt+Right")
+	assert_eq(_place(m), there)
+
+
+func test_following_a_new_link_forgets_what_lay_ahead() -> void:
+	var m := _game()
+	var from := _linked(m)
+	_press(m, "Alt+Left")
+	var at := _cell(m.term, "가연성")
+	_click(m, _over(m, at.x, int(at.y)))
+	var there := _place(m)
+	_press(m, "Alt+Left")
+	assert_eq(_place(m), from)
+	assert_eq(m.menu.codex.ahead.size(), 1, "only the last entry")
+	_press(m, "Alt+Right")
+	assert_eq(_place(m), there)
+
+
+func test_back_with_no_link_left_closes_the_codex_as_esc_does_and_opening_forgets_forward() -> void:
+	var m := _game()
+	_linked(m)
+	_press(m, "Alt+Left")
+	_press(m, "Alt+Left")
+	assert_eq(m.overlay, &"")
+	m._open(&"codex")
+	assert_true(m.menu.codex.ahead.is_empty())
+
+
+func test_the_side_buttons_do_nothing_on_another_page() -> void:
+	var m := _game()
+	m._open(&"help")
+	_click(m, Vector2.ZERO, MOUSE_BUTTON_XBUTTON1)
+	assert_eq(m.overlay, &"help")

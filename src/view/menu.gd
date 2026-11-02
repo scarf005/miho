@@ -24,6 +24,8 @@ const MOUSE := [
 	["오른쪽 클릭", "취소"],
 	["가리키기", "무엇이 있는지 보기"],
 	["단어 왼쪽 클릭", "도감에서 열기"],
+	["마우스 뒤로/앞으로 버튼", "도감에서 뒤로/앞으로 가기"],
+	["Alt+왼쪽/오른쪽", "도감에서 뒤로/앞으로 가기"],
 	["Shift", "정보창 고정"],
 ]
 ## Tiles the look cursor moves with Shift held.
@@ -137,6 +139,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 		room = size
 	codex.hover = -1
 	codex.trail.clear()
+	codex.ahead.clear()
 	codex.select(codex.selected)
 	if p == &"cheat":
 		debug.open(room)
@@ -216,6 +219,8 @@ func _fits() -> int:
 
 ## Handles a key press.
 func key(e: InputEventKey) -> StringName:
+	if page == &"codex" and e.alt_pressed and e.keycode in [KEY_LEFT, KEY_RIGHT]:
+		return &"" if e.is_echo() else history(e.keycode == KEY_RIGHT)
 	var nav := _nav(e)
 	if e.is_echo() and not nav in ListNav.REPEATS:
 		return &""
@@ -454,6 +459,17 @@ func back() -> StringName:
 		var out := debug.back()
 		return _leave() if out == &"close" else out
 	return _leave()
+
+
+## A browser's back and forward in the 도감: back goes as Esc does. Other pages
+## ignore them.
+func history(go_forward: bool) -> StringName:
+	if page != &"codex":
+		return &""
+	if go_forward:
+		codex.forward()
+		return &""
+	return back()
 
 
 func _leave() -> StringName:

@@ -895,7 +895,8 @@ func _open(kind: StringName) -> void:
 
 
 ## The Menu page takes keys; the wheel scrolls, a left click acts on the row or
-## tab under the pointer, and a right click goes back.
+## tab under the pointer, a right click goes back, and the mouse's side buttons go
+## back and forward in the 도감.
 func _panel_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_SHIFT and not menu.waiting:
 		return
@@ -908,6 +909,8 @@ func _panel_input(event: InputEvent) -> void:
 		command = menu.back()
 	elif button in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, PanelView.aside_at(term, local))
+	elif button in [MOUSE_BUTTON_XBUTTON1, MOUSE_BUTTON_XBUTTON2]:
+		command = menu.history(button == MOUSE_BUTTON_XBUTTON2)
 	elif button == MOUSE_BUTTON_LEFT:
 		command = WordLink.click(self, local)
 	match command:

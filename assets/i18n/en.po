@@ -3119,3 +3119,12 @@ msgstr "Struck out of the water, you are dragged to a free %s beside it."
 
 msgid "풀린 뒤에야 다시 묶을 수 있다."
 msgstr "It can bind you again only once you are free."
+
+msgid "마우스 뒤로/앞으로 버튼"
+msgstr "Mouse back/forward button"
+
+msgid "도감에서 뒤로/앞으로 가기"
+msgstr "Go back/forward in the codex"
+
+msgid "Alt+왼쪽/오른쪽"
+msgstr "Alt+Left/Right"
