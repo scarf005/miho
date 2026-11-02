@@ -107,3 +107,11 @@ func test_a_list_reads_the_keypad_with_num_lock_off_as_list_keys() -> void:
 	assert_eq(Menu._nav(_pad(KEY_KP_1, "End")), &"end")
 	assert_eq(Menu._nav(_pad(KEY_KP_9, "PageUp")), &"page_up")
 	assert_eq(Menu._nav(_pad(KEY_KP_3, "PageDown")), &"page_down")
+
+
+func test_a_key_bound_from_the_keypad_is_the_keypad_key() -> void:
+	var menu := Menu.new()
+	menu.page = &"keys"
+	menu.selected = menu._actions().find(&"dispel")
+	menu._bind(_pad(KEY_KP_9, "PageUp"))
+	assert_has(Keys.keys_of(&"dispel"), "Kp 9")

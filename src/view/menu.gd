@@ -512,7 +512,7 @@ func _bind(e: InputEventKey) -> StringName:
 	waiting = false
 	if e.keycode == KEY_ESCAPE:
 		return &""
-	var k := OS.get_keycode_string(e.get_keycode_with_modifiers())
+	var k := OS.get_keycode_string((Keys.pad(e) as InputEventKey).get_keycode_with_modifiers())
 	var action: StringName = _actions()[selected]
 	for other in Keys.ACTIONS:
 		var keys := Keys.keys_of(other)

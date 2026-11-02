@@ -113,11 +113,21 @@ static func event(key: String) -> InputEventKey:
 	return e
 
 
+## The press as the keypad key it is: with Num Lock off that key sends Home or End,
+## and with it on, on the web, a plain digit. Only its place tells what it is.
+static func pad(e: InputEvent) -> InputEvent:
+	if e is InputEventKey and OS.get_keycode_string(e.physical_keycode).begins_with("Kp "):
+		e = e.duplicate()
+		e.keycode = e.physical_keycode
+	return e
+
+
 ## The action a key press means: one bound with exactly its modifiers, else a
 ## move bound without them (Shift with a direction holds a spell), or the describe
 ## key, which reads the box Shift keeps. Empty if none.
 ## A press of Ctrl alone is read as Ctrl without the modifier it sets.
 static func action_of(e: InputEvent) -> StringName:
+	e = pad(e)
 	if e is InputEventKey and e.keycode == KEY_CTRL and e.ctrl_pressed:
 		e = e.duplicate()
 		e.ctrl_pressed = false
