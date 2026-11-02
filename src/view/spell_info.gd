@@ -117,18 +117,17 @@ static func hovered(c: StringName, picked: Array[StringName]) -> Array:
 static func slot(s: Spell, i: int) -> Array:
 	if s.cards.size() == 1:
 		return spell(s)
-	return [_slot_head(s, i)] + (spell(s).slice(1) if s.slots.size() == 1 else spell(s))
+	var head := _slot_head(s.slots[i], Cards.recipe(s.slots[i]))
+	return [head] + (spell(s).slice(1) if s.slots.size() == 1 else spell(s))
 
 
 ## A compound talisman alone: its tails and parts, then what it does.
 static func combo(c: StringName) -> Array:
-	var s := Spell.make(Cards.spell_of(c))
-	return [_slot_head(s, s.slots.find(c))] + spell(s).slice(1)
-
-
-static func _slot_head(s: Spell, i: int) -> Array:
-	var c := s.slots[i]
 	var parts := Cards.spell_of(c)
+	return [_slot_head(c, parts)] + spell(Spell.make(parts)).slice(1)
+
+
+static func _slot_head(c: StringName, parts: Array) -> Array:
 	var head := [
 		[Lang.t(Cards.NAME[c]), Palette.card(c)],
 		[Lang.t(" · 꼬리: %d") % Spell.price(parts.size()), LABEL]
