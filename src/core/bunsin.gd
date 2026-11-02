@@ -47,13 +47,13 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	if open(w, caster.pos + dir):
 		FloorGen.spawn(w, Cards.BUNSIN, caster.pos + dir).imprint.assign(caster.imprint)
 		w._changed()
-		_cap(w)
+		cap(w)
 	return true
 
 
 ## The copies on the storey past MOST go, the lowest id first: ids are given in the
 ## order copies come to be, and one that came upstairs keeps its own.
-static func _cap(w: World) -> void:
+static func cap(w: World) -> void:
 	var copies := w.actors.filter(func(a): return a.alive() and a.ally() and a.kind == Cards.BUNSIN)
 	copies.sort_custom(func(a, b): return a.id < b.id)
 	for old: Actor in copies.slice(0, maxi(0, copies.size() - MOST)):

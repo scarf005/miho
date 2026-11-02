@@ -76,6 +76,7 @@ static func bring(w: World, party: Array[Actor]) -> void:
 		a.grudge = 0
 		a.intent.clear()
 		w.actors.append(a)
+	Bunsin.cap(w)
 	w._changed()
 
 
