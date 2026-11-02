@@ -179,3 +179,11 @@ func test_a_banner_row_has_the_same_margin_on_both_sides() -> void:
 	Lang.use(&"ko")
 	Lang.locked = true
 	TranslationServer.set_locale("ko")
+
+
+func test_a_wall_crash_reads_as_such() -> void:
+	var w := _world()
+	w.player().hp = 1
+	w.set_tile(ME - Vector2i(1, 0), World.WALL)
+	w.push(w.player(), -Vector2i(1, 0), 1)
+	assert_eq(_head(w), "벽에 부딪혀 쓰러졌다")

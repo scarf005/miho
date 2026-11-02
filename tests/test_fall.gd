@@ -58,6 +58,7 @@ func test_a_push_slides_the_creature_up_to_n_tiles() -> void:
 func test_a_push_stops_at_a_wall() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dokkaebi", Vector2i(4, ROW))
+	foe.hp = 99
 	w.push(foe, -E, 9)
 	assert_eq(foe.pos, Vector2i(1, ROW), "the wall ring is at x = 0")
 	assert_true(foe.alive())
@@ -469,3 +470,26 @@ func test_a_wall_crash_can_fell_the_creature() -> void:
 	w.set_tile(Vector2i(14, ROW), World.WALL)
 	w.push(foe, -E, 2)
 	assert_false(foe.alive())
+
+
+func test_a_wooden_wall_breaks_and_harms_like_a_wall() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(15, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(14, ROW), World.WOOD_WALL)
+	w.push(foe, -E, 2)
+	assert_eq(foe.hp, 7)
+	assert_eq(w.tile(Vector2i(14, ROW)), World.FLOOR)
+
+
+func test_the_log_tells_who_hit_the_wall() -> void:
+	var w := _world()
+	var foe := _foe(w, &"dokkaebi", Vector2i(11, ROW))
+	foe.hp = 9
+	w.set_tile(Vector2i(11, ROW - 1), World.WALL)
+	w.sense()
+	var before := w.clone()
+	var from := w.events.size()
+	w.push(foe, Vector2i(0, -1), 1)
+	var lines := Messages.of(before, w, w.events.slice(from)).map(Messages.plain)
+	assert_true(lines.has("도깨비가 벽에 부딪혀 피해를 1 입었다"), str(lines))

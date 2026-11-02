@@ -21,6 +21,7 @@ static func rows() -> Dictionary:
 	var no_scent := ", ".join(SpellInfo.tiles_with("scentless") + [Lang.t("불타는 칸")])
 	return {
 		Info.ALLY: ["자리 바꿈: 걸어 들어갈 때", Lang.t("함께 올라감: %d칸 안에 있을 때") % Storeys.FOLLOW],
+		"밀침": ["벽에 부딪히면 남은 칸 수만큼 벽과 함께 피해를 입는다."],
 		"이동 불가": [Lang.t("넘을 수 있음: 주문, %s") % Lang.t(Spell.SHAPE_NAME[Spell.LEAP])],
 		"가연성":
 		[

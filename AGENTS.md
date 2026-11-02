@@ -14,6 +14,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
 - A knocked 병풍 is heard 4 tiles. User: "병풍이 소음 6칸인건 말이 안되지 않아? 4칸으로 낮춰".
 - A plate goes off for Miho, a creature and a projectile. User: "함정은 {적/플레이어/투사체}로 작동하게해".
+- A push into a wall harms the creature and the wall by the tiles left of the push. User: "넉백시 벽에 부딫히면 남은 넉백 거리에 비례해서 벽과 대상에 피해를 줘": `벽 @외` flown 2 gives 1 and 1, `벽@외` flown 2 gives 2 and 2.
 - Before you add a tile, status, state or creature field, diff it against the existing table (src/core/tiles.gd, Actor, Info.state). If its rules match an existing entry, reuse that entry. Never add a themed name with the same rules.
 - Level design teaches by arrangement, not by text. A secret or puzzle looks like ordinary terrain. Examples: a plain wall in front of an empty space, or three dark lanterns in a row. Never add an artificial prop whose hover explains the solution.
 - Never add a gameplay limit the user did not ask for: a damage cap, a balance ceiling, or a test that enforces one. A numeric limit a lane needs goes to the user first, in plain words.

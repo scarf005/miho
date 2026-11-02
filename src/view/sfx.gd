@@ -471,7 +471,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"blast" if Terrain.wall(e.was) else WORDS[Tiles.of(e.was, "hit")[1]]
 		&"collapse":
 			return &"blast"
-		&"clash", &"snuff", &"claw", &"melee", &"push":
+		&"clash", &"snuff", &"claw", &"melee", &"push", &"crash":
 			return &"clash"
 		&"absorb", &"resist":
 			return &"absorb"

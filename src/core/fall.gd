@@ -1,7 +1,8 @@
 class_name Fall
 extends RefCounted
 ## Pushing a creature. It slides up to n tiles and stops at anything it cannot
-## walk onto: a wall, a pond, a lantern, a creature. Sky is not stopped by: a
+## walk onto: a wall, a pond, a lantern, a creature. At a wall it and the wall take
+## one harm for each tile left of the push. Sky is not stopped by: a
 ## creature of heaven that slides into it falls out of the game and counts as
 ## a kill, its scroll (Scrolls) lying where it stood or the nearest tile that
 ## can hold it; Miho falls to the storey below, as she left
@@ -15,6 +16,8 @@ extends RefCounted
 ## A collapsing floor (Traps) drops a creature the same way, from where it stands.
 
 const DAMAGE := 1
+## What a push slams into. The rest only stops it.
+const WALLS := [World.WALL, World.WALL_CRACKED, World.WOOD_WALL]
 
 
 static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
@@ -26,6 +29,9 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 		if w.tile(to) == World.SKY:
 			drop(w, a, to)
 			return
+		if WALLS.has(w.tile(to)):
+			_crash(w, a, to, n - i)
+			return
 		if not w.vacant(to):
 			return
 		if i == 0:
@@ -35,6 +41,20 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 			return
 		if not a.alive() or w.depth != depth:
 			return
+
+
+## `a` slams into the wall at `at` with `left` tiles of the push to go, as DCSS
+## `actor::collide`.
+static func _crash(w: World, a: Actor, at: Vector2i, left: int) -> void:
+	var sound: Array = (
+		[World.THUD, "쿵"] if Terrain.wall(w.tile(at)) else Tiles.of(w.tile(at), "hit")
+	)
+	for i in left:
+		if WALLS.has(w.tile(at)) and Terrain.breakable(w, at):
+			Terrain.hit(w, at)
+	w.noise(at, sound[0], sound[1], true, a.id)
+	w.emit({t = &"crash", id = a.id, at = a.pos})
+	w.hurt(a, left)
 
 
 ## `a` falls from its tile into the sky at `into`: Miho drops a storey (nothing

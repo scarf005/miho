@@ -703,7 +703,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("막음: 길, 시야, 빛"))
 		World.WOOD_WALL:
 			out.append(Lang.t("막음: 길, 시야, 빛"))
-			out.append(Lang.t("부서짐: 구슬"))
+			out.append(Lang.t("부서짐: 구슬, 밀침"))
 		World.SCREEN:
 			out.append(Lang.t("막음: 길, 시야"))
 			out.append(Lang.t("타격: 쓰러짐"))
@@ -749,7 +749,7 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 	if Tiles.of(t, "trap"):
 		out.append(Lang.t("함정."))
 	if Terrain.wall(t) and breakable:
-		out.append(Lang.t("부서짐: 구슬"))
+		out.append(Lang.t("부서짐: 구슬, 밀침"))
 		out.append(Lang.t("부서질 때 소음: %d") % World.THUD)
 	if Terrain.knockable(t) and t != World.DRUM:
 		out.append(Lang.t("부딪칠 때 소음: %d") % Tiles.of(t, "hit")[0])

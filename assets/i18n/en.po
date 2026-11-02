@@ -888,8 +888,8 @@ msgstr "Stepped on: falls over"
 msgid "막음: 길, 시야, 빛"
 msgstr "Blocks: path, sight, light"
 
-msgid "부서짐: 구슬"
-msgstr "Breaks: orb"
+msgid "부서짐: 구슬, 밀침"
+msgstr "Breaks: orb, push"
 
 msgid "막음: 길, 시야"
 msgstr "Blocks: path, sight"
@@ -3168,3 +3168,15 @@ msgstr "Arcs"
 
 msgid "날아오는 투사체를 피할 수 있다."
 msgstr "It can dodge a projectile coming at it."
+
+msgid "{0}이/가 벽에 부딪혀 피해를 {1} 입었다"
+msgstr "{0} slammed into the wall for {1} damage"
+
+msgid "벽에 부딪혀 피해를 {0} 입었다"
+msgstr "Slammed into the wall for {0} damage"
+
+msgid "벽에 부딪혀 쓰러졌다"
+msgstr "Slammed into a wall and died"
+
+msgid "벽에 부딪히면 남은 칸 수만큼 벽과 함께 피해를 입는다."
+msgstr "Hitting a wall harms both by the tiles left."

@@ -120,6 +120,8 @@ static func _blow(w: World, e: Dictionary) -> String:
 				if _name(w, e.id) != ""
 				else Lang.t("쓰러졌다", "banner")
 			)
+		&"crash" when e.id == me.id:
+			return Lang.t("벽에 부딪혀 쓰러졌다")
 		&"burn" when e.id == me.id:
 			return Lang.t("불에 타 쓰러졌다")
 		&"fall" when e.id == me.id:

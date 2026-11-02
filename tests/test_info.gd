@@ -246,7 +246,7 @@ func test_terrain_tells_its_light_noise_and_burn_time_from_the_rules() -> void:
 		World.DOOR: ["\n가연성."],
 		World.BRIDGE: ["발소리: %d칸" % Tiles.of(World.BRIDGE, "tread")[0]],
 		World.WINDOW: ["부딪칠 때 소음: %d" % World.KNOCK],
-		World.WALL: ["부서짐: 구슬\n부서질 때 소음: %d" % World.THUD],
+		World.WALL: ["부서짐: 구슬, 밀침\n부서질 때 소음: %d" % World.THUD],
 	}
 	for t: int in told:
 		var p := _seen_tile(w, t)

@@ -36,6 +36,7 @@ const SOUNDS := [
 	[{t = &"claw"}, &"clash"],
 	[{t = &"melee"}, &"clash"],
 	[{t = &"push"}, &"clash"],
+	[{t = &"crash"}, &"clash"],
 	[{t = &"smash", was = World.JAR}, &"shatter"],
 	[{t = &"jar", what = &"water"}, &"splash"],
 	[{t = &"jar", what = Jars.KIMCHI}, &"tick"],

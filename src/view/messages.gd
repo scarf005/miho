@@ -456,6 +456,8 @@ static func _hurt_line(before: World, after: World, e: Dictionary, last: Diction
 		return _sub(
 			before, after, id, "{0}이/가 {1}에 데어 피해를 {2} 입었다", "{0}에 데어 피해를 {1} 입었다", [hot, n]
 		)
+	if by == &"crash" and last.id == id:
+		return _sub(before, after, id, "{0}이/가 벽에 부딪혀 피해를 {1} 입었다", "벽에 부딪혀 피해를 {0} 입었다", [n])
 	if by == &"prick" and last.id == id:
 		return _sub(before, after, id, "{0}이/가 가시에 찔려 피해를 {1} 입었다", "가시에 찔려 피해를 {0} 입었다", [n])
 	var me_id := after.player().id
