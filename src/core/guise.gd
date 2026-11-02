@@ -24,16 +24,15 @@ extends RefCounted
 ## casts any spell, or when she is hurt.
 ##
 ## 쇠발톱 (TALON, the 3단 of 화, 금 and 목): for TALON_ROUNDS rounds each claw
-## of hers harms TALON_HARM more (World.claw_harm). The harm is that of 우박, the
-## 3단 that hurts; the rounds are two more than the 2 to 3 rounds a 3단 holds
-## its target (우박, 서리꽃, 늪), since a claw needs a creature beside her. The
-## spell is silent, cast again it starts the rounds over, and it ends by time.
+## of hers harms TALON_HARM more (World.claw_harm). The harm is that of 가시's
+## prick; the rounds are two more than the 3 rounds a 3단 holds its target (늪),
+## since a claw needs a creature beside her. The spell is silent, cast again it
+## starts the rounds over, and it ends by time.
 ##
 ## 은신 (CLOAK, the 4단 of 화, 토, 금 and 수): for CLOAK_ROUNDS rounds she wears
 ## the hat of 감투 도깨비 (Hat): a creature knows her only from the next tile
 ## or while a wisp clings to her, a hunter too. The spell is silent and ends by
-## time. The rounds are a little over 속박's 4, since it hides from every
-## creature, and short of 둔갑's 8, which a hunter sees through.
+## time. The rounds are short of 둔갑's 8, which a hunter sees through.
 
 const SHADOW := &"shadow"
 const GUISE := &"guise"
@@ -44,7 +43,7 @@ const NAME := {SHADOW: "그림자", GUISE: "둔갑", TALON: Cards.NAME[TALON], C
 const RECIPE := {
 	SHADOW: [Cards.FOX, Cards.WATER],
 	GUISE: [Cards.WOOD, Cards.EARTH],
-	TALON: Cards.TRIPLES[TALON],
+	TALON: [Cards.FIRE, Cards.WOOD, Cards.METAL],
 	CLOAK: Cards.QUADS[CLOAK],
 }
 ## The spells that go on her whatever the direction they are cast along.

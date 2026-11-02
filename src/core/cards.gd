@@ -2,13 +2,15 @@ class_name Cards
 extends RefCounted
 ## Spell cards. Two forms come from DCSS (Foxfire, Orb of Destruction); the
 ## five elements (오행) are taken from strong enemies. A spell costs tails by its
-## cards (Spell.COST). Two different elements in one spell make one of ten
-## compounds (상생 and 상극 pairs), which takes one slot and counts two cards.
-## A pair and a third element make the 3단 compound of those three (TRIPLES), one
-## slot worth three cards: 수+목+화 make 도약, which leaps Miho herself (Leap).
-## A 3단 and a fourth element make the 4단 of its ring (QUADS), and a 4단 and the
-## last element a 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a
-## fourth element only as the last slot (Spell.queue).
+## cards (Spell.COST). Two different elements in one spell make one of nine
+## compounds (상생 and 상극 pairs, but 화 and 금 make none), which takes one slot
+## and counts two cards. A pair and a third element make the 3단 compound of
+## those three, if there is one (TRIPLES), one slot worth three cards: 수+목+화
+## make 도약, which leaps Miho herself (Leap). A 3단 and a fourth element make
+## the 4단 of its ring, if there is one (QUADS), and a 4단 and the last element a
+## 5단 (FIVES), up to the tier that forms now (TIER). 도약 takes a fourth element
+## only as the last slot (Spell.queue). Cards queue into a compound in some
+## orders only (`recipe`).
 
 const FOX := &"fox"
 const ORB := &"orb"
@@ -44,20 +46,15 @@ const PAIRS := {
 	&"frost": [METAL, WATER],
 	&"rain": [WATER, WOOD],
 	&"steam": [WATER, FIRE],
-	&"molten": [FIRE, METAL],
 	&"thorn": [METAL, WOOD],
 	&"rift": [WOOD, EARTH],
 	&"mud": [EARTH, WATER],
 }
 ## 3단 compound -> its three elements, in the order of their ring.
 const TRIPLES := {
-	&"volcano": [WOOD, FIRE, EARTH],
 	&"furnace": [FIRE, EARTH, METAL],
-	&"hail": [EARTH, METAL, WATER],
-	&"frostbloom": [METAL, WATER, WOOD],
 	VAULT: [WATER, WOOD, FIRE],
 	&"swamp": [WOOD, EARTH, WATER],
-	&"geyser": [EARTH, WATER, FIRE],
 	&"hypnosis": [WATER, FIRE, METAL],
 	&"talon": [FIRE, METAL, WOOD],
 	&"palisade": [METAL, WOOD, EARTH],
@@ -66,7 +63,6 @@ const TRIPLES := {
 const QUADS := {
 	&"beacon": [WOOD, FIRE, EARTH, METAL],
 	&"cloak": [FIRE, EARTH, METAL, WATER],
-	&"bind": [EARTH, METAL, WATER, WOOD],
 	&"magpie": [METAL, WATER, WOOD, FIRE],
 	&"mist": [WATER, WOOD, FIRE, EARTH],
 	&"sinkhole": [WOOD, EARTH, WATER, FIRE],
@@ -96,23 +92,17 @@ const NAME := {
 	&"frost": "서리",
 	&"rain": "단비",
 	&"steam": "증기",
-	&"molten": "쇳물",
 	&"thorn": "가시",
 	&"rift": "균열",
 	&"mud": "진흙",
-	&"volcano": "화산",
 	&"furnace": "용광로",
-	&"hail": "우박",
-	&"frostbloom": "서리꽃",
 	VAULT: "도약",
 	&"swamp": "늪",
-	&"geyser": "간헐천",
 	&"hypnosis": "최면",
 	&"talon": "쇠발톱",
 	&"palisade": "목책",
 	&"beacon": "봉화",
 	&"cloak": "은신",
-	&"bind": "속박",
 	&"magpie": "오작교",
 	&"mist": "안개비",
 	&"sinkhole": "땅꺼짐",
@@ -138,23 +128,17 @@ const GLYPH := {
 	&"frost": "서",
 	&"rain": "단",
 	&"steam": "증",
-	&"molten": "쇳",
 	&"thorn": "가",
 	&"rift": "균",
 	&"mud": "진",
-	&"volcano": "산",
 	&"furnace": "광",
-	&"hail": "박",
-	&"frostbloom": "꽃",
 	VAULT: "약",
 	&"swamp": "늪",
-	&"geyser": "천",
 	&"hypnosis": "최",
 	&"talon": "발",
 	&"palisade": "책",
 	&"beacon": "봉",
 	&"cloak": "은",
-	&"bind": "속",
 	&"magpie": "작",
 	&"mist": "안",
 	&"sinkhole": "꺼",
@@ -166,6 +150,9 @@ const GLYPH := {
 	CONQUEST: "극",
 	DRAGON: "룡",
 }
+
+## compound -> the order of its cards that queues into it (`recipe`), once found.
+static var _recipes := {}
 
 
 ## Every compound, pairs first, then by tier.
@@ -227,6 +214,29 @@ static func _grows(chain: Array) -> bool:
 ## The cards a slot is worth: a compound's elements, else the slot itself.
 static func made_of(slot: StringName) -> Array:
 	return PAIRS.get(slot, TRIPLES.get(slot, QUADS.get(slot, FIVES.get(slot, [slot]))))
+
+
+## The cards of `slot` in the first order that queues into that one slot (the
+## table's order, unless a pair without a compound is in the way): what to cast
+## or to show for it.
+static func recipe(slot: StringName) -> Array:
+	if not _recipes.has(slot):
+		_recipes[slot] = _order(slot, made_of(slot), [])
+	return _recipes[slot]
+
+
+## The first order of `rest` after `head` that queues into `slot` alone.
+static func _order(slot: StringName, rest: Array, head: Array) -> Array:
+	if rest.is_empty():
+		var made := Spell.fill(head)
+		return head if made.size() == 1 and made[0] == slot else []
+	for i in rest.size():
+		var left := rest.duplicate()
+		left.remove_at(i)
+		var found := _order(slot, left, head + [rest[i]])
+		if not found.is_empty():
+			return found
+	return []
 
 
 ## The elements a slot holds: itself or a compound's, none for a form or 도약,

@@ -5,7 +5,7 @@ extends GutTest
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
 const WAIT := {t = &"wait"}
-const TALON := [Cards.FIRE, Cards.METAL, Cards.WOOD]
+const TALON := [Cards.FIRE, Cards.WOOD, Cards.METAL]
 const CLOAK := [Cards.FIRE, Cards.EARTH, Cards.METAL, Cards.WATER]
 
 

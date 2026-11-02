@@ -178,14 +178,14 @@ func test_a_compound_cast_on_empty_ground_is_heard() -> void:
 		w.set_tile(w.player().pos + Vector2i(0, -2), World.LANTERN)
 		w.sense()
 		var before := w.clone()
-		w.act({t = &"cast", spells = [{cards = Cards.made_of(c), dir = E}]})
+		w.act({t = &"cast", spells = [{cards = Cards.recipe(c), dir = E}]})
 		assert_false(_heard(before, w).all(func(n): return n == &""), c)
 
 
 func test_every_spell_makes_a_sound_when_cast_and_each_sound_has_a_file() -> void:
 	for lead: StringName in Cards.ELEMENTS + Cards.compounds():
 		for form: Array in [[], [Cards.FOX], [Cards.ORB]]:
-			var cards := form + Cards.made_of(lead)
+			var cards := form + Cards.recipe(lead)
 			var spell := Spell.make(cards)
 			if spell == null or spell.shape == Spell.LEAP:
 				continue

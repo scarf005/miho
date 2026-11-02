@@ -84,8 +84,6 @@ func test_other_three_element_picks_make_their_own_compound_and_no_leap() -> voi
 	var picks := {
 		[Cards.WATER, WOOD, Cards.EARTH]: [&"swamp"],
 		[WOOD, Cards.FIRE, Cards.METAL]: [&"talon"],
-		[Cards.METAL, Cards.WATER, WOOD]: [&"frostbloom"],
-		[Cards.FIRE, Cards.EARTH, Cards.WATER]: [&"geyser"],
 	}
 	for cards in picks:
 		assert_eq(Spell.make(cards).slots, _typed(picks[cards]), str(cards))

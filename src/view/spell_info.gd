@@ -116,13 +116,13 @@ static func slot(s: Spell, i: int) -> Array:
 
 ## A compound talisman alone: its tails and parts, then what it does.
 static func combo(c: StringName) -> Array:
-	var s := Spell.make(Cards.made_of(c))
+	var s := Spell.make(Cards.recipe(c))
 	return [_slot_head(s, 0)] + spell(s).slice(1)
 
 
 static func _slot_head(s: Spell, i: int) -> Array:
 	var c := s.slots[i]
-	var parts := Cards.made_of(c)
+	var parts := Cards.recipe(c)
 	var head := [
 		[Lang.t(Cards.NAME[c]), Palette.card(c)],
 		[Lang.t(" · 꼬리: %d") % Spell.price(parts.size()), LABEL]
@@ -377,13 +377,6 @@ static func _form(s: Spell) -> Array:
 			return [["모양", Lang.t("둘레 %d칸") % n]]
 		Spray.SIGHT:
 			return [["대상", "보이는 적 모두, 당신" if shape.size() > 2 else "보이는 적 모두"]]
-		Spray.ROOTS:
-			var deepest := Spray.ROOTS_LEVEL - 1
-			return [
-				["모양", "땅속 덩굴"],
-				["거리", Lang.t("%d걸음") % Spray.ROOT_REACH[deepest]],
-				["대상", "보이는 적 모두"],
-			]
 		Spray.STRIKE:
 			return [["모양", Lang.t("곧게 %d칸") % n], ["관통", "적"]]
 	return [["모양", Lang.t("%d칸 안 첫 벽과 그 양옆") % n]]
@@ -405,8 +398,6 @@ static func compound(c: StringName) -> Array:
 			]
 		&"lava":
 			return hot.call(Compounds.LAVA)
-		&"molten":
-			return hot.call(Compounds.MOLTEN)
 		&"shrapnel":
 			return [["피해", "%d" % Compounds.SHRAPNEL]]
 		&"frost":
@@ -444,34 +435,10 @@ static func compound(c: StringName) -> Array:
 			return [
 				["꺼짐", "불, 등불"], ["땅", name], ["밟으면", Lang.t("묶임 %d초") % Compounds.MUD], _soak()
 			]
-		&"volcano":
-			return hot.call(Compounds.LAVA) + [["불타는 칸", "가연성·인화성 칸"], _alight_on()]
 		&"furnace":
 			return hot.call(Compounds.MOLTEN) + [["무너짐", "끝 벽"]]
-		&"hail":
-			var frozen: String = Status.NAME[&"frozen"]
-			return [
-				["피해", "%d" % Compounds.HAIL],
-				[frozen, Lang.t("%d초") % Compounds.FROST],
-				[
-					Lang.t("젖은 적 ") + Lang.t(frozen),
-					Lang.t("%d초") % (Status.FROZEN_WET * Compounds.FROST)
-				],
-			]
-		&"frostbloom":
-			return [
-				["생성", Tiles.of(World.THORNS, "name")],
-				["지날 때 피해", "%d" % Compounds.THORN],
-				[
-					Tiles.of(World.POND, "name"),
-					Lang.t("%s이 됨") % Lang.t(Tiles.of(World.ICE, "name"))
-				],
-				["묶임", Lang.t("%d초") % Compounds.BLOOM],
-			]
 		&"swamp":
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
-		&"geyser":
-			return [["밀침", Lang.t("%d칸") % Compounds.GEYSER]] + compound(&"steam")
 		&"hypnosis":
 			return [["잠듦", "맞은 적"], ["면역", Info.NO_SLEEP]]
 		&"palisade":
@@ -480,8 +447,6 @@ static func compound(c: StringName) -> Array:
 			return (
 				compound(&"wildfire") + [["다시 켜짐", "보이는 꺼진 등불"], ["끝 칸 소음", "%d" % Compounds.BOOM]]
 			)
-		&"bind":
-			return [["묶임", Lang.t("%d초") % Compounds.BIND], ["피해", "%d" % Compounds.BIND_HARM]]
 		&"magpie":
 			return [[_names(CROSSED), Tiles.of(World.BRIDGE, "name")]]
 		&"mist":

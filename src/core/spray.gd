@@ -24,7 +24,7 @@ extends RefCounted
 ## A compound in the first slot has its own shape (SHAPE), one tile bigger for
 ## every copy past the first and every lone element that feeds a 상생 pair
 ## (Spell.grown), and its own effect (Compounds). Those that act
-## round the caster, on all she sees or on roots go every way (`radial`).
+## round the caster or on all she sees go every way (`radial`).
 ## Every other compound in the spell adds its effect there, and every lone
 ## element its plain effect on each tile and creature it covers: 불 sets what
 ## burns alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots,
@@ -57,8 +57,6 @@ const QUAKE_STUN := [1, 1, 2, 2, 3]
 const ROOT_REACH := [4, 6, 8, 10, 12]
 const ROOT_COUNT := [1, 2, 0, 0, 0]
 const ROOT_ROUNDS := [2, 3, 4, 5, 6]
-## The level of 속박's roots, which grow no deeper with more 나무.
-const ROOTS_LEVEL := 3
 ## How far a fan of fire, or 들불, is heard.
 const HUSH := 2
 
@@ -90,25 +88,19 @@ const SHAPE := {
 	&"wildfire": [FAN_SHAPE, 3],
 	&"lava": [LINE, 4],
 	&"frost": [LINE, 4],
-	&"molten": [LINE, 4],
 	&"shrapnel": [BURST, 3, 1],
 	&"rain": [BURST, 3, 1],
 	&"steam": [BURST, 3, 1],
 	&"mud": [BURST, 2, 1],
 	&"thorn": [FAN_SHAPE, 2],
 	&"rift": [CLEAVE, 3],
-	&"volcano": [BURST, 3, 2],
 	&"furnace": [BORE, 6],
-	&"hail": [BURST, 3, 2],
-	&"frostbloom": [FAN_SHAPE, 3],
 	&"swamp": [BREACH, 3, 2],
-	&"geyser": [BURST, 2, 1],
 	&"hypnosis": [LINE, 5],
 	&"talon": [AROUND, 0],
 	&"palisade": [ACROSS, 2, 3],
 	&"beacon": [BURST, 6, 1],
 	&"cloak": [AROUND, 0],
-	&"bind": [ROOTS, 0],
 	&"magpie": [LINE, 8],
 	&"mist": [AROUND, 4],
 	&"sinkhole": [BURST, 3, 1],
@@ -262,9 +254,6 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 			return square(w, from, n, true)
 		SIGHT:
 			return sighted(w, caster, shape.size() > 2)
-		ROOTS:
-			var roots := rooted(w, caster, ROOTS_LEVEL)
-			return _paths(w, caster, roots, ROOT_REACH[ROOTS_LEVEL - 1])
 		STRIKE:
 			return line(w, from, dir, n, true)
 		ACROSS:
@@ -326,8 +315,6 @@ static func reach(spell: Spell) -> int:
 	match shape[0]:
 		SIGHT:
 			return 0
-		ROOTS:
-			return ROOT_REACH[ROOTS_LEVEL - 1]
 		BURST, BREACH, ACROSS:
 			return shape[1]
 	return shape[1] + spell.grown(spell.slots[0])
@@ -622,17 +609,17 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 
 ## Whether compound `c` goes every way, with no line to tell a creature by.
 static func radial(c: StringName) -> bool:
-	return SHAPE[c][0] in [AROUND, SIGHT, ROOTS]
+	return SHAPE[c][0] in [AROUND, SIGHT]
 
 
 ## Where a compound spray is centred: where a burst lands, the caster for one
-## round her, over all she sees or underground, else where its line ends.
+## round her or over all she sees, else where its line ends.
 static func centre(w: World, s: Shot, tiles: Array[Vector2i]) -> Vector2i:
 	var shape: Array = SHAPE[s.spell.slots[0]]
 	match shape[0]:
 		BURST, BREACH:
 			return landing(w, s.origin, s.dir, shape[1])
-		AROUND, SIGHT, ROOTS:
+		AROUND, SIGHT:
 			return s.origin
 	return tiles.back()
 

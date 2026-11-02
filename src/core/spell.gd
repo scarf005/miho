@@ -137,7 +137,8 @@ static func fill(picked: Array) -> Array[StringName]:
 
 ## The slots after card `c` joins them: an element merges with the first slot
 ## it can join (Cards.join), but a 도약 that another slot follows, which stays a
-## leap; anything else goes at the end.
+## leap; anything else goes at the end. A slot that grows takes in the lone
+## elements it now joins (`_settled`).
 static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 	var out := slots.duplicate()
 	if Cards.ELEMENTS.has(c):
@@ -147,16 +148,30 @@ static func queue(slots: Array[StringName], c: StringName) -> Array[StringName]:
 			var joined := Cards.join(out[i], c)
 			if joined != &"":
 				out[i] = joined
-				return out
+				return _settled(out, i)
 	out.append(c)
 	return out
+
+
+## Slot `i` has just grown: it takes in any lone element it now joins, so the
+## order of the cards does not leave a compound in two slots.
+static func _settled(slots: Array[StringName], i: int) -> Array[StringName]:
+	if slots[i] == Cards.VAULT:
+		return slots
+	for j in slots.size():
+		var joined := Cards.join(slots[i], slots[j]) if Cards.ELEMENTS.has(slots[j]) else &""
+		if j != i and joined != &"":
+			slots[i] = joined
+			slots.remove_at(j)
+			return _settled(slots, i - 1 if j < i else i)
+	return slots
 
 
 ## The cards `slots` are worth, in order: what a part of a spell casts.
 static func _cards_of(slots: Array) -> Array:
 	var out := []
 	for slot: StringName in slots:
-		out.append_array(Cards.made_of(slot))
+		out.append_array(Cards.recipe(slot))
 	return out
 
 

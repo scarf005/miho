@@ -180,7 +180,6 @@ func test_two_different_elements_merge_into_the_first_ones_compound() -> void:
 		&"frost": [Cards.METAL, Cards.WATER],
 		&"rain": [Cards.WATER, Cards.WOOD],
 		&"steam": [Cards.WATER, Cards.FIRE],
-		&"molten": [Cards.FIRE, Cards.METAL],
 		&"thorn": [Cards.METAL, Cards.WOOD],
 		&"rift": [Cards.WOOD, Cards.EARTH],
 		&"mud": [Cards.EARTH, Cards.WATER],
@@ -192,10 +191,26 @@ func test_two_different_elements_merge_into_the_first_ones_compound() -> void:
 	assert_eq(queue.slots, [ORB, &"steam", Cards.FIRE] as Array[StringName])
 	assert_eq(queue.count(Cards.FIRE), 1, "a compound is its own element")
 	assert_true(queue.holds(Cards.FIRE))
-	queue = Spell.make([ORB, Cards.FIRE, Cards.WATER, Cards.EARTH, Cards.METAL])
+	queue = Spell.make([ORB, Cards.WATER, Cards.FIRE, Cards.METAL, Cards.EARTH])
 	assert_eq(queue.slots, [ORB, &"newmoon"] as Array[StringName], "all four join")
 	assert_true(queue.holds(Cards.WATER))
 	assert_false(queue.has(Cards.WATER))
+
+
+func test_every_compound_can_be_made_through_the_queue_from_single_talismans() -> void:
+	var made := {}
+	var queues: Array = [[] as Array[StringName]]
+	for card in Cards.TIER:
+		var next: Array = []
+		for slots: Array[StringName] in queues:
+			for element in Cards.ELEMENTS:
+				var out := Spell.queue(slots, element)
+				for slot in out:
+					made[slot] = true
+				next.append(out)
+		queues = next
+	for c in Cards.compounds():
+		assert_true(made.has(c), "%s can be queued" % c)
 
 
 func test_the_spell_name_never_covers_the_queue() -> void:

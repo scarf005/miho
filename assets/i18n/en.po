@@ -186,35 +186,20 @@ msgstr "Rain"
 msgid "증기"
 msgstr "Steam"
 
-msgid "쇳물"
-msgstr "Molten metal"
-
 msgid "가시"
 msgstr "Thorn"
 
 msgid "진흙"
 msgstr "Mud"
 
-msgid "화산"
-msgstr "Volcano"
-
 msgid "용광로"
 msgstr "Furnace"
-
-msgid "우박"
-msgstr "Hail"
-
-msgid "서리꽃"
-msgstr "Frostbloom"
 
 msgid "도약"
 msgstr "Leap"
 
 msgid "늪"
 msgstr "Swamp"
-
-msgid "간헐천"
-msgstr "Geyser"
 
 msgid "목책"
 msgstr "Palisade"
@@ -1876,10 +1861,6 @@ msgid "증"
 msgstr "V"
 
 msgctxt "talisman"
-msgid "쇳"
-msgstr "N"
-
-msgctxt "talisman"
 msgid "가"
 msgstr "H"
 
@@ -1892,20 +1873,8 @@ msgid "진"
 msgstr "U"
 
 msgctxt "talisman"
-msgid "산"
-msgstr "C"
-
-msgctxt "talisman"
 msgid "광"
 msgstr "K"
-
-msgctxt "talisman"
-msgid "박"
-msgstr "A"
-
-msgctxt "talisman"
-msgid "꽃"
-msgstr "B"
 
 msgctxt "talisman"
 msgid "약"
@@ -1914,10 +1883,6 @@ msgstr "J"
 msgctxt "talisman"
 msgid "늪"
 msgstr "s"
-
-msgctxt "talisman"
-msgid "천"
-msgstr "G"
 
 msgctxt "talisman"
 msgid "최"
@@ -1938,10 +1903,6 @@ msgstr "b"
 msgctxt "talisman"
 msgid "은"
 msgstr "r"
-
-msgctxt "talisman"
-msgid "속"
-msgstr "i"
 
 msgctxt "talisman"
 msgid "작"
@@ -2523,9 +2484,6 @@ msgstr "Fooled enemies: enemies not chasing"
 
 msgid "속도"
 msgstr "Speed"
-
-msgid "속박"
-msgstr "Binding"
 
 msgid "쇠발톱"
 msgstr "Iron talons"

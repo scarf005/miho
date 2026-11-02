@@ -259,10 +259,10 @@ func test_a_spray_hover_leaves_out_what_its_shape_cannot_reach() -> void:
 
 ## An element's hover names a tile only if its spray's real cover can hold that tile.
 func test_a_spray_hover_names_only_the_tiles_it_reaches() -> void:
-	var talons := Cards.TRIPLES[&"talon"] + Cards.TRIPLES[&"talon"]
+	var talons := Cards.recipe(&"talon") + Cards.recipe(&"talon")
 	var spells := [[FIRE], [WATER], [METAL], [METAL, METAL], [EARTH], [WOOD, FIRE, WOOD], talons]
-	for triple: Array in Cards.TRIPLES.values() + Cards.PAIRS.values():
-		spells.append(triple)
+	for c: StringName in Cards.TRIPLES.keys() + Cards.PAIRS.keys():
+		spells.append(Cards.recipe(c))
 	var kinds := [World.WALL, World.WALL_CRACKED, World.WOOD_WALL, World.POND, World.GRASS]
 	var placed := [Spray.SIGHT, Spray.ROOTS, Spray.ACROSS, Spray.CLEAVE]
 	for picked: Array in spells:

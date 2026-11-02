@@ -17,7 +17,6 @@ const ME := Vector2i(20, 12)
 ## The 4단 and 5단 spells.
 const HIGH := [
 	&"beacon",
-	&"bind",
 	&"magpie",
 	&"mist",
 	&"sinkhole",
@@ -29,17 +28,8 @@ const HIGH := [
 	Cards.CONQUEST,
 	Cards.DRAGON,
 ]
-## The eight 3단 spells that are no leap, and go on no one.
-const NEW := [
-	&"volcano",
-	&"furnace",
-	&"hail",
-	&"frostbloom",
-	&"swamp",
-	&"geyser",
-	&"hypnosis",
-	&"palisade",
-]
+## The four 3단 spells that are no leap, and go on no one.
+const NEW := [&"furnace", &"swamp", &"hypnosis", &"palisade"]
 
 
 ## An open hall walled at the edges, lit by lanterns two rows above Miho, who
@@ -112,7 +102,7 @@ func _first(events: Array, id: int) -> int:
 
 
 func _made(c: StringName) -> Array:
-	return Cards.made_of(c)
+	return Cards.recipe(c)
 
 
 ## What the cards join into, with no tier in the way.
@@ -139,19 +129,24 @@ func _same_set(a: Array, b: Array) -> bool:
 	return a.size() == b.size() and a.all(func(e): return b.has(e))
 
 
-func test_every_order_of_any_three_different_elements_makes_the_3dan_of_that_set() -> void:
+func test_an_order_of_three_different_elements_makes_the_3dan_of_that_set_if_it_has_one() -> void:
 	var seen := {}
 	for i in Cards.ELEMENTS.size():
 		for j in range(i + 1, Cards.ELEMENTS.size()):
 			for k in range(j + 1, Cards.ELEMENTS.size()):
 				var picked := [Cards.ELEMENTS[i], Cards.ELEMENTS[j], Cards.ELEMENTS[k]]
+				var named := Cards.TRIPLES.keys().filter(
+					func(c): return _same_set(Cards.made_of(c), picked)
+				)
 				for order: Array in _orders(picked):
 					var s := Spell.make(order)
+					if named.is_empty():
+						assert_gt(s.slots.size(), 1, "no spell of this set: %s" % [order])
+						continue
 					assert_eq(s.slots.size(), 1, str(order))
-					assert_true(Cards.TRIPLES.has(s.slots[0]), str(order))
-					assert_true(_same_set(Cards.made_of(s.slots[0]), picked), str(order))
+					assert_eq(s.slots[0], named[0], str(order))
 					seen[s.slots[0]] = true
-	assert_eq(seen.size(), 10, "ten sets, ten spells")
+	assert_eq(seen.size(), Cards.TRIPLES.size(), "every 3단 is made")
 
 
 func test_every_table_chain_runs_along_one_ring_and_has_a_name_and_a_glyph() -> void:
@@ -166,14 +161,14 @@ func test_every_table_chain_runs_along_one_ring_and_has_a_name_and_a_glyph() -> 
 	for c in Cards.NAME:
 		assert_false(glyphs.has(Cards.GLYPH[c]), "one glyph each: " + Cards.GLYPH[c])
 		glyphs[Cards.GLYPH[c]] = true
-	assert_eq(Cards.TRIPLES.size(), 10)
-	assert_eq(Cards.QUADS.size(), 10)
+	assert_eq(Cards.TRIPLES.size(), 6)
+	assert_eq(Cards.QUADS.size(), 9)
 	assert_eq(Cards.FIVES.size(), 3)
 
 
 func test_a_3dan_and_a_missing_element_make_the_4dan_of_its_ring() -> void:
-	assert_eq(Cards.join(&"volcano", METAL, 5), &"beacon", "목화토 상생 + 금")
-	assert_eq(Cards.join(&"volcano", WATER, 5), &"mist", "목화토 상생 + 수: 수목화토")
+	assert_eq(Cards.join(&"furnace", WOOD, 5), &"beacon", "화토금 상생 + 목: 목화토금")
+	assert_eq(Cards.join(Cards.VAULT, EARTH, 5), &"mist", "수목화 상생 + 토: 수목화토")
 	assert_eq(Cards.join(&"swamp", FIRE, 5), &"sinkhole", "목토수 상극 + 화")
 	assert_eq(Cards.join(&"swamp", METAL, 5), &"stillness", "목토수 상극 + 금: 금목토수")
 	for t: StringName in Cards.TRIPLES:
@@ -200,10 +195,10 @@ func test_a_4dan_and_the_last_element_make_a_5dan() -> void:
 	assert_eq(Cards.join(Cards.DRAGON, EARTH, 5), &"")
 
 
-func test_every_compound_s_elements_join_back_into_it() -> void:
+func test_every_compound_s_elements_join_back_into_it_in_some_order() -> void:
 	for table: Dictionary in [Cards.PAIRS, Cards.TRIPLES, Cards.QUADS, Cards.FIVES]:
 		for c: StringName in table:
-			assert_eq(_fold(Cards.made_of(c)), c)
+			assert_true(_orders(Cards.made_of(c)).any(func(o): return _fold(o) == c), c)
 
 
 func test_a_3dan_is_one_slot_worth_three_tails_that_holds_its_elements() -> void:
@@ -220,15 +215,15 @@ func test_a_3dan_is_one_slot_worth_three_tails_that_holds_its_elements() -> void
 	var leap := Spell.make(_made(Cards.VAULT))
 	assert_true(leap.compounds().is_empty(), "도약 is a shape")
 	assert_false(leap.holds(FIRE), "도약 carries nothing")
-	assert_true(Bestiary.absorbs(&"haetae", Spell.make([WOOD, FIRE, EARTH])))
+	assert_true(Bestiary.absorbs(&"haetae", Spell.make(_made(&"furnace"))))
 
 
 func test_a_doubled_3dan_grows_a_tile_and_costs_six_cards() -> void:
 	var w := _world()
-	var twice := Spell.make(_made(&"volcano") + _made(&"volcano"))
-	assert_eq(twice.slots, [&"volcano", &"volcano"] as Array[StringName])
+	var twice := Spell.make(_made(&"swamp") + _made(&"swamp"))
+	assert_eq(twice.slots, [&"swamp", &"swamp"] as Array[StringName])
 	assert_eq(twice.cost(), Spell.price(6))
-	assert_eq(Spray.cover(w, w.player(), twice, E), Spray.square(w, ME + E * 3, 3))
+	assert_eq(Spray.cover(w, w.player(), twice, E), Spray.square(w, ME + E * 3, 3, true))
 	var fence := Spell.make(_made(&"palisade") + _made(&"palisade"))
 	assert_eq(Spray.cover(w, w.player(), fence, E).size(), 4)
 	var line := Spell.make(_made(&"hypnosis") + _made(&"hypnosis"))
@@ -239,14 +234,9 @@ func test_each_3dan_has_the_shape_of_the_plan() -> void:
 	var w := _world()
 	var cover := func(c: StringName, dir := E) -> Array[Vector2i]:
 		return Spray.cover(w, w.player(), Spell.make(_made(c)), dir)
-	assert_eq(cover.call(&"volcano"), Spray.square(w, ME + E * 3, 2))
-	assert_eq(cover.call(&"volcano").size(), 25)
-	assert_eq(cover.call(&"hail"), Spray.square(w, ME + E * 3, 2))
 	assert_eq(cover.call(&"swamp"), Spray.square(w, ME + E * 3, 2, true))
-	assert_eq(cover.call(&"geyser"), Spray.square(w, ME + E * 2, 1))
 	assert_eq(cover.call(&"furnace"), Spray.line(w, ME, E, 6, false))
 	assert_eq(cover.call(&"hypnosis"), Spray.line(w, ME, E, 5, false))
-	assert_eq(cover.call(&"frostbloom"), Spray.fan(w, ME, E, 3))
 	assert_eq(
 		cover.call(&"palisade"),
 		[ME + E * 2, ME + Vector2i(2, 1), ME + Vector2i(2, -1)] as Array[Vector2i]
@@ -258,23 +248,12 @@ func test_a_burst_of_radius_two_does_not_pass_a_wall() -> void:
 	for y in range(1, Grid.H - 1):
 		_put(w, Vector2i(ME.x + 4, y), World.WALL)
 	var behind := _post(w, ME + E * 5)
-	var tiles := Spray.cover(w, w.player(), Spell.make(_made(&"hail")), E)
+	var rain := Cards.PAIRS[&"rain"] + Cards.PAIRS[&"rain"]
+	var tiles := Spray.cover(w, w.player(), Spell.make(rain), E)
 	assert_false(tiles.has(behind.pos), "the wall shields it")
 	assert_eq(tiles.size(), 15, "the three columns on Miho's side")
-	w.act(_cast(_made(&"hail")))
-	assert_eq(behind.hp, behind.max_hp)
-	assert_eq(behind.frozen, 0)
-
-
-func test_volcano_leaves_hot_ground_and_fire_and_sets_foes_alight() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 3)
-	_put(w, ME + Vector2i(3, 2), World.GRASS)
-	w.act(_cast(_made(&"volcano")))
-	assert_eq(w.hot.get(ME + Vector2i(3, 1)).x, Compounds.LAVA)
-	assert_true(w.burning.has(ME + Vector2i(3, 2)), "grass catches")
-	assert_gt(foe.alight, 0)
-	assert_false(w.wild.has(ME + Vector2i(3, 2)), "ordinary fire")
+	w.act(_cast(rain))
+	assert_eq(behind.rooted, 0)
 
 
 func test_furnace_leaves_hot_iron_and_fells_the_wall_at_its_end() -> void:
@@ -307,37 +286,6 @@ func test_furnace_leaves_hot_iron_and_fells_the_wall_at_its_end() -> void:
 	assert_eq(w.tile(Vector2i(0, ME.y)), World.WALL, "the map's edge stands")
 
 
-func test_hail_hurts_then_freezes_and_a_wet_foe_longer() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 3)
-	var corner := _post(w, ME + Vector2i(5, 2))
-	var wet := _post(w, ME + Vector2i(1, 1))
-	wet.wet = Status.WET
-	var events := w.act(_cast(_made(&"hail")))
-	assert_eq(_harm(events, foe.id), Compounds.HAIL, "the freeze comes after the harm")
-	assert_eq(_harm(events, corner.id), Compounds.HAIL)
-	assert_eq(foe.frozen, Compounds.FROST - 1)
-	assert_eq(corner.frozen, Compounds.FROST - 1)
-	assert_eq(wet.frozen, 2 * Compounds.FROST - 1)
-	w = _world()
-	var weak := _post(w, ME + E * 3)
-	weak.hp = 1
-	events = w.act(_cast(_made(&"hail")))
-	assert_false(weak.alive())
-	assert_true(_of(events, &"freeze").is_empty(), "the dead do not freeze")
-
-
-func test_frostbloom_grows_thorns_freezes_ponds_and_roots() -> void:
-	var w := _world()
-	var foe := _post(w, ME + E * 2)
-	_put(w, ME + E, World.POND)
-	w.act(_cast(_made(&"frostbloom")))
-	assert_eq(w.tile(ME + E), World.ICE)
-	assert_eq(w.tile(ME + E * 3), World.THORNS)
-	assert_eq(foe.rooted, Compounds.BLOOM - 1)
-	assert_eq(foe.hp, foe.max_hp, "no harm")
-
-
 func test_swamp_fells_walls_quietly_and_lays_mud() -> void:
 	var w := _world()
 	for x in [ME.x + 3, ME.x + 4, ME.x + 5]:
@@ -355,17 +303,6 @@ func test_swamp_fells_walls_quietly_and_lays_mud() -> void:
 	assert_eq(w.tile(at), World.MUD)
 	assert_eq(foe.rooted, Compounds.SWAMP - 1)
 	assert_true(_of(events, &"noise").is_empty(), "silent")
-
-
-func test_geyser_lays_steam_and_pushes_every_way_it_is_cast() -> void:
-	for dir: Vector2i in [E, W, SE]:
-		var w := _world()
-		var near := _post(w, ME + dir)
-		var far := _post(w, ME + dir * 2)
-		w.act(_cast(_made(&"geyser"), dir))
-		assert_eq(Gas.at(w, ME + dir).x, Gas.STEAM, str(dir))
-		assert_eq(far.pos, ME + dir * 4, "the farthest first")
-		assert_eq(near.pos, ME + dir * 3, "then the one behind it, %s" % dir)
 
 
 func test_palisade_grows_a_wooden_wall_across_the_line_on_open_ground() -> void:
@@ -400,23 +337,11 @@ func test_each_3dan_carried_on_a_projectile_acts_on_the_3x3_where_it_ends() -> v
 			var events := w.act(_cast(q))
 			var label := str(q)
 			match c:
-				&"volcano":
-					assert_true(w.hot.has(at + Vector2i(1, -1)), label)
-					assert_gt(side.alight, 0, label)
 				&"furnace":
 					assert_eq(w.hot.get(at + Vector2i(1, -1)).x, Compounds.MOLTEN, label)
-				&"hail":
-					assert_eq(_harm(events, side.id), Compounds.HAIL, label)
-					assert_eq(side.frozen, Compounds.FROST - 1, label)
-				&"frostbloom":
-					assert_eq(w.tile(side.pos), World.THORNS, label)
-					assert_eq(side.rooted, Compounds.BLOOM - 1, label)
 				&"swamp":
 					assert_eq(w.tile(side.pos), World.MUD, label)
 					assert_eq(side.rooted, Compounds.SWAMP - 1, label)
-				&"geyser":
-					assert_eq(Gas.at(w, at + Vector2i(-1, 1)).x, Gas.STEAM, label)
-					assert_eq(side.pos, ME + Vector2i(6, 1), label)
 				&"palisade":
 					assert_eq(w.tile(at + Vector2i(-1, -1)), World.WOOD_WALL, label)
 					assert_eq(w.tile(at), World.FLOOR, "the struck creature's tile")
@@ -474,26 +399,7 @@ func test_a_compound_preview_equals_the_round() -> void:
 
 func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 	var rows := {
-		&"volcano":
-		[
-			"화산 · 꼬리: 3",
-			"모양: 3칸 앞 5×5",
-			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
-			"불타는 칸: 가연성·인화성 칸",
-			"불붙음: %d초" % Status.ALIGHT,
-			"소음: %d" % Spray.GUN_LOUD,
-		],
 		&"furnace": ["용광로 · 꼬리: 3", "모양: 곧게 6칸", "뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS, "무너짐: 끝 벽"],
-		&"hail":
-		[
-			"우박 · 꼬리: 3",
-			"모양: 3칸 앞 5×5",
-			"피해: %d" % Compounds.HAIL,
-			"얼어붙음: %d초" % Compounds.FROST,
-			"소음: 없음",
-		],
-		&"frostbloom":
-		["서리꽃 · 꼬리: 3", "반지름 3", "생성: 가시덤불", "연못: 얼음이 됨", "묶임: %d초" % Compounds.BLOOM],
 		&"swamp":
 		[
 			"늪 · 꼬리: 3",
@@ -502,13 +408,6 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 			"땅: 진흙",
 			"묶임: %d초" % Compounds.SWAMP,
 			"소음: 없음",
-		],
-		&"geyser":
-		[
-			"간헐천 · 꼬리: 3",
-			"모양: 2칸 앞 3×3",
-			"밀침: %d칸" % Compounds.GEYSER,
-			"증기 양: %d/%d" % [Compounds.STEAM, Gas.MAX]
 		],
 		&"hypnosis": ["최면 · 꼬리: 3", "모양: 곧게 5칸"],
 		&"palisade":
@@ -522,9 +421,9 @@ func test_each_3dan_tells_its_numbers_in_name_value_lines() -> void:
 		for line in text.split("\n").slice(1):
 			assert_string_contains(line, ": ", "name and value: " + line)
 			assert_false(line.ends_with("다"), "no sentences: " + line)
-	var carried := Info.plain(SpellInfo.spell(Spell.make([ORB] + _made(&"hail"))))
-	assert_string_contains(carried, "우박: 멈춘 곳 3×3")
-	assert_string_contains(carried, "피해: %d" % Compounds.HAIL)
+	var carried := Info.plain(SpellInfo.spell(Spell.make([ORB] + _made(&"swamp"))))
+	assert_string_contains(carried, "늪: 멈춘 곳 3×3")
+	assert_string_contains(carried, "묶임: %d초" % Compounds.SWAMP)
 
 
 func test_a_self_cast_goes_only_to_the_spells_that_change_her() -> void:

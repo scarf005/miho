@@ -245,7 +245,7 @@ func test_comma_with_no_creature_felled_says_so_and_keeps_the_turn() -> void:
 
 func test_a_lone_spell_mixed_with_another_slot_says_why_along_any_direction() -> void:
 	var m := _main()
-	m.picked = [Cards.FIRE, Cards.METAL, Cards.WOOD, Cards.FOX] as Array[StringName]
+	m.picked = [Cards.FIRE, Cards.WOOD, Cards.METAL, Cards.FOX] as Array[StringName]
 	var round_no: int = m.world.round_no
 	m._direction(Vector2i.RIGHT, false)
 	assert_eq(m.world.round_no, round_no)

@@ -10,6 +10,8 @@ const WATER := Cards.WATER
 const WOOD := Cards.WOOD
 const METAL := Cards.METAL
 const EARTH := Cards.EARTH
+## 용광로, the spell that leaves hot iron.
+const FURNACE := [FIRE, EARTH, METAL]
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
 const ME := Vector2i(20, 12)
@@ -110,15 +112,15 @@ func test_hot_ground_lies_only_on_dry_walkable_ground() -> void:
 	var w := _world()
 	_put(w, ME + E * 2, World.POND)
 	_put(w, ME + E * 3, World.SHALLOW)
-	w.act(_cast([FIRE, METAL]))
+	w.act(_cast([FIRE, EARTH]))
 	assert_eq(w.hot.keys(), [ME + E, ME + E * 4])
-	assert_eq(w.hot[ME + E].x, Compounds.MOLTEN)
+	assert_eq(w.hot[ME + E].x, Compounds.LAVA)
 
 
 func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> void:
 	var w := _world()
 	var foe := _post(w, ME + Vector2i(2, 0))
-	var events := w.act(_cast([FIRE, METAL]))
+	var events := w.act(_cast(FURNACE))
 	assert_eq(_harm(events, foe.id), Compounds.HOT[Compounds.MOLTEN].harm)
 	assert_gt(Compounds.HOT[Compounds.MOLTEN].harm, Compounds.HOT[Compounds.LAVA].harm)
 	w = _world()
@@ -126,7 +128,7 @@ func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> vo
 	dog.cooldown = 99
 	dog.rooted = 9
 	w.sense()
-	events = w.act(_cast([FIRE, METAL]))
+	events = w.act(_cast(FURNACE))
 	assert_eq(_harm(events, dog.id), 0, "해태 eats fire")
 	assert_false(_of(events, &"absorb").is_empty())
 
@@ -265,7 +267,7 @@ func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() ->
 		match c:
 			&"wildfire":
 				assert_eq([foe.alight, side.alight], [Status.ALIGHT - 1, Status.ALIGHT - 1], c)
-			&"lava", &"molten":
+			&"lava":
 				assert_true(w.hot.has(at) and w.hot.has(at + Vector2i(1, -1)), c)
 			&"shrapnel":
 				assert_eq(_harm(events, side.id), Compounds.MORTAR, c)
@@ -338,7 +340,7 @@ func test_the_log_tells_what_each_compound_leaves() -> void:
 		[EARTH, WATER]: "진흙이 생겼다",
 		[METAL, WOOD]: "가시덤불이 생겼다",
 		[FIRE, EARTH]: "%s이 남았다" % Compounds.HOT[Compounds.LAVA].name,
-		[FIRE, METAL]: "%s가 남았다" % Compounds.HOT[Compounds.MOLTEN].name,
+		FURNACE: "%s가 남았다" % Compounds.HOT[Compounds.MOLTEN].name,
 	}
 	for q: Array in rows:
 		var w := _world()

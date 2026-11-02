@@ -239,7 +239,7 @@ func test_the_starfish_does_not_grow_on_a_spell_without_metal_or_with_fire() -> 
 	assert_eq([foe.hp, foe.max_hp], [3, 3])
 	w.tails = 4
 	var hurts := _hurts(w.act(_cast([ORB, Cards.METAL, Cards.FIRE])))
-	assert_eq(hurts.size(), 2, "the orb, then the hot iron under it: fire hurts it")
+	assert_eq(hurts.size(), 1, "the orb: fire hurts it")
 	assert_eq(foe.max_hp, 3)
 
 

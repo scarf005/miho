@@ -72,7 +72,7 @@ func test_every_compound_has_its_shape() -> void:
 	assert_eq(_cover(w, [EARTH, METAL]), Spray.square(w, ME + E * 3), "유탄 3 ahead")
 	assert_eq(_cover(w, [WOOD, FIRE]).size(), 15, "들불: a fan of radius 3")
 	assert_eq(_cover(w, [METAL, WOOD]).size(), 8, "가시: a fan of radius 2")
-	for c in [[FIRE, EARTH], [METAL, WATER], [FIRE, METAL]]:
+	for c in [[FIRE, EARTH], [METAL, WATER]]:
 		assert_eq(_cover(w, c), Spray.line(w, ME, E, 4, false), str(c))
 		assert_eq(_cover(w, c).size(), 4)
 	assert_true(_cover(w, [WOOD, EARTH]).is_empty(), "균열 with no wall near")
@@ -196,8 +196,10 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 			"뜨거운 땅: %d초" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.LAVA].harm,
 		],
-		[FIRE, METAL]:
+		[FIRE, EARTH, METAL]:
 		[
+			"용광로",
+			"곧게 6칸",
 			"뜨거운 쇠: %d초" % Compounds.HOT_ROUNDS,
 			"초당 피해: %d" % Compounds.HOT[Compounds.MOLTEN].harm,
 		],

@@ -31,7 +31,6 @@ extends RefCounted
 ## 상극, the two react:
 ## 증기 lays STEAM of steam (Gas.STEAM): it blocks sight, scalds whoever stands
 ## in it each round and wets drums.
-## 쇳물 leaves hot iron: hot ground like 용암's, but harsher.
 ## 가시 grows thorns (World.THORNS) on open ground and pricks each creature it
 ## reaches for THORN. Whoever steps onto thorns takes THORN; they let sight
 ## through and burn.
@@ -39,13 +38,10 @@ extends RefCounted
 ## 진흙 douses, then turns open ground to mud (World.MUD): a step onto it takes
 ## MUD rounds (the creature is rooted till then) and makes no sound.
 ## 3단, of three elements:
-## 화산 leaves hot ground, sets what burns alight and the creatures it reaches.
-## 용광로 leaves hot iron and fells the wall at the end of its line.
-## 우박 hurts each creature it reaches for HAIL, then freezes it FROST rounds.
-## 서리꽃 grows thorns, freezes ponds and roots each creature BLOOM rounds.
+## 용광로 leaves hot iron, which harms more than 용암's hot ground, and fells the wall
+## at the end of its line.
 ## 늪 fells every breakable wall it reaches, turns the ground to mud and roots
 ## each creature SWAMP rounds.
-## 간헐천 lays steam and pushes each creature GEYSER tiles along its line.
 ## 최면 puts the first creature it reaches to sleep (Mind.sleep), hurting none.
 ## 쇠발톱 is cast on Miho, not sprayed: her claws harm more (Guise).
 ## 목책 grows a wooden wall (Elements.grow).
@@ -53,7 +49,6 @@ extends RefCounted
 ## 봉화 sets what burns alight like 들불, and is heard BOOM tiles at its centre,
 ## where it relights every dark lantern the caster sees.
 ## 은신 is cast on Miho, not sprayed: she wears the hat of 감투 도깨비 (Guise).
-## 속박 hurts each creature BIND_HARM and roots it BIND rounds.
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
 ## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs
@@ -88,14 +83,9 @@ const RAIN := 3
 const STEAM := Gas.MAX
 const THORN := 1
 const MUD := 2
-const HAIL := 1
-const BLOOM := 2
 const SWAMP := 3
-const GEYSER := 2
 const BOOM := 12
 const BEACON_WORD := "화르륵"
-const BIND := 4
-const BIND_HARM := 1
 const THUNDER := 3
 const THUNDER_STUN := 2
 const SAMSARA_STUN := 2
@@ -140,8 +130,6 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 				w.ignite(p, false, true)
 		&"lava":
 			heat(w, tiles, LAVA)
-		&"molten":
-			heat(w, tiles, MOLTEN)
 		&"frost":
 			_become(
 				w, tiles.filter(func(p): return w.tile(p) in [World.POND, World.VEIL]), World.ICE
@@ -160,20 +148,12 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			for p in tiles:
 				Terrain.wash(w, p)
 			_become(w, tiles.filter(func(p): return _open(w, p)), World.MUD)
-		&"volcano":
-			heat(w, tiles, LAVA)
-			_kindle(w, tiles)
 		&"furnace":
 			heat(w, tiles, MOLTEN)
 			_split(w, tiles)
-		&"frostbloom":
-			ground(w, s, &"thorn", tiles)
-			ground(w, s, &"frost", tiles)
 		&"swamp":
 			_split(w, tiles)
 			ground(w, s, &"mud", tiles)
-		&"geyser":
-			ground(w, s, &"steam", tiles)
 		&"palisade":
 			Elements.grow(w, tiles)
 		&"beacon":
@@ -229,26 +209,12 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 			Elements.root(w, a, RAIN)
 		&"thorn":
 			Elements.harm(w, s, a, THORN)
-		&"volcano":
-			Status.ignite(w, a)
-		&"hail":
-			Elements.harm(w, s, a, HAIL)
-			if a.alive():
-				Status.freeze(w, a, FROST)
-		&"frostbloom":
-			Elements.root(w, a, BLOOM)
 		&"swamp":
 			Elements.root(w, a, SWAMP)
-		&"geyser":
-			w.push(a, s.dir, GEYSER)
 		&"hypnosis":
 			Mind.sleep(w, a)
 		&"beacon":
 			strike(w, s, &"wildfire", a, at)
-		&"bind":
-			Elements.harm(w, s, a, BIND_HARM)
-			if a.alive():
-				Elements.root(w, a, BIND)
 		&"sinkhole":
 			if w.tile(a.pos) == World.SKY:
 				Fall.drop(w, a, a.pos)
@@ -336,12 +302,6 @@ static func _become(w: World, tiles: Array, to: int) -> void:
 			changed.append(p)
 	if not changed.is_empty():
 		w.emit({t = &"become", at = changed[0], tiles = changed, tile = to})
-
-
-## What burns on `tiles` catches fire.
-static func _kindle(w: World, tiles: Array[Vector2i]) -> void:
-	for p in tiles:
-		w.ignite(p)
 
 
 ## Each breakable wall on `tiles` takes one hit, then those still standing
