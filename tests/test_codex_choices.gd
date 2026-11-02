@@ -102,10 +102,13 @@ func test_a_click_on_a_kept_box_over_a_choice_does_not_pick_it() -> void:
 	_codex(m, TALISMANS)
 	var row: Vector2 = m.term.panel.choices.from + Vector2(1, 2)
 	var local: Vector2 = (row + Vector2(0.1, 0.5)) * Term.CELL
-	m.term.pin = {fit = {at = row - Vector2.ONE, cells = Vector2(4, 4), scale = 1.0}, lines = []}
+	var fit := InfoBox.layout([[["하나", Palette.TEXT]]], Vector2(60, 24), InfoBox.READABLE)
+	fit.at = row - Vector2.ONE
+	fit.cells = Vector2(4, 4)
+	fit.scale = 1.0
+	m.term.pin = {fit = fit, lines = []}
 	WordLink.click(m, local)
 	assert_eq(m.menu.codex.part, 0)
-	m.term.pin = {}
 
 
 func test_a_creature_strikes_and_casts_each_spell_itself_in_its_examples() -> void:

@@ -25,12 +25,21 @@ static func show(m: Node) -> void:
 
 ## A press on the ending: a new run, the log, or the seed line copied.
 static func input(m: Node, event: InputEvent) -> void:
-	if Keys.action_of(event) == &"restart" or event is InputEventKey and event.keycode == AGAIN:
+	if Keys.action_of(event) == &"restart" or _again(event):
 		m._new_game()
 	elif Keys.action_of(event) == &"log":
 		m._open(&"log")
 	elif m._left_click(event) and m.term.banner_at(m._local(event.position)) == SEED:
 		m._copy_seed()
+
+
+## Whether `event` is the plain key AGAIN.
+static func _again(event: InputEvent) -> bool:
+	return (
+		event is InputEventKey
+		and event.keycode == AGAIN
+		and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed)
+	)
 
 
 ## Asks before the run in play gives way to a new one; Y

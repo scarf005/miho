@@ -139,6 +139,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	if size != Vector2i.ZERO:
 		room = size
 	codex.hover = -1
+	codex.lit = -1
 	codex.trail.clear()
 	codex.ahead.clear()
 	codex.select(codex.selected)
