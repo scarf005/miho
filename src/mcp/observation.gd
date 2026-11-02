@@ -167,7 +167,7 @@ static func _ally(k: World, a: Actor) -> String:
 	for cast: Array in a.repertoire():
 		line += ", casts " + Spell.make(cast).shown()
 	if a.fighting():
-		var rival := k.actor(a.rival)
+		var rival := k.actor(a.ties.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
 	if not Legal.makes_way(a):
 		line += ", cannot trade places"
@@ -207,12 +207,12 @@ static func _creature(k: World, a: Actor) -> String:
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
 	if a.fighting():
-		var rival := k.actor(a.rival)
+		var rival := k.actor(a.ties.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")
-	if a.leader != 0:
-		var lead := k.actor(a.leader)
+	if a.ties.leader != 0:
+		var lead := k.actor(a.ties.leader)
 		line += ", follows " + (lead.info().name if lead != null else "something unseen")
-	elif k.actors.any(func(b): return b.leader == a.id):
+	elif k.actors.any(func(b): return b.ties.leader == a.id):
 		line += ", leads a band"
 	if a.drumming():
 		line += ", running to the drum at (%d,%d)" % [a.drum.x, a.drum.y]

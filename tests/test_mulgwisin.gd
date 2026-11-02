@@ -413,8 +413,8 @@ func test_it_stands_on_water_alone_on_every_storey_it_is_planned_for() -> void:
 			for a in w.actors.filter(func(b): return b.kind == KIND):
 				placed += 1
 				assert_true(_water(w, a.pos), "seed %d at %s" % [s, a.pos])
-				assert_eq(a.leader, 0, "no band leads it")
-				assert_false(w.actors.any(func(b): return b.leader == a.id), "it leads none")
+				assert_eq(a.ties.leader, 0, "no band leads it")
+				assert_false(w.actors.any(func(b): return b.ties.leader == a.id), "it leads none")
 	assert_gt(placed, 0)
 
 

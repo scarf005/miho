@@ -158,7 +158,7 @@ static func _actors(w: World) -> Array:
 					a.magic.cooldown,
 					a.rank,
 					a.magic.mana,
-					a.leader,
+					a.ties.leader,
 					a.home,
 					a.alert,
 					a.target,

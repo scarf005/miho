@@ -301,10 +301,10 @@ func test_discord_sets_the_nearest_pairs_of_seen_foes_on_each_other_whatever_the
 	var d := _post(w, ME + Vector2i(11, -1))
 	var lone := _post(w, ME + Vector2i(-8, 2))
 	var events := _now(w, _made(&"discord"))
-	assert_eq([a.rival, b.rival], [b.id, a.id])
-	assert_eq([c.rival, d.rival], [d.id, c.id])
-	assert_eq([a.grudge, c.grudge], [Mind.GRUDGE_ROUNDS, Mind.GRUDGE_ROUNDS])
-	assert_eq(lone.rival, 0, "an odd one out")
+	assert_eq([a.ties.rival, b.ties.rival], [b.id, a.id])
+	assert_eq([c.ties.rival, d.ties.rival], [d.id, c.id])
+	assert_eq([a.ties.grudge, c.ties.grudge], [Mind.GRUDGE_ROUNDS, Mind.GRUDGE_ROUNDS])
+	assert_eq(lone.ties.rival, 0, "an odd one out")
 	assert_eq(_of(events, &"feud").size(), 4)
 	assert_eq(a.alert, Actor.REST, "no one is struck")
 
@@ -315,7 +315,7 @@ func test_discord_does_nothing_when_a_creature_of_heaven_casts_it() -> void:
 	var a := _post(w, ME + E * 5)
 	var b := _post(w, ME + E * 6)
 	var events := _now(w, _made(&"discord"), W, caster)
-	assert_eq([a.rival, b.rival, caster.rival], [0, 0, 0])
+	assert_eq([a.ties.rival, b.ties.rival, caster.ties.rival], [0, 0, 0])
 	assert_true(_of(events, &"feud").is_empty())
 	assert_eq(w.player().hp, w.player().max_hp)
 

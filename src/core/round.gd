@@ -89,7 +89,7 @@ static func end(w: World) -> void:
 			Status.lapse(w, a, &"rooted")
 			Status.lapse(w, a, &"blind")
 			a.wary = maxi(0, a.wary - 1)
-			a.grudge = maxi(0, a.grudge - 1)
+			a.ties.grudge = maxi(0, a.ties.grudge - 1)
 	w.pungent = maxi(0, w.pungent - 1)
 	Jars.arrive(w, w.player())
 	for s in w.shots:

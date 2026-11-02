@@ -62,7 +62,7 @@ func test_the_undead_of_a_storey_stand_in_one_band_led_by_the_dalgyal() -> void:
 		var w := Built.storey(s, 2)
 		var lead: Actor = w.actors.filter(func(a): return a.kind == &"dalgyal")[0]
 		var gaekgwi: Actor = w.actors.filter(func(a): return a.kind == &"gaekgwi")[0]
-		assert_eq(gaekgwi.leader, lead.id, "seed %d" % s)
+		assert_eq(gaekgwi.ties.leader, lead.id, "seed %d" % s)
 
 
 func test_a_gaekgwi_walks_at_her_and_strikes() -> void:

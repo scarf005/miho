@@ -53,7 +53,7 @@ static func targets(w: World, caster: Actor, spell: Spell, dir := Vector2i.ZERO)
 	var twins := spell.orb and out.size() > 1 and (caster.faction == Actor.FOX or spell.turn() > 0)
 	if spell.turn() == 0 and not twins:
 		return out
-	var rival := caster.rival if caster.fighting() else 0
+	var rival := caster.ties.rival if caster.fighting() else 0
 	var foes := w.actors.filter(
 		func(a):
 			var foe: bool = a.id == rival if rival != 0 else a.faction != caster.faction

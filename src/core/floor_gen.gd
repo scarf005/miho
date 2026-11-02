@@ -787,7 +787,7 @@ static func _creatures(w: World) -> void:
 				_place(w, kind)
 			else:
 				var a := _arrive(w, kind, spot)
-				a.leader = lead.id
+				a.ties.leader = lead.id
 
 
 ## A creature of `kind` where it belongs, or null when there is no room (or a boss

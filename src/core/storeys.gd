@@ -46,8 +46,8 @@ static func bring(w: World, party: Array[Actor]) -> void:
 		a.pos = spot
 		a.home = spot
 		a.post = spot
-		a.rival = 0
-		a.grudge = 0
+		a.ties.rival = 0
+		a.ties.grudge = 0
 		a.magic.intent.clear()
 		w.actors.append(a)
 	Bunsin.cap(w)

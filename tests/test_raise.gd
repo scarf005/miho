@@ -108,7 +108,7 @@ func test_a_foe_falling_in_sight_rises_as_a_fighting_ally() -> void:
 	assert_eq(up.size(), 1)
 	assert_eq(up[0].pos, at)
 	assert_eq(up[0].kind, Raise.WEAK)
-	assert_eq(up[0].leader, w.player().id, "she leads it")
+	assert_eq(up[0].ties.leader, w.player().id, "she leads it")
 	assert_true(events.any(func(e): return e.t == &"ally" and e.id == up[0].id))
 	assert_false(w.bodies.has(at), "the body is gone")
 	var hp := foe.hp

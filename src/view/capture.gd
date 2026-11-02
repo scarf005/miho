@@ -149,7 +149,7 @@ func _send(k: String) -> void:
 				"chase":
 					Mind.hunt_from(w, w.actor_at(at), w.player().pos)
 				"follow":
-					w.actor_at(at).leader = (
+					w.actor_at(at).ties.leader = (
 						w.actor_at(w.player().pos + Vector2i(int(parts[1]), int(parts[2]))).id
 					)
 			main.term.show_world(main.world)

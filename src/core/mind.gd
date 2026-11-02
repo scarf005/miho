@@ -31,9 +31,9 @@ const GRUDGE_ROUNDS := 10
 ## `a` is of Miho's side from now on, in her train, however it came to be.
 static func enlist(w: World, a: Actor) -> void:
 	a.faction = Actor.FOX
-	a.leader = w.player().id
-	a.rival = 0
-	a.grudge = 0
+	a.ties.leader = w.player().id
+	a.ties.rival = 0
+	a.ties.grudge = 0
 	a.alert = Actor.REST
 	a.magic.intent.clear()
 	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
@@ -112,7 +112,7 @@ static func perceive(w: World, a: Actor) -> void:
 ## that is Miho, whom it hunts as ever. A fight among its own side goes on, and with
 ## nobody in sight it goes on walking to where it last saw its rival.
 static func _take_on(w: World, a: Actor) -> void:
-	var rival := w.actor(a.rival) if a.fighting() else null
+	var rival := w.actor(a.ties.rival) if a.fighting() else null
 	if rival != null and rival.faction == a.faction:
 		return
 	var near: Actor = null
@@ -125,8 +125,8 @@ static func _take_on(w: World, a: Actor) -> void:
 	if not near.is_miho():
 		feud(w, a, near)
 	elif rival != null:
-		a.rival = 0
-		a.grudge = 0
+		a.ties.rival = 0
+		a.ties.grudge = 0
 
 
 ## A projectile of Miho's seen flying: a dull creature searches the spot it
@@ -179,8 +179,8 @@ static func provoke(w: World, a: Actor, by: Actor) -> void:
 	if a.faction != Actor.HEAVEN or not a.alive() or by == null:
 		return
 	if by.is_miho():
-		a.rival = 0
-		a.grudge = 0
+		a.ties.rival = 0
+		a.ties.grudge = 0
 		return
 	if by == a or not by.alive() or (not by.ally() and Bestiary.allied(a.kind, by.kind)):
 		return
@@ -189,11 +189,11 @@ static func provoke(w: World, a: Actor, by: Actor) -> void:
 
 ## `a` fights `rival` for GRUDGE_ROUNDS, of whatever group.
 static func feud(w: World, a: Actor, rival: Actor) -> void:
-	if a.rival != rival.id:
+	if a.ties.rival != rival.id:
 		w.emit({t = &"feud", id = a.id, rival = rival.id, at = a.pos})
-	a.rival = rival.id
-	a.grudge = GRUDGE_ROUNDS
-	a.rival_at = rival.pos
+	a.ties.rival = rival.id
+	a.ties.grudge = GRUDGE_ROUNDS
+	a.ties.rival_at = rival.pos
 
 
 ## `a` loses Miho: it searches the tile it stands on.
@@ -210,8 +210,8 @@ static func sleep(w: World, a: Actor) -> void:
 	a.alert = Actor.REST
 	a.home = a.pos
 	a.lost = 0
-	a.rival = 0
-	a.grudge = 0
+	a.ties.rival = 0
+	a.ties.grudge = 0
 	a.sees_me = false
 	a.magic.intent.clear()
 	w._changed()
@@ -223,11 +223,11 @@ static func sleep(w: World, a: Actor) -> void:
 static func forget(w: World, gone: Actor) -> void:
 	var led := false
 	for a in w.actors:
-		if a.rival == gone.id:
-			a.rival = 0
-			a.grudge = 0
-		if a.leader == gone.id:
-			a.leader = 0
+		if a.ties.rival == gone.id:
+			a.ties.rival = 0
+			a.ties.grudge = 0
+		if a.ties.leader == gone.id:
+			a.ties.leader = 0
 			led = true
 	if led:
 		w.emit({t = &"scatter", id = gone.id, at = gone.pos})
@@ -236,14 +236,14 @@ static func forget(w: World, gone: Actor) -> void:
 ## Its turn spent on its rival, while it fights one; false when it does not
 ## (a fight that ran out or lost its rival ends here, and it searches).
 static func _fight(w: World, a: Actor) -> bool:
-	if a.rival == 0:
+	if a.ties.rival == 0:
 		return false
-	if a.grudge <= 0:
+	if a.ties.grudge <= 0:
 		_truce(w, a)
 		return false
-	var rival := w.actor(a.rival)
+	var rival := w.actor(a.ties.rival)
 	if rival != null and Hat.sees(w, a, rival):
-		a.rival_at = rival.pos
+		a.ties.rival_at = rival.pos
 		var melee: Dictionary = a.info().get("melee", {})
 		var near: bool = not melee.is_empty() and Grid.cheb(a.pos, rival.pos) == 1
 		if near and not a.ally():
@@ -256,7 +256,7 @@ static func _fight(w: World, a: Actor) -> bool:
 		elif a.ailments.rooted <= 0:
 			_close(w, a, rival)
 		return true
-	if a.ailments.rooted > 0 or (a.pos != a.rival_at and _step_to(w, a, a.rival_at)):
+	if a.ailments.rooted > 0 or (a.pos != a.ties.rival_at and _step_to(w, a, a.ties.rival_at)):
 		return true
 	_truce(w, a)
 	return false
@@ -274,11 +274,11 @@ static func _close(w: World, a: Actor, foe: Actor) -> void:
 ## The fight is over: a creature of heaven searches where it last saw its rival, and
 ## an ally goes back to her.
 static func _truce(w: World, a: Actor) -> void:
-	a.rival = 0
-	a.grudge = 0
+	a.ties.rival = 0
+	a.ties.grudge = 0
 	w.emit({t = &"truce", id = a.id, at = a.pos})
 	if a.alert != Actor.HUNT and not a.ally():
-		_look(a, a.rival_at)
+		_look(a, a.ties.rival_at)
 
 
 ## A projectile struck `a`. One of Miho's shows it where she stands, so it hunts
@@ -382,7 +382,7 @@ static func search(w: World, a: Actor) -> void:
 ## A follower on patrol (Actor.following) keeps within FloorGen.BAND_SPREAD of its
 ## leader, who sets the way. True while it does, whether it stepped or stood.
 static func _follow(w: World, a: Actor) -> bool:
-	var lead := w.actor(a.leader)
+	var lead := w.actor(a.ties.leader)
 	if not a.following() or lead == null:
 		return false
 	var spread := 1 if a.ally() else FloorGen.BAND_SPREAD

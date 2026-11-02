@@ -69,7 +69,7 @@ func test_a_creature_struck_by_another_group_fights_the_caster() -> void:
 	victim.hp = 5
 	var events := _orb_at(w, shooter, victim)
 	assert_lt(victim.hp, 5)
-	assert_eq(victim.rival, shooter.id)
+	assert_eq(victim.ties.rival, shooter.id)
 	assert_true(victim.fighting())
 	assert_true(events.any(func(e): return e.t == &"feud" and e.rival == shooter.id))
 
@@ -82,7 +82,7 @@ func test_one_of_its_own_group_hurts_it_but_starts_no_fight() -> void:
 		victim.hp = 5
 		var events := _orb_at(w, shooter, victim)
 		assert_lt(victim.hp, 5, "friendly fire still hurts")
-		assert_eq(victim.rival, 0)
+		assert_eq(victim.ties.rival, 0)
 		assert_false(events.any(func(e): return e.t == &"feud"))
 
 
@@ -124,7 +124,7 @@ func test_the_fight_ends_when_the_rival_falls() -> void:
 	var rival := _creature(w, &"jangseung", Vector2i(21, 8))
 	_provoke(w, fighter, rival)
 	Harm.hurt(w, rival, 9)
-	assert_eq(fighter.rival, 0)
+	assert_eq(fighter.ties.rival, 0)
 
 
 func test_the_fight_ends_after_the_grudge_runs_out() -> void:
@@ -139,7 +139,7 @@ func test_the_fight_ends_after_the_grudge_runs_out() -> void:
 		events.append_array(w.act(WAIT))
 	assert_false(fighter.fighting())
 	events.append_array(w.act(WAIT))
-	assert_eq(fighter.rival, 0)
+	assert_eq(fighter.ties.rival, 0)
 	assert_true(events.any(func(e): return e.t == &"truce" and e.id == fighter.id))
 
 
@@ -148,9 +148,9 @@ func test_a_rival_striking_again_renews_the_grudge() -> void:
 	var fighter := _creature(w, &"dokkaebi", Vector2i(20, 8))
 	var rival := _creature(w, &"jangseung", Vector2i(26, 8))
 	_provoke(w, fighter, rival)
-	fighter.grudge = 2
+	fighter.ties.grudge = 2
 	_provoke(w, fighter, rival)
-	assert_eq(fighter.grudge, Mind.GRUDGE_ROUNDS)
+	assert_eq(fighter.ties.grudge, Mind.GRUDGE_ROUNDS)
 
 
 func test_harm_from_miho_ends_the_fight() -> void:
@@ -160,7 +160,7 @@ func test_harm_from_miho_ends_the_fight() -> void:
 	_provoke(w, fighter, rival)
 	fighter.hp = 9
 	w.act({t = &"move", dir = Vector2i(1, 0)})
-	assert_eq(fighter.rival, 0)
+	assert_eq(fighter.ties.rival, 0)
 	assert_eq(fighter.alert, Actor.HUNT)
 
 
@@ -170,7 +170,7 @@ func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void
 	var rival := _creature(w, &"imugi", Vector2i(26, 8))
 	_provoke(w, fighter, rival)
 	var events := w.act(WAIT)
-	assert_eq(fighter.rival, 0)
+	assert_eq(fighter.ties.rival, 0)
 	assert_eq(fighter.alert, Actor.SEARCH)
 	assert_eq(fighter.target, Vector2i(26, 8))
 	assert_true(events.any(func(e): return e.t == &"truce"))

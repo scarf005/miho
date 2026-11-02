@@ -53,7 +53,7 @@ func _result(w: World) -> String:
 				a.ailments.rooted,
 				a.ailments.stunned,
 				a.alert,
-				a.rival
+				a.ties.rival
 			]
 		)
 	var me := [w.player().pos, w.player().guise, w.player().cloak]

@@ -42,7 +42,7 @@ func _hall() -> World:
 
 func _band(w: World, leader: Actor, kind: StringName, at: Vector2i) -> Actor:
 	var a := FloorGen.spawn(w, kind, at)
-	a.leader = leader.id
+	a.ties.leader = leader.id
 	a.magic.cooldown = 99
 	return a
 
@@ -54,7 +54,7 @@ func _storey(seed_value: int, depth: int) -> World:
 
 func _leaders(w: World) -> Array[Actor]:
 	var out: Array[Actor] = []
-	out.assign(w.actors.filter(func(a): return w.actors.any(func(b): return b.leader == a.id)))
+	out.assign(w.actors.filter(func(a): return w.actors.any(func(b): return b.ties.leader == a.id)))
 	return out
 
 
@@ -95,10 +95,10 @@ func test_each_follower_stands_beside_its_leader_in_one_room() -> void:
 			var w := _storey(seed_value, depth)
 			for lead in _leaders(w):
 				bands += 1
-				assert_eq(lead.leader, 0, "a leader follows nobody")
+				assert_eq(lead.ties.leader, 0, "a leader follows nobody")
 				var room := w.rooms.filter(func(r): return r.has_point(lead.pos))
 				assert_eq(room.size(), 1)
-				for f in w.actors.filter(func(a): return a.leader == lead.id):
+				for f in w.actors.filter(func(a): return a.ties.leader == lead.id):
 					var ctx := "seed %d depth %d %s" % [seed_value, depth, f.kind]
 					assert_true(Bestiary.allied(f.kind, lead.kind), ctx)
 					assert_lte(Grid.cheb(f.pos, lead.pos), FloorGen.BAND_SPREAD, ctx)
@@ -120,8 +120,8 @@ func test_every_creature_of_the_plan_still_spawns_and_is_deterministic() -> void
 		var guards := a.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
 		assert_eq(a.actors.size() - 1, want + guards, "depth %d" % depth)
 		assert_eq(
-			a.actors.map(func(x): return [x.kind, x.pos, x.leader]),
-			b.actors.map(func(x): return [x.kind, x.pos, x.leader])
+			a.actors.map(func(x): return [x.kind, x.pos, x.ties.leader]),
+			b.actors.map(func(x): return [x.kind, x.pos, x.ties.leader])
 		)
 
 
@@ -184,8 +184,8 @@ func test_when_the_leader_falls_the_band_scatters() -> void:
 	var kin := _band(w, other, &"dokkaebi", Vector2i(11, 4))
 	Harm.hurt(w, lead, 3)
 	assert_false(lead.alive())
-	assert_eq([f.leader, g.leader], [0, 0])
-	assert_eq(kin.leader, other.id, "another band is left alone")
+	assert_eq([f.ties.leader, g.ties.leader], [0, 0])
+	assert_eq(kin.ties.leader, other.id, "another band is left alone")
 	assert_true(w.events.any(func(e): return e.t == &"scatter" and e.id == lead.id))
 	assert_eq(w.events.filter(func(e): return e.t == &"scatter").size(), 1)
 
@@ -197,7 +197,7 @@ func test_a_leader_pushed_into_the_sky_scatters_the_band_too() -> void:
 	var f := _band(w, lead, &"dokkaebi", Vector2i(29, 8))
 	w.push(lead, Vector2i(1, 0), 1)
 	assert_false(lead.alive())
-	assert_eq(f.leader, 0)
+	assert_eq(f.ties.leader, 0)
 
 
 func test_a_lone_creature_falling_scatters_nothing() -> void:
@@ -253,4 +253,4 @@ func test_the_agent_tells_the_band_and_the_log_tells_no_scattering() -> void:
 	var text := Observation.text(again)
 	assert_string_contains(text, "leads a band")
 	assert_string_contains(text, "follows 외다리 도깨비")
-	assert_eq(f.leader, 0)
+	assert_eq(f.ties.leader, 0)

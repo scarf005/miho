@@ -220,12 +220,12 @@ func test_a_foe_takes_on_an_ally_nearer_than_miho_and_goes_back_to_her() -> void
 	var foe := _hunter(w, ME + Vector2i(6, 0))
 	var copy := _copy(w, ME + Vector2i(4, 0))
 	w.act(WAIT)
-	assert_eq(foe.rival, copy.id, "the nearer draws it")
+	assert_eq(foe.ties.rival, copy.id, "the nearer draws it")
 	copy.pos = Vector2i(2, 2)
 	foe.pos = ME + Vector2i(2, 0)
 	w._changed()
 	w.act(WAIT)
-	assert_eq(foe.rival, 0, "she is nearer now")
+	assert_eq(foe.ties.rival, 0, "she is nearer now")
 	assert_eq(foe.alert, Actor.HUNT)
 
 
@@ -317,7 +317,7 @@ func test_a_shot_of_an_ally_turns_a_foe_on_the_ally_and_not_on_miho() -> void:
 	s.faction = Actor.FOX
 	s.origin = copy.pos
 	Mind.struck(w, foe, s)
-	assert_eq(foe.rival, copy.id)
+	assert_eq(foe.ties.rival, copy.id)
 	assert_ne(foe.alert, Actor.HUNT)
 
 
@@ -436,9 +436,9 @@ func test_an_ally_opens_a_door_and_she_cannot_shut_it_on_the_ally() -> void:
 	w.set_tile(door, World.DOOR)
 	var copy := _copy(w, ME + E)
 	var foe := _post(w, ME + Vector2i(4, 0))
-	copy.rival = foe.id
-	copy.grudge = 9
-	copy.rival_at = foe.pos
+	copy.ties.rival = foe.id
+	copy.ties.grudge = 9
+	copy.ties.rival_at = foe.pos
 	_rounds(w, 2)
 	assert_eq(w.tile(door), World.DOOR_OPEN)
 	assert_eq(copy.pos, door)

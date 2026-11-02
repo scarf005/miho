@@ -34,14 +34,8 @@ var drum := Vector2i(-1, -1)
 ## Where it rests, and where a patrol is heading.
 var home := Vector2i.ZERO
 var post := Vector2i.ZERO
-## The creature of another group it fights (Mind.provoke), 0 for none; the
-## rounds left of the fight; where it last saw that creature.
-var rival := 0
-var grudge := 0
-var rival_at := Vector2i.ZERO
-## The id of the leader of its band (FloorGen.bands), 0 for none; it is gone
-## when the leader falls (Mind.forget).
-var leader := 0
+## Whom it fights and follows (Ties).
+var ties: Ties
 ## 둔갑 (Guise): the kind of the last creature of heaven that fell, the kind
 ## it looks like, whether it is in guise, and the rounds in a row it has stood
 ## next to a creature of heaven in guise.
@@ -62,6 +56,7 @@ func _init(bare := false) -> void:
 	if not bare:
 		ailments = Ailments.new()
 		magic = Magic.new()
+		ties = Ties.new()
 
 
 func alive() -> bool:
@@ -99,13 +94,13 @@ func sleeps() -> bool:
 
 ## Fighting another creature of heaven in place of Miho.
 func fighting() -> bool:
-	return rival != 0 and grudge > 0
+	return ties.rival != 0 and ties.grudge > 0
 
 
 ## Resting in the train of its leader (Mind.rest): one on patrol, or an ally behind
 ## Miho. One that does not patrol sleeps at its own home, band or not.
 func following() -> bool:
-	return leader != 0 and (faction == FOX or info().get("patrol", false))
+	return ties.leader != 0 and (faction == FOX or info().get("patrol", false))
 
 
 ## Hunting Miho by way of a drum.
@@ -148,10 +143,6 @@ func clone() -> Actor:
 	a.drum = drum
 	a.home = home
 	a.post = post
-	a.rival = rival
-	a.grudge = grudge
-	a.rival_at = rival_at
-	a.leader = leader
 	a.prey = prey
 	a.form = form
 	a.guise = guise
@@ -162,5 +153,6 @@ func clone() -> Actor:
 	a.raise = raise
 	a.ailments = ailments.copy()
 	a.magic = magic.copy()
+	a.ties = ties.copy()
 	a.marked.assign(marked)
 	return a

@@ -238,9 +238,9 @@ static func _situation(w: World, a: Actor) -> Array:
 		lines.append([[_search_left(a), Palette.TEXT]])
 	lines.append_array(_conditions(w, a))
 	if a.fighting():
-		var rival := _name_of(w, w.actor(a.rival))
+		var rival := _name_of(w, w.actor(a.ties.rival))
 		lines.append([[Lang.t("싸우는 중: %s") % rival, Palette.ALERT[2]]])
-		lines.append([[Lang.t("  남은 시간: %d초") % a.grudge, Palette.ALERT[2]]])
+		lines.append([[Lang.t("  남은 시간: %d초") % a.ties.grudge, Palette.ALERT[2]]])
 	if a.drumming():
 		lines.append([[Lang.t("북 치러 가는 중."), Palette.SOUND]])
 	if a.ally():

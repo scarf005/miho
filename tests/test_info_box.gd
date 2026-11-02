@@ -31,11 +31,11 @@ func _busy(w: World, kind: StringName, led: bool, hunting: bool) -> Actor:
 	var a := FloorGen.spawn(w, kind, AT)
 	var other := FloorGen.spawn(w, &"dokkaebi", AT + Vector2i(2, 0))
 	if led:
-		a.leader = other.id
+		a.ties.leader = other.id
 	else:
-		other.leader = a.id
-	a.rival = other.id
-	a.grudge = 5
+		other.ties.leader = a.id
+	a.ties.rival = other.id
+	a.ties.grudge = 5
 	a.ailments.blind = 3
 	a.ailments.rooted = 3
 	a.ailments.stunned = 3
