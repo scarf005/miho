@@ -651,6 +651,8 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var plain := _notes(t, breakable, burns, Terrain.plank(w, p))
 	if now:
 		plain.append_array(_reacts(t, breakable))
+	elif Tiles.of(t, "crumbles") >= 0:
+		plain.append(Lang.t("떠나면: %s") % SpellInfo.becomes(Tiles.of(t, "crumbles")))
 	var lies := _lies(w, p, [Tiles.of(t, "name"), plain])
 	var name: String = lies[0]
 	var notes: Array = lies[1]
@@ -848,8 +850,6 @@ static func _ground_notes(t: int) -> Array[String]:
 			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
 	if Tiles.of(t, "trample") >= 0:
 		out.append(Lang.t("밟으면: %s") % SpellInfo.becomes(Tiles.of(t, "trample")))
-	if Tiles.of(t, "crumbles") >= 0:
-		out.append(Lang.t("떠나면: %s") % SpellInfo.becomes(Tiles.of(t, "crumbles")))
 	if Tiles.of(t, "douses"):
 		out.append(Lang.t("소화."))
 	return out
@@ -857,7 +857,8 @@ static func _ground_notes(t: int) -> Array[String]:
 
 ## The gas on a tile in sight: kind, how fast it thins, its harm and what it
 ## wets, and, when `now`, how much lies there and whether that blocks sight (the
-## 도감 tells what the gas is, not how much). Tiles out of sight keep no gas.
+## 도감 tells what the gas is, not how much; it also tells the blast, a secret on
+## the map). Tiles out of sight keep no gas.
 static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	var g := Gas.at(w, p)
 	if g.x < 0 or w.seen[Grid.index(p)] == 0:
@@ -883,12 +884,14 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if steam >= 0:
 		var became := [[Gas.of(steam, "name"), Palette.GAS[steam][1]]]
 		out.append(Lang.runs("불: {0}이/가 됨", became, Palette.DIM))
+	if now:
+		return out
 	if Gas.of(g.x, "explodes"):
 		out.append([[Lang.t("불: 폭발"), Palette.DIM]])
 		out.append(_amount("폭발 피해: ", Gas.BLAST))
 		out.append([[Lang.t("폭발 소음: %d") % Gas.BLAST_LOUD, Palette.DIM]])
 		out.append([[Lang.t("불붙음: %d초") % Status.ALIGHT, Palette.DIM]])
-	return out if now else out + TileActs.gas(g.x)
+	return out + TileActs.gas(g.x)
 
 
 ## What a round on a burning tile costs, fierce (Tiles.fierce) or not.

@@ -214,7 +214,7 @@ func test_the_entry_of_a_gas_tells_which_spells_lay_it() -> void:
 			assert_string_contains(told, "만드는 주문: " + ", ".join(makers))
 
 
-func test_a_gas_that_blows_up_tells_what_the_blast_does_on_the_map_too() -> void:
+func test_a_gas_that_blows_up_tells_the_blast_in_the_codex_and_keeps_it_off_the_map_hover() -> void:
 	var w := Codex.stage()
 	var foe := Codex.foe(Codex.foes()[0])
 	foe.id = w.new_id()
@@ -228,11 +228,12 @@ func test_a_gas_that_blows_up_tells_what_the_blast_does_on_the_map_too() -> void
 	Gas.light(w, Codex.AT)
 	assert_eq(foe.hp, 99 - Gas.BLAST)
 	assert_gt(foe.ailments.alight, 0)
-	for told in [_told(Gas.of(Gas.MARSH, "name")), hover]:
-		assert_string_contains(told, "불: 폭발")
-		assert_string_contains(told, "폭발 피해: %d" % (99 - foe.hp))
-		assert_string_contains(told, "폭발 소음: %d" % Gas.BLAST_LOUD)
-		assert_string_contains(told, "불붙음: %d초" % foe.ailments.alight)
+	var told := _told(Gas.of(Gas.MARSH, "name"))
+	assert_string_contains(told, "불: 폭발")
+	assert_string_contains(told, "폭발 피해: %d" % (99 - foe.hp))
+	assert_string_contains(told, "폭발 소음: %d" % Gas.BLAST_LOUD)
+	assert_string_contains(told, "불붙음: %d초" % foe.ailments.alight)
+	assert_false(hover.contains("폭발"), hover)
 	assert_false(_told(Gas.of(Gas.FOG, "name")).contains("폭발"))
 
 

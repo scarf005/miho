@@ -173,7 +173,11 @@ func test_every_named_tile_is_its_hover_facts() -> void:
 		var told := facts + ("\n" + _text(Info.jar_facts()) if t == World.JAR else "")
 		assert_string_starts_with(_text(Codex.detail(_entry(4, name))), told, name)
 		var hover := _text(Info.terrain(w, Codex.AT))
-		assert_true(hover.begins_with(facts), name)
+		if Tiles.of(t, "crumbles") < 0:
+			assert_true(hover.begins_with(facts), name)
+		else:
+			assert_true(facts.contains("떠나면"), name)
+			assert_false(hover.contains("떠나면"), name)
 
 
 func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen() -> void:
