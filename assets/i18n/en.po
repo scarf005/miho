@@ -1116,7 +1116,7 @@ msgstr "Too hurt to fight"
 msgid "위험구역"
 msgstr "Danger zone"
 
-msgid "위험구역 (반경 %d)"
+msgid "위험구역 (반지름 %d)"
 msgstr "Danger zone (radius %d)"
 
 msgid "왼쪽 클릭"
@@ -1664,9 +1664,6 @@ msgstr "%d"
 
 msgid "거리"
 msgstr "Distance"
-
-msgid "%d걸음"
-msgstr "%d steps"
 
 msgid "대상"
 msgstr "Target"
@@ -2526,7 +2523,7 @@ msgstr "Left arrow"
 msgid "방향키 위"
 msgstr "Up arrow"
 
-msgid "방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반경), Esc 끝"
+msgid "방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반지름), Esc 끝"
 msgstr "Arrow keys move the cursor (Shift: %d tiles), Enter walks, the danger zone key marks (1-%d sets the radius there), Esc ends"
 
 msgid "번개"

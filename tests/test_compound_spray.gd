@@ -178,9 +178,9 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
 		[EARTH, EARTH]: ["둘레 2칸", "벽: 금이 감"],
 		[EARTH, EARTH, EARTH]: ["둘레 3칸", "기절: 2초", "무너짐: 금 간 벽"],
-		[WOOD]: ["거리: 4걸음", "적 1명", "묶임: 2초", "소음: 없음"],
-		[WOOD, WOOD]: ["거리: 6걸음", "적 2명", "묶임: 3초"],
-		[WOOD, WOOD, WOOD]: ["거리: 8걸음", "적 모두", "묶임: 4초"],
+		[WOOD]: ["범위: 4칸", "적 1명", "묶임: 2초", "소음: 없음"],
+		[WOOD, WOOD]: ["범위: 6칸", "적 2명", "묶임: 3초"],
+		[WOOD, WOOD, WOOD]: ["범위: 8칸", "적 모두", "묶임: 4초"],
 		[WATER, FIRE]:
 		[
 			"증기 · 꼬리: 2",

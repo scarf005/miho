@@ -92,7 +92,7 @@ func test_hovering_a_zone_says_so() -> void:
 	m.look.key(&"exclude", false)
 	_look(m, tile)
 	var text := Info.plain(m.term.info)
-	assert_string_contains(text, "위험구역 (반경 %d)" % Exclusions.DEFAULT_RADIUS)
+	assert_string_contains(text, "위험구역 (반지름 %d)" % Exclusions.DEFAULT_RADIUS)
 
 
 func test_the_clear_key_removes_every_zone() -> void:

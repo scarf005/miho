@@ -328,8 +328,7 @@ static func cast(s: Spell) -> Array:
 	if s.homing():
 		out.append(["회전", Lang.t("칸당 %s") % Lang.t(_turn(s.turn())), Palette.TEXT])
 	if s.shape == Spell.SPRAY and Spray.reach(s) > 0:
-		var unit := "%d걸음" if Spray.form(s) == Spray.ROOTS else "%d칸"
-		out.append(["범위", Lang.t(unit) % Spray.reach(s), Palette.TEXT])
+		out.append(["범위", Lang.t("%d칸") % Spray.reach(s), Palette.TEXT])
 	return out
 
 
@@ -380,7 +379,7 @@ static func _spray(s: Spell) -> Array:
 	)
 	return [
 		_line("모양", "땅속 덩굴"),
-		_line("거리", Lang.t("%d걸음") % Spray.LONE[Cards.WOOD].reach[i]),
+		_line("범위", Lang.t("%d칸") % Spray.LONE[Cards.WOOD].reach[i]),
 		_line("대상", Lang.t("보이는 가까운 적 %s") % who),
 		_line("묶임", Lang.t("%d초") % Spray.LONE[Cards.WOOD].rounds[i], color),
 		_line("막는 것", _names(ROOT_STOPS)),

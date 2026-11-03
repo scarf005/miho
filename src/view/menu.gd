@@ -34,7 +34,7 @@ const MOUSE := [
 const LOOK_FAR := 5
 const LOOK := [
 	"살피는 중",
-	"방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반경), Esc 끝",
+	"방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반지름), Esc 끝",
 ]
 ## Enter or a click raises one of these, and from 100 takes it back to 0.
 const SLIDERS := [&"volume", &"music", &"crt"]
