@@ -121,8 +121,13 @@ static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 ## and on one with an element of CONDUCTS, else none on one with an element of
 ## GROUNDS, else once. It is never more.
 static func charge(a: Actor) -> int:
-	var mine := Bestiary.elements(a.nature_kind())
-	if a.ailments.wet > 0 or CONDUCTS.any(func(e): return mine.has(e)):
+	return WEAK if a.ailments.wet > 0 else charge_of(a.nature_kind())
+
+
+## What `charge` says of a dry creature of `kind`.
+static func charge_of(kind: StringName) -> int:
+	var mine := Bestiary.elements(kind)
+	if CONDUCTS.any(func(e): return mine.has(e)):
 		return WEAK
 	return 0 if GROUNDS.any(func(e): return mine.has(e)) else 1
 

@@ -124,11 +124,11 @@ func test_a_creature_tells_what_it_is_weak_to() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
 	var text := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jiha", at)))
-	assert_string_contains(text, "오행: 금(쇠) \n약점: 불\n")
+	assert_string_contains(text, "오행: 금(쇠) \n약점: 불, 전기\n")
 	var dog := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
-	assert_string_contains(dog, "약점: 흙\n")
+	assert_string_contains(dog, "약점: 흙, 전기\n")
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
-	assert_string_contains(boss, "약점: 불, 물, 흙\n")
+	assert_string_contains(boss, "약점: 불, 물, 흙, 전기\n")
 	assert_has(Glossary.rows()["약점"], "피해: ×2", "the doubling is told once")
 	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
 	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
@@ -466,3 +466,12 @@ func test_a_tracker_on_your_trail_tells_so() -> void:
 	w.tiles[Grid.index(ahead)] = World.FLOOR
 	w.scent[Grid.index(ahead)] = 5
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "냄새를 쫓는 중")
+
+
+func test_a_creature_of_earth_tells_it_takes_no_harm_from_electricity() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	var foe := FloorGen.spawn(w, &"dueoksini", at)
+	assert_eq(Elements.charge(foe), 0)
+	assert_string_contains(Info.plain(Info.creature(w, foe)), "면역: 전기")
+	assert_false(Info.plain(Info.creature(w, FloorGen.spawn(w, &"bulgae", at))).contains("전기"))

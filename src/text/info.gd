@@ -383,7 +383,10 @@ static func _weakness(kind: StringName) -> Array:
 	for c in Bestiary.weak_to(kind):
 		line.append([Lang.t(Cards.NAME[c]), Palette.CARD[c]])
 		line.append([", ", Palette.DIM])
-	line.pop_back()
+	if Elements.charge_of(kind) > 1:
+		line.append([Lang.t(ELECTRIC), Palette.TEXT])
+	else:
+		line.pop_back()
 	if Bestiary.info(kind).get("absorb", &"") == &"nofire":
 		line.append([Lang.t(" (불과 함께)"), Palette.DIM])
 	return line
@@ -401,6 +404,8 @@ static func _immunities(kind: StringName) -> Array:
 			)
 		&"nofire":
 			out.append(_immune("불 없는 주문", Palette.DIM))
+	if Elements.charge_of(kind) == 0 and spec.get("absorb", &"") != &"nofire":
+		out.append(_immune(ELECTRIC, Palette.TEXT))
 	if spec.get("deaf", false):
 		out.append(_immune("소음", Palette.SOUND))
 	return out
