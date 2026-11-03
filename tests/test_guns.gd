@@ -245,28 +245,15 @@ func test_two_piercing_rounds_each_go_through() -> void:
 	var b := _post(w, 3)
 	var hurt := []
 	for i in 3:
-		hurt += _hurts(w.act(_cast([FOX, FOX, METAL]) if i == 0 else {t = &"wait"}), b)
-	assert_lt(a.hp, HEALTH)
-	assert_eq(hurt, [Elements.BULLET, Elements.BULLET])
+		hurt += _hurts(w.act(_cast([FOX, FOX, METAL]) if i == 0 else {t = &"wait"}), a)
+	assert_eq(hurt, [Elements.BULLET, Elements.BULLET], "both go for the nearest")
+	assert_lt(b.hp, HEALTH, "the one on the line goes on")
 
 
 func test_a_piercing_round_is_fired_only_at_open_air_beside_miho() -> void:
 	var w := _world()
 	_put(w, 1, 0, World.WALL)
 	assert_false(w.can(_cast([FOX, METAL])))
-
-
-func test_a_piercing_round_that_swaps_takes_miho_where_it_ends() -> void:
-	var w := _world()
-	var foe := _post(w, 2)
-	_put(w, 4, 0, World.WALL)
-	for i in 3:
-		w.act(_cast([FOX, METAL] + Cards.recipe(Cards.VAULT)) if i == 0 else {t = &"wait"})
-	assert_lt(foe.hp, HEALTH)
-	assert_eq(foe.pos, ME + E * 2, "it went through, so it trades with no one")
-	assert_eq(w.player().pos, ME + E * 3)
-	var hover := Info.plain(SpellInfo.spell(Spell.make([FOX, METAL] + Cards.recipe(Cards.VAULT))))
-	assert_false(hover.contains("자리 교환"), hover)
 
 
 func test_the_hover_of_a_piercing_round_tells_it_goes_through_foes_and_of_no_wall() -> void:

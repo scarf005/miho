@@ -121,7 +121,7 @@ func test_a_bullet_does_not_stick() -> void:
 	var w := _world()
 	var foe := _foe(w, &"jangseung", Vector2i(7, 8))
 	w.act(_cast([FOX, Cards.METAL]))
-	assert_true(w.shots.is_empty())
+	assert_true(w.shots.all(func(s): return s.host == 0))
 	assert_lt(foe.hp, foe.max_hp)
 	assert_false(w.lit(foe.pos))
 

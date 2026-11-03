@@ -85,7 +85,7 @@ const SPELLS := {
 			"shape and effect, which a projectile carries to the %s where it ends). Metal makes "
 			% SQUARE
 		)
-		+ "fox a bullet and orb a cannonball; wood on an orb grows a "
+		+ "fox a bullet that goes through creatures and orb a cannonball; wood on an orb grows a "
 		+ (
 			"wooden wall. A wisp turns %d degrees a tile per fox and flies at most %d tiles; "
 			% [Spell.WISP_TURN, Spell.RANGE]

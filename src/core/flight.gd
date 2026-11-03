@@ -61,7 +61,8 @@ static func fly(w: World, s: Shot, to: Vector2i) -> void:
 ## One tile of flight. Orbs burst on walls and closed doors; every projectile
 ## strikes the creature it reaches; a wisp stops and hovers at a wall or after
 ## Spell.RANGE tiles, chasing or not, and flies no more; a piercing one goes on
-## through creatures and a wall (Elements.bore, pass_through).
+## through creatures (Elements.pass_through), an armour-piercing one through a wall too
+## (Elements.bore).
 static func step(w: World, s: Shot) -> void:
 	if s.turn > 0:
 		s.dir = Homing.steer(w, s)
@@ -71,7 +72,7 @@ static func step(w: World, s: Shot) -> void:
 			strike(w, s, t)
 			return
 	var to := s.pos + s.dir
-	if s.spell.pierces() and Elements.bore(w, s, to):
+	if s.spell.bores() and Elements.bore(w, s, to):
 		to += s.dir
 	elif not w.open_air(to) or (s.spell.orb and w.tile(to) == World.DOOR and w.opaque(to)):
 		if s.spell.orb:

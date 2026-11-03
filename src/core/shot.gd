@@ -5,7 +5,7 @@ extends Entity
 ## (Spell.turn) in `bank` and spending them on its turns (Homing.steer).
 ## `flown` counts the tiles it has flown. A wisp that struck a creature rides
 ## it: `host` is its actor id, and `pos` follows it (Walk.move) while it lives.
-## A piercing wisp (Spell.pierces) has `pierced` the wall it went through.
+## An armour-piercing wisp (Spell.bores) has `pierced` the wall it went through.
 
 var caster := 0
 var spell: Spell

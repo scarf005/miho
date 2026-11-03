@@ -75,7 +75,7 @@ static func breakable(w: World, at: Vector2i) -> bool:
 
 
 ## An orb can be hurled at any open tile and at a breakable lantern or wall
-## right next to the caster, which it strikes where it stands; a piercing wisp
+## right next to the caster, which it strikes where it stands; an armour-piercing wisp
 ## at a wall with open air behind it along `dir` (Elements.bore); a spray goes
 ## any way.
 static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bool:
@@ -83,7 +83,7 @@ static func throwable(w: World, spell: Spell, at: Vector2i, dir: Vector2i) -> bo
 		spell.shape == Spell.SPRAY
 		or w.open_air(at)
 		or (spell.orb and breakable(w, at))
-		or (spell.pierces() and wall(w.tile(at)) and w.open_air(at + dir))
+		or (spell.bores() and wall(w.tile(at)) and w.open_air(at + dir))
 	)
 
 

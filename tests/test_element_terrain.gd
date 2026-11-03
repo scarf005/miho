@@ -80,11 +80,11 @@ func test_a_bullet_cuts_what_grows_round_where_it_strikes() -> void:
 		var w := _hall()
 		_put(w, FOE + UP, t)
 		_put(w, FOE + E + DOWN, t)
-		_put(w, FOE + E * 2, t)
+		_put(w, FOE + UP * 2, t)
 		_fire(w, [FOX, METAL])
 		assert_eq(w.tile(FOE + UP), World.FLOOR, str(t))
 		assert_eq(w.tile(FOE + E + DOWN), World.FLOOR, "the corner of the 3x3 %d" % t)
-		assert_eq(w.tile(FOE + E * 2), t, "two tiles off stays %d" % t)
+		assert_eq(w.tile(FOE + UP * 2), t, "two tiles off stays %d" % t)
 
 
 func test_a_cut_is_told_and_heard() -> void:

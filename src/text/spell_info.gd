@@ -19,8 +19,11 @@ const ACCEL := "가속"
 const FAR := "%d칸 이상 날아간 뒤 피해"
 ## The label of the blast harm after MOMENTUM tiles.
 const FAR_BLAST := "%d칸 이상 날아간 뒤 폭발 피해"
-const PIERCE := ["관통", "적 모두, 벽 한 칸"]
-## The guns that are named (Spell.bullet, Spell.pierces, Spell.mortar), by their talismans.
+## What a wisp of 쇠 goes through (Spell.pierces), and with two 쇠 (Spell.bores).
+const PIERCE := "관통"
+const THROUGH := "적"
+const THROUGH_ALL := "적 모두, 벽 한 칸"
+## The guns that are named (Spell.bullet, Spell.bores, Spell.mortar), by their talismans.
 const GUNS := [
 	[Cards.FOX, Cards.METAL],
 	[Cards.FOX, Cards.METAL, Cards.METAL],
@@ -317,7 +320,7 @@ static func _spray(s: Spell) -> Array:
 				_pair(_soak(), color),
 			]
 			if level >= Spray.THROUGH_LEVEL:
-				out.insert(1, _line("관통", "적"))
+				out.insert(1, _line(PIERCE, THROUGH))
 			return out
 		Cards.METAL:
 			return _gun(level)
@@ -695,7 +698,7 @@ static func _shape(s: Spell) -> Array:
 				)
 			)
 			if s.pierces():
-				lines.append(_line(PIERCE[0], PIERCE[1]))
+				lines.append(_line(PIERCE, THROUGH_ALL if s.bores() else THROUGH))
 			lines.append(_line("회전", Lang.t("칸당 %s") % Lang.t(_turn(s.turn()))))
 			if not s.gun():
 				lines.append(_line("맞히면", "달라붙음"))

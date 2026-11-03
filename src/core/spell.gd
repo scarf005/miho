@@ -33,8 +33,8 @@ extends RefCounted
 ## cover their tiles in the round they are cast, with no projectile (Spray).
 ## Each element shows its nature by the form it rides, one step stronger for
 ## every copy (Elements): 쇠 makes a wisp a bullet and an orb a cannonball. A
-## wisp with one 쇠 is a 탄환, a creature's a 번개 (`bullet`), and with two
-## armour-piercing (`pierces`, 철갑탄); an orb that carries 유탄
+## wisp with one 쇠 is a 관통탄, a creature's a 번개 (`bullet`), and with two
+## armour-piercing (`bores`, 철갑탄); an orb that carries 유탄
 ## is a 비격진 (`mortar`), which bursts where it ends (Compounds).
 ## A compound is an element of its own (Compounds): it does not count as its
 ## elements for what a spell physically does (`holds`: fire spreading, washing,
@@ -90,11 +90,11 @@ const SPRAY := &"spray"
 const SHAPE_NAME := {LEAP: "멀리뛰기", HOMING: "유도 구슬", ORB: "구슬", WISP: "여우불"}
 ## Copies past which an element's spray grows no more.
 const MAX_LEVEL := 5
-## The 쇠 that make a wisp armour-piercing, and its name.
+## The 쇠 that make a wisp go through a wall too (`bores`), and its name.
 const PIERCE_METALS := 2
 const PIERCE_NAME := "철갑탄"
 ## A wisp with one 쇠: Miho's, and a creature's (`wisp_name` set).
-const BULLET_NAME := "탄환"
+const BULLET_NAME := "관통탄"
 const BOLT_NAME := "번개"
 ## An orb that carries 유탄, and its name.
 const MORTAR_NAME := "비격진"
@@ -350,7 +350,7 @@ func _title(t: Callable, whole := true) -> String:
 			if n > 0:
 				parts.append(name if n == 1 else "%s×%d" % [name, n])
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
-	if pierces():
+	if bores():
 		form = PIERCE_NAME
 	elif mortar():
 		form = MORTAR_NAME
@@ -362,10 +362,10 @@ func _title(t: Callable, whole := true) -> String:
 	return ("·".join(parts) + " " + form).strip_edges()
 
 
-## The slot and how many of it the name of the shape tells: 탄환, 철갑탄 and 비격진
+## The slot and how many of it the name of the shape tells: 관통탄, 철갑탄 and 비격진
 ## are iron by name, every 쇠; 비격진 one 유탄; none for the rest.
 func _named(slot: StringName) -> int:
-	if slot == Cards.METAL and (bullet() or pierces() or mortar()):
+	if slot == Cards.METAL and (bullet() or bores() or mortar()):
 		return count(slot)
 	return 1 if mortar() and slot == &"shrapnel" else 0
 
@@ -436,15 +436,20 @@ func gun() -> bool:
 	return shape != LEAP and (has(Cards.METAL) or mortar())
 
 
-## An armour-piercing wisp (철갑탄): 여 with two 쇠. It goes through every
-## creature it hits, and one wall.
+## A wisp of 쇠 that goes through every creature it hits: 관통탄 and 철갑탄. A creature's
+## 번개 (Elements.bolt) ends on the first.
 func pierces() -> bool:
+	return bores() or bullet() and wisp_name == ""
+
+
+## An armour-piercing wisp (철갑탄): 여 with two 쇠. It goes through one wall too.
+func bores() -> bool:
 	return shape == WISP and count(Cards.METAL) >= PIERCE_METALS
 
 
-## A wisp with one 쇠: a bullet (탄환, and a creature's 번개).
+## A wisp with one 쇠: a bullet (관통탄, and a creature's 번개).
 func bullet() -> bool:
-	return shape == WISP and has(Cards.METAL) and not pierces()
+	return shape == WISP and has(Cards.METAL) and not bores()
 
 
 ## A 비격진: an orb that carries 유탄, which bursts where it ends.

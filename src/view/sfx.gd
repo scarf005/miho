@@ -364,7 +364,7 @@ static func dreaded(w: World, known: Dictionary) -> Array[Actor]:
 ## The sounds a spell makes where it is cast and where it strikes, heaviest
 ## first: none for a spray's hit (its cast is heard), a leap, or a 비격진's
 ## strike (its burst is heard). A projectile adds the sound of the element it
-## carries. 쇠 makes a gun: a bullet cracks and hits metal, 철갑탄 and a
+## carries. 쇠 makes a gun: 관통탄 cracks and hits metal, 철갑탄 and a
 ## cannonball fire a cannon, and a 비격진 a mortar that bursts in an explosion.
 static func _spell_sounds(e: Dictionary) -> Array[StringName]:
 	var out: Array[StringName] = []
@@ -398,7 +398,7 @@ static func _cast(spell: Spell) -> Array[StringName]:
 	var out: Array[StringName] = []
 	if spell.mortar():
 		return [&"mortar"]
-	if spell.pierces() or (spell.orb and spell.has(Cards.METAL)):
+	if spell.bores() or (spell.orb and spell.has(Cards.METAL)):
 		out.append(&"cannon")
 	elif spell.has(Cards.METAL):
 		out.append(&"pistol")
