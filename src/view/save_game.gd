@@ -4,8 +4,9 @@ extends RefCounted
 ## empty). A run is fixed by its seed and the actions given to World.act, so
 ## that is all the file holds; `replay` plays them again to rebuild the world,
 ## the message log and the kill count. Beside it, in a file of its own, lie the last state
-## written (Snapshot) and, once a run has gone back to one, the state its actions start from:
-## a run the rules no longer fit goes on from the last state, without the actions after it.
+## written (Snapshot) and, once a run has gone back to one, the state its actions start from.
+## `replay` starts from the last state and plays only the actions after it; a run the rules
+## no longer fit goes on from the last state, without those actions.
 ## A round played waits in memory until `flush` (Autosave) writes what has changed.
 
 const PATH := "user://save.cfg"
@@ -28,7 +29,8 @@ var exclusions := {}
 var world: World
 var messages := Messages.new()
 var played := 0
-## {seed, last, base}: each of the last two a state, {world, log, kills, depth}.
+## {seed, last, base}: each of the last two a state, {world, log, kills, depth, played},
+## `played` the count of the actions already in it.
 var states := {}
 ## Whether the actions start from the state `base` in place of the seed.
 var based := false
@@ -89,7 +91,13 @@ func record(action: Dictionary, total: int, over: bool) -> void:
 ## Takes a state of the round just played, with its lines in `log`, when one is due.
 func keep(w: World, log: Messages) -> void:
 	if w.outcome == &"" and _state_due(w):
-		states.last = {world = Snapshot.of(w), log = log.saved(), kills = kills, depth = w.depth}
+		states.last = {
+			world = Snapshot.of(w),
+			log = log.saved(),
+			kills = kills,
+			depth = w.depth,
+			played = actions.size(),
+		}
 		_states_changed = true
 
 
@@ -131,11 +139,19 @@ func begin() -> void:
 	if stale:
 		fall_back()
 		return
-	if not based:
+	var last: Dictionary = states.get("last", {})
+	if last.get("played", actions.size() + 1) <= actions.size():
+		played = last.played
+		_start_from(last)
+	elif based:
+		_start_from(states.base)
+	else:
 		world = World.create(seed_value)
-		return
-	world = Snapshot.world(states.base.world)
-	messages.lines.assign(states.base.log.duplicate(true))
+
+
+func _start_from(state: Dictionary) -> void:
+	world = Snapshot.world(state.world)
+	messages.lines.assign(state.log.duplicate(true))
 
 
 ## Gives up the actions and goes on from the last state; false when there is none.
@@ -146,6 +162,7 @@ func fall_back() -> bool:
 	states.base = states.last
 	based = true
 	kills = states.base.kills
+	states.base.played = 0
 	actions.clear()
 	begin()
 	messages.add_text(ROLLED_BACK, world.round_no)

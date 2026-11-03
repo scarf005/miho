@@ -231,3 +231,27 @@ func test_a_state_reaches_the_disk_at_the_flush() -> void:
 	assert_false(FileAccess.file_exists(PATH + SaveGame.STATES), "it waits in memory")
 	run.flush()
 	assert_true(SaveGame.load_from(PATH).states.has("last"))
+
+
+func test_a_run_taken_up_again_plays_only_what_came_after_its_last_state() -> void:
+	var rounds := SaveGame.STATE_EVERY * 2 + 7
+	_play(rounds)
+	var back := SaveGame.load_from(PATH)
+	back.begin()
+	assert_eq(back.played, SaveGame.STATE_EVERY * 2)
+	assert_true(back.replay())
+	var whole := SaveGame.new("", SEED)
+	whole.actions.assign(back.actions)
+	assert_true(whole.replay())
+	assert_eq(whole.played, rounds)
+	assert_eq(var_to_str(Snapshot.of(back.world)), var_to_str(Snapshot.of(whole.world)))
+	assert_eq(back.messages.saved(), whole.messages.saved())
+
+
+func test_a_state_ahead_of_the_actions_on_disk_is_not_started_from() -> void:
+	_play(SaveGame.STATE_EVERY + 4)
+	var back := SaveGame.load_from(PATH)
+	back.actions.resize(SaveGame.STATE_EVERY - 1)
+	back.begin()
+	assert_eq(back.played, 0)
+	assert_eq(back.world.round_no, 0)
