@@ -194,3 +194,62 @@ func test_a_long_list_of_choices_keeps_the_picked_one_in_view() -> void:
 	assert_lt(choices.at, choices.top + choices.fit)
 	var row: Vector2 = choices.from + Vector2(1, choices.at - choices.top)
 	assert_eq(PanelView.choice_at(m.term, (row + Vector2(0.1, 0.5)) * Term.CELL), choices.at)
+
+
+## The detail shown beside the entry, as plain text.
+func _aside(m: Node) -> String:
+	return Info.plain(m.term.panel.aside)
+
+
+func test_the_detail_of_a_talisman_tells_the_picked_stage_alone() -> void:
+	var m := _main()
+	_codex(m, TALISMANS)
+	m.menu.codex.select(Cards.FORMS.size() + Cards.ELEMENTS.find(Cards.FIRE))
+	m.term.panel = m.menu.panel()
+	var part := Cards.part(Cards.FIRE, Lang.t)
+	var two := "+".join([part, part])
+	var three := "+".join([part, part, part])
+	assert_false(_aside(m).contains(two), "stage 1 tells no other stage")
+	_press(m, KEY_BRACKETRIGHT)
+	assert_string_contains(_aside(m), two)
+	assert_false(_aside(m).contains(three), "stage 2 tells no further stage")
+	_press(m, KEY_BRACKETRIGHT)
+	assert_string_contains(_aside(m), three)
+	_press(m, KEY_BRACKETLEFT)
+	_press(m, KEY_BRACKETLEFT)
+	assert_false(_aside(m).contains(two), "back on stage 1")
+
+
+func test_a_click_on_a_stage_changes_the_detail_with_the_example() -> void:
+	var m := _main()
+	var sim := _codex(m, TALISMANS)
+	var row: Vector2 = m.term.panel.choices.from + Vector2(1, 1)
+	WordLink.click(m, (row + Vector2(0.1, 0.5)) * Term.CELL)
+	m.term.panel = m.menu.panel()
+	assert_eq(sim._scene.spell.size(), 2)
+	var part := Cards.part(Cards.FOX, Lang.t)
+	assert_string_contains(_aside(m), "+".join([part, part]))
+
+
+func test_a_screen_with_no_room_for_the_stages_tells_them_all() -> void:
+	var codex := Codex.new()
+	codex.room = Vector2i(30, 18)
+	codex.tab = TALISMANS
+	assert_true(codex.panel().choices.is_empty(), "no picker")
+	var part := Cards.part(Cards.FOX, Lang.t)
+	var copies := []
+	copies.resize(Spell.MAX_SLOTS)
+	copies.fill(part)
+	assert_string_contains(Info.plain(codex.panel().aside), "+".join(copies))
+
+
+func test_the_leap_tells_the_stage_picked() -> void:
+	var m := _main()
+	_codex(m, 2)
+	var list := Codex.entries(2)
+	m.menu.codex.select(list.find_custom(func(e): return e.name == Cards.NAME[Cards.VAULT]))
+	m.term.panel = m.menu.panel()
+	var far := Spell.make(Cards.recipe(Cards.VAULT)).leap()
+	assert_string_contains(_aside(m), "곧게 %d칸" % far)
+	_press(m, KEY_BRACKETRIGHT)
+	assert_string_contains(_aside(m), "곧게 %d칸" % (far + Spell.LEAP_PER_WOOD))
