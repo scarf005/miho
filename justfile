@@ -276,12 +276,33 @@ oracle: rust import
     fi
     diff tools/oracle.expected build/oracle.out || exit 1
     echo "oracle ok: $(tail -n 1 build/oracle.out)"
+    just oracle-text
 
-# Play the bot again, write tools/oracle/*.cfg and tools/oracle.expected, and print what the runs cover; only for a change of rules on purpose.
+# Hash the game's text (spells, 도감, glossary, tile and creature hovers) in Korean and English and compare with tools/text_oracle.expected; names the groups that differ, exits 1.
+oracle-text: rust import
+    #!/usr/bin/env bash
+    set -uo pipefail
+    mkdir -p build
+    {{ godot }} --headless --path . -s tools/text_oracle.gd > build/text_oracle.log 2>&1
+    status=$?
+    rg -x '[0-9a-z.]+ [0-9a-f]{64}' build/text_oracle.log > build/text_oracle.out
+    if [ "$status" -ne 0 ] || rg -q 'SCRIPT ERROR' build/text_oracle.log; then
+        rg -v '^(Initialize godot-rust|Godot Engine|[0-9a-z.]+ [0-9a-f]{64}$)' build/text_oracle.log >&2
+        exit 1
+    fi
+    if ! diff -q tools/text_oracle.expected build/text_oracle.out >/dev/null; then
+        echo "text oracle differs in:" >&2
+        diff tools/text_oracle.expected build/text_oracle.out | rg '^[<>] ' | cut -d' ' -f2 | sort -u | rg -vx all >&2
+        exit 1
+    fi
+    echo "text oracle ok: $(tail -n 1 build/text_oracle.out)"
+
+# Play the bot again, write tools/oracle/*.cfg, tools/oracle.expected and tools/text_oracle.expected, and print what the runs cover; only for a change of rules on purpose.
 oracle-record: rust import
     #!/usr/bin/env bash
     set -uo pipefail
     {{ godot }} --headless --path . -s tools/oracle.gd -- --record | rg -v '^(Initialize godot-rust|Godot Engine)'
+    {{ godot }} --headless --path . -s tools/text_oracle.gd -- --record | rg -v '^(Initialize godot-rust|Godot Engine)'
 
 # Print the oracle hash of one save file that is not in the set; exits 1 for a save of another version.
 oracle-save path: rust import
