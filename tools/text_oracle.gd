@@ -3,11 +3,14 @@ extends SceneTree
 ## line per group, `<language>.<group> <sha256>`, and a last line `all <sha256>`, in Korean and
 ## in English: SpellInfo.spell of every spell the talismans queue (1 to 3 cards in every order,
 ## 4 and 5 as a set), SpellInfo.compound, every tab and rank of the 도감, the glossary, and Info
-## of every tile kind and every creature kind. Lines are hashed with their colours. A group that
+## of every tile kind and every creature kind, the creature hover in every state that
+## text_oracle_cases.gd sets (resting, searching, held, burning, in or out of sight), and the log
+## lines of every kind of event. Lines are hashed with their colours. A group that
 ## differs shows by its name. docs/plan-ecs.md describes tools/oracle.gd, its sibling.
 ## godot --headless --path . -s tools/text_oracle.gd -- [--record]
 ## --record also writes tools/text_oracle.expected.
 
+const Cases := preload("res://tools/text_oracle_cases.gd")
 const EXPECTED := "res://tools/text_oracle.expected"
 const SEED := 7
 ## The most cards of a spell the talismans queue in every order; longer ones are sets.
@@ -60,6 +63,8 @@ func _language(code: StringName) -> void:
 	_group(code, "tiles", Tiles.ROWS.keys().map(_tile))
 	var kinds := Bestiary.KINDS.keys().filter(func(k): return Bestiary.HEALTH.has(k))
 	_group(code, "creatures", [&"miho"] + kinds, _creature)
+	_group(code, "situations", [&"miho"] + kinds, _situations)
+	_group(code, "log", _log(kinds))
 
 
 ## Every queue of `n` talismans; for a set, one canonical order of each multiset.
@@ -105,6 +110,58 @@ func _creature(kind: StringName) -> Array:
 	var a := FloorGen.spawn(w, kind, at)
 	w.sense()
 	return [kind, Info.creature(w, a), Info.creature_facts(a, [])]
+
+
+## The hover over a creature of `kind` in each state of Cases.states, with how it is doing.
+func _situations(kind: StringName) -> Array:
+	var stood := Cases.stand(SEED, kind)
+	var out := [kind]
+	var states := Cases.states()
+	for name in states:
+		var w: World = stood[0].clone()
+		var a := w.actor(stood[1])
+		states[name].call(w, a)
+		w.sense()
+		out.append([name, Info.creature(w, a), Info.state(a), Info.doing(w, a)])
+	return out
+
+
+## The log lines of every fact of Cases.events, of the fire at each kind of tile, of what Miho
+## spots and of a tail grown, each rendered by itself.
+func _log(kinds: Array) -> Array:
+	var before := World.create(SEED)
+	var at := before.player().pos + Vector2i.RIGHT
+	before.set_tile(at, World.FLOOR)
+	var ids := {}
+	for kind in kinds:
+		ids[kind] = FloorGen.spawn(before, kind, at).id
+	before.sense()
+	var after := before.clone()
+	after.sense()
+	var told := func(w: World, facts: Array, spotted := []):
+		return Messages._render(before, w, {facts = facts, spotted = spotted})
+	var out := []
+	for facts in Cases.events(ids, after.player().id):
+		out.append(told.call(after, facts))
+	var kept := before.clone()
+	for tile in Tiles.ROWS:
+		kept.set_tile(at, tile)
+		for facts in Cases.fires(at):
+			out.append(Messages._render(kept, after, {facts = facts, spotted = []}))
+		out.append(Messages._spotted(kept, at))
+	for c in Cards.ALL:
+		kept.sites.append({kind = &"scroll", at = at, card = c})
+		out.append(Messages._spotted(kept, at))
+		kept.sites.clear()
+	for spot in [func(w): w.stairs = at, func(w): w.elixir = at, func(w): w.peaches.append(at)]:
+		spot.call(kept)
+		out.append(Messages._spotted(kept, at))
+		kept = before.clone()
+	kept.sites.append({kind = Jars.KIMCHI, at = at})
+	out.append(Messages._spotted(kept, at))
+	after.tail_bonus += 1
+	out.append(told.call(after, []))
+	return out
 
 
 func _group(code: StringName, name: String, data: Array, each := Callable()) -> void:
