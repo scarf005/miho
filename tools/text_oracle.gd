@@ -102,7 +102,7 @@ func _tile(t: int) -> Array:
 
 ## The hover over a creature of `kind`, beside Miho on the storey of a fixed seed.
 func _creature(kind: StringName) -> Array:
-	var w := World.create(SEED)
+	var w := Cases.world(SEED)
 	if kind == &"miho":
 		return [kind, Info.creature(w, w.player())]
 	var at := w.player().pos + Vector2i(1, 0)
@@ -184,7 +184,11 @@ func _plain(v: Variant) -> Variant:
 			out.append([_plain(k), _plain(v[k])])
 		return out
 	if v is Array:
-		return v.map(_plain)
+		var out := []
+		out.resize(v.size())
+		for i in v.size():
+			out[i] = _plain(v[i])
+		return out
 	if v is Object or v is Callable:
 		_fail("%s is not plain data" % str(v))
 		return null

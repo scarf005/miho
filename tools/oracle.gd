@@ -291,7 +291,11 @@ func _plain(v: Variant) -> Variant:
 			out.append([_plain(k), _plain(v[k])])
 		return out
 	if v is Array:
-		return v.map(_plain)
+		var out := []
+		out.resize(v.size())
+		for i in v.size():
+			out[i] = _plain(v[i])
+		return out
 	return _object(v) if v is Object else v
 
 

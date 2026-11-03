@@ -3,10 +3,19 @@ extends RefCounted
 ## now: the creature hover (Info.creature) and the log (Messages._render). Each case is built
 ## on a real world by the game's own code, then set by hand to the state it names.
 
+static var _worlds := {}
+
+
+## A copy of World.create(seed_value), which is built once.
+static func world(seed_value: int) -> World:
+	if not _worlds.has(seed_value):
+		_worlds[seed_value] = World.create(seed_value)
+	return _worlds[seed_value].clone()
+
 
 ## A world of a fixed seed with a creature of `kind` beside Miho, on floor all round it.
 static func stand(seed_value: int, kind: StringName) -> Array:
-	var w := World.create(seed_value)
+	var w := world(seed_value)
 	var at := w.player().pos + Vector2i(1, 0)
 	for d in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i(2, 0), Vector2i.DOWN, Vector2i.UP]:
 		w.set_tile(at + d, World.FLOOR)
@@ -130,8 +139,6 @@ static func states() -> Dictionary:
 	return out
 
 
-
-
 ## The id of a creature that is not in the world: the log calls it 무언가.
 const GONE := 999
 
@@ -181,8 +188,22 @@ static func _acts(id: int, other: int) -> Array:
 		{t = &"hurt", id = id, n = 2},
 	]
 	for t in [
-		&"arrive", &"sleep", &"absorb", &"calm", &"quench", &"thaw", &"dry", &"wet", &"freeze",
-		&"alight", &"stun", &"root", &"blind", &"push", &"pull", &"leap"
+		&"arrive",
+		&"sleep",
+		&"absorb",
+		&"calm",
+		&"quench",
+		&"thaw",
+		&"dry",
+		&"wet",
+		&"freeze",
+		&"alight",
+		&"stun",
+		&"root",
+		&"blind",
+		&"push",
+		&"pull",
+		&"leap"
 	]:
 		facts.append({t = t, id = id})
 	for mark in Messages.STATE:
@@ -195,7 +216,9 @@ static func _acts(id: int, other: int) -> Array:
 ## Events that name a kind of creature, or need what it strikes and casts with.
 static func _of_kind(kind: StringName, id: int, foe: int, me: int) -> Array:
 	var out := [
-		[{t = &"ally", id = id, kind = kind}], [{t = &"guise", kind = kind}], [{t = &"rise", id = id}]
+		[{t = &"ally", id = id, kind = kind}],
+		[{t = &"guise", kind = kind}],
+		[{t = &"rise", id = id}]
 	]
 	if Bestiary.info(kind).has("melee"):
 		out.append([{t = &"melee", id = id, target = me, n = 1}])
@@ -274,7 +297,9 @@ static func _by_last(me: int, foe: int) -> Array:
 		out.append([f])
 	for jar in Messages.JAR_DOES:
 		out.append([{t = &"jar", what = jar}])
-	for tile in [World.WALL, World.WALL_CRACKED, World.WINDOW, World.SCREEN, World.JAR, World.CENSER]:
+	for tile in [
+		World.WALL, World.WALL_CRACKED, World.WINDOW, World.SCREEN, World.JAR, World.CENSER
+	]:
 		out.append([{t = &"smash", was = tile, left = World.FLOOR}])
 	for curse in Curse.NAME:
 		out.append([{t = &"curse", what = curse}])
