@@ -262,6 +262,21 @@ func test_the_hover_of_a_piercing_round_tells_it_goes_through_foes_and_of_no_wal
 	assert_false(round_of.contains("벽"), round_of)
 	var shell := Info.plain(SpellInfo.spell(Spell.make([FOX, METAL, METAL])))
 	assert_string_contains(shell, "관통: 적 모두, 벽 한 칸")
+	assert_string_contains(shell, "모양: 철갑탄 1발")
+
+
+func test_the_codex_example_of_a_piercing_gun_strikes_two_creatures() -> void:
+	for cards: Array in [[FOX, METAL], [FOX, METAL, METAL]]:
+		var name := Spell.make(cards).shown()
+		var entry: Dictionary = Codex.entries(2).filter(func(e): return e.name == name)[0]
+		var scene: Dictionary = SpellScene.resolve(entry.scene)[0]
+		var w := CodexScene.build(scene)
+		var hurt := {}
+		for action in CodexScene.actions(scene):
+			for e in w.act(action).filter(func(e): return e.t == &"hurt"):
+				if e.id != w.player().id:
+					hurt[e.id] = true
+		assert_eq(hurt.size(), 2, name)
 
 
 func test_the_preview_of_a_piercing_round_equals_the_round() -> void:
