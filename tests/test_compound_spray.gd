@@ -232,7 +232,7 @@ func test_a_flame_hover_tells_range_shape_noise_harm_and_what_catches_fire() -> 
 		var rows := Info.plain(SpellInfo.spell(s)).split("\n")
 		assert_eq(rows.size(), 7, "title, five lines and the mud it bakes")
 		assert_eq(rows[0].split(" · ")[0], "불길")
-		assert_eq(rows[1], "범위: %d칸" % Spray.FAN[level - 1])
+		assert_eq(rows[1], "범위: %d칸" % Spray.LONE[Cards.FIRE].reach[level - 1])
 		assert_eq(rows[3], "소음: %d" % s.cast_noise())
 		assert_eq(rows[4], "피해: 0")
 		assert_eq(rows[5], "가연성.")

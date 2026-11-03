@@ -4,24 +4,24 @@ extends RefCounted
 ## cast, with no projectile, and emits a `spray` event with them (낙뢰 one more for each
 ## arc, `along`). Its first
 ## slot sets the shape. A lone element has its own gimmick, one level up for
-## every copy (Spell.level, up to Spell.MAX_LEVEL):
-## 불 a 90° fan over the tiles the caster sees (radius FAN): levels 1 and 2 set
+## every copy (Spell.level, up to Spell.MAX_LEVEL), its numbers in LONE:
+## 불 a 90° fan over the tiles the caster sees (radius `reach`): levels 1 and 2 set
 ## what burns alight, level 3 on also the creatures in it (Status), and the
 ## fire always spreads. Any spray of fire relights the dark lanterns it reaches.
-## 물 a jet along the line (JET tiles) up to the first creature, which it
-## pushes PUSH tiles (World.push); level 3 on goes through and pushes every
+## 물 a jet along the line (`reach` tiles) up to the first creature, which it
+## pushes `push` tiles (World.push); level 3 on goes through and pushes every
 ## creature on it. It douses fire and lanterns, wets drums, washes scent away.
 ## 쇠 a gun, heard GUN_LOUD tiles, that lights the caster's tile for the round:
 ## a pistol shot along PISTOL tiles hits the first creature for 1; from two
 ## copies a shotgun fans out, of radius SHOTGUN at two and a tile more for
 ## every copy after (`shotgun`), and hits each creature for 1, 2 next to the
 ## caster. The armour-piercing round is a wisp (Spell.pierces), not a spray.
-## 흙 a quake in a ring of radius QUAKE whatever the direction, thudding
-## World.THUD tiles: it stuns for QUAKE_STUN rounds; level 2 on cracks walls,
+## 흙 a quake in a ring of radius `reach` whatever the direction, thudding
+## World.THUD tiles: it stuns for `stun` rounds; level 2 on cracks walls,
 ## level 3 on also fells cracked ones.
 ## 나무 roots underground: silent, not stopped by creatures, but by sky, pond,
 ## walls and bridges. They reach the nearest creatures the caster sees within
-## ROOT_REACH steps (ROOT_COUNT of them, 0 for all) and root them ROOT_ROUNDS.
+## `reach` steps (`count` of them, 0 for all) and root them `rounds`.
 ## A compound in the first slot has its own shape (SHAPE), one tile bigger for
 ## every copy past the first and every lone element that feeds a 상생 pair
 ## (Spell.grown), and its own effect (Compounds). Those that act
@@ -31,9 +31,32 @@ extends RefCounted
 ## burns alight, 물 washes and pushes 1, 흙 stuns and cracks walls, 나무 roots,
 ## 쇠 hurts 1 for each 쇠 (Elements.strike does the creature part).
 
-const FAN := [1, 2, 4, 5, 6]
-const JET := [4, 6, 8, 10, 12]
-const PUSH := [1, 2, 3, 4, 5]
+## A lone element's spray, each column by level: what it is called, its reach
+## (tiles, steps for roots), the tiles a jet pushes, the rounds a quake stuns, the
+## creatures roots take and the rounds they hold.
+const LONE := {
+	Cards.FIRE: {name = ["불길", "불길", "불길", "불길", "불길"], reach = [1, 2, 4, 5, 6]},
+	Cards.WATER:
+	{
+		name = ["물줄기", "물줄기", "물줄기", "물줄기", "물줄기"],
+		reach = [4, 6, 8, 10, 12],
+		push = [1, 2, 3, 4, 5],
+	},
+	Cards.METAL: {name = ["권총", "산탄", "산탄", "산탄", "산탄"]},
+	Cards.EARTH:
+	{
+		name = ["지진", "지진", "지진", "지진", "지진"],
+		reach = [1, 2, 3, 4, 5],
+		stun = [1, 1, 2, 2, 3],
+	},
+	Cards.WOOD:
+	{
+		name = ["덩굴", "덩굴", "덩굴", "덩굴", "덩굴"],
+		reach = [4, 6, 8, 10, 12],
+		count = [1, 2, 0, 0, 0],
+		rounds = [2, 3, 4, 5, 6],
+	},
+}
 const GUN_LOUD := 9
 ## Degrees a fan covers, across its line.
 const FAN_ANGLE := 90
@@ -53,11 +76,6 @@ const CRACK_LEVEL := 2
 const FELL_LEVEL := 3
 ## The shotgun's radius at two copies.
 const SHOTGUN := 3
-const QUAKE := [1, 2, 3, 4, 5]
-const QUAKE_STUN := [1, 1, 2, 2, 3]
-const ROOT_REACH := [4, 6, 8, 10, 12]
-const ROOT_COUNT := [1, 2, 0, 0, 0]
-const ROOT_ROUNDS := [2, 3, 4, 5, 6]
 ## How far a fan of fire, or 들불, is heard.
 const HUSH := 2
 
@@ -115,14 +133,6 @@ const SHAPE := {
 }
 ## The compounds whose spray is heard Compounds.BOOM tiles from the caster.
 const BOOMS := [&"thunder", Cards.CONQUEST, Cards.DRAGON]
-## What a lone element's spray is called, by level.
-const NAME := {
-	Cards.FIRE: ["불길", "불길", "불길", "불길", "불길"],
-	Cards.WATER: ["물줄기", "물줄기", "물줄기", "물줄기", "물줄기"],
-	Cards.METAL: ["권총", "산탄", "산탄", "산탄", "산탄"],
-	Cards.EARTH: ["지진", "지진", "지진", "지진", "지진"],
-	Cards.WOOD: ["덩굴", "덩굴", "덩굴", "덩굴", "덩굴"],
-}
 
 ## Tiles roots grow under: ground, not bridges.
 static var _roots := Grid.table(func(t): return Tiles.of(t, "walk") and t != World.BRIDGE)
@@ -133,7 +143,7 @@ static var _air := Grid.table(func(t): return not Tiles.of(t, "wall"))
 ## What the spray is called; a compound goes by its own name alone.
 static func called(spell: Spell) -> String:
 	var level := spell.level()
-	return NAME[spell.slots[0]][level - 1] if level > 0 else ""
+	return LONE[spell.slots[0]].name[level - 1] if level > 0 else ""
 
 
 ## How far the cast is heard: anything with 물, roots, 균열 and 봉화 (which
@@ -199,7 +209,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		Cards.WOOD:
 			for a in rooted(w, caster, level):
 				if reaches(w, s, a):
-					Elements.root(w, a, ROOT_ROUNDS[level - 1])
+					Elements.root(w, a, LONE[Cards.WOOD].rounds[level - 1])
 					Mind.struck(w, a, s)
 
 
@@ -239,7 +249,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 	var level := spell.level()
 	match spell.slots[0] if level > 0 else &"":
 		Cards.FIRE:
-			return fan(w, from, dir, FAN[level - 1])
+			return fan(w, from, dir, LONE[Cards.FIRE].reach[level - 1])
 		Cards.WATER:
 			return _jet(w, from, dir, level)
 		Cards.METAL:
@@ -247,9 +257,9 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 				return fan(w, from, dir, shotgun(level))
 			return line(w, from, dir, PISTOL, false)
 		Cards.EARTH:
-			return ring(from, QUAKE[level - 1])
+			return ring(from, LONE[Cards.EARTH].reach[level - 1])
 		Cards.WOOD:
-			return _paths(w, caster, rooted(w, caster, level), ROOT_REACH[level - 1])
+			return _paths(w, caster, rooted(w, caster, level), LONE[Cards.WOOD].reach[level - 1])
 	var lead := spell.slots[0]
 	var shape: Array = SHAPE[lead]
 	var grown := spell.grown(lead)
@@ -310,17 +320,10 @@ static func form(spell: Spell) -> StringName:
 ## roots; 0 for a spray that covers all the caster sees.
 static func reach(spell: Spell) -> int:
 	var level := spell.level()
-	match spell.slots[0] if level > 0 else &"":
-		Cards.FIRE:
-			return FAN[level - 1]
-		Cards.WATER:
-			return JET[level - 1]
-		Cards.METAL:
-			return shotgun(level) if level >= SHOTGUN_LEVEL else PISTOL
-		Cards.EARTH:
-			return QUAKE[level - 1]
-		Cards.WOOD:
-			return ROOT_REACH[level - 1]
+	if level > 0 and spell.slots[0] == Cards.METAL:
+		return shotgun(level) if level >= SHOTGUN_LEVEL else PISTOL
+	if level > 0:
+		return LONE[spell.slots[0]].reach[level - 1]
 	var shape: Array = SHAPE[spell.slots[0]]
 	match shape[0]:
 		SIGHT:
@@ -393,10 +396,11 @@ static func line(w: World, from: Vector2i, dir: Vector2i, n: int, through: bool)
 
 ## A water jet's line, and the lantern it runs into, which it douses.
 static func _jet(w: World, from: Vector2i, dir: Vector2i, level: int) -> Array[Vector2i]:
-	var out := line(w, from, dir, JET[level - 1], level >= THROUGH_LEVEL)
+	var reached: int = LONE[Cards.WATER].reach[level - 1]
+	var out := line(w, from, dir, reached, level >= THROUGH_LEVEL)
 	var last: Vector2i = from if out.is_empty() else out.back()
 	var stopped: bool = (
-		out.size() < JET[level - 1] and (level >= THROUGH_LEVEL or w.actor_at(last) == null)
+		out.size() < reached and (level >= THROUGH_LEVEL or w.actor_at(last) == null)
 	)
 	if stopped and Terrain.lantern(w.tile(last + dir)):
 		out.append(last + dir)
@@ -497,14 +501,14 @@ static func sighted(w: World, caster: Actor, own: bool) -> Array[Vector2i]:
 ## The creatures roots of `level` reach from `caster`: its foes it sees within
 ## reach underground, nearest first by (steps, id).
 static func rooted(w: World, caster: Actor, level: int) -> Array[Actor]:
-	var dist: PackedInt32Array = _search(w, caster, ROOT_REACH[level - 1]).dist
+	var dist: PackedInt32Array = _search(w, caster, LONE[Cards.WOOD].reach[level - 1]).dist
 	var foes: Array[Actor] = []
 	for a in seen_foes(w, caster):
 		if dist[Grid.index(a.pos)] > 0:
 			foes.append(a)
 	var steps := func(a: Actor) -> Array: return [dist[Grid.index(a.pos)], a.id]
 	foes.sort_custom(func(a, b): return steps.call(a) < steps.call(b))
-	var n: int = ROOT_COUNT[level - 1]
+	var n: int = LONE[Cards.WOOD].count[level - 1]
 	return foes if n == 0 else foes.slice(0, n)
 
 
@@ -588,7 +592,7 @@ static func _water(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 	foes.reverse()
 	for a in foes:
 		if reaches(w, s, a):
-			w.push(a, s.dir, PUSH[level - 1])
+			w.push(a, s.dir, LONE[Cards.WATER].push[level - 1])
 			if a.alive():
 				Mind.struck(w, a, s)
 
@@ -611,7 +615,7 @@ static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
-			Elements.stun(w, a, QUAKE_STUN[level - 1])
+			Elements.stun(w, a, LONE[Cards.EARTH].stun[level - 1])
 			Mind.struck(w, a, s)
 	for p in tiles:
 		var t := w.tile(p)

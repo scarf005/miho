@@ -189,11 +189,11 @@ func test_a_water_jet_greens_the_ash_along_its_line_only() -> void:
 	var w := _world()
 	_put(w, ME + E * 2, World.ASH)
 	_put(w, ME + E * 2 + UP, World.ASH)
-	_put(w, ME + E * (Spray.JET[0] + 2), World.ASH)
+	_put(w, ME + E * (Spray.LONE[Cards.WATER].reach[0] + 2), World.ASH)
 	w.act(_cast([WATER]))
 	assert_eq(w.tile(ME + E * 2), World.GRASS)
 	assert_eq(w.tile(ME + E * 2 + UP), World.ASH, "beside the jet")
-	assert_eq(w.tile(ME + E * (Spray.JET[0] + 2)), World.ASH, "past the jet")
+	assert_eq(w.tile(ME + E * (Spray.LONE[Cards.WATER].reach[0] + 2)), World.ASH, "past the jet")
 
 
 func test_fire_bakes_mud_to_floor_and_does_not_burn_it() -> void:

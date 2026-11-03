@@ -300,7 +300,7 @@ static func _spray(s: Spell) -> Array:
 	match c:
 		Cards.FIRE:
 			return [
-				_line("범위", Lang.t("%d칸") % Spray.FAN[i]),
+				_line("범위", Lang.t("%d칸") % Spray.LONE[Cards.FIRE].reach[i]),
 				_line("모양", Lang.t(FAN_NAME) % Spray.FAN_ANGLE),
 				_line("소음", _noise(s.cast_noise())),
 				_line("피해", "0", Palette.HURT),
@@ -308,8 +308,8 @@ static func _spray(s: Spell) -> Array:
 			]
 		Cards.WATER:
 			var out := [
-				_line("모양", Lang.t("곧게 %d칸") % Spray.JET[i]),
-				_line("밀침", Lang.t("%d칸") % Spray.PUSH[i], color),
+				_line("모양", Lang.t("곧게 %d칸") % Spray.LONE[Cards.WATER].reach[i]),
+				_line("밀침", Lang.t("%d칸") % Spray.LONE[Cards.WATER].push[i], color),
 				_line("꺼짐", "불, 등불", color),
 				_line("맞은 북", "젖음", color),
 				_pair(_soak(), color),
@@ -321,20 +321,24 @@ static func _spray(s: Spell) -> Array:
 			return _gun(level)
 		Cards.EARTH:
 			var out := [
-				_line("모양", Lang.t("둘레 %d칸") % Spray.QUAKE[i]),
-				_line("기절", Lang.t("%d초") % Spray.QUAKE_STUN[i], color),
+				_line("모양", Lang.t("둘레 %d칸") % Spray.LONE[Cards.EARTH].reach[i]),
+				_line("기절", Lang.t("%d초") % Spray.LONE[Cards.EARTH].stun[i], color),
 			]
 			if level >= Spray.CRACK_LEVEL:
 				out.append(_line("벽", "금이 감", color))
 			if level >= Spray.FELL_LEVEL:
 				out.append(_line("무너짐", "금 간 벽", color))
 			return out
-	var who := Lang.t("모두") if Spray.ROOT_COUNT[i] == 0 else Lang.t("%d명") % Spray.ROOT_COUNT[i]
+	var who := (
+		Lang.t("모두")
+		if Spray.LONE[Cards.WOOD].count[i] == 0
+		else Lang.t("%d명") % Spray.LONE[Cards.WOOD].count[i]
+	)
 	return [
 		_line("모양", "땅속 덩굴"),
-		_line("거리", Lang.t("%d걸음") % Spray.ROOT_REACH[i]),
+		_line("거리", Lang.t("%d걸음") % Spray.LONE[Cards.WOOD].reach[i]),
 		_line("대상", Lang.t("보이는 가까운 적 %s") % who),
-		_line("묶임", Lang.t("%d초") % Spray.ROOT_ROUNDS[i], color),
+		_line("묶임", Lang.t("%d초") % Spray.LONE[Cards.WOOD].rounds[i], color),
 		_line("막는 것", _names(ROOT_STOPS)),
 	]
 
@@ -347,7 +351,7 @@ static func _fan(r: int, name := "") -> Array:
 
 
 static func _gun(level: int) -> Array:
-	var name: String = Spray.NAME[Cards.METAL][level - 1]
+	var name: String = Spray.LONE[Cards.METAL].name[level - 1]
 	var harm := _line("피해", "%d" % Spray.GUN_HARM, Palette.HURT)
 	if level >= Spray.SHOTGUN_LEVEL:
 		var near := _line("바로 옆 적 피해", "%d" % Spray.GUN_NEAR_HARM, Palette.HURT)

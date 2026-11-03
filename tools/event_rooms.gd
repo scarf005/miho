@@ -58,7 +58,7 @@ static func _veil_opens(w: World, _veil: Vector2i) -> bool:
 		if reach[i] < 0:
 			continue
 		for d: Vector2i in Grid.DIRS:
-			var jet := Spray.line(w, Grid.at(i), d, Spray.JET[0], false)
+			var jet := Spray.line(w, Grid.at(i), d, Spray.LONE[Cards.WATER].reach[0], false)
 			if not jet.is_empty() and w.tile(jet.back()) == World.VEIL:
 				var wet := w.clone()
 				Terrain.wash(wet, jet.back())

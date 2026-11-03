@@ -89,7 +89,7 @@ func test_elements_alone_spray_one_level_a_copy_up_to_five() -> void:
 func test_a_fire_fan_is_symmetric_about_its_line_in_every_direction() -> void:
 	var w := _world()
 	for level in [1, 2, 3]:
-		var r: int = Spray.FAN[level - 1]
+		var r: int = Spray.LONE[Cards.FIRE].reach[level - 1]
 		for d in Grid.DIRS:
 			var offsets := _offsets(_cover(w, _n(FIRE, level), d))
 			assert_eq(offsets.size(), r * (r + 2), "%s level %d" % [d, level])
@@ -312,7 +312,7 @@ func test_a_quake_stuns_a_ring_whatever_the_direction() -> void:
 	var near := _post(w, ME + Vector2i(-1, 1))
 	_post(w, ME + Vector2i(2, 0))
 	var events := w.act(_cast([EARTH]))
-	assert_eq(_held(events, &"stun"), {near.id: Spray.QUAKE_STUN[0]})
+	assert_eq(_held(events, &"stun"), {near.id: Spray.LONE[Cards.EARTH].stun[0]})
 	var thud: Dictionary = _of(events, &"noise")[0]
 	assert_eq([thud.word, thud.loud], ["쿵", World.THUD])
 
@@ -334,7 +334,7 @@ func test_a_bigger_quake_cracks_walls_and_fells_cracked_ones() -> void:
 	var events := w.act(_cast([EARTH, EARTH, EARTH]))
 	assert_eq(w.tile(wall), World.RUBBLE)
 	assert_eq(w.tile(cracked), World.RUBBLE)
-	assert_eq(_held(events, &"stun"), {foe.id: Spray.QUAKE_STUN[2]})
+	assert_eq(_held(events, &"stun"), {foe.id: Spray.LONE[Cards.EARTH].stun[2]})
 
 
 ## Lanterns two rows above Miho light the hall so she sees far along her row.
@@ -354,7 +354,7 @@ func test_roots_seize_the_nearest_seen_creatures_silently() -> void:
 		var events := w.act(_cast(_n(WOOD, level)))
 		var want := {}
 		for i in [[0], [0, 1], [0, 1, 2]][level - 1]:
-			want[foes[i].id] = Spray.ROOT_ROUNDS[level - 1]
+			want[foes[i].id] = Spray.LONE[Cards.WOOD].rounds[level - 1]
 		assert_eq(_held(events, &"root"), want, "level %d" % level)
 		assert_true(_of(events, &"noise").filter(func(e): return e.at == ME).is_empty())
 
