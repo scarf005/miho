@@ -29,7 +29,11 @@ static func click(m: Node, local: Vector2) -> StringName:
 static func open(m: Node, local: Vector2) -> bool:
 	if m.state != &"play" or m.panels.overlay != &"":
 		return false
-	if not m.casting.picked.is_empty() and Grid.inside(m.term.side_at(local)):
+	if (
+		not m.casting.picked.is_empty()
+		and Grid.inside(m.term.side_at(local))
+		and not WordHover.on_pin(m.term, local)
+	):
 		return false
 	var word := WordHover.word_at(m.term, local)
 	if word == "":
