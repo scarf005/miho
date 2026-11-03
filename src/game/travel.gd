@@ -29,6 +29,20 @@ static func near_fire(w: World, p: Vector2i) -> bool:
 	return false
 
 
+## Why a walk must not take `action`, forecast as `f`: &"hurt", &"noticed", &"blocked" or
+## &"fire", or empty. The walk in the game (Journey) and the agent's (GameTools) stop by it.
+static func hazard(w: World, action: Dictionary, f: Forecast) -> StringName:
+	if f.hurt_me() > 0:
+		return &"hurt"
+	if not f.noticed.is_empty():
+		return &"noticed"
+	if not w.can(action):
+		return &"blocked"
+	if action.t == &"move" and near_fire(w, w.player().pos + action.dir):
+		return &"fire"
+	return &""
+
+
 ## Breadth-first steps from Miho over walkable tiles that are not in `avoid`
 ## (tile -> true, the travel exclusions) (Grid.search, plus `from`). A walk ends on an
 ## exit and never goes through one, as stepping on it leaves the storey.

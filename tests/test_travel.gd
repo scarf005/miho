@@ -266,6 +266,17 @@ func test_a_route_steps_around_fire_in_sight() -> void:
 	assert_false(Travel.near_fire(w, Vector2i(5, 8)), "fire out of sight is not known")
 
 
+func test_a_step_stops_a_walk_beside_fire_or_into_a_wall_but_not_away_from_them() -> void:
+	var w := _world()
+	w.burning[Vector2i(6, 8)] = 2
+	var near := {t = &"move", dir = Vector2i.RIGHT}
+	var away := {t = &"move", dir = Vector2i.LEFT}
+	assert_eq(Travel.hazard(w, near, Forecast.of(w, near)), &"fire")
+	assert_eq(Travel.hazard(w, away, Forecast.of(w, away)), &"")
+	w.player().pos = Vector2i(1, 8)
+	assert_eq(Travel.hazard(w, away, Forecast.of(w, away)), &"blocked")
+
+
 func test_exploring_does_not_climb_stairs_at_the_unexplored_edge() -> void:
 	var w := _world()
 	w.stairs = Vector2i(5, 8)

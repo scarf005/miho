@@ -545,17 +545,8 @@ func _journey(next: Callable, why := "") -> void:
 			if rounds == 0 and why != "":
 				say(why)
 			break
-		var to: Vector2i = world.player().pos + action.get("dir", Vector2i.ZERO)
 		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
-		if (
-			f == null
-			or f.hurt_me() > 0
-			or f.drops_me()
-			or not f.noticed.is_empty()
-			or not world.can(action)
-		):
-			break
-		if action.t == &"move" and Travel.near_fire(world, to):
+		if f == null or f.drops_me() or Travel.hazard(world, action, f) != &"":
 			break
 		var before := world.clone()
 		var events: Array = await act(action)

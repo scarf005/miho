@@ -179,6 +179,21 @@ func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:
 	assert_string_contains(r.text, "rounds walked: %d, stopped:" % tools.world.round_no)
 
 
+func test_a_walk_that_would_step_next_to_fire_is_not_taken_and_says_why() -> void:
+	var tools := _game(2)
+	var dist: PackedInt32Array = Travel.search(tools.world).dist
+	var goal := Grid.at(dist.find(2))
+	for i in dist.size():
+		if dist[i] == 2 and Grid.at(i) != goal:
+			tools.world.burning[Grid.at(i)] = World.BURN_ROUNDS
+			tools.world.seen[i] = 1
+	var from: Vector2i = tools.world.player().pos
+	var r := _call(tools, "act", {action = "travel", x = goal.x, y = goal.y})
+	assert_true(r.error)
+	assert_string_contains(r.text, "Not taken: fire is next to the next step")
+	assert_eq(tools.world.player().pos, from)
+
+
 func test_rest_waits_until_the_tails_regrow() -> void:
 	var tools := _game()
 	tools.world.tails = 0

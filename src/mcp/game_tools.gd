@@ -7,11 +7,18 @@ extends RefCounted
 ## notification, so it runs without stdio (server.gd is the stdio loop).
 ##
 ## The agent plays on what Miho knows only (Observation). Walks of many rounds
-## stop by the rules of Main._journey: forecast harm, being noticed, fire next to
-## the step, and Travel.interrupted.
+## stop by Travel.hazard (forecast harm, being noticed, fire next to the step) and
+## Travel.interrupted, as a walk in the game does (Journey).
 
 const PROTOCOL := "2025-06-18"
 const MAX_ROUNDS := 200
+## What a walk says for each Travel.hazard.
+const HAZARDS := {
+	&"hurt": "the next step would hurt Miho",
+	&"noticed": "the next step would get Miho noticed",
+	&"blocked": "the next step is not allowed",
+	&"fire": "fire is next to the next step",
+}
 ## The tail costs of a spell of 1 to MAX_SLOTS cards (Spell.COST), and the square
 ## round where a compound projectile ends.
 const COSTS := "%d, %d, %d, %d, %d" % Spell.COST
@@ -496,8 +503,8 @@ func _move_to(dir: Vector2i) -> Dictionary:
 # --- walks -------------------------------------------------------------------
 
 
-## Plays rounds of `next` (an action, or empty when done) by the stop rules of
-## Main._journey, at most MAX_ROUNDS. `idle` is the refusal when it cannot take
+## Plays rounds of `next` (an action, or empty when done) by the stop rule of
+## Travel.hazard, at most MAX_ROUNDS. `idle` is the refusal when it cannot take
 ## a first step.
 func _walk(next: Callable, idle: String) -> Dictionary:
 	var sighted := Travel.in_sight(world)
@@ -508,7 +515,7 @@ func _walk(next: Callable, idle: String) -> Dictionary:
 		var action: Dictionary = next.call()
 		if action.is_empty():
 			break
-		why = _hazard(action)
+		why = HAZARDS.get(Travel.hazard(world, action, Forecast.of(world, action)), "")
 		if why != "":
 			break
 		var before := world.clone()
@@ -524,20 +531,6 @@ func _walk(next: Callable, idle: String) -> Dictionary:
 	if rounds == 0:
 		return _fail(idle if why == "done" else "Not taken: " + why)
 	return _report("rounds walked: %d, stopped: %s" % [rounds, why], lines)
-
-
-## Why the walk must not take `action`, or empty.
-func _hazard(action: Dictionary) -> String:
-	var f := Forecast.of(world, action)
-	if f.hurt_me() > 0:
-		return "the next step would hurt Miho"
-	if not f.noticed.is_empty():
-		return "the next step would get Miho noticed"
-	if not world.can(action):
-		return "the next step is not allowed"
-	if action.t == &"move" and Travel.near_fire(world, world.player().pos + action.dir):
-		return "fire is next to the next step"
-	return ""
 
 
 # --- text --------------------------------------------------------------------
