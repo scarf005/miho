@@ -3,7 +3,7 @@ extends GutTest
 ## where the storeys put them.
 
 const SEEDS := 4
-const OWN_PILLARS: Array[StringName] = [Skeletons.GARDEN]
+const OWN_PILLARS: Array[StringName] = [Skeletons.GARDEN, Skeletons.GROVE]
 const KINDS := [World.GRASS, World.LEAVES, World.STRAW, World.REEDS, World.SHALLOW, World.PILLAR]
 
 var _storeys_built: Array[World] = []
@@ -200,14 +200,14 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 			for p in _tiles_of(w, kind):
 				assert_true(
 					(
-						Skeletons.pick(w) == Skeletons.GARDEN
+						Skeletons.pick(w) in OWN_PILLARS
 						or w.rooms.any(func(r: Rect2i): return r.has_point(p))
 					),
 					"%s is in a room" % p
 				)
 				assert_false(
 					(
-						Skeletons.pick(w) != Skeletons.GARDEN
+						Skeletons.pick(w) not in OWN_PILLARS
 						and w.rooms.any(
 							func(r: Rect2i): return r.has_point(p) and r.has_point(goal)
 						)

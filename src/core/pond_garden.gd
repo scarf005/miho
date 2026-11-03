@@ -5,6 +5,9 @@ extends RefCounted
 ## and reeds lie over it in clumps of cellular noise (DCSS caves); a clump that cuts the
 ## storey apart is taken up again. The plots are the rooms things are laid in. Only the
 ## houses have doors, which a treasure room or a yard needs.
+##
+## 대숲 (`grove`): the same garden with bamboo for its ponds, and more of it. `pools` lays
+## noise as ponds in the rooms of another skeleton.
 
 ## How far the garden stands from the map's edges at most, and the deepest its edge
 ## frays.
@@ -17,13 +20,16 @@ const HOUSE_MOST := 48
 const NOISE := 0.43
 const PASSES := 3
 const CLUMPS: Array[int] = [World.POND, World.BAMBOO, World.REEDS]
+## A grove's clumps, and how many times it lays them.
+const GROVE: Array[int] = [World.BAMBOO, World.BAMBOO, World.REEDS]
+const GROVE_LAYS := 2
 ## How many lone pillars stand in the garden (least, most).
 const PILLARS := Vector2i(3, 7)
 
 
 ## The skeleton: the plots, houses and edge first, a doorway to each house, then what
 ## lies on the ground, then the start and the exit.
-static func draw(w: World) -> Dictionary:
+static func draw(w: World, clumps := CLUMPS, lays := 1) -> Dictionary:
 	var west := w.rng.randi_range(1, MARGIN.x)
 	var north := w.rng.randi_range(1, MARGIN.y)
 	var wide := Grid.W - west - w.rng.randi_range(1, MARGIN.x)
@@ -39,10 +45,36 @@ static func draw(w: World) -> Dictionary:
 	_fray(w, area, houses)
 	w.rooms = _clipped(w, houses)
 	var plan := {spots = [], links = [], goal = Rect2i(), sealed = FloorGen._doorways(w, [])}
-	_clumps(w, inside, houses)
+	for i in lays:
+		_clumps(w, inside, houses, clumps)
 	_pillars(w, inside, houses)
 	plan.goal = Skeletons.far_ends(w)
 	return plan
+
+
+## The garden as a grove.
+static func grove(w: World) -> Dictionary:
+	return draw(w, GROVE, GROVE_LAYS)
+
+
+## In each room, the noise over it becomes a pond with shallows round it, off the room's
+## middle; one that cuts the storey apart is drained again.
+static func pools(w: World) -> void:
+	var none: Array[Rect2i] = []
+	for r in w.rooms:
+		var laid: Array[Vector2i] = []
+		for p: Vector2i in _noise(w, r):
+			if _lies(w, p, none):
+				w.tiles[Grid.index(p)] = World.POND
+				laid.append(p)
+		if not FloorGen.connected(w):
+			for p in laid:
+				w.tiles[Grid.index(p)] = World.FLOOR
+			continue
+		for p in laid:
+			for d in Placement.SIDES:
+				if r.has_point(p + d) and w.tile(p + d) == World.FLOOR:
+					w.tiles[Grid.index(p + d)] = World.SHALLOW
 
 
 ## Some of the rooms, none above HOUSE_MOST tiles, that keep their walls.
@@ -148,9 +180,9 @@ static func _noise(w: World, area: Rect2i) -> Dictionary:
 	return solid
 
 
-## Each clump of the noise over `inside` becomes ponds, bamboo or reeds; one that cuts
-## the storey apart is taken up again.
-static func _clumps(w: World, inside: Rect2i, houses: Array[Rect2i]) -> void:
+## Each clump of the noise over `inside` becomes one of the tile kinds `kinds`; one that
+## cuts the storey apart is taken up again.
+static func _clumps(w: World, inside: Rect2i, houses: Array[Rect2i], kinds: Array[int]) -> void:
 	var solid := _noise(w, inside)
 	while not solid.is_empty():
 		var clump: Array[Vector2i] = [solid.keys()[0]]
@@ -160,7 +192,7 @@ static func _clumps(w: World, inside: Rect2i, houses: Array[Rect2i]) -> void:
 				if solid.has(p + d):
 					solid.erase(p + d)
 					clump.append(p + d)
-		var kind: int = CLUMPS[w.rng.randi_range(0, CLUMPS.size() - 1)]
+		var kind: int = kinds[w.rng.randi_range(0, kinds.size() - 1)]
 		var laid := clump.filter(func(p): return _lies(w, p, houses))
 		for p: Vector2i in laid:
 			w.tiles[Grid.index(p)] = kind

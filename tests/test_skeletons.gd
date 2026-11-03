@@ -158,7 +158,7 @@ func test_the_towers_put_the_start_and_the_exit_at_opposite_ends() -> void:
 ## A skeleton that is added to Skeletons.ALL is tried by one of the scripts of SkeletonsBase.
 func test_every_skeleton_is_tried_by_a_script_of_the_base() -> void:
 	var tried: Array[StringName] = []
-	for part in ["scattered", "ruin", "garden", "broken", "halls"]:
+	for part in ["scattered", "ruin", "garden", "broken", "halls", "reused"]:
 		var script: SkeletonsBase = load("res://tests/test_skeletons_%s.gd" % part).new()
 		tried.append_array(script.kinds)
 		script.free()

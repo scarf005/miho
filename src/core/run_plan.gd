@@ -16,11 +16,15 @@ const FIRST := {
 	Skeletons.SCATTERED: 2,
 	Skeletons.BROKEN: 3,
 	Skeletons.RUIN: 4,
+	Skeletons.GROVE: 2,
+	Skeletons.FLOODED: 2,
+	Skeletons.TIMBER: 3,
+	Skeletons.HOLLOW: 2,
 }
 ## The chance a room has a lantern on a dark, a middling and a bright storey.
 const LIGHTS: Array[float] = [0.1, 0.45, 0.85]
 ## The shapes of one element.
-const ELEMENT_OF := {}
+const ELEMENT_OF := {Skeletons.GROVE: Cards.WOOD, Skeletons.FLOODED: Cards.WATER}
 ## What makes the draws of a storey's light and element differ from those of its shape.
 const LIGHT_SALT := 0x51ED
 const ELEMENT_SALT := 0x0E1E

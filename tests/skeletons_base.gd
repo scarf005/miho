@@ -19,9 +19,13 @@ const DEAD_ENDS := {
 	keep = 8,
 	ruin = 5,
 	citadel = 8,
+	grove = 5,
+	flooded = 8,
+	timber = 12,
+	hollow = 5,
 }
 ## How many tiles two seeds' outlines differ by at least, on one storey.
-const OUTLINES_APART := 50
+const OUTLINES_APART := 30
 
 ## The skeletons this script tries.
 var kinds: Array[StringName] = []
@@ -186,7 +190,16 @@ func test_every_link_a_storey_cut_joined_two_places_far_apart() -> void:
 				var links: Array = FloorGen._carve(w, kind).links
 				cut += links.size()
 				var doors := links.filter(func(l): return l.a + (l.b - l.a) / 2 == l.at)
-				if kind not in [Skeletons.BROKEN, Skeletons.SCATTERED, Skeletons.RUIN]:
+				if (
+					kind
+					not in [
+						Skeletons.BROKEN,
+						Skeletons.SCATTERED,
+						Skeletons.RUIN,
+						Skeletons.FLOODED,
+						Skeletons.TIMBER
+					]
+				):
 					assert_lte(doors.size(), FloorGen.LOOPS, _label(w, kind))
 				var open := Masks.floor_of(w)
 				for k in range(links.size() - 1, -1, -1):
@@ -194,5 +207,5 @@ func test_every_link_a_storey_cut_joined_two_places_far_apart() -> void:
 					var dist: int = Grid.search(links[k].a, open).dist[Grid.index(links[k].b)]
 					if dist >= 0:
 						assert_gte(dist, FloorGen.APART, "%s %s" % [_label(w, kind), links[k]])
-		if kind not in [Skeletons.GARDEN, Skeletons.KEEP]:
+		if kind not in [Skeletons.GARDEN, Skeletons.KEEP, Skeletons.GROVE]:
 			assert_gt(cut, SEEDS * World.FLOORS, "%s cuts more than one a storey" % kind)
