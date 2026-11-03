@@ -649,12 +649,16 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			var d := Grid.cheb(p, me_pos)
 			if d <= World.NIGHT[0]:
 				l += Palette.NIGHT * (1.0 - d / 3.0)
-			if t != World.LANTERN and t != World.SKY and not fire and not hot:
+			if t != World.LANTERN and t != World.SKY and not fire and not hot and item.size() < 3:
 				fg = _lit(fg, l, 0.18)
 				bg = _lit(bg, l, 0.0) + Color(l.x, l.y, l.z) * 0.06
 		elif world.dim[i] == 1:
 			fg = fg * 0.3 + Palette.STARLIGHT
-			bg = bg * 0.22 + Palette.STARLIGHT * 0.4
+			bg = (
+				bg * 0.22 + Palette.STARLIGHT * 0.4
+				if item.size() < 3
+				else Color(item[2] * 0.5, 1.0)
+			)
 		else:
 			var v := fg.get_luminance()
 			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
