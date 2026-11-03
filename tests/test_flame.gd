@@ -1,6 +1,6 @@
 extends GutTest
 ## 불여우 (Guise.FLAME): Miho counts as a fire creature, as the rules creatures obey
-## say, and her spells that hold 불 harm one more.
+## say, and her spells that hold 불 harm what would stop them whole by one at most.
 
 const ME := Vector2i(4, 8)
 const AWAY := Vector2i(4, 12)
@@ -161,27 +161,63 @@ func test_a_burning_tile_does_no_harm_and_she_catches_no_fire() -> void:
 		assert_eq(Status.of(w.player()), &"", "worn: %s" % worn)
 
 
-func test_her_spells_that_hold_fire_harm_one_more_and_the_rest_do_not() -> void:
+## The health a creature of `kind` loses to the cast `cards` of Miho thrown east at it,
+## with 불여우 on her when `worn`.
+func _taken(cards: Array, worn: bool, kind: StringName) -> int:
+	var w := _world()
+	if worn:
+		_wear(w)
+	var foe := _dummy(w, kind, ME + Vector2i(GAP, 0))
+	w.act(_throw(cards, EAST))
+	for i in 6:
+		w.act(WAIT)
+	return foe.max_hp - foe.hp
+
+
+func test_her_spells_harm_what_ate_fire_whole_by_one_at_most_and_the_rest_as_ever() -> void:
 	for cards: Array in [FIRE_WISP, FIRE_ORB]:
-		assert_eq(_dealt(cards, true), _dealt(cards, false) + Guise.FLAME_HARM, "%s" % [cards])
-	for cards: Array in [EARTH_WISP, WATER_WISP]:
-		assert_eq(_dealt(cards, true), _dealt(cards, false), "%s" % [cards])
+		assert_eq(_taken(cards, false, &"haetae"), 0, "unworn %s" % [cards])
+		assert_eq(_taken(cards, true, &"haetae"), 1, "worn %s" % [cards])
+		assert_eq(_taken(cards, true, &"imugi"), _taken(cards, false, &"imugi"), "%s" % [cards])
+	for cards: Array in [EARTH_WISP, WATER_WISP, WATER_ORB]:
+		assert_eq(_taken(cards, true, &"haetae"), _taken(cards, false, &"haetae"), "%s" % [cards])
 
 
-func test_a_blast_harms_the_creatures_round_it_one_more() -> void:
+func test_a_blast_harms_each_creature_round_it_by_one_at_most_that_ate_fire() -> void:
 	var by := []
 	for worn in [false, true]:
 		var w := _world()
 		if worn:
 			_wear(w)
-		var near := _dummy(w, &"imugi", ME + Vector2i(GAP + 2, 0))
-		var side := _dummy(w, &"imugi", ME + Vector2i(GAP + 2, 1))
+		var near := _dummy(w, &"haetae", ME + Vector2i(GAP + 2, 0))
+		var side := _dummy(w, &"haetae", ME + Vector2i(GAP + 2, 1))
 		w.act(_throw(FIRE_ORB, EAST))
 		for i in 6:
 			w.act(WAIT)
 		by.append(60 - near.hp - side.hp)
-	assert_gt(by[0], 0)
-	assert_eq(by[1], by[0] + 2 * Guise.FLAME_HARM)
+	assert_eq(by, [0, 2])
+
+
+func test_a_spray_of_fire_reaches_what_ate_fire_whole_and_feeds_nothing() -> void:
+	for worn in [false, true]:
+		var w := _world()
+		if worn:
+			_wear(w)
+		var foe := _dummy(w, &"haetae", ME + Vector2i(GAP, 0))
+		var events := w.act(_throw(FIRE_SPRAY, EAST))
+		var told := events.filter(func(e): return e.t == &"absorb" and e.id == foe.id)
+		assert_eq(told.is_empty(), worn, "worn: %s" % worn)
+		assert_eq(foe.max_hp, 30)
+
+
+func test_a_creature_that_eats_fire_off_the_ground_still_takes_none_from_it() -> void:
+	var w := _world()
+	_wear(w)
+	var foe := _dummy(w, &"haetae", ME + Vector2i(GAP, 0))
+	w.set_tile(foe.pos, World.GRASS)
+	w.burning[foe.pos] = World.BURN_ROUNDS
+	w.act(WAIT)
+	assert_eq(foe.hp, 30)
 
 
 func test_a_forecast_of_the_cast_and_of_the_round_equals_what_happens() -> void:
@@ -320,10 +356,20 @@ func test_the_hover_on_her_flying_shot_tells_the_harm_it_will_do() -> void:
 	_wear(w)
 	w.act(_throw(FIRE_ORB, EAST))
 	var shot: Shot = w.shots.back()
-	var harm: int = shot.spell.damage(shot.distance()) + Guise.FLAME_HARM
+	var harm: int = shot.spell.damage(shot.distance())
 	assert_true(Info.plain(SpellInfo.shot(w, shot)).contains("피해: %d" % harm))
 
 
 func test_a_spell_of_lightning_is_no_fire_spell() -> void:
 	var cards := [Cards.FOX] + Cards.made_of(&"thunder")
 	assert_eq(_dealt(cards, true), _dealt(cards, false))
+
+
+func test_the_hover_on_her_and_on_the_spell_tell_the_fire_she_gets_through() -> void:
+	var w := _world()
+	var line := "불 면역을 %d 피해까지 무시" % 1
+	assert_false(Info.plain(Info.creature(w, w.player())).contains(line))
+	_wear(w)
+	assert_string_contains(Info.plain(Info.creature(w, w.player())), line)
+	assert_false(Info.plain(Info.creature(w, w.player())).contains("불 주문 피해"))
+	assert_string_contains(Info.plain(SpellInfo.ward(Spell.make(Guise.RECIPE[Guise.FLAME]))), line)
