@@ -19,6 +19,12 @@ extends RefCounted
 ## 겹누각 (keep): Keep. 겹누각 성채 (citadel): Keep.citadel.
 ## 무너진 정자 (ruin): a broken building on one side of the map, scattered pavilions on the
 ## other, bridges between them.
+## 대숲 (grove): PondGarden.grove. 물 찬 층 (flooded): a tower of rooms with pools in them,
+## shallows round the pools (Brogue designLakes, createWreath). 나무벽 층 (timber): a tower
+## of small rooms, most of its inner walls of wood (Brogue addLoops for its far doors).
+## 가운데 뚫린 층 (hollow): the ring with no wall on its court, moonlit in stretches.
+## 무너진 석굴 (cave): Cave. 어긋난 전각 (askew): Askew. 좌우 대칭 전각 (mirror): MirrorHall.
+## 꺾인 복도 (winding): Winding.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -33,16 +39,39 @@ const GARDEN := &"garden"
 const KEEP := &"keep"
 const RUIN := &"ruin"
 const CITADEL := &"citadel"
+const GROVE := &"grove"
+const FLOODED := &"flooded"
+const TIMBER := &"timber"
+const HOLLOW := &"hollow"
+const CAVE := &"cave"
+const ASKEW := &"askew"
+const MIRROR := &"mirror"
+const WINDING := &"winding"
+const LABYRINTH := &"labyrinth"
 ## What a storey may be built on.
 const ALL: Array[StringName] = [
-	PAVILIONS, RING, AVENUE, TOWERS, BROKEN, SCATTERED, GARDEN, KEEP, RUIN, CITADEL
-]
-## The skeleton of each storey, from the first; a seed varies its shape.
-const STOREYS: Array[StringName] = [
-	AVENUE, RING, GARDEN, SCATTERED, BROKEN, TOWERS, KEEP, RUIN, CITADEL
+	PAVILIONS,
+	RING,
+	AVENUE,
+	TOWERS,
+	BROKEN,
+	SCATTERED,
+	GARDEN,
+	KEEP,
+	RUIN,
+	CITADEL,
+	GROVE,
+	FLOODED,
+	TIMBER,
+	HOLLOW,
+	CAVE,
+	ASKEW,
+	MIRROR,
+	WINDING,
+	LABYRINTH,
 ]
 ## The skeletons with one way to the exit: no two routes are asked of them.
-const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
+const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL, WINDING, LABYRINTH]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
 ## How many rooms `far_ends` tries as the start.
@@ -71,6 +100,8 @@ const AVENUE_LAMPS := Vector2i(6, 9)
 ## side, and how tall a floor is with one wall.
 const TOWER_WIDTH := Vector2i(10, 15)
 const TOWER_STEP := 3
+## How far a floor stands out on a storey of one tower.
+const BLOCK_STEP := 7
 const TOWER_FLOOR := Vector2i(5, 9)
 const TOWER_LANDINGS := 2
 ## How many rows apart the middles of the start room and the exit room are at least.
@@ -79,11 +110,18 @@ const TOWER_ENDS := 9
 ## south edges it stands.
 const RUIN_HALL := Vector2i(22, 27)
 const RUIN_Y := Vector2i(1, 3)
+## How deep the hollow's hall is (least, most), and the stretches of moonlight on it: the
+## chance a tile of the noise starts solid.
+const HOLLOW_HALL := Vector2i(3, 4)
+const MOONLIGHT := 0.5
+## The largest room of a timber storey, and the share of its inner walls that are wood.
+const TIMBER_ROOM := Vector2i(8, 6)
+const TIMBER_WOOD := 0.7
 
 
 ## The skeleton of the storey being built.
 static func pick(w: World) -> StringName:
-	return STOREYS[w.depth - 1]
+	return RunPlan.shapes(w.rng.seed)[w.depth - 1]
 
 
 ## Draws a storey on `skeleton`.
@@ -107,6 +145,24 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return _ruin(w)
 		CITADEL:
 			return Keep.citadel(w)
+		GROVE:
+			return PondGarden.grove(w)
+		FLOODED:
+			return _flooded(w)
+		TIMBER:
+			return _timber(w)
+		HOLLOW:
+			return _ring(w, w.rng.randi_range(HOLLOW_HALL.x, HOLLOW_HALL.y), true)
+		CAVE:
+			return Cave.draw(w)
+		ASKEW:
+			return Askew.draw(w)
+		MIRROR:
+			return MirrorHall.draw(w)
+		WINDING:
+			return Winding.draw(w)
+		LABYRINTH:
+			return Labyrinth.draw(w)
 	return FloorGen.pavilions(w)
 
 
@@ -182,18 +238,21 @@ static func two_ways(w: World, home: Rect2i, goal: Rect2i) -> bool:
 	)
 
 
-## The ring: a hall RING_HALL wide round a court of sky, rooms outside it on all
+## The ring: a hall `deep` tiles wide round a court of sky, rooms outside it on all
 ## four sides, the start and the exit on the hall on far sides of it, and a bridge
-## across the court by way of an island in its middle.
-static func _ring(w: World) -> Dictionary:
+## across the court by way of an island in its middle. A hollow ring has no wall on the
+## court, and the moon lights stretches of its hall.
+static func _ring(w: World, deep := RING_HALL, hollow := false) -> Dictionary:
 	var west := w.rng.randi_range(RING_X.x, RING_X.y)
 	var north := w.rng.randi_range(RING_Y.x, RING_Y.y)
 	var east := Grid.W - 1 - w.rng.randi_range(RING_X.x, RING_X.y)
 	var south := Grid.H - 1 - w.rng.randi_range(RING_Y.x, RING_Y.y)
 	var outer := Rect2i(west, north, east - west + 1, south - north + 1)
-	var ring := _ring_walls(w, outer)
+	var ring := _ring_walls(w, outer, deep, hollow)
 	var halls: Array[Rect2i] = ring.halls
 	var court: Rect2i = ring.court
+	if hollow:
+		_moonlight(w, outer.grow(-1), court)
 	_wing(w, Vector2i(1, north), Vector2i(Grid.W - 2, north), Vector2i.UP, RING_GAPS)
 	_wing(w, Vector2i(1, south), Vector2i(Grid.W - 2, south), Vector2i.DOWN, RING_GAPS)
 	_wing(w, outer.position, Vector2i(west, south), Vector2i.LEFT, RING_GAPS)
@@ -208,25 +267,70 @@ static func _ring(w: World) -> Dictionary:
 		halls.any(func(h): return _door(w, r, h))
 	_first(w, home)
 	var plan := {spots = FloorGen._doorways(w, halls), links = [], goal = goal}
-	_cross(w, court, plan.links)
+	_cross(w, court, plan.links, 1 if hollow else 2)
 	return plan
 
 
-## The hall RING_HALL wide inside wall `outer`, round a court of sky: {court, halls}.
-static func _ring_walls(w: World, outer: Rect2i) -> Dictionary:
+## The hall `deep` tiles wide inside wall `outer`, round a court of sky, with a wall on the
+## court unless it is `open`: {court, halls}.
+static func _ring_walls(w: World, outer: Rect2i, deep := RING_HALL, open := false) -> Dictionary:
 	var inside := outer.grow(-1)
-	var court := inside.grow(-RING_HALL - 1)
+	var court := inside.grow(-deep - (0 if open else 1))
 	FloorGen._fill(w, outer, World.WALL)
 	FloorGen._fill(w, inside, World.FLOOR)
-	FloorGen._fill(w, court.grow(1), World.WALL)
+	if not open:
+		FloorGen._fill(w, court.grow(1), World.WALL)
 	FloorGen._fill(w, court, World.SKY)
 	var halls: Array[Rect2i] = [
-		Rect2i(inside.position, Vector2i(inside.size.x, RING_HALL)),
-		Rect2i(inside.position.x, inside.end.y - RING_HALL, inside.size.x, RING_HALL),
-		Rect2i(inside.position, Vector2i(RING_HALL, inside.size.y)),
-		Rect2i(inside.end.x - RING_HALL, inside.position.y, RING_HALL, inside.size.y),
+		Rect2i(inside.position, Vector2i(inside.size.x, deep)),
+		Rect2i(inside.position.x, inside.end.y - deep, inside.size.x, deep),
+		Rect2i(inside.position, Vector2i(deep, inside.size.y)),
+		Rect2i(inside.end.x - deep, inside.position.y, deep, inside.size.y),
 	]
 	return {court = court, halls = halls}
+
+
+## Courtyard, which the moon lights (Light.MOONLIT), on clumps of the floor of `inside`.
+static func _moonlight(w: World, inside: Rect2i, court: Rect2i) -> void:
+	for i in Native.noise(inside, MOONLIGHT, PondGarden.PASSES, w.rng, Grid.W):
+		if w.tiles[i] == World.FLOOR and not court.grow(1).has_point(Grid.at(i)):
+			w.tiles[i] = World.COURTYARD
+
+
+## The flooded storey: one tower of rooms, with far doorways until none is left to open,
+## pools in its rooms and shallows round them.
+static func _flooded(w: World) -> Dictionary:
+	var x := w.rng.randi_range(BLOCK_STEP + 1, BLOCK_STEP + 3)
+	_tower(w, x, Grid.W - 2 * x - 1, FloorGen.ROOM_MOST, BLOCK_STEP)
+	var plan := {spots = [], links = [], goal = Rect2i()}
+	plan.sealed = BrokenFloor._loop(w, FloorGen._doorways(w, []), plan.links)
+	PondGarden.pools(w)
+	plan.goal = far_ends(w)
+	return plan
+
+
+## The timber storey: one tower of small rooms with its far doors and hidden doors cut;
+## what is left of the walls inside it is wood at the share TIMBER_WOOD, but beside a hidden
+## door, which stands in stone.
+static func _timber(w: World) -> Dictionary:
+	var x := w.rng.randi_range(BLOCK_STEP + 1, BLOCK_STEP + 3)
+	_tower(w, x, Grid.W - 2 * x - 1, TIMBER_ROOM, BLOCK_STEP)
+	var plan := {spots = [], links = [], goal = Rect2i()}
+	var left := BrokenFloor._loop(w, FloorGen._doorways(w, []), plan.links)
+	FloorGen.shuffle(w.rng, left)
+	FloorGen._hide_doors(w, left)
+	for i in w.tiles.size():
+		if w.tiles[i] != World.WALL or w.rng.randf() >= TIMBER_WOOD:
+			continue
+		var p := Grid.at(i)
+		if (
+			Grid.DIRS.all(func(d): return w.tile(p + d) != World.SKY)
+			and Grid.DIRS.all(func(d): return not w.secrets.has(p + d))
+			and not w.secrets.has(p)
+		):
+			w.tiles[i] = World.WOOD_WALL
+	plan.goal = far_ends(w)
+	return plan
 
 
 ## The rooms a wall apart from one of `halls`.
@@ -242,14 +346,18 @@ static func _gap(a: Rect2i, b: Rect2i) -> int:
 
 
 ## The bridge over `court`, along its longer side or across it, with an island of
-## floor in the middle; the walk it saves is always long enough, else it stays uncut.
-static func _cross(w: World, court: Rect2i, links: Array) -> void:
+## floor in the middle, from the tile `edge` tiles off the court; the walk it saves is
+## always long enough, else it stays uncut.
+static func _cross(w: World, court: Rect2i, links: Array, edge: int) -> void:
 	var mid := court.get_center()
 	var along := w.rng.randf() < 0.5
 	var from := (
-		Vector2i(court.position.x - 2, mid.y) if along else Vector2i(mid.x, court.position.y - 2)
+		Vector2i(court.position.x - edge, mid.y)
+		if along
+		else Vector2i(mid.x, court.position.y - edge)
 	)
-	var to := Vector2i(court.end.x + 1, mid.y) if along else Vector2i(mid.x, court.end.y + 1)
+	var last := court.end + Vector2i.ONE * (edge - 1)
+	var to := Vector2i(last.x, mid.y) if along else Vector2i(mid.x, last.y)
 	var dir: Vector2i = Vector2i.RIGHT if along else Vector2i.DOWN
 	if Grid.distance(from, Masks.floor_of(w), to) < FloorGen.APART:
 		return
@@ -359,8 +467,11 @@ static func _landing_room(w: World, s: Array, in_west: bool) -> Rect2i:
 
 
 ## One tower: floors from near the map's top to near its bottom, its middle `width`
-## wide with its west wall at x.
-static func _tower(w: World, x: int, width: int) -> Array[Rect2i]:
+## wide with its west wall at x, cut into rooms of `most` at the largest, a floor standing
+## out of the middle by up to `step` on each side.
+static func _tower(
+	w: World, x: int, width: int, most := FloorGen.ROOM_MOST, step := TOWER_STEP
+) -> Array[Rect2i]:
 	var no_galleries: Array[Rect2i] = []
 	var y := w.rng.randi_range(1, 3)
 	var last := Grid.H - 2 - w.rng.randi_range(0, 2)
@@ -369,12 +480,12 @@ static func _tower(w: World, x: int, width: int) -> Array[Rect2i]:
 		var tall := w.rng.randi_range(TOWER_FLOOR.x, TOWER_FLOOR.y)
 		if last - y - tall < TOWER_FLOOR.x:
 			tall = last - y
-		var out := w.rng.randi_range(0, TOWER_STEP)
-		var wide := width + out + w.rng.randi_range(0, TOWER_STEP)
+		var out := w.rng.randi_range(0, step)
+		var wide := width + out + w.rng.randi_range(0, step)
 		var r := Rect2i(x - out, y, wide, tall + 1)
 		FloorGen._fill(w, r, World.WALL)
 		FloorGen._fill(w, r.grow(-1), World.FLOOR)
-		FloorGen._split(w, r.grow(-1), no_galleries)
+		FloorGen._split(w, r.grow(-1), no_galleries, false, most)
 		floors.append(r)
 		y += tall
 	return floors

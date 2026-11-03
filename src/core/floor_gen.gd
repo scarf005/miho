@@ -157,7 +157,7 @@ const PLAN := {
 const FIRST_PEACH_FLOOR := 3
 const MIN_ROOMS := 9
 ## How many times a storey starts over when what is laid in it spoils it.
-const BUILDS := 20
+const BUILDS := 60
 ## A room is at least ROOM_LEAST tiles across; one that fits in ROOM_MOST stays
 ## whole at the chance WHOLE, and is cut again otherwise.
 const ROOM_LEAST := 3
@@ -173,7 +173,6 @@ const APART := 14
 const DOORS := 0.6
 ## A hidden door joins two rooms at least this many steps apart without it.
 const SHORTCUT := 10
-const LIT_ROOMS := 0.45
 const FOE_DISTANCE := 12
 ## The most creatures in a band, and how far from its leader a follower stands
 ## and keeps.
@@ -181,9 +180,14 @@ const BAND := 3
 const BAND_SPREAD := 2
 ## Nothing is placed within this many tiles of the start, even through a wall.
 const START_CLEAR := 3
-const BAMBOO_ROOMS := 0.25
-const POND_ROOMS := 0.2
-const HALL_ROOMS := 0.15
+## The share of rooms that get bamboo, a pond and floorboards, by the storey's element.
+const FEATURES := {
+	Cards.WOOD: Vector3(0.5, 0.15, 0.1),
+	Cards.FIRE: Vector3(0.0, 0.0, 0.35),
+	Cards.EARTH: Vector3(0.05, 0.05, 0.1),
+	Cards.METAL: Vector3(0.0, 0.0, 0.3),
+	Cards.WATER: Vector3(0.05, 0.5, 0.05),
+}
 ## Gap between pavilions in tiles (min, max); least width of a pavilion; least height.
 const SKY_GAP := Vector2i(3, 6)
 ## The sky between two facing ledges (min, max), and a ledge's length.
@@ -253,9 +257,11 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.seen = PackedByteArray()
 	w.dim = PackedByteArray()
 	Status.release(w, me)
+	var plan := {}
 	var goal := Rect2i()
 	for attempt in 100:
-		goal = _carve(w, skeleton).goal
+		plan = _carve(w, skeleton)
+		goal = plan.goal
 		if (
 			w.rooms.size() >= MIN_ROOMS
 			and w.secrets.size() == hidden_doors(w.depth)
@@ -279,12 +285,17 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 		w.elixir = _centre(goal)
 	else:
 		w.stairs = _centre(goal)
-	_lanterns(w, home, goal)
-	_features(w, goal)
-	Placement.scatter(w, goal)
+	var element := RunPlan.element(w.rng.seed, w.depth, skeleton)
+	_lanterns(w, home, goal, RunPlan.light(w.rng.seed, w.depth))
+	_features(w, goal, element)
+	Placement.scatter(w, goal, element)
 	_drum(w)
 	var set_room := SetRooms.build(w, home, goal)
+	if plan.has("maze"):
+		Labyrinth.furnish(w, plan)
 	_creatures(w)
+	if plan.has("maze"):
+		Labyrinth.settle(w, plan)
 	Jars.fill(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
@@ -652,14 +663,14 @@ static func _farthest(w: World, from: Vector2i) -> Rect2i:
 	return best
 
 
-## A lantern in a corner of the goal room and of some others, never the start
-## room, and none that would light the start, through a doorway, with the
+## A lantern in a corner of the goal room and of others at the chance `lit`, never the
+## start room, and none that would light the start, through a doorway, with the
 ## others. The goal room's lantern must light the goal, beside it if no corner
 ## can.
-static func _lanterns(w: World, home: Rect2i, goal: Rect2i) -> void:
+static func _lanterns(w: World, home: Rect2i, goal: Rect2i, lit: float) -> void:
 	var target := w.elixir if w.elixir.x >= 0 else w.stairs
 	for r in w.rooms:
-		if r == home or (r != goal and w.rng.randf() >= LIT_ROOMS):
+		if r == home or (r != goal and w.rng.randf() >= lit):
 			continue
 		var corners := [r.position, Vector2i(r.end.x - 1, r.position.y), r.end - Vector2i.ONE]
 		corners.append(Vector2i(r.position.x, r.end.y - 1))
@@ -693,21 +704,22 @@ static func _lights(w: World, lantern: Vector2i, p: Vector2i) -> bool:
 	return Light.level(Light.LANTERN * s) >= Light.LIT
 
 
-## Every room but the goal may get one feature. A pond that would cut the
-## storey apart is drained again.
-static func _features(w: World, goal: Rect2i) -> void:
+## Every room but the goal may get one feature, by the storey's `element`. A pond that
+## would cut the storey apart is drained again.
+static func _features(w: World, goal: Rect2i, element: StringName) -> void:
+	var rooms: Vector3 = FEATURES[element]
 	for r in w.rooms:
 		if r == goal:
 			continue
 		var roll := w.rng.randf()
-		if roll < BAMBOO_ROOMS:
+		if roll < rooms.x:
 			_blob(w, r, World.BAMBOO)
-		elif roll < BAMBOO_ROOMS + POND_ROOMS:
+		elif roll < rooms.x + rooms.y:
 			var pond := _blob(w, r, World.POND)
 			if not connected(w):
 				for p in pond:
 					w.tiles[Grid.index(p)] = World.FLOOR
-		elif roll < BAMBOO_ROOMS + POND_ROOMS + HALL_ROOMS:
+		elif roll < rooms.x + rooms.y + rooms.z:
 			for y in range(r.position.y, r.end.y):
 				for x in range(r.position.x, r.end.x):
 					if _bare(w, Vector2i(x, y)):
@@ -793,10 +805,11 @@ static func bands(kinds: Array, rank := 1) -> Array:
 ## Standing watchers and bosses where they belong, then each band: its leader
 ## anywhere, its followers round it in the same room (alone where none fits).
 static func _creatures(w: World) -> void:
-	for kind in PLAN[w.depth]:
+	var roster := _roster(w)
+	for kind in roster:
 		if not Bestiary.bands(kind):
 			_place(w, kind)
-	for band in bands(PLAN[w.depth], Bestiary.rank(w.depth)):
+	for band in bands(roster, Bestiary.rank(w.depth)):
 		var lead := _place(w, band[0])
 		for kind in band.slice(1):
 			var spot := Vector2i(-1, -1)
@@ -807,6 +820,19 @@ static func _creatures(w: World) -> void:
 			else:
 				var a := _arrive(w, kind, spot)
 				a.ties.leader = lead.id
+
+
+## Who lives on the storey: PLAN's, or every other one of them beside a maze, which leaves half
+## the rooms to live in.
+static func _roster(w: World) -> Array:
+	var all: Array = PLAN[w.depth]
+	if Labyrinth.site(w).is_empty():
+		return all
+	var out := []
+	for i in all.size():
+		if i % 2 == 0 or Bestiary.info(all[i]).get("boss", false):
+			out.append(all[i])
+	return out
 
 
 ## A creature of `kind` where it belongs, or null when there is no room (or a boss
@@ -883,8 +909,12 @@ static func _random_spot(
 	return Grid.at(spots[w.rng.randi_range(0, spots.size() - 1)])
 
 
-## Where a resting patrol heads next: the middle of a random room.
-static func patrol_point(w: World) -> Vector2i:
+## Where the resting patrol `a` heads next: a tile of the maze it lives in, or the middle of a
+## random room.
+static func patrol_point(w: World, a: Actor) -> Vector2i:
+	var maze := Labyrinth.site(w)
+	if not maze.is_empty() and maze.area.has_point(a.brain.home):
+		return Labyrinth.patrol_point(w, maze)
 	return _centre(w.rooms[w.rng.randi_range(0, w.rooms.size() - 1)])
 
 

@@ -151,6 +151,9 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 	var m := _main()
 	var w: World = m.world
 	var me: Vector2i = w.player().pos
+	w.actors.assign([w.player()])
+	w.set_tile(me + Vector2i(0, -1), World.FLOOR)
+	w.set_tile(me + Vector2i(0, -2), World.FLOOR)
 	var foe := FloorGen.spawn(w, &"imugi", me + Vector2i(0, -2))
 	foe.magic.cooldown = 99
 	var spell := Bestiary.spell(&"imugi", [Cards.ORB])

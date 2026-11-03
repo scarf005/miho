@@ -6,6 +6,8 @@ extends GutTest
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
 const SEEDS := 6
+## Skeletons that hide a door between two tunnels, with no room on either side.
+const TUNNELLED: Array[StringName] = [Skeletons.CAVE, Skeletons.ASKEW]
 ## What a feature laid after the exit was picked may add to a route, breaking a tie.
 const DECOR := 1
 ## The hidden door in the wall column of `_world`.
@@ -41,7 +43,7 @@ func _room_of(w: World, p: Vector2i) -> int:
 func _plan(w: World) -> PackedByteArray:
 	var out := PackedByteArray()
 	for t in w.tiles:
-		out.append(0 if Terrain.wall(t) or t in [World.WINDOW, World.SKY] else 1)
+		out.append(0 if Terrain.wall(t) or t in [World.WOOD_WALL, World.WINDOW, World.SKY] else 1)
 	return out
 
 
@@ -156,6 +158,8 @@ func test_a_storey_has_one_hidden_door_more_every_third_storey() -> void:
 func test_a_hidden_door_is_a_wall_between_two_rooms_far_apart_without_it() -> void:
 	for w in _storeys:
 		for p: Vector2i in w.secrets:
+			if p == Labyrinth.site(w).get("at") or Skeletons.pick(w) in TUNNELLED:
+				continue
 			var label := "%s %s" % [_label(w), p]
 			assert_eq(w.tile(p), World.WALL, label)
 			var d := _across(w, p)

@@ -3,6 +3,9 @@ extends GutTest
 ## where the storeys put them.
 
 const SEEDS := 4
+const OWN_PILLARS: Array[StringName] = [
+	Skeletons.GARDEN, Skeletons.GROVE, Skeletons.LABYRINTH, Skeletons.MIRROR
+]
 const KINDS := [World.GRASS, World.LEAVES, World.STRAW, World.REEDS, World.SHALLOW, World.PILLAR]
 
 var _storeys_built: Array[World] = []
@@ -141,6 +144,9 @@ func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
 func test_no_tile_of_a_row_appears_before_its_first_tier_or_after_its_last() -> void:
 	for w in _storeys_built:
 		for row: Dictionary in Placement.ROWS:
+			# A skeleton of OWN_PILLARS stands pillars of its own on any storey.
+			if row.get("what") == World.PILLAR and Skeletons.pick(w) in OWN_PILLARS:
+				continue
 			if w.depth < row.tiers[0] or w.depth > row.tiers[1]:
 				assert_eq(_laid(w, row), [], "storey %d has no %s" % [w.depth, row.keys()])
 
@@ -193,17 +199,20 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 		for kind: int in KINDS:
 			if (kind == World.STRAW and library) or (kind == World.PILLAR and yard):
 				continue
+			# A flooded storey's ponds have their shallow rims in any room.
+			if kind == World.SHALLOW and Skeletons.pick(w) == Skeletons.FLOODED:
+				continue
 			for p in _tiles_of(w, kind):
 				assert_true(
 					(
-						Skeletons.pick(w) == Skeletons.GARDEN
+						Skeletons.pick(w) in OWN_PILLARS
 						or w.rooms.any(func(r: Rect2i): return r.has_point(p))
 					),
 					"%s is in a room" % p
 				)
 				assert_false(
 					(
-						Skeletons.pick(w) != Skeletons.GARDEN
+						Skeletons.pick(w) not in OWN_PILLARS
 						and w.rooms.any(
 							func(r: Rect2i): return r.has_point(p) and r.has_point(goal)
 						)

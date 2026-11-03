@@ -340,8 +340,10 @@ func test_a_saved_run_with_debug_actions_plays_back_to_the_same_world() -> void:
 		{t = &"wait"},
 		{t = &"cheat", cmd = &"kill", id = foe.id},
 		{t = &"cheat", cmd = &"floor", depth = 1},
-		{t = &"cheat", cmd = &"teleport", at = FloorGen.nearest_free(w, w.player().pos + E * 3)},
+		{t = &"cheat", cmd = &"teleport"},
 	]:
+		if action.get("cmd") == &"teleport":
+			action.at = FloorGen.nearest_free(w, w.player().pos + E * 3)
 		assert_true(w.can(action), str(action))
 		w.act(action)
 		run.record(action, 0, false)

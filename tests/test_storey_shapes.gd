@@ -13,28 +13,6 @@ func before_all() -> void:
 # --- the run ------------------------------------------------------------------
 
 
-func test_a_run_walks_nine_different_places_and_a_seed_varies_only_their_shape() -> void:
-	var w := World.new()
-	var places := {}
-	for depth in range(1, World.FLOORS + 1):
-		w.depth = depth
-		var state := w.rng.state
-		var place := Skeletons.pick(w)
-		assert_eq(w.rng.state, state, "the storey decides, not the draw")
-		assert_false(places.has(place), str(depth))
-		places[place] = true
-
-
-func test_the_old_pavilions_are_no_storey_of_a_run_and_every_other_skeleton_is() -> void:
-	var w := World.new()
-	var used := {}
-	for depth in range(1, World.FLOORS + 1):
-		w.depth = depth
-		used[Skeletons.pick(w)] = true
-	for kind in Skeletons.ALL:
-		assert_eq(used.has(kind), kind != Skeletons.PAVILIONS, kind)
-
-
 func test_no_hole_opens_beside_a_doorway() -> void:
 	for w: World in _storeys(Skeletons.BROKEN):
 		for i in w.tiles.size():

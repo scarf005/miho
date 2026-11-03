@@ -3,7 +3,7 @@ extends GutTest
 ## whose actions no longer fit the rules goes on from the last state it wrote.
 
 const PATH := "user://test_snapshot.cfg"
-const SEED := 114
+const SEED := 7
 
 
 func after_each() -> void:

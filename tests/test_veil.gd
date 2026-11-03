@@ -90,7 +90,7 @@ func test_some_storeys_split_a_room_with_a_veil_that_leaves_every_door_on_one_si
 	var found := 0
 	for w in _storeys:
 		var veil := _veils(w)
-		if veil.is_empty():
+		if veil.is_empty() or not Labyrinth.site(w).is_empty():
 			continue
 		found += 1
 		assert_true(w.seals.is_empty() and w.sites.is_empty(), "one event room: " + _label(w))

@@ -11,7 +11,7 @@ static func walkable(w: World, p: Vector2i) -> bool:
 	var i := Grid.index(p)
 	if w.known[i] == 0 or not w.open_floor(p) or w.tile(p) == World.THORNS:
 		return false
-	if Tiles.of(w.tile(p), "trap"):
+	if Tiles.of(w.tile(p), "trap") or Tiles.of(w.tile(p), "crumbles") >= 0:
 		return false
 	if w.seen[i] == 0:
 		return true
@@ -77,7 +77,12 @@ static func _reach(found: Dictionary, p: Vector2i) -> void:
 ## `walkable` and not in `avoid`, for every tile (a mask for Grid.search).
 static func open(w: World, avoid := {}) -> PackedByteArray:
 	var test := func(p): return walkable(w, p) and not avoid.has(p)
-	var out := Masks.floor_of(w, Masks.odd(w) + avoid.keys(), test)
+	var boards := []
+	var at := w.tiles.find(World.BOARD_ROTTEN)
+	while at >= 0:
+		boards.append(Grid.at(at))
+		at = w.tiles.find(World.BOARD_ROTTEN, at + 1)
+	var out := Masks.floor_of(w, Masks.odd(w) + avoid.keys() + boards, test)
 	for i in out.size():
 		out[i] &= w.known[i]
 	return out

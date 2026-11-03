@@ -401,7 +401,7 @@ static func rest(w: World, a: Actor) -> void:
 			_step_to(w, a, a.brain.home)
 		return
 	if a.pos == a.brain.post or not _step_to(w, a, a.brain.post):
-		a.brain.post = FloorGen.patrol_point(w)
+		a.brain.post = FloorGen.patrol_point(w, a)
 
 
 ## `a` strikes `target` beside it with its `melee` (Bestiary), throwing it
