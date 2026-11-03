@@ -149,9 +149,11 @@ static func _nearest(found: Dictionary, tiles: Array) -> Vector2i:
 
 
 static func _borders_unknown(w: World, p: Vector2i) -> bool:
-	for d in Grid.DIRS:
-		var q := p + d
-		if Grid.inside(q) and w.known[Grid.index(q)] == 0:
+	var known := w.known
+	for d: Vector2i in Grid.DIRS:
+		var x := p.x + d.x
+		var y := p.y + d.y
+		if x >= 0 and y >= 0 and x < Grid.W and y < Grid.H and known[y * Grid.W + x] == 0:
 			return true
 	return false
 
