@@ -29,7 +29,7 @@ extends RefCounted
 ## move and takes double the next harm), and freezes ponds, and the veil of
 ## dokkaebi fire (Veil), to ice (World.ICE) that can be walked.
 ## 단비 roots each creature it reaches RAIN rounds, and douses fire and
-## lanterns and wets drums (Terrain.wash).
+## lanterns and wets drums (Terrain.wash), then lays RAIN_FOG of fog (Gas.FOG).
 ## 상극, the two react:
 ## 증기 lays STEAM of steam (Gas.STEAM): it blocks sight, scalds whoever stands
 ## in it each round and wets drums.
@@ -83,6 +83,8 @@ const MORTAR := 2
 const MORTAR_REACH := 2
 const FROST := 2
 const RAIN := 3
+## The fog 단비 lays (Gas.FOG) on each tile it reaches.
+const RAIN_FOG := 4
 const STEAM := Gas.MAX
 const THORN := 1
 const MUD := 2
@@ -143,6 +145,7 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 		&"rain":
 			for p in tiles:
 				Terrain.wash(w, p)
+				Gas.add(w, p, Gas.FOG, RAIN_FOG)
 		&"steam":
 			for p in tiles:
 				Gas.add(w, p, Gas.STEAM, STEAM)

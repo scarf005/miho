@@ -482,6 +482,14 @@ static func compound(c: StringName) -> Array:
 		&"mist":
 			var name: String = Lang.t("%s 양") % Lang.t(Gas.of(Gas.FOG, "name"))
 			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["지워짐", "냄새"]]
+		&"rain":
+			var name: String = Lang.t("%s 양") % Lang.t(Gas.of(Gas.FOG, "name"))
+			return _told(c) + [[name, "%d/%d" % [Compounds.RAIN_FOG, Gas.MAX]]]
+	return _told(c)
+
+
+## The lines a compound's row tells (Cards.COMPOUND `told`).
+static func _told(c: StringName) -> Array:
 	return Cards.COMPOUND[c].get("told", []).map(
 		func(l): return [l[0], Lang.t(l[1]) % l[2]] if l.size() > 2 else l
 	)

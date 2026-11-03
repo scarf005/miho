@@ -43,7 +43,7 @@ func test_a_rain_spray_lays_fog_on_every_tile_it_reaches() -> void:
 	var w := _world()
 	var rain := Cards.recipe(&"rain")
 	var tiles := Spray.cover(w, w.player(), Spell.make(rain), E)
-	w.act(_cast(rain))
+	Cast.cast(w, w.player(), Spell.make(rain), E)
 	assert_false(tiles.is_empty())
 	for p in tiles:
 		assert_eq(Gas.at(w, p).x, Gas.FOG, str(p))
@@ -63,6 +63,6 @@ func test_rain_puts_out_a_fire_and_the_fog_it_lays_stays_fog() -> void:
 	var tile: Vector2i = Spray.cover(w, w.player(), Spell.make(rain), E)[0]
 	w.set_tile(tile, World.GRASS)
 	Terrain.ignite(w, tile)
-	w.act(_cast(rain))
+	Cast.cast(w, w.player(), Spell.make(rain), E)
 	assert_false(w.burning.has(tile))
 	assert_eq(Gas.at(w, tile).x, Gas.FOG)
