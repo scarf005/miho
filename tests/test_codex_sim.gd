@@ -357,12 +357,7 @@ func test_the_furnace_example_bursts_more_than_one_orb_on_its_creature() -> void
 	var entry: Dictionary = Codex.entries(COMPOUNDS).filter(func(e): return e.name == name)[0]
 	var made := Cards.made_of(Forge.FURNACE)
 	var shown: Array[Dictionary] = [entry.scene]
-	for cards: Array in [
-		[Cards.ORB] + made,
-		made + [Cards.ORB],
-		[Cards.ORB, Cards.ORB] + made,
-		[Cards.FOX, Cards.ORB] + made
-	]:
+	for cards: Array in [[Cards.ORB] + made, made + [Cards.ORB]]:
 		shown.append(SpellScene.of(cards))
 	for one in shown:
 		var scene := SpellScene.resolve(one)[0]

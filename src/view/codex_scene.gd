@@ -71,8 +71,8 @@ const NEAR := "  @  d"
 const RISES := "  @ w    d"
 ## 용광로: she stands on a strip of land across a pond, where the furnace can only be put in
 ## line with the creature, near enough for its orbs to burst on it.
-const POND_ROWS := "~~~~~~~~~~~~~/~~~~~~~~~~~~~/~~~~~~~~~~~~~/"
-const CAUSEWAY := POND_ROWS + "~~~@     g~~~/" + POND_ROWS + "~~~~~~~~~~~~~"
+const POND_ROWS := "~~~~~~~~~~~~/~~~~~~~~~~~~/~~~~~~~~~~~~"
+const CAUSEWAY := POND_ROWS + "/~~~@     g~~/" + POND_ROWS
 const TABLE := {
 	Guise.SHADOW: ["  @     d", "s..."],
 	Guise.GUISE: ["  @w", ">s.."],

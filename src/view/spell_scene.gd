@@ -97,12 +97,14 @@ static func reach(w: World, action: Dictionary) -> Dictionary:
 
 
 static func _plan(cards: Array) -> Dictionary:
-	var slots := Spell.make(cards).slots
-	if slots == [Cards.ORB, Forge.FURNACE]:
-		return CodexScene.of(Forge.FURNACE, cards)
-	if slots.size() == 1 and CodexScene.TABLE.has(slots[0]):
+	var spell := Spell.make(cards)
+	var slots := spell.slots
+	if spell.has(Forge.FURNACE):
+		if Forge.around(spell) and not Guise.mixed(spell):
+			return CodexScene.of(Forge.FURNACE, cards)
+	elif slots.size() == 1 and CodexScene.TABLE.has(slots[0]):
 		return CodexScene.of(slots[0], cards)
-	var inward := Guise.ANYWHERE.has(Guise.kind(Spell.make(cards)))
+	var inward := Guise.ANYWHERE.has(Guise.kind(spell))
 	var lay := {
 		cards = cards,
 		inward = inward,
