@@ -1734,6 +1734,9 @@ msgstr "Enemies chasing"
 msgid "체력"
 msgstr "Health"
 
+msgid "약점인 적 피해"
+msgstr "Damage to a weak enemy"
+
 msgid "%d칸, 바깥으로"
 msgstr "%d tiles, outward"
 

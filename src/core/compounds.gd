@@ -63,8 +63,8 @@ extends RefCounted
 ## (Mind.lose) and washes the scent away.
 ## 5단, of all five, heard BOOM tiles but 윤회:
 ## 윤회 heals the caster 1 and stuns each creature SAMSARA_STUN.
-## 상극 hurts each creature CONQUEST_HARM: of all five elements, what a creature is weak
-## to and what it is immune to cancel out (Elements.dealt).
+## 상극 hurts each creature CONQUEST_HARM, twice over when it has a weakness, whatever it is
+## immune to. It holds all five elements, so Elements.dealt would cancel weak and immune out.
 ## 황룡 fells every breakable wall it reaches, pushes each creature DRAGON_PUSH
 ## tiles away from its centre and stuns it DRAGON_STUN.
 ## Open ground is walkable, not a door, a skybridge or water, not the stairs,
@@ -228,7 +228,8 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 		Cards.SAMSARA:
 			Elements.stun(w, a, SAMSARA_STUN)
 		Cards.CONQUEST:
-			Elements.harm(w, s, a, CONQUEST_HARM)
+			var weak := not Bestiary.weak_to(a.nature_kind()).is_empty()
+			Harm.hurt(w, a, CONQUEST_HARM * (Elements.WEAK if weak else 1), weak)
 		Cards.DRAGON:
 			w.push(a, Grid.nearest_dir(a.pos - at), DRAGON_PUSH)
 			if a.alive():
