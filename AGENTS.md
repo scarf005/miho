@@ -15,6 +15,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 오작교 bridges the sky along the aimed way. User: "오작교 7x7 말고 해당 방향으로 8x3으로 바꿔줘".
 - 용암 is 구+불+흙, an orb that does not home: range 5, speed 2, bursts when spent, 3x3 hot iron. 봉화 hurls it homing in 8 directions. 용광로 is 구+불+흙+쇠: a furnace on a random free tile within 3 that hurls it every 2 s at a foe in sight. Without 구 they are no spell. User: "용암은 용암 구슬을 발사하는 주문으로 바꿔 (구+불+흙)", "봉화는 8방향으로 '유도' 용암 구슬 발사하는 주문으로 바꿔", "3칸 이내 범위에 무작위로 1개".
 - A plain orb and 비격진 differ: 비격진 bursts 2 tiles round with its own wave. User: "이제 일반 구슬도 폭발하면서 비격진이랑 일반 구슬이랑 차이가 없어 차별화시켜."
+- A spell of 쇠 that explodes has a proximity fuse: in flight it bursts beside a foe, so stepping aside does not dodge it. User: "폭발성 쇠 조합 주문들은 '근접신관' 기능 추가해. 즉 날아가다 적이 옆으로 이동해도 피할수 없고".
 - A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?"
 - Flyers: 박쥐 on low storeys, 삼족오 of fire on high ones. User: "비행형 적 박쥐 (저층)와 삼족오(불, 고층) 추가해."
 - 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
@@ -79,6 +80,12 @@ Every list, menu and scrolling pane follows standard conventions:
 - The selection stays in view. Esc closes and returns to where the list was opened.
 - Every screen is reachable from the Esc menu.
 - A shortcut label beside what it stands for (a talisman number, a saved spell key) is small and dim, one look on every screen (`Term._key`): `1~7` are easy to remember, so the label never competes with the glyph. A key that is itself the content of a line, as in the help and key pages, stays body size.
+
+An example in the 도감 shows the spell doing what it does: it hits. User: "도감의 조합 애니메이션들 전부 확인하는게 좋을꺼야. 가령 용광로 설명에선 한 발도 못 맞춤".
+
+The debug commands open over the game and stay open between commands. User: "`디버그` 누르면 설정으로 가지 않고 바로 게임 화면에 디버그 메뉴 뜨게 해서 빠르게 여러 디버그 조작할수있게해".
+
+A thing with a background of its own shows it in the dark too. User: "복숭아 배경색이 여전히없어".
 
 An example in the 도감 is picked, never only watched. A creature's example has a part for its strike and for each spell, and the creature does them itself. User: "1~5단계까지 진행되는거 계속 바라만 봐야함", "적 주문 보여주는건데 플레이어가 주문 시전하는거로 보여주는거", "근접공격, 주문들 각각 선택해서 볼수있게 해".
 
