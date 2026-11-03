@@ -75,14 +75,18 @@ static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenera
 ## The open tiles and hidden doors of the wall ring round room r, corners left
 ## out: the ways in.
 static func doorways(w: World, r: Rect2i) -> Array[Vector2i]:
-	var out: Array[Vector2i] = []
+	var ring: Array[Vector2i] = []
 	for x in range(r.position.x, r.end.x):
-		out.append(Vector2i(x, r.position.y - 1))
-		out.append(Vector2i(x, r.end.y))
+		ring.append(Vector2i(x, r.position.y - 1))
+		ring.append(Vector2i(x, r.end.y))
 	for y in range(r.position.y, r.end.y):
-		out.append(Vector2i(r.position.x - 1, y))
-		out.append(Vector2i(r.end.x, y))
-	return out.filter(func(p): return w.open_floor(p) or w.secrets.has(p))
+		ring.append(Vector2i(r.position.x - 1, y))
+		ring.append(Vector2i(r.end.x, y))
+	var out: Array[Vector2i] = []
+	for p in ring:
+		if w.open_floor(p) or w.secrets.has(p):
+			out.append(p)
+	return out
 
 
 ## Miho has come onto her tile (Walk.arrive).

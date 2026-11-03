@@ -110,19 +110,33 @@ static func _fray(w: World, area: Rect2i, houses: Array[Rect2i]) -> void:
 			deep = clampi(deep + w.rng.randi_range(-1, 1), 0, FRAY)
 			for k in deep:
 				var p: Vector2i = edge[0] + edge[1] * along + edge[2] * k
-				if not houses.any(func(h): return h.grow(1).has_point(p)):
+				if not _by_house(houses, p):
 					eaten[p] = true
 	var inside := area.grow(-1)
-	var ground := func(p: Vector2i) -> bool:
-		return inside.has_point(p) and not eaten.has(p) and w.tile(p) == World.FLOOR
 	var walled := {}
 	for y in range(area.position.y, area.end.y):
 		for x in range(area.position.x, area.end.x):
 			var p := Vector2i(x, y)
 			if eaten.has(p) or not inside.has_point(p):
-				walled[p] = Grid.DIRS.any(func(d): return ground.call(p + d))
+				walled[p] = _by_ground(w, p, inside, eaten)
 	for p: Vector2i in walled:
 		w.tiles[Grid.index(p)] = World.WALL if walled[p] else World.SKY
+
+
+static func _by_house(houses: Array[Rect2i], p: Vector2i) -> bool:
+	for h in houses:
+		if h.grow(1).has_point(p):
+			return true
+	return false
+
+
+## Whether a tile round `p` is floor inside `inside` and not `eaten`.
+static func _by_ground(w: World, p: Vector2i, inside: Rect2i, eaten: Dictionary) -> bool:
+	for d: Vector2i in Grid.DIRS:
+		var q := p + d
+		if inside.has_point(q) and not eaten.has(q) and w.tile(q) == World.FLOOR:
+			return true
+	return false
 
 
 ## The rooms cut back to what is still ground on all four sides; a plot too small then

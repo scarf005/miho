@@ -243,7 +243,11 @@ static func lay(
 	w: World, row: Dictionary, at: Vector2i, rng: RandomNumberGenerator = null
 ) -> Array[Vector2i]:
 	var dice := rng if rng != null else w.rng
-	var room: Rect2i = w.rooms.filter(func(r: Rect2i): return r.has_point(at))[0]
+	var room := Rect2i()
+	for r in w.rooms:
+		if r.has_point(at):
+			room = r
+			break
 	var laid: Array[Vector2i] = [at]
 	var ring: Array[Vector2i] = [at]
 	_put(w, row, at)
