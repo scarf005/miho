@@ -365,7 +365,7 @@ func test_the_aim_preview_shows_the_leap_and_miho_where_she_lands() -> void:
 	assert_eq(m.picked, _typed(LEAP))
 	assert_true(m.reach.has(Vector2i(7, 8)), "the landing east is tinted")
 	assert_false(m.reach.has(Vector2i(5, 8)), "not the sky it clears")
-	m.hover = Vector2i(9, 8)
+	m.look.hover = Vector2i(9, 8)
 	m.refresh()
 	assert_eq(m.term.marks.get(Vector2i(7, 8)), [Bestiary.info(&"miho").glyph, Palette.SIDE[0]])
 	assert_true(m.term.tints.has(Vector2i(6, 8)), "the line it leaps along")

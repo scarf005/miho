@@ -352,7 +352,7 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 		Preview.point(main, pos)
 		main.click(_click(pos))
 		Preview.point(main, OFF)
-	elif tile == main.hover:
+	elif tile == main.look.hover:
 		main.click(_click(pos))
 	else:
 		Preview.point(main, pos)
@@ -363,7 +363,7 @@ func _hold(pos: Vector2) -> void:
 		return
 	WordHover.hold(main, false)
 	Preview.point(main, pos)
-	_freeze(not main.term.info.is_empty() or Grid.inside(main.hover))
+	_freeze(not main.term.info.is_empty() or Grid.inside(main.look.hover))
 
 
 ## The next tap only closes the box that is open, or opens a word in it.

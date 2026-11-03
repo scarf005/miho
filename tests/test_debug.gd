@@ -197,9 +197,9 @@ func test_with_the_view_on_hover_shows_a_creature_the_game_hides() -> void:
 	var unseen := func(a: Actor):
 		return a.faction != Actor.FOX and m.world.seen[Grid.index(a.pos)] == 0
 	var hidden: Actor = m.world.actors.filter(unseen)[0]
-	m._look_at(hidden.pos)
+	m.look.at(hidden.pos)
 	assert_eq(Info.plain(m.term.info), "", "the game knows nothing of it")
 	m._key(_press("F3"))
-	m._look_at(hidden.pos)
+	m.look.at(hidden.pos)
 	assert_string_contains(Info.plain(m.term.info), "디버그")
 	assert_string_contains(Info.plain(m.term.info), hidden.info().name)

@@ -192,10 +192,10 @@ func test_the_map_shows_no_vision_of_a_sleeper_and_tints_it_as_catchable() -> vo
 	m.forecast()
 	assert_true(Fight.sneakable(m.world, sleeper))
 	assert_false(Fight.sneakable(m.world, patrol))
-	m.hover = sleeper.pos
+	m.look.hover = sleeper.pos
 	m.refresh()
 	assert_eq(m.known.view_of(sleeper).count(1), 0)
 	assert_eq(m.term.tints.keys().size(), 1, "only the sneak tint")
-	m.hover = patrol.pos
+	m.look.hover = patrol.pos
 	m.refresh()
 	assert_gt(m.term.tints.keys().size(), 1, "an awake one shows what it sees")

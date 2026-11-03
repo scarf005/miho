@@ -46,15 +46,7 @@ var picked: Array[StringName] = []
 var staged: Array[Dictionary] = []
 var busy := false
 var state := &"title"
-var hover := Vector2i(-1, -1)
-var hover_card := &""
-var hover_status := false
-## Key of the spell under the pointer on the status or talisman row, or empty,
-## and the queue slot under it, or -1.
-var hover_spell := ""
-var hover_slot := -1
-## Look mode: the direction keys move the cursor, which is `hover`.
-var looking := false
+var look := LookMode.new(self)
 ## Several open doors are next to Miho: the next direction key shuts that one.
 var shutting := false
 ## The step prompt and the sight of a held key (StepGuard), and whether the key
@@ -349,7 +341,7 @@ func do_action(action: StringName, shift: bool) -> void:
 		if Keys.MOVES.has(action):
 			act({t = &"close", dir = Keys.MOVES[action]})
 		return
-	if looking and _look_key(action, shift):
+	if look.active and look.key(action, shift):
 		return
 	if Keys.MOVES.has(action):
 		if not eat:
@@ -380,7 +372,7 @@ func do_action(action: StringName, shift: bool) -> void:
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
 	elif action == &"exclude_clear":
 		excluded.clear()
-		_zones_changed()
+		zones_changed()
 	elif action == &"spellbook":
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
@@ -389,8 +381,8 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"again":
 		_again()
 	elif action == &"look":
-		looking = true
-		_look_at(world.player().pos)
+		look.active = true
+		look.at(world.player().pos)
 	elif action == &"restart":
 		new_game()
 	elif action == &"rest":
@@ -415,10 +407,10 @@ func click(event: InputEventMouseButton) -> void:
 	if left_click(event) and WordLink.open(self, to_term(event.position)):
 		return
 	term.pin = {}
-	looking = false
+	look.active = false
 	shutting = false
 	var eat := _eats_move()
-	if not Grid.inside(hover) or hover - world.player().pos != guard.asking:
+	if not Grid.inside(look.hover) or look.hover - world.player().pos != guard.asking:
 		_unask()
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_clear()
@@ -438,8 +430,8 @@ func click(event: InputEventMouseButton) -> void:
 		_recall(preset)
 		_aim()
 		return
-	if Grid.inside(hover) and not eat:
-		_use_tile(hover, event.shift_pressed)
+	if Grid.inside(look.hover) and not eat:
+		use_tile(look.hover, event.shift_pressed)
 
 
 ## Whether this press is the one after a refusal with nothing to hurl, which
@@ -453,7 +445,7 @@ func _eats_move() -> bool:
 ## What a left click on `tile` does: on Miho's own, cast the talismans picked on her, or
 ## with none list her buffs to drop (a stray click must not pass the turn); hurl towards
 ## another with talismans picked, step to a neighbour, or walk to a farther tile.
-func _use_tile(tile: Vector2i, hold: bool) -> void:
+func use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
 	if tile == me and picked.is_empty():
 		if staged.is_empty() and not Guise.worn(world, world.player()).is_empty():
@@ -476,45 +468,6 @@ func to_term(screen: Vector2) -> Vector2:
 	if glass.visible:
 		screen = Crt.flat(screen, get_viewport().get_visible_rect().size, settings.crt)
 	return term.get_global_transform().affine_inverse() * screen
-
-
-## In look mode: the directions move the cursor, Enter walks to it, Esc or the
-## look key stops. Any other action stops look mode and is left to `_key`
-## (false).
-func _look_key(action: StringName, far: bool) -> bool:
-	if Keys.MOVES.has(action):
-		_look_at(Grid.nudge(hover, Keys.MOVES[action], Menu.LOOK_FAR if far else 1))
-	elif action == &"confirm":
-		var goal := hover
-		_stop_look()
-		if goal != world.player().pos or not picked.is_empty():
-			_use_tile(goal, false)
-	elif action in [&"cancel", &"look"]:
-		_stop_look()
-	elif action == &"exclude" and world.known[Grid.index(hover)] == 1:
-		excluded.cycle(hover)
-		_zones_changed()
-	elif action.begins_with("pick_") and excluded.zones.has(hover):
-		excluded.set_radius(hover, int(action.trim_prefix("pick_")))
-		_zones_changed()
-	else:
-		_stop_look()
-		return false
-	return true
-
-
-## Puts the cursor, which shows what the pointer would, on a tile.
-func _look_at(tile: Vector2i) -> void:
-	hover = tile
-	hover_card = &""
-	hover_status = false
-	refresh()
-
-
-## Ends look mode; the cursor goes back to the pointer.
-func _stop_look() -> void:
-	looking = false
-	Preview.point(self, mouse())
 
 
 ## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
@@ -566,25 +519,25 @@ func _again() -> void:
 ## nearest creature in sight, unless it is on one already.
 func _aim() -> void:
 	var foes := Fight.targets(world)
-	if picked.is_empty() or foes.any(func(a): return a.pos == hover):
+	if picked.is_empty() or foes.any(func(a): return a.pos == look.hover):
 		return
 	if not foes.is_empty():
-		_look_at(foes[0].pos)
-	elif not Grid.inside(hover) and not touch.enabled:
-		_look_at(world.player().pos)
+		look.at(foes[0].pos)
+	elif not Grid.inside(look.hover) and not touch.enabled:
+		look.at(world.player().pos)
 
 
 ## With talismans picked, Tab moves the cursor to the next creature in sight, then to Miho.
 func _aim_next() -> void:
 	var stops: Array = Fight.targets(world).map(func(a): return a.pos) + [world.player().pos]
-	_look_at(stops[(stops.find(hover) + 1) % stops.size()])
+	look.at(stops[(stops.find(look.hover) + 1) % stops.size()])
 
 
 ## Hurls the picked talismans towards the cursor, on Miho's own tile on her; with no
 ## cursor it says so instead of passing the round.
 func _hurl_at_cursor() -> void:
-	if Grid.inside(hover):
-		_direction(Grid.nearest_dir(hover - world.player().pos), false)
+	if Grid.inside(look.hover):
+		_direction(Grid.nearest_dir(look.hover - world.player().pos), false)
 	else:
 		_refuse("겨눌 곳이 없다")
 
@@ -818,7 +771,7 @@ func _explore_walled() -> bool:
 
 
 ## The exclusions changed: keep them in the save and work out the walks again.
-func _zones_changed() -> void:
+func zones_changed() -> void:
 	run.exclusions = excluded.zones.duplicate()
 	run.write()
 	forecast()

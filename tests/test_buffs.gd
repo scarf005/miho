@@ -338,11 +338,11 @@ func test_a_click_on_a_row_of_the_list_ends_that_one() -> void:
 func test_a_click_on_her_with_no_queue_lists_the_buffs_and_takes_no_round() -> void:
 	var m := _main()
 	var round_no: int = m.world.round_no
-	m._use_tile(ME, false)
+	m.use_tile(ME, false)
 	assert_eq(m.overlay, &"", "with none, a stray click does nothing")
 	_wear(m.world, Guise.CLOAK)
 	round_no = m.world.round_no
-	m._use_tile(ME, false)
+	m.use_tile(ME, false)
 	assert_eq(m.overlay, &"dispel")
 	assert_eq(m.world.round_no, round_no)
 

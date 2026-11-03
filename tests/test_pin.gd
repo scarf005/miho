@@ -58,7 +58,7 @@ func test_the_box_stays_as_it_was_while_the_pointer_crosses_other_things() -> vo
 		Preview.point(m, _tile_at(m, tile) if Grid.inside(tile) else Vector2(-1.0e5, -1.0e5))
 		assert_eq(m.term.pin.lines, lines)
 		assert_eq(m.term.info, lines, "no box for the thing crossed")
-	assert_eq(m.hover, Vector2i(-1, -1), "what is under the pointer is still followed")
+	assert_eq(m.look.hover, Vector2i(-1, -1), "what is under the pointer is still followed")
 
 
 func test_letting_go_of_shift_drops_the_box_and_shows_what_is_under_the_pointer() -> void:
@@ -213,7 +213,7 @@ func test_a_page_covers_the_box_and_the_example_and_shift_keeps_nothing_there() 
 
 func test_a_talisman_under_the_pointer_plays_no_example_over_a_page() -> void:
 	var m := _foe_hover()
-	m.hover_card = Cards.FOX
+	m.look.hover_card = Cards.FOX
 	m.refresh()
 	assert_false(m.term.example.is_empty(), "the talisman plays its example on the map")
 	m._open(&"spells")

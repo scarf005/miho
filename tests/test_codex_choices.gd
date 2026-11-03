@@ -159,7 +159,7 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 	w.sense()
 	m.term.show_world(w)
 	m.forecast()
-	m.hover = shot.pos
+	m.look.hover = shot.pos
 	m.refresh()
 	assert_eq(m.term.example.get("key"), &"imugi")
 	assert_eq(m.term.example.get("charged"), spell.cards)
@@ -173,7 +173,7 @@ func test_miho_casts_her_own_shot_in_a_hover_box() -> void:
 	w.sense()
 	m.term.show_world(w)
 	m.forecast()
-	m.hover = shot.pos
+	m.look.hover = shot.pos
 	m.refresh()
 	assert_eq(m.term.example.get("spell"), [Cards.ORB])
 

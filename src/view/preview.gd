@@ -30,17 +30,17 @@ static func point(m: Node, screen: Vector2) -> void:
 	term.hint_at = local / Term.CELL
 	if (
 		hinted == term.hint.is_empty()
-		or tile != m.hover
-		or card != m.hover_card
-		or status != m.hover_status
-		or spell != m.hover_spell
-		or slot != m.hover_slot
+		or tile != m.look.hover
+		or card != m.look.hover_card
+		or status != m.look.hover_status
+		or spell != m.look.hover_spell
+		or slot != m.look.hover_slot
 	):
-		m.hover = tile
-		m.hover_card = card
-		m.hover_status = status
-		m.hover_spell = spell
-		m.hover_slot = slot
+		m.look.hover = tile
+		m.look.hover_card = card
+		m.look.hover_status = status
+		m.look.hover_spell = spell
+		m.look.hover_slot = slot
 		if m.state == &"play" and not m.busy:
 			m.refresh()
 
@@ -65,7 +65,7 @@ static func paint(m: Node) -> void:
 			marks[me + d] = [str(f.hurt_me()), Palette.HURT]
 		elif not f.noticed.is_empty():
 			tints[me + d] = Color(Palette.ALERT[2], 0.3)
-	var hover: Vector2i = m.hover
+	var hover: Vector2i = m.look.hover
 	if not m.reach.is_empty() and Grid.inside(hover) and hover != me:
 		var aim := Grid.nearest_dir(hover - me)
 		if not m.aims.has(aim):
@@ -87,7 +87,7 @@ static func paint(m: Node) -> void:
 		for i in view.size():
 			if view[i] == 1 and world.known[i] == 1 and not tints.has(Grid.at(i)):
 				tints[Grid.at(i)] = Color(Palette.SIDE[1], 0.3)
-	if m.hover_status or hover == me:
+	if m.look.hover_status or hover == me:
 		for i in world.seen.size():
 			if world.seen[i] == 1 and not tints.has(Grid.at(i)):
 				tints[Grid.at(i)] = Color(Palette.SIDE[0], 0.2)
@@ -115,10 +115,10 @@ static func _inspect(m: Node) -> void:
 ## spell it is about, or none.
 static func _tell(m: Node) -> Dictionary:
 	var held := Spell.make(m.picked)
-	if held == null or m.hover_slot >= held.slots.size():
-		m.hover_slot = -1
+	if held == null or m.look.hover_slot >= held.slots.size():
+		m.look.hover_slot = -1
 	var term: Term = m.term
-	term.cursor = m.hover
+	term.cursor = m.look.hover
 	var lines := _lines(m)
 	var word := subject(m) if not lines.is_empty() else ""
 	var row := detail_row()
@@ -132,15 +132,17 @@ static func _tell(m: Node) -> Dictionary:
 ## its own.
 static func _example(m: Node) -> Dictionary:
 	var cards := []
-	if m.hover_slot >= 0:
+	if m.look.hover_slot >= 0:
 		cards = m.picked
-	elif m.hover_spell != "":
-		cards = Spell.from_key(m.hover_spell).cards
-	elif m.hover_card != &"":
-		cards = Cards.spell_of(m.hover_card)
-	elif not m.hover_status:
+	elif m.look.hover_spell != "":
+		cards = Spell.from_key(m.look.hover_spell).cards
+	elif m.look.hover_card != &"":
+		cards = Cards.spell_of(m.look.hover_card)
+	elif not m.look.hover_status:
 		var w: World = m.world if m.debugging else m.known
-		var shot: Shot = DebugView.shot_at(w, m.hover) if m.debugging else Info.shot_at(w, m.hover)
+		var shot: Shot = (
+			DebugView.shot_at(w, m.look.hover) if m.debugging else Info.shot_at(w, m.look.hover)
+		)
 		if shot != null and shot.faction != Actor.FOX:
 			var by: Actor = w.actor(shot.caster)
 			return CodexScene.charged(by.kind if by != null else Codex.foes()[0], shot.spell.cards)
@@ -151,20 +153,22 @@ static func _example(m: Node) -> Dictionary:
 
 ## The hover lines of what the pointer or the look cursor is over.
 static func _lines(m: Node) -> Array:
-	if m.hover_slot >= 0:
-		return SpellInfo.slot(Spell.make(m.picked), m.hover_slot)
-	if m.hover_spell != "":
-		return SpellInfo.spell(Spell.from_key(m.hover_spell))
-	if m.hover_card != &"":
-		return SpellInfo.hovered(m.hover_card, m.picked)
-	if m.hover_status:
+	if m.look.hover_slot >= 0:
+		return SpellInfo.slot(Spell.make(m.picked), m.look.hover_slot)
+	if m.look.hover_spell != "":
+		return SpellInfo.spell(Spell.from_key(m.look.hover_spell))
+	if m.look.hover_card != &"":
+		return SpellInfo.hovered(m.look.hover_card, m.picked)
+	if m.look.hover_status:
 		return Info.creature(m.known, m.known.player())
-	var lines: Array = DebugView.at(m.world, m.hover) if m.debugging else Info.at(m.known, m.hover)
+	var lines: Array = (
+		DebugView.at(m.world, m.look.hover) if m.debugging else Info.at(m.known, m.look.hover)
+	)
 	return (
 		m.menu.debug.head()
 		+ lines
-		+ m.excluded.lines(m.hover, m.zone)
-		+ Info.ahead(m.world, m.ahead, m.hover)
+		+ m.excluded.lines(m.look.hover, m.zone)
+		+ Info.ahead(m.world, m.ahead, m.look.hover)
 	)
 
 
@@ -180,32 +184,32 @@ static func subject(m: Node) -> String:
 
 
 static func _named(m: Node) -> String:
-	if m.hover_slot >= 0:
+	if m.look.hover_slot >= 0:
 		var s := Spell.make(m.picked)
 		if s == null:
 			return ""
-		return _spell(s) if s.cards.size() == 1 else _talisman(s.slots[m.hover_slot])
-	if m.hover_spell != "":
-		var s := Spell.from_key(m.hover_spell)
+		return _spell(s) if s.cards.size() == 1 else _talisman(s.slots[m.look.hover_slot])
+	if m.look.hover_spell != "":
+		var s := Spell.from_key(m.look.hover_spell)
 		return "" if s == null else _spell(s)
-	if m.hover_card != &"":
-		return _talisman(m.hover_card)
-	if m.hover_status or not Grid.inside(m.hover):
+	if m.look.hover_card != &"":
+		return _talisman(m.look.hover_card)
+	if m.look.hover_status or not Grid.inside(m.look.hover):
 		return ""
 	var w: World = m.world if m.debugging else m.known
-	var i := Grid.index(m.hover)
+	var i := Grid.index(m.look.hover)
 	if m.debugging or w.seen[i] == 1:
-		var a := w.actor_at(m.hover)
+		var a := w.actor_at(m.look.hover)
 		if a != null and (m.debugging or Hat.shown(w, a)):
 			return "" if a.is_miho() else Lang.t(a.info().name)
-		var shot := w.shot_at(m.hover)
+		var shot := w.shot_at(m.look.hover)
 		if shot != null:
 			return _spell(shot.spell, shot.faction == Actor.FOX)
 	if not m.debugging and w.known[i] == 0:
 		return ""
-	if Scrolls.card_at(w, m.hover) != &"":
+	if Scrolls.card_at(w, m.look.hover) != &"":
 		return Lang.t("주문서")
-	return Lang.t(Info.tile_name(w, m.hover))
+	return Lang.t(Info.tile_name(w, m.look.hover))
 
 
 ## The entry name of a spell: its own title when the 도감 lists it, else, for

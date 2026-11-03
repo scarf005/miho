@@ -21,7 +21,7 @@ func _foe_hover(touch := false) -> Node:
 	m.term.show_world(m.world)
 	m.forecast()
 	if touch:
-		m.hover = at
+		m.look.hover = at
 		m.refresh()
 	else:
 		Preview.point(m, _tile_at(m, at))
@@ -59,7 +59,7 @@ func test_the_box_of_a_creature_ends_in_the_key_and_the_key_opens_its_kind_in_th
 	assert_eq(m.term.info.back()[0][0], "M")
 	assert_string_contains(m.term.info.back()[1][0], Lang.t("자세히"))
 	var lines: Array = m.term.info.duplicate(true)
-	var hover: Vector2i = m.hover
+	var hover: Vector2i = m.look.hover
 	var rounds: int = m.world.round_no
 	var actions: int = m.run.actions.size()
 	_press(m, "M")
@@ -69,7 +69,7 @@ func test_the_box_of_a_creature_ends_in_the_key_and_the_key_opens_its_kind_in_th
 	assert_eq(m.run.actions.size(), actions, "nothing is saved to replay")
 	_press(m, "Escape")
 	assert_eq(m.overlay, &"")
-	assert_eq(m.hover, hover)
+	assert_eq(m.look.hover, hover)
 	assert_eq(m.term.info, lines, "the same hover comes back")
 
 
@@ -102,7 +102,7 @@ func test_the_box_of_a_tile_opens_the_entry_of_that_tile() -> void:
 
 func test_the_box_of_a_talisman_opens_its_entry() -> void:
 	var m := _main(false)
-	m.hover_card = Cards.ORB
+	m.look.hover_card = Cards.ORB
 	m.refresh()
 	assert_eq(m.term.info.back()[0][0], "M")
 	_press(m, "M")
@@ -114,7 +114,7 @@ func test_the_box_of_a_saved_spell_without_an_entry_of_its_own_opens_its_shape()
 	var m := _main(false)
 	var spell := Spell.make([Cards.FOX, Cards.FIRE])
 	assert_lt(Keywords.locate(spell.shown()).x, 0, "a spell made of the talismans has no entry")
-	m.hover_spell = spell.key()
+	m.look.hover_spell = spell.key()
 	m.refresh()
 	_press(m, "M")
 	assert_eq(_entry(m), Keywords.locate(Lang.t(Spell.SHAPE_NAME[Spell.WISP])))
@@ -123,7 +123,7 @@ func test_the_box_of_a_saved_spell_without_an_entry_of_its_own_opens_its_shape()
 func test_the_box_of_a_queue_slot_opens_the_talisman_at_that_slot() -> void:
 	var m := _main(false)
 	m.picked.assign([Cards.ORB, Cards.FIRE])
-	m.hover_slot = 1
+	m.look.hover_slot = 1
 	m.refresh()
 	_press(m, "M")
 	assert_eq(_entry(m), Keywords.locate(Codex.talisman_name(Cards.FIRE)))
@@ -134,8 +134,8 @@ func test_look_mode_opens_the_entry_of_the_tile_under_the_cursor_and_stays_in_lo
 	var foe := _me(m) + Vector2i(1, 0)
 	Preview.point(m, Vector2(-1.0e5, -1.0e5))
 	_press(m, "X")
-	assert_true(m.looking)
-	m._look_at(foe)
+	assert_true(m.look.active)
+	m.look.at(foe)
 	assert_eq(m.term.info.back()[0][0], "M")
 	var rounds: int = m.world.round_no
 	_press(m, "M")
@@ -143,8 +143,8 @@ func test_look_mode_opens_the_entry_of_the_tile_under_the_cursor_and_stays_in_lo
 	assert_eq(_entry(m), _kind_entry())
 	_press(m, "Escape")
 	assert_eq(m.overlay, &"")
-	assert_true(m.looking, "the look cursor is where it was")
-	assert_eq(m.hover, foe)
+	assert_true(m.look.active, "the look cursor is where it was")
+	assert_eq(m.look.hover, foe)
 	assert_eq(m.world.round_no, rounds)
 
 
@@ -154,7 +154,7 @@ func test_a_kept_box_opens_its_own_entry_when_the_pointer_is_over_something_else
 	assert_false(m.term.pin.is_empty())
 	var floor_tile := _me(m) + Vector2i(0, 2)
 	Preview.point(m, _tile_at(m, floor_tile))
-	assert_eq(m.hover, floor_tile, "the pointer moved to a floor tile")
+	assert_eq(m.look.hover, floor_tile, "the pointer moved to a floor tile")
 	var rounds: int = m.world.round_no
 	_press(m, "M", true)
 	assert_eq(m.overlay, &"codex")
@@ -181,7 +181,7 @@ func test_a_box_with_no_entry_shows_no_row_and_the_key_leaves_the_screen_as_it_i
 
 func test_the_status_row_has_no_entry_either() -> void:
 	var m := _main(false)
-	m.hover_status = true
+	m.look.hover_status = true
 	m.refresh()
 	assert_false(m.term.info.is_empty())
 	assert_eq(m.term.subject, "")
@@ -233,7 +233,7 @@ func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -
 	var hidden := FloorGen.spawn(m.world, &"dokkaebi", far)
 	hidden.magic.cooldown = 99
 	m.debugging = true
-	m.hover = hidden.pos
+	m.look.hover = hidden.pos
 	m.refresh()
 	assert_eq(m.term.subject, Lang.t(hidden.info().name))
 	_press(m, "M")

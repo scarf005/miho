@@ -62,7 +62,7 @@ func test_a_tap_on_a_creature_of_the_strip_shows_its_info_in_portrait() -> void:
 	var m := _phone(Vector2i(390, 844), [&"dokkaebi"])
 	var card: Rect2 = m.touch.hud._creatures(m.term)[0].rect
 	_finger(m, _screen(m, card.get_center()))
-	assert_eq(m.hover, Vector2i(8, 8))
+	assert_eq(m.look.hover, Vector2i(8, 8))
 	assert_false(m.term.info.is_empty())
 	assert_true(m.touch.frozen, "the next tap only closes it")
 	assert_eq(m.world.round_no, 0, "no step was taken")
@@ -71,7 +71,7 @@ func test_a_tap_on_a_creature_of_the_strip_shows_its_info_in_portrait() -> void:
 func test_a_tap_on_a_creature_of_the_sidebar_shows_its_info_in_landscape() -> void:
 	var m := _phone(Vector2i(844, 390), [&"dokkaebi"])
 	_finger(m, _screen(m, Vector2(0.5, 0.5) * Term.CELL))
-	assert_eq(m.hover, Vector2i(8, 8))
+	assert_eq(m.look.hover, Vector2i(8, 8))
 	assert_false(m.term.info.is_empty())
 	assert_eq(m.world.round_no, 0)
 
@@ -99,7 +99,7 @@ func test_a_tap_on_a_saved_spell_picks_and_aims_it_and_a_hold_shows_it() -> void
 	_finger(m, _screen(m, chip.get_center()))
 	_finger(m, _screen(m, chip.get_center()))
 	assert_eq(m.picked, [Cards.ORB])
-	assert_eq(m.hover, Vector2i(8, 8), "aimed at the nearest creature, as a key aims it")
+	assert_eq(m.look.hover, Vector2i(8, 8), "aimed at the nearest creature, as a key aims it")
 
 
 func test_a_saved_spell_needs_no_chip_when_none_is_saved() -> void:

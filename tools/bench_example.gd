@@ -20,7 +20,7 @@ func _init() -> void:
 	await process_frame
 	var plain := await _frames()
 	var t := Time.get_ticks_usec()
-	m.hover_card = Cards.FIRE
+	m.look.hover_card = Cards.FIRE
 	m.refresh()
 	var opened := Time.get_ticks_usec() - t
 	var boxed := await _frames()
@@ -33,7 +33,7 @@ func _init() -> void:
 		var took := Time.get_ticks_usec() - t
 		all += took
 		most = maxi(most, took)
-	m.hover_card = &""
+	m.look.hover_card = &""
 	m.refresh()
 	print("frame to frame without the box: mean %d us, most %d us" % plain)
 	print("frame to frame with the box:    mean %d us, most %d us" % boxed)

@@ -269,7 +269,7 @@ func test_the_aim_preview_marks_the_creature_it_kills_and_a_line_per_wisp() -> v
 	m.forecast()
 	for k in ["1", "1"]:
 		_press(m, k)
-	m.hover = Vector2i(7, 8)
+	m.look.hover = Vector2i(7, 8)
 	m.refresh()
 	assert_eq(m.term.marks.get(foe.pos), [str(foe.hp), Palette.HURT], "dies, still marked")
 	var gaps: Array = m.term.lines.map(func(l): return l[3])
@@ -282,7 +282,7 @@ func test_each_wisps_aim_line_starts_on_the_tile_it_leaves_on() -> void:
 	m.forecast()
 	for k in ["1", "1"]:
 		_press(m, k)
-	m.hover = Vector2i(7, 8)
+	m.look.hover = Vector2i(7, 8)
 	m.refresh()
 	var froms: Array = m.term.lines.map(func(l): return l[0])
 	assert_eq(froms, [Vector2i(5, 8), Vector2i(5, 7)], "beside Miho, each on its own")
@@ -310,10 +310,10 @@ func test_a_refused_saved_spell_makes_the_next_tile_click_do_nothing() -> void:
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
-	m.hover = start + Vector2i.RIGHT
+	m.look.hover = start + Vector2i.RIGHT
 	m.click(click)
 	assert_eq(m.world.player().pos, start, "the click meant to aim does not walk")
-	m.hover = start + Vector2i.RIGHT
+	m.look.hover = start + Vector2i.RIGHT
 	m.click(click)
 	assert_eq(m.world.player().pos, start + Vector2i.RIGHT, "the next one walks")
 
@@ -335,7 +335,7 @@ func test_a_picked_talisman_aims_at_the_nearest_creature_and_space_hurls_it() ->
 	foe.magic.cooldown = 99
 	m.forecast()
 	_press(m, "2")
-	assert_eq(m.hover, foe.pos, "the cursor goes to the nearest creature in sight")
+	assert_eq(m.look.hover, foe.pos, "the cursor goes to the nearest creature in sight")
 	var round_no: int = m.world.round_no
 	_press(m, "Space")
 	assert_eq(m.world.round_no, round_no + 1, "the round is played")
@@ -351,13 +351,13 @@ func test_tab_moves_the_aim_to_the_next_creature_in_sight() -> void:
 	var far := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(4, 5))
 	m.forecast()
 	_press(m, "2")
-	assert_eq(m.hover, near.pos)
+	assert_eq(m.look.hover, near.pos)
 	_press(m, "Tab")
-	assert_eq(m.hover, far.pos)
+	assert_eq(m.look.hover, far.pos)
 	_press(m, "Tab")
-	assert_eq(m.hover, m.world.player().pos, "then on her")
+	assert_eq(m.look.hover, m.world.player().pos, "then on her")
 	_press(m, "Tab")
-	assert_eq(m.hover, near.pos, "and round again")
+	assert_eq(m.look.hover, near.pos, "and round again")
 	assert_eq(m.picked, [ORB] as Array[StringName], "Tab does not fight while aiming")
 
 
@@ -395,9 +395,9 @@ func test_a_cursor_already_on_a_creature_stays_when_picking() -> void:
 	var m := _main()
 	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(6, 8))
 	var far := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(4, 5))
-	m._look_at(far.pos)
+	m.look.at(far.pos)
 	_press(m, "2")
-	assert_eq(m.hover, far.pos)
+	assert_eq(m.look.hover, far.pos)
 
 
 func test_a_direction_after_a_refused_confirm_still_hurls() -> void:
@@ -421,9 +421,9 @@ func test_esc_sends_the_cursor_back_to_the_pointer() -> void:
 	var m := _main()
 	var foe := FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
 	_press(m, "2")
-	assert_eq(m.hover, foe.pos)
+	assert_eq(m.look.hover, foe.pos)
 	_press(m, "Escape")
-	assert_ne(m.hover, foe.pos)
+	assert_ne(m.look.hover, foe.pos)
 
 
 func test_a_tail_spent_from_full_comes_back_three_rounds_later_at_any_moment() -> void:
@@ -452,7 +452,7 @@ func _guise_ready() -> Node:
 	var recipe: Array = Guise.RECIPE[Guise.SHADOW]
 	m.world.cards.assign(recipe)
 	m.world.tails = m.world.max_tails()
-	m.hover = Vector2i(-1, -1)
+	m.look.hover = Vector2i(-1, -1)
 	for c in recipe:
 		m._add(c)
 	return m
@@ -478,7 +478,7 @@ func test_the_self_key_casts_the_picked_spell_on_her() -> void:
 func test_with_no_foe_a_keyboard_pick_puts_the_cursor_on_her_and_enter_casts_there() -> void:
 	var m := _guise_ready()
 	m._aim()
-	assert_eq(m.hover, m.world.player().pos)
+	assert_eq(m.look.hover, m.world.player().pos)
 	_press(m, "Enter")
 	assert_true(_wears_guise(m))
 
@@ -486,9 +486,9 @@ func test_with_no_foe_a_keyboard_pick_puts_the_cursor_on_her_and_enter_casts_the
 func test_with_no_foe_a_pick_leaves_the_cursor_where_the_pointer_is_on_the_map() -> void:
 	var m := _guise_ready()
 	var at: Vector2i = m.world.player().pos + Vector2i(3, 0)
-	m.hover = at
+	m.look.hover = at
 	m._aim()
-	assert_eq(m.hover, at)
+	assert_eq(m.look.hover, at)
 
 
 func test_tab_goes_through_the_foes_then_to_her() -> void:
@@ -497,11 +497,11 @@ func test_tab_goes_through_the_foes_then_to_her() -> void:
 	m._aim()
 	var foes: Array = Fight.targets(m.world)
 	assert_eq(foes.size(), 1)
-	assert_eq(m.hover, foes[0].pos)
+	assert_eq(m.look.hover, foes[0].pos)
 	m._aim_next()
-	assert_eq(m.hover, m.world.player().pos)
+	assert_eq(m.look.hover, m.world.player().pos)
 	m._aim_next()
-	assert_eq(m.hover, foes[0].pos)
+	assert_eq(m.look.hover, foes[0].pos)
 	m._aim_next()
 	_press(m, "Enter")
 	assert_true(_wears_guise(m), "Enter casts on the tile Tab reached")
@@ -510,7 +510,7 @@ func test_tab_goes_through_the_foes_then_to_her() -> void:
 func test_enter_in_look_mode_on_her_own_tile_casts_the_picked_spell_on_her() -> void:
 	var m := _guise_ready()
 	_press(m, "X")
-	assert_eq(m.hover, m.world.player().pos)
+	assert_eq(m.look.hover, m.world.player().pos)
 	_press(m, "Enter")
 	assert_true(_wears_guise(m))
 
@@ -520,7 +520,7 @@ func test_enter_on_her_own_tile_refuses_a_spell_that_cannot_go_on_her() -> void:
 	m.world.cards.assign([Cards.FOX])
 	m.world.tails = m.world.max_tails()
 	m._add(Cards.FOX)
-	m.hover = m.world.player().pos
+	m.look.hover = m.world.player().pos
 	_press(m, "Enter")
 	assert_eq(m.world.round_no, 0)
 	assert_true(m.refused)

@@ -225,7 +225,7 @@ func run(main: Node) -> void:
 		_again(main)
 	elif asked.has("ask"):
 		ask = asked.ask
-		main._look_at(_start(main.world))
+		main.look.at(_start(main.world))
 
 
 ## Whether a command waits for a tile or a creature.
@@ -245,18 +245,20 @@ func head() -> Array:
 func pick(main: Node, event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			_pick_at(main, main.hover)
+			_pick_at(main, main.look.hover)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_give_up(main)
 		return
 	var action := Keys.action_of(event)
 	if Keys.MOVES.has(action):
-		main._look_at(Grid.nudge(main.hover, Keys.MOVES[action], FAR if event.shift_pressed else 1))
+		main.look.at(
+			Grid.nudge(main.look.hover, Keys.MOVES[action], FAR if event.shift_pressed else 1)
+		)
 	elif action == &"confirm":
 		if not event.is_echo():
-			_pick_at(main, main.hover)
+			_pick_at(main, main.look.hover)
 	elif action == &"fight":
-		main._look_at(_next(main.world, main.hover))
+		main.look.at(_next(main.world, main.look.hover))
 	elif action in [&"cancel", &"cheat"]:
 		_give_up(main)
 
@@ -275,14 +277,14 @@ func _pick_at(main: Node, p: Vector2i) -> void:
 		ask.args.at = p
 	if ask.needs.size() > 1:
 		ask.needs.pop_front()
-		main._look_at(p)
+		main.look.at(p)
 		return
 	var action := {t = &"cheat", cmd = ask.cmd}.merged(ask.args)
 	if not w.can(action):
 		main.sfx.play(&"deny")
 		return
 	ask = {}
-	main._look_at(p)
+	main.look.at(p)
 	await main.act(action)
 	_again(main)
 

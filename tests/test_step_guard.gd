@@ -112,7 +112,7 @@ func test_another_action_only_cancels_the_prompt() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "Right")
 	_press(m, "X")
-	assert_false(m.looking, "the key that cancels does nothing else")
+	assert_false(m.look.active, "the key that cancels does nothing else")
 	assert_eq(m.guard.asking, Vector2i.ZERO)
 	assert_false(_prompt(m).ends_with("Y/N"))
 	_press(m, "Right")

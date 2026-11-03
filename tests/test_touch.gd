@@ -93,7 +93,7 @@ func test_a_tap_on_a_far_known_tile_walks_there() -> void:
 func test_a_tap_leaves_no_hover_frame_where_a_mouse_would_keep_one() -> void:
 	var m := _main()
 	_finger(m, _tile_at(m, Vector2i(5, 8)))
-	assert_false(Grid.inside(m.hover))
+	assert_false(Grid.inside(m.look.hover))
 	assert_eq(m.term.info, [])
 
 
@@ -121,7 +121,7 @@ func test_a_long_press_on_a_tile_shows_its_info_and_the_next_tap_only_closes_it(
 	_hold(m, at)
 	_lift(m, at)
 	assert_false(m.term.info.is_empty(), "the info box is up")
-	assert_eq(m.hover, Vector2i(6, 8))
+	assert_eq(m.look.hover, Vector2i(6, 8))
 	assert_eq(_me(m), Vector2i(4, 8), "lifting the finger does not walk")
 	_finger(m, _tile_at(m, Vector2i(5, 8)))
 	assert_eq(m.term.info, [], "closed")
@@ -136,12 +136,12 @@ func test_a_long_press_on_a_talisman_and_on_the_status_shows_their_info() -> voi
 	_hold(m, card)
 	_lift(m, card)
 	assert_false(m.term.info.is_empty())
-	assert_eq(m.hover_card, Cards.ORB)
+	assert_eq(m.look.hover_card, Cards.ORB)
 	var stat := _hud(m, &"stat")
 	_finger(m, stat)
 	_hold(m, stat)
 	_lift(m, stat)
-	assert_true(m.hover_status)
+	assert_true(m.look.hover_status)
 	assert_false(m.term.info.is_empty())
 
 
@@ -152,10 +152,10 @@ func test_the_pointer_motion_a_browser_reports_for_a_dragging_finger_is_no_hover
 	var motion := InputEventMouseMotion.new()
 	motion.position = at + Vector2(40, 0)
 	m._unhandled_input(motion)
-	assert_false(Grid.inside(m.hover), "a finger is down")
+	assert_false(Grid.inside(m.look.hover), "a finger is down")
 	m._unhandled_input(_touch_event(false, at))
 	m._unhandled_input(motion)
-	assert_true(Grid.inside(m.hover), "a mouse moving with no finger down still points")
+	assert_true(Grid.inside(m.look.hover), "a mouse moving with no finger down still points")
 
 
 # --- swipes ---------------------------------------------------------------------
@@ -261,7 +261,7 @@ func test_aiming_taps_the_target_then_taps_it_again_to_hurl() -> void:
 	_finger(m, _hud(m, &"card", 1))
 	var target := _tile_at(m, Vector2i(9, 8))
 	_finger(m, target)
-	assert_eq(m.hover, Vector2i(9, 8), "the first tap aims")
+	assert_eq(m.look.hover, Vector2i(9, 8), "the first tap aims")
 	assert_eq(m.picked, [Cards.ORB])
 	assert_eq(m.world.round_no, 0)
 	_finger(m, target)
@@ -275,7 +275,7 @@ func test_aiming_at_another_tile_moves_the_aim_instead_of_hurling() -> void:
 	_finger(m, _hud(m, &"card", 1))
 	_finger(m, _tile_at(m, Vector2i(9, 8)))
 	_finger(m, _tile_at(m, Vector2i(9, 4)))
-	assert_eq(m.hover, Vector2i(9, 4))
+	assert_eq(m.look.hover, Vector2i(9, 4))
 	assert_eq(m.world.round_no, 0)
 
 
@@ -303,7 +303,7 @@ func test_a_tap_on_a_talisman_aims_at_the_nearest_creature_in_sight() -> void:
 	m.world.seen.fill(1)
 	m.forecast()
 	_finger(m, _hud(m, &"card", 1))
-	assert_eq(m.hover, Vector2i(8, 8), "the aim is on it, so one tap on it hurls")
+	assert_eq(m.look.hover, Vector2i(8, 8), "the aim is on it, so one tap on it hurls")
 
 
 # --- buttons --------------------------------------------------------------------

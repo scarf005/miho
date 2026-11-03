@@ -42,20 +42,20 @@ func _hall() -> World:
 
 ## Look mode with the cursor on `tile`.
 func _look(m: Node, tile: Vector2i) -> void:
-	m.looking = true
-	m._look_at(tile)
+	m.look.active = true
+	m.look.at(tile)
 
 
 func test_the_mark_key_in_look_mode_marks_and_unmarks_the_cursor_tile() -> void:
 	var m := _main()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
-	assert_true(m._look_key(&"exclude", false))
+	assert_true(m.look.key(&"exclude", false))
 	assert_eq(m.excluded.zones, {tile: Exclusions.DEFAULT_RADIUS})
 	assert_true(m.zone.has(tile))
-	m._look_key(&"exclude", false)
+	m.look.key(&"exclude", false)
 	assert_eq(m.excluded.zones, {tile: 0})
-	m._look_key(&"exclude", false)
+	m.look.key(&"exclude", false)
 	assert_true(m.excluded.is_empty())
 	assert_true(m.zone.is_empty())
 
@@ -64,8 +64,8 @@ func test_a_digit_on_a_zone_centre_sets_its_radius() -> void:
 	var m := _main()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
-	m._look_key(&"exclude", false)
-	m._look_key(&"pick_2", false)
+	m.look.key(&"exclude", false)
+	m.look.key(&"pick_2", false)
 	assert_eq(m.excluded.zones[tile], 2)
 	assert_eq(m.zone.size(), m.excluded.tiles(m.world).size())
 
@@ -73,7 +73,7 @@ func test_a_digit_on_a_zone_centre_sets_its_radius() -> void:
 func test_a_digit_elsewhere_still_picks_a_talisman() -> void:
 	var m := _main()
 	_look(m, m.world.player().pos)
-	assert_false(m._look_key(&"pick_1", false), "left to the normal keys")
+	assert_false(m.look.key(&"pick_1", false), "left to the normal keys")
 	assert_true(m.excluded.is_empty())
 
 
@@ -82,7 +82,7 @@ func test_unknown_tiles_cannot_be_marked() -> void:
 	var far := Vector2i(Grid.W - 1, Grid.H - 1)
 	assert_eq(m.world.known[Grid.index(far)], 0)
 	_look(m, far)
-	m._look_key(&"exclude", false)
+	m.look.key(&"exclude", false)
 	assert_true(m.excluded.is_empty())
 
 
@@ -90,7 +90,7 @@ func test_hovering_a_zone_says_so() -> void:
 	var m := _main()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
-	m._look_key(&"exclude", false)
+	m.look.key(&"exclude", false)
 	_look(m, tile)
 	var text := Info.plain(m.term.info)
 	assert_string_contains(text, "위험구역 (반경 %d)" % Exclusions.DEFAULT_RADIUS)
@@ -99,8 +99,8 @@ func test_hovering_a_zone_says_so() -> void:
 func test_the_clear_key_removes_every_zone() -> void:
 	var m := _main()
 	_look(m, m.world.player().pos)
-	m._look_key(&"exclude", false)
-	m.looking = false
+	m.look.key(&"exclude", false)
+	m.look.active = false
 	m._key(_press("Shift+V"))
 	assert_true(m.excluded.is_empty())
 	assert_true(m.zone.is_empty())
@@ -109,7 +109,7 @@ func test_the_clear_key_removes_every_zone() -> void:
 func test_zones_are_kept_in_the_run_save() -> void:
 	var m := _main()
 	_look(m, m.world.player().pos)
-	m._look_key(&"exclude", false)
+	m.look.key(&"exclude", false)
 	assert_eq(m.run.exclusions, m.excluded.zones)
 	assert_false(m.run.exclusions.is_empty())
 

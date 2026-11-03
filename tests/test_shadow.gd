@@ -225,8 +225,8 @@ func test_comma_casts_the_queue_on_miho() -> void:
 func test_a_click_on_miho_with_a_queue_casts_it_on_her() -> void:
 	var m := _main()
 	m.picked.assign(SHADOW)
-	m.hover = ME
-	m._use_tile(ME, false)
+	m.look.hover = ME
+	m.use_tile(ME, false)
 	while m.busy:
 		await get_tree().process_frame
 	assert_not_null(_shadow(m.world))

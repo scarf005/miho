@@ -39,14 +39,14 @@ func _play(sim: ExampleSim, rounds: int) -> void:
 func test_a_hovered_spell_plays_in_its_box_and_closing_the_box_frees_its_world() -> void:
 	var m := _main()
 	assert_null(m.term.sim)
-	m.hover_card = Cards.FIRE
+	m.look.hover_card = Cards.FIRE
 	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FIRE])
 	var sim: ExampleSim = m.term.sim
 	assert_not_null(sim.world, "its world is made as the box opens")
 	m.refresh()
 	assert_eq(m.term.sim, sim, "the same box goes on playing")
-	m.hover_card = &""
+	m.look.hover_card = &""
 	m.refresh()
 	assert_true(m.term.example.is_empty())
 	assert_null(m.term.sim)
@@ -56,19 +56,19 @@ func test_a_hovered_spell_plays_in_its_box_and_closing_the_box_frees_its_world()
 func test_every_box_about_one_spell_shows_it_and_a_box_about_a_tile_does_not() -> void:
 	var m := _main()
 	m.picked.assign([Cards.FIRE, Cards.FIRE])
-	m.hover_slot = 0
+	m.look.hover_slot = 0
 	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FIRE, Cards.FIRE], "a slot of the queue")
-	m.hover_slot = -1
-	m.hover_spell = "orb+fire"
+	m.look.hover_slot = -1
+	m.look.hover_spell = "orb+fire"
 	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.ORB, Cards.FIRE], "a saved spell")
-	m.hover_spell = ""
-	m.hover_card = Cards.compounds()[0]
+	m.look.hover_spell = ""
+	m.look.hover_card = Cards.compounds()[0]
 	m.refresh()
-	assert_eq(m.term.example.spell, Cards.spell_of(m.hover_card), "a compound")
-	m.hover_card = &""
-	m.hover = m.world.player().pos
+	assert_eq(m.term.example.spell, Cards.spell_of(m.look.hover_card), "a compound")
+	m.look.hover_card = &""
+	m.look.hover = m.world.player().pos
 	m.refresh()
 	assert_true(m.term.example.is_empty(), "a tile")
 
@@ -82,7 +82,7 @@ func test_a_flying_shot_on_the_map_shows_its_spell() -> void:
 	m.world.sense()
 	m.known = m.world.known_clone()
 	var shot: Shot = m.world.shots[0]
-	m.hover = shot.pos
+	m.look.hover = shot.pos
 	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FOX], "from %s" % me)
 
@@ -101,7 +101,7 @@ func test_a_shot_of_a_caster_she_does_not_see_does_not_tell_its_kind() -> void:
 	m.world.seen[Grid.index(shot.pos)] = 1
 	m.world.seen[Grid.index(hidden.pos)] = 1
 	m.known = m.world.known_clone()
-	m.hover = shot.pos
+	m.look.hover = shot.pos
 	m.refresh()
 	assert_ne(m.term.example.key, hidden.kind)
 
@@ -156,11 +156,11 @@ func test_the_spellbook_puts_the_example_where_no_text_is_and_none_where_none_fi
 func test_the_runs_world_and_dice_are_untouched_by_a_hovered_spell() -> void:
 	var seen := _main()
 	var plain := _main()
-	seen.hover_card = Cards.FIRE
+	seen.look.hover_card = Cards.FIRE
 	seen.refresh()
 	var sim: ExampleSim = seen.term.sim
 	_play(sim, 30)
-	seen.hover_card = &""
+	seen.look.hover_card = &""
 	seen.refresh()
 	assert_eq(seen.world.rng.state, plain.world.rng.state)
 	assert_eq(seen.world.tiles, plain.world.tiles)
@@ -175,11 +175,11 @@ func test_a_slot_the_queue_no_longer_has_is_no_longer_under_the_pointer() -> voi
 	m.world.cards.assign(Cards.ALL)
 	m.picked.assign([Cards.FOX, Cards.FIRE])
 	m.forecast()
-	m.hover_slot = 1
+	m.look.hover_slot = 1
 	m.refresh()
 	assert_false(m.term.info.is_empty(), "the slot shows a box")
 	m._unpick()
-	assert_eq(m.hover_slot, -1, "the slot went with the talisman")
-	m.hover_slot = 0
+	assert_eq(m.look.hover_slot, -1, "the slot went with the talisman")
+	m.look.hover_slot = 0
 	m._unpick()
-	assert_eq(m.hover_slot, -1, "the queue is empty")
+	assert_eq(m.look.hover_slot, -1, "the queue is empty")
