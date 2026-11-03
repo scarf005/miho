@@ -9,6 +9,9 @@ var _script := ""
 
 
 func run() -> void:
+	# A frame of a test waits on nothing, and no one reads the orphans the last wait counts.
+	OS.low_processor_usage_mode = false
+	gut._time_to_wait_for_final_queue_free = 0.0
 	gut.start_script.connect(_start)
 	gut.end_script.connect(_end)
 

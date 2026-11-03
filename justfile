@@ -75,7 +75,7 @@ test: rust import
         mkdir -p "$d/data"
         : > "$d/junit.xml"
         XDG_DATA_HOME=$PWD/$d/data timeout -k 10 "${MIHO_TEST_TIMEOUT:-600}" \
-            {{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd -gconfig= -gexit -glog=1 -gdisable_colors \
+            {{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd -gconfig= -gexit -glog=1 -gdisable_colors -gpaint_after=0 \
             -gpre_run_script=res://tools/test_times.gd -gjunit_xml_file="$d/junit.xml" \
             -gtest="$list" > "$d/log" 2>&1 &
         pids+=($!)
