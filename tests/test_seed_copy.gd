@@ -34,7 +34,7 @@ func test_a_click_on_the_seed_line_of_the_banner_copies_the_seed() -> void:
 		var e := InputEventMouseButton.new()
 		e.button_index = MOUSE_BUTTON_LEFT
 		e.pressed = true
-		var r: Rect2 = m.term.banner_rect(line)
+		var r: Rect2 = Banner.rect(m.term, line)
 		e.position = m.term.get_global_transform() * ((r.position + r.size / 2.0) * Term.CELL)
 		m._unhandled_input(e)
 	click.call(0)

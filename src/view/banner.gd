@@ -29,7 +29,7 @@ static func input(m: Node, event: InputEvent) -> void:
 		m._new_game()
 	elif Keys.action_of(event) == &"log":
 		m._open(&"log")
-	elif m._left_click(event) and m.term.banner_at(m._local(event.position)) == SEED:
+	elif m._left_click(event) and at(m.term, m._local(event.position)) == SEED:
 		m._copy_seed()
 
 
@@ -162,3 +162,53 @@ static func copy(seed_value: int, t: Term) -> void:
 	clipboard.call(str(seed_value))
 	if t.banner_lines.size() > SEED:
 		t.banner_lines[SEED] = seed_line(seed_value, true)
+
+
+## Draws the lines of `t` on a dark layer over the map area.
+static func draw(t: Term) -> void:
+	t.draw_rect(
+		Rect2(Vector2.ZERO, Vector2(t.cols, t.map_view().y) * Term.CELL), Color(0, 0, 0, 0.8)
+	)
+	for r: Array in rows(t):
+		t._text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
+
+
+## Each row of the banner as [line index, text, position in cells]: the lines
+## wrapped to the screen width, one blank row between them, centred on the screen
+## width the dark layer under them covers (a row wider than it starts at the left edge).
+static func rows(t: Term) -> Array:
+	var rows_of_line := []
+	var height := 0
+	for line in t.banner_lines:
+		var wrapped: Array = Keywords.rows_of([[line, Palette.TEXT]], t.cols).map(
+			func(row): return "".join(row.map(func(r): return r[0]))
+		)
+		rows_of_line.append(wrapped)
+		height += wrapped.size() + 1
+	var out := []
+	var y := maxi(0, (t.map_view().y - height) / 2)
+	for i in rows_of_line.size():
+		for text: String in rows_of_line[i]:
+			var x := maxf(0.0, (t.cols - Term._cells(text)) / 2.0)
+			out.append([i, text, Vector2(x, y)])
+			y += 1
+		y += 1
+	return out
+
+
+## Where line `i` of the banner of `t` is drawn, in cells.
+static func rect(t: Term, i: int) -> Rect2:
+	var out := Rect2()
+	for r: Array in rows(t):
+		if r[0] == i:
+			var at_line := Rect2(r[2], Vector2(Term._cells(r[1]), 1))
+			out = at_line if out.size == Vector2.ZERO else out.merge(at_line)
+	return out
+
+
+## The line of the banner of `t` under a point in its space, or -1.
+static func at(t: Term, local: Vector2) -> int:
+	for i in t.banner_lines.size():
+		if rect(t, i).has_point(local / Term.CELL):
+			return i
+	return -1

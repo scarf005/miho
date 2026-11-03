@@ -346,54 +346,8 @@ func _draw_game() -> void:
 		if banner_lines.is_empty():
 			_draw_log()
 		_draw_info()
-	var v := map_view()
 	if panel.is_empty() and not banner_lines.is_empty():
-		draw_rect(Rect2(Vector2.ZERO, Vector2(cols, v.y) * CELL), Color(0, 0, 0, 0.8))
-		for r: Array in _banner_rows():
-			_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
-
-
-## Each row of the banner as [line index, text, position in cells]: the lines
-## wrapped to the screen width, one blank row between them, centred on the screen
-## width the dark layer under them covers (a row wider than it starts at the left edge).
-func _banner_rows() -> Array:
-	var v := map_view()
-	var rows_of_line := []
-	var height := 0
-	for line in banner_lines:
-		var wrapped: Array = Keywords.rows_of([[line, Palette.TEXT]], cols).map(
-			func(row): return "".join(row.map(func(r): return r[0]))
-		)
-		rows_of_line.append(wrapped)
-		height += wrapped.size() + 1
-	var out := []
-	var y := maxi(0, (v.y - height) / 2)
-	for i in rows_of_line.size():
-		for text: String in rows_of_line[i]:
-			var w := _cells(text)
-			var x := maxf(0.0, (cols - w) / 2.0)
-			out.append([i, text, Vector2(x, y)])
-			y += 1
-		y += 1
-	return out
-
-
-## Where banner line `i` is drawn, in cells.
-func banner_rect(i: int) -> Rect2:
-	var rect := Rect2()
-	for r: Array in _banner_rows():
-		if r[0] == i:
-			var at := Rect2(r[2], Vector2(_cells(r[1]), 1))
-			rect = at if rect.size == Vector2.ZERO else rect.merge(at)
-	return rect
-
-
-## The banner line under a point in this node's space, or -1.
-func banner_at(local: Vector2) -> int:
-	for i in banner_lines.size():
-		if banner_rect(i).has_point(local / CELL):
-			return i
-	return -1
+		Banner.draw(self)
 
 
 func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
