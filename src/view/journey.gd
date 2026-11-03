@@ -30,9 +30,9 @@ func _init(of: Node) -> void:
 
 
 ## Plays `next` (an action, or empty when done) round after round. Stops before a
-## step whose forecast shows a fall or Travel.hazard, and after a round in which
-## something Miho should react to happened (Travel.interrupted), or when a key or
-## click asks. `why` is said when it cannot take a first step.
+## step whose forecast shows Travel.hazard, and after a round in which something
+## Miho should react to happened (Travel.interrupted), or when a key or click asks.
+## `why` is said when it cannot take a first step.
 func go(next: Callable, why := "") -> void:
 	m.casting.clear()
 	var sighted := Travel.in_sight(m.world)
@@ -47,7 +47,7 @@ func go(next: Callable, why := "") -> void:
 				m.say(why)
 			break
 		var f: Forecast = m.ahead.get(action.get("dir", Vector2i.ZERO))
-		if f == null or f.drops_me() or Travel.hazard(m.world, action, f) != &"":
+		if f == null or Travel.hazard(m.world, action, f) != &"":
 			break
 		var before: World = m.world.clone()
 		var events: Array = await m.act(action)

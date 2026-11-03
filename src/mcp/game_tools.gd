@@ -15,6 +15,7 @@ const MAX_ROUNDS := 200
 ## What a walk says for each Travel.hazard.
 const HAZARDS := {
 	&"hurt": "the next step would hurt Miho",
+	&"drop": "the next step would drop Miho to a lower storey",
 	&"noticed": "the next step would get Miho noticed",
 	&"blocked": "the next step is not allowed",
 	&"fire": "fire is next to the next step",

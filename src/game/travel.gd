@@ -29,11 +29,13 @@ static func near_fire(w: World, p: Vector2i) -> bool:
 	return false
 
 
-## Why a walk must not take `action`, forecast as `f`: &"hurt", &"noticed", &"blocked" or
-## &"fire", or empty. The walk in the game (Journey) and the agent's (GameTools) stop by it.
+## Why a walk must not take `action`, forecast as `f`: &"hurt", &"drop", &"noticed", &"blocked"
+## or &"fire", or empty. The walk in the game (Journey) and the agent's (GameTools) stop by it.
 static func hazard(w: World, action: Dictionary, f: Forecast) -> StringName:
 	if f.hurt_me() > 0:
 		return &"hurt"
+	if f.drops_me():
+		return &"drop"
 	if not f.noticed.is_empty():
 		return &"noticed"
 	if not w.can(action):
