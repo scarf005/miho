@@ -267,11 +267,11 @@ static func _sear(w: World, a: Actor, kind: int) -> void:
 	Harm.fire(w, a, HOT[kind].harm, a.pos)
 
 
-## A fused orb of lava bursts: it sears those on `tiles` that are not on hot ground yet, in the
-## air too, so that the orbs of one volley sear a creature once.
+## A fused orb of lava bursts: it sears those on `tiles`, in the air too, but one seared this
+## round already, so that the orbs of one volley sear a creature once.
 static func _flare(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 	for a in Spray.on(w, s, tiles):
-		if not w.hot.has(a.pos):
+		if not w.events.any(func(e): return e.t == &"sear" and e.id == a.id):
 			_sear(w, a, MOLTEN)
 
 
