@@ -446,8 +446,8 @@ static func _chase(w: World, a: Actor) -> void:
 
 
 ## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground that would
-## sear it (Compounds.spared) or onto a plate it keeps off (Traps.bars). A dull creature takes the tile of a foe's projectile for
-## free (`_blind_to`).
+## sear it (Compounds.spared) or onto a plate it keeps off (Traps.bars). A dull creature takes
+## the tile of a foe's projectile for free (`_blind_to`).
 static func _walkable(w: World, a: Actor) -> Callable:
 	var ground := Bestiary.ground(a.kind)
 	var spared := Compounds.spared(a)

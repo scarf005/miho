@@ -350,9 +350,7 @@ func _title(t: Callable, whole := true) -> String:
 			if n > 0:
 				parts.append(name if n == 1 else "%s×%d" % [name, n])
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
-	if bores():
-		form = PIERCE_NAME
-	elif mortar():
+	if mortar():
 		form = MORTAR_NAME
 	form = t.call(form)
 	if whole and shots() > 1:
@@ -370,8 +368,10 @@ func _named(slot: StringName) -> int:
 	return 1 if mortar() and slot == &"shrapnel" else 0
 
 
-## What its wisps are called: a wisp with one 쇠 is a bullet.
+## What its wisps are called: a wisp of 쇠 is a bullet.
 func wisp() -> String:
+	if bores():
+		return PIERCE_NAME
 	if bullet():
 		return BULLET_NAME if wisp_name == "" else BOLT_NAME
 	return wisp_name if wisp_name != "" else SHAPE_NAME[WISP]
@@ -387,18 +387,18 @@ static func price(n: int) -> int:
 
 
 ## Copies of 구 that count, up to the last row of ORB_ACCEL.
-func tier() -> int:
+func _tier() -> int:
 	return mini(count(Cards.ORB), ORB_ACCEL.size() - 1)
 
 
 ## Tiles a second the orb gains each round it flies.
 func accel() -> int:
-	return ORB_ACCEL[tier()]
+	return ORB_ACCEL[_tier()]
 
 
 ## Whether the orb has BLAST_TIER copies of 구 or more.
 func edged() -> bool:
-	return orb and tier() >= BLAST_TIER
+	return orb and _tier() >= BLAST_TIER
 
 
 ## Whether where the orb ends hurts the eight tiles round it: a fire orb, or
@@ -415,9 +415,9 @@ func blast(centre: int) -> int:
 	var fire := World.FIRE_DAMAGE + extra(Cards.FIRE) if orb and has(Cards.FIRE) else 0
 	if not edged():
 		return fire
-	if tier() >= FULL_TIER:
+	if _tier() >= FULL_TIER:
 		return fire + centre
-	return fire + (ceili(centre / 2.0) if tier() >= HALF_TIER else BLAST_HARM)
+	return fire + (ceili(centre / 2.0) if _tier() >= HALF_TIER else BLAST_HARM)
 
 
 func speed() -> int:
@@ -466,7 +466,7 @@ func life() -> int:
 ## Projectiles one cast hurls: a wisp per 여, TWINS orbs from TWIN_TIER copies
 ## of 구 (they spread among the creatures in sight: Homing.spread), else one.
 func shots() -> int:
-	if orb and tier() == TWIN_TIER and not swaps():
+	if orb and _tier() == TWIN_TIER and not swaps():
 		return TWINS
 	return count(Cards.FOX) if shape == WISP and not swaps() else 1
 

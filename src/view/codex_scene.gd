@@ -82,6 +82,8 @@ const TABLE := {
 	"묶임": [NEAR, CASTS, [Cards.FOX, Cards.WOOD]],
 	"기절": [NEAR, CASTS, [Cards.FOX, Cards.EARTH]],
 	"경계": ["  @    z", CASTS, [Cards.METAL]],
+	&"fox+metal": ["  @ w  w", CASTS],
+	&"fox+metal+metal": ["  @ w#w", CASTS],
 	"둔갑": ["  @w", ">s..", Guise.RECIPE[Guise.GUISE]],
 	"쇠발톱": ["  @d", "s>>", Guise.RECIPE[Guise.TALON]],
 	"은신": ["  @     d", "s...", Guise.RECIPE[Guise.CLOAK]],
