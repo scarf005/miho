@@ -302,3 +302,72 @@ func test_the_example_has_no_way_to_the_sound_or_the_log() -> void:
 	m.term.shown.connect(func(e, _at): calls.append(e))
 	_visit(m)
 	assert_eq(calls, [], "the game's own term told the sound nothing")
+
+
+## The health the creatures against Miho lose over the rounds of `scene`, which `w` plays.
+func _foe_harm(w: World, scene: Dictionary) -> int:
+	var harm := 0
+	var foes := {}
+	for action in CodexScene.actions(scene):
+		if not w.can(action):
+			break
+		for a in w.actors:
+			if a.faction != Actor.FOX:
+				foes[a.id] = true
+		for event in w.act(action):
+			if event.t == &"hurt" and foes.has(event.id):
+				harm += event.n
+	return harm
+
+
+## Whether the spell of `cards` harms a tough creature that stands still, 3 or 5 tiles from
+## Miho in a bare hall, in the rounds a spell's example lasts, by either of two dice.
+func _harms_a_creature_that_stands_still(cards: Array) -> bool:
+	for dx in [3, 5]:
+		for seed in [1, 2]:
+			var scene := {
+				key = &"cheonha",
+				map = "  @" + " ".repeat(dx - 1) + "g",
+				cards = cards,
+				do = "c" + ".".repeat(SpellScene.WAITS),
+			}
+			var w := CodexScene.build(scene)
+			w.rng.seed = seed
+			if _foe_harm(w, scene) > 0:
+				return true
+	return false
+
+
+## The orbs that burst within a tile of a creature against Miho over the rounds of `scene`.
+func _bursts_on_a_creature(scene: Dictionary) -> int:
+	var w := CodexScene.build(scene)
+	var bursts := 0
+	for action in CodexScene.actions(scene):
+		var foes := (
+			w.actors.filter(func(a): return a.faction != Actor.FOX).map(func(a): return a.pos)
+		)
+		for event in w.act(action):
+			if event.t == &"burst" and foes.any(func(p): return Grid.cheb(p, event.at) <= 1):
+				bursts += 1
+	return bursts
+
+
+func test_the_furnace_example_bursts_more_than_one_orb_on_its_creature() -> void:
+	var name := Lang.t(Cards.NAME[Forge.FURNACE])
+	var entry: Dictionary = Codex.entries(COMPOUNDS).filter(func(e): return e.name == name)[0]
+	var spellbook := SpellScene.of([Cards.ORB] + Cards.made_of(Forge.FURNACE))
+	for shown: Dictionary in [entry.scene, spellbook]:
+		var scene := SpellScene.resolve(shown)[0]
+		assert_gt(_bursts_on_a_creature(scene), 1, "an orb in the first rounds and another later")
+
+
+func test_the_example_of_a_spell_that_harms_harms_the_creature_it_shows() -> void:
+	for tab in [SPELLS, COMPOUNDS]:
+		for e in Codex.entries(tab):
+			for scene in SpellScene.resolve(e.scene):
+				var spell := Spell.make(scene.cards)
+				if Guise.kind(spell) != &"":
+					continue
+				if _harms_a_creature_that_stands_still(scene.cards):
+					var w := CodexScene.build(scene)
+					assert_gt(_foe_harm(w, scene), 0, "%s harms in its example" % spell.shown())

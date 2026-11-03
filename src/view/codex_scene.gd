@@ -11,11 +11,11 @@ extends RefCounted
 ## has a mark from MARKS, or one of:
 ## @ Miho, d a creature hunting her that casts nothing, i one that can sleep, z one at
 ## rest, w a dull one (장승) at rest with one health, J a 장승 that casts once it sees her, m the
-## creature the row is for, hunting her and casting nothing, D a jar with a doll
-## that puts on her the curse the row is for (`_doll`), t the tile the row is for,
-## * burning floorboards, ^ burning straw, h and H hot ground of Compounds.HOT, 0 to
-## 4 thick gas of that Gas kind, E the elixir, P a peach, K kimchi, S a scroll. A jar
-## the row is for holds kimchi.
+## creature the row is for, hunting her and casting nothing, g a 천하대장군 that does the same
+## and stays where it stands, D a jar with a doll that puts on her the curse the row is
+## for (`_doll`), t the tile the row is for, * burning floorboards, ^ burning straw, h and
+## H hot ground of Compounds.HOT, 0 to 4 thick gas of that Gas kind, E the elixir, P a
+## peach, K kimchi, S a scroll. A jar the row is for holds kimchi.
 ## `do` is a round for each letter: c casts the cards east, s casts them on Miho,
 ## > steps east, ^ north, v south, . waits, x shuts the door to the east.
 
@@ -69,6 +69,10 @@ const SHOT := "  @   d"
 const NEAR := "  @  d"
 ## 사령술: she fells one, and what rises goes at the next.
 const RISES := "  @ w    d"
+## 용광로: she stands on a strip of land across a pond, where the furnace can only be put in
+## line with the creature, near enough for its orbs to burst on it.
+const POND_ROWS := "~~~~~~~~~~~~~/~~~~~~~~~~~~~/~~~~~~~~~~~~~/"
+const CAUSEWAY := POND_ROWS + "~~~@     g~~~/" + POND_ROWS + "~~~~~~~~~~~~~"
 const TABLE := {
 	Guise.SHADOW: ["  @     d", "s..."],
 	Guise.GUISE: ["  @w", ">s.."],
@@ -87,6 +91,7 @@ const TABLE := {
 	Guise.CLOAK: ["  @     d", "s..."],
 	Cards.VAULT: ["  @__", "c..."],
 	&"magpie": ["   ________/  @________/   ________", "c>>>>>>>>"],
+	Forge.FURNACE: [CAUSEWAY, "c......"],
 	&"thunder": ["      w/  @  w  w/      w", "c..."],
 	Guise.NAME[Guise.RAISE]: [RISES, "s>>....", Guise.RECIPE[Guise.RAISE]],
 	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],
@@ -268,6 +273,8 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 			_doll(w, key, p)
 		"d", "z":
 			_foe(w, &"dokkaebi", p, mark)
+		"g":
+			_foe(w, &"cheonha", p, mark)
 		"m":
 			_foe(w, key, p, mark)
 			if Bestiary.info(key).get("move") == &"water":
@@ -321,6 +328,6 @@ static func _foe(w: World, kind: StringName, p: Vector2i, mark: String) -> void:
 		a.magic.cooldown = NEVER
 	if mark == "w":
 		a.hp = 1
-	if mark in ["d", "i", "m"]:
+	if mark in ["d", "i", "m", "g"]:
 		a.brain.alert = Actor.HUNT
 		a.brain.target = w.player().pos
