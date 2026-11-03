@@ -676,85 +676,9 @@ static func _drum_line(w: World, p: Vector2i) -> Array:
 ## rules, a shared rule as its glossary tag.
 static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[String]:
 	var out: Array[String] = []
-	match t:
-		World.ALTAR:
-			out.append(Lang.t("막음: 길, 주문"))
-		World.ALTAR_LIT:
-			out.append(Lang.t("막음: 길, 주문"))
-			out.append(Lang.t("빛: %d칸") % Light.SOUL_RADIUS)
-		World.LAMP:
-			out.append(Lang.t("막음: 길, 주문"))
-			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
-		World.VEIL:
-			out.append(Lang.t("막음: 길, 주문"))
-			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
-			out.append(Lang.t("옆 칸 초당 피해: %d") % World.FIRE_DAMAGE)
-		World.DOOR:
-			out.append(Lang.t("막음: 시야"))
-			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
-		World.DOOR_OPEN:
-			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
-		World.DRUM:
-			out.append(Lang.t("칠 때 소음: 층 전체"))
-			out.append(Lang.t("북소리를 들은 적: 북 친 적이 당신을 마지막으로 본 곳을 수색"))
-			out.append(Lang.t("북 치는 적: 당신을 쫓는 영리한 적, 걸어서 %d칸 안") % Drums.REACH)
-			out.append(Lang.t("찢어짐: 구슬, 부딪침"))
-		World.LANTERN:
-			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
-		World.LANTERN_OUT:
-			out.append(Lang.t("다시 켜짐: 불, 수색하는 적"))
-		World.BAMBOO:
-			out.append(Lang.t("막음: 시야, 빛"))
-		World.REEDS:
-			out.append(Lang.t("막음: 시야"))
-			out.append(Lang.t("밟으면: 쓰러짐"))
-		World.PILLAR:
-			out.append(Lang.t("막음: 길, 시야, 빛"))
-		World.WOOD_WALL:
-			out.append(Lang.t("막음: 길, 시야, 빛"))
-			out.append(Lang.t("부서짐: 구슬, 밀침, 도약"))
-		World.SCREEN:
-			out.append(Lang.t("막음: 길, 시야"))
-			out.append(Lang.t("타격: 쓰러짐"))
-		World.JAR:
-			out.append(Lang.t("막음: 길"))
-			out.append(Lang.t("타격: 깨짐"))
-		World.CENSER:
-			out.append(Lang.t("막음: 길"))
-			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
-			out.append(
-				Lang.t("%s 최대 양: %d") % [Lang.t(Gas.of(Gas.INCENSE, "name")), Gas.VENT_LEVEL]
-			)
-			out.append(Lang.t("타격: %s, 이 칸과 옆 %d칸") % [Lang.t(coals.name), Placement.SIDES.size()])
-			out.append(Lang.t("타격: 옆 가연성·인화성 칸에 불"))
-			out.append(Lang.t("%s: %d초") % [Lang.t(coals.name), Compounds.HOT_ROUNDS])
-			out.append(Lang.t("%s 초당 피해: %d") % [Lang.t(coals.name), coals.harm])
-		World.BOARD_ROTTEN:
-			out.append(Lang.t("소음: %d") % Terrain.CRACK)
-		World.STATUE:
-			out.append(Lang.t("막음: 길"))
-		World.POND:
-			out.append(Lang.t("이동 불가."))
-		World.SKY:
-			out.append(Lang.t("이동 불가."))
-			out.append(Lang.t("사라짐: 추락한 적"))
-			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
-		World.WINDOW:
-			out.append(Lang.t("막음: 길"))
-		World.THORNS:
-			out.append(Lang.t("지날 때 피해: %d") % Compounds.THORN)
-		World.MUD:
-			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
-		World.TRAP_ALARM:
-			out.append(Lang.t("소음: 층 전체"))
-		World.TRAP_COLLAPSE:
-			out.append(Lang.t("작동: 하늘로 추락"))
-		World.TRAP_FIRE:
-			out.append(Lang.t("작동: 진행 방향 앞 %d칸에 불") % Traps.FLAME_REACH)
-		World.TRAP_VINE:
-			var side := 2 * Traps.VINE_REACH + 1
-			out.append(Lang.t("작동: 주위 %d×%d 모두 묶임") % [side, side])
-			out.append(Lang.t("묶임: %d초") % Traps.ROOT_ROUNDS)
+	out.append_array(_fixture_notes(t))
+	out.append_array(_device_notes(t))
+	out.append_array(_ground_notes(t))
 	if Tiles.of(t, "trap"):
 		out.append(Lang.t("함정."))
 	if Terrain.wall(t) and breakable:
@@ -780,6 +704,105 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(
 				"%s: %s" % [Lang.t("%s 주문") % Lang.t(Cards.NAME[e]), SpellInfo.becomes(change)]
 			)
+	return out
+
+
+## The notes of what stands on a floor: what it blocks, lights, takes and gives when struck.
+static func _fixture_notes(t: int) -> Array[String]:
+	var out: Array[String] = []
+	match t:
+		World.ALTAR:
+			out.append(Lang.t("막음: 길, 주문"))
+		World.ALTAR_LIT:
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("빛: %d칸") % Light.SOUL_RADIUS)
+		World.LAMP:
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
+		World.VEIL:
+			out.append(Lang.t("막음: 길, 주문"))
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
+			out.append(Lang.t("옆 칸 초당 피해: %d") % World.FIRE_DAMAGE)
+		World.LANTERN:
+			out.append(Lang.t("빛: %d칸") % Light.LANTERN_RADIUS)
+		World.LANTERN_OUT:
+			out.append(Lang.t("다시 켜짐: 불, 수색하는 적"))
+		World.BAMBOO:
+			out.append(Lang.t("막음: 시야, 빛"))
+		World.PILLAR:
+			out.append(Lang.t("막음: 길, 시야, 빛"))
+		World.WOOD_WALL:
+			out.append(Lang.t("막음: 길, 시야, 빛"))
+			out.append(Lang.t("부서짐: 구슬, 밀침, 도약"))
+		World.SCREEN:
+			out.append(Lang.t("막음: 길, 시야"))
+			out.append(Lang.t("타격: 쓰러짐"))
+		World.JAR:
+			out.append(Lang.t("막음: 길"))
+			out.append(Lang.t("타격: 깨짐"))
+		World.CENSER:
+			out.append(Lang.t("막음: 길"))
+			var coals: Dictionary = Compounds.HOT[Compounds.LAVA]
+			out.append(
+				Lang.t("%s 최대 양: %d") % [Lang.t(Gas.of(Gas.INCENSE, "name")), Gas.VENT_LEVEL]
+			)
+			out.append(Lang.t("타격: %s, 이 칸과 옆 %d칸") % [Lang.t(coals.name), Placement.SIDES.size()])
+			out.append(Lang.t("타격: 옆 가연성·인화성 칸에 불"))
+			out.append(Lang.t("%s: %d초") % [Lang.t(coals.name), Compounds.HOT_ROUNDS])
+			out.append(Lang.t("%s 초당 피해: %d") % [Lang.t(coals.name), coals.harm])
+		World.STATUE:
+			out.append(Lang.t("막음: 길"))
+		World.WINDOW:
+			out.append(Lang.t("막음: 길"))
+	return out
+
+
+## The notes of what a creature or a step sets off: doors, drums and plates.
+static func _device_notes(t: int) -> Array[String]:
+	var out: Array[String] = []
+	match t:
+		World.DOOR:
+			out.append(Lang.t("막음: 시야"))
+			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
+		World.DOOR_OPEN:
+			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
+		World.DRUM:
+			out.append(Lang.t("칠 때 소음: 층 전체"))
+			out.append(Lang.t("북소리를 들은 적: 북 친 적이 당신을 마지막으로 본 곳을 수색"))
+			out.append(Lang.t("북 치는 적: 당신을 쫓는 영리한 적, 걸어서 %d칸 안") % Drums.REACH)
+			out.append(Lang.t("찢어짐: 구슬, 부딪침"))
+		World.TRAP_ALARM:
+			out.append(Lang.t("소음: 층 전체"))
+		World.TRAP_COLLAPSE:
+			out.append(Lang.t("작동: 하늘로 추락"))
+		World.TRAP_FIRE:
+			out.append(Lang.t("작동: 진행 방향 앞 %d칸에 불") % Traps.FLAME_REACH)
+		World.TRAP_VINE:
+			var side := 2 * Traps.VINE_REACH + 1
+			out.append(Lang.t("작동: 주위 %d×%d 모두 묶임") % [side, side])
+			out.append(Lang.t("묶임: %d초") % Traps.ROOT_ROUNDS)
+	return out
+
+
+## The notes of ground that is walked on or across: reeds, rotten boards, water, sky, thorns, mud.
+static func _ground_notes(t: int) -> Array[String]:
+	var out: Array[String] = []
+	match t:
+		World.REEDS:
+			out.append(Lang.t("막음: 시야"))
+			out.append(Lang.t("밟으면: 쓰러짐"))
+		World.BOARD_ROTTEN:
+			out.append(Lang.t("소음: %d") % Terrain.CRACK)
+		World.POND:
+			out.append(Lang.t("이동 불가."))
+		World.SKY:
+			out.append(Lang.t("이동 불가."))
+			out.append(Lang.t("사라짐: 추락한 적"))
+			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
+		World.THORNS:
+			out.append(Lang.t("지날 때 피해: %d") % Compounds.THORN)
+		World.MUD:
+			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
 	return out
 
 
