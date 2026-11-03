@@ -339,16 +339,16 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 		Preview.point(main, pos)
 		_freeze(not main.term.info.is_empty())
 	elif hud.cast_at(term, local):
-		if not main.picked.is_empty() or not main.staged.is_empty():
+		if not main.casting.picked.is_empty() or not main.casting.staged.is_empty():
 			main.do_action(&"confirm", false)
 	elif saved != &"":
 		main.do_action(saved, false)
 	elif card != &"":
-		main._add(card)
-		main._aim()
+		main.casting.add(card)
+		main.casting.aim()
 	elif not Grid.inside(tile):
 		return
-	elif main.picked.is_empty():
+	elif main.casting.picked.is_empty():
 		Preview.point(main, pos)
 		main.click(_click(pos))
 		Preview.point(main, OFF)

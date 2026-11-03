@@ -128,7 +128,7 @@ var origin_row := 0
 
 ## Takes what the pages list from the game `m` (main.gd).
 func sync(m: Node) -> void:
-	queued = Spell.make(m.picked)
+	queued = Spell.make(m.casting.picked)
 	log_rows = m.messages.lines.map(Messages.shown)
 	seed_value = m.run_seed
 	debug.world = m.world

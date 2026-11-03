@@ -42,8 +42,7 @@ var term: Term
 var sfx: Sfx
 var touch := Touch.new()
 var reel := Highlight.new()
-var picked: Array[StringName] = []
-var staged: Array[Dictionary] = []
+var casting := Casting.new(self)
 var busy := false
 var state := &"title"
 var look := LookMode.new(self)
@@ -55,11 +54,6 @@ var guard := StepGuard.new()
 var held := false
 ## The title asks whether to erase the run on disk for a new one.
 var erasing := false
-## A talisman or saved spell was just refused: the next direction or tile is
-## eaten, so the press meant to hurl it does not walk Miho instead.
-var refused := false
-## Key (Spell.key) of the last spell hurled this run, or empty; F picks it again.
-var last_spell := ""
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
 var skip := false
@@ -189,13 +183,12 @@ func new_run(seed_value := randi()) -> void:
 	run = SaveGame.new(save_path, seed_value)
 	erasing = false
 	kills = 0
-	last_spell = ""
+	casting.last_spell = ""
 	excluded.clear()
 	messages = Messages.new()
 	term.log_lines = []
 	reel.clear()
-	picked.clear()
-	staged.clear()
+	casting.forget()
 	term.show_world(world)
 	forecast()
 
@@ -288,8 +281,7 @@ func resume() -> void:
 	term.banner_lines = []
 	term.log_lines = []
 	reel.clear()
-	picked.clear()
-	staged.clear()
+	casting.forget()
 	term.show_world(world)
 	show_log()
 	forecast()
@@ -333,7 +325,7 @@ func do_action(action: StringName, shift: bool) -> void:
 		return
 	if action != &"":
 		WordHover.hold(self, false)
-	var eat := _eats_move()
+	var eat := casting.eats_move()
 	if not guard.answers(action):
 		_unask()
 	if shutting:
@@ -345,22 +337,28 @@ func do_action(action: StringName, shift: bool) -> void:
 		return
 	if Keys.MOVES.has(action):
 		if not eat:
-			_direction(Keys.MOVES[action], shift)
+			casting.direction(Keys.MOVES[action], shift)
 	elif action.begins_with("pick_"):
 		var i := int(action.trim_prefix("pick_")) - 1
 		if i < world.cards.size():
-			_add(world.cards[i])
-			_aim()
-	elif action in [&"wait", &"confirm"] and not picked.is_empty():
-		_hurl_at_cursor()
-	elif action == &"self" and not picked.is_empty():
-		_direction(Vector2i.ZERO, shift)
+			casting.add(world.cards[i])
+			casting.aim()
+	elif action in [&"wait", &"confirm"] and not casting.picked.is_empty():
+		casting.hurl_at_cursor()
+	elif action == &"self" and not casting.picked.is_empty():
+		casting.direction(Vector2i.ZERO, shift)
 	elif action in [&"wait", &"confirm"]:
-		act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
+		act(
+			(
+				{t = &"cast", spells = casting.staged.duplicate()}
+				if not casting.staged.is_empty()
+				else {t = &"wait"}
+			)
+		)
 	elif action == &"unpick":
-		_unpick()
-	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
-		_clear()
+		casting.unpick()
+	elif action == &"cancel" and (not casting.picked.is_empty() or not casting.staged.is_empty()):
+		casting.clear()
 	elif action == &"cancel":
 		_open(&"options")
 	elif action == &"stairs":
@@ -376,10 +374,10 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"spellbook":
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
-		_recall(settings.spells.get(action, ""))
-		_aim()
+		casting.recall(settings.spells.get(action, ""))
+		casting.aim()
 	elif action == &"again":
-		_again()
+		casting.again()
 	elif action == &"look":
 		look.active = true
 		look.at(world.player().pos)
@@ -392,10 +390,10 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"dispel":
 		Menu.dispel(self)
 	elif action == &"fight":
-		if picked.is_empty():
+		if casting.picked.is_empty():
 			_fight()
 		else:
-			_aim_next()
+			casting.aim_next()
 	elif action == &"debug":
 		debugging = not debugging
 		refresh()
@@ -409,11 +407,11 @@ func click(event: InputEventMouseButton) -> void:
 	term.pin = {}
 	look.active = false
 	shutting = false
-	var eat := _eats_move()
+	var eat := casting.eats_move()
 	if not Grid.inside(look.hover) or look.hover - world.player().pos != guard.asking:
 		_unask()
 	if event.button_index == MOUSE_BUTTON_RIGHT:
-		_clear()
+		casting.clear()
 		return
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
@@ -423,23 +421,15 @@ func click(event: InputEventMouseButton) -> void:
 		return
 	var card: StringName = term.bar.card_at(term, local)
 	if card != &"":
-		_add(card)
+		casting.add(card)
 		return
 	var preset: String = term.bar.preset_at(term, local)
 	if preset != "":
-		_recall(preset)
-		_aim()
+		casting.recall(preset)
+		casting.aim()
 		return
 	if Grid.inside(look.hover) and not eat:
 		use_tile(look.hover, event.shift_pressed)
-
-
-## Whether this press is the one after a refusal with nothing to hurl, which
-## must not walk; any press ends the refusal.
-func _eats_move() -> bool:
-	var eat := refused and picked.is_empty() and staged.is_empty()
-	refused = false
-	return eat
 
 
 ## What a left click on `tile` does: on Miho's own, cast the talismans picked on her, or
@@ -447,12 +437,12 @@ func _eats_move() -> bool:
 ## another with talismans picked, step to a neighbour, or walk to a farther tile.
 func use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
-	if tile == me and picked.is_empty():
-		if staged.is_empty() and not Guise.worn(world, world.player()).is_empty():
+	if tile == me and casting.picked.is_empty():
+		if casting.staged.is_empty() and not Guise.worn(world, world.player()).is_empty():
 			_open(&"dispel")
 		return
-	if not picked.is_empty():
-		_direction(Grid.nearest_dir(tile - me), hold)
+	if not casting.picked.is_empty():
+		casting.direction(Grid.nearest_dir(tile - me), hold)
 	elif Grid.cheb(tile, me) == 1:
 		move(tile - me)
 	else:
@@ -468,145 +458,6 @@ func to_term(screen: Vector2) -> Vector2:
 	if glass.visible:
 		screen = Crt.flat(screen, get_viewport().get_visible_rect().size, settings.crt)
 	return term.get_global_transform().affine_inverse() * screen
-
-
-## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
-func _add(card: StringName) -> void:
-	var why: Variant = null
-	if Spell.fill(picked + [card]).size() > Spell.MAX_SLOTS:
-		why = "부적 칸이 가득 찼다"
-	elif _held() + Spell.price(picked.size() + 1) > Cheat.tails(world):
-		why = _short(_held() + Spell.price(picked.size() + 1))
-	elif Spell.make(picked + [card]) == null:
-		why = func():
-			return Lang.t("%s: 맨 앞, 또는 %s") % [Lang.t(Cards.NAME[Cards.VAULT]), SpellInfo.behind()]
-	if why != null:
-		_refuse(why)
-	else:
-		picked.append(card)
-		sfx.play(&"click")
-	forecast()
-
-
-## Picks a saved spell's talismans to aim it, if Miho has them and the tails.
-func _recall(key: String) -> void:
-	var spell := Spell.from_key(key) if key != "" else null
-	var why: Variant = null
-	if spell == null:
-		why = "저장한 주문이 없다"
-	elif not spell.cards.all(func(c): return world.cards.has(c)):
-		why = "부적이 모자라다"
-	elif spell.cost() + _held() > Cheat.tails(world):
-		why = _short(spell.cost() + _held())
-	if why != null:
-		_refuse(why)
-		return
-	picked.assign(spell.cards)
-	sfx.play(&"click")
-	forecast()
-
-
-## Picks the last spell hurled again.
-func _again() -> void:
-	if last_spell == "":
-		_refuse("아직 던진 주문이 없다")
-	else:
-		_recall(last_spell)
-		_aim()
-
-
-## For keyboard picks, which have no pointer to aim with: puts the cursor on the
-## nearest creature in sight, unless it is on one already.
-func _aim() -> void:
-	var foes := Fight.targets(world)
-	if picked.is_empty() or foes.any(func(a): return a.pos == look.hover):
-		return
-	if not foes.is_empty():
-		look.at(foes[0].pos)
-	elif not Grid.inside(look.hover) and not touch.enabled:
-		look.at(world.player().pos)
-
-
-## With talismans picked, Tab moves the cursor to the next creature in sight, then to Miho.
-func _aim_next() -> void:
-	var stops: Array = Fight.targets(world).map(func(a): return a.pos) + [world.player().pos]
-	look.at(stops[(stops.find(look.hover) + 1) % stops.size()])
-
-
-## Hurls the picked talismans towards the cursor, on Miho's own tile on her; with no
-## cursor it says so instead of passing the round.
-func _hurl_at_cursor() -> void:
-	if Grid.inside(look.hover):
-		_direction(Grid.nearest_dir(look.hover - world.player().pos), false)
-	else:
-		_refuse("겨눌 곳이 없다")
-
-
-## The refusal when a spell needs more tails than Miho has.
-func _short(need: int) -> Callable:
-	var lack := need - Cheat.tails(world)
-	return func(): return Lang.t("꼬리가 %d개 모자라다") % lack
-
-
-## Says why a talisman or saved spell cannot be picked, with the warning sound.
-func _refuse(why: Variant) -> void:
-	say(Guise.shown_only if why is String and why == Guise.only() else why)
-	sfx.play(&"deny")
-	refused = true
-
-
-func _held() -> int:
-	return staged.reduce(func(n, s): return n + Spell.price(s.cards.size()), 0)
-
-
-## Takes back the last talisman picked, else the last spell held.
-func _unpick() -> void:
-	if not picked.is_empty():
-		picked.pop_back()
-	elif not staged.is_empty():
-		staged.pop_back()
-	else:
-		return
-	sfx.play(&"click")
-	forecast()
-
-
-## Empties the queue and what is held; the cursor goes back to the pointer.
-func _clear() -> void:
-	picked.clear()
-	staged.clear()
-	Preview.point(self, mouse())
-	forecast()
-
-
-## With talismans picked a direction hurls them (Shift holds them), and no
-## direction casts them on Miho; otherwise it moves.
-## Space and the like hurl towards the cursor through here.
-func _direction(d: Vector2i, hold: bool) -> void:
-	if picked.is_empty():
-		if not staged.is_empty() and not hold:
-			act({t = &"cast", spells = staged.duplicate()})
-		elif staged.is_empty():
-			move(d)
-		return
-	var spell := Spell.make(picked)
-	var why := Guise.why(world.player(), spell, d)
-	if why != "":
-		_refuse(why)
-		return
-	var spells := staged.duplicate()
-	spells.append({cards = picked.duplicate(), dir = d})
-	if not world.can({t = &"cast", spells = spells}):
-		if spell.shape == Spell.LEAP:
-			say("착지할 곳이 없다")
-		sfx.play(&"click")
-		return
-	if hold:
-		staged = spells
-		picked.clear()
-		forecast()
-		return
-	act({t = &"cast", spells = spells})
 
 
 # --- turns ----------------------------------------------------------------------
@@ -660,9 +511,8 @@ func act(action: Dictionary) -> Array:
 	run.keep(world, messages)
 	show_log()
 	if action.t == &"cast":
-		last_spell = "+".join(action.spells.back().cards)
-		picked.clear()
-		staged.clear()
+		casting.last_spell = "+".join(action.spells.back().cards)
+		casting.forget()
 		Preview.point(self, mouse())
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
@@ -683,7 +533,7 @@ func act(action: Dictionary) -> Array:
 ## in which something Miho should react to happened (Travel.interrupted), or
 ## when a key or click asks. `why` is said when it cannot take a first step.
 func _journey(next: Callable, why := "") -> void:
-	_clear()
+	casting.clear()
 	var sighted := Travel.in_sight(world)
 	var rounds := 0
 	walking = true
@@ -737,7 +587,7 @@ func _fight() -> void:
 		say("너무 다쳐서 싸울 수 없다" if Fight.too_hurt(world) else "보이는 적이 없다")
 		sfx.play(&"click")
 		return
-	_clear()
+	casting.clear()
 	await act(step)
 
 
@@ -867,8 +717,8 @@ func _panel_input(event: InputEvent) -> void:
 			apply()
 		&"cast":
 			_close()
-			_clear()
-			_recall(menu.chosen.key())
+			casting.clear()
+			casting.recall(menu.chosen.key())
 			return
 		&"restart":
 			_close()
@@ -923,7 +773,7 @@ func forecast() -> void:
 	ahead = {}
 	aims = {}
 	reach = {}
-	var spell := Spell.make(picked)
+	var spell := Spell.make(casting.picked)
 	if spell != null and (spell.shape == Spell.LEAP or spell.has(Cards.BUNSIN)):
 		for d in Grid.DIRS:
 			if Leap.open(known, known.player(), spell, d):

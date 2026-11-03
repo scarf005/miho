@@ -58,13 +58,13 @@ func test_number_keys_queue_talismans_with_repeats_until_the_tails_run_out() -> 
 	var m := _main()
 	for k in ["1", "1", "3", "4"]:
 		_press(m, k)
-	assert_eq(m.picked, [FOX, FOX, Cards.FIRE, Cards.WATER] as Array[StringName])
-	assert_eq(Spell.make(m.picked).slots, [FOX, FOX, &"steam"] as Array[StringName])
-	assert_eq(Spell.make(m.picked).cost(), 5, "four cards, five tails")
+	assert_eq(m.casting.picked, [FOX, FOX, Cards.FIRE, Cards.WATER] as Array[StringName])
+	assert_eq(Spell.make(m.casting.picked).slots, [FOX, FOX, &"steam"] as Array[StringName])
+	assert_eq(Spell.make(m.casting.picked).cost(), 5, "four cards, five tails")
 	_press(m, "2")
-	assert_eq(m.picked.size(), 4, "a fifth card would cost seven")
+	assert_eq(m.casting.picked.size(), 4, "a fifth card would cost seven")
 	_press(m, "Escape")
-	assert_true(m.picked.is_empty(), "Esc clears the queue")
+	assert_true(m.casting.picked.is_empty(), "Esc clears the queue")
 
 
 func test_three_tails_queue_three_cards_and_refuse_a_fourth_that_costs_five() -> void:
@@ -72,21 +72,21 @@ func test_three_tails_queue_three_cards_and_refuse_a_fourth_that_costs_five() ->
 	m.world.tails = 3
 	for i in 4:
 		_press(m, "1")
-	assert_eq(m.picked.size(), 3)
-	assert_true(m.refused)
+	assert_eq(m.casting.picked.size(), 3)
+	assert_true(m.casting.refused)
 
 
 func test_five_tails_queue_a_fourth_card_but_refuse_a_fifth_that_costs_seven() -> void:
 	var m := _main()
 	for i in 3:
 		_press(m, "1")
-	assert_false(m.refused)
+	assert_false(m.casting.refused)
 	_press(m, "1")
-	assert_eq(m.picked.size(), 4, "the fourth costs five")
-	assert_false(m.refused)
+	assert_eq(m.casting.picked.size(), 4, "the fourth costs five")
+	assert_false(m.casting.refused)
 	_press(m, "1")
-	assert_eq(m.picked.size(), 4, "the fifth costs seven")
-	assert_true(m.refused)
+	assert_eq(m.casting.picked.size(), 4, "the fifth costs seven")
+	assert_true(m.casting.refused)
 
 
 func test_the_status_bar_holds_the_cost_of_the_queue_and_of_every_spell_held_with_shift() -> void:
@@ -96,18 +96,18 @@ func test_the_status_bar_holds_the_cost_of_the_queue_and_of_every_spell_held_wit
 	for i in 3:
 		_press(m, "1")
 	assert_eq(StatusBar._held(t), 3, "three cards")
-	m._direction(Vector2i.RIGHT, true)
-	assert_eq(m.staged.size(), 1)
+	m.casting.direction(Vector2i.RIGHT, true)
+	assert_eq(m.casting.staged.size(), 1)
 	assert_eq(StatusBar._held(t), 3, "held with Shift")
 	for i in 2:
 		_press(m, "1")
 	assert_eq(StatusBar._held(t), 3 + 2, "plus two cards")
-	m._direction(Vector2i.UP, true)
+	m.casting.direction(Vector2i.UP, true)
 	assert_eq(StatusBar._held(t), 5, "two spells add their costs")
-	assert_false(m.refused)
+	assert_false(m.casting.refused)
 	_press(m, "1")
-	assert_true(m.picked.is_empty(), "no tail is left")
-	assert_true(m.refused)
+	assert_true(m.casting.picked.is_empty(), "no tail is left")
+	assert_true(m.casting.refused)
 
 
 func test_a_queue_dot_is_bright_only_while_one_more_card_is_paid() -> void:
@@ -143,7 +143,7 @@ func test_the_queue_holds_five_slots_even_with_tails_to_spare() -> void:
 	m.world.depth = 9
 	for i in 6:
 		_press(m, "1")
-	assert_eq(m.picked.size(), 5)
+	assert_eq(m.casting.picked.size(), 5)
 
 
 func test_a_saved_spell_fills_the_queue() -> void:
@@ -151,12 +151,14 @@ func test_a_saved_spell_fills_the_queue() -> void:
 	m.settings.spells = {&"slot_1": "fox+fox+fire"}
 	_press(m, "2")
 	_press(m, "Q")
-	assert_eq(m.picked, [FOX, FOX, Cards.FIRE] as Array[StringName], "it replaces the queue")
+	assert_eq(
+		m.casting.picked, [FOX, FOX, Cards.FIRE] as Array[StringName], "it replaces the queue"
+	)
 	m.world.tails = 2
 	m.settings.spells = {&"slot_2": "fox+fox+fox"}
-	m.picked.clear()
+	m.casting.picked.clear()
 	_press(m, "W")
-	assert_true(m.picked.is_empty(), "not with too few tails")
+	assert_true(m.casting.picked.is_empty(), "not with too few tails")
 
 
 func test_the_status_row_shows_and_points_at_each_queue_slot() -> void:
@@ -220,7 +222,7 @@ func test_the_spell_name_never_covers_the_queue() -> void:
 		_press(m, k)
 	var t: Term = m.term
 	t.cols = 30
-	var at := StatusBar.title_at(t, Spell.make(m.picked).title())
+	var at := StatusBar.title_at(t, Spell.make(m.casting.picked).title())
 	assert_true(at.y < t.rows - 1 or at.x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS)
 
 
@@ -293,7 +295,7 @@ func test_a_refused_talisman_makes_the_next_direction_key_do_nothing() -> void:
 	m.world.tails = 0
 	var start: Vector2i = m.world.player().pos
 	_press(m, "1")
-	assert_true(m.picked.is_empty(), "no tail is left for the talisman")
+	assert_true(m.casting.picked.is_empty(), "no tail is left for the talisman")
 	_press(m, "Right")
 	assert_eq(m.world.player().pos, start, "the key meant to aim does not walk")
 	m.busy = false
@@ -342,7 +344,7 @@ func test_a_picked_talisman_aims_at_the_nearest_creature_and_space_hurls_it() ->
 	assert_eq(m.world.shots.map(func(s): return s.dir), [Vector2i.RIGHT], "hurled at it")
 	while m.busy:
 		await get_tree().process_frame
-	assert_true(m.picked.is_empty())
+	assert_true(m.casting.picked.is_empty())
 
 
 func test_tab_moves_the_aim_to_the_next_creature_in_sight() -> void:
@@ -358,7 +360,7 @@ func test_tab_moves_the_aim_to_the_next_creature_in_sight() -> void:
 	assert_eq(m.look.hover, m.world.player().pos, "then on her")
 	_press(m, "Tab")
 	assert_eq(m.look.hover, near.pos, "and round again")
-	assert_eq(m.picked, [ORB] as Array[StringName], "Tab does not fight while aiming")
+	assert_eq(m.casting.picked, [ORB] as Array[StringName], "Tab does not fight while aiming")
 
 
 func test_space_with_talismans_and_nothing_to_aim_at_keeps_the_turn() -> void:
@@ -367,7 +369,7 @@ func test_space_with_talismans_and_nothing_to_aim_at_keeps_the_turn() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "Space")
 	assert_eq(m.world.round_no, round_no, "no wasted wait")
-	assert_eq(m.picked, [ORB] as Array[StringName])
+	assert_eq(m.casting.picked, [ORB] as Array[StringName])
 
 
 func test_f_picks_the_last_hurled_spell_again() -> void:
@@ -376,9 +378,9 @@ func test_f_picks_the_last_hurled_spell_again() -> void:
 		_press(m, k)
 	while m.busy:
 		await get_tree().process_frame
-	assert_true(m.picked.is_empty())
+	assert_true(m.casting.picked.is_empty())
 	_press(m, "F")
-	assert_eq(m.picked, [FOX, FOX] as Array[StringName])
+	assert_eq(m.casting.picked, [FOX, FOX] as Array[StringName])
 
 
 func test_period_with_talismans_picked_hurls_at_the_cursor_too() -> void:
@@ -412,9 +414,9 @@ func test_f_with_nothing_hurled_yet_refuses_and_picks_nothing() -> void:
 	var m := _main()
 	var round_no: int = m.world.round_no
 	_press(m, "F")
-	assert_true(m.picked.is_empty())
+	assert_true(m.casting.picked.is_empty())
 	assert_eq(m.world.round_no, round_no)
-	assert_true(m.refused)
+	assert_true(m.casting.refused)
 
 
 func test_esc_sends_the_cursor_back_to_the_pointer() -> void:
@@ -454,7 +456,7 @@ func _guise_ready() -> Node:
 	m.world.tails = m.world.max_tails()
 	m.look.hover = Vector2i(-1, -1)
 	for c in recipe:
-		m._add(c)
+		m.casting.add(c)
 	return m
 
 
@@ -477,7 +479,7 @@ func test_the_self_key_casts_the_picked_spell_on_her() -> void:
 
 func test_with_no_foe_a_keyboard_pick_puts_the_cursor_on_her_and_enter_casts_there() -> void:
 	var m := _guise_ready()
-	m._aim()
+	m.casting.aim()
 	assert_eq(m.look.hover, m.world.player().pos)
 	_press(m, "Enter")
 	assert_true(_wears_guise(m))
@@ -487,22 +489,22 @@ func test_with_no_foe_a_pick_leaves_the_cursor_where_the_pointer_is_on_the_map()
 	var m := _guise_ready()
 	var at: Vector2i = m.world.player().pos + Vector2i(3, 0)
 	m.look.hover = at
-	m._aim()
+	m.casting.aim()
 	assert_eq(m.look.hover, at)
 
 
 func test_tab_goes_through_the_foes_then_to_her() -> void:
 	var m := _guise_ready()
 	_foe_in_sight(m)
-	m._aim()
+	m.casting.aim()
 	var foes: Array = Fight.targets(m.world)
 	assert_eq(foes.size(), 1)
 	assert_eq(m.look.hover, foes[0].pos)
-	m._aim_next()
+	m.casting.aim_next()
 	assert_eq(m.look.hover, m.world.player().pos)
-	m._aim_next()
+	m.casting.aim_next()
 	assert_eq(m.look.hover, foes[0].pos)
-	m._aim_next()
+	m.casting.aim_next()
 	_press(m, "Enter")
 	assert_true(_wears_guise(m), "Enter casts on the tile Tab reached")
 
@@ -519,8 +521,8 @@ func test_enter_on_her_own_tile_refuses_a_spell_that_cannot_go_on_her() -> void:
 	var m := _main()
 	m.world.cards.assign([Cards.FOX])
 	m.world.tails = m.world.max_tails()
-	m._add(Cards.FOX)
+	m.casting.add(Cards.FOX)
 	m.look.hover = m.world.player().pos
 	_press(m, "Enter")
 	assert_eq(m.world.round_no, 0)
-	assert_true(m.refused)
+	assert_true(m.casting.refused)

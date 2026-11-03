@@ -324,7 +324,7 @@ func _guise_in_hand(m: Node) -> void:
 	m.world.player().buffs.prey = &"dokkaebi"
 	m.world.tails = 5
 	m.world.cards.assign(Cards.ALL)
-	m.picked.assign([Cards.WOOD, Cards.EARTH, Cards.WOOD])
+	m.casting.picked.assign([Cards.WOOD, Cards.EARTH, Cards.WOOD])
 
 
 func test_casting_a_guise_before_a_sharp_creature_asks_and_takes_no_turn() -> void:
@@ -363,7 +363,7 @@ func test_any_other_key_keeps_the_talismans_and_casts_nothing() -> void:
 	await _settle(m)
 	assert_false(m.world.player().buffs.guise)
 	assert_eq(m.world.round_no, round_no)
-	assert_eq(m.picked.size(), 3)
+	assert_eq(m.casting.picked.size(), 3)
 	assert_false(_prompt(m).ends_with("Y/N"))
 
 

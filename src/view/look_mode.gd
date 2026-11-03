@@ -31,7 +31,7 @@ func key(action: StringName, far: bool) -> bool:
 	elif action == &"confirm":
 		var goal := hover
 		stop()
-		if goal != m.world.player().pos or not m.picked.is_empty():
+		if goal != m.world.player().pos or not m.casting.picked.is_empty():
 			m.use_tile(goal, false)
 	elif action in [&"cancel", &"look"]:
 		stop()

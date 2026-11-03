@@ -55,7 +55,7 @@ func test_a_hovered_spell_plays_in_its_box_and_closing_the_box_frees_its_world()
 
 func test_every_box_about_one_spell_shows_it_and_a_box_about_a_tile_does_not() -> void:
 	var m := _main()
-	m.picked.assign([Cards.FIRE, Cards.FIRE])
+	m.casting.picked.assign([Cards.FIRE, Cards.FIRE])
 	m.look.hover_slot = 0
 	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FIRE, Cards.FIRE], "a slot of the queue")
@@ -173,13 +173,13 @@ func test_the_runs_world_and_dice_are_untouched_by_a_hovered_spell() -> void:
 func test_a_slot_the_queue_no_longer_has_is_no_longer_under_the_pointer() -> void:
 	var m := _main()
 	m.world.cards.assign(Cards.ALL)
-	m.picked.assign([Cards.FOX, Cards.FIRE])
+	m.casting.picked.assign([Cards.FOX, Cards.FIRE])
 	m.forecast()
 	m.look.hover_slot = 1
 	m.refresh()
 	assert_false(m.term.info.is_empty(), "the slot shows a box")
-	m._unpick()
+	m.casting.unpick()
 	assert_eq(m.look.hover_slot, -1, "the slot went with the talisman")
 	m.look.hover_slot = 0
-	m._unpick()
+	m.casting.unpick()
 	assert_eq(m.look.hover_slot, -1, "the queue is empty")

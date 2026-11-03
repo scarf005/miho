@@ -104,13 +104,14 @@ func test_the_bar_clears_the_queue_and_the_name_at_every_zoom() -> void:
 func test_the_bar_is_not_the_spell_name_to_the_mouse() -> void:
 	var m := _main()
 	m.term.fit(Vector2(1920, 1080), 0.0)
-	m.picked.assign([Cards.ORB])
+	m.casting.picked.assign([Cards.ORB])
 	var t: Term = m.term
 	var on_bar := (NoiseMeter.at(t) + Vector2(1, 0.5)) * Term.CELL
 	assert_eq(StatusBar.hand_at(t, on_bar), "")
-	var name := StatusBar.title_at(t, Spell.make(m.picked).title())
+	var name := StatusBar.title_at(t, Spell.make(m.casting.picked).title())
 	assert_eq(
-		StatusBar.hand_at(t, (name + Vector2(0.25, 0.5)) * Term.CELL), Spell.make(m.picked).key()
+		StatusBar.hand_at(t, (name + Vector2(0.25, 0.5)) * Term.CELL),
+		Spell.make(m.casting.picked).key()
 	)
 
 

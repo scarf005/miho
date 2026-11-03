@@ -362,7 +362,7 @@ func _pick_leap(m: Node) -> void:
 func test_the_aim_preview_shows_the_leap_and_miho_where_she_lands() -> void:
 	var m := _main()
 	_pick_leap(m)
-	assert_eq(m.picked, _typed(LEAP))
+	assert_eq(m.casting.picked, _typed(LEAP))
 	assert_true(m.reach.has(Vector2i(7, 8)), "the landing east is tinted")
 	assert_false(m.reach.has(Vector2i(5, 8)), "not the sky it clears")
 	m.look.hover = Vector2i(9, 8)
@@ -390,9 +390,9 @@ func test_a_talisman_after_a_swapping_leap_is_refused() -> void:
 	m.world.tails = 9
 	_press(m, "2")
 	_pick_leap(m)
-	assert_eq(m.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
+	assert_eq(m.casting.picked, _typed([Cards.ORB] + LEAP), "behind an orb it swaps")
 	_press(m, "1")
-	assert_eq(m.picked, _typed([Cards.ORB] + LEAP))
+	assert_eq(m.casting.picked, _typed([Cards.ORB] + LEAP))
 	assert_eq(m.messages.lines.back().text, "도약: 맨 앞, 또는 여·구 뒤 맨 끝")
 
 

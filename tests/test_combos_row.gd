@@ -74,9 +74,9 @@ func test_the_row_fits_before_the_name_and_the_bar_at_every_zoom_of_a_1280x720_w
 	var m := _main()
 	var t: Term = m.term
 	_hold(m, Cards.ALL, 9)
-	m.picked.assign([Cards.FIRE, Cards.WOOD, Cards.EARTH])
-	m.staged.assign([{cards = [Cards.FIRE]}, {cards = [Cards.WATER]}])
-	var name := StatusBar._name(t, Spell.make(m.picked))
+	m.casting.picked.assign([Cards.FIRE, Cards.WOOD, Cards.EARTH])
+	m.casting.staged.assign([{cards = [Cards.FIRE]}, {cards = [Cards.WATER]}])
+	var name := StatusBar._name(t, Spell.make(m.casting.picked))
 	for zoom in Settings.ZOOMS:
 		t.fit(Vector2(1280, 720), zoom)
 		var from := StatusBar.queue_x(t) + Spell.MAX_SLOTS
@@ -117,8 +117,8 @@ func test_the_name_wins_when_the_row_is_tight() -> void:
 	_hold(m, Cards.ALL, 9)
 	t.fit(Vector2(1280, 720), 0.0)
 	var free := StatusBar.combos(t).size()
-	m.picked.assign([Cards.FIRE, Cards.WOOD, Cards.EARTH])
-	var name := StatusBar._name(t, Spell.make(m.picked))
+	m.casting.picked.assign([Cards.FIRE, Cards.WOOD, Cards.EARTH])
+	var name := StatusBar._name(t, Spell.make(m.casting.picked))
 	assert_eq(StatusBar.title_at(t, name).y, float(t.rows - 1), "the name stays on the row")
 	assert_lte(StatusBar.combos(t).size(), free)
 
@@ -152,10 +152,12 @@ func test_a_click_on_a_compound_fills_the_queue_with_its_talismans() -> void:
 	t.fit(Vector2(1920, 1080), 0.0)
 	_hold(m, [Cards.FIRE, Cards.WATER], 9)
 	m.world.tails = m.world.max_tails()
-	m.picked.assign([Cards.FIRE, Cards.FIRE])
+	m.casting.picked.assign([Cards.FIRE, Cards.FIRE])
 	var c := Cards.pair(Cards.FIRE, Cards.WATER)
 	_left_click(m, Vector2(StatusBar.combos(t)[0].x + 0.5, t.rows - 0.5))
-	assert_eq(Spell.make(m.picked).slots, [c] as Array[StringName], "the queue is that spell")
+	assert_eq(
+		Spell.make(m.casting.picked).slots, [c] as Array[StringName], "the queue is that spell"
+	)
 
 
 func test_a_click_on_a_compound_she_cannot_pay_for_now_is_refused() -> void:
@@ -165,8 +167,8 @@ func test_a_click_on_a_compound_she_cannot_pay_for_now_is_refused() -> void:
 	_hold(m, [Cards.FIRE, Cards.WATER], 9)
 	m.world.tails = 0
 	_left_click(m, Vector2(StatusBar.combos(t)[0].x + 0.5, t.rows - 0.5))
-	assert_eq(m.picked, [] as Array[StringName])
-	assert_true(m.refused)
+	assert_eq(m.casting.picked, [] as Array[StringName])
+	assert_true(m.casting.refused)
 
 
 func test_a_click_on_a_saved_spell_fills_the_queue_with_it() -> void:
@@ -179,4 +181,4 @@ func test_a_click_on_a_saved_spell_fills_the_queue_with_it() -> void:
 	t.saved = m.settings.spells
 	var slot: Dictionary = StatusBar.saved_slots(t)[0]
 	_left_click(m, Vector2(slot.x + 0.1, t.rows - 1.5))
-	assert_eq(m.picked, [Cards.FOX] as Array[StringName])
+	assert_eq(m.casting.picked, [Cards.FOX] as Array[StringName])

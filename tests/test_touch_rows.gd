@@ -98,7 +98,7 @@ func test_a_tap_on_a_saved_spell_picks_and_aims_it_and_a_hold_shows_it() -> void
 	_lift(m, _screen(m, chip.get_center()))
 	_finger(m, _screen(m, chip.get_center()))
 	_finger(m, _screen(m, chip.get_center()))
-	assert_eq(m.picked, [Cards.ORB])
+	assert_eq(m.casting.picked, [Cards.ORB])
 	assert_eq(m.look.hover, Vector2i(8, 8), "aimed at the nearest creature, as a key aims it")
 
 
@@ -174,7 +174,7 @@ func test_a_tap_on_a_row_of_the_spellbook_selects_it_and_throw_casts_the_selecte
 	assert_eq(m.menu.selected, 1)
 	_finger(m, _hud(m, &"enter"))
 	assert_eq(m.overlay, &"", "the page is closed")
-	assert_eq(m.picked, [Cards.FIRE], "the selected spell is picked")
+	assert_eq(m.casting.picked, [Cards.FIRE], "the selected spell is picked")
 
 
 # --- the layout -----------------------------------------------------------------

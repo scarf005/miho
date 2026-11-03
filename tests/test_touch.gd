@@ -182,14 +182,14 @@ func test_a_swipe_that_starts_on_the_hud_steps_nowhere() -> void:
 func test_a_swipe_with_talismans_queued_hurls_that_way() -> void:
 	var m := _main()
 	_finger(m, _hud(m, &"card", 1))
-	assert_eq(m.picked, [Cards.ORB])
+	assert_eq(m.casting.picked, [Cards.ORB])
 	var from := _tile_at(m, Vector2i(10, 8))
 	var rounds: int = m.world.round_no
 	_finger(m, from, from + Vector2(80, 0))
 	assert_eq(m.world.round_no, rounds + 1, "a round passed")
 	assert_eq(_me(m), Vector2i(4, 8), "Miho did not walk")
 	await _settle(m)
-	assert_eq(m.picked, [])
+	assert_eq(m.casting.picked, [])
 
 
 # --- debug picks ----------------------------------------------------------------
@@ -252,7 +252,7 @@ func test_the_debug_list_fits_the_screen_after_the_phone_is_turned() -> void:
 func test_a_talisman_tapped_is_queued_and_a_tap_on_it_again_is_not_a_second_pick() -> void:
 	var m := _main()
 	_finger(m, _hud(m, &"card", 0))
-	assert_eq(m.picked, [Cards.FOX])
+	assert_eq(m.casting.picked, [Cards.FOX])
 	assert_eq(m.world.round_no, 0, "no round passed")
 
 
@@ -262,12 +262,12 @@ func test_aiming_taps_the_target_then_taps_it_again_to_hurl() -> void:
 	var target := _tile_at(m, Vector2i(9, 8))
 	_finger(m, target)
 	assert_eq(m.look.hover, Vector2i(9, 8), "the first tap aims")
-	assert_eq(m.picked, [Cards.ORB])
+	assert_eq(m.casting.picked, [Cards.ORB])
 	assert_eq(m.world.round_no, 0)
 	_finger(m, target)
 	assert_eq(m.world.round_no, 1, "the second tap hurls")
 	await _settle(m)
-	assert_eq(m.picked, [])
+	assert_eq(m.casting.picked, [])
 
 
 func test_aiming_at_another_tile_moves_the_aim_instead_of_hurling() -> void:
@@ -286,7 +286,7 @@ func test_a_tap_on_the_queue_hurls_at_the_aim() -> void:
 	_finger(m, _hud(m, &"queue", -1))
 	assert_eq(m.world.round_no, 1)
 	await _settle(m)
-	assert_eq(m.picked, [])
+	assert_eq(m.casting.picked, [])
 
 
 func test_a_tap_on_the_queue_with_no_aim_says_there_is_nothing_to_aim_at() -> void:
@@ -320,7 +320,7 @@ func test_unpick_takes_back_the_last_talisman() -> void:
 	_finger(m, _hud(m, &"card", 0))
 	_finger(m, _hud(m, &"card", 1))
 	_finger(m, _hud(m, &"unpick"))
-	assert_eq(m.picked, [Cards.FOX])
+	assert_eq(m.casting.picked, [Cards.FOX])
 
 
 func test_explore_and_stairs_do_what_their_keys_do() -> void:
@@ -335,7 +335,7 @@ func test_the_menu_button_clears_the_queue_first_then_opens_the_options() -> voi
 	var m := _main()
 	_finger(m, _hud(m, &"card", 0))
 	_finger(m, _hud(m, &"cancel"))
-	assert_eq(m.picked, [])
+	assert_eq(m.casting.picked, [])
 	assert_eq(m.overlay, &"")
 	_finger(m, _hud(m, &"cancel"))
 	assert_eq(m.overlay, &"options")

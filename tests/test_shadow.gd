@@ -214,17 +214,17 @@ func _press(m: Node, key: String) -> void:
 
 func test_comma_casts_the_queue_on_miho() -> void:
 	var m := _main()
-	m.picked.assign(SHADOW)
+	m.casting.picked.assign(SHADOW)
 	_press(m, "Comma")
 	while m.busy:
 		await get_tree().process_frame
 	assert_not_null(_shadow(m.world))
-	assert_eq(m.picked, [] as Array[StringName])
+	assert_eq(m.casting.picked, [] as Array[StringName])
 
 
 func test_a_click_on_miho_with_a_queue_casts_it_on_her() -> void:
 	var m := _main()
-	m.picked.assign(SHADOW)
+	m.casting.picked.assign(SHADOW)
 	m.look.hover = ME
 	m.use_tile(ME, false)
 	while m.busy:
@@ -239,4 +239,4 @@ func test_comma_with_a_spell_that_does_not_go_on_miho_says_so_and_keeps_the_turn
 	_press(m, "Comma")
 	assert_eq(m.world.round_no, round_no)
 	assert_eq(m.messages.lines.back().text, Guise.only())
-	assert_eq(m.picked, [FOX] as Array[StringName], "the queue stays")
+	assert_eq(m.casting.picked, [FOX] as Array[StringName], "the queue stays")

@@ -122,7 +122,7 @@ func test_the_box_of_a_saved_spell_without_an_entry_of_its_own_opens_its_shape()
 
 func test_the_box_of_a_queue_slot_opens_the_talisman_at_that_slot() -> void:
 	var m := _main(false)
-	m.picked.assign([Cards.ORB, Cards.FIRE])
+	m.casting.picked.assign([Cards.ORB, Cards.FIRE])
 	m.look.hover_slot = 1
 	m.refresh()
 	_press(m, "M")

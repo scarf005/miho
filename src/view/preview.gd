@@ -51,8 +51,8 @@ static func paint(m: Node) -> void:
 	_inspect(m)
 	term.debug = DebugView.view(world) if m.debugging else {}
 	term.zone = m.zone
-	term.picked = m.picked
-	term.staged = m.staged
+	term.picked = m.casting.picked
+	term.staged = m.casting.staged
 	var tints: Dictionary = m.reach.duplicate()
 	var marks := {}
 	term.lines = []
@@ -69,13 +69,13 @@ static func paint(m: Node) -> void:
 	if not m.reach.is_empty() and Grid.inside(hover) and hover != me:
 		var aim := Grid.nearest_dir(hover - me)
 		if not m.aims.has(aim):
-			var spells: Array = m.staged.duplicate()
-			spells.append({cards = m.picked.duplicate(), dir = aim})
+			var spells: Array = m.casting.staged.duplicate()
+			spells.append({cards = m.casting.picked.duplicate(), dir = aim})
 			m.aims[aim] = Forecast.of(world, {t = &"cast", spells = spells})
 		AimView.paint(m.aims[aim], world, m.known, term, tints, marks)
 	elif (
-		m.picked.is_empty()
-		and m.staged.is_empty()
+		m.casting.picked.is_empty()
+		and m.casting.staged.is_empty()
 		and Grid.inside(hover)
 		and Grid.cheb(hover, me) > 1
 	):
@@ -114,7 +114,7 @@ static func _inspect(m: Node) -> void:
 ## Sets what the box under the pointer tells (`info`), and returns the example of the one
 ## spell it is about, or none.
 static func _tell(m: Node) -> Dictionary:
-	var held := Spell.make(m.picked)
+	var held := Spell.make(m.casting.picked)
 	if held == null or m.look.hover_slot >= held.slots.size():
 		m.look.hover_slot = -1
 	var term: Term = m.term
@@ -133,7 +133,7 @@ static func _tell(m: Node) -> Dictionary:
 static func _example(m: Node) -> Dictionary:
 	var cards := []
 	if m.look.hover_slot >= 0:
-		cards = m.picked
+		cards = m.casting.picked
 	elif m.look.hover_spell != "":
 		cards = Spell.from_key(m.look.hover_spell).cards
 	elif m.look.hover_card != &"":
@@ -154,11 +154,11 @@ static func _example(m: Node) -> Dictionary:
 ## The hover lines of what the pointer or the look cursor is over.
 static func _lines(m: Node) -> Array:
 	if m.look.hover_slot >= 0:
-		return SpellInfo.slot(Spell.make(m.picked), m.look.hover_slot)
+		return SpellInfo.slot(Spell.make(m.casting.picked), m.look.hover_slot)
 	if m.look.hover_spell != "":
 		return SpellInfo.spell(Spell.from_key(m.look.hover_spell))
 	if m.look.hover_card != &"":
-		return SpellInfo.hovered(m.look.hover_card, m.picked)
+		return SpellInfo.hovered(m.look.hover_card, m.casting.picked)
 	if m.look.hover_status:
 		return Info.creature(m.known, m.known.player())
 	var lines: Array = (
@@ -185,7 +185,7 @@ static func subject(m: Node) -> String:
 
 static func _named(m: Node) -> String:
 	if m.look.hover_slot >= 0:
-		var s := Spell.make(m.picked)
+		var s := Spell.make(m.casting.picked)
 		if s == null:
 			return ""
 		return _spell(s) if s.cards.size() == 1 else _talisman(s.slots[m.look.hover_slot])
