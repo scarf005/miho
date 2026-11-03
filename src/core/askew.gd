@@ -16,6 +16,7 @@ const AREA := Rect2i(1, 1, Grid.W - 2, Grid.H - 2)
 ## How many ways close a loop and how long one may be.
 const LOOPS := 6
 const GAP := 7
+const WAYS: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN]
 
 
 static func draw(w: World) -> Dictionary:
@@ -93,10 +94,11 @@ static func _gaps(w: World) -> Array:
 	for i in w.tiles.size():
 		if w.tiles[i] != World.FLOOR:
 			continue
-		for d: Vector2i in [Vector2i.RIGHT, Vector2i.DOWN]:
-			var long := _gap(w, Grid.at(i), d)
+		var p := Grid.at(i)
+		for d: Vector2i in WAYS:
+			var long := _gap(w, p, d)
 			if long > 0:
-				gaps.append([Grid.at(i), d, long])
+				gaps.append([p, d, long])
 	FloorGen.shuffle(w.rng, gaps)
 	return gaps
 
@@ -116,9 +118,10 @@ static func _gap(w: World, p: Vector2i, d: Vector2i) -> int:
 			return long - 1 if w.tile(at - d) == World.WALL else 0
 		if t != World.WALL and t != World.SKY:
 			return 0
-		for s: Vector2i in [at + side, at - side]:
-			if w.tile(s) != World.WALL and w.tile(s) != World.SKY:
-				return 0
+		var a := w.tile(at + side)
+		var b := w.tile(at - side)
+		if a != World.WALL and a != World.SKY or b != World.WALL and b != World.SKY:
+			return 0
 	return 0
 
 
@@ -163,8 +166,11 @@ static func _attach(
 	var along := across * w.rng.randi_range(0, _span(entry, across) - 1)
 	var offset := mouth - near - along - entry.position
 	new.append_array(_moved(shape.rects, offset))
-	if w.tile(door) == World.FLOOR or not new.all(func(r): return _clear(w, r)):
+	if w.tile(door) == World.FLOOR:
 		return
+	for r in new:
+		if not _clear(w, r):
+			return
 	_stand(w, new, parts)
 	mains.append(_moved([shape.main], offset)[0])
 	doors.append(door)
@@ -175,9 +181,11 @@ static func _clear(w: World, r: Rect2i) -> bool:
 	var round_it := r.grow(1)
 	if not AREA.encloses(round_it):
 		return false
+	var tiles := w.tiles
 	for y in range(round_it.position.y, round_it.end.y):
+		var row := y * Grid.W
 		for x in range(round_it.position.x, round_it.end.x):
-			if w.tiles[Grid.index(Vector2i(x, y))] == World.FLOOR:
+			if tiles[row + x] == World.FLOOR:
 				return false
 	return true
 
