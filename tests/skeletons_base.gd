@@ -60,11 +60,23 @@ func _walk(w: World) -> PackedByteArray:
 
 
 ## The first tile whose 3 by 3 block cuts `from` off from `to`, tiles within 3 of the
-## rooms `ends` left out; (-1, -1) when none does.
+## rooms `ends` left out; (-1, -1) when none does. A block that misses one way from `from` to
+## `to` leaves that way open, so only the blocks on one way are tried.
 func _choke(open: PackedByteArray, from: Vector2i, to: Vector2i, ends: Array) -> Vector2i:
+	var found := Grid.search(from, open)
+	if found.dist[Grid.index(to)] < 0:
+		return from
+	var on_way := {}
+	var at := Grid.index(to)
+	while at >= 0:
+		for d in Grid.DIRS + [Vector2i.ZERO]:
+			on_way[Grid.at(at) + d] = true
+		at = found.parent[at]
 	for i in open.size():
 		var mid := Grid.at(i)
-		if open[i] == 0 or ends.any(func(r: Rect2i): return r.grow(3).has_point(mid)):
+		if open[i] == 0 or not on_way.has(mid):
+			continue
+		if ends.any(func(r: Rect2i): return r.grow(3).has_point(mid)):
 			continue
 		var shut := open.duplicate()
 		for d in Grid.DIRS + [Vector2i.ZERO]:
