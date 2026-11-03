@@ -198,6 +198,8 @@ static func card(slot: StringName) -> Color:
 static func shot_glyph(spell: Spell) -> String:
 	if spell.shape == Spell.LEAP:
 		return Lang.t(Bestiary.info(&"miho").glyph, "creature")
+	if Elements.bolt(spell):
+		return BOLT[Vector2i(1, -1)]
 	if spell.orb:
 		return "●"
 	return "○" if spell.has(Cards.WATER) else "*"

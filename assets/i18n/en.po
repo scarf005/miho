@@ -3287,3 +3287,6 @@ msgstr "Foe on %s when it goes off: damage %d"
 
 msgid "바로 옆 적 피해"
 msgstr "Harm to a foe right beside you"
+
+msgid "즉시"
+msgstr "instant"

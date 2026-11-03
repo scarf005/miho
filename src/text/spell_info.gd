@@ -731,10 +731,12 @@ static func _shape(s: Spell) -> Array:
 			+ [_line("냄새", "착지한 칸만"), _line(behind(), Leap.SWAP_NAME)]
 		)
 	var lines := []
+	var mine := s.wisp_name == ""
 	match s.shape:
 		Spell.WISP:
 			lines.append(_line("모양", Lang.t("%s %d발") % [Lang.t(s.wisp()), s.shots()]))
-			lines.append(_line("대상", "보이는 적, 가까운 적부터 남은 체력만큼"))
+			if mine:
+				lines.append(_line("대상", "보이는 적, 가까운 적부터 남은 체력만큼"))
 			lines.append(
 				(
 					_line("발당 피해", str(s.damage(0)), Palette.HURT)
@@ -748,25 +750,27 @@ static func _shape(s: Spell) -> Array:
 			if not s.gun():
 				lines.append(_line("맞히면", "달라붙음"))
 			lines.append(_line("사거리", Lang.t("%d칸") % Spell.RANGE))
-			lines.append(_line("지속 시간", Lang.t("%d초") % Spell.WISP_LIFE))
-			if Lure.lures(s):
+			if not Elements.bolt(s):
+				lines.append(_line("지속 시간", Lang.t("%d초") % Spell.WISP_LIFE))
+			if mine and Lure.lures(s):
 				lines.append_array(_lure(s))
 		Spell.HOMING:
 			lines.append(_line("모양", _orbs(s, Spell.SHAPE_NAME[Spell.HOMING])))
-			lines.append(_line("대상", _arc() if s.shots() > 1 else "가장 가까운 적"))
+			if mine:
+				lines.append(_line("대상", _arc() if s.shots() > 1 else "가장 가까운 적"))
 			lines.append_array(_orb_harm(s))
 			lines.append(_line("회전", Lang.t("칸당 %s") % Lang.t(_turn(s.turn()))))
 			lines.append(_line("남은 시간", Lang.t("%d초") % Spell.HOMING_LIFE))
 		Spell.ORB:
 			lines.append(_line("모양", _orbs(s, Spell.SHAPE_NAME[Spell.ORB])))
-			if s.shots() > 1:
+			if mine and s.shots() > 1:
 				lines.append(_line("대상", _arc()))
 			if not Forge.lobbed(s):
 				lines.append(_line("경로", "벽까지 직선"))
 			lines.append_array(_orb_harm(s))
 	if Forge.lobbed(s):
 		lines.append(_line("사거리", Lang.t("%d칸") % Forge.RANGE))
-	lines.append(_line("속도", Lang.t("초당 %d칸") % s.speed()))
+	lines.append(_line("속도", "즉시" if Elements.bolt(s) else Lang.t("초당 %d칸") % s.speed()))
 	if s.accel() > 0:
 		lines.append(_line(ACCEL, Lang.t("초당 %d칸") % s.accel()))
 	return lines
