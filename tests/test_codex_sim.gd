@@ -355,10 +355,35 @@ func _bursts_on_a_creature(scene: Dictionary) -> int:
 func test_the_furnace_example_bursts_more_than_one_orb_on_its_creature() -> void:
 	var name := Lang.t(Cards.NAME[Forge.FURNACE])
 	var entry: Dictionary = Codex.entries(COMPOUNDS).filter(func(e): return e.name == name)[0]
-	var spellbook := SpellScene.of([Cards.ORB] + Cards.made_of(Forge.FURNACE))
-	for shown: Dictionary in [entry.scene, spellbook]:
-		var scene := SpellScene.resolve(shown)[0]
+	var made := Cards.made_of(Forge.FURNACE)
+	var shown: Array[Dictionary] = [entry.scene]
+	for cards: Array in [
+		[Cards.ORB] + made,
+		made + [Cards.ORB],
+		[Cards.ORB, Cards.ORB] + made,
+		[Cards.FOX, Cards.ORB] + made
+	]:
+		shown.append(SpellScene.of(cards))
+	for one in shown:
+		var scene := SpellScene.resolve(one)[0]
 		assert_gt(_bursts_on_a_creature(scene), 1, "an orb in the first rounds and another later")
+
+
+func test_talismans_of_a_furnace_with_no_orb_are_not_shown_its_example() -> void:
+	var scene := SpellScene.resolve(SpellScene.of(Cards.made_of(Forge.FURNACE)))[0]
+	assert_ne(scene.get("key"), Forge.FURNACE)
+
+
+func test_no_example_writes_over_the_walls_of_its_hall() -> void:
+	var bare := CodexScene.hall()
+	var ring := CodexScene.HALL.grow(1)
+	for key: Variant in CodexScene.TABLE:
+		var w := CodexScene.build(CodexScene.of(key))
+		for y in range(ring.position.y, ring.end.y):
+			for x in range(ring.position.x, ring.end.x):
+				var p := Vector2i(x, y)
+				if not CodexScene.HALL.has_point(p) and bare.tile(p) == World.WALL:
+					assert_eq(w.tile(p), World.WALL, "%s at %s" % [key, p])
 
 
 func test_a_lone_elements_spray_a_creature_casts_in_its_example_covers_miho() -> void:
@@ -379,6 +404,7 @@ func test_a_lone_elements_spray_a_creature_casts_in_its_example_covers_miho() ->
 
 
 func test_the_example_of_a_spell_that_harms_harms_the_creature_it_shows() -> void:
+	var harmful := 0
 	for tab in [SPELLS, COMPOUNDS]:
 		for e in Codex.entries(tab):
 			for scene in SpellScene.resolve(e.scene):
@@ -388,3 +414,5 @@ func test_the_example_of_a_spell_that_harms_harms_the_creature_it_shows() -> voi
 				if _harms_a_creature_that_stands_still(scene.cards):
 					var w := CodexScene.build(scene)
 					assert_gt(_foe_harm(w, scene), 0, "%s harms in its example" % spell.shown())
+					harmful += 1
+	assert_gt(harmful, 0, "some of them harm")
