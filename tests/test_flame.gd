@@ -386,3 +386,16 @@ func test_her_glyph_is_red_only_while_the_fire_fox_is_worn() -> void:
 	assert_eq(Palette.glyph_color(foe), Palette.KIND[&"haetae"])
 	w.act({t = &"dispel", kind = Guise.FLAME})
 	assert_eq(Palette.glyph_color(w.player()), Palette.KIND[&"miho"])
+
+
+func test_her_own_fire_does_no_harm_to_her_where_it_bursts_at_a_wall() -> void:
+	for cards: Array in [FIRE_ORB, FIRE_SPRAY]:
+		var w := _world()
+		_wear(w)
+		w.tiles[Grid.index(ME + Vector2i(GAP, 0))] = World.WALL
+		var me := w.player()
+		var events := w.act(_throw(cards, EAST))
+		for i in 6:
+			events.append_array(w.act(WAIT))
+		assert_eq(me.hp, 9, "%s" % [cards])
+		assert_true(events.filter(func(e): return e.t == &"hurt" and e.id == me.id).is_empty())
