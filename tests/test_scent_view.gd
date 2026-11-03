@@ -1,0 +1,114 @@
+extends GutTest
+## The scent view: the trail Miho left, shown on the tiles she has seen, and that it changes nothing.
+
+const E := Vector2i(1, 0)
+const SETTINGS := "user://test_scent_view_settings.cfg"
+
+
+## A corridor y = 8 from x = 2 to 16, Miho at (4, 8), everything seen.
+func _world() -> World:
+	var w := World.new()
+	w.tiles.resize(Grid.W * Grid.H)
+	w.tiles.fill(World.WALL)
+	for x in range(2, 17):
+		w.tiles[Grid.index(Vector2i(x, 8))] = World.FLOOR
+	var me := Actor.new()
+	me.id = w.new_id()
+	me.kind = &"miho"
+	me.faction = Actor.FOX
+	me.hp = 3
+	me.max_hp = 3
+	me.pos = Vector2i(4, 8)
+	w.actors.append(me)
+	w.known.resize(w.tiles.size())
+	w.known.fill(1)
+	w.seen = w.known.duplicate()
+	w.dim = w.known.duplicate()
+	return w
+
+
+func _main() -> Node:
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	add_child_autofree(m)
+	Keys.reset()
+	m.new_run(3)
+	m.state = &"play"
+	return m
+
+
+func _press(key: String) -> InputEventKey:
+	var e := Keys.event(key)
+	e.pressed = true
+	return e
+
+
+func test_a_tile_miho_walked_is_fresher_the_later_she_left_it() -> void:
+	var w := _world()
+	for i in 3:
+		w.act({t = &"move", dir = E})
+	var trail := Scent.fresh(w, true)
+	assert_true(trail.has(Vector2i(5, 8)))
+	assert_true(trail.has(Vector2i(6, 8)))
+	assert_gt(trail[Vector2i(6, 8)], trail[Vector2i(5, 8)], "the later step is stronger")
+	assert_lte(trail[Vector2i(6, 8)], 1.0)
+	assert_gt(trail[Vector2i(5, 8)], 0.0)
+	assert_false(trail.has(Vector2i(12, 8)), "she never went there")
+
+
+func test_a_trail_older_than_a_hunter_would_follow_is_not_shown() -> void:
+	var w := _world()
+	w.round_no = 100
+	w.scent.resize(w.tiles.size())
+	w.scent[Grid.index(Vector2i(9, 8))] = w.round_no + 1 - Scent.TRAIL_AGE
+	w.scent[Grid.index(Vector2i(10, 8))] = w.round_no + 1 - Scent.TRAIL_AGE - 1
+	var trail := Scent.fresh(w, true)
+	assert_true(trail.has(Vector2i(9, 8)))
+	assert_false(trail.has(Vector2i(10, 8)))
+
+
+func test_a_tile_she_has_not_seen_shows_no_scent_to_her_but_the_debug_view_shows_it() -> void:
+	var w := _world()
+	w.act({t = &"move", dir = E})
+	w.known[Grid.index(Vector2i(5, 8))] = 0
+	assert_false(Scent.fresh(w, true).has(Vector2i(5, 8)))
+	assert_true(Scent.fresh(w, false).has(Vector2i(5, 8)))
+
+
+func test_a_scentless_tile_shows_none() -> void:
+	var w := _world()
+	w.tiles[Grid.index(Vector2i(5, 8))] = World.BAMBOO
+	w.act({t = &"move", dir = E})
+	assert_false(Scent.fresh(w, true).has(Vector2i(5, 8)))
+
+
+func test_the_scent_key_is_bound_and_listed_in_help() -> void:
+	Keys.reset()
+	var keys := Keys.keys_of(&"scent")
+	assert_eq(keys.size(), 1)
+	assert_eq(Keys.action_of(_press(keys[0])), &"scent")
+	var menu := Menu.new()
+	menu.open(&"help")
+	var text := "\n".join(
+		menu.panel().rows.map(func(r): return " ".join(r.map(func(run): return run[0])))
+	)
+	assert_string_contains(text, "냄새 보기 " + keys[0])
+
+
+func test_toggling_the_scent_shows_the_trail_and_changes_nothing() -> void:
+	var m := _main()
+	m.settings.path = SETTINGS
+	m._key(_press("Right"))
+	var before := m.world.clone()
+	var saved: int = m.run.actions.size()
+	assert_true(m.term.scent.is_empty(), "off by default")
+	m._key(_press(Keys.keys_of(&"scent")[0]))
+	assert_true(m.scenting)
+	assert_false(m.term.scent.is_empty())
+	assert_eq(m.world.scent, before.scent)
+	assert_eq(m.world.round_no, before.round_no)
+	m._key(_press(Keys.keys_of(&"scent")[0]))
+	assert_false(m.scenting)
+	assert_true(m.term.scent.is_empty())
+	assert_eq(m.run.actions.size(), saved, "no action is recorded")
+	assert_false(FileAccess.file_exists(SETTINGS), "the view is not a setting")
