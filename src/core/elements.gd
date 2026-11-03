@@ -166,8 +166,11 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			spell = s.spell.tag()
 		}
 	)
+	var spared := w.actor(s.caster) if s.fused else null
 	for d in Grid.DIRS:
 		var p := at + d
+		if spared != null and p == spared.pos:
+			continue
 		if fire:
 			Terrain.ignite(w, p)
 		var b := w.actor_at(p)

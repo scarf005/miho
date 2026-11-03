@@ -17,13 +17,14 @@ func _init(of: Term) -> void:
 
 func _process(delta: float) -> void:
 	_calm += delta
-	if _calm >= CALM_FRAME or _moving():
+	if term.is_processing() and (_calm >= CALM_FRAME or _moving()):
 		_calm = 0.0
 		term.queue_redraw()
 
 
 func _input(_event: InputEvent) -> void:
-	term.queue_redraw()
+	if term.is_processing():
+		term.queue_redraw()
 
 
 func _moving() -> bool:

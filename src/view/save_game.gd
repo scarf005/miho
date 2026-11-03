@@ -143,7 +143,9 @@ func begin() -> void:
 	if last.get("played", actions.size() + 1) <= actions.size():
 		played = last.played
 		_start_from(last)
-	elif based:
+		return
+	states.erase("last")
+	if based:
 		_start_from(states.base)
 	else:
 		world = World.create(seed_value)
@@ -167,8 +169,8 @@ func fall_back() -> bool:
 	begin()
 	messages.add_text(ROLLED_BACK, world.round_no)
 	states.base.log = messages.saved()
-	_write_states()
 	write()
+	_write_states()
 	return true
 
 

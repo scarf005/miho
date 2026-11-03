@@ -12,9 +12,9 @@ func _init() -> void:
 		print("no save at %s" % args[0])
 		quit(1)
 		return
+	run.actions.resize(run.actions.size() - (int(args[2]) if args.size() > 2 else 0))
 	run.begin()
-	var upto := run.actions.size() - (int(args[2]) if args.size() > 2 else 0)
-	while run.played < upto:
+	while run.played < run.actions.size():
 		if not run.step():
 			print("the save does not replay at action %d" % run.played)
 			quit(1)

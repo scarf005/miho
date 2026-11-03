@@ -274,6 +274,8 @@ static func cast(s: Spell) -> Array:
 	var harm := (
 		Spray.GUN_HARM if gun else (0 if s.shape in [Spell.SPRAY, Spell.LEAP] else s.damage(0))
 	)
+	if _blasts_first(s):
+		harm = s.blast(harm)
 	var out := []
 	if _tells_nature(s):
 		out.append(["오행", _nature_text(s), Palette.TEXT])
@@ -803,7 +805,14 @@ static func _lure(s: Spell) -> Array:
 	return [loud, _line("교활한 적", "던진 곳 수색", Palette.SOUND)]
 
 
+## Whether its fuse sets off its blast before it can strike the foe that set it off.
+static func _blasts_first(s: Spell) -> bool:
+	return Flight.fused(s) and s.blasts()
+
+
 static func _orb_harm(s: Spell) -> Array:
+	if _blasts_first(s):
+		return [_line("바로 옆 적 피해", "%d" % s.damage(0), Palette.HURT)]
 	return [
 		_line("피해", "%d" % s.damage(0), Palette.HURT),
 		_line(Lang.t(FAR) % Spell.MOMENTUM, "%d" % s.damage(Spell.MOMENTUM), Palette.HURT),

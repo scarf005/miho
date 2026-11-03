@@ -3257,3 +3257,6 @@ msgstr "Set off by: a foe within %d tile in flight"
 
 msgid "터질 때 %s 위의 적: 피해 %d"
 msgstr "Foe on %s when it goes off: damage %d"
+
+msgid "바로 옆 적 피해"
+msgstr "Harm to a foe right beside you"
