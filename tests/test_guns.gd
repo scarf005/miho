@@ -72,8 +72,72 @@ func _hurts(events: Array, a: Actor) -> Array:
 	return events.filter(func(e): return e.t == &"hurt" and e.id == a.id).map(func(e): return e.n)
 
 
+func test_a_rifle_reaches_past_a_pistol_and_hurts_more() -> void:
+	var beyond := 8
+	var pistol := _world()
+	var missed := _post(pistol, beyond)
+	pistol.act(_cast([METAL]))
+	assert_eq(missed.hp, HEALTH, "past the pistol's reach")
+	var rifle := _world()
+	var struck := _post(rifle, beyond)
+	rifle.act(_cast([METAL, METAL]))
+	assert_lt(struck.hp, HEALTH, "the rifle reaches it")
+	var near := _world()
+	var hit := _post(near, 3)
+	near.act(_cast([METAL]))
+	assert_lt(struck.hp, hit.hp, "the rifle hurts more than the pistol")
+
+
+func test_a_rifle_is_a_straight_shot_that_stops_at_the_first_creature_and_a_wall() -> void:
+	var w := _world()
+	var first := _post(w, 3)
+	var behind := _post(w, 4)
+	var aside := _post(w, 2, 1)
+	w.act(_cast([METAL, METAL]))
+	assert_lt(first.hp, HEALTH)
+	assert_eq(behind.hp, HEALTH, "the first creature stops it")
+	assert_eq(aside.hp, HEALTH, "it does not fan out")
+	var walled := _world()
+	_put(walled, 2, 0, World.WALL)
+	var past := _post(walled, 3)
+	walled.act(_cast([METAL, METAL]))
+	assert_eq(past.hp, HEALTH, "the wall stops it")
+
+
+func test_a_rifle_stops_at_the_end_of_its_reach() -> void:
+	var reach: int = Spray.LONE[METAL].reach[1]
+	var w := _world()
+	var edge := _post(w, reach)
+	w.act(_cast([METAL, METAL]))
+	assert_lt(edge.hp, HEALTH, "at its reach")
+	var far := _world()
+	var past := _post(far, reach + 1)
+	far.act(_cast([METAL, METAL]))
+	assert_eq(past.hp, HEALTH, "a tile past it")
+
+
+func test_a_rifle_is_heard_as_a_gun_with_a_flash_and_its_own_shot() -> void:
+	var w := _world()
+	var events := w.act(_cast([METAL, METAL]))
+	var bang: Dictionary = events.filter(func(e): return e.t == &"noise")[0]
+	assert_eq([bang.word, bang.loud], ["탕", Spray.GUN_LOUD])
+	var flash := _world()
+	Spray.cast(flash, flash.player(), Spell.make([METAL, METAL]), E)
+	assert_has(flash.flares, ME)
+	var rifle := Sfx.sound_of({t = &"cast", cards = [METAL, METAL]})
+	assert_has(Sfx.NAMES, rifle)
+	assert_ne(rifle, Sfx.sound_of({t = &"cast", cards = [METAL, METAL, METAL]}), "not a shotgun")
+
+
+func test_the_hover_of_a_rifle_tells_its_own_reach_and_harm() -> void:
+	var hover := Info.plain(SpellInfo.spell(Spell.make([METAL, METAL])))
+	assert_string_contains(hover, "곧게 %d칸" % Spray.LONE[METAL].reach[1])
+	assert_string_contains(hover, "피해: %d\n" % Spray.LONE[METAL].harm[1])
+	assert_false(hover.contains("바로 옆 적 피해"), hover)
+
+
 func test_a_shotgun_reaches_one_tile_farther_for_every_more_metal() -> void:
-	for copies in range(2, 6):
+	for copies in range(3, 6):
 		var w := _world()
 		var in_reach := _post(w, copies + 1, 0)
 		var past := _post(w, copies + 2, 0)
