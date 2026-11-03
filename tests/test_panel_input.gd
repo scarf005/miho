@@ -50,7 +50,7 @@ func _move(m: Node, x: int, y: int) -> void:
 
 
 func _codex(m: Node) -> void:
-	m._open(&"codex")
+	m.panels.open(&"codex")
 
 
 func test_f10_opens_the_settings_and_closes_them_for_a_browser_that_keeps_esc() -> void:
@@ -69,11 +69,11 @@ func test_the_game_menu_opens_the_codex_and_esc_returns_to_it() -> void:
 	_key(m, "Enter")
 	assert_eq(m.term.panel.title, "도감")
 	_key(m, "Escape")
-	assert_eq(m.overlay, &"options", "the game menu is still open")
+	assert_eq(m.panels.overlay, &"options", "the game menu is still open")
 	assert_eq(m.term.panel.title, "설정")
 	assert_eq(m.term.panel.selected, Menu.OPTIONS.find(&"codex"))
 	_key(m, "Escape")
-	assert_eq(m.overlay, &"", "the second Esc closes the menu")
+	assert_eq(m.panels.overlay, &"", "the second Esc closes the menu")
 
 
 func test_a_clicked_codex_row_of_the_game_menu_opens_it() -> void:
@@ -98,7 +98,7 @@ func test_a_held_arrow_repeats_in_the_codex_the_game_menu_and_the_key_page() -> 
 	_key(m, "Down", true)
 	assert_eq(m.term.panel.selected, 2, "the game menu repeats")
 	_key(m, "Enter", true)
-	assert_eq(m.overlay, &"options", "a held Enter does not act again")
+	assert_eq(m.panels.overlay, &"options", "a held Enter does not act again")
 	m.menu.selected = Menu.OPTIONS.find(&"keys")
 	_key(m, "Enter")
 	_key(m, "Down")
@@ -174,19 +174,19 @@ func test_the_log_scrolls_and_esc_or_its_key_closes_it() -> void:
 	for i in 40:
 		m.messages.add([["쪽지 %d" % i, Palette.TEXT]], 0)
 	_key(m, "P")
-	assert_eq(m.overlay, &"log")
+	assert_eq(m.panels.overlay, &"log")
 	assert_eq(m.term.panel.selected, m.term.panel.rows.size() - 1, "it opens on the newest")
 	_key(m, "Home")
 	assert_eq(m.term.panel.top, 0)
 	_key(m, "Shift")
-	assert_eq(m.overlay, &"log", "a modifier alone does not close it")
+	assert_eq(m.panels.overlay, &"log", "a modifier alone does not close it")
 	_mouse(m, MOUSE_BUTTON_WHEEL_DOWN, 5, 8)
 	assert_eq(m.term.panel.top, ListNav.WHEEL)
 	_key(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	_key(m, "P")
 	_key(m, "P")
-	assert_eq(m.overlay, &"", "the log key closes it")
+	assert_eq(m.panels.overlay, &"", "the log key closes it")
 
 
 func test_the_help_page_scrolls_and_a_modifier_or_click_does_not_close_it() -> void:
@@ -194,16 +194,16 @@ func test_the_help_page_scrolls_and_a_modifier_or_click_does_not_close_it() -> v
 	_key(m, "F1")
 	_key(m, "Shift")
 	_mouse(m, MOUSE_BUTTON_LEFT, 5, 5)
-	assert_eq(m.overlay, &"help")
+	assert_eq(m.panels.overlay, &"help")
 	assert_eq(m.term.panel.selected, 2, "the click selects the row")
 	_key(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 
 
 func test_every_page_opens_from_the_esc_menu_and_esc_returns_to_its_row() -> void:
 	for page: StringName in [&"spells", &"log", &"help"]:
 		var m := _main()
-		m._open(&"options")
+		m.panels.open(&"options")
 		m.menu.selected = m.menu._listed().find(page)
 		_key(m, "Enter")
 		assert_eq(m.menu.page, page)
@@ -215,7 +215,7 @@ func test_every_page_opens_from_the_esc_menu_and_esc_returns_to_its_row() -> voi
 func test_an_empty_log_says_so() -> void:
 	var m := _main()
 	m.messages.lines.clear()
-	m._open(&"log")
+	m.panels.open(&"log")
 	assert_eq(m.menu.panel().rows.size(), 1)
 
 

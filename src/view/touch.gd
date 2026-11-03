@@ -146,7 +146,7 @@ func fit() -> void:
 	hud.mode = _mode()
 	hud.page = _page()
 	_laid = _shape()
-	var page: bool = main.overlay != &""
+	var page: bool = main.panels.overlay != &""
 	var size: Vector2 = main.get_viewport().get_visible_rect().size / dpr
 	var p := plan(size, insets, dpr, page, not term.saved.is_empty())
 	var k: float = p.cw * dpr / Term.CELL.x
@@ -163,7 +163,7 @@ func fit() -> void:
 
 
 func _mode() -> StringName:
-	if main.overlay != &"":
+	if main.panels.overlay != &"":
 		return &"menu"
 	match main.state:
 		&"title":
@@ -176,7 +176,8 @@ func _mode() -> StringName:
 ## The page the HUD has buttons for: the spellbook only when it lists a spell.
 func _page() -> StringName:
 	var open: bool = (
-		main.overlay == &"spells" or main.overlay != &"" and main.menu.page == &"spells"
+		main.panels.overlay == &"spells"
+		or main.panels.overlay != &"" and main.menu.page == &"spells"
 	)
 	return &"spells" if open and not main.menu.spells().is_empty() else &""
 
@@ -288,13 +289,13 @@ func _tap(pos: Vector2) -> void:
 		hud.pressed_at = term.time
 		main.sfx.play(&"click")
 		_press(button)
-	elif main.overlay != &"" and main.menu.page == &"spells":
+	elif main.panels.overlay != &"" and main.menu.page == &"spells":
 		var row := PanelView.row_at(term, local)
 		if row >= 0:
 			main.menu.select(row)
 			term.panel = main.menu.panel()
-	elif main.overlay != &"":
-		main._panel_input(_click(pos))
+	elif main.panels.overlay != &"":
+		main.panels.input(_click(pos))
 	elif main.state == &"title" and main.pending == null:
 		main.begin()
 	elif main.state == &"play":
@@ -304,14 +305,14 @@ func _tap(pos: Vector2) -> void:
 func _press(id: StringName) -> void:
 	match id:
 		&"back":
-			main._panel_input(_key(KEY_ESCAPE))
+			main.panels.input(_key(KEY_ESCAPE))
 		&"continue":
 			main.resume()
 		&"new":
 			main.new_game()
 		&"enter":
-			main._panel_input(_key(KEY_ENTER))
-		_ when Keys.SLOTS.has(id) and main.overlay != &"":
+			main.panels.input(_key(KEY_ENTER))
+		_ when Keys.SLOTS.has(id) and main.panels.overlay != &"":
 			main.menu.save(id)
 			main.settings.save()
 			main.apply()
@@ -359,7 +360,7 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 
 
 func _hold(pos: Vector2) -> void:
-	if main.overlay != &"" or main.state != &"play":
+	if main.panels.overlay != &"" or main.state != &"play":
 		return
 	WordHover.hold(main, false)
 	Preview.point(main, pos)
@@ -381,10 +382,10 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 		or local.x < main.term.side.x * Term.CELL.x
 	):
 		return
-	if main.overlay != &"":
+	if main.panels.overlay != &"":
 		if dir.y == 0:
 			var more: bool = (dir.x < 0) == (main.menu.page == &"codex")
-			main._panel_input(_key(KEY_RIGHT if more else KEY_LEFT))
+			main.panels.input(_key(KEY_RIGHT if more else KEY_LEFT))
 	elif main.state == &"play":
 		main.do_action(move_action(dir), false)
 
@@ -395,7 +396,7 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 func _drag(delta: Vector2, by: Vector2, from: Vector2) -> void:
 	var term: Term = main.term
 	var local: Vector2 = main.to_term(from)
-	if main.overlay == &"":
+	if main.panels.overlay == &"":
 		if hud.scroll(term, local, delta.x / term.scale.x) or main.state != &"play":
 			return
 		if hud.area.has_point(local) or local.x < term.side.x * Term.CELL.x:

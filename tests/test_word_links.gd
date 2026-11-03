@@ -45,7 +45,7 @@ func _esc(m: Node) -> void:
 
 func test_a_click_on_a_word_of_the_detail_opens_its_entry_and_esc_goes_back() -> void:
 	var m := _game()
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(4)
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
@@ -59,15 +59,15 @@ func test_a_click_on_a_word_of_the_detail_opens_its_entry_and_esc_goes_back() ->
 	var shown := PanelView.span(m.term)
 	assert_true(codex.selected >= shown.x and codex.selected < shown.x + shown.y, "in view")
 	_esc(m)
-	assert_eq(m.overlay, &"codex", "back to the entry, not out")
+	assert_eq(m.panels.overlay, &"codex", "back to the entry, not out")
 	assert_eq([codex.tab, codex.selected], from)
 	_esc(m)
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 
 
 func test_a_word_inside_a_linked_entry_goes_on_and_esc_goes_back_one_entry_at_a_time() -> void:
 	var m := _game()
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(4)
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
@@ -102,32 +102,32 @@ func test_a_click_on_a_word_of_the_log_over_the_map_opens_it_and_plays_no_round(
 	var me: Vector2i = m.world.player().pos
 	var col := Term.MAP.x + 0.5 + Term.text_cells("바닥이 ") + 0.5
 	_click(m, _over(m, col, 0))
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(Vector2i(m.menu.codex.tab, m.menu.codex.selected), Keywords.locate("진흙"))
 	assert_eq(m.world.round_no, rounds)
 	assert_eq(m.run.actions.size(), actions, "nothing is saved to replay")
 	assert_eq(m.world.player().pos, me)
 	_esc(m)
-	assert_eq(m.overlay, &"", "Esc goes back to play")
+	assert_eq(m.panels.overlay, &"", "Esc goes back to play")
 	assert_false(m.busy)
 
 
 func test_a_click_on_a_word_of_the_log_page_opens_it_and_esc_returns_to_the_page() -> void:
 	var m := _game()
 	m.messages.add_text("진흙이 깔렸다", 0)
-	m._open(&"log")
+	m.panels.open(&"log")
 	var at := _cell(m.term, "진흙")
 	_click(m, _over(m, at.x, int(at.y)))
 	assert_eq(m.menu.page, &"codex")
 	assert_eq(Vector2i(m.menu.codex.tab, m.menu.codex.selected), Keywords.locate("진흙"))
 	_esc(m)
 	assert_eq(m.menu.page, &"log")
-	assert_eq(m.overlay, &"log")
+	assert_eq(m.panels.overlay, &"log")
 
 
 func test_a_click_on_a_row_of_a_page_with_no_words_still_acts_on_the_row() -> void:
 	var m := _game()
-	m._open(&"options")
+	m.panels.open(&"options")
 	_click(m, _over(m, 3.0, 4))
 	assert_eq(m.menu.selected, 1)
 
@@ -138,14 +138,14 @@ func test_a_tap_on_a_word_of_the_log_links_as_a_click_does() -> void:
 	m.term.log_lines = [[[["진흙", Palette.TEXT]], 1.0]]
 	var rounds: int = m.world.round_no
 	_finger(m, _screen(m, Vector2(m.term.side.x + 0.5 + 1.0, 0.5) * Term.CELL))
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(Vector2i(m.menu.codex.tab, m.menu.codex.selected), Keywords.locate("진흙"))
 	assert_eq(m.world.round_no, rounds)
 
 
 func test_a_tap_on_a_word_of_a_detail_links_as_a_click_does() -> void:
 	var m := _main()
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(4)
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
@@ -156,7 +156,7 @@ func test_a_tap_on_a_word_of_a_detail_links_as_a_click_does() -> void:
 
 func test_the_entry_a_page_shows_is_not_a_word_of_its_own_title() -> void:
 	var m := _game()
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(6)
 	m.menu.codex.select(Codex.entries(6).find_custom(func(e): return e.name == "소음"))
 	m.term.panel = m.menu.panel()
@@ -169,7 +169,7 @@ func test_the_entry_a_page_shows_is_not_a_word_of_its_own_title() -> void:
 
 
 func _linked(m: Node) -> Array:
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(4)
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
@@ -195,7 +195,7 @@ func test_alt_and_the_arrows_go_back_and_forward_along_the_links_and_change_no_t
 	var there := _place(m)
 	_press(m, "Alt+Left")
 	assert_eq(_place(m), from)
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	_press(m, "Alt+Right")
 	assert_eq(_place(m), there)
 	_press(m, "Alt+Right")
@@ -240,13 +240,13 @@ func test_back_with_no_link_left_closes_the_codex_as_esc_does_and_opening_forget
 	_linked(m)
 	_press(m, "Alt+Left")
 	_press(m, "Alt+Left")
-	assert_eq(m.overlay, &"")
-	m._open(&"codex")
+	assert_eq(m.panels.overlay, &"")
+	m.panels.open(&"codex")
 	assert_true(m.menu.codex.ahead.is_empty())
 
 
 func test_the_side_buttons_do_nothing_on_another_page() -> void:
 	var m := _game()
-	m._open(&"help")
+	m.panels.open(&"help")
 	_click(m, Vector2.ZERO, MOUSE_BUTTON_XBUTTON1)
-	assert_eq(m.overlay, &"help")
+	assert_eq(m.panels.overlay, &"help")

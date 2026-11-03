@@ -26,7 +26,7 @@ static func click(m: Node, local: Vector2) -> StringName:
 ## A left click at `local` on a word of the log over the map in play, or of a box
 ## Shift keeps: the 도감 opens on its entry. Whether the click was used.
 static func open(m: Node, local: Vector2) -> bool:
-	if m.state != &"play" or m.overlay != &"":
+	if m.state != &"play" or m.panels.overlay != &"":
 		return false
 	var word := WordHover.word_at(m.term, local)
 	if word == "":
@@ -43,14 +43,14 @@ static func describe(m: Node) -> bool:
 	var word: String = t.pin.get("word", "") if not t.pin.is_empty() else t.subject
 	if word == "" or t.info.is_empty() and t.pin.is_empty():
 		return false
-	if m.state != &"play" or m.overlay != &"":
+	if m.state != &"play" or m.panels.overlay != &"":
 		return false
 	_show(m, word)
 	return true
 
 
 static func _show(m: Node, word: String) -> void:
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.link(word, false)
 	m.term.panel = m.menu.panel()
 	m.sfx.play(&"click")

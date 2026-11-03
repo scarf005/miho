@@ -99,13 +99,13 @@ func test_a_tap_elsewhere_takes_back_the_touch_title_question() -> void:
 func test_the_options_row_erases_the_run_on_its_second_enter_only() -> void:
 	var m := _keyboard()
 	var seed_was: int = m.run_seed
-	m._open(&"options")
+	m.panels.open(&"options")
 	m.menu.selected = Menu.OPTIONS.find(&"restart")
-	m._panel_input(_key_event(KEY_ENTER))
-	assert_eq(m.overlay, &"options", "the first Enter only asks")
+	m.panels.input(_key_event(KEY_ENTER))
+	assert_eq(m.panels.overlay, &"options", "the first Enter only asks")
 	assert_eq(m.run_seed, seed_was)
-	m._panel_input(_key_event(KEY_ENTER))
-	assert_eq(m.overlay, &"")
+	m.panels.input(_key_event(KEY_ENTER))
+	assert_eq(m.panels.overlay, &"")
 	assert_ne(m.run_seed, seed_was)
 
 

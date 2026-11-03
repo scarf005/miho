@@ -1,23 +1,15 @@
 extends Node
 ## Game flow and input, through the actions in Keys. Arrows, numpad or
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
-## with claws. 1-8 put talismans in the queue (Spell); with a queue a direction
-## hurls the spell (or leaps that way), and Shift with a direction holds it so
-## several spells leave in one turn; , casts it on Miho (Guise), as does a click
-## on her; g or a click on her with no queue drops a buff. Space, Enter or . waits, or with a queue
-## hurls it at the cursor (or casts what is held). Picking from the keyboard puts the cursor on the
-## nearest creature in sight, and Tab moves it to the next. QWEASD fill the
-## queue with a saved spell, F with the last spell hurled. Esc clears the queue
-## and what is held and, with nothing to clear, opens the options.
-## c shuts an open door next to Miho (a direction key picks one when several are
-## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
-## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
-## F3 shows the debug view (DebugView), which changes nothing in the game; F4, or a click on its
-## label, lists the debug commands (DebugMenu) in a box over the game, which play as actions.
-## x looks around: a cursor starts on Miho and the directions move it (Shift five tiles), showing
-## what the pointer would; Enter walks there, Esc or x stops. In look mode the exclude key marks a
-## danger zone (Exclusions) on the cursor that exploring and travel walk around; again it makes the
-## zone one tile, and again removes it; 1-7 on a zone's centre set its radius.
+## with claws. Space, Enter or . waits. The queue and its aim are Casting's, walks of many
+## rounds Journey's, the look cursor and what the pointer is over LookMode's, the page over the
+## game Panels'. , casts the queue on Miho (Guise), as does a click on her; g or a click on her
+## with no queue drops a buff. Esc clears the queue and what is held and, with nothing to clear,
+## opens the options. c shuts an open door next to Miho (a direction key picks one when several
+## are open). Tab fights like DCSS (Fight): it claws the nearest creature in sight or steps
+## towards it. F3 shows the debug view (DebugView), which changes nothing in the game; F4, or a
+## click on its label, lists the debug commands (DebugMenu) in a box over the game, which play as
+## actions.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
 ## anywhere to hurl; click a talisman to queue it or a 도감 word to open it; right-click clears.
 ## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
@@ -36,9 +28,11 @@ var sfx: Sfx
 var touch := Touch.new()
 var reel := Highlight.new()
 var casting := Casting.new(self)
+var journey := Journey.new(self)
+var look := LookMode.new(self)
+var panels := Panels.new(self)
 var busy := false
 var state := &"title"
-var look := LookMode.new(self)
 ## Several open doors are next to Miho: the next direction key shuts that one.
 var shutting := false
 ## The step prompt and the sight of a held key (StepGuard), and whether the key
@@ -60,11 +54,8 @@ var save_path := SaveGame.PATH
 var settings: Settings
 var glass: ColorRect
 var pan: Tween
-var journey := Journey.new(self)
 var messages := Messages.new()
 var menu := Menu.new()
-## The page open over the game (a full screen, or the debug box), or empty.
-var overlay := &""
 ## Worked out once per world or talisman change: what Miho knows, the forecast
 ## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
 ## and forecasts of the spell hurled each way, filled as the pointer aims.
@@ -148,6 +139,7 @@ func apply() -> void:
 	fit()
 
 
+## Lays the term out for the screen, and the page open on it.
 func fit() -> void:
 	if state == &"replay":
 		return
@@ -155,11 +147,12 @@ func fit() -> void:
 		touch.fit()
 	else:
 		term.fit(get_viewport().get_visible_rect().size, settings.zoom)
-	if overlay != &"":
+	if panels.overlay != &"":
 		menu.room = Vector2i(term.cols, term.rows)
 		term.panel = menu.panel()
 
 
+## Replaces the world with a new run, `seed_value` its seed.
 func new_run(seed_value := randi()) -> void:
 	run.flush()
 	world = World.create(seed_value)
@@ -198,10 +191,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			Preview.point(self, event.position)
 	elif walked:
 		pass
-	elif busy or not event.is_pressed() or event.is_echo() and overlay == &"" and state != &"play":
+	elif (
+		busy
+		or not event.is_pressed()
+		or event.is_echo() and panels.overlay == &"" and state != &"play"
+	):
 		pass
-	elif overlay != &"":
-		_panel_input(event)
+	elif panels.overlay != &"":
+		panels.input(event)
 	elif menu.debug.asking():
 		menu.debug.pick(self, event)
 	elif erasing:
@@ -210,7 +207,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif press:
 			Banner.keep(self)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
-		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
+		panels.open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
 		if event is InputEventKey and event.keycode == KEY_N:
 			new_game()
@@ -226,12 +223,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		click(event)
 
 
+## Leaves the title for the run.
 func begin() -> void:
 	state = &"play"
 	term.banner_lines = []
 	sfx.play(&"card")
 
 
+## Whether `event` is the left mouse button.
 static func left_click(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT
 
@@ -344,7 +343,7 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"cancel" and (not casting.picked.is_empty() or not casting.staged.is_empty()):
 		casting.clear()
 	elif action == &"cancel":
-		_open(&"options")
+		panels.open(&"options")
 	elif action == &"stairs":
 		journey.to_stairs()
 	elif action == &"explore":
@@ -353,7 +352,7 @@ func do_action(action: StringName, shift: bool) -> void:
 		journey.excluded.clear()
 		journey.zones_changed()
 	elif action == &"spellbook":
-		_open(&"spells")
+		panels.open(&"spells")
 	elif Keys.SLOTS.has(action):
 		casting.recall(settings.spells.get(action, ""))
 		casting.aim()
@@ -379,9 +378,10 @@ func do_action(action: StringName, shift: bool) -> void:
 		debugging = not debugging
 		refresh()
 	elif action in [&"log", &"help", &"codex", &"cheat"]:
-		_open(action)
+		panels.open(action)
 
 
+## A mouse press in play: on a word, the bar or a tile.
 func click(event: InputEventMouseButton) -> void:
 	if left_click(event) and WordLink.open(self, to_term(event.position)):
 		return
@@ -398,7 +398,7 @@ func click(event: InputEventMouseButton) -> void:
 		return
 	var local := to_term(event.position)
 	if term.bar.debug_at(term, local):
-		_open(&"cheat")
+		panels.open(&"cheat")
 		return
 	var card: StringName = term.bar.card_at(term, local)
 	if card != &"":
@@ -420,7 +420,7 @@ func use_tile(tile: Vector2i, hold: bool) -> void:
 	var me := world.player().pos
 	if tile == me and casting.picked.is_empty():
 		if casting.staged.is_empty() and not Guise.worn(world, world.player()).is_empty():
-			_open(&"dispel")
+			panels.open(&"dispel")
 		return
 	if not casting.picked.is_empty():
 		casting.direction(Grid.nearest_dir(tile - me), hold)
@@ -430,11 +430,12 @@ func use_tile(tile: Vector2i, hold: bool) -> void:
 		journey.to_tile(tile)
 
 
-## A screen point in the term's space, through the CRT curve when it is on.
+## The pointer's screen point; nowhere on a touch screen.
 func mouse() -> Vector2:
 	return Touch.OFF if touch.enabled else get_viewport().get_mouse_position()
 
 
+## A screen point in the term's space, through the CRT curve when it is on.
 func to_term(screen: Vector2) -> Vector2:
 	if glass.visible:
 		screen = Crt.flat(screen, get_viewport().get_visible_rect().size, settings.crt)
@@ -531,7 +532,7 @@ func _fight() -> void:
 	await act(step)
 
 
-# --- messages and panels --------------------------------------------------------
+# --- messages -----------------------------------------------------------------
 
 
 ## Puts the run's seed on the clipboard; the banner of a finished run says so.
@@ -541,6 +542,7 @@ func copy_seed() -> void:
 	say("시드를 복사했다")
 
 
+## Says `text` in the log.
 func say(text: Variant) -> void:
 	messages.add_text(text, world.round_no)
 	show_log()
@@ -559,87 +561,6 @@ func show_log() -> void:
 	term.hint = WordHover.at(term, term.hint_at * Term.CELL)
 	if hinted == term.hint.is_empty() and not busy:
 		refresh()
-
-
-## Shows a panel over the game: a Menu page.
-func _open(kind: StringName) -> void:
-	menu.sync(self)
-	overlay = kind
-	if touch.enabled:
-		fit()
-	menu.open(kind, Vector2i(term.cols, term.rows))
-	term.info = []
-	term.example = {}
-	term.panel = menu.panel()
-
-
-## The Menu page takes keys; the wheel scrolls, a left click acts on the row or
-## tab under the pointer, a right click goes back, and the mouse's side buttons go
-## back and forward in the 도감.
-func _panel_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_SHIFT and not menu.waiting:
-		return
-	var command := &""
-	var button: int = event.button_index if event is InputEventMouseButton else 0
-	var local := to_term(event.position) if button != 0 else Vector2.ZERO
-	if event is InputEventKey:
-		command = menu.key(event)
-	elif button == MOUSE_BUTTON_RIGHT:
-		command = menu.back()
-	elif button in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-		menu.wheel(1 if button == MOUSE_BUTTON_WHEEL_DOWN else -1, PanelView.aside_at(term, local))
-	elif button in [MOUSE_BUTTON_XBUTTON1, MOUSE_BUTTON_XBUTTON2]:
-		command = menu.history(button == MOUSE_BUTTON_XBUTTON2)
-	elif button == MOUSE_BUTTON_LEFT:
-		command = WordLink.click(self, local)
-	match command:
-		&"close":
-			_close()
-			menu.debug.run(self)
-			return
-		&"changed":
-			settings.save()
-			apply()
-		&"cast":
-			_close()
-			casting.clear()
-			casting.recall(menu.chosen.key())
-			return
-		&"restart":
-			_close()
-			restart()
-			return
-		&"dispel":
-			_close()
-			act({t = &"dispel", kind = menu.buffs[menu.selected]})
-			return
-		&"ask":
-			sfx.play(&"warn")
-		&"seed":
-			copy_seed()
-		&"quit":
-			_quit()
-			return
-	term.panel = menu.panel()
-
-
-## Ends the game with the run kept; a web page cannot close itself, so it
-## goes back to the title.
-func _quit() -> void:
-	if not OS.has_feature("web"):
-		get_tree().quit()
-		return
-	_close()
-	new_run()
-	show_title()
-
-
-func _close() -> void:
-	overlay = &""
-	term.panel = {}
-	refresh()
-	if touch.enabled:
-		fit()
 
 
 ## What each choice would do, from what Miho knows: the reach of the spell in

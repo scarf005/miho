@@ -357,7 +357,7 @@ func _example(list: Array[Spell], rows: Array, detail: Array) -> Dictionary:
 static func dispel(m: Node) -> void:
 	var on := Guise.worn(m.world, m.world.player())
 	if on.size() > 1:
-		m._open(&"dispel")
+		m.panels.open(&"dispel")
 	elif on.size() == 1:
 		m.act({t = &"dispel", kind = on[0]})
 	else:

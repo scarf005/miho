@@ -48,12 +48,12 @@ func test_a_tap_on_her_lists_her_buffs_and_a_tap_on_a_row_drops_that_one() -> vo
 		m.world.act({t = &"cast", spells = [{cards = Guise.RECIPE[kind], dir = Vector2i.ZERO}]})
 	var round_no: int = m.world.round_no
 	_finger(m, _tile_at(m, m.world.player().pos))
-	assert_eq(m.overlay, &"dispel")
+	assert_eq(m.panels.overlay, &"dispel")
 	assert_eq(m.world.round_no, round_no, "the list takes no round")
 	_finger(m, _rows(m, 1))
 	while m.busy:
 		await get_tree().process_frame
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(Guise.worn(m.world, m.world.player()), [Guise.TALON])
 	assert_eq(m.world.round_no, round_no + 1)
 
@@ -139,7 +139,7 @@ func test_a_drag_along_the_saved_row_brings_on_the_next_spell() -> void:
 func _spellbook(m: Node) -> void:
 	_finger(m, _hud(m, &"card", 1))
 	_finger(m, _hud(m, &"spellbook"))
-	assert_eq(m.overlay, &"spells")
+	assert_eq(m.panels.overlay, &"spells")
 
 
 func test_a_slot_button_of_the_spellbook_saves_the_selected_spell_and_again_clears_it() -> void:
@@ -170,10 +170,10 @@ func test_a_tap_on_a_row_of_the_spellbook_selects_it_and_throw_casts_the_selecte
 	_finger(m, _hud(m, &"spellbook"))
 	assert_eq(m.menu.spells().size(), 2, "the queued spell and the saved one")
 	_finger(m, _rows(m, 1))
-	assert_eq(m.overlay, &"spells", "a tap on a row only selects it")
+	assert_eq(m.panels.overlay, &"spells", "a tap on a row only selects it")
 	assert_eq(m.menu.selected, 1)
 	_finger(m, _hud(m, &"enter"))
-	assert_eq(m.overlay, &"", "the page is closed")
+	assert_eq(m.panels.overlay, &"", "the page is closed")
 	assert_eq(m.casting.picked, [Cards.FIRE], "the selected spell is picked")
 
 
@@ -227,7 +227,7 @@ func test_every_button_label_fits_inside_its_button_in_both_orientations() -> vo
 func test_the_spellbook_with_nothing_to_act_on_has_only_the_back_button() -> void:
 	var m := _main()
 	_finger(m, _hud(m, &"spellbook"))
-	assert_eq(m.overlay, &"spells")
+	assert_eq(m.panels.overlay, &"spells")
 	var labels: Array = m.touch.hud._items(m.term).map(func(i): return i.label)
 	assert_eq(labels, ["뒤로"])
 
@@ -299,9 +299,9 @@ func test_the_spellbook_entered_from_the_esc_menu_has_its_buttons() -> void:
 	_finger(m, _hud(m, &"card", 1))
 	_finger(m, _hud(m, &"spellbook"))
 	_finger(m, _hud(m, &"back"))
-	m._open(&"options")
+	m.panels.open(&"options")
 	m.menu.selected = m.menu._listed().find(&"spells")
-	m._panel_input(m.touch._key(KEY_ENTER))
+	m.panels.input(m.touch._key(KEY_ENTER))
 	m.touch._process(0.0)
 	assert_eq(m.menu.page, &"spells")
 	assert_ne(_hud(m, &"enter"), Vector2.ZERO)

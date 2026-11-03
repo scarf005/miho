@@ -85,7 +85,7 @@ func test_a_word_in_the_kept_box_shows_its_entry_and_a_click_opens_it_without_a_
 	var actions: int = m.run.actions.size()
 	var me := _me(m)
 	_click(m, at, true)
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(Vector2i(m.menu.codex.tab, m.menu.codex.selected), Keywords.locate(word))
 	assert_eq(m.world.round_no, rounds)
 	assert_eq(m.run.actions.size(), actions, "nothing is saved to replay")
@@ -93,7 +93,7 @@ func test_a_word_in_the_kept_box_shows_its_entry_and_a_click_opens_it_without_a_
 	var esc := Keys.event("Escape")
 	esc.pressed = true
 	m._unhandled_input(esc)
-	assert_eq(m.overlay, &"", "Esc comes back to the map")
+	assert_eq(m.panels.overlay, &"", "Esc comes back to the map")
 
 
 func test_a_click_inside_the_kept_box_on_no_word_does_not_walk_to_the_tile_under_it() -> void:
@@ -159,7 +159,7 @@ func test_a_tap_on_a_word_in_the_box_a_hold_keeps_opens_that_entry() -> void:
 	var word := _word(m)
 	var rounds: int = m.world.round_no
 	_finger(m, word)
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(m.world.round_no, rounds)
 	assert_false(m.touch.frozen)
 
@@ -179,7 +179,7 @@ func test_a_tap_off_the_box_a_hold_keeps_only_closes_it() -> void:
 func test_the_box_of_a_word_on_a_page_is_kept_too_and_its_words_link() -> void:
 	var m := _main(false)
 	m.glass.visible = false
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(4)
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
@@ -202,12 +202,12 @@ func test_the_box_of_a_word_on_a_page_is_kept_too_and_its_words_link() -> void:
 func test_a_page_covers_the_box_and_the_example_and_shift_keeps_nothing_there() -> void:
 	var m := _foe_hover()
 	assert_false(m.term.info.is_empty(), "the creature shows a box")
-	m._open(&"options")
+	m.panels.open(&"options")
 	assert_true(m.term.info.is_empty())
 	_shift(m, true)
 	assert_true(m.term.pin.is_empty())
 	_shift(m, false)
-	m._close()
+	m.panels.close()
 	assert_false(m.term.info.is_empty(), "the box is back with the page gone")
 
 
@@ -216,7 +216,7 @@ func test_a_talisman_under_the_pointer_plays_no_example_over_a_page() -> void:
 	m.look.hover_card = Cards.FOX
 	m.refresh()
 	assert_false(m.term.example.is_empty(), "the talisman plays its example on the map")
-	m._open(&"spells")
+	m.panels.open(&"spells")
 	assert_true(m.term.example.is_empty(), "opening the page stops it")
 	m.refresh()
 	assert_true(m.term.example.is_empty(), "the pointer on the talisman row does not start it")

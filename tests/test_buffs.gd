@@ -284,7 +284,7 @@ func test_g_with_one_buff_drops_it_and_takes_a_round() -> void:
 	await _settle(m)
 	assert_false(m.world.player().buffs.cloak)
 	assert_eq(m.world.round_no, round_no + 1)
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 
 
 func test_g_with_none_says_so_and_keeps_the_round() -> void:
@@ -301,7 +301,7 @@ func test_g_with_several_lists_them_and_the_row_chosen_ends_that_one() -> void:
 	_wear(m.world, Guise.TALON)
 	var round_no: int = m.world.round_no
 	_press(m, "G")
-	assert_eq(m.overlay, &"dispel")
+	assert_eq(m.panels.overlay, &"dispel")
 	assert_eq(m.world.round_no, round_no, "listing takes no round")
 	_press(m, "Up")
 	assert_eq(m.menu.selected, 1, "up wraps to the last row")
@@ -309,7 +309,7 @@ func test_g_with_several_lists_them_and_the_row_chosen_ends_that_one() -> void:
 	assert_eq(m.menu.selected, 0, "down wraps to the first row")
 	_press(m, "Enter")
 	await _settle(m)
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(Guise.worn(m.world, m.world.player()), [Guise.CLOAK])
 	assert_eq(m.world.round_no, round_no + 1)
 
@@ -321,7 +321,7 @@ func test_esc_leaves_the_list_with_every_buff_on_and_the_round_kept() -> void:
 	var round_no: int = m.world.round_no
 	_press(m, "G")
 	_press(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(Guise.worn(m.world, m.world.player()).size(), 2)
 	assert_eq(m.world.round_no, round_no)
 
@@ -339,18 +339,18 @@ func test_a_click_on_her_with_no_queue_lists_the_buffs_and_takes_no_round() -> v
 	var m := _main()
 	var round_no: int = m.world.round_no
 	m.use_tile(ME, false)
-	assert_eq(m.overlay, &"", "with none, a stray click does nothing")
+	assert_eq(m.panels.overlay, &"", "with none, a stray click does nothing")
 	_wear(m.world, Guise.CLOAK)
 	round_no = m.world.round_no
 	m.use_tile(ME, false)
-	assert_eq(m.overlay, &"dispel")
+	assert_eq(m.panels.overlay, &"dispel")
 	assert_eq(m.world.round_no, round_no)
 
 
 func test_the_options_list_the_dispel_page_and_esc_goes_back() -> void:
 	var m := _main()
 	_wear(m.world, Guise.TALON)
-	m._open(&"options")
+	m.panels.open(&"options")
 	m.menu.selected = Menu.OPTIONS.find(&"dispel")
 	_press(m, "Enter")
 	assert_eq(m.menu.page, &"dispel")

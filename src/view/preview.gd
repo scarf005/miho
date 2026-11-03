@@ -15,7 +15,7 @@ static func point(m: Node, screen: Vector2) -> void:
 	var term: Term = m.term
 	var hinted := not term.hint.is_empty()
 	var local: Vector2 = m.to_term(screen)
-	if m.overlay != &"" and term.pin.is_empty():
+	if m.panels.overlay != &"" and term.pin.is_empty():
 		m.menu.point(PanelView.row_at(term, local))
 		m.menu.codex.lit = PanelView.choice_at(term, local)
 		term.panel = m.menu.panel()
@@ -106,7 +106,7 @@ static func _inspect(m: Node) -> void:
 	term.subject = ""
 	term.cursor = Vector2i(-1, -1)
 	var example := {}
-	if m.state == &"play" and m.overlay == &"" and term.hint.is_empty():
+	if m.state == &"play" and m.panels.overlay == &"" and term.hint.is_empty():
 		example = _tell(m)
 	term.example = example
 

@@ -326,7 +326,7 @@ func test_another_key_after_a_refused_talisman_lets_the_direction_walk() -> void
 	var start: Vector2i = m.world.player().pos
 	_press(m, "1")
 	_press(m, "Escape")
-	m._close()
+	m.panels.close()
 	_press(m, "Right")
 	assert_eq(m.world.player().pos, start + Vector2i.RIGHT)
 

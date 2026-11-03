@@ -49,7 +49,7 @@ func test_enter_on_the_seed_row_of_the_options_copies_it() -> void:
 	var m := _main()
 	m.menu.seed_value = m.run_seed
 	m.menu.open(&"options")
-	m.overlay = &"options"
+	m.panels.overlay = &"options"
 	var enter := InputEventKey.new()
 	enter.keycode = KEY_ENTER
 	enter.pressed = true
@@ -61,5 +61,5 @@ func test_enter_on_the_seed_row_of_the_options_copies_it() -> void:
 		m.menu.key(down)
 		presses += 1
 	assert_eq(Menu.OPTIONS[m.menu.selected], &"seed", "reached with the arrow keys")
-	m._panel_input(enter)
+	m.panels.input(enter)
 	assert_eq(_copies, [str(m.run_seed)])

@@ -28,7 +28,7 @@ static func input(m: Node, event: InputEvent) -> void:
 	if Keys.action_of(event) == &"restart" or _again(event):
 		m.new_game()
 	elif Keys.action_of(event) == &"log":
-		m._open(&"log")
+		m.panels.open(&"log")
 	elif m.left_click(event) and at(m.term, m.to_term(event.position)) == SEED:
 		m.copy_seed()
 

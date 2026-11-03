@@ -94,7 +94,7 @@ func _row_cell(m: Node, k: int) -> Vector2:
 func test_the_key_opens_the_commands_in_a_box_and_escape_closes_them() -> void:
 	var m := _main()
 	await _key(m, "F4")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	var names: Array = m.term.panel.rows.map(func(r): return r[0][0])
 	assert_eq(names, DebugMenu.COMMANDS.map(func(c): return Cheat.NAME[c]))
 	var box := PanelView.frame(m.term)
@@ -102,11 +102,11 @@ func test_the_key_opens_the_commands_in_a_box_and_escape_closes_them() -> void:
 	assert_true(box.size.x < m.term.cols, "map beside the box")
 	assert_true(box.end.y <= m.term.rows - 2, "the status rows under the box")
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_true(m.term.panel.is_empty())
 	await _key(m, "F4")
 	await _key(m, "F4")
-	assert_eq(m.overlay, &"", "its key closes it too")
+	assert_eq(m.panels.overlay, &"", "its key closes it too")
 
 
 func test_the_game_menu_row_opens_the_box_and_escape_closes_to_the_game() -> void:
@@ -118,7 +118,7 @@ func test_the_game_menu_row_opens_the_box_and_escape_closes_to_the_game() -> voi
 	assert_true(m.term.panel.has("box"), "not the settings page")
 	await _key(m, "Escape")
 	assert_true(m.term.panel.is_empty(), "no settings page behind it")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(m.state, &"play")
 
 
@@ -128,7 +128,7 @@ func test_a_right_click_on_the_box_from_the_game_menu_closes_it_to_the_game() ->
 	m.menu.selected = Menu.OPTIONS.find(&"cheat")
 	await _key(m, "Enter")
 	await _mouse(m, Vector2(2, 2), MOUSE_BUTTON_RIGHT)
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_true(m.term.panel.is_empty())
 
 
@@ -139,12 +139,12 @@ func test_a_toggle_is_played_and_recorded_and_the_list_is_back_on_its_row() -> v
 	await _key(m, "Enter")
 	assert_true(Cheat.on(m.world, &"god"))
 	assert_eq(m.run.actions.back(), {t = &"cheat", cmd = &"god"})
-	assert_eq(m.overlay, &"cheat", "the list is back")
+	assert_eq(m.panels.overlay, &"cheat", "the list is back")
 	assert_eq(m.term.panel.rows[DebugMenu.COMMANDS.find(&"god")][1][0], "켜짐")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"god"), "it keeps its row")
 	await _key(m, "Enter")
 	assert_false(Cheat.on(m.world, &"god"), "a second command without opening it again")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 
 
 func test_a_command_hides_the_box_while_it_plays() -> void:
@@ -152,11 +152,11 @@ func test_a_command_hides_the_box_while_it_plays() -> void:
 	await _key(m, "F4")
 	_row(m, &"god")
 	var during := []
-	m.term.shown.connect(func(_e, _at): during.append(m.overlay))
+	m.term.shown.connect(func(_e, _at): during.append(m.panels.overlay))
 	await _key(m, "Enter")
 	assert_false(during.is_empty(), "the command showed an event")
 	assert_true(during.all(func(o): return o == &""), "the game shows the command")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 
 
 func test_a_command_that_ends_the_run_does_not_open_the_list_again() -> void:
@@ -166,7 +166,7 @@ func test_a_command_that_ends_the_run_does_not_open_the_list_again() -> void:
 	m.term.shown.connect(func(_e, _at): m.world.outcome = &"lost")
 	await _key(m, "Enter")
 	assert_eq(m.state, &"over")
-	assert_eq(m.overlay, &"", "the ending shows as usual")
+	assert_eq(m.panels.overlay, &"", "the ending shows as usual")
 	assert_true(m.term.panel.is_empty())
 
 
@@ -185,7 +185,7 @@ func test_left_and_right_step_the_harm_and_a_list_of_its_own_goes_back_to_its_ro
 	assert_eq(m.term.panel.rows.size(), FLOORS)
 	assert_eq(m.term.panel.rows[0][1][0], "지금")
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"floor"))
 
 
@@ -198,14 +198,14 @@ func test_a_storey_chosen_from_its_list_is_gone_to_and_the_list_stays_on_its_row
 	await _key(m, "Down")
 	await _key(m, "Enter")
 	assert_eq(m.world.depth, 3)
-	assert_eq(m.overlay, &"cheat", "another storey keeps the list open")
+	assert_eq(m.panels.overlay, &"cheat", "another storey keeps the list open")
 	assert_eq(m.menu.debug.page, &"floor")
 	assert_eq(m.menu.debug.selected, 2)
 	assert_eq(m.term.panel.rows[2][1][0], "지금")
 	await _key(m, "Escape")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"floor"))
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 
 
 func test_teleport_waits_for_a_tile_then_goes_on_enter_or_a_click() -> void:
@@ -213,7 +213,7 @@ func test_teleport_waits_for_a_tile_then_goes_on_enter_or_a_click() -> void:
 	var start: Vector2i = m.world.player().pos
 	await _key(m, "F4")
 	await _key(m, "Enter")
-	assert_eq(m.overlay, &"", "the box is hidden for the pick")
+	assert_eq(m.panels.overlay, &"", "the box is hidden for the pick")
 	assert_true(m.term.panel.is_empty())
 	assert_true(m.menu.debug.asking())
 	assert_eq(m.look.hover, start, "the cursor starts on Miho")
@@ -224,12 +224,12 @@ func test_teleport_waits_for_a_tile_then_goes_on_enter_or_a_click() -> void:
 	assert_false(m.menu.debug.asking())
 	assert_eq(m.world.player().pos, at)
 	assert_eq(m.world.round_no, 0)
-	assert_eq(m.overlay, &"cheat", "the list is back after the pick")
+	assert_eq(m.panels.overlay, &"cheat", "the list is back after the pick")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"teleport"))
 	await _key(m, "Enter")
 	await _click_tile(m, start)
 	assert_eq(m.world.player().pos, start, "a click picks too")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 
 
 func test_a_pick_that_does_not_fit_asks_again_and_escape_opens_the_list() -> void:
@@ -242,12 +242,12 @@ func test_a_pick_that_does_not_fit_asks_again_and_escape_opens_the_list() -> voi
 	assert_eq(m.run.actions.size(), acts)
 	await _key(m, "Escape")
 	assert_false(m.menu.debug.asking())
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	await _key(m, "Enter")
 	await _click_tile(m, m.world.player().pos, MOUSE_BUTTON_RIGHT)
-	assert_eq(m.overlay, &"cheat", "a right click gives up too")
+	assert_eq(m.panels.overlay, &"cheat", "a right click gives up too")
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"", "and Esc on the list closes it to the game")
+	assert_eq(m.panels.overlay, &"", "and Esc on the list closes it to the game")
 
 
 func test_damage_picks_a_creature_with_tab_and_hurts_it_by_the_amount() -> void:
@@ -317,7 +317,7 @@ func test_the_title_does_not_offer_the_commands_and_the_saved_run_stays() -> voi
 	var m := _main(path)
 	assert_eq(m.state, &"title")
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"options")
+	assert_eq(m.panels.overlay, &"options")
 	var names: Array = m.term.panel.rows.map(func(r): return r[0][0])
 	assert_false(names.has(Menu.OPTION_NAMES[&"cheat"]), "no run is being played")
 	var disk := SaveGame.load_from(path)
@@ -334,11 +334,11 @@ func test_a_right_click_in_a_list_of_its_own_goes_back_to_its_row_as_escape_does
 	click.button_index = MOUSE_BUTTON_RIGHT
 	click.pressed = true
 	m._unhandled_input(click)
-	assert_eq(m.overlay, &"cheat", "the page stays")
+	assert_eq(m.panels.overlay, &"cheat", "the page stays")
 	assert_eq(m.menu.debug.page, &"", "on the commands")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"floor"))
 	m._unhandled_input(click)
-	assert_eq(m.overlay, &"", "a second one closes it")
+	assert_eq(m.panels.overlay, &"", "a second one closes it")
 
 
 func test_a_held_key_never_answers_a_pick() -> void:
@@ -366,7 +366,7 @@ func test_a_creature_picked_for_damage_brings_the_list_back_on_that_row() -> voi
 	_row(m, &"damage")
 	await _key(m, "Enter")
 	await _key(m, "Enter")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"damage"))
 
 
@@ -384,7 +384,7 @@ func test_a_row_is_found_where_the_box_draws_it_and_a_click_on_it_plays_it() -> 
 	assert_eq(PanelView.row_at(m.term, below), -1, "under the box is no row")
 	await _mouse(m, _row_cell(m, god))
 	assert_true(Cheat.on(m.world, &"god"))
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	assert_eq(m.menu.debug.selected, god)
 
 
@@ -398,7 +398,7 @@ func test_the_pointer_lights_the_row_it_is_over_and_a_click_beside_the_box_does_
 	var acts: int = m.run.actions.size()
 	await _mouse(m, Vector2(2, 6))
 	assert_eq(m.run.actions.size(), acts, "not a step on the map under it")
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 
 
 func test_the_wheel_scrolls_a_list_that_does_not_fit_and_keeps_the_selection_in_view() -> void:
@@ -425,7 +425,7 @@ func test_the_box_fits_every_screen_and_zoom_with_the_status_rows_left() -> void
 			m.term.fit(view, zoom)
 			m.menu.room = Vector2i(m.term.cols, m.term.rows)
 			m.menu.debug.selected = 0
-			m._open(&"cheat")
+			m.panels.open(&"cheat")
 			var box := PanelView.frame(m.term)
 			var where := "%s at %s" % [view, zoom]
 			assert_true(box.position.x >= 0 and box.end.x <= m.term.cols, where)
@@ -436,12 +436,12 @@ func test_the_box_fits_every_screen_and_zoom_with_the_status_rows_left() -> void
 			shown = PanelView.span(m.term)
 			var last: int = DebugMenu.COMMANDS.size() - 1
 			assert_true(last >= shown.x and last < shown.x + shown.y, "End in view " + where)
-			m._close()
+			m.panels.close()
 
 
 func test_the_box_keeps_off_miho_and_beside_the_creature_list() -> void:
 	var m := _main()
-	m._open(&"cheat")
+	m.panels.open(&"cheat")
 	var corner: Rect2 = m.term.panel.box
 	var me: Actor = m.world.player()
 	me.pos = Vector2i(corner.get_center().x, corner.end.y - 1) - m.term.side + m.term.cam
@@ -469,12 +469,12 @@ func test_the_debug_label_opens_the_box_when_clicked_and_does_nothing_when_the_v
 	var m := _main()
 	await wait_process_frames(2)
 	await _mouse(m, StatusBar.debug_label(m.term).position)
-	assert_eq(m.overlay, &"", "no label while the debug view is off")
+	assert_eq(m.panels.overlay, &"", "no label while the debug view is off")
 	await _key(m, "F3")
 	assert_true(m.debugging)
 	await _mouse(m, StatusBar.debug_label(m.term).position)
-	assert_eq(m.overlay, &"cheat")
+	assert_eq(m.panels.overlay, &"cheat")
 	assert_true(m.term.panel.has("box"))
 	await _key(m, "Escape")
-	assert_eq(m.overlay, &"", "Esc closes it to the game")
+	assert_eq(m.panels.overlay, &"", "Esc closes it to the game")
 	assert_true(m.term.panel.is_empty())

@@ -229,7 +229,7 @@ func test_a_phone_upright_has_no_room_on_its_pages_and_one_on_its_side_has() -> 
 func test_the_box_of_a_word_over_the_example_hides_it() -> void:
 	var m := _main()
 	var sim := _sim(m)
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.term.hint_at = Vector2(0, m.term.rows - 1)
 	m.term.hint = [[["가연성", Palette.TEXT]]]
 	sim._process(0.0)
@@ -253,7 +253,7 @@ func test_the_selection_starts_the_example_and_closing_stops_it() -> void:
 	var m := _main()
 	var sim := _sim(m)
 	assert_false(sim.visible)
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	assert_true(sim.visible, "the first entry plays at once")
 	assert_not_null(sim.world)
 	var first := sim.world
@@ -270,14 +270,14 @@ func test_the_selection_starts_the_example_and_closing_stops_it() -> void:
 func test_a_tab_with_no_example_hides_it() -> void:
 	var m := _main()
 	var sim := _sim(m)
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	_key(m, "7")
 	assert_false(sim.visible)
 
 
 ## Opens the 도감, plays every kind of scene and closes it.
 func _visit(m: Node) -> void:
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	var sim := _sim(m)
 	for tab in Codex.TABS.size():
 		m.menu.codex.go(tab)
@@ -287,7 +287,7 @@ func _visit(m: Node) -> void:
 				sim._left = 0.0
 				sim._process(0.0)
 				sim.rush()
-	m._close()
+	m.panels.close()
 
 
 func test_the_run_is_untouched_by_the_codex() -> void:

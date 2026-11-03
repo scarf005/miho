@@ -27,7 +27,7 @@ func _main() -> Node:
 
 
 func _codex(m: Node, tab: int) -> CodexSim:
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	m.menu.codex.go(tab)
 	m.term.panel = m.menu.panel()
 	for child in m.term.get_children():

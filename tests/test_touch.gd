@@ -225,7 +225,7 @@ func test_the_menu_button_gives_up_a_debug_pick_as_a_right_click_does() -> void:
 	_finger(m, _hud(m, &"cancel"))
 	await _settle(m)
 	assert_false(m.menu.debug.asking())
-	assert_eq(m.overlay, &"cheat", "the list opens again")
+	assert_eq(m.panels.overlay, &"cheat", "the list opens again")
 	assert_eq(_me(m), Vector2i(4, 8))
 
 
@@ -233,7 +233,7 @@ func test_the_debug_list_fits_the_screen_after_the_phone_is_turned() -> void:
 	var m := _main()
 	get_tree().root.size = Vector2i(390, 844)
 	m.fit()
-	m._open(&"cheat")
+	m.panels.open(&"cheat")
 	m.menu.debug.selected = DebugMenu.COMMANDS.size() - 1
 	get_tree().root.size = Vector2i(844, 390)
 	m.fit()
@@ -336,29 +336,29 @@ func test_the_menu_button_clears_the_queue_first_then_opens_the_options() -> voi
 	_finger(m, _hud(m, &"card", 0))
 	_finger(m, _hud(m, &"cancel"))
 	assert_eq(m.casting.picked, [])
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	_finger(m, _hud(m, &"cancel"))
-	assert_eq(m.overlay, &"options")
+	assert_eq(m.panels.overlay, &"options")
 
 
 func test_the_log_and_the_codex_open_and_the_back_button_closes_them() -> void:
 	var m := _main()
 	_finger(m, _hud(m, &"log"))
-	assert_eq(m.overlay, &"log")
+	assert_eq(m.panels.overlay, &"log")
 	assert_eq(m.touch.hud.mode, &"menu")
 	_finger(m, _hud(m, &"back"))
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	_finger(m, _hud(m, &"codex"))
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	_finger(m, _hud(m, &"back"))
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(m.term.panel, {})
 
 
 func test_the_spellbook_opens_from_its_button() -> void:
 	var m := _main()
 	_finger(m, _hud(m, &"spellbook"))
-	assert_eq(m.overlay, &"spells")
+	assert_eq(m.panels.overlay, &"spells")
 
 
 func test_the_back_button_on_a_page_opened_from_a_page_goes_back_one() -> void:
@@ -367,7 +367,7 @@ func test_the_back_button_on_a_page_opened_from_a_page_goes_back_one() -> void:
 	_finger(m, _rows(m, Menu.OPTIONS.find(&"codex")))
 	assert_eq(m.menu.page, &"codex")
 	_finger(m, _hud(m, &"back"))
-	assert_eq(m.overlay, &"options")
+	assert_eq(m.panels.overlay, &"options")
 	assert_eq(m.menu.page, &"options")
 
 
@@ -376,7 +376,7 @@ func test_the_back_button_on_a_page_opened_from_a_page_goes_back_one() -> void:
 
 func test_a_tap_on_a_row_of_the_options_acts_on_it_and_a_row_is_at_least_44_css_px() -> void:
 	var m := _main()
-	m._open(&"options")
+	m.panels.open(&"options")
 	var apart: float = PanelView.stride * Term.CELL.y * m.term.scale.y / m.touch.dpr
 	assert_gte(apart, TARGET)
 	var before: int = m.settings.crt
@@ -390,7 +390,7 @@ func test_a_drag_scrolls_a_page_by_its_rows() -> void:
 	var m := _main()
 	for i in 60:
 		m.messages.add([["줄 %d" % i, Palette.TEXT]], 0)
-	m._open(&"log")
+	m.panels.open(&"log")
 	m.menu.top = 0
 	var from := _rows(m, 2)
 	var row: float = PanelView.stride * Term.CELL.y * m.term.scale.y
@@ -402,7 +402,7 @@ func test_a_drag_scrolls_a_page_by_its_rows() -> void:
 
 func test_a_tap_on_a_codex_tab_and_a_swipe_sideways_change_the_tab() -> void:
 	var m := _main()
-	m._open(&"codex")
+	m.panels.open(&"codex")
 	var tab_two := Vector2(PanelView._tabs_at(m.term) + 2.5, 1.5) * Term.CELL
 	_finger(m, _screen(m, tab_two))
 	assert_eq(m.menu.codex.tab, 1, "a tap on the second tab shows it")
@@ -415,7 +415,7 @@ func test_a_tap_on_a_codex_tab_and_a_swipe_sideways_change_the_tab() -> void:
 
 func test_a_swipe_sideways_on_the_options_steps_the_value() -> void:
 	var m := _main()
-	m._open(&"options")
+	m.panels.open(&"options")
 	m.menu.selected = Menu.OPTIONS.find(&"volume")
 	var before: int = m.settings.volume
 	var from := _rows(m, 5)
@@ -427,7 +427,7 @@ func test_a_page_laid_out_for_a_phone_keeps_its_selection_in_view() -> void:
 	var m := _main()
 	for i in 60:
 		m.messages.add([["줄 %d" % i, Palette.TEXT]], 0)
-	m._open(&"log")
+	m.panels.open(&"log")
 	var shown: Vector2i = PanelView.span(m.term)
 	assert_lte(m.menu.selected, shown.x + shown.y - 1)
 	assert_gte(m.menu.selected, shown.x)

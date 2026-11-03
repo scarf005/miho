@@ -63,12 +63,12 @@ func test_the_box_of_a_creature_ends_in_the_key_and_the_key_opens_its_kind_in_th
 	var rounds: int = m.world.round_no
 	var actions: int = m.run.actions.size()
 	_press(m, "M")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(_entry(m), _kind_entry(), "the creature's tab and place")
 	assert_eq(m.world.round_no, rounds)
 	assert_eq(m.run.actions.size(), actions, "nothing is saved to replay")
 	_press(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(m.look.hover, hover)
 	assert_eq(m.term.info, lines, "the same hover comes back")
 
@@ -95,7 +95,7 @@ func test_the_box_of_a_tile_opens_the_entry_of_that_tile() -> void:
 	Preview.point(m, _tile_at(m, at))
 	assert_eq(m.term.info.back()[0][0], "M")
 	_press(m, "M")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(_entry(m), Keywords.locate(Lang.t(Tiles.of(World.POND, "name"))))
 	assert_eq(m.menu.codex.tab, 4, "the features of the floor")
 
@@ -106,7 +106,7 @@ func test_the_box_of_a_talisman_opens_its_entry() -> void:
 	m.refresh()
 	assert_eq(m.term.info.back()[0][0], "M")
 	_press(m, "M")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(_entry(m), Keywords.locate(Codex.talisman_name(Cards.ORB)))
 
 
@@ -139,10 +139,10 @@ func test_look_mode_opens_the_entry_of_the_tile_under_the_cursor_and_stays_in_lo
 	assert_eq(m.term.info.back()[0][0], "M")
 	var rounds: int = m.world.round_no
 	_press(m, "M")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(_entry(m), _kind_entry())
 	_press(m, "Escape")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_true(m.look.active, "the look cursor is where it was")
 	assert_eq(m.look.hover, foe)
 	assert_eq(m.world.round_no, rounds)
@@ -157,7 +157,7 @@ func test_a_kept_box_opens_its_own_entry_when_the_pointer_is_over_something_else
 	assert_eq(m.look.hover, floor_tile, "the pointer moved to a floor tile")
 	var rounds: int = m.world.round_no
 	_press(m, "M", true)
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 	assert_eq(_entry(m), _kind_entry(), "the creature, not the floor")
 	assert_eq(m.world.round_no, rounds)
 
@@ -172,7 +172,7 @@ func test_a_box_with_no_entry_shows_no_row_and_the_key_leaves_the_screen_as_it_i
 	var rounds: int = m.world.round_no
 	var log: int = m.messages.lines.size()
 	_press(m, "M")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(m.term.info, lines)
 	assert_eq(m.world.round_no, rounds)
 	assert_eq(m.messages.lines.size(), log, "no refusal in the log")
@@ -186,7 +186,7 @@ func test_the_status_row_has_no_entry_either() -> void:
 	assert_false(m.term.info.is_empty())
 	assert_eq(m.term.subject, "")
 	_press(m, "M")
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 
 
 func test_the_row_follows_a_rebind() -> void:
@@ -195,7 +195,7 @@ func test_the_row_follows_a_rebind() -> void:
 	m.refresh()
 	assert_eq(m.term.info.back()[0][0], "T")
 	_press(m, "T")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")
 
 
 func test_a_touch_screen_shows_no_row() -> void:
@@ -237,4 +237,4 @@ func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -
 	m.refresh()
 	assert_eq(m.term.subject, Lang.t(hidden.info().name))
 	_press(m, "M")
-	assert_eq(m.overlay, &"codex")
+	assert_eq(m.panels.overlay, &"codex")

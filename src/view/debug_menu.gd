@@ -296,9 +296,9 @@ func _give_up(main: Node) -> void:
 
 ## Opens the box on the list it was left on, unless a command ended the run.
 func _again(main: Node) -> void:
-	if main.state == &"play" and main.overlay == &"":
+	if main.state == &"play" and main.panels.overlay == &"":
 		resume = true
-		main._open(&"cheat")
+		main.panels.open(&"cheat")
 
 
 ## Where the cursor starts: on the nearest creature to pick one, else on Miho.

@@ -107,11 +107,11 @@ func test_the_log_opens_over_the_banner_and_closes_back_to_it() -> void:
 	var open := Keys.event(Keys.keys_of(&"log")[0])
 	open.pressed = true
 	m._unhandled_input(open)
-	assert_eq(m.overlay, &"log")
+	assert_eq(m.panels.overlay, &"log")
 	var shut := Keys.event("Escape")
 	shut.pressed = true
 	m._unhandled_input(shut)
-	assert_eq(m.overlay, &"")
+	assert_eq(m.panels.overlay, &"")
 	assert_eq(m.state, &"over")
 
 
