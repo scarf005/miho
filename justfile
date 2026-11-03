@@ -257,6 +257,10 @@ bench: rust
     {{ godot }} --headless --path . -s tools/bench_codex.gd
     {{ godot }} --headless --path . -s tools/bench_example.gd
 
+# List what each 도감 example does in its window as markdown rows; MISS marks one that does not show what its entry says.
+audit-codex: rust import
+    {{ godot }} --headless --path . -s tools/audit_codex.gd
+
 # Replay the saved runs of tools/oracle/ and compare their hashes with tools/oracle.expected; exits 1 on any difference.
 oracle: rust import
     #!/usr/bin/env bash
