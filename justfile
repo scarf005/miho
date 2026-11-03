@@ -253,6 +253,7 @@ bench: rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/bench.gd
     {{ godot }} --headless --path . -s tools/bench_round.gd
+    {{ godot }} --headless --path . -s tools/bench_mind.gd
     {{ godot }} --headless --path . -s tools/bench_codex.gd
     {{ godot }} --headless --path . -s tools/bench_example.gd
 
