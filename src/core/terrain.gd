@@ -210,13 +210,13 @@ static func near(at: Vector2i) -> Array[Vector2i]:
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 	var tiles := near(at)
 	react(w, s.spell, tiles, struck)
-	if s.spell.orb and s.spell.has(Cards.WATER):
-		_pool(w, tiles)
 	for p in tiles:
 		if lights(s.spell) and p != struck:
 			relight(w, p)
 		if s.spell.has(Cards.WATER):
 			wash(w, p)
+	if s.spell.orb and s.spell.has(Cards.WATER):
+		_pool(w, tiles)
 
 
 ## Bare floor on `tiles` becomes shallow water, and cools, but where a plate lies hidden
