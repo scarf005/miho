@@ -3,6 +3,8 @@ web_port := env_var_or_default("WEB_PORT", "4180")
 # Emscripten 4.0.20, the version the Godot 4.7.2 web templates are built with.
 nightly := env_var_or_default("MIHO_NIGHTLY", "nightly")
 emsdk := env_var_or_default("MIHO_EMSDK", data_directory() / "emsdk-4.0.20")
+template_src := env_var_or_default("MIHO_GODOT_SRC", data_directory() / "godot-4.7.2-src")
+template := env_var_or_default("MIHO_WEB_TEMPLATE", data_directory() / "miho-web-template.zip")
 
 # List recipes.
 default:
@@ -146,8 +148,31 @@ lint:
 
 # Export the web build to build/web.
 web: rust-web
+    #!/usr/bin/env bash
+    set -euo pipefail
     mkdir -p build/web
+    # The template from `just web-template` is used when it exists, else the official one.
+    if [ -f "{{ template }}" ]; then
+        cp export_presets.cfg build/export_presets.bak
+        trap 'mv build/export_presets.bak export_presets.cfg' EXIT
+        sed -i 's|^custom_template/release=.*|custom_template/release="{{ template }}"|' export_presets.cfg
+    fi
     {{ godot }} --headless --path . --export-release Web build/web/index.html
+
+# Build the Godot 4.7.2 web template without 3D, advanced GUI and unused modules (about 15 min on 8 cores, 12 GB).
+web-template:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [ -d "{{ template_src }}" ] || git clone --depth 1 --branch 4.7.2-stable https://github.com/godotengine/godot.git "{{ template_src }}"
+    source "{{ emsdk }}/emsdk_env.sh" >/dev/null 2>&1
+    cd "{{ template_src }}"
+    # Modules the game does not use (2D drawing, GDScript, ogg, regex, freetype stay). The fallback text server shapes Hangul.
+    mods="astcenc basis_universal bcdec betsy bmp camera csg cvtt dds enet etcpak fbx gltf gridmap hdr interactive_music jolt_physics jpg jsonrpc ktx lightmapper_rd mbedtls meshoptimizer mobile_vr mp3 msdfgen multiplayer navigation_2d navigation_3d noise objectdb_profiler openxr raycast svg text_server_adv tga theora tinyexr upnp vhacd visual_shader webp webrtc websocket webxr xatlas_unwrap zip"
+    args=(); for m in $mods; do args+=("module_${m}_enabled=no"); done
+    uvx scons platform=web target=template_release threads=no dlink_enabled=yes \
+        disable_3d=yes disable_advanced_gui=yes module_text_server_fb_enabled=yes optimize=size lto=full production=yes \
+        "${args[@]}" -j"$(nproc)"
+    cp bin/godot.web.template_release.wasm32.nothreads.dlink.zip "{{ template }}"
 
 # Export and serve the web build on localhost.
 serve: web
