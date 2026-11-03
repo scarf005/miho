@@ -246,7 +246,7 @@ func test_a_furnace_orb_hurts_a_foe_that_walks_on_off_the_hot_iron() -> void:
 	assert_lt(foe.hp, 40, "off the hot iron by the end of the round")
 
 
-func test_a_flyer_beside_the_burst_of_a_beacon_is_seared() -> void:
+func test_a_flyer_beside_the_burst_of_a_beacon_takes_no_harm() -> void:
 	var w := _world()
 	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 3)
 	bat.max_hp = 40
@@ -256,7 +256,7 @@ func test_a_flyer_beside_the_burst_of_a_beacon_is_seared() -> void:
 	Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
 	for i in 2:
 		w.act(WAIT)
-	assert_lt(bat.hp, 40, "it goes off beside the flyer, which no hot iron under it would harm")
+	assert_eq(bat.hp, 40, "it touches no hot iron")
 
 
 func test_the_orbs_of_a_volley_sear_a_foe_once() -> void:
@@ -275,31 +275,29 @@ func _seared(events: Array[Dictionary], a: Actor) -> Array:
 	return events.filter(func(e): return e.t == &"sear" and e.id == a.id)
 
 
-func test_a_volley_sears_a_flyer_over_water_once() -> void:
+func test_a_volley_sears_a_foe_over_water_once() -> void:
 	var w := _world()
-	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 2)
-	w.tiles[Grid.index(bat.pos)] = World.POND
-	bat.max_hp = 40
-	bat.hp = 40
-	Elements.root(w, bat, 9)
+	var foe := _post(w, ME + E * 2)
+	w.tiles[Grid.index(foe.pos)] = World.POND
+	foe.max_hp = 40
+	foe.hp = 40
 	w.sense()
 	w.events = []
 	Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
 	assert_gt(_bursts(w.events).size(), 1)
-	assert_eq(_seared(w.events, bat).size(), 1)
+	assert_eq(_seared(w.events, foe).size(), 1)
 
 
 func test_a_burst_on_hot_iron_a_round_later_sears_again() -> void:
 	var w := _world()
-	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 2)
-	bat.max_hp = 40
-	bat.hp = 40
-	Elements.root(w, bat, 9)
+	var foe := _post(w, ME + E * 2)
+	foe.max_hp = 40
+	foe.hp = 40
 	w.sense()
 	for i in 2:
 		w.events = []
 		Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
-		assert_eq(_seared(w.events, bat).size(), 1, "volley %d" % i)
+		assert_eq(_seared(w.events, foe).size(), 1, "volley %d" % i)
 
 
 func test_her_homing_lava_flies_on_up_to_a_foe_and_a_beacon_s_goes_off_beside_it() -> void:
