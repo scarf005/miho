@@ -156,13 +156,29 @@ const ROWS := [
 	},
 ]
 const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
+## What a storey's element (RunPlan.element) makes more or less of: tile kind -> how many
+## times its row's patches.
+const TIMES := {
+	Cards.WOOD: {World.GRASS: 2.0, World.REEDS: 2.0, World.STRAW: 0.5},
+	Cards.FIRE: {World.STRAW: 3.0, World.LEAVES: 2.0, World.CENSER: 3.0, World.SHALLOW: 0.1},
+	Cards.EARTH: {World.PILLAR: 2.0, World.JAR: 3.0, World.SCREEN: 2.0, World.GRASS: 0.5},
+	Cards.METAL:
+	{
+		World.COURTYARD: 3.0,
+		World.PILLAR: 2.0,
+		World.GRASS: 0.0,
+		World.REEDS: 0.0,
+		World.LEAVES: 0.0,
+	},
+	Cards.WATER: {World.SHALLOW: 3.0, World.REEDS: 2.0, World.STRAW: 0.0, World.CENSER: 0.0},
+}
 
 
-## Lays every row's patches for this storey in the rooms but `goal`.
+## Lays every row's patches for this storey, by its `element`, in the rooms but `goal`.
 ## Plates, and the rows with `aside` (furniture), draw from generators of their
 ## own, seeded from the world's, so they leave the draws of everything laid
 ## after them as they were.
-static func scatter(w: World, goal: Rect2i) -> void:
+static func scatter(w: World, goal: Rect2i, element: StringName) -> void:
 	var plates := RandomNumberGenerator.new()
 	plates.seed = w.rng.state
 	var furniture := RandomNumberGenerator.new()
@@ -175,7 +191,7 @@ static func scatter(w: World, goal: Rect2i) -> void:
 			rng = plates
 		elif row.get("aside", false):
 			rng = furniture
-		for i in count(row, w.depth, rng):
+		for i in count(row, w.depth, rng, TIMES[element].get(row.get("what"), 1.0)):
 			var spots := _spots(w, row, goal)
 			if spots.is_empty():
 				break
@@ -184,11 +200,11 @@ static func scatter(w: World, goal: Rect2i) -> void:
 	w._changed()
 
 
-## How many patches of `row` storey `depth` has.
-static func count(row: Dictionary, depth: int, rng: RandomNumberGenerator) -> int:
-	var hundredths := maxi(0, row.count[0] + depth * row.count[1])
+## How many patches of `row` storey `depth` has, `times` as many as the row says.
+static func count(row: Dictionary, depth: int, rng: RandomNumberGenerator, times := 1.0) -> int:
+	var hundredths := int(maxi(0, row.count[0] + depth * row.count[1]) * times)
 	var extra := 1 if rng.randi_range(0, 99) < hundredths % 100 else 0
-	return mini(row.count[2], hundredths / 100 + extra)
+	return mini(ceili(row.count[2] * times), hundredths / 100 + extra)
 
 
 ## The tile numbers `row` may start on: free tiles of `row.on` in a room but `goal`.

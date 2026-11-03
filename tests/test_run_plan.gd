@@ -43,6 +43,53 @@ func test_every_shape_comes_up_and_the_order_changes_from_seed_to_seed() -> void
 	assert_gt(last.size(), 3, "the shapes of the ninth storey: %s" % [last.keys()])
 
 
+func test_no_three_storeys_in_a_row_share_a_light() -> void:
+	for seed_value in SEEDS:
+		for depth in range(3, World.FLOORS + 1):
+			var row := range(depth - 2, depth + 1).map(func(d): return RunPlan.light(seed_value, d))
+			assert_false(row[0] == row[1] and row[1] == row[2], "seed %d %s" % [seed_value, row])
+
+
+func _lanterns(light: float) -> float:
+	var seeds := range(SEEDS).filter(func(s): return RunPlan.light(s, 5) == light).slice(0, 12)
+	var count := 0
+	for seed_value: int in seeds:
+		count += Built.storey(seed_value, 5, Skeletons.TOWERS).tiles.count(World.LANTERN)
+	return float(count) / seeds.size()
+
+
+func test_a_bright_storey_holds_more_lanterns_than_a_dark_one() -> void:
+	assert_gt(_lanterns(RunPlan.LIGHTS[2]), _lanterns(RunPlan.LIGHTS[0]) + 2.0)
+
+
+func _tiles_on(element: StringName, kind: int) -> int:
+	var seeds := range(SEEDS).filter(
+		func(s): return RunPlan.element(s, 5, Skeletons.TOWERS) == element
+	)
+	var count := 0
+	for seed_value: int in seeds.slice(0, 12):
+		count += Built.storey(seed_value, 5, Skeletons.TOWERS).tiles.count(kind)
+	return count
+
+
+func test_a_storey_of_metal_grows_no_grass_where_one_of_wood_grows_plenty() -> void:
+	assert_eq(_tiles_on(Cards.METAL, World.GRASS), 0)
+	assert_gt(_tiles_on(Cards.WOOD, World.GRASS), 12 * 4)
+
+
+func test_a_storey_of_fire_lays_far_more_straw_than_one_of_water() -> void:
+	assert_gt(_tiles_on(Cards.FIRE, World.STRAW), _tiles_on(Cards.WATER, World.STRAW) * 2)
+
+
+func test_the_elements_of_a_run_follow_one_another_by_what_each_grows_into() -> void:
+	for seed_value in 20:
+		for depth in range(2, World.FLOORS + 1):
+			assert_eq(
+				RunPlan.element(seed_value, depth, Skeletons.RING),
+				Cards.GROWS[RunPlan.element(seed_value, depth - 1, Skeletons.RING)]
+			)
+
+
 func test_a_whole_run_keeps_the_rules_on_every_storey_it_climbs() -> void:
 	for seed_value in CLIMBED:
 		var w := World.create(seed_value)
