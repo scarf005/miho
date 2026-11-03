@@ -110,3 +110,30 @@ func test_a_new_run_s_creature_is_a_bad_sign_whatever_its_id() -> void:
 	var next := _world()
 	var saja := _foe(next, &"saja", ME + Vector2i(2, 0))
 	assert_eq(Sfx.dreaded(next, known), [saja] as Array[Actor])
+
+
+func test_what_flies_is_quieter_than_a_step_whatever_it_flies_over() -> void:
+	var w := World.new()
+	w.tiles.resize(Grid.W * Grid.H)
+	w.tiles.fill(World.FLOOR)
+	var me := Actor.new()
+	me.id = w.new_id()
+	me.kind = &"miho"
+	me.faction = Actor.FOX
+	me.hp = 3
+	me.pos = Vector2i(1, 1)
+	w.actors.append(me)
+	var bat := Actor.new()
+	bat.kind = &"bakjwi"
+	bat.pos = Vector2i(4, 8)
+	var boar := Actor.new()
+	boar.kind = &"dokkaebi"
+	boar.pos = Vector2i(4, 10)
+	w.set_tile(Vector2i(5, 8), World.BAMBOO)
+	w.set_tile(Vector2i(5, 10), World.BAMBOO)
+	w.events.clear()
+	Walk.move(w, bat, Vector2i(5, 8))
+	Walk.move(w, boar, Vector2i(5, 10))
+	var moves := w.events.filter(func(e): return e.t == &"move")
+	assert_lt(Sfx.level_of(moves[0]), Sfx.level_of(moves[1]))
+	assert_lt(Sfx.level_of(moves[0]), Sfx.level_of({t = &"move", loud = 0}))

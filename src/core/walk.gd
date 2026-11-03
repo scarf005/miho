@@ -15,7 +15,17 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 	var from := a.pos
 	var tread: Array = Status.tread(a, Tiles.of(w.tile(to), "tread"))
 	var loud := 0 if w.tile(to) == World.MUD else maxi(a.info().get("step", 0), tread[0])
-	w.emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
+	w.emit(
+		{
+			t = &"move",
+			id = a.id,
+			from = from,
+			to = to,
+			word = tread[1],
+			loud = loud,
+			flies = Bestiary.flies(a.kind)
+		}
+	)
 	a.pos = to
 	var on := riders(w, a)
 	for s in on:

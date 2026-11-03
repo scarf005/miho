@@ -122,6 +122,8 @@ const GLOBAL := [
 ## A step is -6 dB on bare ground and louder by STEP_DB for each tile its tread is heard.
 const STEP_DB := 1.5
 const STEP_TILES := 4
+## What flies is heard at this, whatever it flies over.
+const FLIGHT_DB := -18.0
 const LEVEL := {
 	&"move": -6.0,
 	&"charge": -4.0,
@@ -325,7 +327,9 @@ func on_event(e: Dictionary, at: Vector2) -> void:
 ## How loud an event sounds from its place, in dB.
 static func level_of(e: Dictionary) -> float:
 	var db: float = LEVEL.get(e.t, 0.0)
-	return db + STEP_DB * mini(e.loud, STEP_TILES) if e.t == &"move" else db
+	if e.t != &"move":
+		return db
+	return FLIGHT_DB if e.get("flies", false) else db + STEP_DB * mini(e.loud, STEP_TILES)
 
 
 ## Every sound an event makes: its own, the layers of a spell's cast and
