@@ -439,3 +439,27 @@ func test_the_example_of_a_spell_that_harms_harms_the_creature_it_shows() -> voi
 					assert_gt(_foe_harm(w, scene), 0, "%s harms in its example" % spell.shown())
 					harmful += 1
 	assert_gt(harmful, 0, "some of them harm")
+
+
+func _compound(name: String) -> Dictionary:
+	var list := Codex.entries(COMPOUNDS)
+	return list[list.find_custom(func(e): return e.name == name)]
+
+
+func test_the_lightning_of_a_creature_has_an_entry_whose_example_hits_miho_at_once() -> void:
+	var scene: Dictionary = SpellScene.resolve(_compound(Spell.BOLT_NAME).scene)[0]
+	var w := CodexScene.build(scene)
+	var hp: int = w.player().hp
+	w.act(WAIT)
+	assert_lt(w.player().hp, hp, "it hits")
+	assert_true(w.shots.is_empty(), "and stays nowhere")
+
+
+func test_what_a_creature_alone_does_is_what_its_entry_tells() -> void:
+	var text := Info.plain(Codex.detail(_compound(Spell.BOLT_NAME)))
+	assert_true(Elements.bolt(Bestiary.spell(&"jiha", [Cards.FOX, Cards.METAL])))
+	assert_false(text.contains("지속 시간"), "a bolt stays nowhere")
+	assert_string_contains(text, "속도: 즉시")
+	var wisp := Info.plain(Codex.detail(_compound("도깨비불")))
+	assert_false(wisp.contains("대상:"), "it aims at Miho, no creature")
+	assert_false(wisp.contains("정지 중 소음"), "the lure is Miho's")
