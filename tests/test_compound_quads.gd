@@ -185,7 +185,7 @@ func test_the_orbs_of_a_beacon_turn_on_a_foe_and_do_not_put_each_other_out() -> 
 	w.sense()
 	var events := w.act(_cast(_made(&"beacon")))
 	assert_true(_of(events, &"clash").is_empty())
-	var near_foe := w.shots.filter(func(s): return Grid.cheb(s.pos, foe.pos) <= 2)
+	var near_foe := _of(events, &"burst").filter(func(e): return Grid.cheb(e.at, foe.pos) <= 1)
 	assert_gt(near_foe.size(), 1, "from more than the way that points at it")
 	while not w.shots.is_empty():
 		w.act({t = &"wait"})

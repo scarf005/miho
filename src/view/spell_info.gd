@@ -148,7 +148,9 @@ static func spell(s: Spell) -> Array:
 	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
 		return lines + _does(Cards.BUNSIN)
 	if Forge.around(s):
-		return lines + _does(&"beacon" if s.has(&"beacon") else Forge.FURNACE)
+		return (
+			lines + _does(&"beacon" if s.has(&"beacon") else Forge.FURNACE) + _fuse(Flight.fused(s))
+		)
 	if s.shape == Spell.LEAP:
 		lines.append_array(_shape(s))
 		var then := s.rest()
@@ -167,6 +169,7 @@ static func spell(s: Spell) -> Array:
 			lines.append(_pair(MUZZLE) if s.gun() else _line("빛", "없음"))
 		return lines + _lines(_sounds(s)) + ward(s)
 	lines.append_array(_shape(s))
+	lines.append_array(_fuse(Flight.fused(s)))
 	if s.edged():
 		lines.append_array(_lines(blast(s), Palette.HURT))
 	for e in Cards.ELEMENTS:
@@ -591,6 +594,7 @@ static func shot(w: World, s: Shot) -> Array:
 		lines.append(_line("대상", "없음" if t == null else Lang.t(t.info().name)))
 		lines.append(_line("회전", _turn(s.turn)))
 	lines.append(_line("속도", Lang.t("초당 %d칸") % s.pace() if s.dir != Vector2i.ZERO else "정지"))
+	lines.append_array(_fuse(s.fused))
 	if spell.accel() > 0:
 		lines.append(_line(ACCEL, Lang.t("초당 %d칸") % spell.accel()))
 	if s.life > 0:
@@ -693,6 +697,11 @@ static func _swap() -> Array:
 		],
 		Palette.card(Cards.VAULT)
 	)
+
+
+## The tag of a proximity fuse (Flight.fused, Shot.fused), told in the glossary.
+static func _fuse(fused: bool) -> Array:
+	return [[[Lang.t(Info.FUSE) + ".", Palette.TEXT]]] if fused else []
 
 
 ## What a leap does, whoever casts it: its shape, what it crosses, what stops

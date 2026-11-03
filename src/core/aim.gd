@@ -64,21 +64,25 @@ static func spared(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 
 
 ## Whether `plan` of `a` would catch one of its own side: on the tiles a spray covers,
-## on the line to `foe`, or round `foe` where a projectile that blasts or carries a
-## compound ends.
+## on the line to `foe`, or round where a projectile that blasts or carries a compound
+## ends: at `foe`, or short of it where a fuse goes off (Flight.fuse).
 static func catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 	var spell := Spell.make(plan.cards)
 	var tiles: Array[Vector2i] = []
 	if spell.shape == Spell.SPRAY:
 		tiles = Spray.cover(w, a, spell, plan.dir)
 	else:
+		var end := foe.pos
 		for i in range(1, Grid.cheb(a.pos, foe.pos)):
 			tiles.append(a.pos + plan.dir * i)
+			if Flight.fused(spell) and Flight.beside_foe(w, tiles.back(), a.faction):
+				end = tiles.back()
+				break
 		if spell.blasts() or not spell.compounds().is_empty():
 			var r := Compounds.REACH
 			for c: StringName in spell.compounds():
 				r = maxi(r, Compounds.reach(spell, c))
-			tiles.append_array(Spray.square(w, foe.pos, r, true))
+			tiles.append_array(Spray.square(w, end, r, true))
 	return w.actors.any(
 		func(b): return b != a and b.alive() and b.faction == a.faction and tiles.has(b.pos)
 	)

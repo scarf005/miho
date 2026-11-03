@@ -5,7 +5,8 @@ extends RefCounted
 ## within REACH, one its caster sees if there is one: an ally that stands where it is put and
 ## every FIRE_ROUNDS rounds hurls an orb
 ## along the line nearest the closest foe it sees, unless that would catch its own side
-## (`_catches_own`).
+## (`_catches_own`). The orbs of both go off beside a foe (Shot.fused), though only the spell
+## that lets them out holds 쇠: her own 용암 flies on.
 
 const FURNACE := &"furnace"
 ## Tiles an orb of lava flies before it bursts.
@@ -51,9 +52,9 @@ static func _beacon(w: World, caster: Actor) -> void:
 	for d in Grid.DIRS:
 		var a := w.actor_at(caster.pos + d)
 		if w.open_air(caster.pos + d) and (a == null or a.faction != caster.faction):
-			Flight.step(
-				w, Flight.spawn(w, caster, spell, d, Homing.targets(w, caster, spell, d)[0])
-			)
+			var s := Flight.spawn(w, caster, spell, d, Homing.targets(w, caster, spell, d)[0])
+			s.fused = true
+			Flight.step(w, s)
 
 
 static func _furnace(w: World, caster: Actor) -> void:
@@ -89,12 +90,12 @@ static func turn(w: World, a: Actor) -> bool:
 
 
 ## Whether an orb `a` throws along `dir` would burst on one of its own side, where it
-## stops on the first creature or at the end of its range.
+## stops on the first creature, beside the first foe or at the end of its range.
 static func _catches_own(w: World, a: Actor, dir: Vector2i) -> bool:
 	var end := a.pos
 	for p: Vector2i in Forecast.ray(w, a.pos, dir).slice(0, RANGE):
 		end = p
-		if w.actor_at(p) != null:
+		if w.actor_at(p) != null or Flight.beside_foe(w, p, a.faction):
 			break
 	var burst := Spray.square(w, end, 1, true)
 	return w.actors.any(

@@ -277,7 +277,7 @@ func test_every_compound_carried_on_an_orb_acts_on_the_3x3_where_it_strikes() ->
 				assert_true(w.hot.has(at) and w.hot.has(at + Vector2i(1, -1)), c)
 			&"shrapnel":
 				assert_eq(_harm(events, side.id), Compounds.MORTAR, c)
-				assert_eq(_harm(events, foe.id), 1 + Compounds.MORTAR, "orb and the burst")
+				assert_eq(_harm(events, foe.id), Compounds.MORTAR, "its fuse goes off beside it")
 			&"frost":
 				assert_eq(
 					[foe.ailments.rooted, side.ailments.rooted],

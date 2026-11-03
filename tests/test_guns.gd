@@ -272,9 +272,9 @@ func test_a_mortar_hurts_one_more_for_every_more_metal() -> void:
 func test_a_mortar_with_a_lone_metal_bursts_on_the_creature_it_strikes_and_leaves_it_there(
 ) -> void:
 	var w := _world()
-	var struck := _post(w, 3)
+	var struck := _post(w, 1)
 	var events := w.act(_cast([ORB, EARTH, METAL, METAL]))
-	assert_eq(struck.pos, ME + E * 3, "no push")
+	assert_eq(struck.pos, ME + E, "no push")
 	assert_eq(_hurts(events, struck).size(), 2, "the strike and the burst")
 
 

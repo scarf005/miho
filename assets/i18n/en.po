@@ -3248,3 +3248,12 @@ msgstr "F"
 
 msgid "마지막 저장 지점으로 돌아왔다"
 msgstr "You went back to the last save point."
+
+msgid "근접신관"
+msgstr "Proximity fuse"
+
+msgid "작동: 날아가는 중 %d칸 안의 적"
+msgstr "Set off by: a foe within %d tile in flight"
+
+msgid "터질 때 %s 위의 적: 피해 %d"
+msgstr "Foe on %s when it goes off: damage %d"

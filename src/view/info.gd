@@ -27,6 +27,8 @@ const TRACE := "흔적."
 const ALLY := "아군"
 ## The tag of 전기 (Cards.ELECTRIC), told in the glossary.
 const ELECTRIC := "전기"
+## The tag of a proximity fuse (Flight.fused), told in the glossary.
+const FUSE := "근접신관"
 ## The state of a sleeper (Actor.asleep), and the tag of a creature that never
 ## sleeps (Actor.sleeps).
 const ASLEEP := "자는 중"

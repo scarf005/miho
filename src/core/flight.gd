@@ -3,7 +3,11 @@ extends RefCounted
 ## How projectiles fly. After Miho acts, every projectile flies (interleaved, one tile
 ## per sub-step), and then every other creature acts. A creature spends one round
 ## charging (telegraphed) before it casts, and its new projectiles first fly after
-## Miho's next action.
+## Miho's next action. A shot with a fuse (Shot.fused) ends in flight as soon as a foe stands
+## within FUSE of it (`fuse`).
+
+## The tiles round a fused shot within which a foe sets it off.
+const FUSE := 1
 
 
 static func spawn(w: World, caster: Actor, spell: Spell, dir: Vector2i, target: int) -> Shot:
@@ -103,10 +107,42 @@ static func step(w: World, s: Shot) -> void:
 			Elements.land(w, s)
 			return
 	fly(w, s, to)
+	if fuse(w, s):
+		return
 	if not s.gone and not s.spell.orb and s.flown >= Spell.RANGE:
 		Elements.land(w, s)
 	elif not s.gone and Forge.lobbed(s.spell) and s.flown >= Forge.RANGE:
 		_burst(w, s)
+
+
+## Whether what `spell` hurls goes off beside a foe: a wisp or an orb that holds 유탄, but for
+## a piercing one, which goes on through them, and what lets out orbs of lava (Forge, whose
+## orbs hold no 쇠 themselves, so that Shot.fused tells it of them).
+static func fused(spell: Spell) -> bool:
+	if (spell.orb or spell.shape == Spell.WISP) and spell.has(&"shrapnel"):
+		return not spell.pierces()
+	return Forge.around(spell)
+
+
+## `s` has just flown a tile: with a fuse and a foe beside it, it ends where it is, as it
+## would at the end of its flight. True when it went off.
+static func fuse(w: World, s: Shot) -> bool:
+	if not s.fused or s.gone or not beside_foe(w, s.pos, s.faction):
+		return false
+	if s.spell.orb:
+		_burst(w, s)
+	else:
+		Elements.land(w, s)
+	return true
+
+
+## Whether a live creature of another side than `faction` stands within FUSE of `at`. A wall
+## between them on a diagonal does not count: a burst spreads past it (Spray.square).
+static func beside_foe(w: World, at: Vector2i, faction: int) -> bool:
+	for a: Actor in w.actors:
+		if a.faction != faction and a.alive() and Grid.cheb(at, a.pos) <= FUSE:
+			return true
+	return false
 
 
 static func _burst(w: World, s: Shot) -> void:

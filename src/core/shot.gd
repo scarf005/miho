@@ -19,6 +19,8 @@ var bank := 0
 var flown := 0
 var host := 0
 var pierced := false
+## It goes off beside a foe in flight (Flight.fuse).
+var fused := false
 ## The arcs 낙뢰 has made (Compounds.arc).
 var arcs := 0
 ## Rounds it has flown (Flight.phase): an orb gains Spell.accel a round.
@@ -38,6 +40,7 @@ static func of(w: World, caster: Actor, spell: Spell) -> Shot:
 	s.spell = spell
 	s.pos = caster.pos
 	s.origin = caster.pos
+	s.fused = Flight.fused(spell) or caster.kind == Forge.FURNACE
 	return s
 
 
@@ -69,5 +72,6 @@ func clone() -> Shot:
 	s.flown = flown
 	s.host = host
 	s.pierced = pierced
+	s.fused = fused
 	s.age = age
 	return s

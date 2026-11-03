@@ -35,3 +35,4 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		else:
 			Flight.fly(w, s, s.pos + s.dir)
 			s.dir = Homing.facing(w, s)
+			Flight.fuse(w, s)

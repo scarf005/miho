@@ -51,6 +51,17 @@ static func rows() -> Dictionary:
 			Lang.t("막는 원소가 섞인 주문: ×%d") % (Elements.WEAK / Elements.HALF),
 		],
 		Info.ELECTRIC: _shocks(),
+		Info.FUSE:
+		[
+			Lang.t("작동: 날아가는 중 %d칸 안의 적") % Flight.FUSE,
+			(
+				Lang.t("터질 때 %s 위의 적: 피해 %d")
+				% [
+					Lang.t(Compounds.HOT[Compounds.MOLTEN].name),
+					Compounds.HOT[Compounds.MOLTEN].harm
+				]
+			),
+		],
 		"달라붙음": ["빛: 맞은 대상을 따라 움직임", "감투 쓴 적: 보임"],
 		"둔함": ["주문을 보면: 날아가는 칸을 수색"],
 		"영리함":

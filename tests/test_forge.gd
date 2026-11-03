@@ -222,7 +222,7 @@ func test_a_furnace_never_shuts_her_off_from_the_way_up() -> void:
 func test_a_furnace_holds_its_fire_when_the_end_of_the_flight_would_catch_her() -> void:
 	var w := _world()
 	var f := FloorGen.spawn(w, Forge.FURNACE, ME - E * 5 + Vector2i(0, 1))
-	_post(w, f.pos + Vector2i(4, 1))
+	_post(w, f.pos + Vector2i(5, 2))
 	for i in 4:
 		w.act(WAIT)
 	assert_true(w.shots.is_empty(), "she stands by where it would burst")

@@ -375,6 +375,7 @@ func _shot_row(s: Shot) -> Array:
 		s.flown,
 		s.host,
 		s.pierced,
+		s.fused,
 		s.age,
 		s.arcs
 	]
