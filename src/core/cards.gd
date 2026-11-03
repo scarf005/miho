@@ -514,6 +514,11 @@ static func recipe(slot: StringName) -> Array:
 	return _recipes[slot]
 
 
+## How a recipe tells talisman `c`: a shape by its letter, an element by its name, through `t`.
+static func part(c: StringName, t: Callable) -> String:
+	return t.call(GLYPH[c], "talisman") if FORMS.has(c) else t.call(NAME[c])
+
+
 ## The talismans of the spell compound `slot` is cast as: its recipe, with an orb if it needs one.
 static func spell_of(slot: StringName) -> Array:
 	return [ORB] + recipe(slot) if marked(slot, "lobbed") else recipe(slot)

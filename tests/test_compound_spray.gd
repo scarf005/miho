@@ -252,7 +252,10 @@ func test_a_talisman_entry_shows_every_count_and_only_what_each_changes() -> voi
 	for c: StringName in Cards.FORMS + Cards.ELEMENTS:
 		var text := Info.plain(SpellInfo.stacked(c))
 		for n in range(2, Spell.MAX_SLOTS + 1):
-			assert_string_contains(text, Cards.GLYPH[c].repeat(n))
+			var copies := []
+			copies.resize(n)
+			copies.fill(Cards.part(c, Lang.t))
+			assert_string_contains(text, "+".join(copies))
 	var orb := Info.plain(SpellInfo.stacked(Cards.ORB))
 	assert_string_contains(orb, "피해: %d" % Spell.make([Cards.ORB, Cards.ORB]).damage(0))
 	var wisp := Info.plain(SpellInfo.stacked(Cards.FOX))

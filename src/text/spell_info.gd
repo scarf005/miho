@@ -58,7 +58,7 @@ static func shape(kind: StringName) -> Array:
 	)
 
 
-## The talismans a spell is made of: "만드는 법: 물+나무+불".
+## The talismans a spell is made of: "만드는 법: 여+나무+불".
 static func _recipe(s: Spell) -> Array:
 	return [[Lang.t("만드는 법: "), LABEL]] + _recipe_runs(s.cards)
 
@@ -67,7 +67,7 @@ static func _recipe(s: Spell) -> Array:
 static func _recipe_runs(cards: Array) -> Array:
 	var runs := []
 	for i in cards.size():
-		runs.append([("+" if i > 0 else "") + Lang.t(Cards.NAME[cards[i]]), Palette.card(cards[i])])
+		runs.append([("+" if i > 0 else "") + Cards.part(cards[i], Lang.t), Palette.card(cards[i])])
 	return runs
 
 
@@ -140,12 +140,17 @@ static func _slot_head(c: StringName, parts: Array) -> Array:
 	return head
 
 
-## A spell: name, cost and slots, then every number.
+## A spell's name, cost and talismans.
+static func _head(s: Spell) -> Array:
+	return (
+		[[s.shown(), Palette.card(s.slots.back())], [" · " + _cost(s) + " · ", LABEL]]
+		+ _recipe_runs(s.cards)
+	)
+
+
+## A spell: name, cost and talismans, then every number.
 static func spell(s: Spell) -> Array:
-	var head := [[s.shown(), Palette.card(s.slots.back())], [" · " + _cost(s) + " · ", LABEL]]
-	for c in s.slots:
-		head.append([Lang.t(Cards.GLYPH[c], "talisman"), Palette.card(c)])
-	var lines := [head]
+	var lines := [_head(s)]
 	if Guise.ANYWHERE.has(Guise.kind(s)):
 		return lines + ward(s)
 	if s.has(Cards.BUNSIN) and s.slots.size() == 1:
@@ -201,11 +206,7 @@ static func spell(s: Spell) -> Array:
 static func own(kind: StringName) -> Array:
 	var s := Spell.make(Guise.RECIPE[kind])
 	return (
-		[
-			[[Lang.t(Guise.NAME[kind]), Palette.card(s.slots.back())], [" · " + _cost(s), LABEL]],
-			_recipe(s)
-		]
-		+ ward(s)
+		[[[Lang.t(Guise.NAME[kind]), Palette.card(s.slots.back())]] + _head(s).slice(1)] + ward(s)
 	)
 
 

@@ -101,7 +101,7 @@ func test_the_spells_are_the_forms_the_elements_and_the_shapes() -> void:
 
 func test_a_shape_tells_its_talismans_and_its_numbers() -> void:
 	var homing := _text(Codex.detail(_entry(2, "유도 구슬")))
-	assert_string_contains(homing, "만드는 법: 여우불+구슬")
+	assert_string_contains(homing, "만드는 법: 여+구")
 	assert_string_contains(homing, "가장 가까운 적")
 	assert_string_contains(homing, "회전: 칸당 45°")
 	assert_string_contains(_text(Codex.detail(_entry(1, "뿌리기"))), "모양: 투사체 없이")
@@ -113,7 +113,7 @@ func test_every_compound_is_listed_with_its_parts() -> void:
 	assert_true(names.has(Spell.SHAPE_NAME[Spell.HOMING]))
 	for c in Cards.compounds():
 		var text := _text(Codex.detail(_entry(2, Cards.NAME[c])))
-		var parts: Array = Cards.spell_of(c).map(func(e): return Cards.NAME[e])
+		var parts: Array = Cards.spell_of(c).map(func(e): return Cards.part(e, Lang.t))
 		assert_string_contains(text, " · %s\n" % "+".join(parts))
 		assert_eq(text, _text(SpellInfo.combo(c)), c)
 		var tails := "꼬리: %d" % Spell.price(parts.size())

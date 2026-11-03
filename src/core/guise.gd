@@ -104,7 +104,7 @@ static func shown_only() -> String:
 static func _only(t: Callable) -> String:
 	var spells := RECIPE.keys().map(
 		func(k):
-			var cards: Array = RECIPE[k].map(func(c): return t.call(Cards.GLYPH[c], "talisman"))
+			var cards: Array = RECIPE[k].map(func(c): return Cards.part(c, t))
 			return "%s(%s)" % [t.call(NAME[k]), "+".join(cards)]
 	)
 	return t.call("스스로에겐 %s만 걸 수 있다") % ", ".join(spells)
