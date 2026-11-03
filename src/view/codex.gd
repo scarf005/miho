@@ -267,7 +267,7 @@ func panel() -> Dictionary:
 	var rows := []
 	for e in list:
 		rows.append([[e.glyph, e.color, 2.0], [e.name, Palette.TEXT, 4.0]])
-	var lines := _lines()
+	var lines := _lines(list)
 	var fits := _lines_fit()
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
 	var shown := lines.slice(scroll, scroll + fits).map(_legible)
@@ -438,9 +438,8 @@ func go(t: int) -> void:
 	scroll = 0
 
 
-## The detail of the selected entry, cut to the room.
-func _lines() -> Array:
-	var list := entries(tab, rank)
+## The detail of the selected entry of `list`, cut to the room.
+func _lines(list := entries(tab, rank)) -> Array:
 	var side := _side_x(list)
 	var example := _example(list[selected], side)
 	var taken: float = 0.0 if example.is_empty() else CodexSim.beside(example.scale)
