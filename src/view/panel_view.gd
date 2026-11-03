@@ -24,9 +24,13 @@ static func fits(screen_rows: int, detail: int) -> int:
 	return maxi(1, lines_fit(screen_rows, detail) / stride)
 
 
-## The cells the panel takes: the screen, or its `box`.
+## The cells the panel takes: the screen, or its `box`, moved beside the creature list when it
+## would hide Miho.
 static func frame(t: Term) -> Rect2:
-	return t.panel.get("box", Rect2(0, 0, t.cols, t.rows))
+	var box: Rect2 = t.panel.get("box", Rect2(0, 0, t.cols, t.rows))
+	if t.panel.has("box") and t.world != null and box.has_point(t._cell(t.world.player().pos)):
+		box.position.x = minf(t.side.x, box.position.x)
+	return box
 
 
 ## Entries of the panel that fit, and the first one shown (`top`).
