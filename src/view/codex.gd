@@ -52,10 +52,13 @@ var room := Vector2i(40, 18)
 static func stage() -> World:
 	var w := World.new()
 	w.tiles.resize(Grid.W * Grid.H)
-	w.tiles.fill(World.WALL)
-	for y in range(1, Grid.H - 1):
-		for x in range(1, Grid.W - 1):
-			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
+	w.tiles.fill(World.FLOOR)
+	for x in Grid.W:
+		w.tiles[x] = World.WALL
+		w.tiles[Grid.W * (Grid.H - 1) + x] = World.WALL
+	for y in Grid.H:
+		w.tiles[Grid.W * y] = World.WALL
+		w.tiles[Grid.W * y + Grid.W - 1] = World.WALL
 	var me := Actor.new()
 	me.id = w.new_id()
 	me.kind = &"miho"
