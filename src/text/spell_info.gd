@@ -351,10 +351,8 @@ static func _spray(s: Spell) -> Array:
 
 
 ## A fan of radius r, as [label, value] lines.
-static func _fan(r: int, name := "") -> Array:
-	return [
-		["모양", name + Lang.t(FAN_NAME) % Spray.FAN_ANGLE + Lang.t(", 반지름 %d") % r], ["범위", "보이는 칸만"]
-	]
+static func _fan(r: int, name := "", angle := Spray.FAN_ANGLE) -> Array:
+	return [["모양", name + Lang.t(FAN_NAME) % angle + Lang.t(", 반지름 %d") % r], ["범위", "보이는 칸만"]]
 
 
 static func _gun(level: int) -> Array:
@@ -362,8 +360,9 @@ static func _gun(level: int) -> Array:
 	var name: String = row.name[level - 1]
 	var harm := _line("피해", "%d" % row.harm[level - 1], Palette.HURT)
 	if level >= Spray.SHOTGUN_LEVEL:
-		var near := _line("바로 옆 적 피해", "%d" % Spray.GUN_NEAR_HARM, Palette.HURT)
-		return _lines(_fan(row.reach[level - 1], Lang.t(name) + ", ")) + [harm, near]
+		return (
+			_lines(_fan(row.reach[level - 1], Lang.t(name) + ", ", row.angle[level - 1])) + [harm]
+		)
 	return [_line("모양", Lang.t("%s, 곧게 %d칸") % [Lang.t(name), row.reach[level - 1]]), harm]
 
 

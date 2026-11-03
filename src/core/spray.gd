@@ -13,8 +13,8 @@ extends RefCounted
 ## creature on it. It douses fire and lanterns, wets drums, washes scent away.
 ## 쇠 a gun, heard GUN_LOUD tiles, that lights the caster's tile for the round:
 ## a pistol shot and at two copies a rifle shot, farther and harder, hit the first
-## creature on the line; from SHOTGUN_LEVEL copies a shotgun fans out, a tile wider
-## for every copy, and hits each creature, GUN_NEAR_HARM next to the caster. The
+## creature on the line; from SHOTGUN_LEVEL copies a shotgun fans out, a tile farther
+## and a wider spread for every copy, and hits each creature. The
 ## piercing rounds are wisps (Spell.pierces), not sprays.
 ## 흙 a quake in a ring of radius `reach` whatever the direction, thudding
 ## World.THUD tiles: it stuns for `stun` rounds; level 2 on cracks walls,
@@ -32,8 +32,9 @@ extends RefCounted
 ## 쇠 hurts 1 for each 쇠 (Elements.strike does the creature part).
 
 ## A lone element's spray, each column by level: what it is called, its reach
-## (tiles, steps for roots), the harm a gun does, the tiles a jet pushes, the rounds a
-## quake stuns, the creatures roots take and the rounds they hold.
+## (tiles, steps for roots), the harm a gun does, the degrees a shotgun spreads
+## (0 for the rest), the tiles a jet pushes, the rounds a quake stuns, the creatures roots
+## take and the rounds they hold.
 const LONE := {
 	Cards.FIRE: {name = ["불길", "불길", "불길", "불길", "불길"], reach = [1, 2, 4, 5, 6]},
 	Cards.WATER:
@@ -46,7 +47,8 @@ const LONE := {
 	{
 		name = ["권총", "소총", "산탄", "산탄", "산탄"],
 		reach = [7, 10, 4, 5, 6],
-		harm = [1, 2, 1, 1, 1],
+		harm = [1, 2, 2, 3, 4],
+		angle = [0, 0, 30, 45, 90],
 	},
 	Cards.EARTH:
 	{
@@ -65,8 +67,6 @@ const LONE := {
 const GUN_LOUD := 9
 ## Degrees a fan covers, across its line.
 const FAN_ANGLE := 90
-## What a shotgun hurts a creature next to the caster for.
-const GUN_NEAR_HARM := 2
 ## Tiles a lone 물 pushes on a spray led by a compound, a tile more a copy.
 const PLAIN_PUSH := 1
 ## The copies of a lone element from which its spray changes: a shotgun in place
@@ -218,7 +218,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 		Cards.METAL:
 			var reached: int = LONE[Cards.METAL].reach[level - 1]
 			if level >= SHOTGUN_LEVEL:
-				return fan(w, from, dir, reached)
+				return fan(w, from, dir, reached, LONE[Cards.METAL].angle[level - 1])
 			return line(w, from, dir, reached, false)
 		Cards.EARTH:
 			return ring(from, LONE[Cards.EARTH].reach[level - 1])
@@ -314,9 +314,11 @@ static func holds(spell: Spell, t: int) -> bool:
 	return walk
 
 
-## Tiles within `r` (Chebyshev) of `from` and within 45° of `dir`, that `from`
-## sees, walls left out.
-static func fan(w: World, from: Vector2i, dir: Vector2i, r: int) -> Array[Vector2i]:
+## Tiles within `r` (Chebyshev) of `from` and within half of `angle` degrees to each side
+## of `dir`, that `from` sees, walls left out.
+static func fan(
+	w: World, from: Vector2i, dir: Vector2i, r: int, angle := FAN_ANGLE
+) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	var view := w.fov(from)
 	var d := Vector2(dir).normalized()
@@ -328,7 +330,7 @@ static func fan(w: World, from: Vector2i, dir: Vector2i, r: int) -> Array[Vector
 				continue
 			if (
 				not Terrain.wall(w.tile(p))
-				and Vector2(v).normalized().dot(d) >= cos(deg_to_rad(FAN_ANGLE / 2.0)) - 0.001
+				and Vector2(v).normalized().dot(d) >= cos(deg_to_rad(angle / 2.0)) - 0.001
 			):
 				out.append(p)
 	return out
@@ -562,13 +564,8 @@ static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	w.flares.append(s.origin)
 	w._changed()
 	for a in on(w, s, tiles):
-		var n: int = (
-			GUN_NEAR_HARM
-			if level >= SHOTGUN_LEVEL and Grid.cheb(s.origin, a.pos) <= 1
-			else LONE[Cards.METAL].harm[level - 1]
-		)
 		if reaches(w, s, a):
-			Elements.harm(w, s, a, n)
+			Elements.harm(w, s, a, LONE[Cards.METAL].harm[level - 1])
 			if a.alive():
 				Mind.struck(w, a, s)
 
