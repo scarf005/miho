@@ -20,7 +20,7 @@ extends RefCounted
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
 ## water: whoever stands on it as a round ends takes its harm, unless it eats
 ## fire. Heaven walks round it, so a fused orb (Shot.fused) sears those it reaches as it
-## bursts: one beside the burst would step off.
+## bursts (`_flare`): one beside the burst would step off.
 ## 유탄 hurts every creature it reaches for SHRAPNEL. On an orb (비격진) it
 ## bursts: MORTAR harm and a harm more for every lone 쇠, the creature the orb
 ## struck among them once, and every breakable wall in reach takes a hit.
@@ -134,6 +134,8 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 			for p in tiles:
 				Terrain.ignite(w, p, false, true)
 		&"lava":
+			if s.fused:
+				_flare(w, s, tiles)
 			heat(w, tiles, MOLTEN)
 		&"frost":
 			_become(
@@ -196,9 +198,6 @@ static func strike(w: World, s: Shot, c: StringName, a: Actor, at: Vector2i) -> 
 	match c:
 		&"wildfire":
 			Status.ignite(w, a, true)
-		&"lava":
-			if s.fused:
-				_sear(w, a, MOLTEN)
 		&"shrapnel":
 			Elements.harm(
 				w, s, a, MORTAR + s.spell.count(Cards.METAL) if s.spell.mortar() else SHRAPNEL
@@ -251,7 +250,7 @@ static func tick(w: World) -> void:
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
-		if a != null:
+		if a != null and not Bestiary.flies(a.kind):
 			_sear(w, a, h.x)
 		if h.y <= 1:
 			w.hot.erase(p)
@@ -262,11 +261,18 @@ static func tick(w: World) -> void:
 		w.emit({t = &"cool", at = cooled[kind][0], tiles = cooled[kind], kind = kind})
 
 
-## Hot ground of `kind` sears `a` on it, unless it flies.
+## Hot ground of `kind` sears `a` on it.
 static func _sear(w: World, a: Actor, kind: int) -> void:
-	if not Bestiary.flies(a.kind):
-		w.emit({t = &"sear", id = a.id, at = a.pos, kind = kind})
-		Harm.fire(w, a, HOT[kind].harm, a.pos)
+	w.emit({t = &"sear", id = a.id, at = a.pos, kind = kind})
+	Harm.fire(w, a, HOT[kind].harm, a.pos)
+
+
+## A fused orb of lava bursts: it sears those on `tiles` that are not on hot ground yet, in the
+## air too, so that the orbs of one volley sear a creature once.
+static func _flare(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
+	for a in Spray.on(w, s, tiles):
+		if not w.hot.has(a.pos):
+			_sear(w, a, MOLTEN)
 
 
 ## Open ground a compound may turn into another kind.
