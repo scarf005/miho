@@ -152,10 +152,12 @@ web: rust-web
     set -euo pipefail
     mkdir -p build/web
     # The template from `just web-template` is used when it exists, else the official one.
+    # Its fallback text server reads no ICU data, and the editor packs a file of that name in place of its own.
     if [ -f "{{ template }}" ]; then
-        cp export_presets.cfg build/export_presets.bak
-        trap 'mv build/export_presets.bak export_presets.cfg' EXIT
+        [ -e build/export_presets.bak ] || cp export_presets.cfg build/export_presets.bak
+        trap 'mv build/export_presets.bak export_presets.cfg; rm -f icudt_godot.dat' EXIT
         sed -i 's|^custom_template/release=.*|custom_template/release="{{ template }}"|' export_presets.cfg
+        printf 0 > icudt_godot.dat
     fi
     {{ godot }} --headless --path . --export-release Web build/web/index.html
 
@@ -173,6 +175,10 @@ web-template:
         disable_3d=yes disable_advanced_gui=yes module_text_server_fb_enabled=yes optimize=size lto=full production=yes \
         "${args[@]}" -j"$(nproc)"
     cp bin/godot.web.template_release.wasm32.nothreads.dlink.zip "{{ template }}"
+
+# Publish the web template for CI, on a tag that deploys nothing (.github/actions/web, deploy.yml).
+web-template-release version="4.7.2":
+    gh release create "web-template-{{ version }}" "{{ template }}#miho-web-template.zip" --target "$(git rev-parse HEAD)" --latest=false --title "Web template {{ version }}" --notes "Godot {{ version }} web template from \`just web-template\`."
 
 # Export and serve the web build on localhost.
 serve: web
