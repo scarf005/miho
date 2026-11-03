@@ -2,7 +2,8 @@ class_name WordHover
 extends RefCounted
 ## The 도감 entry of a word the pointer is over in text on the screen: the detail
 ## of a 도감 page, the rows of the log and help pages, the detail of the spellbook,
-## the log over the map, and a hover box that Shift keeps (`hold`). An open hover
+## the log over the map, the third row of a creature card (CreatureCard.row), and a
+## hover box that Shift keeps (`hold`). An open hover
 ## box follows the pointer and closes when it leaves the thing, so only a kept one
 ## can be pointed into. Term draws the entry in a box under the pointer
 ## (Term.hint); a left click opens it (WordLink).
@@ -81,7 +82,9 @@ static func _rows(t: Term) -> Array:
 	if t.panel.is_empty():
 		if t.replay or not t.banner_lines.is_empty():
 			return out
-		return t.log_rows()
+		for card: Array in t.side_cards():
+			out.append([floori(card[1].y) + 2, card[1].x, CreatureCard.row(t, card[0], card[2])])
+		return out + t.log_rows()
 	var aside: Array = t.panel.get("aside", [])
 	for k in aside.size():
 		out.append([3 + k, t.panel.aside_x, aside[k]])

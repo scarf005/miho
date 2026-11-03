@@ -291,6 +291,18 @@ func side_at(local: Vector2) -> Vector2i:
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
 
 
+## The creature cards on the screen, as [creature, cell of the card, cells wide].
+func side_cards() -> Array:
+	if world == null:
+		return []
+	if bar is TouchHud:
+		return bar.side_cards(self)
+	if side.x <= 0:
+		return []
+	var list := side_list(world_actors(), world.player().pos)
+	return range(list.size()).map(func(k): return [list[k], Vector2(0, k * SIDE_ROWS), MAP.x])
+
+
 func _world_shots() -> Dictionary:
 	var out := {}
 	for s in world.shots:

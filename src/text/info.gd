@@ -482,7 +482,9 @@ static func _conditions(w: World, a: Actor) -> Array:
 	if Veil.scorches(w, a.pos) and not Bestiary.fireproof(a.nature_kind()):
 		out.append(_amount("도깨비불 장막 옆 칸 초당 피해: ", World.FIRE_DAMAGE))
 	for s in Walk.riders(w, a):
-		var runs := [[s.spell.shot_shown(), Palette.card(s.spell.slots.back())]]
+		var runs := [
+			SpellInfo.tagged(s.spell.shot_shown(), Palette.card(s.spell.slots.back()), [s.spell])
+		]
 		var clings := Lang.t(" 붙음: %d초") % s.life if s.life > 0 else Lang.t(" 붙음")
 		out.append(runs + [[clings, Palette.TEXT]])
 	if w.hot.has(a.pos) and not Compounds.spared(a):
@@ -526,7 +528,7 @@ static func _casts(a: Actor) -> Array:
 		var parts: Array = [
 			[
 				[Lang.t("주문: " if own else "주술: "), Palette.TEXT],
-				[spell.shown(), Palette.card(spell.slots.back())]
+				SpellInfo.tagged(spell.shown(), Palette.card(spell.slots.back()), group)
 			]
 		]
 		if has_mana:

@@ -265,7 +265,7 @@ func test_a_spell_of_a_creature_shows_its_recipe_and_a_click_opens_it_at_that_re
 	var cards := [Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB, Cards.WATER]
 	_foe_detail(m, &"haetae", Bestiary.RANKS)
 	var recipe := SpellInfo.recipe_text(cards)
-	var at := _cell(m.term, recipe)
+	var at := _cell(m.term, SpellInfo.spell_word(cards))
 	var local := (at + Vector2(0.5, 0.5)) * Term.CELL
 	assert_string_contains(Info.plain(WordHover.at(m.term, local)), recipe)
 	_click(m, _over(m, at.x, int(at.y)))
@@ -281,7 +281,7 @@ func test_a_spell_named_as_a_gas_still_shows_its_recipe() -> void:
 	var m := _game()
 	var cards := [Cards.WATER, Cards.FIRE]
 	_foe_detail(m, &"cheonnyeon", Bestiary.RANKS)
-	var at := _cell(m.term, SpellInfo.recipe_text(cards))
+	var at := _cell(m.term, SpellInfo.spell_word(cards))
 	var local := (at + Vector2(0.5, 0.5)) * Term.CELL
 	assert_string_contains(Info.plain(WordHover.at(m.term, local)), SpellInfo.recipe_text(cards))
 	_click(m, _over(m, at.x, int(at.y)))
@@ -302,8 +302,9 @@ func test_a_box_shift_keeps_gives_the_recipe_of_the_spell_in_it() -> void:
 	m.refresh()
 	WordHover.hold(m, true)
 	assert_false(m.term.pin.is_empty())
-	var recipe := SpellInfo.recipe_text(Bestiary.casts(&"jiha", 1)[0])
-	var at := _cell(m.term, recipe)
+	var cards: Array = Bestiary.casts(&"jiha", 1)[0]
+	var recipe := SpellInfo.recipe_text(cards)
+	var at := _cell(m.term, SpellInfo.spell_word(cards))
 	var word := WordHover.at(m.term, (at + Vector2(0.5, 0.5)) * Term.CELL)
 	assert_string_contains(Info.plain(word), recipe)
 
@@ -318,7 +319,7 @@ func test_the_spell_a_creature_charges_in_the_sidebar_is_a_word() -> void:
 	m.term.show_world(w)
 	m.forecast()
 	var recipe := SpellInfo.recipe_text(cards)
-	var at := _cell(m.term, recipe)
+	var at := _cell(m.term, SpellInfo.spell_word(cards))
 	assert_true(at.x < m.term.side.x, "in the sidebar")
 	assert_string_contains(
 		Info.plain(WordHover.at(m.term, (at + Vector2(0.5, 0.5)) * Term.CELL)), recipe
@@ -333,10 +334,12 @@ func test_every_spell_of_every_creature_has_an_entry_that_tells_its_recipe() -> 
 	for kind: StringName in Codex.foes():
 		for rank in Bestiary.RANKS:
 			for cards: Array in Bestiary.casts(kind, rank + 1):
-				var recipe := SpellInfo.recipe_text(cards)
-				var what := "%s %s" % [kind, recipe]
-				assert_ne(Keywords.locate(recipe).x, -1, what)
-				assert_string_contains(Info.plain(Keywords.entry(recipe)), recipe, what)
+				var word := SpellInfo.spell_word(cards)
+				var what := "%s %s" % [kind, word]
+				assert_ne(Keywords.locate(word).x, -1, what)
+				var head := Info.plain(Keywords.entry(word)).split("\n")[0]
+				for c: StringName in cards:
+					assert_string_contains(head, Cards.part(c, Lang.t), what)
 
 
 func test_a_title_with_a_count_is_a_word_for_that_recipe() -> void:

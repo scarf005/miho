@@ -240,6 +240,13 @@ func button_at(t: Term, local: Vector2) -> StringName:
 	return _find(t, local, &"button").get("id", &"")
 
 
+## The cards of the strip, as [creature, cell of the card, cells wide].
+func side_cards(t: Term) -> Array:
+	return _creatures(t).map(
+		func(c): return [c.actor, _cell(c.rect.position), c.rect.size.x / Term.CELL.x]
+	)
+
+
 ## Where the creature listed in the strip under a point stands, or (-1, -1).
 func creature_at(t: Term, local: Vector2) -> Vector2i:
 	for c in _creatures(t):

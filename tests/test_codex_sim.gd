@@ -64,11 +64,20 @@ func _result(w: World) -> String:
 
 ## The result of the scene at its start and after each round, its casts left out if `idle`.
 func _rounds(scene: Dictionary, idle := false) -> Array:
-	var w := CodexScene.build(scene)
+	var w := CodexScene.build(_uncharged(scene) if idle else scene)
 	var out := [_result(w)]
 	for action in CodexScene.actions(scene):
+		if not w.can(action):
+			break
 		w.act(WAIT if idle and action.t == &"cast" else action)
 		out.append(_result(w))
+	return out
+
+
+## The scene with its creature casting nothing.
+func _uncharged(scene: Dictionary) -> Dictionary:
+	var out := scene.duplicate()
+	out.erase("charged")
 	return out
 
 
@@ -78,8 +87,11 @@ func _assert_casts_matter(entries: Array) -> void:
 		for scene in SpellScene.resolve(e.scene):
 			var w := CodexScene.build(scene)
 			for action in CodexScene.actions(scene):
-				assert_true(w.can(action), "%s: %s is legal" % [e.name, action])
-				w.act(action)
+				assert_true(
+					scene.has("charged") or w.can(action), "%s: %s is legal" % [e.name, action]
+				)
+				if w.can(action):
+					w.act(action)
 			assert_true(_rounds(scene) != _rounds(scene, true), "%s does something" % e.name)
 
 

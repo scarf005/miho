@@ -9,7 +9,9 @@ extends RefCounted
 ## its own is left as it is, unless it is nothing but such a word. It is also the
 ## list of the names that have an entry in the 도감 (`terms`), of every tab,
 ## which WordHover shows and links where the pointer is over one. Such a name is
-## found whole, or with a particle after it; inside a longer word it is not.
+## found whole, or with a particle after it; inside a longer word it is not. A run
+## may carry a tag, a String: what it stands for whatever it reads, the recipes of a
+## spell (SpellInfo.tagged), whose name alone could mean several.
 
 ## Conditions besides Status.NAME that harm their holder, and those that help it.
 const HARM := [
@@ -27,6 +29,8 @@ const PARTICLES := "이|가|을|를|은|는|의|에서|에게|에|으로|로|과
 ## The tabs in the order their names win: a name that is a rule or a state means
 ## that, before a feature of the floor or a spell of the same name.
 const TAB_ORDER := [6, 5, 4, 3, 2, 1, 0]
+## What parts the recipes in a word (SpellInfo.tagged).
+const RECIPES := ", "
 
 ## language -> {words: shown word -> colours, find: the RegEx for them}, made
 ## when first needed.
@@ -95,7 +99,9 @@ static func paint(line: Array) -> Array:
 	for run: Array in line:
 		var plain: bool = run[1] == Palette.TEXT or run[1] == Palette.DIM
 		var parts := []
-		if plain:
+		if tag(run) != "":
+			pass
+		elif plain:
 			parts = runs(run[0], run[1])
 		elif _for().words.has(_key(run[0])):
 			parts = [[run[0]] + _for().words[_key(run[0])]]
@@ -134,10 +140,17 @@ static func column(run: Array, x: float) -> float:
 	return at[0] if not at.is_empty() else x
 
 
-## The part `text` of `run`: its colours, not its column.
+## The word a run stands for whatever it reads (SpellInfo.tagged), or empty.
+static func tag(run: Array) -> String:
+	var tags := run.slice(2).filter(func(v): return v is String)
+	return tags[0] if not tags.is_empty() else ""
+
+
+## The part `text` of `run`: its colours and its tag, not its column.
 static func piece(run: Array, text: String, color: Variant = null) -> Array:
 	return (
-		[text, run[1] if color == null else color] + run.slice(2).filter(func(v): return v is Color)
+		[text, run[1] if color == null else color]
+		+ run.slice(2).filter(func(v): return v is Color or v is String)
 	)
 
 
@@ -168,15 +181,39 @@ static func _entries() -> Dictionary:
 		# (면역: 불), the floor is told where one stands on it (불 위: 3초).
 		var fire := _key(Lang.t(Cards.NAME[Cards.FIRE]))
 		at[_key(Lang.t("%s 위") % fire)] = at[fire]
-		at[fire] = Vector2i(1, tabs[1].find_custom(func(e): return _key(e.name) == fire))
+		for c: StringName in Cards.FORMS + Cards.ELEMENTS:
+			at[_key(Cards.part(c, Lang.t))] = at[_key(Codex.talisman_name(c))]
+		var stages := {}
+		for tab: int in TAB_ORDER:
+			for k in tabs[tab].size():
+				_add_stages(tabs[tab][k], Vector2i(tab, k), at, stages)
 		var names := at.keys()
 		names.sort_custom(func(a: String, b: String): return a.length() > b.length())
 		var sorted := {}
 		for name: String in names:
 			sorted[name] = at[name]
 		var particles := PARTICLES if code == &"ko" else ""
-		_listed[code] = {tabs = tabs, names = sorted, find = _regex(names.map(_escape), particles)}
+		_listed[code] = {
+			tabs = tabs,
+			names = sorted,
+			stages = stages,
+			find = _regex(names.map(_escape), particles)
+		}
 	return _listed[code]
+
+
+## What `entry`, which is at `place`, tells at each of its parts: each recipe is a word for that
+## part (`stages`), and each title as well when no entry has that name (`at`).
+static func _add_stages(
+	entry: Dictionary, place: Vector2i, at: Dictionary, stages: Dictionary
+) -> void:
+	var recipes: Array = entry.get("recipes", [])
+	for part in recipes.size():
+		var title := _key(entry.titles[part])
+		stages.get_or_add(_key(SpellInfo.spell_word(recipes[part])), [place, part])
+		if not at.has(title):
+			at[title] = place
+			stages[title] = [place, part]
 
 
 static func _escape(name: String) -> String:
@@ -185,20 +222,33 @@ static func _escape(name: String) -> String:
 	return name
 
 
-## Where the entry of `word` is, as (tab, index), or (-1, -1).
+## Where the entry of `word` is, as (tab, index), or (-1, -1). A word may be a recipe, or several
+## (SpellInfo.tagged): the first tells.
 static func locate(word: String) -> Vector2i:
-	return _entries().names.get(_key(word), Vector2i(-1, -1))
+	var key := _key(word).get_slice(RECIPES, 0)
+	var shown := _entries()
+	return shown.names.get(key, shown.stages.get(key, [Vector2i(-1, -1)])[0])
 
 
-## The 도감 entry of `word` as hover lines, or none for a word without one.
+## The part of its entry that `word` names, a recipe or a title with a count; else the first.
+static func part_of(word: String) -> int:
+	return _entries().stages.get(_key(word).get_slice(RECIPES, 0), [null, 0])[1]
+
+
+## The 도감 entry of `word` as hover lines, or none for a word without one. For several recipes
+## that one name has, the head of each.
 static func entry(word: String) -> Array:
+	if word.contains(RECIPES):
+		var heads := Array(word.split(RECIPES)).map(entry)
+		return heads.filter(func(h): return not h.is_empty()).map(func(h): return h[0])
 	var at := locate(word)
 	if at.x < 0:
 		return []
 	var code := Lang.active()
-	if _last.size() == 3 and _last[0] == code and _last[1] == at:
+	var part := part_of(word)
+	if _last.size() == 3 and _last[0] == code and _last[1] == [at, part]:
 		return _last[2]
-	_last = [code, at, Codex.detail(_entries().tabs[at.x][at.y])]
+	_last = [code, [at, part], Codex.detail(_entries().tabs[at.x][at.y], part)]
 	return _last[2]
 
 
@@ -209,10 +259,13 @@ static func word_at(row: Array, x: float, col: float) -> String:
 	var starts := PackedFloat32Array()
 	for run: Array in row:
 		x = column(run, x)
+		var from := x
 		for c in run[0]:
 			starts.append(x)
 			x += Term.text_cells(c)
 			text += c
+		if col >= from and col < x and tag(run) != "" and locate(tag(run)).x >= 0:
+			return tag(run)
 	starts.append(x)
 	for m in _entries().find.search_all(text):
 		if col >= starts[m.get_start(1)] and col < starts[m.get_end(1)]:

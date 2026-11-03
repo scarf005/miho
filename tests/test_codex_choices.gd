@@ -236,11 +236,7 @@ func test_a_screen_with_no_room_for_the_stages_tells_them_all() -> void:
 	codex.room = Vector2i(30, 18)
 	codex.tab = TALISMANS
 	assert_true(codex.panel().choices.is_empty(), "no picker")
-	var part := Cards.part(Cards.FOX, Lang.t)
-	var copies := []
-	copies.resize(Spell.MAX_SLOTS)
-	copies.fill(part)
-	assert_string_contains(Info.plain(codex._lines()), "+".join(copies))
+	assert_eq(Info.plain(codex._lines()).count("꼬리:"), Spell.MAX_SLOTS, "a head for each stage")
 
 
 func test_the_leap_tells_the_stage_picked() -> void:

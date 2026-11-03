@@ -23,6 +23,8 @@ const SEP := " · "
 const LEAST_CHOICES := 3
 
 static var _words := RegEx.create_from_string(" *[^ ]+| +")
+## The spells of creatures that have no entry otherwise, by language (`_casts`).
+static var _cast_names := {}
 
 var tab := 0
 ## The entries a link was followed from, as [tab, selected, top, scroll], the
@@ -153,12 +155,82 @@ static func _spell_entries() -> Array[Dictionary]:
 			out.back().scene = SpellScene.leaps()
 			var more := SpellScene.parts(out.back().scene).slice(1)
 			out.back().stages = [lines] + more.map(_spell_text)
+			var woods := [cards] + more.map(func(p): return p.spell)
+			out.back().recipes = woods
+			out.back().titles = woods.map(func(w): return Spell.make(w).shown())
+	_add_casts(out)
 	return out
 
 
 ## The text of a spell made of the talismans of `part`, a part of an example.
 static func _spell_text(part: Dictionary) -> Callable:
 	return func(): return SpellInfo.spell(Spell.make(part.spell))
+
+
+## The spells creatures cast that `out` and the talismans do not tell, under the name of one shot:
+## a new entry, or more parts of the entry of that name. A part plays and tells one
+## recipe; the creature casts it itself (CodexScene.charged).
+static func _add_casts(out: Array[Dictionary]) -> void:
+	var names := _casts(out)
+	for name: String in names:
+		var cast: Dictionary = names[name]
+		var at := out.find_custom(func(e): return e.name == name)
+		if at < 0:
+			var first: Spell = cast.spells[0]
+			var look := [Palette.shot_glyph(first), Palette.shot_color(first, Actor.HEAVEN)]
+			out.append(_entry(look[0], look[1], name, cast.texts[0]))
+			at = out.size() - 1
+		var e := out[at]
+		var had: Array = e.get("recipes", [])
+		var own := SpellScene.parts(e.scene).map(
+			func(p): return p.merged({label = SpellInfo.recipe_text(had[0])})
+		)
+		e.scene = {key = &"", each = own + cast.parts}
+		e.stages = ([e.lines] if not had.is_empty() else []) + cast.texts
+		e.recipes = had + cast.recipes
+		e.titles = e.get("titles", []) + cast.titles
+
+
+## What `_add_casts` adds, made once in each language: name -> {spells, texts, parts, recipes,
+## titles}, a recipe's each, the fewest talismans first.
+static func _casts(out: Array[Dictionary]) -> Dictionary:
+	var code := Lang.active()
+	if _cast_names.has(code):
+		return _cast_names[code]
+	var known := {}
+	for e: Dictionary in _talisman_entries() + out:
+		for cards: Array in e.get("recipes", []):
+			known[SpellInfo.spell_word(cards)] = true
+	var found := {}
+	for kind: StringName in foes():
+		for rank in range(1, Bestiary.RANKS + 1):
+			for cards: Array in Bestiary.casts(kind, rank):
+				var s := Bestiary.spell(kind, cards)
+				if (
+					not known.has(SpellInfo.spell_word(cards))
+					or s.shown() != Spell.make(cards).shown()
+				):
+					found.get_or_add(s.shot_shown(), {}).get_or_add(s.key(), [kind, s])
+	var names := {}
+	for name: String in found:
+		var casts: Array = found[name].values()
+		casts.sort_custom(func(a, b): return a[1].cards.size() < b[1].cards.size())
+		var spells := casts.map(func(c): return c[1])
+		names[name] = {
+			spells = spells,
+			texts = spells.map(func(s): return SpellInfo.foe_spell.bind(s)),
+			parts = casts.map(_cast_part),
+			recipes = spells.map(func(s): return s.cards),
+			titles = spells.map(func(s): return s.shown()),
+		}
+	_cast_names[code] = names
+	return names
+
+
+## The creature of `cast`, [kind, spell], casting it, named by its recipe.
+static func _cast_part(cast: Array) -> Dictionary:
+	var label := SpellInfo.recipe_text(cast[1].cards)
+	return CodexScene.charged(cast[0], cast[1].cards).merged({label = label}, true)
 
 
 ## What Miho finds on a floor: the elixir, the peach, kimchi, a scroll, the elements.
@@ -441,6 +513,7 @@ func link(word: String, keep: bool) -> void:
 	ahead.clear()
 	go(at.x)
 	select(at.y)
+	part = Keywords.part_of(word)
 
 
 ## Goes back to the entry the last link was followed from; false with none.
@@ -525,7 +598,11 @@ static func _entry(
 	var scene := CodexScene.of(key, cards)
 	if scene.is_empty() and not cards.is_empty():
 		scene = SpellScene.of(cards)
-	return {glyph = glyph, color = color, name = Lang.t(name), lines = lines, scene = scene}
+	var out := {glyph = glyph, color = color, name = Lang.t(name), lines = lines, scene = scene}
+	if not cards.is_empty():
+		out.recipes = [cards]
+		out.titles = [Spell.make(cards).shown()]
+	return out
 
 
 ## The name of a plain talisman's entry.
@@ -541,6 +618,8 @@ static func _talisman(c: StringName) -> Dictionary:
 	out.scene = SpellScene.counts(c)
 	out.stages = range(1, Spell.MAX_SLOTS + 1).map(func(n): return SpellInfo.stage.bind(c, n))
 	out.whole = SpellInfo.stacked.bind(c)
+	out.recipes = SpellScene.parts(out.scene).map(func(p): return p.spell)
+	out.titles = out.recipes.map(func(cards): return Spell.make(cards).shown())
 	return out
 
 

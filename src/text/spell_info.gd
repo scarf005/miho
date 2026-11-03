@@ -76,6 +76,26 @@ static func recipe_text(cards: Array) -> String:
 	return "+".join(cards.map(func(c): return Cards.part(c, Lang.t)))
 
 
+## The word that stands for the spell of `cards`, in whatever order they go, and for no
+## other text on the screen (Keywords.stages).
+static func spell_word(cards: Array) -> String:
+	return "+" + recipe_text(Spell.make(cards).slots)
+
+
+## A run of `text` that stands for `spells`, those of one name (Keywords.tag), so that the
+## word of it tells their recipes whatever the name could mean.
+static func tagged(text: String, color: Color, spells: Array) -> Array:
+	var words := spells.map(func(s): return spell_word(s.cards))
+	return [text, color, Keywords.RECIPES.join(PackedStringArray(words))]
+
+
+## A creature's spell in the 도감: its name and talismans, then every number. What it costs
+## the creature is told on the creature.
+static func foe_spell(s: Spell) -> Array:
+	var head := [[s.shown(), Palette.card(s.slots.back())], [" · ", LABEL]] + _recipe_runs(s.cards)
+	return [head] + spell(s).slice(1)
+
+
 ## A talisman, and what the queue becomes with it (null when it does not fit).
 static func card(c: StringName, after: Spell) -> Array:
 	var head := [
@@ -560,7 +580,7 @@ static func shot(w: World, s: Shot) -> Array:
 	var lines := [
 		[
 			[side, Palette.SIDE[s.faction]],
-			[spell.shot_shown(), Palette.shot_color(spell, s.faction)]
+			tagged(spell.shot_shown(), Palette.shot_color(spell, s.faction), [spell])
 		]
 	]
 	lines.append_array(_nature(spell))
