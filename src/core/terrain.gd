@@ -49,6 +49,8 @@ const CRACK := 4
 ## tile (Tiles.fierce) it catches as many as FIERCE_STEPS.
 const SPREAD_STEPS := 1
 const FIERCE_STEPS := 2
+## The chance a wild fire (World.wild) takes a flammable neighbour; a sure one rolls nothing.
+const WILD_SPREAD := 1.0
 
 
 ## A lantern that is not broken: it blocks walking and a hit moves it one step on.
@@ -383,13 +385,15 @@ static func burn(w: World, alight: Array) -> void:
 		Fall.drop(w, a, a.pos)
 
 
-## The flammable neighbours of the fire at `p` that it takes: a wild fire takes
-## all, other fire each by that tile's `spread`.
+## The flammable neighbours of the fire at `p` that it takes: a wild fire each by
+## WILD_SPREAD, other fire each by that tile's `spread`.
 static func _catch(w: World, p: Vector2i) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
+	var wild := w.wild.has(p)
 	for d in Grid.DIRS:
 		var q := p + d
 		if Tiles.burns[w.tile(q)] == 1 and not w.burning.has(q):
-			if w.wild.has(p) or w.rng.randf() < Tiles.of(w.tile(q), "spread"):
+			var chance: float = WILD_SPREAD if wild else Tiles.of(w.tile(q), "spread")
+			if (wild and chance >= 1.0) or w.rng.randf() < chance:
 				out.append(q)
 	return out

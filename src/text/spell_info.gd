@@ -423,7 +423,7 @@ static func compound(c: StringName) -> Array:
 		&"wildfire":
 			return [
 				["불타는 칸", "가연성·인화성 칸"],
-				["번질 확률", "100%"],
+				["번질 확률", "%d%%" % roundi(Terrain.WILD_SPREAD * 100)],
 				_alight_on(),
 				["초당 피해", "%d" % World.FIRE_DAMAGE]
 			]
