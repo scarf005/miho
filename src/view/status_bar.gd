@@ -28,11 +28,7 @@ static func draw(t: Term) -> void:
 	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
 	t._text(Vector2(t.cols - t._cells(right), row), right, Palette.TEXT)
 	if not t.debug.is_empty():
-		t._text(
-			Vector2(t.cols - t._cells(right) - t._cells(Lang.t("디버그")) - 1, row),
-			Lang.t("디버그"),
-			Palette.SOUND
-		)
+		t._text(debug_label(t).position, Lang.t("디버그"), Palette.SOUND)
 	buffs(t, Vector2(t.cols - t._cells(right) - 1.0, row))
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
@@ -101,6 +97,19 @@ static func buffs(t: Term, end: Vector2) -> void:
 		var name := Lang.t(Curse.NAME[kind])
 		at.x -= t._cells(name) + 1.0
 		t._text(at, name, Palette.BAD)
+
+
+## The cells of the debug label, left of the storey and time on the upper row.
+static func debug_label(t: Term) -> Rect2:
+	var right := Lang.t("%d층 %d초") % [t.world.depth, t.world.round_no]
+	var width := t._cells(Lang.t("디버그"))
+	return Rect2(t.cols - t._cells(right) - width - 1, t.rows - 2, width, 1)
+
+
+## Whether a point in the term's space is on the debug label, which is shown while the
+## debug view is on.
+static func debug_at(t: Term, local: Vector2) -> bool:
+	return not t.debug.is_empty() and debug_label(t).has_point(local / Term.CELL)
 
 
 ## Tails the spells held with Shift and the queue spend.

@@ -12,12 +12,12 @@ extends Node
 ## c shuts an open door next to Miho (a direction key picks one when several are
 ## open). > walks to the stairs, o explores, z rests until the tails regrow. Tab fights
 ## like DCSS (Fight): it claws the nearest creature in sight or steps towards it.
-## F3 shows the debug view (DebugView), which changes nothing in the game; F4 lists
-## the debug commands (DebugMenu), which play as actions. x looks around: a cursor starts on Miho
-## and the directions move it (Shift five tiles), showing what the pointer would; Enter walks there,
-## Esc or x stops. In look mode the exclude key marks a danger zone (Exclusions) on the cursor that
-## exploring and travel walk around; again it makes the zone one tile, and again removes it; 1-7 on
-## a zone's centre set its radius.
+## F3 shows the debug view (DebugView), which changes nothing in the game; F4, or a click on its
+## label, lists the debug commands (DebugMenu) in a box over the game, which play as actions.
+## x looks around: a cursor starts on Miho and the directions move it (Shift five tiles), showing
+## what the pointer would; Enter walks there, Esc or x stops. In look mode the exclude key marks a
+## danger zone (Exclusions) on the cursor that exploring and travel walk around; again it makes the
+## zone one tile, and again removes it; 1-7 on a zone's centre set its radius.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
 ## anywhere to hurl; click a talisman to queue it or a 도감 word to open it; right-click clears.
 ## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
@@ -86,7 +86,7 @@ var walking := false
 var halt := false
 var messages := Messages.new()
 var menu := Menu.new()
-## The full-screen panel open over the game, or empty.
+## The page open over the game (a full screen, or the debug box), or empty.
 var overlay := &""
 ## Worked out once per world or talisman change: what Miho knows, the forecast
 ## of each step or wait (direction -> Forecast), the spell's reach (tile -> tint),
@@ -426,6 +426,9 @@ func _click(event: InputEventMouseButton) -> void:
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
 	var local := _local(event.position)
+	if term.bar.debug_at(term, local):
+		_open(&"cheat")
+		return
 	var card: StringName = term.bar.card_at(term, local)
 	if card != &"":
 		_add(card)
@@ -874,18 +877,12 @@ func _show_log() -> void:
 		_refresh()
 
 
-## Shows a full-screen panel: a Menu page.
+## Shows a panel over the game: a Menu page.
 func _open(kind: StringName) -> void:
-	menu.queued = Spell.make(picked)
+	menu.sync(self)
 	overlay = kind
 	if touch.enabled:
 		_fit()
-	menu.log_rows = messages.lines.map(Messages.shown)
-	menu.seed_value = run_seed
-	menu.debug.world = world
-	menu.title = state == &"title"
-	menu.buffs = Guise.worn(world, world.player())
-	menu.codex.rank = Bestiary.rank(world.depth)
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.info = []
 	term.example = {}

@@ -1,16 +1,18 @@
 class_name DebugMenu
 extends RefCounted
-## The debug commands (Cheat) as a list page, moved through as ListNav says.
-## Enter on a toggle or a plain command plays it; the rest ask for more first:
-## a row opens a list of its own (Esc goes back to the row), and a command that
-## needs a tile or a creature closes the page and waits for the cursor (the
-## pointer, or the direction keys, Shift five tiles) to be put on one and
+## The debug commands (Cheat) as a list in a box over the game, moved through as
+## ListNav says. Enter on a toggle or a plain command plays it; the rest ask for
+## more first: a row opens a list of its own (Esc goes back to the row), and a
+## command that needs a tile or a creature hides the box and waits for the cursor
+## (the pointer, or the direction keys, Shift five tiles) to be put on one and
 ## Enter or a click to pick it; Tab moves the cursor to the next creature and
-## Esc or a right click gives up and opens the page again.
+## Esc or a right click gives up. The box hides while a command plays and is
+## back on the row it was left on once the round is over, unless the run ended.
 ## `key` and `click` return &"close" when the game should close the page and
 ## `run` the command asked for (`request`), else nothing.
 
-const VALUE_COL := 18.0
+## Cells between the longest name and the value beside it.
+const GAP := 2.0
 ## The harm 적에게 피해 deals, stepped with Left and Right.
 const AMOUNTS: Array[int] = [1, 2, 3, 5, 10, 20, 50]
 const COMMANDS: Array[StringName] = [
@@ -43,26 +45,45 @@ var request := {}
 ## The command waiting for picks: {cmd, needs: [&"foe" or &"tile", ...], args}.
 var ask := {}
 var room := Vector2i(40, 18)
+## The box is opening again after a command: on the list it was left on.
+var resume := false
 var _row := 0
 
 
-## Opens the page on the commands, on the row it was last left on.
+## Opens the box on the commands, on the row it was last left on; after a
+## command (`resume`) on the list that command was chosen from.
 func open(size: Vector2i) -> void:
 	room = size
-	page = &""
-	selected = clampi(selected, 0, COMMANDS.size() - 1)
-	top = ListNav.reveal(0, selected, COMMANDS.size(), _fits())
+	if not resume:
+		selected = clampi(_row if page != &"" else selected, 0, COMMANDS.size() - 1)
+		page = &""
+	resume = false
+	top = ListNav.reveal(0, selected, _rows().size(), _fits())
 	hovered = -1
 	request = {}
 
 
 func panel() -> Dictionary:
 	var title: String = Lang.t(Cheat.NAME.get(page, "디버그 명령"))
-	return {title = title, rows = _rows(), selected = selected, top = top, hover = hovered}
+	return {
+		title = title, rows = _rows(), selected = selected, top = top, hover = hovered, box = _box()
+	}
+
+
+## The box in the top right corner of the screen, in cells: as wide as its rows,
+## and as high, but the two status rows stay in view.
+func _box() -> Rect2:
+	var wide := Term._cells(Lang.t(Cheat.NAME.get(page, "디버그 명령"))) + 2.0
+	var rows := _rows()
+	for row: Array in rows:
+		wide = maxf(wide, PanelView.end(row))
+	var high := clampi(rows.size() * PanelView.stride + 4, 5, maxi(5, room.y - 2))
+	var size := Vector2(mini(ceili(wide) + 2, room.x), high)
+	return Rect2(Vector2(room.x - size.x, 0), size)
 
 
 func _fits() -> int:
-	return PanelView.fits(room.y, 0)
+	return PanelView.fits(int(_box().size.y), 0)
 
 
 func _rows() -> Array:
@@ -74,14 +95,14 @@ func _rows() -> Array:
 			for d in range(1, World.FLOORS + 1):
 				var row := [[Lang.t("%d층") % d, Palette.KIND[&"miho"]]]
 				if d == world.depth:
-					row.append([Lang.t("지금"), Palette.DIM, VALUE_COL])
+					row.append([Lang.t("지금"), Palette.DIM])
 				rows.append(row)
 		&"card":
 			rows.append([[Lang.t("모두"), Palette.TEXT]])
 			for c in Cards.ALL:
 				var row := [[Lang.t(Cards.NAME[c]), Palette.card(c)]]
 				if world.cards.has(c):
-					row.append([Lang.t("있음"), Palette.DIM, VALUE_COL])
+					row.append([Lang.t("있음"), Palette.DIM])
 				rows.append(row)
 		&"summon":
 			for kind in Codex.foes():
@@ -90,12 +111,16 @@ func _rows() -> Array:
 			for cmd in COMMANDS:
 				var row := [[Lang.t(Cheat.NAME[cmd]), Palette.TEXT]]
 				if Cheat.TOGGLES.has(cmd):
-					row.append(
-						[Lang.t("켜짐" if Cheat.on(world, cmd) else "꺼짐"), Palette.SIDE[0], VALUE_COL]
-					)
+					row.append([Lang.t("켜짐" if Cheat.on(world, cmd) else "꺼짐"), Palette.SIDE[0]])
 				elif cmd == &"damage":
-					row.append([str(AMOUNTS[amount]), Palette.SIDE[0], VALUE_COL])
+					row.append([str(AMOUNTS[amount]), Palette.SIDE[0]])
 				rows.append(row)
+	var value: float = (
+		2.0 + GAP + rows.reduce(func(n, r): return maxf(n, Term._cells(r[0][0])), 0.0)
+	)
+	for row: Array in rows:
+		if row.size() > 1:
+			row[1].append(value)
 	return rows
 
 
@@ -190,13 +215,14 @@ func _asks(cmd: StringName, needs: Array, args := {}) -> StringName:
 	return &"close"
 
 
-## The page has closed: plays the command asked for, or puts the cursor where
-## the first pick is to be made.
+## The box has closed: plays the command asked for and opens the box again, or puts
+## the cursor where the first pick is to be made.
 func run(main: Node) -> void:
 	var asked := request
 	request = {}
 	if asked.has("action"):
-		main._act(asked.action)
+		await main._act(asked.action)
+		_again(main)
 	elif asked.has("ask"):
 		ask = asked.ask
 		main._look_at(_start(main.world))
@@ -257,12 +283,20 @@ func _pick_at(main: Node, p: Vector2i) -> void:
 		return
 	ask = {}
 	main._look_at(p)
-	main._act(action)
+	await main._act(action)
+	_again(main)
 
 
 func _give_up(main: Node) -> void:
 	ask = {}
-	main._open(&"cheat")
+	_again(main)
+
+
+## Opens the box on the list it was left on, unless a command ended the run.
+func _again(main: Node) -> void:
+	if main.state == &"play" and main.overlay == &"":
+		resume = true
+		main._open(&"cheat")
 
 
 ## Where the cursor starts: on the nearest creature to pick one, else on Miho.

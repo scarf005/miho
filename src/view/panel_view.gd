@@ -1,7 +1,8 @@
 class_name PanelView
 extends RefCounted
-## The full-screen list over the game (Term.panel): how it is drawn, how many
-## entries fit, and which row, tab or detail a point in the term's space is on.
+## The list over the game (Term.panel), the whole screen or a `box` of cells that leaves
+## the game drawn around it: how it is drawn, how many entries fit, and which row, tab or
+## detail a point in the term's space is on.
 
 ## Narrower than this many cells, the tabs start at the left edge and the title is left out.
 const TAB_COLS := 32
@@ -23,9 +24,14 @@ static func fits(screen_rows: int, detail: int) -> int:
 	return maxi(1, lines_fit(screen_rows, detail) / stride)
 
 
+## The cells the panel takes: the screen, or its `box`.
+static func frame(t: Term) -> Rect2:
+	return t.panel.get("box", Rect2(0, 0, t.cols, t.rows))
+
+
 ## Entries of the panel that fit, and the first one shown (`top`).
 static func span(t: Term) -> Vector2i:
-	var fit := fits(t.rows, t.panel.get("detail", []).size())
+	var fit := fits(int(frame(t).size.y), t.panel.get("detail", []).size())
 	var count: int = t.panel.rows.size()
 	return Vector2i(clampi(t.panel.get("top", 0), 0, maxi(0, count - fit)), fit)
 
@@ -36,9 +42,16 @@ static func _tabs_at(t: Term) -> float:
 
 static func draw(t: Term) -> void:
 	var panel: Dictionary = t.panel
-	var cols := t.cols
-	var rows := t.rows
-	t.draw_rect(Rect2(Vector2.ZERO, t.size), Palette.VOID)
+	var box := frame(t)
+	var cols := int(box.size.x)
+	var rows := int(box.size.y)
+	if panel.has("box"):
+		var outline := Rect2(Vector2.ZERO, box.size * Term.CELL)
+		t.draw_set_transform(box.position * Term.CELL, 0.0, Vector2.ONE)
+		t.draw_rect(outline, Palette.VOID)
+		t.draw_rect(outline.grow(-1), Palette.DIM, false, 2.0)
+	else:
+		t.draw_rect(Rect2(Vector2.ZERO, t.size), Palette.VOID)
 	var detail: Array = panel.get("detail", [])
 	for k in detail.size():
 		var y := rows - detail.size() + k
@@ -79,6 +92,7 @@ static func draw(t: Term) -> void:
 		t._glyph(Vector2(1, 2), "▲", Palette.DIM)
 	if shown.x + shown.y < panel.rows.size():
 		t._glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
+	t.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## The parts of an example to pick from, one under another beneath it, with the keys.
@@ -130,8 +144,11 @@ static func end(line: Array, x := 2.0) -> float:
 static func row_at(t: Term, local: Vector2) -> int:
 	if t.panel.is_empty() or aside_at(t, local):
 		return -1
+	var box := frame(t)
+	if t.panel.has("box") and not box.has_point(local / Term.CELL):
+		return -1
 	var shown := span(t)
-	var k := floori((local.y / Term.CELL.y - 3.0) / stride) + shown.x
+	var k := floori((local.y / Term.CELL.y - box.position.y - 3.0) / stride) + shown.x
 	return k if k >= shown.x and k < mini(shown.x + shown.y, t.panel.rows.size()) else -1
 
 

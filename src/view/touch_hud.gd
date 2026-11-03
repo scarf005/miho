@@ -2,7 +2,7 @@ class_name TouchHud
 extends RefCounted
 ## The status and the buttons of a touch screen, in the area under the map (portrait)
 ## or beside it (landscape), in place of StatusBar's two rows. It answers the same
-## questions StatusBar does about a point (card_at, hand_at, queue_at, status_at,
+## questions StatusBar does about a point (card_at, hand_at, queue_at, status_at, debug_at,
 ## slot_at) and tells which button is under it. Every target is at least TARGET
 ## CSS pixels across. In play it holds the status with the noise bar, in portrait a
 ## strip of the creatures in sight (in landscape the term's sidebar lists them), the
@@ -288,6 +288,11 @@ func queue_at(t: Term, local: Vector2) -> int:
 	if spell == null or item.is_empty():
 		return -1
 	return item.n if item.n >= 0 and item.n < spell.slots.size() else -1
+
+
+## The touch status holds no debug label.
+func debug_at(_t: Term, _local: Vector2) -> bool:
+	return false
 
 
 ## Whether a point is on Miho's health or tails.

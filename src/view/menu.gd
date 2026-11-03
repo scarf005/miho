@@ -14,7 +14,8 @@ extends RefCounted
 ## &"changed" (settings or keys changed), &"ask" (처음부터 asks for a second use),
 ## &"restart", &"quit" (save and end the
 ## game), &"seed" (copy the seed), &"cast" (pick `chosen`), &"dispel" (drop the
-## buff on the selected row), or nothing.
+## buff on the selected row), or nothing. The debug commands are the one page that is a
+## box over the game: from the options it has no page to go back to, so Esc closes it.
 
 const VALUE_COL := 18.0
 const MOUSE := [
@@ -123,6 +124,17 @@ var room := Vector2i(40, 18):
 ## there. Empty when the game opened it.
 var origin := &""
 var origin_row := 0
+
+
+## Takes what the pages list from the game `m` (main.gd).
+func sync(m: Node) -> void:
+	queued = Spell.make(m.picked)
+	log_rows = m.messages.lines.map(Messages.shown)
+	seed_value = m.run_seed
+	debug.world = m.world
+	title = m.state == &"title"
+	buffs = Guise.worn(m.world, m.world.player())
+	codex.rank = Bestiary.rank(m.world.depth)
 
 
 ## Opens a page, `size` the screen in cells when it changes.
@@ -431,8 +443,11 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = _listed()[selected]
 	match row:
-		&"keys", &"codex", &"cheat", &"spells", &"dispel", &"log", &"help":
+		&"keys", &"codex", &"spells", &"dispel", &"log", &"help":
 			_enter(row)
+			return &""
+		&"cheat":
+			open(row)
 			return &""
 		&"restart" when not confirming:
 			confirming = true
