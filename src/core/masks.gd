@@ -75,7 +75,7 @@ static func opened(w: World, blocked: Array = []) -> PackedByteArray:
 ## A creature's `test` of the tiles it may step on (its own among them) for every tile, where
 ## `test` never holds on the tile of another creature alive (Mind._walkable), so it is not asked.
 static func walk(w: World, a: Actor, test: Callable) -> PackedByteArray:
-	var fall: Array = w.burning.keys() + w.traps.keys()
+	var fall: Array = w.burning.keys() + w.hot.keys() + w.traps.keys()
 	for s in w.shots:
 		fall.append(s.pos)
 	var alive: Array[Actor] = []
