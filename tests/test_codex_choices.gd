@@ -57,7 +57,8 @@ func test_the_bracket_keys_pick_the_copies_of_a_talisman_and_the_example_stays_o
 	_press(m, KEY_BRACKETRIGHT)
 	assert_eq(m.term.panel.choices.at, 1)
 	assert_eq(sim._scene.spell.size(), 2)
-	_play(sim, 300)
+	# Two whole runs of the scene, each cast aimed before it is cast.
+	_play(sim, 2 * (2 * sim._actions.size() + 1))
 	assert_eq(sim._scene.spell.size(), 2, "it does not go on to the next by itself")
 	_press(m, KEY_BRACKETLEFT)
 	_press(m, KEY_BRACKETLEFT)
