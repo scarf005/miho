@@ -11,13 +11,13 @@ func before_each() -> void:
 
 
 func test_a_flame_wavers_until_the_term_is_still() -> void:
-	var from := _t._flicker(0.0, true)
+	var from := _t.layer.flicker(0.0, true)
 	_t._process(0.1)
-	assert_ne(_t._flicker(0.0, true), from)
+	assert_ne(_t.layer.flicker(0.0, true), from)
 	_t.still = true
-	from = _t._flicker(0.0, true)
+	from = _t.layer.flicker(0.0, true)
 	_t._process(0.1)
-	assert_eq(_t._flicker(0.0, true), from)
+	assert_eq(_t.layer.flicker(0.0, true), from)
 
 
 func test_a_still_term_keeps_the_time_of_what_fades() -> void:

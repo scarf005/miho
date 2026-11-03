@@ -107,6 +107,8 @@ var sim: ExampleSim = null
 var still := false
 ## The round playing and what it leaves on screen.
 var anim := RoundAnim.new(self)
+## The tiles, the light on them and what stands there.
+var layer := MapLayer.new(self)
 var _font: FontFile
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
@@ -115,8 +117,6 @@ var _rushed := false
 var _vis := PackedByteArray()
 ## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
 var _veiled := {}
-var _lanterns: Array[Dictionary] = []
-var _shot_light := {}
 var _time := 0.0
 ## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
 var _sway := 0.0
@@ -211,31 +211,9 @@ func show_world(w: World) -> void:
 	_veiled = Hat.unseen(w)
 	follow(w.player().pos)
 	anim.settle(w)
-	_lanterns.clear()
-	for i in w.tiles.size():
-		var p := Grid.at(i)
-		if w.tiles[i] == World.LANTERN:
-			_lanterns.append(_flame(w, p, Light.LANTERN_RADIUS, Light.LANTERN, false))
-		if Light.GLOW.has(w.tiles[i]):
-			var glow: Dictionary = Light.GLOW[w.tiles[i]]
-			_lanterns.append(_flame(w, p, glow.radius, glow.color, false))
-		if w.burning.has(p):
-			_lanterns.append(_flame(w, p, Light.FIRE_RADIUS, Light.FIRE, true))
+	layer.light_up(w)
 	queue_redraw()
 	settled.emit(w)
-
-
-## A lantern or a burning tile as a flickering light: the tiles it lights and how much.
-func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: bool) -> Dictionary:
-	var s := Light.spread(p, radius, w.light_mask())
-	var lit := PackedInt32Array()
-	var amount := PackedFloat32Array()
-	for j in s.size():
-		if s[j] > 0.0:
-			lit.append(j)
-			amount.append(s[j])
-	var phase := float(Grid.index(p)) * 1.7
-	return {lit = lit, amount = amount, phase = phase, color = color, fire = fire}
 
 
 ## Animates one round from `before` to `after`, then shows `after`.
@@ -307,44 +285,6 @@ func side_at(local: Vector2) -> Vector2i:
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
 
 
-# --- light -------------------------------------------------------------------
-
-
-## How bright a flame is now: lanterns waver a little, fire a lot.
-func _flicker(phase: float, fire: bool) -> float:
-	if fire:
-		return 0.78 + 0.14 * sin(_sway * 9.3 + phase) + 0.08 * sin(_sway * 23.0 + phase)
-	return 0.9 + 0.07 * sin(_sway * 6.1 + phase) + 0.04 * sin(_sway * 15.7 + phase)
-
-
-func _field() -> PackedVector3Array:
-	var out := PackedVector3Array()
-	out.resize(Grid.W * Grid.H)
-	for l in _lanterns:
-		var c: Vector3 = l.color * _flicker(l.phase, l.fire)
-		var lit: PackedInt32Array = l.lit
-		var amount: PackedFloat32Array = l.amount
-		for j in lit.size():
-			out[lit[j]] += c * amount[j]
-	var shots := anim.shots if anim.playing else _world_shots()
-	for id in shots:
-		var s: Dictionary = shots[id]
-		var l: Dictionary = s.spell.light(s.faction)
-		if l.is_empty():
-			continue
-		var key := "%d@%s" % [id, s.pos]
-		if not _shot_light.has(key):
-			_shot_light[key] = Light.spread(s.pos, l.radius, world.light_mask())
-		var spread: PackedFloat32Array = _shot_light[key]
-		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_sway * 11.0 + id))
-		for i in spread.size():
-			if spread[i] > 0.0:
-				out[i] += c * spread[i]
-	if _shot_light.size() > 256:
-		_shot_light.clear()
-	return out
-
-
 func _world_shots() -> Dictionary:
 	var out := {}
 	for s in world.shots:
@@ -381,11 +321,12 @@ func _draw() -> void:
 
 
 func _draw_game() -> void:
-	var light := _field()
+	var shots := anim.shots if anim.playing else _world_shots()
+	var light := layer.field(shots)
 	var actors := anim.actors if anim.playing else _world_actors()
 	var me := world.player()
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
-	_draw_map(light, me_pos)
+	layer.draw_tiles(light, me_pos)
 	TermMarks.telegraphs(self, actors)
 	if not anim.playing:
 		TermMarks.paths(self)
@@ -396,7 +337,7 @@ func _draw_game() -> void:
 				var side: Vector2 = (b - a).orthogonal().normalized() * LINE_GAP * l[3]
 				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
-	_draw_things(light, actors)
+	layer.draw_things(light, actors, shots)
 	anim.draw()
 	if not replay:
 		if side.x > 0:
@@ -453,160 +394,6 @@ func banner_at(local: Vector2) -> int:
 		if banner_rect(i).has_point(local / CELL):
 			return i
 	return -1
-
-
-func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
-	var below := Storeys.below(world)
-	for i in world.tiles.size():
-		var p := Grid.at(i)
-		if world.known[i] == 0 and _vis[i] == 0 and debug.is_empty() or not _shown(p):
-			continue
-		var t := world.tiles[i]
-		var spec: Array = Palette.TILES[t]
-		var glyph: String = spec[0]
-		var fg: Color = spec[1]
-		var bg: Color = spec[2]
-		if world.bodies.has(p) and world.bodies[p].met:
-			glyph = Palette.BODY[0]
-			fg = Palette.BODY[1]
-		var item := Palette.item(world, p)
-		if not item.is_empty():
-			glyph = item[0]
-			fg = item[1]
-			bg = item[2] if item.size() > 2 else bg
-		var fire := _vis[i] == 1 and world.burning.has(p)
-		if fire:
-			var k := _flicker(i * 1.7, true)
-			var flame: Array = Palette.FIERCE_BURNING if Tiles.fierce[t] == 1 else Palette.BURNING
-			glyph = flame[0]
-			fg = Color(flame[1] * (0.7 + 0.4 * k), 1.0)
-			bg = Color(flame[2] * k, 1.0)
-		var hot := not fire and _vis[i] == 1 and world.hot.has(p)
-		if hot:
-			glyph = Palette.HOT[0]
-			fg = Palette.HOT[1]
-			bg = Palette.HOT[2]
-		if _vis[i] == 1:
-			var l := light[i]
-			var d := Grid.cheb(p, me_pos)
-			if d <= World.NIGHT[0]:
-				l += Palette.NIGHT * (1.0 - d / 3.0)
-			if t != World.LANTERN and t != World.SKY and not fire and not hot and item.size() < 3:
-				fg = _lit(fg, l, 0.18)
-				bg = _lit(bg, l, 0.0) + Color(l.x, l.y, l.z) * 0.06
-		elif world.dim[i] == 1:
-			fg = fg * 0.3 + Palette.STARLIGHT
-			bg = (
-				bg * 0.22 + Palette.STARLIGHT * 0.4
-				if item.size() < 3
-				else Color(item[2] * 0.5, 1.0)
-			)
-		else:
-			var v := fg.get_luminance()
-			fg = (
-				Palette.MEMORY_FG * (0.6 + v * 0.6)
-				if item.size() < 3
-				else Color(item[1] * 0.6, 1.0)
-			)
-			bg = Palette.MEMORY_BG if item.size() < 3 else Color(item[2] * 0.5, 1.0)
-		var sunk := t == World.SKY and below.size() > i and below[i] != World.SKY
-		glyph = " " if sunk else glyph
-		if _vis[i] == 1 and world.gas.has(p):
-			var g: Vector2i = world.gas[p]
-			var glow := clampf(0.35 + Light.level(light[i]), 0.35, 1.0)
-			var gas: Color = Palette.GAS[g.x][1] * glow
-			var k := Palette.gas_alpha(g.y)
-			bg = bg.lerp(Color(gas, 1.0), k)
-			fg = fg.lerp(Color(gas, 1.0), k * 0.5)
-		var grain := 0.92 + 0.16 * fposmod(sin(i * 12.9898) * 43758.5453, 1.0)
-		fg *= grain
-		bg *= grain
-		var tint: Color = tints.get(p, Color(0, 0, 0, 0))
-		bg = bg.lerp(Color(tint, 1.0), tint.a)
-		var cell := _cell(p)
-		if zone.has(p):
-			bg = bg.lerp(Palette.ZONE, 0.18)
-		draw_rect(Rect2(cell * CELL, CELL), bg)
-		if sunk:
-			draw_texture(Dither.of(below[i]), cell * CELL, Palette.BELOW)
-		_glyph(cell, glyph, fg)
-		if zone.has(p):
-			_outline(p, cell)
-
-
-## Draws a line along each side of tile p that borders a tile outside the zone.
-func _outline(p: Vector2i, cell: Vector2) -> void:
-	var line := Color(Palette.ZONE, 0.7)
-	var a := cell * CELL
-	var c := [a, a + Vector2(CELL.x, 0), a + CELL, a + Vector2(0, CELL.y)]
-	for side: Array in [
-		[Vector2i.UP, 0, 1], [Vector2i.RIGHT, 1, 2], [Vector2i.DOWN, 3, 2], [Vector2i.LEFT, 0, 3]
-	]:
-		if not zone.has(p + side[0]):
-			draw_line(c[side[1]], c[side[2]], line, 2.0)
-
-
-static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
-	return Color(
-		c.r * clampf(floor_level + l.x, 0.0, 1.6),
-		c.g * clampf(floor_level + l.y, 0.0, 1.6),
-		c.b * clampf(floor_level + l.z, 0.0, 1.6)
-	)
-
-
-func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
-	var shots := anim.shots if anim.playing else _world_shots()
-	for id in shots:
-		var s: Dictionary = shots[id]
-		var tail: Array = anim.trails.get(id, [])
-		var c := Palette.shot_color(s.spell, s.faction)
-		for k in tail.size():
-			var p: Vector2i = tail[k]
-			if p == s.pos or not _revealed(p) or not _shown(p):
-				continue
-			var fade := float(k + 1) / tail.size()
-			var r := Rect2(_cell(p) * CELL, CELL)
-			draw_rect(r, Color(Palette.VOID, 0.75))
-			draw_rect(r, Color(c, 0.12 + 0.3 * fade))
-			_glyph(_cell(p), "•" if k >= tail.size() - 2 else "·", Color(c, 0.35 + 0.65 * fade))
-	for id in shots:
-		var s: Dictionary = shots[id]
-		if _revealed(s.pos) and _shown(s.pos):
-			_glyph(
-				_cell(s.pos), Palette.shot_glyph(s.spell), Palette.shot_color(s.spell, s.faction)
-			)
-	for id in actors:
-		var a: Actor = actors[id]
-		if not a.is_miho() and not _revealed(a.pos) or not _shown(a.pos) or _hatted(a):
-			continue
-		var cell := _cell(a.pos)
-		var l := light[Grid.index(a.pos)]
-		var c: Color = Palette.KIND[a.kind]
-		if not a.is_miho():
-			c = c * clampf(0.55 + Light.level(l), 0.55, 1.2)
-			c.a = 1.0
-		elif Light.level(l) < Light.LIT:
-			c = c.darkened(0.45)
-		draw_rect(Rect2(cell * CELL, CELL), Color(0, 0, 0, 0.55))
-		if tints.has(a.pos):
-			draw_rect(Rect2(cell * CELL, CELL), tints[a.pos])
-		_glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)
-		for s: Dictionary in shots.values():
-			if s.pos == a.pos:
-				var glow := Palette.shot_color(s.spell, s.faction)
-				_small(cell + Vector2(0, -0.05), Palette.shot_glyph(s.spell), glow)
-		if a.faction != Actor.FOX and _visible(a.pos):
-			var mark := Perceived.mark_of(a)
-			if mark != "":
-				_small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.brain.alert, 1)])
-		_status(cell + Vector2(0, 0.55), a)
-	for p in marks:
-		var m: Array = marks[p]
-		if _shown(p):
-			var at := _cell(p) + Vector2(0.62, 0.55)
-			var size := Vector2(_font.get_string_size(m[0], 0, -1, SMALL).x + 2, SMALL + 2)
-			draw_rect(Rect2(at * CELL - Vector2(1, 1), size), Color(Palette.VOID, 0.8))
-			_small(at, m[0], m[1])
 
 
 func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
