@@ -3,7 +3,9 @@ extends GutTest
 ## where the storeys put them.
 
 const SEEDS := 4
-const OWN_PILLARS: Array[StringName] = [Skeletons.GARDEN, Skeletons.GROVE]
+const OWN_PILLARS: Array[StringName] = [
+	Skeletons.GARDEN, Skeletons.GROVE, Skeletons.LABYRINTH, Skeletons.MIRROR
+]
 const KINDS := [World.GRASS, World.LEAVES, World.STRAW, World.REEDS, World.SHALLOW, World.PILLAR]
 
 var _storeys_built: Array[World] = []
@@ -196,6 +198,9 @@ func test_patches_lie_in_rooms_other_than_the_goal_room() -> void:
 		var yard := w.sites.any(func(s): return s.kind == &"yard")
 		for kind: int in KINDS:
 			if (kind == World.STRAW and library) or (kind == World.PILLAR and yard):
+				continue
+			# A flooded storey's ponds have their shallow rims in any room.
+			if kind == World.SHALLOW and Skeletons.pick(w) == Skeletons.FLOODED:
 				continue
 			for p in _tiles_of(w, kind):
 				assert_true(

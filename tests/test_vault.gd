@@ -15,7 +15,8 @@ func before_all() -> void:
 	for seed_value in SEEDS:
 		for depth in range(1, World.FLOORS + 1):
 			var w := Built.storey(seed_value, depth)
-			_storeys.append(w)
+			if Labyrinth.site(w).is_empty():
+				_storeys.append(w)
 
 
 func _label(w: World) -> String:
