@@ -232,7 +232,7 @@ func test_hover_tells_every_rule_of_each_kind_from_the_table() -> void:
 		World.GRASS: [grass],
 		World.STRAW: [burn],
 		World.LEAVES: [burn, rustle],
-		World.REEDS: ["막음: 시야\n밟으면: 쓰러짐", rustle, burn],
+		World.REEDS: ["막음: 시야\n밟으면: 쓰러진 갈대가 됨", rustle, burn],
 		World.SHALLOW: [splash, "냄새가 남지 않음."],
 		World.PILLAR: ["막음: 길, 시야, 빛"],
 	}
