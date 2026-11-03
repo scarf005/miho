@@ -54,3 +54,42 @@ func test_thunder_flickers_on_every_tile_it_covers() -> void:
 	assert_false(tiles.is_empty())
 	for p: Vector2i in tiles:
 		assert_true(seen.flashes.any(func(f): return f.at == p and f.zap), str(p))
+
+
+## Seconds from the cast until nothing of the round is drawn but popups, with `n` foes in a
+## row, each one tile on from the last, and the most popups shown at once.
+func _length(n: int) -> Array:
+	var w := _stage()
+	for i in n:
+		var foe := FloorGen.spawn(w, &"jangseung", ME + E * (2 + i))
+		foe.hp = 99
+		foe.max_hp = 99
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	add_child_autofree(m)
+	m.new_run(1)
+	m.state = &"play"
+	m.world = w
+	var before := w.clone()
+	var events := w.act({t = &"cast", spells = [{cards = Cards.recipe(&"thunder"), dir = E}]})
+	var start := Time.get_ticks_msec()
+	var popups := 0
+	m.term.play(events, before, w)
+	await wait_process_frames(1)
+	while m.term.anim.playing or not m.term.anim.flashes.is_empty():
+		popups = maxi(popups, m.term.anim.popups.size())
+		await wait_process_frames(1)
+	return [(Time.get_ticks_msec() - start) / 1000.0, popups]
+
+
+func test_thunder_chain_takes_one_strike_plus_a_stagger_not_a_strike_per_arc() -> void:
+	var one := await _length(1)
+	var four := await _length(4)
+	gut.p("1 foe %.2f s, 4 foes %.2f s" % [one[0], four[0]])
+	assert_lt(one[0], 0.3)
+	assert_lt(four[0], one[0] + 0.4)
+
+
+func test_thunder_chain_still_pops_up_a_hit_on_every_foe() -> void:
+	var four := await _length(4)
+	assert_gte(four[1], 4)
