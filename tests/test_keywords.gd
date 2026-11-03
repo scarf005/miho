@@ -138,7 +138,7 @@ func test_fire_on_its_own_is_the_element_and_fire_one_stands_on_is_the_floor() -
 	var row := [["면역: 불", Palette.TEXT]]
 	var stand := [["불 위: 3초", Palette.TEXT]]
 	var element := Keywords.entry_at(row, 0.0, Term.text_cells("면역: ") + 0.5)
-	var floor_ := Keywords.entry_at(stand, 0.0, 0.5)
+	var ground := Keywords.entry_at(stand, 0.0, 0.5)
 	assert_eq(
 		Keywords.locate("불"),
 		Vector2i(1, Codex.entries(1).find_custom(func(e): return e.name == "불"))
@@ -146,5 +146,11 @@ func test_fire_on_its_own_is_the_element_and_fire_one_stands_on_is_the_floor() -
 	assert_eq(Keywords.word_at(row, 0.0, Term.text_cells("면역: ") + 0.5), "불")
 	assert_eq(Keywords.word_at(stand, 0.0, 0.5), "불 위")
 	assert_eq(Keywords.locate("불 위").x, 4)
-	assert_ne(element, floor_)
-	assert_string_contains(Info.plain(floor_), "초당 피해")
+	assert_ne(element, ground)
+	assert_string_contains(Info.plain(ground), "초당 피해")
+
+
+func test_the_word_resistance_opens_its_entry_that_tells_half_harm() -> void:
+	var at := Keywords.locate("내성")
+	assert_eq(at.x, 6)
+	assert_string_contains(Info.plain(Codex.detail(Codex.entries(at.x)[at.y])), "해당 주문에 피해를 절반만 입음")
