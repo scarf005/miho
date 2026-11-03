@@ -246,6 +246,31 @@ func test_a_furnace_orb_hurts_a_foe_that_walks_on_off_the_hot_iron() -> void:
 	assert_lt(foe.hp, 40, "off the hot iron by the end of the round")
 
 
+func test_a_flyer_beside_the_burst_of_a_beacon_is_seared() -> void:
+	var w := _world()
+	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 3)
+	bat.max_hp = 40
+	bat.hp = 40
+	Elements.root(w, bat, 9)
+	w.sense()
+	Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
+	for i in 2:
+		w.act(WAIT)
+	assert_lt(bat.hp, 40, "it goes off beside the flyer, which no hot iron under it would harm")
+
+
+func test_the_orbs_of_a_volley_sear_a_foe_once() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	foe.max_hp = 40
+	foe.hp = 40
+	w.events = []
+	Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
+	var seared := w.events.filter(func(e): return e.t == &"sear" and e.id == foe.id)
+	assert_gt(_bursts(w.events).size(), 1, "several orbs went off round it")
+	assert_eq(seared.size(), 1)
+
+
 func test_her_homing_lava_flies_on_up_to_a_foe_and_a_beacon_s_goes_off_beside_it() -> void:
 	var w := _world()
 	_post(w, ME + E * 4)
