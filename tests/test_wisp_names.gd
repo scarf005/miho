@@ -61,3 +61,10 @@ func test_one_of_two_flying_is_named_alone_in_its_hover_and_on_the_death_screen(
 	assert_false(Info.plain(SpellInfo.shot(w, s)).contains("2발"))
 	var line := Banner._by(w, {by = w.player().id, spell = two.tag()})
 	assert_false(line.contains("2발"), line)
+
+
+func test_a_round_of_shrapnel_is_not_called_a_round_twice() -> void:
+	var fox_shrapnel := [Cards.FOX, Cards.EARTH, Cards.METAL, Cards.METAL]
+	assert_eq(Spell.make(fox_shrapnel).title(), "유탄")
+	assert_eq(Spell.make([Cards.FOX] + fox_shrapnel).title(), "유탄 2발")
+	assert_eq(Spell.make([Cards.FOX, Cards.WATER, Cards.METAL, Cards.METAL]).title(), "서리 탄환")
