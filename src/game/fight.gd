@@ -44,6 +44,7 @@ static func step(w: World) -> Dictionary:
 		open[Grid.index(a.pos)] = 1
 		var found := Grid.search(me, open)
 		found.from = me
+		found.exits = []
 		var path := Travel.route(found, a.pos)
 		if not path.is_empty():
 			return {t = &"move", dir = path[0] - me}

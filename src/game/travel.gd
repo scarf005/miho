@@ -55,6 +55,7 @@ static func search(w: World, avoid := {}) -> Dictionary:
 		shut[p] = true
 	var found := Grid.search(w.player().pos, open(w, shut))
 	found.from = w.player().pos
+	found.exits = exits
 	for p: Vector2i in exits:
 		if p != found.from and walkable(w, p) and not avoid.has(p):
 			_reach(found, p)
@@ -90,7 +91,7 @@ static func open(w: World, avoid := {}) -> PackedByteArray:
 
 ## The tiles from Miho to `to`, not counting where she stands; empty when it
 ## cannot be reached or is where she stands. Among shortest walks it keeps
-## closest to the straight line, so it does not zigzag.
+## closest to the straight line, so it does not zigzag, and only ends on an exit.
 static func route(found: Dictionary, to: Vector2i) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	var dist: PackedInt32Array = found.dist
@@ -104,7 +105,11 @@ static func route(found: Dictionary, to: Vector2i) -> Array[Vector2i]:
 		var off := INF
 		for d in Grid.DIRS:
 			var q := p + d
-			if Grid.inside(q) and dist[Grid.index(q)] == dist[Grid.index(p)] - 1:
+			if (
+				Grid.inside(q)
+				and dist[Grid.index(q)] == dist[Grid.index(p)] - 1
+				and not found.exits.has(q)
+			):
 				var o := absf(line.cross(Vector2(q - found.from)))
 				if o < off:
 					best = q

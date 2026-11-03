@@ -355,8 +355,8 @@ static func burn(w: World, alight: Array) -> void:
 		if w.burning[p] <= 0:
 			w.burning.erase(p)
 			w.wild.erase(p)
-			if plank(w, p):
-				gone[p] = true
+			if plank(w, p) or Tiles.of(w.tile(p), "crumbles") == World.SKY:
+				gone[p] = w.tile(p)
 				continue
 			w.set_tile(p, Tiles.of(w.tile(p), "burns_to"))
 			Notice.record(w, &"ash", p)
@@ -376,7 +376,7 @@ static func burn(w: World, alight: Array) -> void:
 			ignite(w, p)
 	for p: Vector2i in gone:
 		w.set_tile(p, World.SKY)
-		w.emit({t = &"crumble", at = p, was = World.BOARD})
+		w.emit({t = &"crumble", at = p, was = gone[p]})
 		Hearing.noise(w, p, CRACK, "우지끈", true, 0)
 	Scrolls.displace(w, gone.keys())
 	var falling := w.actors.filter(func(a): return a.alive() and gone.has(a.pos))

@@ -106,7 +106,7 @@ func test_exploring_eats_a_known_peach_before_the_unexplored_edge() -> void:
 	assert_eq(
 		Travel.explore_step(w, Travel.search(w)), Vector2i(-1, 0), "an unknown one is no goal"
 	)
-	w.stairs = Vector2i(5, 8)
+	w.stairs = Vector2i(2, 8)
 	_forget(w, Vector2i(0, 0), Vector2i(0, 0))
 	w.known.fill(1)
 	w.peaches = [Vector2i(9, 8)]
