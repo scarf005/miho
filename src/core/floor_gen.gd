@@ -44,7 +44,7 @@ const PLAN := {
 		&"dokkaebi",
 		&"dokkaebi",
 		&"gaekgwi",
-		&"dalgyal",
+		&"dokkaebi",
 		&"jangseung",
 		&"jangseung",
 	],
