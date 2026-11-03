@@ -172,9 +172,19 @@ func test_the_starfish_tells_it_grows_on_metal() -> void:
 	assert_false(other.contains("먹이"))
 
 
-func test_every_immunity_is_its_own_line() -> void:
+func test_the_immunities_of_a_creature_are_one_line_each_word_in_its_own_colour() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
+	var runs := Info.creature(w, FloorGen.spawn(w, &"dueoksini", at)).filter(
+		func(l): return Info.plain([l]).begins_with("면역")
+	)
+	assert_eq(runs.size(), 1)
+	var colours := {}
+	for run in runs[0]:
+		colours[run[0]] = run[1]
+	assert_eq(Info.plain(runs), "면역: 물, 전기")
+	assert_eq(colours["물"], Palette.CARD[Cards.WATER])
+	assert_eq(colours["전기"], Palette.TEXT)
 	var told := {
 		&"bulgae": ["면역: 쇠"],
 		&"haetae": ["면역: 불"],

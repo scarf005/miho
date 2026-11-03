@@ -362,7 +362,7 @@ func _told(kind: StringName, word: String) -> Array:
 func test_the_hover_tells_each_creature_s_immunity_by_its_elements() -> void:
 	assert_eq(_told(&"haetae", "면역"), ["면역: 불"])
 	assert_eq(_told(&"haetae", "내성"), ["내성: 불이 섞인 주문"])
-	assert_eq(_told(&"dueoksini", "면역"), ["면역: 물", "면역: 전기"])
+	assert_eq(_told(&"dueoksini", "면역"), ["면역: 물, 전기"])
 	assert_eq(_told(&"dueoksini", "내성"), ["내성: 물이 섞인 주문"])
 	assert_eq(_told(&"bulgae", "면역"), ["면역: 쇠"])
 	assert_eq(_told(&"bulgae", "내성"), ["내성: 쇠가 섞인 주문"])
