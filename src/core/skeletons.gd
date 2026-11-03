@@ -47,6 +47,7 @@ const CAVE := &"cave"
 const ASKEW := &"askew"
 const MIRROR := &"mirror"
 const WINDING := &"winding"
+const LABYRINTH := &"labyrinth"
 ## What a storey may be built on.
 const ALL: Array[StringName] = [
 	PAVILIONS,
@@ -67,9 +68,10 @@ const ALL: Array[StringName] = [
 	ASKEW,
 	MIRROR,
 	WINDING,
+	LABYRINTH,
 ]
 ## The skeletons with one way to the exit: no two routes are asked of them.
-const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL, WINDING]
+const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL, WINDING, LABYRINTH]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
 ## How many rooms `far_ends` tries as the start.
@@ -159,6 +161,8 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return MirrorHall.draw(w)
 		WINDING:
 			return Winding.draw(w)
+		LABYRINTH:
+			return Labyrinth.draw(w)
 	return FloorGen.pavilions(w)
 
 

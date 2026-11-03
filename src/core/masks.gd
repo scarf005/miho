@@ -69,6 +69,9 @@ static func opened(w: World, blocked: Array = []) -> PackedByteArray:
 	for p: Vector2i in w.seals:
 		if not blocked.has(p):
 			open[Grid.index(p)] = 1
+	var maze := Labyrinth.site(w)
+	if not maze.is_empty():
+		open[Grid.index(maze.at)] = 1
 	return open
 
 

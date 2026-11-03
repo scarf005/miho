@@ -94,7 +94,7 @@ static func prize(w: World, site: Dictionary) -> StringName:
 ## Miho has come onto her tile: the stand gives its talisman, once.
 static func arrive(w: World, me: Actor) -> void:
 	for site: Dictionary in w.sites.duplicate():
-		if site.kind == &"yard" and site.at == me.pos:
+		if (site.kind == &"yard" or site.kind == Labyrinth.PRIZE) and site.at == me.pos:
 			var card := prize(w, site)
 			w.sites.erase(site)
 			w.set_tile(site.at, World.FLOOR)

@@ -159,18 +159,18 @@ const SIDES: Array[Vector2i] = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vect
 ## What a storey's element (RunPlan.element) makes more or less of: tile kind -> how many
 ## times its row's patches.
 const TIMES := {
-	Cards.WOOD: {World.GRASS: 2.0, World.REEDS: 2.0, World.STRAW: 0.5},
-	Cards.FIRE: {World.STRAW: 3.0, World.LEAVES: 2.0, World.CENSER: 3.0, World.SHALLOW: 0.1},
+	Cards.WOOD: {World.GRASS: 3.0, World.REEDS: 3.0, World.STRAW: 0.5},
+	Cards.FIRE: {World.STRAW: 4.0, World.LEAVES: 3.0, World.CENSER: 3.0, World.SHALLOW: 0.1},
 	Cards.EARTH: {World.PILLAR: 2.0, World.JAR: 3.0, World.SCREEN: 2.0, World.GRASS: 0.5},
 	Cards.METAL:
 	{
-		World.COURTYARD: 3.0,
+		World.COURTYARD: 4.0,
 		World.PILLAR: 2.0,
 		World.GRASS: 0.0,
 		World.REEDS: 0.0,
 		World.LEAVES: 0.0,
 	},
-	Cards.WATER: {World.SHALLOW: 3.0, World.REEDS: 2.0, World.STRAW: 0.0, World.CENSER: 0.0},
+	Cards.WATER: {World.SHALLOW: 4.0, World.REEDS: 3.0, World.STRAW: 0.0, World.CENSER: 0.0},
 }
 
 

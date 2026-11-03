@@ -113,11 +113,14 @@ func test_every_creature_of_the_plan_still_spawns_and_is_deterministic() -> void
 		var b := _storey(3, depth)
 		var want: int = (
 			FloorGen
-			. PLAN[a.depth]
+			. _roster(a)
 			. filter(func(k): return not Bestiary.info(k).get("boss", false))
 			. size()
 		)
 		var guards := a.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
+		var maze := Labyrinth.site(a)
+		if not maze.is_empty():
+			guards += a.actors.filter(func(x): return maze.area.has_point(x.pos)).size()
 		assert_eq(a.actors.size() - 1, want + guards, "depth %d" % depth)
 		assert_eq(
 			a.actors.map(func(x): return [x.kind, x.pos, x.ties.leader]),

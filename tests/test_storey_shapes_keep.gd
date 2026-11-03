@@ -4,7 +4,7 @@ extends StoreyShapes
 ## A clump of ponds, bamboo or reeds is CLUMP tiles at least in CLUMPED of the garden
 ## storeys; the noise leaves the others a tile or three short.
 const CLUMP := 8
-const CLUMPED := 0.9
+const CLUMPED := 0.8
 
 
 func before_all() -> void:

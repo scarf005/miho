@@ -24,6 +24,39 @@ func test_two_storeys_in_a_row_are_never_of_one_kind_of_place() -> void:
 			assert_ne(kinds[0], kinds[1], "seed %d %s" % [seed_value, shapes])
 
 
+func test_a_maze_comes_in_about_two_runs_in_five_on_one_storey_from_the_third_to_the_seventh(
+) -> void:
+	var runs := 2000
+	var with_one := 0
+	var concepts := {}
+	for seed_value in runs:
+		var plan := RunPlan.labyrinth(seed_value)
+		var mazes := RunPlan.shapes(seed_value).count(Skeletons.LABYRINTH)
+		concepts[plan.concept] = true
+		if plan.depth > 0:
+			with_one += 1
+			assert_eq(RunPlan.shapes(seed_value)[plan.depth - 1], Skeletons.LABYRINTH)
+			assert_between(plan.depth, RunPlan.MAZE_DEPTH.x, RunPlan.MAZE_DEPTH.y)
+		assert_eq(mazes, 1 if plan.depth > 0 else 0, "seed %d" % seed_value)
+	assert_almost_eq(float(with_one) / runs, RunPlan.MAZE_RUNS, 0.04)
+	assert_eq(concepts.size(), Labyrinth.CONCEPTS.size())
+
+
+func test_storeys_of_one_depth_differ_across_runs_and_storeys_of_one_run_differ_in_make_up(
+) -> void:
+	var layouts := []
+	for seed_value in CLIMBED * 2:
+		var w := World.create(seed_value)
+		var layout := [MAPS._layout(w)]
+		for depth in range(2, World.FLOORS + 1):
+			Storeys.leave(w)
+			Storeys.enter(w, depth)
+			layout.append(MAPS._layout(w))
+		layouts.append(layout)
+	assert_lt(MAPS._overlap(layouts), 0.441)
+	assert_lt(MAPS._make_up(layouts), 0.9)
+
+
 func test_reading_the_plan_draws_nothing_and_reads_the_same_on_a_clone() -> void:
 	var w := Built.world(11)
 	for depth in range(1, World.FLOORS + 1):

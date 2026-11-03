@@ -181,7 +181,7 @@ func test_a_long_log_of_every_spell_reads_in_english() -> void:
 	var total := 0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5
-	for seed_value in [3, 7, 114, 21]:
+	for seed_value in [3, 7, 114, 21, 40, 51]:
 		var w := World.create(seed_value)
 		var messages := Messages.new()
 		for i in 160:

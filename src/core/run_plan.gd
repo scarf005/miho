@@ -45,6 +45,7 @@ const FAMILY := {
 	Skeletons.MIRROR: &"askew",
 	Skeletons.CAVE: &"askew",
 	Skeletons.TIMBER: &"askew",
+	Skeletons.LABYRINTH: &"maze",
 }
 ## The chance a room has a lantern on a dark, a middling and a bright storey.
 const LIGHTS: Array[float] = [0.1, 0.45, 0.85]
@@ -53,6 +54,10 @@ const ELEMENT_OF := {Skeletons.GROVE: Cards.WOOD, Skeletons.FLOODED: Cards.WATER
 ## What makes the draws of a storey's light and element differ from those of its shape.
 const LIGHT_SALT := 0x51ED
 const ELEMENT_SALT := 0x0E1E
+const MAZE_SALT := 0x3A2E
+## The share of runs with a maze and the storeys one may stand on (least, most).
+const MAZE_RUNS := 0.4
+const MAZE_DEPTH := Vector2i(3, 7)
 
 
 ## The shape of each storey of a run on `seed_value`, from the first.
@@ -67,7 +72,23 @@ static func shapes(seed_value: int) -> Array[StringName]:
 				return fresh and (out.is_empty() or FAMILY[s] != FAMILY[out[-1]])
 		)
 		out.append(open[rng.randi_range(0, open.size() - 1)])
+	var maze := labyrinth(seed_value)
+	if maze.depth > 0:
+		out[maze.depth - 1] = Skeletons.LABYRINTH
 	return out
+
+
+## The maze of a run on `seed_value`: {depth, concept}, depth 0 for a run without one. The
+## concept is drawn either way, so that a storey forced on a maze has one too.
+static func labyrinth(seed_value: int) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_value) ^ MAZE_SALT
+	var comes := rng.randf() < MAZE_RUNS
+	var depth := rng.randi_range(MAZE_DEPTH.x, MAZE_DEPTH.y)
+	return {
+		depth = depth if comes else 0,
+		concept = Labyrinth.CONCEPTS[rng.randi_range(0, Labyrinth.CONCEPTS.size() - 1)],
+	}
 
 
 ## The chance a room of storey `depth` has a lantern. No three storeys in a row share one.

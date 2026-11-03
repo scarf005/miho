@@ -23,10 +23,13 @@ static func draw(w: World) -> Dictionary:
 	var doors: Array[Vector2i] = []
 	var mains: Array[Rect2i] = []
 	var first := _shape(w.rng)
-	var at := Vector2i(
-		w.rng.randi_range(AREA.position.x + 6, AREA.end.x - 20),
-		w.rng.randi_range(AREA.position.y + 4, AREA.end.y - 12)
-	)
+	var at := AREA.position
+	while not _moved(first.rects, at).all(func(r): return _clear(w, r)):
+		first = _shape(w.rng)
+		at = Vector2i(
+			w.rng.randi_range(AREA.position.x, AREA.end.x),
+			w.rng.randi_range(AREA.position.y, AREA.end.y)
+		)
 	_stand(w, _moved(first.rects, at), parts)
 	mains.append(_moved([first.main], at)[0])
 	for i in TRIES:

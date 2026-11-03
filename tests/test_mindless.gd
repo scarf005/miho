@@ -54,7 +54,8 @@ func _count(kind: StringName, depth: int) -> int:
 func test_a_storey_builds_with_the_mindless_dead_in_it() -> void:
 	assert_eq(_count(&"gaekgwi", 1), SEEDS.size(), "storey 1 holds a 객귀")
 	assert_eq(_count(&"dalgyal", 2), SEEDS.size(), "storey 2 holds a 달걀귀신")
-	assert_eq(_count(&"gaekgwi", 3), SEEDS.size(), "storey 3 holds a 객귀")
+	var plain := SEEDS.filter(func(s): return RunPlan.labyrinth(s).depth != 3).size()
+	assert_gte(_count(&"gaekgwi", 3), plain, "storey 3 holds a 객귀")
 
 
 func test_the_undead_of_a_storey_stand_in_one_band_led_by_the_dalgyal() -> void:

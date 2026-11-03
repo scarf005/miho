@@ -9,6 +9,7 @@ extends Node
 ## `fire:x:y` (set a tile burning, to see how fire looks),
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `peace` (every creature of heaven is gone, for long waits),
+## `reveal` (the debug command that shows the whole map),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `jar:x:y:effect` (a jar holding
 ## that Jars effect, such as kimchi), `at:x:y` (put Miho there), `save:slot:key` (a
 ## saved spell by its Spell.key),
@@ -169,6 +170,9 @@ func _send(k: String) -> void:
 			main.world.sense()
 			main.term.show_world(main.world)
 			main.forecast()
+		"reveal":
+			main.world.act({t = &"cheat", cmd = &"reveal"})
+			main.term.show_world(main.world)
 		"peace":
 			main.world.actors.assign(
 				main.world.actors.filter(func(a): return a.faction == Actor.FOX)

@@ -31,11 +31,16 @@ static func make(w: World, r: Rect2i, rng: RandomNumberGenerator) -> bool:
 		var spots: Array = line.peaches.filter(w.open_floor)
 		if spots.is_empty():
 			continue
+		var before := w.tiles.duplicate()
 		for p: Vector2i in line.tiles:
 			if w.open_floor(p):
 				w.set_tile(p, World.VEIL)
-		w.peaches.append(spots[rng.randi_range(0, spots.size() - 1)])
-		return true
+		var peach: Vector2i = spots[rng.randi_range(0, spots.size() - 1)]
+		if Grid.distance(w.start, Masks.floor_of(w), peach) < 0:
+			w.peaches.append(peach)
+			return true
+		w.tiles = before
+		w._changed()
 	return false
 
 

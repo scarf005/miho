@@ -71,6 +71,8 @@ func _fall(w: World, a: Actor) -> void:
 func test_some_storeys_have_an_altar_in_a_room_of_its_own() -> void:
 	var tiers := {}
 	for w in _storeys:
+		if not Labyrinth.site(w).is_empty():
+			continue
 		var altars := []
 		for i in w.tiles.size():
 			if w.tiles[i] == World.ALTAR:

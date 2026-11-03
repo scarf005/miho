@@ -4,7 +4,9 @@ extends SkeletonsBase
 
 
 func _init() -> void:
-	kinds = [Skeletons.CAVE, Skeletons.ASKEW, Skeletons.MIRROR, Skeletons.WINDING]
+	kinds = [
+		Skeletons.CAVE, Skeletons.ASKEW, Skeletons.MIRROR, Skeletons.WINDING, Skeletons.LABYRINTH
+	]
 
 
 func test_the_cave_is_mostly_narrow_tunnels_with_side_ways_a_hit_can_open() -> void:

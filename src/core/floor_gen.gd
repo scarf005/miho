@@ -257,9 +257,11 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.seen = PackedByteArray()
 	w.dim = PackedByteArray()
 	Status.release(w, me)
+	var plan := {}
 	var goal := Rect2i()
 	for attempt in 100:
-		goal = _carve(w, skeleton).goal
+		plan = _carve(w, skeleton)
+		goal = plan.goal
 		if (
 			w.rooms.size() >= MIN_ROOMS
 			and w.secrets.size() == hidden_doors(w.depth)
@@ -289,7 +291,11 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	Placement.scatter(w, goal, element)
 	_drum(w)
 	var set_room := SetRooms.build(w, home, goal)
+	if plan.has("maze"):
+		Labyrinth.furnish(w, plan)
 	_creatures(w)
+	if plan.has("maze"):
+		Labyrinth.settle(w, plan)
 	Jars.fill(w)
 	if w.depth >= FIRST_PEACH_FLOOR and w.depth % 2 == 1:
 		var spot := _random_spot(w, 6)
@@ -799,10 +805,11 @@ static func bands(kinds: Array, rank := 1) -> Array:
 ## Standing watchers and bosses where they belong, then each band: its leader
 ## anywhere, its followers round it in the same room (alone where none fits).
 static func _creatures(w: World) -> void:
-	for kind in PLAN[w.depth]:
+	var roster := _roster(w)
+	for kind in roster:
 		if not Bestiary.bands(kind):
 			_place(w, kind)
-	for band in bands(PLAN[w.depth], Bestiary.rank(w.depth)):
+	for band in bands(roster, Bestiary.rank(w.depth)):
 		var lead := _place(w, band[0])
 		for kind in band.slice(1):
 			var spot := Vector2i(-1, -1)
@@ -813,6 +820,19 @@ static func _creatures(w: World) -> void:
 			else:
 				var a := _arrive(w, kind, spot)
 				a.ties.leader = lead.id
+
+
+## Who lives on the storey: PLAN's, or every other one of them beside a maze, which leaves half
+## the rooms to live in.
+static func _roster(w: World) -> Array:
+	var all: Array = PLAN[w.depth]
+	if Labyrinth.site(w).is_empty():
+		return all
+	var out := []
+	for i in all.size():
+		if i % 2 == 0 or Bestiary.info(all[i]).get("boss", false):
+			out.append(all[i])
+	return out
 
 
 ## A creature of `kind` where it belongs, or null when there is no room (or a boss
@@ -889,8 +909,12 @@ static func _random_spot(
 	return Grid.at(spots[w.rng.randi_range(0, spots.size() - 1)])
 
 
-## Where a resting patrol heads next: the middle of a random room.
-static func patrol_point(w: World) -> Vector2i:
+## Where the resting patrol `a` heads next: a tile of the maze it lives in, or the middle of a
+## random room.
+static func patrol_point(w: World, a: Actor) -> Vector2i:
+	var maze := Labyrinth.site(w)
+	if not maze.is_empty() and maze.area.has_point(a.brain.home):
+		return Labyrinth.patrol_point(w, maze)
 	return _centre(w.rooms[w.rng.randi_range(0, w.rooms.size() - 1)])
 
 

@@ -27,6 +27,7 @@ const DEAD_ENDS := {
 	askew = 12,
 	mirror = 12,
 	winding = 14,
+	labyrinth = 99,
 }
 ## How many tiles two seeds' outlines differ by at least, on one storey.
 const OUTLINES_APART := 30
@@ -145,6 +146,8 @@ func test_a_seed_builds_the_same_storey_on_every_skeleton() -> void:
 
 func test_two_seeds_give_a_skeleton_different_outlines() -> void:
 	for kind: StringName in _built:
+		if kind == Skeletons.LABYRINTH:  # Two mazes of one size stand on one rectangle.
+			continue
 		var rows: Array = _built[kind]
 		for i in rows.size():
 			for j in range(i + 1, rows.size()):

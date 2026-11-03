@@ -115,6 +115,53 @@ static func runs(seeds: int) -> Array[String]:
 	rows.append("slowest storey: %s %.1f ms" % [worst.shape, worst.ms])
 	rows.append("same storey across runs, walkable overlap (below .441): %.3f" % _overlap(layouts))
 	rows.append("floor make-up, cosine between storeys (below .882): %.3f" % _make_up(layouts))
+	rows.append_array(_mazes(seeds))
+	return rows
+
+
+## Over the runs of `seeds` with a maze: how many have one, by concept and by storey, how many
+## creatures live in it, and whether its prize is reached by walking through nothing that breaks.
+static func _mazes(seeds: int) -> Array[String]:
+	var rows: Array[String] = []
+	var per := {}
+	var depths := {}
+	var guards := {}
+	var found := 0
+	var unreached := 0
+	var breakable := 0
+	var faulty := 0
+	var first_seed := {}
+	for concept: StringName in Labyrinth.CONCEPTS:
+		per[concept] = 0
+	for seed_value in seeds:
+		var plan := RunPlan.labyrinth(seed_value)
+		if plan.depth == 0:
+			continue
+		found += 1
+		per[plan.concept] += 1
+		depths[plan.depth] = depths.get(plan.depth, 0) + 1
+		first_seed[plan.concept] = first_seed.get(plan.concept, [seed_value, plan.depth])
+		var w := World.create(seed_value)
+		w.depth = plan.depth
+		FloorGen.build(w, Skeletons.LABYRINTH)
+		var site := Labyrinth.site(w)
+		faulty += 1 if not faults(w).is_empty() else 0
+		var n := w.actors.filter(func(a): return not a.is_miho() and site.area.has_point(a.pos))
+		guards[n.size()] = guards.get(n.size(), 0) + 1
+		var prize: Vector2i = w.sites.filter(func(s): return s.kind == Labyrinth.PRIZE)[0].at
+		var open := Masks.opened(w)
+		unreached += 1 if Grid.search(w.start, open).dist[Grid.index(prize)] < 0 else 0
+		if plan.concept == Labyrinth.ORTHODOX:
+			for i in w.tiles.size():
+				if site.area.has_point(Grid.at(i)) and Grid.at(i) != site.at:
+					breakable += 1 if Terrain.wall(w.tiles[i]) else 0
+	rows.append("runs with a maze (40%%): %d of %d, %.1f%%" % [found, seeds, 100.0 * found / seeds])
+	rows.append("by concept: %s" % per)
+	rows.append("by storey: %s" % depths)
+	rows.append("creatures inside: %s" % guards)
+	rows.append("mazes with a fault: %d, prize unreached: %d" % [faulty, unreached])
+	rows.append("orthodox: breakable tiles in the maze but the door: %d" % breakable)
+	rows.append("first seed and storey of each concept: %s" % first_seed)
 	return rows
 
 

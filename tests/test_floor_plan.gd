@@ -156,6 +156,8 @@ func test_a_storey_has_one_hidden_door_more_every_third_storey() -> void:
 func test_a_hidden_door_is_a_wall_between_two_rooms_far_apart_without_it() -> void:
 	for w in _storeys:
 		for p: Vector2i in w.secrets:
+			if p == Labyrinth.site(w).get("at"):
+				continue
 			var label := "%s %s" % [_label(w), p]
 			assert_eq(w.tile(p), World.WALL, label)
 			var d := _across(w, p)

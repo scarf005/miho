@@ -104,7 +104,7 @@ static func spotted(before: World, after: World) -> Array[Vector2i]:
 	things.append_array(Scrolls.spots(after))
 	things.append_array(Jars.spots(after))
 	for site: Dictionary in after.sites:
-		if site.kind in [&"yard", &"library"]:
+		if site.kind in [&"yard", Labyrinth.PRIZE, &"library"]:
 			things.append(site.at)
 	var out: Array[Vector2i] = []
 	for p in things:

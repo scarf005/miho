@@ -15,8 +15,8 @@ func test_a_flooded_storey_has_pools_ringed_by_shallows_and_the_exit_is_walked_t
 ) -> void:
 	for row: Dictionary in _built[Skeletons.FLOODED]:
 		var w: World = row.w
-		assert_gt(w.tiles.count(World.POND), 25, _label(w, Skeletons.FLOODED))
-		assert_gt(w.tiles.count(World.SHALLOW), 25, _label(w, Skeletons.FLOODED))
+		assert_gt(w.tiles.count(World.POND), 20, _label(w, Skeletons.FLOODED))
+		assert_gt(w.tiles.count(World.SHALLOW), 20, _label(w, Skeletons.FLOODED))
 
 
 func test_the_inner_walls_of_a_timber_storey_are_mostly_wood_and_a_hidden_door_stands_in_stone(

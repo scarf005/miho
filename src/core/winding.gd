@@ -70,9 +70,13 @@ static func _cell(c: Vector2i, origin: Vector2i) -> Rect2i:
 ## The cells of the longest way through a maze dug from a random cell, turning whenever it
 ## can (a recursive backtracker that goes straight only when it must).
 static func _longest_way(rng: RandomNumberGenerator) -> Array:
+	var free := {}
+	for y in CELLS.y:
+		for x in CELLS.x:
+			free[Vector2i(x, y)] = true
 	while true:
 		var from := Vector2i(rng.randi_range(0, CELLS.x - 1), rng.randi_range(0, CELLS.y - 1))
-		var links := _maze(rng, from)
+		var links := _dig(rng, from, free)
 		var far := _farthest(links, from)
 		var path := _farthest(links, far[-1])
 		if path.size() >= LEAST_HALL:
@@ -80,18 +84,15 @@ static func _longest_way(rng: RandomNumberGenerator) -> Array:
 	return []
 
 
-## The links of a maze over all the cells: cell -> its neighbours.
-static func _maze(rng: RandomNumberGenerator, from: Vector2i) -> Dictionary:
+## The links of a maze over the `free` cells joined to `from`: cell -> its neighbours.
+static func _dig(rng: RandomNumberGenerator, from: Vector2i, free: Dictionary) -> Dictionary:
 	var links := {from: []}
 	var stack: Array[Vector2i] = [from]
 	var came := Vector2i.ZERO
 	while not stack.is_empty():
 		var at: Vector2i = stack[-1]
 		var open := Placement.SIDES.filter(
-			func(d):
-				var n: Vector2i = at + d
-				var free := n.x >= 0 and n.y >= 0 and n.x < CELLS.x and n.y < CELLS.y
-				return free and not links.has(n)
+			func(d): return free.has(at + d) and not links.has(at + d)
 		)
 		if open.is_empty():
 			stack.pop_back()
