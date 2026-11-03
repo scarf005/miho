@@ -331,13 +331,13 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.world = _world()
 	_gap(m.world, 5, 2)
 	m.settings.spells = {}
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	return m
 
 
@@ -366,7 +366,7 @@ func test_the_aim_preview_shows_the_leap_and_miho_where_she_lands() -> void:
 	assert_true(m.reach.has(Vector2i(7, 8)), "the landing east is tinted")
 	assert_false(m.reach.has(Vector2i(5, 8)), "not the sky it clears")
 	m.hover = Vector2i(9, 8)
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.marks.get(Vector2i(7, 8)), [Bestiary.info(&"miho").glyph, Palette.SIDE[0]])
 	assert_true(m.term.tints.has(Vector2i(6, 8)), "the line it leaps along")
 	_press(m, "Right")

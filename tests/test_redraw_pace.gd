@@ -13,7 +13,7 @@ func before_each() -> void:
 	_m.save_path = ""
 	add_child_autofree(_m)
 	await get_tree().process_frame
-	_m._new_run(3)
+	_m.new_run(3)
 	_m.state = &"play"
 	_pace = _m.term.get_node("RedrawPace")
 	_pace.set_process(false)

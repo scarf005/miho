@@ -12,7 +12,7 @@ func after_each() -> void:
 func _played() -> Node:
 	var m := _main(false)
 	m.save_path = SAVE
-	m._new_run(3)
+	m.new_run(3)
 	m.run.record({t = &"wait"}, 0, false)
 	assert_null(SaveGame.load_from(SAVE), "the round waits for the clock")
 	return m
@@ -53,8 +53,8 @@ func test_closing_the_game_writes_the_run() -> void:
 
 func test_going_back_to_the_title_offers_the_last_round() -> void:
 	var m := _played()
-	m._new_run()
-	m._show_title()
+	m.new_run()
+	m.show_title()
 	assert_not_null(m.pending)
 	assert_eq(m.pending.actions.size(), 1)
 

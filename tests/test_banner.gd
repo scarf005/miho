@@ -101,7 +101,7 @@ func test_the_log_opens_over_the_banner_and_closes_back_to_it() -> void:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(7)
+	m.new_run(7)
 	m.state = &"over"
 	m.term.banner_lines = Banner.over(m.world, 0, m.run_seed)
 	var open := Keys.event(Keys.keys_of(&"log")[0])

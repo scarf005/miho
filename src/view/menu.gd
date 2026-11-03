@@ -359,9 +359,9 @@ static func dispel(m: Node) -> void:
 	if on.size() > 1:
 		m._open(&"dispel")
 	elif on.size() == 1:
-		m._act({t = &"dispel", kind = on[0]})
+		m.act({t = &"dispel", kind = on[0]})
 	else:
-		m._say("풀 수 있는 주문이 없다")
+		m.say("풀 수 있는 주문이 없다")
 		m.sfx.play(&"click")
 
 

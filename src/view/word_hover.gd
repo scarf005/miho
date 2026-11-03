@@ -56,9 +56,9 @@ static func hold(m: Node, down: bool) -> void:
 		t.pin = box
 	elif not t.pin.is_empty():
 		t.pin = {}
-		m._point(m._mouse())
+		Preview.point(m, m.mouse())
 		if m.state == &"play" and not m.busy:
-			m._refresh()
+			m.refresh()
 
 
 ## The word under `local` in the kept box: its columns are `fit.scale` times the

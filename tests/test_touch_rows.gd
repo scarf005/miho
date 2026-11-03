@@ -16,10 +16,10 @@ func _phone(size: Vector2i, kinds := []) -> Node:
 	for i in kinds.size():
 		FloorGen.spawn(m.world, kinds[i], Vector2i(8 + i, 8))
 	get_tree().root.size = size
-	m._fit()
+	m.fit()
 	m.world.seen.fill(1)
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	return m
 
 

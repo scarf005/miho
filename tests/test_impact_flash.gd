@@ -9,7 +9,7 @@ func _game(w: World) -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(1)
+	m.new_run(1)
 	m.state = &"play"
 	m.world = w
 	return m

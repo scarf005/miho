@@ -21,7 +21,7 @@ func _main(save_path := "") -> Node:
 	m.save_path = save_path
 	add_child_autofree(m)
 	if save_path.is_empty():
-		m._new_run(3)
+		m.new_run(3)
 		m.state = &"play"
 	m.glass.visible = false
 	return m
@@ -63,7 +63,7 @@ func _beside(m: Node) -> Vector2i:
 func _foe(m: Node, kind: StringName, by: Vector2i) -> Actor:
 	var at: Vector2i = m.world.player().pos + by
 	m.world.act({t = &"cheat", cmd = &"summon", kind = kind, at = at})
-	m._forecast()
+	m.forecast()
 	return m.world.actor_at(at)
 
 

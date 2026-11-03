@@ -20,7 +20,7 @@ func _main() -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.glass.visible = false
 	return m
@@ -158,9 +158,9 @@ func test_a_creatures_shot_in_a_hover_box_is_cast_by_that_creature() -> void:
 	shot.pos = me + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)
-	m._forecast()
+	m.forecast()
 	m.hover = shot.pos
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.get("key"), &"imugi")
 	assert_eq(m.term.example.get("charged"), spell.cards)
 
@@ -172,9 +172,9 @@ func test_miho_casts_her_own_shot_in_a_hover_box() -> void:
 	shot.pos = w.player().pos + Vector2i(0, -1)
 	w.sense()
 	m.term.show_world(w)
-	m._forecast()
+	m.forecast()
 	m.hover = shot.pos
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.get("spell"), [Cards.ORB])
 
 

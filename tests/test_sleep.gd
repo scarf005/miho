@@ -182,20 +182,20 @@ func test_the_map_shows_no_vision_of_a_sleeper_and_tints_it_as_catchable() -> vo
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.world = _hall()
 	m.term.show_world(m.world)
 	var sleeper := _foe(m.world, SLEEPER, Vector2i(5, 8))
 	var patrol := _foe(m.world, PATROL, Vector2i(4, 10))
 	m.world.sense()
-	m._forecast()
+	m.forecast()
 	assert_true(Fight.sneakable(m.world, sleeper))
 	assert_false(Fight.sneakable(m.world, patrol))
 	m.hover = sleeper.pos
-	m._refresh()
+	m.refresh()
 	assert_eq(m.known.view_of(sleeper).count(1), 0)
 	assert_eq(m.term.tints.keys().size(), 1, "only the sneak tint")
 	m.hover = patrol.pos
-	m._refresh()
+	m.refresh()
 	assert_gt(m.term.tints.keys().size(), 1, "an awake one shows what it sees")

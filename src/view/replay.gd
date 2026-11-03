@@ -34,7 +34,7 @@ static func play(m: Node) -> void:
 	m.term.replay = false
 	m.term.speed = m.settings.speed
 	m.state = &"play"
-	m._fit()
+	m.fit()
 	m.term.show_world(m.world)
 
 

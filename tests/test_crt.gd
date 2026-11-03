@@ -38,7 +38,7 @@ func _main(strength: int) -> Node:
 	m.settings.path = ""
 	m.settings.crt = strength
 	m.touch.enabled = false
-	m._apply()
+	m.apply()
 	return m
 
 

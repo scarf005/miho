@@ -34,11 +34,11 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.world = _hall()
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	return m
 
 
@@ -51,7 +51,7 @@ func _key(key: String, echo := false) -> InputEventKey:
 
 ## A cast whose orb flies on: the round after it animates too.
 func _throw(m: Node) -> void:
-	m._act({t = &"cast", spells = [{cards = [Cards.ORB], dir = Vector2i.RIGHT}]})
+	m.act({t = &"cast", spells = [{cards = [Cards.ORB], dir = Vector2i.RIGHT}]})
 
 
 func test_a_key_during_an_animation_plays_its_round_at_once() -> void:

@@ -20,7 +20,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(7)
+	m.new_run(7)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	return m

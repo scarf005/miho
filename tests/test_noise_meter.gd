@@ -69,7 +69,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(1)
+	m.new_run(1)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	return m
@@ -119,7 +119,7 @@ func test_the_bar_shows_a_creak_after_the_round_and_is_empty_after_a_quiet_one()
 	m.world.actors = m.world.actors.filter(func(a): return a.faction == Actor.FOX)
 	var me: Actor = m.world.player()
 	m.world.set_tile(me.pos + Vector2i(1, 0), World.BOARD)
-	await m._act(EAST)
+	await m.act(EAST)
 	assert_eq(m.term.noise, Tiles.of(World.BOARD, "tread")[0])
-	await m._act({t = &"wait"})
+	await m.act({t = &"wait"})
 	assert_eq(m.term.noise, 0)

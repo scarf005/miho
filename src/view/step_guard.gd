@@ -73,14 +73,14 @@ func answers(action: StringName) -> bool:
 ## Goes on with what the prompt of the game `m` asks about.
 func go(m: Node) -> void:
 	if casting.is_empty():
-		m._move(asking)
+		m.move(asking)
 	else:
-		m._act({t = &"cast", spells = casting})
+		m.act({t = &"cast", spells = casting})
 
 
 ## Asks `line` (runs) over the log of the game `m`.
 static func ask(m: Node, line: Array) -> void:
-	m._show_log()
+	m.show_log()
 	m.term.log_lines.append([line, 1.0])
 	m.sfx.play(&"warn")
 

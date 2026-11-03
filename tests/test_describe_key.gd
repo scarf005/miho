@@ -19,12 +19,12 @@ func _foe_hover(touch := false) -> Node:
 	FloorGen.spawn(m.world, KIND, at).magic.cooldown = 99
 	m.world.sense()
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	if touch:
 		m.hover = at
-		m._refresh()
+		m.refresh()
 	else:
-		m._point(_tile_at(m, at))
+		Preview.point(m, _tile_at(m, at))
 	return m
 
 
@@ -79,8 +79,8 @@ func test_every_creature_kind_maps_to_an_entry_of_the_bestiary() -> void:
 		var a := FloorGen.spawn(m.world, kind, _me(m) + Vector2i(1, 0))
 		m.world.sense()
 		m.term.show_world(m.world)
-		m._forecast()
-		m._point(_tile_at(m, a.pos))
+		m.forecast()
+		Preview.point(m, _tile_at(m, a.pos))
 		assert_eq(Keywords.locate(m.term.subject).x, 0, "the entry of %s" % kind)
 		m.world.actors.erase(a)
 
@@ -91,8 +91,8 @@ func test_the_box_of_a_tile_opens_the_entry_of_that_tile() -> void:
 	m.world.set_tile(at, World.POND)
 	m.world.sense()
 	m.term.show_world(m.world)
-	m._forecast()
-	m._point(_tile_at(m, at))
+	m.forecast()
+	Preview.point(m, _tile_at(m, at))
 	assert_eq(m.term.info.back()[0][0], "M")
 	_press(m, "M")
 	assert_eq(m.overlay, &"codex")
@@ -103,7 +103,7 @@ func test_the_box_of_a_tile_opens_the_entry_of_that_tile() -> void:
 func test_the_box_of_a_talisman_opens_its_entry() -> void:
 	var m := _main(false)
 	m.hover_card = Cards.ORB
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.info.back()[0][0], "M")
 	_press(m, "M")
 	assert_eq(m.overlay, &"codex")
@@ -115,7 +115,7 @@ func test_the_box_of_a_saved_spell_without_an_entry_of_its_own_opens_its_shape()
 	var spell := Spell.make([Cards.FOX, Cards.FIRE])
 	assert_lt(Keywords.locate(spell.shown()).x, 0, "a spell made of the talismans has no entry")
 	m.hover_spell = spell.key()
-	m._refresh()
+	m.refresh()
 	_press(m, "M")
 	assert_eq(_entry(m), Keywords.locate(Lang.t(Spell.SHAPE_NAME[Spell.WISP])))
 
@@ -124,7 +124,7 @@ func test_the_box_of_a_queue_slot_opens_the_talisman_at_that_slot() -> void:
 	var m := _main(false)
 	m.picked.assign([Cards.ORB, Cards.FIRE])
 	m.hover_slot = 1
-	m._refresh()
+	m.refresh()
 	_press(m, "M")
 	assert_eq(_entry(m), Keywords.locate(Codex.talisman_name(Cards.FIRE)))
 
@@ -132,7 +132,7 @@ func test_the_box_of_a_queue_slot_opens_the_talisman_at_that_slot() -> void:
 func test_look_mode_opens_the_entry_of_the_tile_under_the_cursor_and_stays_in_look_mode() -> void:
 	var m := _foe_hover()
 	var foe := _me(m) + Vector2i(1, 0)
-	m._point(Vector2(-1.0e5, -1.0e5))
+	Preview.point(m, Vector2(-1.0e5, -1.0e5))
 	_press(m, "X")
 	assert_true(m.looking)
 	m._look_at(foe)
@@ -153,7 +153,7 @@ func test_a_kept_box_opens_its_own_entry_when_the_pointer_is_over_something_else
 	_shift(m, true)
 	assert_false(m.term.pin.is_empty())
 	var floor_tile := _me(m) + Vector2i(0, 2)
-	m._point(_tile_at(m, floor_tile))
+	Preview.point(m, _tile_at(m, floor_tile))
 	assert_eq(m.hover, floor_tile, "the pointer moved to a floor tile")
 	var rounds: int = m.world.round_no
 	_press(m, "M", true)
@@ -164,7 +164,7 @@ func test_a_kept_box_opens_its_own_entry_when_the_pointer_is_over_something_else
 
 func test_a_box_with_no_entry_shows_no_row_and_the_key_leaves_the_screen_as_it_is() -> void:
 	var m := _main(false)
-	m._point(_tile_at(m, _me(m)))
+	Preview.point(m, _tile_at(m, _me(m)))
 	assert_false(m.term.info.is_empty(), "Miho's own box")
 	assert_eq(m.term.subject, "")
 	assert_false(_text(m).contains(Lang.t("자세히")))
@@ -182,7 +182,7 @@ func test_a_box_with_no_entry_shows_no_row_and_the_key_leaves_the_screen_as_it_i
 func test_the_status_row_has_no_entry_either() -> void:
 	var m := _main(false)
 	m.hover_status = true
-	m._refresh()
+	m.refresh()
 	assert_false(m.term.info.is_empty())
 	assert_eq(m.term.subject, "")
 	_press(m, "M")
@@ -192,7 +192,7 @@ func test_the_status_row_has_no_entry_either() -> void:
 func test_the_row_follows_a_rebind() -> void:
 	var m := _foe_hover()
 	Keys.bind(&"describe", ["T"])
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.info.back()[0][0], "T")
 	_press(m, "T")
 	assert_eq(m.overlay, &"codex")
@@ -234,7 +234,7 @@ func test_the_describe_key_works_in_the_debug_view_on_what_miho_does_not_see() -
 	hidden.magic.cooldown = 99
 	m.debugging = true
 	m.hover = hidden.pos
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.subject, Lang.t(hidden.info().name))
 	_press(m, "M")
 	assert_eq(m.overlay, &"codex")

@@ -26,11 +26,11 @@ static func show(m: Node) -> void:
 ## A press on the ending: a new run, the log, or the seed line copied.
 static func input(m: Node, event: InputEvent) -> void:
 	if Keys.action_of(event) == &"restart" or _again(event):
-		m._new_game()
+		m.new_game()
 	elif Keys.action_of(event) == &"log":
 		m._open(&"log")
-	elif m._left_click(event) and at(m.term, m._local(event.position)) == SEED:
-		m._copy_seed()
+	elif m.left_click(event) and at(m.term, m.to_term(event.position)) == SEED:
+		m.copy_seed()
 
 
 ## Whether `event` is the plain key AGAIN.
@@ -49,19 +49,19 @@ static func ask(m: Node) -> void:
 	m.sfx.play(&"warn")
 	show(m)
 	if m.state == &"play":
-		m._show_log()
+		m.show_log()
 		m.term.log_lines.append([[[_sure(m.touch), Palette.TEXT]], 1.0])
 
 
 ## Takes the question back.
 static func keep(m: Node) -> void:
 	if m.state == &"title":
-		m._show_title()
+		m.show_title()
 		return
 	m.erasing = false
 	show(m)
 	if m.state == &"play":
-		m._show_log()
+		m.show_log()
 
 
 static func _sure(touch: Touch) -> String:

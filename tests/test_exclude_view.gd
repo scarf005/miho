@@ -10,7 +10,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(SEED)
+	m.new_run(SEED)
 	m.state = &"play"
 	return m
 
@@ -121,7 +121,7 @@ func test_continuing_a_run_restores_its_zones() -> void:
 	saved.write()
 	var m := _main()
 	m.pending = SaveGame.load_from(path)
-	await m._continue()
+	await m.resume()
 	assert_eq(m.excluded.zones, {Vector2i(7, 7): 3})
 	saved.erase()
 
@@ -136,7 +136,7 @@ func test_zones_are_cleared_when_miho_goes_up() -> void:
 	m.excluded.cycle(me.pos)
 	m.run.exclusions = m.excluded.zones.duplicate()
 	var depth: int = m.world.depth
-	await m._act({t = &"move", dir = m.world.stairs - me.pos})
+	await m.act({t = &"move", dir = m.world.stairs - me.pos})
 	assert_eq(m.world.depth, depth + 1)
 	assert_true(m.excluded.is_empty())
 	assert_true(m.run.exclusions.is_empty())
@@ -146,7 +146,7 @@ func test_a_walk_shut_only_by_a_zone_says_so() -> void:
 	var m := _main()
 	m.world = _hall()
 	m.excluded.zones[Vector2i(8, 8)] = 0
-	m._forecast()
+	m.forecast()
 	var goal := Vector2i(12, 8)
 	assert_eq(m._walled_in(goal, "x"), "위험구역 너머로는 갈 수 없다")
 	assert_eq(m._walled_in(Vector2i(6, 8), "x"), "x", "reachable")
@@ -158,7 +158,7 @@ func test_walking_to_the_zone_tile_itself_is_allowed() -> void:
 	var m := _main()
 	m.world = _hall()
 	m.excluded.zones[Vector2i(8, 8)] = 0
-	m._forecast()
+	m.forecast()
 	var path: Array[Vector2i] = m._path_to(Vector2i(8, 8))
 	assert_eq(path.back(), Vector2i(8, 8))
 
@@ -166,10 +166,10 @@ func test_walking_to_the_zone_tile_itself_is_allowed() -> void:
 func test_exploring_that_only_a_zone_blocks_says_so() -> void:
 	var m := _main()
 	m.world = _hall()
-	m._forecast()
+	m.forecast()
 	assert_ne(m._exploring(), {}, "open gap")
 	m.excluded.zones[Vector2i(8, 8)] = 0
-	m._forecast()
+	m.forecast()
 	assert_true(m._explore_walled())
 	assert_eq(m._exploring(), {})
 	assert_eq(m.messages.lines.back().text, "위험구역 너머는 탐험할 수 없다")
@@ -180,7 +180,7 @@ func test_exploring_with_nothing_left_is_not_blamed_on_a_zone() -> void:
 	m.world = _hall()
 	m.world.known.fill(1)
 	m.excluded.zones[Vector2i(8, 8)] = 0
-	m._forecast()
+	m.forecast()
 	assert_false(m._explore_walled())
 
 

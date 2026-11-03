@@ -190,7 +190,7 @@ func _process(_delta: float) -> void:
 	if not enabled:
 		return
 	if _shape() != _laid and main.state != &"replay":
-		main._fit()
+		main.fit()
 	hud.mode = _mode()
 	hud.page = _page()
 	tick(_now())
@@ -211,9 +211,9 @@ func input(event: InputEvent, now := _now()) -> void:
 	if not enabled:
 		enabled = true
 		_dress()
-		main._apply()
+		main.apply()
 		if main.state == &"title":
-			main._show_title()
+			main.show_title()
 	var out := []
 	_clock = now
 	if event is InputEventScreenTouch:
@@ -237,8 +237,8 @@ func input(event: InputEvent, now := _now()) -> void:
 func _gesture(e: Dictionary) -> void:
 	if main.busy or main.walking or main.state == &"replay":
 		return
-	if frozen and e.t == &"tap" and WordHover.on_pin(main.term, main._local(e.pos)):
-		WordLink.open(main, main._local(e.pos))
+	if frozen and e.t == &"tap" and WordHover.on_pin(main.term, main.to_term(e.pos)):
+		WordLink.open(main, main.to_term(e.pos))
 		frozen = not main.term.pin.is_empty()
 		return
 	if frozen and e.t != &"hold":
@@ -259,7 +259,7 @@ func _gesture(e: Dictionary) -> void:
 func _close_info() -> void:
 	frozen = false
 	WordHover.hold(main, false)
-	main._point(OFF)
+	Preview.point(main, OFF)
 
 
 static func _click(pos: Vector2) -> InputEventMouseButton:
@@ -279,7 +279,7 @@ static func _key(code: Key) -> InputEventKey:
 
 func _tap(pos: Vector2) -> void:
 	var term: Term = main.term
-	var local: Vector2 = main._local(pos)
+	var local: Vector2 = main.to_term(pos)
 	var button := hud.button_at(term, local)
 	if main.erasing and button != &"new":
 		Banner.keep(main)
@@ -296,7 +296,7 @@ func _tap(pos: Vector2) -> void:
 	elif main.overlay != &"":
 		main._panel_input(_click(pos))
 	elif main.state == &"title" and main.pending == null:
-		main._begin()
+		main.begin()
 	elif main.state == &"play":
 		_play_tap(pos, local)
 
@@ -306,22 +306,22 @@ func _press(id: StringName) -> void:
 		&"back":
 			main._panel_input(_key(KEY_ESCAPE))
 		&"continue":
-			main._continue()
+			main.resume()
 		&"new":
-			main._new_game()
+			main.new_game()
 		&"enter":
 			main._panel_input(_key(KEY_ENTER))
 		_ when Keys.SLOTS.has(id) and main.overlay != &"":
 			main.menu.save(id)
 			main.settings.save()
-			main._apply()
+			main.apply()
 			main.term.panel = main.menu.panel()
 		_ when main.menu.debug.asking():
 			var key: Array = Keys.keys_of(id)
 			if not key.is_empty():
 				main.menu.debug.pick(main, Keys.event(key[0]))
 		_:
-			main._do(id, false)
+			main.do_action(id, false)
 
 
 func _play_tap(pos: Vector2, local: Vector2) -> void:
@@ -331,38 +331,38 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 	var tile := term.tile_at(local)
 	if main.menu.debug.asking():
 		if Grid.inside(tile) or Grid.inside(term.side_at(local)):
-			main._point(pos)
+			Preview.point(main, pos)
 			main.menu.debug.pick(main, _click(pos))
 	elif WordLink.open(main, local):
 		return
 	elif Grid.inside(term.side_at(local)):
-		main._point(pos)
+		Preview.point(main, pos)
 		_freeze(not main.term.info.is_empty())
 	elif hud.cast_at(term, local):
 		if not main.picked.is_empty() or not main.staged.is_empty():
-			main._do(&"confirm", false)
+			main.do_action(&"confirm", false)
 	elif saved != &"":
-		main._do(saved, false)
+		main.do_action(saved, false)
 	elif card != &"":
 		main._add(card)
 		main._aim()
 	elif not Grid.inside(tile):
 		return
 	elif main.picked.is_empty():
-		main._point(pos)
-		main._click(_click(pos))
-		main._point(OFF)
+		Preview.point(main, pos)
+		main.click(_click(pos))
+		Preview.point(main, OFF)
 	elif tile == main.hover:
-		main._click(_click(pos))
+		main.click(_click(pos))
 	else:
-		main._point(pos)
+		Preview.point(main, pos)
 
 
 func _hold(pos: Vector2) -> void:
 	if main.overlay != &"" or main.state != &"play":
 		return
 	WordHover.hold(main, false)
-	main._point(pos)
+	Preview.point(main, pos)
 	_freeze(not main.term.info.is_empty() or Grid.inside(main.hover))
 
 
@@ -373,7 +373,7 @@ func _freeze(on: bool) -> void:
 
 
 func _swipe(dir: Vector2i, from: Vector2) -> void:
-	var local: Vector2 = main._local(from)
+	var local: Vector2 = main.to_term(from)
 	if (
 		main.menu.debug.asking()
 		or _panning
@@ -386,7 +386,7 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 			var more: bool = (dir.x < 0) == (main.menu.page == &"codex")
 			main._panel_input(_key(KEY_RIGHT if more else KEY_LEFT))
 	elif main.state == &"play":
-		main._do(move_action(dir), false)
+		main.do_action(move_action(dir), false)
 
 
 ## A drag over a page scrolls it by the rows it is drawn with; over the HUD's rows it
@@ -394,7 +394,7 @@ func _swipe(dir: Vector2i, from: Vector2) -> void:
 ## by whole tiles.
 func _drag(delta: Vector2, by: Vector2, from: Vector2) -> void:
 	var term: Term = main.term
-	var local: Vector2 = main._local(from)
+	var local: Vector2 = main.to_term(from)
 	if main.overlay == &"":
 		if hud.scroll(term, local, delta.x / term.scale.x) or main.state != &"play":
 			return
@@ -407,7 +407,7 @@ func _drag(delta: Vector2, by: Vector2, from: Vector2) -> void:
 			_pan -= Vector2(tiles) * term.scale.x * Term.CELL
 			term.pan(-tiles)
 		return
-	var aside := PanelView.aside_at(term, main._local(from))
+	var aside := PanelView.aside_at(term, main.to_term(from))
 	var row := term.scale.y * Term.CELL.y * (1 if aside else PanelView.stride)
 	_scrolled -= delta.y
 	var rows := int(_scrolled / row)

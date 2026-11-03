@@ -305,11 +305,11 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.world = _world()
 	m.world.sense()
-	m._forecast()
+	m.forecast()
 	return m
 
 

@@ -127,15 +127,15 @@ func _ready() -> void:
 	glass.material.shader = preload("res://src/view/crt.gdshader")
 	crt.add_child(glass)
 	add_child(crt)
-	get_viewport().size_changed.connect(_fit)
-	_new_run()
-	_show_title()
-	_apply()
+	get_viewport().size_changed.connect(fit)
+	new_run()
+	show_title()
+	apply()
 	Capture.attach(self)
 
 
 ## The title screen, offering to continue the run on disk if there is one.
-func _show_title(asking := false) -> void:
+func show_title(asking := false) -> void:
 	pending = SaveGame.load_from(save_path)
 	state = &"title"
 	erasing = asking and pending != null
@@ -143,12 +143,12 @@ func _show_title(asking := false) -> void:
 
 
 ## A new run: a run on disk or in play asks once first. An ending has none to lose.
-func _new_game() -> void:
+func new_game() -> void:
 	if erasing or state == &"over" or state == &"title" and pending == null:
-		_restart()
+		restart()
 	elif state == &"title":
 		sfx.play(&"warn")
-		_show_title(true)
+		show_title(true)
 	else:
 		Banner.ask(self)
 
@@ -159,13 +159,13 @@ func _translated() -> void:
 	if not busy:
 		Banner.show(self)
 	if world != null:
-		_show_log()
+		show_log()
 		menu.log_rows = messages.lines.map(Messages.shown)
-		_refresh()
+		refresh()
 
 
 ## Puts the settings into effect.
-func _apply() -> void:
+func apply() -> void:
 	menu.settings = settings
 	settings.apply_language()
 	_translated()
@@ -175,10 +175,10 @@ func _apply() -> void:
 	glass.visible = settings.crt > 0 and not touch.enabled
 	Crt.apply(glass.material, settings.crt)
 	term.speed = settings.speed
-	_fit()
+	fit()
 
 
-func _fit() -> void:
+func fit() -> void:
 	if state == &"replay":
 		return
 	if touch.enabled:
@@ -190,7 +190,7 @@ func _fit() -> void:
 		term.panel = menu.panel()
 
 
-func _new_run(seed_value := randi()) -> void:
+func new_run(seed_value := randi()) -> void:
 	run.flush()
 	world = World.create(seed_value)
 	run_seed = seed_value
@@ -205,7 +205,7 @@ func _new_run(seed_value := randi()) -> void:
 	picked.clear()
 	staged.clear()
 	term.show_world(world)
-	_forecast()
+	forecast()
 
 
 # --- input ----------------------------------------------------------------------
@@ -226,7 +226,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not touch.gesture.touching():
 			if not event.shift_pressed:
 				WordHover.hold(self, false)
-			_point(event.position)
+			Preview.point(self, event.position)
 	elif walked:
 		pass
 	elif busy or not event.is_pressed() or event.is_echo() and overlay == &"" and state != &"play":
@@ -237,40 +237,40 @@ func _unhandled_input(event: InputEvent) -> void:
 		menu.debug.pick(self, event)
 	elif erasing:
 		if press and event is InputEventKey and event.keycode == KEY_Y:
-			_restart()
+			restart()
 		elif press:
 			Banner.keep(self)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		_open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
 		if event is InputEventKey and event.keycode == KEY_N:
-			_new_game()
-		elif Keys.action_of(event) == &"confirm" or _left_click(event):
-			_continue()
+			new_game()
+		elif Keys.action_of(event) == &"confirm" or left_click(event):
+			resume()
 	elif state == &"title":
-		_begin()
+		begin()
 	elif state == &"over":
 		Banner.input(self, event)
 	elif event is InputEventKey:
 		_key(event)
 	elif event is InputEventMouseButton and press:
-		_click(event)
+		click(event)
 
 
-func _begin() -> void:
+func begin() -> void:
 	state = &"play"
 	term.banner_lines = []
 	sfx.play(&"card")
 
 
-static func _left_click(event: InputEvent) -> bool:
+static func left_click(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT
 
 
 ## Takes up the run saved on disk where it left off, playing its rounds again
 ## one a frame with the count on the title. A run the rules no longer allow is
 ## dropped.
-func _continue() -> void:
+func resume() -> void:
 	var saved := pending
 	busy = true
 	saved.begin()
@@ -281,7 +281,7 @@ func _continue() -> void:
 			if not saved.step():
 				saved.erase()
 				busy = false
-				_show_title()
+				show_title()
 				return
 		await get_tree().process_frame
 	busy = false
@@ -299,18 +299,18 @@ func _continue() -> void:
 	picked.clear()
 	staged.clear()
 	term.show_world(world)
-	_show_log()
-	_forecast()
+	show_log()
+	forecast()
 	sfx.play(&"card")
 
 
 ## Starts a new run, which replaces the one on disk.
-func _restart() -> void:
+func restart() -> void:
 	run.erase()
 	pending = null
 	state = &"play"
 	term.banner_lines = []
-	_new_run()
+	new_run()
 
 
 ## Moves repeat while their key is held; other actions take only fresh presses.
@@ -329,13 +329,13 @@ func _key(event: InputEventKey) -> void:
 			_unask()
 		&"":
 			if not held or Keys.MOVES.has(action) and not guard.startled(world):
-				_do(action, event.shift_pressed)
+				do_action(action, event.shift_pressed)
 	held = false
 
 
 ## What a key means, or a button of the touch screen: `action` is a Keys action,
 ## `shift` holds a spell with a direction.
-func _do(action: StringName, shift: bool) -> void:
+func do_action(action: StringName, shift: bool) -> void:
 	if action == &"describe":
 		WordLink.describe(self)
 		return
@@ -347,7 +347,7 @@ func _do(action: StringName, shift: bool) -> void:
 	if shutting:
 		shutting = false
 		if Keys.MOVES.has(action):
-			_act({t = &"close", dir = Keys.MOVES[action]})
+			act({t = &"close", dir = Keys.MOVES[action]})
 		return
 	if looking and _look_key(action, shift):
 		return
@@ -364,7 +364,7 @@ func _do(action: StringName, shift: bool) -> void:
 	elif action == &"self" and not picked.is_empty():
 		_direction(Vector2i.ZERO, shift)
 	elif action in [&"wait", &"confirm"]:
-		_act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
+		act({t = &"cast", spells = staged.duplicate()} if not staged.is_empty() else {t = &"wait"})
 	elif action == &"unpick":
 		_unpick()
 	elif action == &"cancel" and (not picked.is_empty() or not staged.is_empty()):
@@ -374,7 +374,7 @@ func _do(action: StringName, shift: bool) -> void:
 	elif action == &"stairs":
 		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
 	elif action in WATCHED and Travel.watched(world):
-		_say(WATCHED[action])
+		say(WATCHED[action])
 		sfx.play(&"click")
 	elif action == &"explore":
 		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
@@ -392,7 +392,7 @@ func _do(action: StringName, shift: bool) -> void:
 		looking = true
 		_look_at(world.player().pos)
 	elif action == &"restart":
-		_new_game()
+		new_game()
 	elif action == &"rest":
 		_journey(_resting, "꼬리가 이미 다 자랐다")
 	elif action == &"close":
@@ -406,13 +406,13 @@ func _do(action: StringName, shift: bool) -> void:
 			_aim_next()
 	elif action == &"debug":
 		debugging = not debugging
-		_refresh()
+		refresh()
 	elif action in [&"log", &"help", &"codex", &"cheat"]:
 		_open(action)
 
 
-func _click(event: InputEventMouseButton) -> void:
-	if _left_click(event) and WordLink.open(self, _local(event.position)):
+func click(event: InputEventMouseButton) -> void:
+	if left_click(event) and WordLink.open(self, to_term(event.position)):
 		return
 	term.pin = {}
 	looking = false
@@ -425,7 +425,7 @@ func _click(event: InputEventMouseButton) -> void:
 		return
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
-	var local := _local(event.position)
+	var local := to_term(event.position)
 	if term.bar.debug_at(term, local):
 		_open(&"cheat")
 		return
@@ -462,24 +462,20 @@ func _use_tile(tile: Vector2i, hold: bool) -> void:
 	if not picked.is_empty():
 		_direction(Grid.nearest_dir(tile - me), hold)
 	elif Grid.cheb(tile, me) == 1:
-		_move(tile - me)
+		move(tile - me)
 	else:
 		_journey(func(): return _step_on(_path_to(tile)), _walled_in(tile, ""))
 
 
 ## A screen point in the term's space, through the CRT curve when it is on.
-func _mouse() -> Vector2:
+func mouse() -> Vector2:
 	return Touch.OFF if touch.enabled else get_viewport().get_mouse_position()
 
 
-func _local(screen: Vector2) -> Vector2:
+func to_term(screen: Vector2) -> Vector2:
 	if glass.visible:
 		screen = Crt.flat(screen, get_viewport().get_visible_rect().size, settings.crt)
 	return term.get_global_transform().affine_inverse() * screen
-
-
-func _point(screen: Vector2) -> void:
-	Preview.point(self, screen)
 
 
 ## In look mode: the directions move the cursor, Enter walks to it, Esc or the
@@ -512,13 +508,13 @@ func _look_at(tile: Vector2i) -> void:
 	hover = tile
 	hover_card = &""
 	hover_status = false
-	_refresh()
+	refresh()
 
 
 ## Ends look mode; the cursor goes back to the pointer.
 func _stop_look() -> void:
 	looking = false
-	_point(_mouse())
+	Preview.point(self, mouse())
 
 
 ## Puts a talisman at the end of the queue, when a slot and a tail are left for it.
@@ -536,7 +532,7 @@ func _add(card: StringName) -> void:
 	else:
 		picked.append(card)
 		sfx.play(&"click")
-	_forecast()
+	forecast()
 
 
 ## Picks a saved spell's talismans to aim it, if Miho has them and the tails.
@@ -554,7 +550,7 @@ func _recall(key: String) -> void:
 		return
 	picked.assign(spell.cards)
 	sfx.play(&"click")
-	_forecast()
+	forecast()
 
 
 ## Picks the last spell hurled again.
@@ -601,7 +597,7 @@ func _short(need: int) -> Callable:
 
 ## Says why a talisman or saved spell cannot be picked, with the warning sound.
 func _refuse(why: Variant) -> void:
-	_say(Guise.shown_only if why is String and why == Guise.only() else why)
+	say(Guise.shown_only if why is String and why == Guise.only() else why)
 	sfx.play(&"deny")
 	refused = true
 
@@ -619,15 +615,15 @@ func _unpick() -> void:
 	else:
 		return
 	sfx.play(&"click")
-	_forecast()
+	forecast()
 
 
 ## Empties the queue and what is held; the cursor goes back to the pointer.
 func _clear() -> void:
 	picked.clear()
 	staged.clear()
-	_point(_mouse())
-	_forecast()
+	Preview.point(self, mouse())
+	forecast()
 
 
 ## With talismans picked a direction hurls them (Shift holds them), and no
@@ -636,9 +632,9 @@ func _clear() -> void:
 func _direction(d: Vector2i, hold: bool) -> void:
 	if picked.is_empty():
 		if not staged.is_empty() and not hold:
-			_act({t = &"cast", spells = staged.duplicate()})
+			act({t = &"cast", spells = staged.duplicate()})
 		elif staged.is_empty():
-			_move(d)
+			move(d)
 		return
 	var spell := Spell.make(picked)
 	var why := Guise.why(world.player(), spell, d)
@@ -649,15 +645,15 @@ func _direction(d: Vector2i, hold: bool) -> void:
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not world.can({t = &"cast", spells = spells}):
 		if spell.shape == Spell.LEAP:
-			_say("착지할 곳이 없다")
+			say("착지할 곳이 없다")
 		sfx.play(&"click")
 		return
 	if hold:
 		staged = spells
 		picked.clear()
-		_forecast()
+		forecast()
 		return
-	_act({t = &"cast", spells = spells})
+	act({t = &"cast", spells = spells})
 
 
 # --- turns ----------------------------------------------------------------------
@@ -665,24 +661,24 @@ func _direction(d: Vector2i, hold: bool) -> void:
 
 ## A step. Onto a found plate, fire or a drop it asks first (StepGuard): the same
 ## step again, or Y, takes it; a held key never does.
-func _move(d: Vector2i) -> void:
+func move(d: Vector2i) -> void:
 	if StepGuard.danger(world, d, ahead.get(d)) and (held or guard.asking != d):
 		if not held:
 			guard.asking = d
 			StepGuard.ask(self, [[StepGuard.question(world, d, touch.enabled), Palette.TEXT]])
 		return
-	_act({t = &"move", dir = d})
+	act({t = &"move", dir = d})
 
 
 ## Drops the step prompt, if one is up.
 func _unask() -> void:
 	if guard.asked():
 		guard.drop()
-		_show_log()
+		show_log()
 
 
 ## Plays one round and returns its events (none when the action is not allowed).
-func _act(action: Dictionary) -> Array:
+func act(action: Dictionary) -> Array:
 	if not world.can(action):
 		sfx.play(&"click")
 		return []
@@ -709,12 +705,12 @@ func _act(action: Dictionary) -> Array:
 	await term.play(events, before, world)
 	messages.add_round(before, world, events)
 	run.keep(world, messages)
-	_show_log()
+	show_log()
 	if action.t == &"cast":
 		last_spell = "+".join(action.spells.back().cards)
 		picked.clear()
 		staged.clear()
-		_point(_mouse())
+		Preview.point(self, mouse())
 	if world.depth != depth or world.outcome == &"won":
 		reel.rounds.pop_back()
 		if settings.replay and action.t != &"cheat":
@@ -724,7 +720,7 @@ func _act(action: Dictionary) -> Array:
 		state = &"over"
 		Banner.show(self)
 	busy = false
-	_forecast()
+	forecast()
 	return events
 
 
@@ -744,7 +740,7 @@ func _journey(next: Callable, why := "") -> void:
 		var action: Dictionary = next.call()
 		if action.is_empty():
 			if rounds == 0 and why != "":
-				_say(why)
+				say(why)
 			break
 		var to: Vector2i = world.player().pos + action.get("dir", Vector2i.ZERO)
 		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
@@ -759,7 +755,7 @@ func _journey(next: Callable, why := "") -> void:
 		if action.t == &"move" and Travel.near_fire(world, to):
 			break
 		var before := world.clone()
-		var events: Array = await _act(action)
+		var events: Array = await act(action)
 		rounds += 1
 		if Travel.interrupted(before, world, events, sighted):
 			break
@@ -773,11 +769,11 @@ func _journey(next: Callable, why := "") -> void:
 func _shut() -> void:
 	var doors := Grid.DIRS.filter(func(d): return world.can({t = &"close", dir = d}))
 	if doors.size() == 1:
-		_act({t = &"close", dir = doors[0]})
+		act({t = &"close", dir = doors[0]})
 		return
 	sfx.play(&"click")
 	shutting = not doors.is_empty()
-	_say("어느 쪽 문을 닫을까? 방향키" if shutting else "닫을 문이 없다")
+	say("어느 쪽 문을 닫을까? 방향키" if shutting else "닫을 문이 없다")
 
 
 ## Tab: claws the nearest creature in sight or steps towards it; refuses when
@@ -785,11 +781,11 @@ func _shut() -> void:
 func _fight() -> void:
 	var step := {} if Fight.too_hurt(world) else Fight.step(world)
 	if step.is_empty():
-		_say("너무 다쳐서 싸울 수 없다" if Fight.too_hurt(world) else "보이는 적이 없다")
+		say("너무 다쳐서 싸울 수 없다" if Fight.too_hurt(world) else "보이는 적이 없다")
 		sfx.play(&"click")
 		return
 	_clear()
-	await _act(step)
+	await act(step)
 
 
 func _step_on(path: Array[Vector2i]) -> Dictionary:
@@ -825,7 +821,7 @@ func _explore_walled() -> bool:
 func _zones_changed() -> void:
 	run.exclusions = excluded.zones.duplicate()
 	run.write()
-	_forecast()
+	forecast()
 
 
 func _to_exit() -> Dictionary:
@@ -838,7 +834,7 @@ func _exploring() -> Dictionary:
 	var d := Travel.explore_step(world, routes)
 	if d == Vector2i.ZERO:
 		if _explore_walled():
-			_say("위험구역 너머는 탐험할 수 없다")
+			say("위험구역 너머는 탐험할 수 없다")
 		return {}
 	return _resting() if world.tails < world.max_tails() else {t = &"move", dir = d}
 
@@ -851,19 +847,19 @@ func _resting() -> Dictionary:
 
 
 ## Puts the run's seed on the clipboard; the banner of a finished run says so.
-func _copy_seed() -> void:
+func copy_seed() -> void:
 	Banner.copy(run_seed, term)
 	sfx.play(&"card")
-	_say("시드를 복사했다")
+	say("시드를 복사했다")
 
 
-func _say(text: Variant) -> void:
+func say(text: Variant) -> void:
 	messages.add_text(text, world.round_no)
-	_show_log()
+	show_log()
 
 
 ## The last few lines over the map, older ones dimmer, gone after LOG_FADE rounds.
-func _show_log() -> void:
+func show_log() -> void:
 	var recent := messages.lines.slice(-LOG_ROWS).filter(
 		func(l): return world.round_no - l.round <= LOG_FADE
 	)
@@ -874,7 +870,7 @@ func _show_log() -> void:
 	var hinted := not term.hint.is_empty()
 	term.hint = WordHover.at(term, term.hint_at * Term.CELL)
 	if hinted == term.hint.is_empty() and not busy:
-		_refresh()
+		refresh()
 
 
 ## Shows a panel over the game: a Menu page.
@@ -882,7 +878,7 @@ func _open(kind: StringName) -> void:
 	menu.sync(self)
 	overlay = kind
 	if touch.enabled:
-		_fit()
+		fit()
 	menu.open(kind, Vector2i(term.cols, term.rows))
 	term.info = []
 	term.example = {}
@@ -897,7 +893,7 @@ func _panel_input(event: InputEvent) -> void:
 		return
 	var command := &""
 	var button: int = event.button_index if event is InputEventMouseButton else 0
-	var local := _local(event.position) if button != 0 else Vector2.ZERO
+	var local := to_term(event.position) if button != 0 else Vector2.ZERO
 	if event is InputEventKey:
 		command = menu.key(event)
 	elif button == MOUSE_BUTTON_RIGHT:
@@ -915,7 +911,7 @@ func _panel_input(event: InputEvent) -> void:
 			return
 		&"changed":
 			settings.save()
-			_apply()
+			apply()
 		&"cast":
 			_close()
 			_clear()
@@ -923,16 +919,16 @@ func _panel_input(event: InputEvent) -> void:
 			return
 		&"restart":
 			_close()
-			_restart()
+			restart()
 			return
 		&"dispel":
 			_close()
-			_act({t = &"dispel", kind = menu.buffs[menu.selected]})
+			act({t = &"dispel", kind = menu.buffs[menu.selected]})
 			return
 		&"ask":
 			sfx.play(&"warn")
 		&"seed":
-			_copy_seed()
+			copy_seed()
 		&"quit":
 			_quit()
 			return
@@ -946,23 +942,23 @@ func _quit() -> void:
 		get_tree().quit()
 		return
 	_close()
-	_new_run()
-	_show_title()
+	new_run()
+	show_title()
 
 
 func _close() -> void:
 	overlay = &""
 	term.panel = {}
-	_refresh()
+	refresh()
 	if touch.enabled:
-		_fit()
+		fit()
 
 
 ## What each choice would do, from what Miho knows: the reach of the spell in
 ## hand, and on each neighbouring tile the harm she would take and whether she
 ## would be seen there. These depend only on the world and the talismans in
 ## hand, so they are worked out once per change and reused while the pointer moves.
-func _forecast() -> void:
+func forecast() -> void:
 	if world == null:
 		return
 	_unask()
@@ -988,10 +984,10 @@ func _forecast() -> void:
 			var action := {t = &"wait"} if d == Vector2i.ZERO else {t = &"move", dir = d}
 			if world.can(action):
 				ahead[d] = Forecast.of(world, action)
-	_refresh()
+	refresh()
 
 
 ## Under the pointer: what is there and what a click or a spell would do (Preview).
-func _refresh() -> void:
+func refresh() -> void:
 	if world != null:
 		Preview.paint(self)

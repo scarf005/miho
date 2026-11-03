@@ -40,11 +40,11 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.world = _hall()
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	return m
 
 
@@ -160,7 +160,7 @@ func test_tab_is_the_fight_key_and_is_listed_in_help() -> void:
 func test_tab_plays_the_claw_move_and_saves_it_like_any_move() -> void:
 	var m := _main()
 	var foe := _foe(m.world, Vector2i(5, 8))
-	m._forecast()
+	m.forecast()
 	var e := Keys.event("Tab")
 	e.pressed = true
 	m._key(e)

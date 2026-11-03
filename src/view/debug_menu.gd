@@ -221,7 +221,7 @@ func run(main: Node) -> void:
 	var asked := request
 	request = {}
 	if asked.has("action"):
-		await main._act(asked.action)
+		await main.act(asked.action)
 		_again(main)
 	elif asked.has("ask"):
 		ask = asked.ask
@@ -283,7 +283,7 @@ func _pick_at(main: Node, p: Vector2i) -> void:
 		return
 	ask = {}
 	main._look_at(p)
-	await main._act(action)
+	await main.act(action)
 	_again(main)
 
 

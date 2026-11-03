@@ -7,7 +7,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(7)
+	m.new_run(7)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	return m
@@ -143,7 +143,7 @@ func _left_click(m: Node, cell: Vector2) -> void:
 	click.pressed = true
 	m.glass.visible = false
 	click.position = m.term.get_global_transform() * (cell * Term.CELL)
-	m._click(click)
+	m.click(click)
 
 
 func test_a_click_on_a_compound_fills_the_queue_with_its_talismans() -> void:

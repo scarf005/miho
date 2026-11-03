@@ -47,7 +47,7 @@ func _main(touch := true) -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	m.world = _hall()
@@ -57,9 +57,9 @@ func _main(touch := true) -> Node:
 	m.touch.dpr = 1.0
 	m.touch.enabled = touch
 	m.touch._dress()
-	m._apply()
+	m.apply()
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	return m
 
 

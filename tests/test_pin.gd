@@ -16,9 +16,9 @@ func _foe_hover(touch := false) -> Node:
 	FloorGen.spawn(m.world, &"jangseung", at).magic.cooldown = 99
 	m.world.sense()
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	if not touch:
-		m._point(_tile_at(m, at))
+		Preview.point(m, _tile_at(m, at))
 	return m
 
 
@@ -55,7 +55,7 @@ func test_the_box_stays_as_it_was_while_the_pointer_crosses_other_things() -> vo
 	_shift(m, true)
 	assert_eq(m.term.pin.lines, lines)
 	for tile: Vector2i in [_me(m), _me(m) + Vector2i(0, 2), Vector2i(-1, -1)]:
-		m._point(_tile_at(m, tile) if Grid.inside(tile) else Vector2(-1.0e5, -1.0e5))
+		Preview.point(m, _tile_at(m, tile) if Grid.inside(tile) else Vector2(-1.0e5, -1.0e5))
 		assert_eq(m.term.pin.lines, lines)
 		assert_eq(m.term.info, lines, "no box for the thing crossed")
 	assert_eq(m.hover, Vector2i(-1, -1), "what is under the pointer is still followed")
@@ -65,10 +65,10 @@ func test_letting_go_of_shift_drops_the_box_and_shows_what_is_under_the_pointer(
 	var m := _foe_hover()
 	var foe := _me(m) + Vector2i(3, 0)
 	_shift(m, true)
-	m._point(_tile_at(m, _me(m)))
+	Preview.point(m, _tile_at(m, _me(m)))
 	_shift(m, false)
 	assert_true(m.term.pin.is_empty())
-	m._point(_tile_at(m, foe))
+	Preview.point(m, _tile_at(m, foe))
 	assert_false(m.term.info.is_empty(), "the box of the tile under the pointer")
 	assert_eq(m.term.cursor, foe)
 
@@ -77,8 +77,8 @@ func test_a_word_in_the_kept_box_shows_its_entry_and_a_click_opens_it_without_a_
 	var m := _foe_hover()
 	_shift(m, true)
 	var at := _word(m)
-	var word: String = WordHover.word_at(m.term, m._local(at))
-	m._point(at)
+	var word: String = WordHover.word_at(m.term, m.to_term(at))
+	Preview.point(m, at)
 	assert_eq(m.term.hint, Keywords.entry(word), "a second box beside the word")
 	assert_false(m.term.pin.is_empty(), "the kept box stays")
 	var rounds: int = m.world.round_no
@@ -101,7 +101,7 @@ func test_a_click_inside_the_kept_box_on_no_word_does_not_walk_to_the_tile_under
 	_shift(m, true)
 	var fit: Dictionary = m.term.pin.fit
 	var corner := _screen(m, (fit.at + Vector2(0.1, 0.1)) * Term.CELL)
-	assert_eq(WordHover.word_at(m.term, m._local(corner)), "")
+	assert_eq(WordHover.word_at(m.term, m.to_term(corner)), "")
 	var rounds: int = m.world.round_no
 	_click(m, corner, true)
 	assert_eq(m.world.round_no, rounds)
@@ -122,7 +122,7 @@ func test_a_shift_click_off_the_box_still_acts_on_the_tile_under_the_pointer() -
 				tile = Vector2i(x, y)
 	assert_true(Grid.inside(tile), "a tile beside Miho clear of the box")
 	var from := _me(m)
-	m._point(_tile_at(m, tile))
+	Preview.point(m, _tile_at(m, tile))
 	_click(m, _tile_at(m, tile), true)
 	await _settle(m)
 	assert_eq(_me(m), tile, "walked, as a click does")
@@ -184,14 +184,14 @@ func test_the_box_of_a_word_on_a_page_is_kept_too_and_its_words_link() -> void:
 	m.menu.codex.select(Codex.entries(4).find_custom(func(e): return e.name == "마루"))
 	m.term.panel = m.menu.panel()
 	var on_page := _word(m)
-	m._point(on_page)
+	Preview.point(m, on_page)
 	var entry: Array = m.term.hint.duplicate(true)
 	assert_false(entry.is_empty(), "the word's box")
 	_shift(m, true)
 	assert_eq(m.term.pin.lines, entry)
 	assert_true(m.term.hint.is_empty())
 	var inner := _word(m)
-	m._point(inner)
+	Preview.point(m, inner)
 	assert_false(m.term.hint.is_empty(), "a word of the kept box shows its own box")
 	var tab: int = m.menu.codex.tab
 	var selected: int = m.menu.codex.selected
@@ -214,9 +214,9 @@ func test_a_page_covers_the_box_and_the_example_and_shift_keeps_nothing_there() 
 func test_a_talisman_under_the_pointer_plays_no_example_over_a_page() -> void:
 	var m := _foe_hover()
 	m.hover_card = Cards.FOX
-	m._refresh()
+	m.refresh()
 	assert_false(m.term.example.is_empty(), "the talisman plays its example on the map")
 	m._open(&"spells")
 	assert_true(m.term.example.is_empty(), "opening the page stops it")
-	m._refresh()
+	m.refresh()
 	assert_true(m.term.example.is_empty(), "the pointer on the talisman row does not start it")

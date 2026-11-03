@@ -53,7 +53,7 @@ static func attach(main: Node) -> void:
 		return
 	main.save_path = args.get("save", "")
 	main.term.still = args.has("still")
-	main._new_run(int(args.get("seed", randi())))
+	main.new_run(int(args.get("seed", randi())))
 	if args.has("depth"):
 		for depth in range(2, int(args.depth) + 1):
 			Storeys.leave(main.world)
@@ -61,14 +61,14 @@ static func attach(main: Node) -> void:
 		main.world.tails = main.world.max_tails()
 		main.world.sense()
 		main.term.show_world(main.world)
-	main._show_title()
+	main.show_title()
 	main.settings = Settings.new()
 	main.settings.path = ""
 	main.settings.zoom = float(args.get("zoom", "0"))
 	main.settings.language = args.get("lang", "ko")
 	main.settings.crt = clampi(int(args.get("crt", str(Crt.MIDDLE))), 0, 100)
 	Keys.reset()
-	main._apply()
+	main.apply()
 	var c := Capture.new()
 	c.main = main
 	c.shot = args.shot
@@ -112,10 +112,10 @@ func _send(k: String) -> void:
 			var tile := Vector2i(int(parts[1]), int(parts[2]))
 			if parts[0] == "aim":
 				tile += main.world.player().pos
-			main._point(_screen(main.term.cell_centre(tile)))
+			Preview.point(main, _screen(main.term.cell_centre(tile)))
 		"cell":
 			var at := (Vector2(int(parts[1]), int(parts[2])) + Vector2(0.5, 0.5)) * Term.CELL
-			main._point(_screen(at))
+			Preview.point(main, _screen(at))
 		"click", "tap":
 			var xy := Vector2i(int(parts[1]), int(parts[2]))
 			var local: Vector2 = (
@@ -124,7 +124,7 @@ func _send(k: String) -> void:
 				else (Vector2(xy) + Vector2(0.5, 0.5)) * Term.CELL
 			)
 			var at := _screen(local)
-			main._point(at)
+			Preview.point(main, at)
 			for pressed in [true, false]:
 				var ev := InputEventMouseButton.new()
 				ev.button_index = MOUSE_BUTTON_LEFT
@@ -138,13 +138,13 @@ func _send(k: String) -> void:
 		"fire":
 			main.world.burning[Vector2i(int(parts[1]), int(parts[2]))] = World.BURN_ROUNDS
 			main.term.show_world(main.world)
-			main._forecast()
+			main.forecast()
 		"kill":
 			var foe: Actor = main.world.actor_at(Vector2i(int(parts[1]), int(parts[2])))
 			Harm.hurt(main.world, foe, foe.hp)
 			main.world.sense()
 			main.term.show_world(main.world)
-			main._forecast()
+			main.forecast()
 		"tile", "jar", "peach", "trap", "at", "foe", "hunt", "card", "gas", "save":
 			_stage(parts)
 		"hp", "chase", "follow", "lamp":
@@ -162,20 +162,20 @@ func _send(k: String) -> void:
 						w.actor_at(w.player().pos + Vector2i(int(parts[1]), int(parts[2]))).id
 					)
 			main.term.show_world(main.world)
-			main._forecast()
+			main.forecast()
 		"spawn":
 			var at: Vector2i = main.world.player().pos + Vector2i(int(parts[2]), int(parts[3]))
 			FloorGen.spawn(main.world, StringName(parts[1]), at)
 			main.world.sense()
 			main.term.show_world(main.world)
-			main._forecast()
+			main.forecast()
 		"peace":
 			main.world.actors.assign(
 				main.world.actors.filter(func(a): return a.faction == Actor.FOX)
 			)
 			main.world.sense()
 			main.term.show_world(main.world)
-			main._forecast()
+			main.forecast()
 		"walk":
 			await _walk(int(parts[1]))
 		"snap":
@@ -231,7 +231,7 @@ func _stage(parts: PackedStringArray) -> void:
 	w._changed()
 	w.sense()
 	main.term.show_world(w)
-	main._forecast()
+	main.forecast()
 
 
 ## n steps towards the stairs, each by the first key of its direction.

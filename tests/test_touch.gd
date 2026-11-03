@@ -10,10 +10,10 @@ extends TouchBase
 func test_a_touch_screen_has_no_status_rows_and_a_sidebar_only_in_landscape() -> void:
 	var m := _main()
 	get_tree().root.size = Vector2i(390, 844)
-	m._fit()
+	m.fit()
 	assert_eq(m.term.side, Vector2i.ZERO, "portrait lists the creatures in the HUD")
 	get_tree().root.size = Vector2i(844, 390)
-	m._fit()
+	m.fit()
 	assert_eq(m.term.side, Term.MAP, "landscape lists them beside the map")
 	get_tree().root.size = Vector2i(1280, 720)
 	assert_eq(m.term.foot, 0)
@@ -27,11 +27,11 @@ func test_rotating_the_phone_lays_out_again_and_keeps_the_game() -> void:
 	var rounds := world.round_no
 	var rows: int = m.term.rows
 	get_tree().root.size = Vector2i(390, 844)
-	m._fit()
+	m.fit()
 	assert_ne(m.term.rows, rows, "tall and wide are laid out differently")
 	assert_false(m.touch.hud.wide)
 	get_tree().root.size = Vector2i(844, 390)
-	m._fit()
+	m.fit()
 	assert_true(m.touch.hud.wide)
 	assert_same(m.world, world)
 	assert_eq(m.world.round_no, rounds)
@@ -61,7 +61,7 @@ func test_the_first_touch_on_a_screen_that_was_not_one_makes_it_a_touch_screen()
 
 func test_the_title_asks_for_a_touch_not_a_key() -> void:
 	var m := _main()
-	m._show_title()
+	m.show_title()
 	assert_eq(m.term.banner_lines[2], "화면을 눌러 시작")
 	_finger(m, Vector2(300, 300))
 	assert_eq(m.state, &"play", "a tap anywhere starts")
@@ -232,11 +232,11 @@ func test_the_menu_button_gives_up_a_debug_pick_as_a_right_click_does() -> void:
 func test_the_debug_list_fits_the_screen_after_the_phone_is_turned() -> void:
 	var m := _main()
 	get_tree().root.size = Vector2i(390, 844)
-	m._fit()
+	m.fit()
 	m._open(&"cheat")
 	m.menu.debug.selected = DebugMenu.COMMANDS.size() - 1
 	get_tree().root.size = Vector2i(844, 390)
-	m._fit()
+	m.fit()
 	var e := Keys.event("Up")
 	e.pressed = true
 	m._unhandled_input(e)
@@ -301,7 +301,7 @@ func test_a_tap_on_a_talisman_aims_at_the_nearest_creature_in_sight() -> void:
 	var m := _main()
 	FloorGen.spawn(m.world, &"dokkaebi", Vector2i(8, 8))
 	m.world.seen.fill(1)
-	m._forecast()
+	m.forecast()
 	_finger(m, _hud(m, &"card", 1))
 	assert_eq(m.hover, Vector2i(8, 8), "the aim is on it, so one tap on it hurls")
 

@@ -187,7 +187,7 @@ func _main() -> Node:
 	m.save_path = ""
 	add_child_autofree(m)
 	Keys.reset()
-	m._new_run(2)
+	m.new_run(2)
 	m.state = &"play"
 	m.term.speed = 1000.0
 	return m
@@ -197,12 +197,12 @@ func before_all() -> void:
 	for debugging in [false, true]:
 		var m := _main()
 		m.debugging = debugging
-		m._refresh()
+		m.refresh()
 		_shown.append(not m.term.debug.is_empty())
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 3
 		for round_no in 40:
-			await m._act(_action(m.world, rng))
+			await m.act(_action(m.world, rng))
 		_logs.append(m.messages.lines.map(func(l): return l.text))
 		m.queue_free()
 

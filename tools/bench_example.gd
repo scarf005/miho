@@ -15,13 +15,13 @@ func _init() -> void:
 	m.save_path = ""
 	root.add_child(m)
 	await process_frame
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	await process_frame
 	var plain := await _frames()
 	var t := Time.get_ticks_usec()
 	m.hover_card = Cards.FIRE
-	m._refresh()
+	m.refresh()
 	var opened := Time.get_ticks_usec() - t
 	var boxed := await _frames()
 	var sim: ExampleSim = m.term.sim
@@ -34,7 +34,7 @@ func _init() -> void:
 		all += took
 		most = maxi(most, took)
 	m.hover_card = &""
-	m._refresh()
+	m.refresh()
 	print("frame to frame without the box: mean %d us, most %d us" % plain)
 	print("frame to frame with the box:    mean %d us, most %d us" % boxed)
 	print(

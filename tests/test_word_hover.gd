@@ -102,13 +102,13 @@ func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.glass.visible = false
 	m.term.banner_lines.clear()
 	m.world.act({t = &"cheat", cmd = &"reveal"})
 	m.term.show_world(m.world)
-	m._forecast()
+	m.forecast()
 	var row: int = -m.term.cam.y + 1
 	m.term.log_lines = []
 	for i in row:

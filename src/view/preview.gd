@@ -14,7 +14,7 @@ extends RefCounted
 static func point(m: Node, screen: Vector2) -> void:
 	var term: Term = m.term
 	var hinted := not term.hint.is_empty()
-	var local: Vector2 = m._local(screen)
+	var local: Vector2 = m.to_term(screen)
 	if m.overlay != &"" and term.pin.is_empty():
 		m.menu.point(PanelView.row_at(term, local))
 		m.menu.codex.lit = PanelView.choice_at(term, local)
@@ -42,7 +42,7 @@ static func point(m: Node, screen: Vector2) -> void:
 		m.hover_spell = spell
 		m.hover_slot = slot
 		if m.state == &"play" and not m.busy:
-			m._refresh()
+			m.refresh()
 
 
 static func paint(m: Node) -> void:

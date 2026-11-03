@@ -20,7 +20,7 @@ func _main() -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.glass.visible = false
 	return m

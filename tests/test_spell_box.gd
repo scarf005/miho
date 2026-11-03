@@ -15,7 +15,7 @@ func _main() -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"play"
 	m.glass.visible = false
 	return m
@@ -40,14 +40,14 @@ func test_a_hovered_spell_plays_in_its_box_and_closing_the_box_frees_its_world()
 	var m := _main()
 	assert_null(m.term.sim)
 	m.hover_card = Cards.FIRE
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FIRE])
 	var sim: ExampleSim = m.term.sim
 	assert_not_null(sim.world, "its world is made as the box opens")
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.sim, sim, "the same box goes on playing")
 	m.hover_card = &""
-	m._refresh()
+	m.refresh()
 	assert_true(m.term.example.is_empty())
 	assert_null(m.term.sim)
 	assert_true(sim.is_queued_for_deletion())
@@ -57,19 +57,19 @@ func test_every_box_about_one_spell_shows_it_and_a_box_about_a_tile_does_not() -
 	var m := _main()
 	m.picked.assign([Cards.FIRE, Cards.FIRE])
 	m.hover_slot = 0
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FIRE, Cards.FIRE], "a slot of the queue")
 	m.hover_slot = -1
 	m.hover_spell = "orb+fire"
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.ORB, Cards.FIRE], "a saved spell")
 	m.hover_spell = ""
 	m.hover_card = Cards.compounds()[0]
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.spell, Cards.spell_of(m.hover_card), "a compound")
 	m.hover_card = &""
 	m.hover = m.world.player().pos
-	m._refresh()
+	m.refresh()
 	assert_true(m.term.example.is_empty(), "a tile")
 
 
@@ -83,7 +83,7 @@ func test_a_flying_shot_on_the_map_shows_its_spell() -> void:
 	m.known = m.world.known_clone()
 	var shot: Shot = m.world.shots[0]
 	m.hover = shot.pos
-	m._refresh()
+	m.refresh()
 	assert_eq(m.term.example.spell, [Cards.FOX], "from %s" % me)
 
 
@@ -102,7 +102,7 @@ func test_a_shot_of_a_caster_she_does_not_see_does_not_tell_its_kind() -> void:
 	m.world.seen[Grid.index(hidden.pos)] = 1
 	m.known = m.world.known_clone()
 	m.hover = shot.pos
-	m._refresh()
+	m.refresh()
 	assert_ne(m.term.example.key, hidden.kind)
 
 
@@ -174,9 +174,9 @@ func test_a_slot_the_queue_no_longer_has_is_no_longer_under_the_pointer() -> voi
 	var m := _main()
 	m.world.cards.assign(Cards.ALL)
 	m.picked.assign([Cards.FOX, Cards.FIRE])
-	m._forecast()
+	m.forecast()
 	m.hover_slot = 1
-	m._refresh()
+	m.refresh()
 	assert_false(m.term.info.is_empty(), "the slot shows a box")
 	m._unpick()
 	assert_eq(m.hover_slot, -1, "the slot went with the talisman")

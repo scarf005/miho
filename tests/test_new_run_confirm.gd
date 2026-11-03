@@ -21,11 +21,11 @@ func _phone() -> Node:
 
 func _title(m: Node, saved: bool) -> void:
 	m.save_path = SAVE if saved else ""
-	m._new_run(3)
+	m.new_run(3)
 	if saved:
 		m.run.write()
-	m._show_title()
-	m._fit()
+	m.show_title()
+	m.fit()
 
 
 func _key_event(code: Key) -> InputEventKey:
@@ -129,7 +129,7 @@ func _ctrl_q() -> InputEventKey:
 func test_ctrl_q_in_play_asks_and_only_y_starts_a_new_run() -> void:
 	var m := _keyboard()
 	m.save_path = SAVE
-	m._new_run(3)
+	m.new_run(3)
 	m.run.write()
 	var round_was: int = m.world.round_no
 	m._unhandled_input(_ctrl_q())
@@ -150,7 +150,7 @@ func test_ctrl_q_in_play_asks_and_only_y_starts_a_new_run() -> void:
 
 func test_r_no_longer_restarts() -> void:
 	var m := _keyboard()
-	m._new_run(3)
+	m.new_run(3)
 	m._unhandled_input(_key_event(KEY_R))
 	assert_false(m.erasing)
 	assert_eq(m.run_seed, 3)
@@ -158,7 +158,7 @@ func test_r_no_longer_restarts() -> void:
 
 func test_a_held_ctrl_q_does_not_answer_its_own_question() -> void:
 	var m := _keyboard()
-	m._new_run(3)
+	m.new_run(3)
 	m._unhandled_input(_ctrl_q())
 	var echo := _ctrl_q()
 	echo.echo = true
@@ -167,7 +167,7 @@ func test_a_held_ctrl_q_does_not_answer_its_own_question() -> void:
 
 
 func _ending(m: Node) -> void:
-	m._new_run(3)
+	m.new_run(3)
 	m.state = &"over"
 	Banner.show(m)
 
@@ -197,7 +197,7 @@ func test_the_ending_tells_the_key_that_starts_again() -> void:
 func test_the_restart_button_of_the_touch_ending_starts_at_once() -> void:
 	var m := _phone()
 	_ending(m)
-	m._fit()
+	m.fit()
 	_finger(m, _hud(m, &"new"))
 	assert_eq(m.state, &"play")
 

@@ -33,13 +33,13 @@ func _phone() -> Node:
 func _plate(m: Node) -> void:
 	m.world.traps[ME + E] = World.TRAP_COLLAPSE
 	m.world.set_tile(ME + E, World.TRAP_COLLAPSE)
-	m._forecast()
+	m.forecast()
 
 
 ## Fire on the tile next to her, east unless told.
 func _blaze(m: Node, d := E) -> void:
 	m.world.burning[ME + d] = 5
-	m._forecast()
+	m.forecast()
 
 
 ## A creature under a lantern, so that Miho sees it from where she stands.
@@ -48,7 +48,7 @@ func _foe(m: Node, at: Vector2i, kind := &"dokkaebi") -> Actor:
 	a.magic.cooldown = 99
 	m.world.set_tile(at + Vector2i.UP, World.LANTERN)
 	m.world.sense()
-	m._forecast()
+	m.forecast()
 	assert_true(Travel.in_sight(m.world).has(a.id), "Miho sees it")
 	return a
 
@@ -126,7 +126,7 @@ func test_n_says_no_whichever_way_the_prompt_asks() -> void:
 		var m := _keyboard()
 		_blaze(m, d)
 		var round_no: int = m.world.round_no
-		m._move(d)
+		m.move(d)
 		assert_eq(m.guard.asking, d)
 		_press(m, "N")
 		_press(m, "N", true)
@@ -209,7 +209,7 @@ func test_every_kind_of_found_plate_asks_though_the_forecast_shows_no_harm() -> 
 	for kind in [World.TRAP_ALARM, World.TRAP_FIRE, World.TRAP_VINE]:
 		m.world.traps[ME + E] = kind
 		m.world.set_tile(ME + E, kind)
-		m._forecast()
+		m.forecast()
 		assert_eq(m.ahead[E].hurt_me(), 0, "the round of the step hurts nobody")
 		_press(m, "Right")
 		assert_eq(m.guard.asking, E)
@@ -220,7 +220,7 @@ func test_every_kind_of_found_plate_asks_though_the_forecast_shows_no_harm() -> 
 func test_a_plate_not_found_yet_is_stepped_on_without_asking() -> void:
 	var m := _keyboard()
 	m.world.traps[ME + E] = World.TRAP_ALARM
-	m._forecast()
+	m.forecast()
 	_press(m, "Right")
 	await _settle(m)
 	assert_eq(m.world.player().pos, ME + E)
@@ -231,7 +231,7 @@ func test_harm_beside_a_creature_does_not_ask() -> void:
 	var foe := _foe(m, ME + Vector2i(3, 0))
 	foe.magic.cooldown = 0
 	foe.brain.alert = Actor.HUNT
-	m._forecast()
+	m.forecast()
 	_press(m, "Right")
 	await _settle(m)
 	assert_eq(m.world.player().pos, ME + E)
@@ -386,7 +386,7 @@ func test_a_sharp_creature_she_does_not_know_of_is_not_named() -> void:
 			if x != 0 or y != 0:
 				m.world.set_tile(at + Vector2i(x, y), World.WALL)
 	m.world.sense()
-	m._forecast()
+	m.forecast()
 	_guise_in_hand(m)
 	_press(m, "Comma")
 	await _settle(m)
