@@ -130,7 +130,7 @@ func test_the_fight_ends_when_the_rival_falls() -> void:
 func test_the_fight_ends_after_the_grudge_runs_out() -> void:
 	var w := _world()
 	var fighter := _creature(w, &"jangseung", Vector2i(20, 8))
-	var rival := _creature(w, &"imugi", Vector2i(21, 8))
+	var rival := _creature(w, &"cheonnyeon", Vector2i(21, 8))
 	rival.hp = 99
 	_provoke(w, fighter, rival)
 	assert_true(fighter.fighting())

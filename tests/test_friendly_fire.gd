@@ -47,10 +47,10 @@ func _hurl(w: World, caster: Actor, cards: Array) -> Array:
 
 
 ## Hp the victim loses to a spell of `cards` hurled by heaven, and by Miho's
-## own cast from the same tile.
+## own cast from the same tile. The caster has no melee to answer the victim with.
 func _loss(kind: StringName, cards: Array) -> Array:
 	var out := []
-	for caster_kind in [&"imugi", &"miho"]:
+	for caster_kind in [&"cheonnyeon", &"miho"]:
 		var w := _world()
 		var victim := _creature(w, kind, VICTIM)
 		var caster := w.player() if caster_kind == &"miho" else _creature(w, caster_kind, SHOOTER)
@@ -112,7 +112,7 @@ func test_heaven_fire_leaves_other_creatures_tiles_alone() -> void:
 
 func test_a_heaven_fire_orb_splashes_the_neighbours_of_its_target() -> void:
 	var w := _world()
-	var shooter := _creature(w, &"imugi", SHOOTER)
+	var shooter := _creature(w, &"cheonnyeon", SHOOTER)
 	var front := _creature(w, &"dokkaebi", VICTIM)
 	var side := _creature(w, &"dokkaebi", VICTIM + Vector2i(0, 1))
 	var weak := _creature(w, &"jiha", VICTIM + Vector2i(0, -1))
