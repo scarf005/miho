@@ -69,101 +69,135 @@ static func stage() -> World:
 ## The entries of a tab: {glyph, color, name, lines}, `lines` a Callable
 ## returning the hover lines; a creature as it comes at rank `at_rank`.
 static func entries(tab_index: int, at_rank := 1) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
 	match tab_index:
 		0:
-			for kind in foes():
-				var spec := Bestiary.info(kind)
-				var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
-				out.append(
-					_entry(Lang.t(spec.glyph, "creature"), Palette.KIND[kind], spec.name, lines)
-				)
-				out.back().scene = CodexScene.foe(kind, at_rank)
+			return _foe_entries(at_rank)
 		1:
-			for c in Cards.FORMS + Cards.ELEMENTS:
-				out.append(_talisman(c))
-			for kind in SpellInfo.RECIPE:
-				if SpellInfo.RECIPE[kind].size() == 1:
-					out.append(_shape_entry(kind))
-			out.append(
-				_entry(
-					":",
-					Palette.TEXT,
-					SpellInfo.SPRAY_NAME,
-					_shape(Spell.SPRAY),
-					Spell.SPRAY,
-					[Cards.FIRE]
-				)
-			)
+			return _talisman_entries()
 		2:
-			for kind in SpellInfo.RECIPE:
-				var cards: Array = SpellInfo.RECIPE[kind]
-				if cards.size() > 1 and not Cards.TRIPLES.values().has(cards):
-					out.append(_shape_entry(kind))
-			for cards in SpellInfo.GUNS:
-				var s := Spell.make(cards)
-				var lines := func(): return SpellInfo.spell(s)
-				out.append(
-					_entry(
-						Palette.shot_glyph(s),
-						Palette.shot_color(s, Actor.FOX),
-						s.shown(),
-						lines,
-						StringName(s.key()),
-						s.cards
-					)
-				)
-			for kind in Guise.RECIPE:
-				if Cards.compounds().has(kind):
-					continue
-				var s := Spell.make(Guise.RECIPE[kind])
-				var lines := func(): return SpellInfo.own(kind)
-				var color := Palette.card(s.slots.back())
-				out.append(_entry(",", color, Guise.NAME[kind], lines, kind, s.cards))
-			for c in Cards.compounds():
-				var lines := func(): return SpellInfo.combo(c)
-				var cards := Cards.spell_of(c)
-				out.append(
-					_entry(
-						Lang.t(Cards.GLYPH[c], "talisman"),
-						Palette.card(c),
-						Cards.NAME[c],
-						lines,
-						c,
-						cards
-					)
-				)
-				if c == Cards.VAULT:
-					out.back().scene = SpellScene.leaps()
+			return _spell_entries()
 		3:
-			out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
-			out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))
-			var kimchi := Jars.name_of(Jars.KIMCHI)
-			out.append(_feature(Palette.KIMCHI[0], Palette.KIMCHI[1], kimchi, _kimchi, Jars.KIMCHI))
-			out.append(
-				_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll, &"scroll")
-			)
-			for c in Cards.ELEMENTS:
-				out.append(_talisman(c))
+			return _thing_entries()
 		4:
-			for t in Tiles.ROWS:
-				if Tiles.of(t, "name") != "":
-					var tile := func(w: World): w.set_tile(AT, t)
-					var glyph: Array = Palette.TILES[t]
-					out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
-					if t == World.JAR:
-						out.back().lines = func(): return _ground(tile) + Info.jar_facts()
-			out.append_array(_extras())
+			return _terrain_entries()
 		5:
-			for key in Status.NAME:
-				var glyph: Array = Palette.STATUS[key]
-				var lines := Info.status_facts.bind(key)
-				out.append(_entry(glyph[0], glyph[1], Status.NAME[key], lines, key))
-			for name: String in Info.CONDITIONS:
-				out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name), name))
+			return _status_entries()
 		6:
-			for term: String in Glossary.rows():
-				out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
+			return _term_entries()
+	return []
+
+
+## Each creature of heaven, as it comes at rank `at_rank`.
+static func _foe_entries(at_rank: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for kind in foes():
+		var spec := Bestiary.info(kind)
+		var lines := func(): return Info.creature_facts(foe(kind, at_rank), [])
+		out.append(_entry(Lang.t(spec.glyph, "creature"), Palette.KIND[kind], spec.name, lines))
+		out.back().scene = CodexScene.foe(kind, at_rank)
+	return out
+
+
+## The talismans, the shapes they make alone and the spray.
+static func _talisman_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for c in Cards.FORMS + Cards.ELEMENTS:
+		out.append(_talisman(c))
+	for kind in SpellInfo.RECIPE:
+		if SpellInfo.RECIPE[kind].size() == 1:
+			out.append(_shape_entry(kind))
+	out.append(
+		_entry(
+			":", Palette.TEXT, SpellInfo.SPRAY_NAME, _shape(Spell.SPRAY), Spell.SPRAY, [Cards.FIRE]
+		)
+	)
+	return out
+
+
+## The spells of several talismans: the shapes, the guns, the buffs and the compounds.
+static func _spell_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for kind in SpellInfo.RECIPE:
+		var cards: Array = SpellInfo.RECIPE[kind]
+		if cards.size() > 1 and not Cards.TRIPLES.values().has(cards):
+			out.append(_shape_entry(kind))
+	for cards in SpellInfo.GUNS:
+		var s := Spell.make(cards)
+		var lines := func(): return SpellInfo.spell(s)
+		out.append(
+			_entry(
+				Palette.shot_glyph(s),
+				Palette.shot_color(s, Actor.FOX),
+				s.shown(),
+				lines,
+				StringName(s.key()),
+				s.cards
+			)
+		)
+	for kind in Guise.RECIPE:
+		if Cards.compounds().has(kind):
+			continue
+		var s := Spell.make(Guise.RECIPE[kind])
+		var lines := func(): return SpellInfo.own(kind)
+		var color := Palette.card(s.slots.back())
+		out.append(_entry(",", color, Guise.NAME[kind], lines, kind, s.cards))
+	for c in Cards.compounds():
+		var lines := func(): return SpellInfo.combo(c)
+		var cards := Cards.spell_of(c)
+		out.append(
+			_entry(
+				Lang.t(Cards.GLYPH[c], "talisman"), Palette.card(c), Cards.NAME[c], lines, c, cards
+			)
+		)
+		if c == Cards.VAULT:
+			out.back().scene = SpellScene.leaps()
+	return out
+
+
+## What Miho finds on a floor: the elixir, the peach, kimchi, a scroll, the elements.
+static func _thing_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
+	out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))
+	var kimchi := Jars.name_of(Jars.KIMCHI)
+	out.append(_feature(Palette.KIMCHI[0], Palette.KIMCHI[1], kimchi, _kimchi, Jars.KIMCHI))
+	out.append(_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll, &"scroll"))
+	for c in Cards.ELEMENTS:
+		out.append(_talisman(c))
+	return out
+
+
+## Each kind of tile that has a name, then the stairs and what lies on the floor.
+static func _terrain_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for t in Tiles.ROWS:
+		if Tiles.of(t, "name") != "":
+			var tile := func(w: World): w.set_tile(AT, t)
+			var glyph: Array = Palette.TILES[t]
+			out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
+			if t == World.JAR:
+				out.back().lines = func(): return _ground(tile) + Info.jar_facts()
+	out.append_array(_extras())
+	return out
+
+
+## The statuses, then the other conditions.
+static func _status_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for key in Status.NAME:
+		var glyph: Array = Palette.STATUS[key]
+		var lines := Info.status_facts.bind(key)
+		out.append(_entry(glyph[0], glyph[1], Status.NAME[key], lines, key))
+	for name: String in Info.CONDITIONS:
+		out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name), name))
+	return out
+
+
+## The glossary's terms.
+static func _term_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for term: String in Glossary.rows():
+		out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
 	return out
 
 
