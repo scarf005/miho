@@ -22,9 +22,9 @@ static func lobbed(s: Spell) -> bool:
 	return s.orb and s.has(&"lava")
 
 
-## Whether `s` holds a compound that goes only with an orb and has none (Cards.LOBBED).
+## Whether `s` holds a compound that goes only with an orb and has none (`lobbed`, Cards.COMPOUND).
 static func needs_orb(s: Spell) -> bool:
-	return not s.has(Cards.ORB) and s.slots.any(func(c): return Cards.LOBBED.has(c))
+	return not s.has(Cards.ORB) and s.slots.any(func(c): return Cards.marked(c, "lobbed"))
 
 
 ## Whether `spell` works round its caster, whatever the direction it is cast along.

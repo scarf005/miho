@@ -25,7 +25,7 @@ const CLOAK_SHOT := [
 const TRACE := "흔적."
 ## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
 const ALLY := "아군"
-## The tag of 전기 (Cards.ELECTRIC), told in the glossary.
+## The tag of 전기 (`electric`, Cards.COMPOUND), told in the glossary.
 const ELECTRIC := "전기"
 ## The tag of a proximity fuse (Flight.fused), told in the glossary.
 const FUSE := "근접신관"

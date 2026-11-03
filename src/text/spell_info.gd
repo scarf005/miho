@@ -8,7 +8,7 @@ const LABEL := Palette.DIM
 const MUZZLE := ["발사 빛", "쏜 칸"]
 ## The talismans that make each shape but a spray.
 const RECIPE := {
-	Spell.LEAP: Cards.TRIPLES[Cards.VAULT],
+	Spell.LEAP: Cards.COMPOUND[Cards.VAULT].made,
 	Spell.WISP: [Cards.FOX],
 	Spell.HOMING: [Cards.FOX, Cards.ORB],
 	Spell.ORB: [Cards.ORB],
@@ -362,7 +362,7 @@ static func _gun(level: int) -> Array:
 ## A compound's shape, then what each compound in it does, then the plain
 ## effect of each lone element.
 static func _compound(s: Spell) -> Array:
-	var shape: Array = Spray.SHAPE[s.slots[0]]
+	var shape: Array = Cards.COMPOUND[s.slots[0]].shape
 	var lines := _lines(_form(s))
 	for c in s.compounds():
 		lines.append_array(_does(c))
@@ -387,7 +387,7 @@ static func _compound(s: Spell) -> Array:
 ## The shape of a spray led by a compound, as [label, value] lines.
 static func _form(s: Spell) -> Array:
 	var lead := s.slots[0]
-	var shape: Array = Spray.SHAPE[lead]
+	var shape: Array = Cards.COMPOUND[lead].shape
 	var n: int = shape[1] + s.grown(lead)
 	match shape[0]:
 		Spray.FAN_SHAPE:
@@ -412,29 +412,15 @@ static func _form(s: Spell) -> Array:
 ## What compound `c` does, as lines in its colour: its numbers, then the tag of 전기.
 static func _does(c: StringName) -> Array:
 	var lines := _lines(compound(c), Palette.card(c))
-	if Cards.ELECTRIC.has(c):
+	if Cards.marked(c, "electric"):
 		lines.append([[Lang.t(Info.ELECTRIC) + ".", Palette.TEXT]])
 	return lines
 
 
-## What compound `c` does where it reaches, as [label, value] lines (Compounds).
+## What compound `c` does where it reaches, as [label, value] lines (Compounds):
+## what its row tells (Cards.COMPOUND), or for one whose lines take code, its case.
 static func compound(c: StringName) -> Array:
-	var harm := func(n: int) -> Array: return ["초당 피해", "%d" % n]
-	var hot := func(kind: int) -> Array:
-		var spec: Dictionary = Compounds.HOT[kind]
-		return [[spec.name, Lang.t("%d초") % Compounds.HOT_ROUNDS], harm.call(spec.harm)]
 	match c:
-		&"wildfire":
-			return [
-				["불타는 칸", "가연성·인화성 칸"],
-				["번질 확률", "%d%%" % roundi(Terrain.WILD_SPREAD * 100)],
-				_alight_on(),
-				["초당 피해", "%d" % World.FIRE_DAMAGE]
-			]
-		&"lava":
-			return hot.call(Compounds.MOLTEN)
-		&"shrapnel":
-			return [["피해", "%d" % Compounds.SHRAPNEL]]
 		&"frost":
 			var frozen: String = Status.NAME[&"frozen"]
 			return [
@@ -448,28 +434,12 @@ static func compound(c: StringName) -> Array:
 					Lang.t("%s이 됨") % Lang.t(Tiles.of(World.ICE, "name"))
 				]
 			]
-		&"rain":
-			return [
-				["묶임", Lang.t("%d초") % Compounds.RAIN], ["꺼짐", "불, 등불"], ["맞은 북", "젖음"], _soak()
-			]
 		&"steam":
 			var gas := [
 				Lang.t("%s 양") % Lang.t(Gas.of(Gas.STEAM, "name")),
 				"%d/%d" % [Compounds.STEAM, Gas.MAX]
 			]
-			return [gas, harm.call(Gas.of(Gas.STEAM, "harm")), ["맞은 북", "젖음"], _soak()]
-		&"thorn":
-			var name: String = Tiles.of(World.THORNS, "name")
-			return [
-				["생성", name], ["피해", "%d" % Compounds.THORN], ["지날 때 피해", "%d" % Compounds.THORN]
-			]
-		&"rift":
-			return [["무너짐", "벽"]]
-		&"mud":
-			var name: String = Tiles.of(World.MUD, "name")
-			return [
-				["꺼짐", "불, 등불"], ["땅", name], ["밟으면", Lang.t("묶임 %d초") % Compounds.MUD], _soak()
-			]
+			return [gas, ["초당 피해", "%d" % Gas.of(Gas.STEAM, "harm")], ["맞은 북", "젖음"], _soak()]
 		Forge.FURNACE:
 			return [
 				["대상", Lang.t("%d칸 안 무작위 빈 칸") % Forge.REACH],
@@ -481,8 +451,6 @@ static func compound(c: StringName) -> Array:
 			]
 		&"swamp":
 			return compound(&"rift") + compound(&"mud") + [["묶임", Lang.t("%d초") % Compounds.SWAMP]]
-		&"hypnosis":
-			return [["잠듦", "맞은 적"], ["면역", Info.NO_SLEEP]]
 		Cards.BUNSIN:
 			var kind := Bestiary.info(c)
 			return [
@@ -507,38 +475,9 @@ static func compound(c: StringName) -> Array:
 		&"mist":
 			var name: String = Lang.t("%s 양") % Lang.t(Gas.of(Gas.FOG, "name"))
 			return [[name, "%d/%d" % [Gas.MAX, Gas.MAX]], ["지워짐", "냄새"]]
-		&"sinkhole":
-			return [
-				["땅", Tiles.of(World.SKY, "name")],
-				["그 칸의 적", "추락"],
-				["꺼지지 않는 칸", "당신이 선 칸, 계단으로 가는 길이 끊기는 칸"],
-			]
-		&"newmoon":
-			return [["꺼짐", "불, 등불"]]
-		&"discord":
-			return [["싸움", "가까운 적끼리 둘씩"], ["시간", Lang.t("%d초") % Mind.GRUDGE_ROUNDS]]
-		&"thunder":
-			return [
-				["피해", "%d" % Compounds.THUNDER],
-				["기절", Lang.t("%d초") % Compounds.THUNDER_STUN],
-				["옮겨붙음", Lang.t("%d칸 안의 적, 최대 %d번") % [Compounds.ARC_REACH, Compounds.ARCS]],
-			]
-		&"stillness":
-			return [["추격 중인 적", "제자리 수색"], ["지워짐", "냄새"]]
-		Cards.SAMSARA:
-			return [["체력", "+%d" % World.HEAL], ["기절", Lang.t("%d초") % Compounds.SAMSARA_STUN]]
-		Cards.CONQUEST:
-			return [
-				["피해", "%d" % Compounds.CONQUEST_HARM],
-				["약점인 적 피해", "%d" % (Elements.WEAK * Compounds.CONQUEST_HARM)],
-			]
-		Cards.DRAGON:
-			return [
-				["무너짐", "벽"],
-				["밀침", Lang.t("%d칸, 바깥으로") % Compounds.DRAGON_PUSH],
-				["기절", Lang.t("%d초") % Compounds.DRAGON_STUN],
-			]
-	return []
+	return Cards.COMPOUND[c].get("told", []).map(
+		func(l): return [l[0], Lang.t(l[1]) % l[2]] if l.size() > 2 else l
+	)
 
 
 ## What a 비격진 does where it ends, as [label, value] lines.

@@ -22,7 +22,7 @@ extends RefCounted
 ## 나무 roots underground: silent, not stopped by creatures, but by sky, pond,
 ## walls and bridges. They reach the nearest creatures the caster sees within
 ## `reach` steps (`count` of them, 0 for all) and root them `rounds`.
-## A compound in the first slot has its own shape (SHAPE), one tile bigger for
+## A compound in the first slot has its own shape (Cards.COMPOUND), one tile bigger for
 ## every copy past the first and every lone element that feeds a 상생 pair
 ## (Spell.grown), and its own effect (Compounds). Those that act
 ## round the caster or on all she sees go every way (`radial`).
@@ -96,43 +96,6 @@ const AROUND := &"around"
 const SIGHT := &"sight"
 ## The roots of a lone 나무 at its third level.
 const ROOTS := &"roots"
-## compound -> [shape, size, more]: a fan's radius, a line's length, how far
-## ahead a cleave looks for a wall, a radius round the caster; for a burst how
-## far ahead it lands and its radius, for tiles across the line how far ahead
-## they lie and how many. 쇠발톱 and 사령술 go on Miho (Guise) and 분신 next to her (Bunsin):
-## none is ever sprayed, and a
-## projectile that carries it does nothing with it.
-const SHAPE := {
-	&"wildfire": [FAN_SHAPE, 3],
-	&"lava": [BURST, 0, 1],
-	&"frost": [LINE, 4],
-	&"shrapnel": [BURST, 3, 1],
-	&"rain": [BURST, 3, 1],
-	&"steam": [BURST, 3, 1],
-	&"mud": [BURST, 2, 1],
-	&"thorn": [FAN_SHAPE, 2],
-	&"rift": [CLEAVE, 3],
-	&"furnace": [AROUND, 0],
-	&"swamp": [BREACH, 3, 2],
-	&"hypnosis": [LINE, 5],
-	&"talon": [AROUND, 0],
-	&"palisade": [ACROSS, 2, 3],
-	Cards.BUNSIN: [AROUND, 0],
-	Cards.RAISE: [AROUND, 0],
-	&"beacon": [AROUND, 0],
-	&"magpie": [BAND, 8, 3],
-	&"mist": [AROUND, 4],
-	&"sinkhole": [BURST, 3, 1],
-	&"newmoon": [AROUND, 8],
-	&"discord": [SIGHT, 0],
-	&"thunder": [LINE, 8],
-	&"stillness": [AROUND, 6],
-	Cards.SAMSARA: [SIGHT, 0, true],
-	Cards.CONQUEST: [SIGHT, 0],
-	Cards.DRAGON: [AROUND, 4],
-}
-## The compounds whose spray is heard Compounds.BOOM tiles from the caster.
-const BOOMS := [&"thunder", Cards.CONQUEST, Cards.DRAGON]
 
 ## Tiles roots grow under: ground, not bridges.
 static var _roots := Grid.table(func(t): return Tiles.of(t, "walk") and t != World.BRIDGE)
@@ -147,10 +110,10 @@ static func called(spell: Spell) -> String:
 
 
 ## How far the cast is heard: anything with 물, roots, 균열 and 봉화 (which
-## is heard where it lands) are silent, the BOOMS loud, guns, quakes and
+## is heard where it lands) are silent, those of `boom` loud, guns, quakes and
 ## anything else with 쇠 or 흙 loud, fire hushed.
 static func noise(spell: Spell) -> int:
-	if spell.slots[0] in BOOMS:
+	if Cards.marked(spell.slots[0], "boom"):
 		return Compounds.BOOM
 	if spell.holds(Cards.WATER) or spell.slots[0] in [Cards.WOOD, &"rift"]:
 		return 0
@@ -261,7 +224,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 		Cards.WOOD:
 			return _paths(w, caster, rooted(w, caster, level), LONE[Cards.WOOD].reach[level - 1])
 	var lead := spell.slots[0]
-	var shape: Array = SHAPE[lead]
+	var shape: Array = Cards.COMPOUND[lead].shape
 	var grown := spell.grown(lead)
 	var n: int = shape[1] + grown
 	match shape[0]:
@@ -289,7 +252,7 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 static func carried(
 	w: World, c: StringName, at: Vector2i, dir: Vector2i, r: int
 ) -> Array[Vector2i]:
-	match SHAPE[c][0]:
+	match Cards.COMPOUND[c].shape[0]:
 		CLEAVE:
 			return cleave(w, at, dir, r)
 		BREACH, AROUND:
@@ -313,7 +276,7 @@ static func form(spell: Spell) -> StringName:
 			return AROUND
 		Cards.WOOD:
 			return ROOTS
-	return SHAPE[spell.slots[0]][0]
+	return Cards.COMPOUND[spell.slots[0]].shape[0]
 
 
 ## How far ahead of the caster `cover` reaches for `spell`: tiles, steps for
@@ -324,7 +287,7 @@ static func reach(spell: Spell) -> int:
 		return shotgun(level) if level >= SHOTGUN_LEVEL else PISTOL
 	if level > 0:
 		return LONE[spell.slots[0]].reach[level - 1]
-	var shape: Array = SHAPE[spell.slots[0]]
+	var shape: Array = Cards.COMPOUND[spell.slots[0]].shape
 	match shape[0]:
 		SIGHT:
 			return 0
@@ -337,7 +300,10 @@ static func reach(spell: Spell) -> int:
 static func holds(spell: Spell, t: int) -> bool:
 	var walk: bool = Tiles.walk[t] == 1
 	var open := walk or t == World.POND
-	if spell.level() == 0 and SHAPE[spell.slots[0]][1] + spell.grown(spell.slots[0]) == 0:
+	if (
+		spell.level() == 0
+		and Cards.COMPOUND[spell.slots[0]].shape[1] + spell.grown(spell.slots[0]) == 0
+	):
 		return walk
 	match form(spell):
 		AROUND, BREACH, CLEAVE, BAND:
@@ -626,13 +592,13 @@ static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 
 ## Whether compound `c` goes every way, with no line to tell a creature by.
 static func radial(c: StringName) -> bool:
-	return SHAPE[c][0] in [AROUND, SIGHT]
+	return Cards.COMPOUND[c].shape[0] in [AROUND, SIGHT]
 
 
 ## Where a compound spray is centred: where a burst lands, the caster for one
 ## round her or over all she sees, else where its line ends.
 static func centre(w: World, s: Shot, tiles: Array[Vector2i]) -> Vector2i:
-	var shape: Array = SHAPE[s.spell.slots[0]]
+	var shape: Array = Cards.COMPOUND[s.spell.slots[0]].shape
 	match shape[0]:
 		BURST, BREACH:
 			return landing(w, s.origin, s.dir, shape[1])

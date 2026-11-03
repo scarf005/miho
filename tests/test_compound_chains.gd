@@ -271,7 +271,7 @@ func test_a_burst_of_radius_two_does_not_pass_a_wall() -> void:
 	for y in range(1, Grid.H - 1):
 		_put(w, Vector2i(ME.x + 4, y), World.WALL)
 	var behind := _post(w, ME + E * 5)
-	var rain := Cards.PAIRS[&"rain"] + Cards.PAIRS[&"rain"]
+	var rain: Array = Cards.PAIRS[&"rain"] + Cards.PAIRS[&"rain"]
 	var tiles := Spray.cover(w, w.player(), Spell.make(rain), E)
 	assert_false(tiles.has(behind.pos), "the wall shields it")
 	assert_eq(tiles.size(), 15, "the three columns on Miho's side")

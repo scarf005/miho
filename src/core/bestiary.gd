@@ -104,7 +104,7 @@ const DOUBLES := 4
 ## its kind (Bestiary.elements).
 const KINDLE := [Cards.FIRE]
 ## The leap a deep 도깨비 casts (Leap): Miho's, by its talismans.
-const LEAP := Cards.TRIPLES[Cards.VAULT]
+const LEAP := Cards.COMPOUND[Cards.VAULT].made
 ## Every spell 저승사자 can buy with its mana, at any rank: all five elements,
 ## one to five cards.
 const REAPER := [

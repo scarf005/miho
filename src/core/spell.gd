@@ -267,7 +267,7 @@ func nature() -> Array[StringName]:
 
 ## Whether the spell is of 전기 (Elements.charge): a slot of it.
 func electric() -> bool:
-	return slots.any(func(slot): return Cards.ELECTRIC.has(slot))
+	return slots.any(func(slot): return Cards.marked(slot, "electric"))
 
 
 ## The compound slots, each once, in queue order.

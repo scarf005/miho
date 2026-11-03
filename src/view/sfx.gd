@@ -82,40 +82,14 @@ const NAMES := [
 ]
 ## The events a spell's own sounds come from (`_spell_sounds`).
 const SPELL_EVENTS := [&"cast", &"hit", &"burst", &"splash"]
-## What a spell's element or compound sounds like: its spray, and the sound a
-## projectile carries on top of its own. 쇠 is a gun, told by its form (`_cast`).
+## What a spell's element sounds like, as a compound has its `sound` (Cards.COMPOUND): its
+## spray, and the sound a projectile carries on top of its own. 쇠 is a gun, told by its
+## form (`_cast`).
 const SLOT := {
 	Cards.FIRE: &"flame",
 	Cards.WATER: &"jet",
 	Cards.WOOD: &"creak",
 	Cards.EARTH: &"rumble",
-	&"wildfire": &"flame",
-	&"lava": &"rumble",
-	&"shrapnel": &"grenade",
-	&"frost": &"ice",
-	&"rain": &"jet",
-	&"steam": &"hiss",
-	&"thorn": &"thorn",
-	&"rift": &"rumble",
-	&"mud": &"splash",
-	&"furnace": &"flame",
-	&"swamp": &"splash",
-	&"hypnosis": &"hiss",
-	&"talon": &"thorn",
-	Cards.BUNSIN: &"foxfire",
-	Cards.RAISE: &"card",
-	&"palisade": &"thorn",
-	&"beacon": &"flame",
-	&"magpie": &"creak",
-	&"mist": &"jet",
-	&"sinkhole": &"rumble",
-	&"newmoon": &"rumble",
-	&"discord": &"charge",
-	&"thunder": &"thunder",
-	&"stillness": &"hiss",
-	Cards.SAMSARA: &"card",
-	Cards.CONQUEST: &"explosion",
-	Cards.DRAGON: &"thunder",
 }
 ## An orb's cast sound by its 구 count, and what it strikes with.
 const ORB_CAST := [&"orb", &"orb", &"orb3", &"orb4", &"orb5"]
@@ -405,7 +379,7 @@ static func _spell_sounds(e: Dictionary) -> Array[StringName]:
 	elif e.t == &"splash":
 		out.append(&"explosion" if spell.mortar() else (&"flame" if spell.has(Cards.FIRE) else &""))
 	elif spell.shape == Spell.SPRAY:
-		out.append(_gun(spell) if spell.slots[0] == Cards.METAL else SLOT.get(spell.slots[0], &""))
+		out.append(_gun(spell) if spell.slots[0] == Cards.METAL else _slot(spell.slots[0]))
 	elif cast:
 		out.append_array(_cast(spell))
 	elif not spell.mortar():
@@ -430,10 +404,15 @@ static func _cast(spell: Spell) -> Array[StringName]:
 	else:
 		out.append(ORB_CAST[spell.count(Cards.ORB) - 1] if spell.orb else &"foxfire")
 	for slot in spell.elements():
-		if SLOT.has(slot):
-			out.append(SLOT[slot])
+		if _slot(slot) != &"":
+			out.append(_slot(slot))
 			break
 	return out
+
+
+## What slot `c` sounds like, or nothing.
+static func _slot(c: StringName) -> StringName:
+	return SLOT.get(c, Cards.COMPOUND[c].get("sound", &"") if Cards.COMPOUND.has(c) else &"")
 
 
 ## What a projectile sounds like where it strikes a creature or a wall.

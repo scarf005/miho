@@ -1,18 +1,18 @@
 class_name Compounds
 extends RefCounted
-## What each compound (Cards.compounds) does where it reaches. A spray
-## of it covers its own shape (Spray.SHAPE); carried on a wisp or an orb it acts
+## What each compound (Cards.COMPOUND) does where it reaches. A spray
+## of it covers its own shape; carried on a wisp or an orb it acts
 ## on the 3x3 round where the projectile ends (Spray.carried; 균열 on the
 ## first wall ahead of it and that wall's neighbours across its line), the
 ## creature it struck there among them. Each copy past the first, and each lone
 ## element that feeds a 상생 pair (Spell.grown), reaches one tile farther: a
 ## spray's fan, line, square or cleave (Spray.cover), the square round where a
 ## projectile ends. Other slots in a spray add their own plain
-## effect where it reaches (Spray). To add a compound: its tables in Cards, its
-## shape in Spray.SHAPE, its cases in `ground`, `tip` and `strike` here (`at` is
-## its centre: where a burst lands, the caster for one round her), its lines in
-## SpellInfo.compound, its test in tests/test_compound_chains.gd. One that only
-## touches the creatures it reaches is `calm`.
+## effect where it reaches (Spray). To add a compound: its row in Cards.COMPOUND, its
+## name in Cards.NAME, its cases in `ground`, `tip` and `strike` here (`at` is its
+## centre: where a burst lands, the caster for one round her), its test in
+## tests/test_compound_chains.gd. One that only touches the creatures it reaches
+## is `calm`.
 ##
 ## 상생, one grows the other:
 ## 들불 sets what burns alight, and the creatures it reaches (Status), and
@@ -97,9 +97,6 @@ const SAMSARA_STUN := 2
 const CONQUEST_HARM := 3
 const DRAGON_PUSH := 3
 const DRAGON_STUN := 2
-## Compounds that do nothing to a creature but their own effect: it is not
-## struck, so it does not hunt Miho or lose a feud for it.
-const CALM := [&"magpie", &"mist", &"newmoon", &"discord", &"stillness", &"hypnosis"]
 
 
 ## The radius compound `c` of `spell` reaches round where a projectile ends.
@@ -119,13 +116,13 @@ static func land(w: World, s: Shot, at: Vector2i) -> void:
 		for a in Spray.farthest_first(Spray.on(w, s, tiles), line, at):
 			if a.alive() and (a == struck or Spray.reaches(w, s, a)):
 				strike(w, s, c, a, at)
-				if a != struck and a.alive() and not CALM.has(c):
+				if a != struck and a.alive() and not Cards.marked(c, "calm"):
 					Mind.struck(w, a, s)
 
 
-## Whether `spell` has only compounds that are `CALM`.
+## Whether `spell` has only compounds that are `calm` (Cards.COMPOUND).
 static func calm(spell: Spell) -> bool:
-	return spell.slots.all(func(c): return CALM.has(c))
+	return spell.slots.all(func(c): return Cards.marked(c, "calm"))
 
 
 ## What compound `c` of `s` does to the ground on `tiles`.

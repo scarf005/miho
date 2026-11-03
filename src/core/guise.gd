@@ -68,7 +68,7 @@ const RECIPE := {
 	TALON: [Cards.FIRE, Cards.WOOD, Cards.METAL],
 	CLOAK: [Cards.FOX, Cards.WOOD, Cards.EARTH],
 	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
-	RAISE: Cards.SETS[RAISE],
+	RAISE: Cards.COMPOUND[RAISE].made,
 }
 ## The creature whose elements 불여우 gives her: a 불개, a fire creature that
 ## does nothing more with them.
