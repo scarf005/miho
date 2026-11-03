@@ -86,10 +86,10 @@ func test_the_guise_gives_her_the_form_for_three_tails() -> void:
 	assert_eq(Guise.looks(me), &"dokkaebi", "the map draws her as it")
 
 
-func test_the_guise_is_silent() -> void:
+func test_the_guise_is_heard_three_tiles() -> void:
 	var w := _world()
 	var events := w.act(_self(GUISE))
-	assert_eq(events.filter(func(e): return e.t == &"noise").size(), 0)
+	assert_eq(events.filter(func(e): return e.t == &"noise").map(func(e): return e.loud), [3])
 
 
 func test_a_creature_that_is_not_hunting_does_not_know_her() -> void:
