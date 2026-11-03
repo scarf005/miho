@@ -91,3 +91,14 @@ func test_the_hover_and_the_log_of_a_rotten_board() -> void:
 	var lines: Array[String] = []
 	lines.assign(Messages.of(w, w, events).map(Messages.plain))
 	assert_eq(lines, ["낡은 마루가 꺼졌다"] as Array[String])
+
+
+func test_a_rotten_board_burnt_through_leaves_no_way_over_the_hole() -> void:
+	var w := _world()
+	w.burning[AT] = 1
+	w.events.clear()
+	Terrain.burn(w, [])
+	assert_eq(w.tile(AT), World.SKY)
+	var crumbled := _of(w.events, &"crumble")
+	assert_eq(crumbled.size(), 1)
+	assert_eq(crumbled[0].was, World.BOARD_ROTTEN)

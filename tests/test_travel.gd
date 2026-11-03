@@ -309,3 +309,18 @@ func test_a_hunted_stairs_tile_is_no_way_out() -> void:
 	w.stairs = Vector2i(6, 8)
 	var found := Travel.search(w, {w.stairs: true})
 	assert_eq(Travel.route(found, w.stairs), [] as Array[Vector2i], "an exclusion holds")
+
+
+func test_exploring_goes_round_stairs_straight_on_its_way_to_the_edge() -> void:
+	var w := _world()
+	w.stairs = Vector2i(5, 8)
+	_forget(w, Vector2i(8, 0), Vector2i(Grid.W - 1, Grid.H - 1))
+	var found := Travel.search(w)
+	assert_false(Travel.route(found, Vector2i(7, 8)).has(w.stairs))
+	assert_ne(w.player().pos + Travel.explore_step(w, found), w.stairs)
+
+
+func test_a_walk_past_the_elixir_goes_round_it() -> void:
+	var w := _world()
+	w.elixir = Vector2i(6, 8)
+	assert_false(Travel.route(Travel.search(w), Vector2i(9, 8)).has(w.elixir))
