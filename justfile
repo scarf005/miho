@@ -248,6 +248,49 @@ shot path *args: rust
     PULSE_SINK=miho_shot gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- \
         {{ godot }} --path . -- --shot="$(realpath -m '{{ path }}')" {{ args }}
 
+# Capture a fixed set of scenes into dir (.screenshots/frames/a) with `just shot`, to compare two builds with `just frames-diff`.
+frames dir:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p '{{ dir }}'
+    scenes=(
+        "title --seed=3"
+        "map --seed=3 --keys=Space"
+        "aim --seed=3 --keys=Space,spawn:haetae:2:0,1,aim:2:0"
+        "hover --seed=3 --keys=Space,spawn:haetae:2:0,aim:2:0"
+        "codex-list --seed=3 --keys=Space,Slash,Left,Down"
+        "codex-detail --seed=3 --keys=Space,Slash,Right,Right,Down,Down"
+        "options --seed=3 --keys=Space,Escape"
+        "cast --seed=3 --keys=Space,spawn:haetae:2:0,1,aim:2:0,film:Space:1:0.15"
+    )
+    for scene in "${scenes[@]}"; do
+        read -r name args <<<"$scene"
+        just shot "{{ dir }}/$name.png" $args >/dev/null 2>&1 || { echo "error: scene $name failed" >&2; exit 1; }
+        echo "$name"
+    done
+
+# Compare the PNGs of two `just frames` runs; names the scenes that differ and exits 1. The CRT shader flickers the brightness by 1.2% with the clock, so a pixel counts as different only past 3%. A cast scene is caught mid-flight with a fading noise word: it differs past an RMSE of 1% of the range.
+frames-diff a b:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    status=0
+    for f in '{{ a }}'/*.png; do
+        name=$(basename "$f" .png)
+        other='{{ b }}'/"$name.png"
+        if [ ! -f "$other" ]; then
+            differs=1
+        elif [[ "$name" == cast* ]]; then
+            differs=$(compare -metric RMSE "$f" "$other" null: 2>&1 | rg -o '\(([0-9.e-]+)\)' -r '$1' | awk '{ print ($1 > 0.01) }')
+        else
+            differs=$(compare -metric AE -fuzz 3% "$f" "$other" null: 2>&1 | cut -d' ' -f1 | awk '{ print ($1 > 0) }')
+        fi
+        if [ "${differs:-1}" != 0 ]; then
+            echo "differs: $name"
+            status=1
+        fi
+    done
+    exit $status
+
 # Time storey generation, a round, forecasts, a Continue replay, the 도감 and spell examples.
 bench: rust
     {{ godot }} --headless --path . --import
