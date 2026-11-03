@@ -145,6 +145,9 @@ const TABLE := {
 	&"body": ["  @w", ">.."],
 }
 
+## The examples `foe` made, by creature, rank and language.
+static var _foes := {}
+
 
 ## The scene of table row `key`, its cards `cards` unless the row names its own, or
 ## empty when there is no row.
@@ -162,7 +165,15 @@ static func of(key: Variant, cards := []) -> Dictionary:
 
 ## The example of creature `kind` at rank `rank`: its strike, each of its spells at that rank,
 ## and for one with neither, or none to strike with that moves, how it walks up to Miho.
+## Made once for each creature, rank and language: the 도감 lists every creature again on each key.
 static func foe(kind: StringName, rank: int) -> Dictionary:
+	var key := [kind, rank, Lang.active()]
+	if not _foes.has(key):
+		_foes[key] = _foe_of(kind, rank)
+	return _foes[key]
+
+
+static func _foe_of(kind: StringName, rank: int) -> Dictionary:
 	var spec := Bestiary.info(kind)
 	var move: StringName = spec.get("move", &"static")
 	var each := []

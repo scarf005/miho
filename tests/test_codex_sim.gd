@@ -173,6 +173,20 @@ func test_a_creature_scene_reads_at_the_rank_of_its_entry() -> void:
 		assert_eq(Bestiary.rank(w.depth), rank)
 
 
+func test_a_creature_scene_follows_the_language_and_the_rank_it_is_asked_in() -> void:
+	var korean: String = CodexScene.foe(&"dokkaebi", 1).each[0].label
+	Lang.locked = false
+	Lang.forced = &"en"
+	var english: String = CodexScene.foe(&"dokkaebi", 1).each[0].label
+	Lang.forced = &""
+	Lang.locked = true
+	assert_ne(english, korean)
+	assert_eq(CodexScene.foe(&"dokkaebi", 1).each[0].label, korean)
+	var low: int = CodexScene.foe(&"haetae", 1).each.size()
+	assert_gt(CodexScene.foe(&"haetae", Bestiary.RANKS).each.size(), low)
+	assert_eq(CodexScene.foe(&"haetae", 1).each.size(), low)
+
+
 func test_the_detail_never_runs_under_the_example() -> void:
 	for room: Vector2i in [Vector2i(40, 18), Vector2i(66, 30), Vector2i(53, 24)]:
 		var codex := Codex.new()
