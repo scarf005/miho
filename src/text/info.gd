@@ -406,33 +406,35 @@ static func _weakness(kind: StringName) -> Array:
 	return line
 
 
-## Everything the creature takes no harm or effect from, one "면역" line each, its elements
-## on one (DCSS `_monster_stat_description`), and what it takes half of. For 불가사리
+## Everything the creature takes no harm or effect from on one "면역" line, its elements
+## as one word (DCSS `_monster_stat_description`), then what it takes half of. For 불가사리
 ## `불 없는 주문` already holds its element.
 static func _immunities(kind: StringName, wet: bool) -> Array:
 	var spec := Bestiary.info(kind)
 	var nofire: bool = spec.get("absorb", &"") == &"nofire"
 	var immune := Bestiary.immune_to(kind)
-	var out := []
+	var words := []
+	var mixed := []
 	if nofire:
-		out.append(_immune("불 없는 주문", Palette.DIM))
+		words.append(["불 없는 주문", Palette.DIM])
 	if not immune.is_empty():
 		var names := ", ".join(immune.map(func(c): return Lang.t(Cards.NAME[c])))
 		var shade: Color = Palette.CARD[immune[0]] if immune.size() == 1 else Palette.TEXT
 		if not nofire:
-			out.append(_immune(names, shade))
-		out.append(
-			[[Lang.t("내성: "), Palette.DIM]] + Lang.runs(MIXED, [[names, shade]], Palette.DIM)
-		)
+			words.append([names, shade])
+		mixed = [[[Lang.t("내성: "), Palette.DIM]] + Lang.runs(MIXED, [[names, shade]], Palette.DIM)]
 	if Elements.charge_of(kind) == 0 and not wet and not nofire:
-		out.append(_immune(ELECTRIC, Palette.TEXT))
+		words.append([ELECTRIC, Palette.TEXT])
 	if spec.get("deaf", false):
-		out.append(_immune("소음", Palette.SOUND))
-	return out
-
-
-static func _immune(what: String, color: Color) -> Array:
-	return [[Lang.t("면역: "), Palette.DIM], [Lang.t(what), color]]
+		words.append(["소음", Palette.SOUND])
+	if words.is_empty():
+		return mixed
+	var line := [[Lang.t("면역: "), Palette.DIM]]
+	for i in words.size():
+		if i > 0:
+			line.append([", ", Palette.DIM])
+		line.append([Lang.t(words[i][0]), words[i][1]])
+	return [line] + mixed
 
 
 ## What holds it now, with the seconds left: blind, rooted, stunned, wary, and
