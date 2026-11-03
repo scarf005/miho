@@ -219,15 +219,17 @@ static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 			wash(w, p)
 
 
-## Bare floor on `tiles` becomes shallow water, but where a plate lies hidden.
+## Bare floor on `tiles` becomes shallow water, and cools, but where a plate lies hidden
+## and where ground may not change (Compounds.open).
 static func _pool(w: World, tiles: Array[Vector2i]) -> void:
 	var bare: Array[Vector2i] = tiles.filter(
-		func(p): return w.tile(p) == World.FLOOR and not w.traps.has(p)
+		func(p): return w.tile(p) == World.FLOOR and not w.traps.has(p) and Compounds.open(w, p)
 	)
 	if bare.is_empty():
 		return
 	for p in bare:
 		w.set_tile(p, World.SHALLOW)
+		w.hot.erase(p)
 	w.emit({t = &"become", at = bare[0], tiles = bare, tile = World.SHALLOW, was = World.FLOOR})
 
 
