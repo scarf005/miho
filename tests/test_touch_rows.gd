@@ -305,3 +305,16 @@ func test_the_spellbook_entered_from_the_esc_menu_has_its_buttons() -> void:
 	m.touch._process(0.0)
 	assert_eq(m.menu.page, &"spells")
 	assert_ne(_hud(m, &"enter"), Vector2.ZERO)
+
+
+func test_with_talismans_picked_a_tap_on_a_creature_card_aims_and_a_second_hurls() -> void:
+	var m := _phone(Vector2i(844, 390), [&"dokkaebi"])
+	m.casting.add(Cards.FOX)
+	var card := _screen(m, Vector2(0.5, 0.5) * Term.CELL)
+	_finger(m, card)
+	assert_eq(m.look.hover, Vector2i(8, 8), "the first tap aims")
+	assert_false(m.touch.frozen, "no frozen box")
+	assert_eq(m.casting.picked, [Cards.FOX])
+	assert_eq(m.world.round_no, 0)
+	_finger(m, card)
+	assert_eq(m.world.round_no, 1, "the second tap hurls")
