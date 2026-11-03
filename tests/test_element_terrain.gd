@@ -224,7 +224,7 @@ func test_a_shotgun_cuts_the_growth_in_its_fan() -> void:
 	var w := _world()
 	_put(w, ME + E * 2, World.BAMBOO)
 	_put(w, ME - E * 2, World.GRASS)
-	w.act(_cast([METAL, METAL]))
+	w.act(_cast([METAL, METAL, METAL]))
 	assert_eq(w.tile(ME + E * 2), World.FLOOR)
 	assert_eq(w.tile(ME - E * 2), World.GRASS, "behind the caster")
 

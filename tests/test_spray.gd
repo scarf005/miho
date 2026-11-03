@@ -80,7 +80,8 @@ func test_elements_alone_spray_one_level_a_copy_up_to_five() -> void:
 	assert_eq(Spell.make(_n(FIRE, 4)).cost(), 5)
 	assert_eq(Spell.make([WATER, FIRE]).level(), 0, "a compound has its own shape")
 	assert_eq(one.title(), "불길")
-	assert_eq(Spell.make([METAL, METAL]).title(), "산탄")
+	assert_eq(Spell.make([METAL, METAL]).title(), "소총")
+	assert_eq(Spell.make([METAL, METAL, METAL]).title(), "산탄")
 	assert_eq(Spell.make([WATER, WATER, WATER]).title(), "물줄기")
 	assert_eq(Spell.make([WATER, FIRE]).title(), "증기")
 	assert_eq(Spell.make([WATER, FIRE, FIRE]).title(), "증기·불")
@@ -267,7 +268,7 @@ func test_a_pistol_hits_the_first_creature_for_one_loudly_and_lights_miho() -> v
 	assert_eq(far.hp, far.max_hp)
 	var bang: Dictionary = _of(events, &"noise")[0]
 	assert_eq([bang.word, bang.loud], ["탕", Spray.GUN_LOUD])
-	assert_eq(_cover(_world(), [METAL]).size(), Spray.PISTOL)
+	assert_eq(_cover(_world(), [METAL]).size(), Spray.LONE[METAL].reach[0])
 	var dark := _world()
 	assert_false(dark.lit(ME))
 	Spray.cast(dark, dark.player(), Spell.make([METAL]), E)
@@ -286,12 +287,12 @@ func test_a_pistol_hits_a_creature_weak_to_metal_for_two() -> void:
 func test_a_shotgun_fans_out_and_hits_harder_up_close() -> void:
 	var w := _world()
 	var close := _post(w, ME + Vector2i(1, 1))
-	var far := _post(w, ME + Vector2i(3, -2))
-	var out := _post(w, ME + Vector2i(4, 0))
-	var events := w.act(_cast([METAL, METAL]))
+	var far := _post(w, ME + Vector2i(4, -2))
+	var out := _post(w, ME + Vector2i(5, 0))
+	var events := w.act(_cast([METAL, METAL, METAL]))
 	assert_eq(close.hp, close.max_hp - 2)
 	assert_eq(far.hp, far.max_hp - 1)
-	assert_eq(out.hp, out.max_hp, "radius 3")
+	assert_eq(out.hp, out.max_hp, "radius 4")
 	assert_eq(_of(events, &"noise")[0].word, "쾅")
 
 

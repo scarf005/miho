@@ -12,10 +12,10 @@ extends RefCounted
 ## pushes `push` tiles (World.push); level 3 on goes through and pushes every
 ## creature on it. It douses fire and lanterns, wets drums, washes scent away.
 ## 쇠 a gun, heard GUN_LOUD tiles, that lights the caster's tile for the round:
-## a pistol shot along PISTOL tiles hits the first creature for 1; from two
-## copies a shotgun fans out, of radius SHOTGUN at two and a tile more for
-## every copy after (`shotgun`), and hits each creature for 1, 2 next to the
-## caster. The armour-piercing round is a wisp (Spell.pierces), not a spray.
+## a pistol shot and at two copies a rifle shot, farther and harder, hit the first
+## creature on the line; from SHOTGUN_LEVEL copies a shotgun fans out, a tile wider
+## for every copy, and hits each creature, GUN_NEAR_HARM next to the caster. The
+## piercing rounds are wisps (Spell.pierces), not sprays.
 ## 흙 a quake in a ring of radius `reach` whatever the direction, thudding
 ## World.THUD tiles: it stuns for `stun` rounds; level 2 on cracks walls,
 ## level 3 on also fells cracked ones.
@@ -32,8 +32,8 @@ extends RefCounted
 ## 쇠 hurts 1 for each 쇠 (Elements.strike does the creature part).
 
 ## A lone element's spray, each column by level: what it is called, its reach
-## (tiles, steps for roots), the tiles a jet pushes, the rounds a quake stuns, the
-## creatures roots take and the rounds they hold.
+## (tiles, steps for roots), the harm a gun does, the tiles a jet pushes, the rounds a
+## quake stuns, the creatures roots take and the rounds they hold.
 const LONE := {
 	Cards.FIRE: {name = ["불길", "불길", "불길", "불길", "불길"], reach = [1, 2, 4, 5, 6]},
 	Cards.WATER:
@@ -42,7 +42,12 @@ const LONE := {
 		reach = [4, 6, 8, 10, 12],
 		push = [1, 2, 3, 4, 5],
 	},
-	Cards.METAL: {name = ["권총", "산탄", "산탄", "산탄", "산탄"]},
+	Cards.METAL:
+	{
+		name = ["권총", "소총", "산탄", "산탄", "산탄"],
+		reach = [7, 10, 4, 5, 6],
+		harm = [1, 2, 1, 1, 1],
+	},
 	Cards.EARTH:
 	{
 		name = ["지진", "지진", "지진", "지진", "지진"],
@@ -60,22 +65,17 @@ const LONE := {
 const GUN_LOUD := 9
 ## Degrees a fan covers, across its line.
 const FAN_ANGLE := 90
-## What a gun spray hurts a creature for, and one next to the caster from two
-## copies (shotgun).
-const GUN_HARM := 1
+## What a shotgun hurts a creature next to the caster for.
 const GUN_NEAR_HARM := 2
 ## Tiles a lone 물 pushes on a spray led by a compound, a tile more a copy.
 const PLAIN_PUSH := 1
-const PISTOL := 7
 ## The copies of a lone element from which its spray changes: a shotgun in place
-## of the pistol, a jet that goes through, a quake that cracks walls and one that
+## of the rifle, a jet that goes through, a quake that cracks walls and one that
 ## fells cracked ones.
-const SHOTGUN_LEVEL := 2
+const SHOTGUN_LEVEL := 3
 const THROUGH_LEVEL := 3
 const CRACK_LEVEL := 2
 const FELL_LEVEL := 3
-## The shotgun's radius at two copies.
-const SHOTGUN := 3
 ## How far a fan of fire, or 들불, is heard.
 const HUSH := 2
 
@@ -125,7 +125,7 @@ static func noise(spell: Spell) -> int:
 static func _word(spell: Spell) -> String:
 	match spell.slots[0]:
 		Cards.METAL:
-			return "쾅" if spell.level() >= 2 else "탕"
+			return "쾅" if spell.level() >= SHOTGUN_LEVEL else "탕"
 		Cards.EARTH:
 			return "쿵"
 		Cards.FIRE:
@@ -216,9 +216,10 @@ static func cover(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> Array
 		Cards.WATER:
 			return _jet(w, from, dir, level)
 		Cards.METAL:
+			var reached: int = LONE[Cards.METAL].reach[level - 1]
 			if level >= SHOTGUN_LEVEL:
-				return fan(w, from, dir, shotgun(level))
-			return line(w, from, dir, PISTOL, false)
+				return fan(w, from, dir, reached)
+			return line(w, from, dir, reached, false)
 		Cards.EARTH:
 			return ring(from, LONE[Cards.EARTH].reach[level - 1])
 		Cards.WOOD:
@@ -283,8 +284,6 @@ static func form(spell: Spell) -> StringName:
 ## roots; 0 for a spray that covers all the caster sees.
 static func reach(spell: Spell) -> int:
 	var level := spell.level()
-	if level > 0 and spell.slots[0] == Cards.METAL:
-		return shotgun(level) if level >= SHOTGUN_LEVEL else PISTOL
 	if level > 0:
 		return LONE[spell.slots[0]].reach[level - 1]
 	var shape: Array = Cards.COMPOUND[spell.slots[0]].shape
@@ -313,11 +312,6 @@ static func holds(spell: Spell, t: int) -> bool:
 		LINE:
 			return open
 	return walk
-
-
-## The radius of a shotgun of `level` (two or more copies of 쇠).
-static func shotgun(level: int) -> int:
-	return SHOTGUN + level - SHOTGUN_LEVEL
 
 
 ## Tiles within `r` (Chebyshev) of `from` and within 45° of `dir`, that `from`
@@ -567,10 +561,10 @@ static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	w.flares.append(s.origin)
 	w._changed()
 	for a in on(w, s, tiles):
-		var n := (
+		var n: int = (
 			GUN_NEAR_HARM
 			if level >= SHOTGUN_LEVEL and Grid.cheb(s.origin, a.pos) <= 1
-			else GUN_HARM
+			else LONE[Cards.METAL].harm[level - 1]
 		)
 		if reaches(w, s, a):
 			Elements.harm(w, s, a, n)

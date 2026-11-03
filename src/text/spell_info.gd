@@ -271,8 +271,10 @@ static func ward(s: Spell) -> Array:
 ## its own 도감 entry.
 static func cast(s: Spell) -> Array:
 	var gun := s.shape == Spell.SPRAY and s.level() > 0 and s.slots[0] == Cards.METAL
-	var harm := (
-		Spray.GUN_HARM if gun else (0 if s.shape in [Spell.SPRAY, Spell.LEAP] else s.damage(0))
+	var harm: int = (
+		Spray.LONE[Cards.METAL].harm[s.level() - 1]
+		if gun
+		else (0 if s.shape in [Spell.SPRAY, Spell.LEAP] else s.damage(0))
 	)
 	if _blasts_first(s):
 		harm = s.blast(harm)
@@ -351,12 +353,13 @@ static func _fan(r: int, name := "") -> Array:
 
 
 static func _gun(level: int) -> Array:
-	var name: String = Spray.LONE[Cards.METAL].name[level - 1]
-	var harm := _line("피해", "%d" % Spray.GUN_HARM, Palette.HURT)
+	var row: Dictionary = Spray.LONE[Cards.METAL]
+	var name: String = row.name[level - 1]
+	var harm := _line("피해", "%d" % row.harm[level - 1], Palette.HURT)
 	if level >= Spray.SHOTGUN_LEVEL:
 		var near := _line("바로 옆 적 피해", "%d" % Spray.GUN_NEAR_HARM, Palette.HURT)
-		return _lines(_fan(Spray.shotgun(level), Lang.t(name) + ", ")) + [harm, near]
-	return [_line("모양", Lang.t("%s, 곧게 %d칸") % [Lang.t(name), Spray.PISTOL]), harm]
+		return _lines(_fan(row.reach[level - 1], Lang.t(name) + ", ")) + [harm, near]
+	return [_line("모양", Lang.t("%s, 곧게 %d칸") % [Lang.t(name), row.reach[level - 1]]), harm]
 
 
 ## A compound's shape, then what each compound in it does, then the plain

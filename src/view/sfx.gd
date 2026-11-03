@@ -67,6 +67,7 @@ const NAMES := [
 	&"mortar",
 	&"explosion",
 	&"pistol",
+	&"rifle",
 	&"shotgun",
 	&"grenade",
 	&"clang",
@@ -389,7 +390,7 @@ static func _spell_sounds(e: Dictionary) -> Array[StringName]:
 
 
 static func _gun(spell: Spell) -> StringName:
-	return &"pistol" if spell.level() < 2 else &"shotgun"
+	return [&"pistol", &"rifle", &"shotgun", &"shotgun", &"shotgun"][spell.level() - 1]
 
 
 ## A projectile's cast sound, and the sound of its first element on top.

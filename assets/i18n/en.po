@@ -339,6 +339,9 @@ msgstr "Water jet"
 msgid "권총"
 msgstr "Pistol"
 
+msgid "소총"
+msgstr "Rifle"
+
 msgid "산탄"
 msgstr "Shotgun"
 

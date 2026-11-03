@@ -171,7 +171,7 @@ func test_hover_tells_every_number_of_every_spray() -> void:
 		[WATER, WATER]: ["곧게 6칸", "밀침: 2칸"],
 		[WATER, WATER, WATER]: ["모양: 곧게 8칸\n관통: 적", "밀침: 3칸"],
 		[METAL]: ["모양: 권총, 곧게 7칸", "피해: 1\n", "발사 빛: 쏜 칸", "소음: %d" % Spray.GUN_LOUD],
-		[METAL, METAL]: ["산탄", "반지름 3", "바로 옆 적 피해: 2"],
+		[METAL, METAL]: ["모양: 소총, 곧게 10칸", "피해: 2\n"],
 		[METAL, METAL, METAL]: ["산탄", "반지름 4", "바로 옆 적 피해: 2"],
 		[EARTH]: ["둘레 1칸", "기절: 1초", "소음: %d" % Spray.GUN_LOUD],
 		[EARTH, EARTH]: ["둘레 2칸", "벽: 금이 감"],

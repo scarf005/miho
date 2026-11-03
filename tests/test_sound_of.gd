@@ -226,9 +226,11 @@ func test_a_mortar_thumps_and_its_burst_is_the_explosion() -> void:
 	assert_eq(Sfx.sound_of({t = &"splash", cards = cards}), &"explosion")
 
 
-func test_a_lone_bullet_cracks_and_a_second_metal_sprays_wider() -> void:
+func test_a_lone_bullet_cracks_a_second_metal_is_a_rifle_and_a_third_sprays_wider() -> void:
 	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.METAL]}), &"pistol")
-	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.METAL, Cards.METAL]}), &"shotgun")
+	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.METAL, Cards.METAL]}), &"rifle")
+	var three := [Cards.METAL, Cards.METAL, Cards.METAL]
+	assert_eq(Sfx.sound_of({t = &"cast", cards = three}), &"shotgun")
 	assert_eq(Sfx.sound_of({t = &"cast", cards = [Cards.FOX, Cards.METAL]}), &"pistol")
 
 
