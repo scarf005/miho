@@ -5,7 +5,7 @@ extends GutTest
 
 func test_pixel_font_covers_every_string_in_the_game() -> void:
 	var chars := {}
-	for dir in ["res://src/core", "res://src/view"]:
+	for dir in ["res://src/core", "res://src/game", "res://src/text", "res://src/view"]:
 		for file in DirAccess.get_files_at(dir):
 			if file.ends_with(".gd"):
 				for c in FileAccess.get_file_as_string(dir.path_join(file)):

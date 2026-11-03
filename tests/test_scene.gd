@@ -3,7 +3,8 @@ extends GutTest
 
 
 func test_every_view_script_compiles() -> void:
-	for file in DirAccess.get_files_at("res://src/view"):
-		if file.ends_with(".gd"):
-			var script: GDScript = load("res://src/view".path_join(file))
-			assert_true(script != null and script.can_instantiate(), file)
+	for dir in ["res://src/game", "res://src/text", "res://src/view"]:
+		for file in DirAccess.get_files_at(dir):
+			if file.ends_with(".gd"):
+				var script: GDScript = load(dir.path_join(file))
+				assert_true(script != null and script.can_instantiate(), file)
