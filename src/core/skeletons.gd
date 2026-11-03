@@ -23,6 +23,8 @@ extends RefCounted
 ## shallows round the pools (Brogue designLakes, createWreath). 나무벽 층 (timber): a tower
 ## of small rooms, most of its inner walls of wood (Brogue addLoops for its far doors).
 ## 가운데 뚫린 층 (hollow): the ring with no wall on its court, moonlit in stretches.
+## 무너진 석굴 (cave): Cave. 어긋난 전각 (askew): Askew. 좌우 대칭 전각 (mirror): MirrorHall.
+## 꺾인 복도 (winding): Winding.
 ##
 ## A plan's `spots` may be opened as far doorways or hidden; its `sealed` tiles may only
 ## be hidden doors.
@@ -41,6 +43,10 @@ const GROVE := &"grove"
 const FLOODED := &"flooded"
 const TIMBER := &"timber"
 const HOLLOW := &"hollow"
+const CAVE := &"cave"
+const ASKEW := &"askew"
+const MIRROR := &"mirror"
+const WINDING := &"winding"
 ## What a storey may be built on.
 const ALL: Array[StringName] = [
 	PAVILIONS,
@@ -57,9 +63,13 @@ const ALL: Array[StringName] = [
 	FLOODED,
 	TIMBER,
 	HOLLOW,
+	CAVE,
+	ASKEW,
+	MIRROR,
+	WINDING,
 ]
 ## The skeletons with one way to the exit: no two routes are asked of them.
-const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
+const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL, WINDING]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
 const NEAR_ENDS := 3
 ## How many rooms `far_ends` tries as the start.
@@ -141,6 +151,14 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 			return _timber(w)
 		HOLLOW:
 			return _ring(w, w.rng.randi_range(HOLLOW_HALL.x, HOLLOW_HALL.y), true)
+		CAVE:
+			return Cave.draw(w)
+		ASKEW:
+			return Askew.draw(w)
+		MIRROR:
+			return MirrorHall.draw(w)
+		WINDING:
+			return Winding.draw(w)
 	return FloorGen.pavilions(w)
 
 

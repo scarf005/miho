@@ -20,6 +20,31 @@ const FIRST := {
 	Skeletons.FLOODED: 2,
 	Skeletons.TIMBER: 3,
 	Skeletons.HOLLOW: 2,
+	Skeletons.CAVE: 3,
+	Skeletons.ASKEW: 1,
+	Skeletons.MIRROR: 1,
+	Skeletons.WINDING: 1,
+}
+## What kind of place each shape is: two storeys in a row are never of one kind.
+const FAMILY := {
+	Skeletons.AVENUE: &"rooms",
+	Skeletons.RING: &"rooms",
+	Skeletons.PAVILIONS: &"rooms",
+	Skeletons.TOWERS: &"rooms",
+	Skeletons.KEEP: &"rooms",
+	Skeletons.CITADEL: &"rooms",
+	Skeletons.WINDING: &"rooms",
+	Skeletons.GARDEN: &"ground",
+	Skeletons.GROVE: &"ground",
+	Skeletons.FLOODED: &"ground",
+	Skeletons.SCATTERED: &"sky",
+	Skeletons.HOLLOW: &"sky",
+	Skeletons.BROKEN: &"sky",
+	Skeletons.RUIN: &"sky",
+	Skeletons.ASKEW: &"askew",
+	Skeletons.MIRROR: &"askew",
+	Skeletons.CAVE: &"askew",
+	Skeletons.TIMBER: &"askew",
 }
 ## The chance a room has a lantern on a dark, a middling and a bright storey.
 const LIGHTS: Array[float] = [0.1, 0.45, 0.85]
@@ -36,7 +61,11 @@ static func shapes(seed_value: int) -> Array[StringName]:
 	rng.seed = hash(seed_value)
 	var out: Array[StringName] = []
 	for depth in range(1, World.FLOORS + 1):
-		var open: Array = FIRST.keys().filter(func(s): return FIRST[s] <= depth and not out.has(s))
+		var open: Array = FIRST.keys().filter(
+			func(s):
+				var fresh: bool = FIRST[s] <= depth and not out.has(s)
+				return fresh and (out.is_empty() or FAMILY[s] != FAMILY[out[-1]])
+		)
 		out.append(open[rng.randi_range(0, open.size() - 1)])
 	return out
 

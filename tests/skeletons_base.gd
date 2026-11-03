@@ -23,6 +23,10 @@ const DEAD_ENDS := {
 	flooded = 8,
 	timber = 12,
 	hollow = 5,
+	cave = 12,
+	askew = 12,
+	mirror = 12,
+	winding = 14,
 }
 ## How many tiles two seeds' outlines differ by at least, on one storey.
 const OUTLINES_APART := 30
@@ -160,7 +164,8 @@ func test_set_rooms_and_treasure_rooms_come_up_on_every_skeleton() -> void:
 		var sets := rows.filter(func(row): return not row.made.is_empty()).size()
 		var vaults := rows.filter(func(row): return not row.w.seals.is_empty()).size()
 		assert_gte(float(sets) / rows.size(), 0.9, "%s set rooms" % kind)
-		assert_between(float(vaults) / rows.size(), 0.1, 0.65, "%s vaults" % kind)
+		if kind != Skeletons.CAVE:  # A cave has no room with one door to seal.
+			assert_between(float(vaults) / rows.size(), 0.1, 0.65, "%s vaults" % kind)
 
 
 # --- two routes --------------------------------------------------------------
@@ -197,7 +202,8 @@ func test_every_link_a_storey_cut_joined_two_places_far_apart() -> void:
 						Skeletons.SCATTERED,
 						Skeletons.RUIN,
 						Skeletons.FLOODED,
-						Skeletons.TIMBER
+						Skeletons.TIMBER,
+						Skeletons.ASKEW
 					]
 				):
 					assert_lte(doors.size(), FloorGen.LOOPS, _label(w, kind))
@@ -207,5 +213,15 @@ func test_every_link_a_storey_cut_joined_two_places_far_apart() -> void:
 					var dist: int = Grid.search(links[k].a, open).dist[Grid.index(links[k].b)]
 					if dist >= 0:
 						assert_gte(dist, FloorGen.APART, "%s %s" % [_label(w, kind), links[k]])
-		if kind not in [Skeletons.GARDEN, Skeletons.KEEP, Skeletons.GROVE]:
+		if (
+			kind
+			not in [
+				Skeletons.GARDEN,
+				Skeletons.KEEP,
+				Skeletons.GROVE,
+				Skeletons.CAVE,
+				Skeletons.MIRROR,
+				Skeletons.WINDING
+			]
+		):
 			assert_gt(cut, SEEDS * World.FLOORS, "%s cuts more than one a storey" % kind)

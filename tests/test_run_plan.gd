@@ -16,6 +16,14 @@ func test_no_run_stands_on_one_shape_twice() -> void:
 		assert_eq(seen.size(), World.FLOORS, "seed %d %s" % [seed_value, shapes])
 
 
+func test_two_storeys_in_a_row_are_never_of_one_kind_of_place() -> void:
+	for seed_value in SEEDS:
+		var shapes := RunPlan.shapes(seed_value)
+		for i in range(1, shapes.size()):
+			var kinds := [RunPlan.FAMILY[shapes[i - 1]], RunPlan.FAMILY[shapes[i]]]
+			assert_ne(kinds[0], kinds[1], "seed %d %s" % [seed_value, shapes])
+
+
 func test_reading_the_plan_draws_nothing_and_reads_the_same_on_a_clone() -> void:
 	var w := Built.world(11)
 	for depth in range(1, World.FLOORS + 1):
