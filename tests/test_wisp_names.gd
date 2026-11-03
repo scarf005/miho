@@ -1,5 +1,5 @@
 extends GutTest
-## A wisp with one 쇠 is Miho's 탄환 and a creature's 번개, never a 쇠 and the
+## A wisp with one 쇠 is Miho's 관통탄 and a creature's 번개, never a 쇠 and the
 ## name of its wisp; 철갑탄 and 비격진 keep their names.
 
 const BLUNT := ["쇠 혼불", "쇠 도깨비불", "쇠 저승불", "쇠 여우불"]
@@ -7,8 +7,8 @@ const BLUNT := ["쇠 혼불", "쇠 도깨비불", "쇠 저승불", "쇠 여우�
 
 func test_a_metal_wisp_is_a_bullet_of_miho_and_lightning_of_a_creature() -> void:
 	var fox_metal := [Cards.FOX, Cards.METAL]
-	assert_eq(Spell.make(fox_metal).title(), "탄환")
-	assert_eq(Spell.make([Cards.FOX, Cards.FOX, Cards.METAL]).title(), "탄환 2발")
+	assert_eq(Spell.make(fox_metal).title(), "관통탄")
+	assert_eq(Spell.make([Cards.FOX, Cards.FOX, Cards.METAL]).title(), "관통탄 2발")
 	assert_eq(Bestiary.spell(&"jiha", fox_metal).title(), "번개")
 	assert_eq(Bestiary.spell(&"dokkaebi", fox_metal).title(), "번개")
 	assert_eq(Bestiary.spell(&"saja", fox_metal).title(), "번개")

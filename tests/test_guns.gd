@@ -181,18 +181,113 @@ func test_a_piercing_wisp_hurts_one_more_for_every_more_metal() -> void:
 	assert_eq(_hurts(events, b), [Elements.BULLET + 2])
 
 
-func test_a_bullet_stops_at_the_first_creature_and_a_wall() -> void:
+func test_a_piercing_round_goes_through_two_foes_in_line_and_hurts_each_once() -> void:
 	var w := _world()
 	var a := _post(w, 2)
 	var b := _post(w, 3)
+	var events := w.act(_cast([FOX, METAL]))
+	assert_eq(_hurts(events, a), [Elements.BULLET])
+	assert_eq(_hurts(events, b), [Elements.BULLET])
+	assert_eq(_hurts(events, w.player()), [], "her own round does not hurt her")
+
+
+func test_a_piercing_round_stops_at_a_wall_that_an_armour_piercing_one_goes_through() -> void:
+	var w := _world()
+	_put(w, 2, 0, World.WALL)
+	var behind := _post(w, 3)
+	for i in 3:
+		w.act(_cast([FOX, METAL]) if i == 0 else {t = &"wait"})
+	assert_eq(behind.hp, HEALTH, "the wall stops it")
+	assert_eq(w.tile(ME + E * 2), World.WALL)
+	assert_eq(w.shots.map(func(s): return s.pos), [ME + E], "it hovers short of the wall")
+	var armour := _world()
+	_put(armour, 2, 0, World.WALL)
+	var reached := _post(armour, 3)
+	armour.act(_cast([FOX, METAL, METAL]))
+	assert_lt(reached.hp, HEALTH, "the stronger round goes through")
+
+
+func test_an_armour_piercing_round_hurts_more_than_a_piercing_one() -> void:
+	var w := _world()
+	var a := _post(w, 3)
+	var stronger := _world()
+	var b := _post(stronger, 3)
 	w.act(_cast([FOX, METAL]))
+	stronger.act(_cast([FOX, METAL, METAL]))
+	assert_lt(b.hp, a.hp)
+
+
+func test_a_piercing_round_flies_on_after_it_fells_a_foe() -> void:
+	var w := _world()
+	var first := _post(w, 2)
+	first.hp = 1
+	var second := _post(w, 4)
+	var events := w.act(_cast([FOX, METAL]))
+	assert_false(first.alive())
+	assert_eq(_hurts(events, second), [Elements.BULLET])
+
+
+func test_a_piercing_round_that_turns_for_a_foe_behind_her_does_not_hurt_her() -> void:
+	var w := _world()
+	var first := _post(w, 1)
+	first.hp = 1
+	_post(w, -2)
+	var harm := []
+	for i in 6:
+		harm += _hurts(w.act(_cast([FOX, METAL]) if i == 0 else {t = &"wait"}), w.player())
+	assert_false(first.alive())
+	assert_eq(harm, [])
+
+
+func test_two_piercing_rounds_each_go_through() -> void:
+	var w := _world()
+	var a := _post(w, 2)
+	var b := _post(w, 3)
+	var hurt := []
+	for i in 3:
+		hurt += _hurts(w.act(_cast([FOX, FOX, METAL]) if i == 0 else {t = &"wait"}), b)
 	assert_lt(a.hp, HEALTH)
-	assert_eq(b.hp, HEALTH)
-	var walled := _world()
-	_put(walled, 2, 0, World.WALL)
-	var behind := _post(walled, 3)
-	walled.act(_cast([FOX, METAL]))
-	assert_eq(behind.hp, HEALTH)
+	assert_eq(hurt, [Elements.BULLET, Elements.BULLET])
+
+
+func test_a_piercing_round_is_fired_only_at_open_air_beside_miho() -> void:
+	var w := _world()
+	_put(w, 1, 0, World.WALL)
+	assert_false(w.can(_cast([FOX, METAL])))
+
+
+func test_a_piercing_round_that_swaps_takes_miho_where_it_ends() -> void:
+	var w := _world()
+	var foe := _post(w, 2)
+	_put(w, 4, 0, World.WALL)
+	for i in 3:
+		w.act(_cast([FOX, METAL] + Cards.recipe(Cards.VAULT)) if i == 0 else {t = &"wait"})
+	assert_lt(foe.hp, HEALTH)
+	assert_eq(foe.pos, ME + E * 2, "it went through, so it trades with no one")
+	assert_eq(w.player().pos, ME + E * 3)
+	var hover := Info.plain(SpellInfo.spell(Spell.make([FOX, METAL] + Cards.recipe(Cards.VAULT))))
+	assert_false(hover.contains("자리 교환"), hover)
+
+
+func test_the_hover_of_a_piercing_round_tells_it_goes_through_foes_and_of_no_wall() -> void:
+	var round_of := Info.plain(SpellInfo.spell(Spell.make([FOX, METAL])))
+	assert_string_contains(round_of, "관통: 적\n")
+	assert_false(round_of.contains("벽"), round_of)
+	var shell := Info.plain(SpellInfo.spell(Spell.make([FOX, METAL, METAL])))
+	assert_string_contains(shell, "관통: 적 모두, 벽 한 칸")
+
+
+func test_the_preview_of_a_piercing_round_equals_the_round() -> void:
+	var w := _world()
+	_post(w, 2)
+	_post(w, 3)
+	var f := Forecast.of(w, _cast([FOX, METAL]))
+	var events := w.act(_cast([FOX, METAL]))
+	var harm := {}
+	for e in events.filter(func(e): return e.t == &"hurt"):
+		harm[e.id] = harm.get(e.id, 0) + e.n
+	assert_eq(f.harm, harm)
+	assert_eq(harm.size(), 2)
 
 
 func test_a_piercing_wisp_stops_at_a_wall_with_a_wall_behind_it() -> void:
@@ -217,12 +312,11 @@ func test_a_piercing_wisp_fired_at_a_wall_beside_miho_goes_through_it() -> void:
 		assert_eq(w.tile(ME + dir), World.WALL, "it goes through, it does not break")
 
 
-func test_only_a_piercing_wisp_with_open_air_behind_the_wall_is_fired_at_a_wall_beside_miho(
+func test_only_an_armour_piercing_wisp_with_open_air_behind_the_wall_is_fired_at_a_wall_beside_miho(
 ) -> void:
 	var w := _world()
 	_put(w, 1, 0, World.WALL)
 	assert_false(w.can(_cast([FOX])), "a wisp")
-	assert_false(w.can(_cast([FOX, METAL])), "a bullet")
 	_put(w, 2, 0, World.WALL)
 	assert_false(w.can(_cast([FOX, METAL, METAL])), "a wall behind it")
 	var edge := _world()

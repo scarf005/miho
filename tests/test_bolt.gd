@@ -58,6 +58,18 @@ func test_a_bolt_strikes_the_first_creature_on_its_line_the_moment_it_is_loosed(
 	assert_true(w.shots.all(func(s): return s.gone))
 
 
+func test_a_bolt_does_not_go_through_the_first_creature() -> void:
+	var w := _world()
+	var a := _general(w)
+	var first := FloorGen.spawn(w, &"jangseung", FROM + E * 2)
+	first.magic.cooldown = 99
+	w.player().pos = FROM + E * 4
+	w.sense()
+	Cast.cast(w, a, _bolt(), E)
+	assert_lt(first.hp, first.max_hp)
+	assert_eq(w.player().hp, 3, "she stands behind it")
+
+
 func test_a_bolt_ends_at_a_wall_and_stays_nowhere() -> void:
 	var w := _world()
 	w.set_tile(FROM + E * 3, World.WALL)
