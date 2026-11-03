@@ -284,14 +284,14 @@ func test_a_pistol_hits_a_creature_weak_to_metal_for_two() -> void:
 	assert_eq(foe.hp, foe.max_hp - 2)
 
 
-func test_a_shotgun_fans_out_and_hits_harder_up_close() -> void:
+func test_a_shotgun_fans_out_to_thirty_degrees_for_two() -> void:
 	var w := _world()
-	var close := _post(w, ME + Vector2i(1, 1))
-	var far := _post(w, ME + Vector2i(4, -2))
+	var aside := _post(w, ME + Vector2i(4, 1))
+	var wide := _post(w, ME + Vector2i(4, 2))
 	var out := _post(w, ME + Vector2i(5, 0))
 	var events := w.act(_cast([METAL, METAL, METAL]))
-	assert_eq(close.hp, close.max_hp - 2)
-	assert_eq(far.hp, far.max_hp - 1)
+	assert_eq(aside.hp, aside.max_hp - 2)
+	assert_eq(wide.hp, wide.max_hp, "26° off the line")
 	assert_eq(out.hp, out.max_hp, "radius 4")
 	assert_eq(_of(events, &"noise")[0].word, "쾅")
 

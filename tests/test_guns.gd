@@ -142,17 +142,38 @@ func test_a_shotgun_reaches_one_tile_farther_for_every_more_metal() -> void:
 		var in_reach := _post(w, copies + 1, 0)
 		var past := _post(w, copies + 2, 0)
 		w.act(_cast(_n(METAL, copies)))
-		assert_eq(in_reach.hp, HEALTH - 1, "%d copies hit radius %d" % [copies, copies + 1])
+		assert_lt(in_reach.hp, HEALTH, "%d copies hit radius %d" % [copies, copies + 1])
 		assert_eq(past.hp, HEALTH, "%d copies stop at radius %d" % [copies, copies + 1])
 
 
-func test_a_shotgun_hits_harder_next_to_the_caster_however_much_metal() -> void:
-	var w := _world()
-	var close := _post(w, 1, 1)
-	var far := _post(w, 4, 0)
-	w.act(_cast(_n(METAL, 4)))
-	assert_eq(close.hp, HEALTH - 2)
-	assert_eq(far.hp, HEALTH - 1)
+## Per copies: [harm, a tile inside the spread, a tile just outside it], east of Miho. The
+## spread is 30°, 45° and 90° wide, so half of that to each side of the line.
+const SPREAD := {
+	3: [2, Vector2i(4, 1), Vector2i(4, 2)],
+	4: [3, Vector2i(5, 2), Vector2i(5, 3)],
+	5: [4, Vector2i(3, 2), Vector2i(2, 3)],
+}
+
+
+func test_a_shotgun_spreads_wider_and_hits_harder_for_every_more_metal() -> void:
+	for copies: int in SPREAD:
+		var row: Array = SPREAD[copies]
+		var w := _world()
+		var along := _post(w, 2, 0)
+		var inside := _post(w, row[1].x, row[1].y)
+		var outside := _post(w, row[2].x, row[2].y)
+		w.act(_cast(_n(METAL, copies)))
+		assert_eq(inside.hp, HEALTH - row[0], "%d copies: inside the spread" % copies)
+		assert_eq(outside.hp, HEALTH, "%d copies: outside the spread" % copies)
+		assert_eq(along.hp, HEALTH - row[0], "%d copies: on the line" % copies)
+
+
+func test_a_shotgun_hurts_a_creature_next_to_the_caster_like_any_other() -> void:
+	for copies in range(3, 6):
+		var w := _world()
+		var close := _post(w, 1, 0)
+		w.act(_cast(_n(METAL, copies)))
+		assert_eq(close.hp, HEALTH - SPREAD[copies][0], "%d copies" % copies)
 
 
 func test_a_piercing_wisp_hurts_each_creature_in_its_line_once_and_goes_through_one_wall() -> void:
