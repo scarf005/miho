@@ -18,6 +18,9 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - A spell of 쇠 that explodes has a proximity fuse: in flight it bursts beside a foe, so stepping aside does not dodge it. User: "폭발성 쇠 조합 주문들은 '근접신관' 기능 추가해. 즉 날아가다 적이 옆으로 이동해도 피할수 없고", "구+쇠면 근접신관을 다는거로 하자". A burst lays no hot iron under its caster. User: "2칸 거리면 적 앞애서 터져서 피해 없어야하는거아냐?"
 - A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?"
 - Flyers: 박쥐 on low storeys, 삼족오 of fire on high ones. User: "비행형 적 박쥐 (저층)와 삼족오(불, 고층) 추가해."
+- The guns of 쇠: 쇠 is 권총, 쇠쇠 소총, 여+쇠 관통탄, 여+쇠+쇠 철갑탄. User: "쇠 = 권총, 쇠쇠 = 소총, 여 + 쇠 = 관통탄, 여쇠쇠 = 철갑탄".
+- A storey's order and its concept change from run to run, the ninth too. User: "9층도 여러 컨셉으로". All ten shapes stay, and one more is a corridor of 3 tiles wide that turns many times. User: "여러번 꺾인 3칸 복도같은거 시안에 있을줄 알았는데 없네 이것도 추가필요".
+- A labyrinth comes in 40% of runs, and it has many concepts, one of them the island that cannot be walked back from. Its prize is 2 or 3 peaches and it is not found by guessing the middle or broken into through a wall; two or three creatures guard it; its door may be hidden; explore still works in it. User: "한 판에 40% 확률로", "복숭아는 2~3개, 보상은 좋긴 한데 두억시니 하나는 좀 약한 위협인듯. 또한 가운데에 보상이 있으면 예측하기 쉬운 문제도 있고 벽 부숴서 건너가면 그만일것같아서 완전 정통 미로로 하는게 좋을지도 (또는 미궁 종류를 네종류 이상 아주 다양하게)", "미궁에 적이 그래도 두셋은 있어야 리스크가있을듯".
 - 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
 - A knocked 병풍 is heard 4 tiles. User: "병풍이 소음 6칸인건 말이 안되지 않아? 4칸으로 낮춰".
 - A plate goes off for Miho, a creature and a projectile. User: "함정은 {적/플레이어/투사체}로 작동하게해".
