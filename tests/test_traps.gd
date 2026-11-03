@@ -184,6 +184,19 @@ func test_a_forecast_of_stepping_onto_a_hidden_plate_shows_nothing() -> void:
 		assert_eq(f.hurt_me(), 0)
 
 
+func test_a_walk_stops_before_a_found_collapsing_floor_though_the_fall_would_not_harm() -> void:
+	var w := _world()
+	w.player().pos = PLATE - E
+	_plate(w, PLATE, World.TRAP_COLLAPSE)
+	w.sense()
+	w.cheats[&"god"] = true
+	var step := {t = &"move", dir = E}
+	var f := Forecast.of(w, step)
+	assert_eq(f.hurt_me(), 0)
+	assert_true(f.drops_me())
+	assert_eq(Travel.hazard(w, step, f), &"drop")
+
+
 func test_a_forecast_of_stepping_onto_a_found_collapsing_floor_shows_the_fall() -> void:
 	var w := _world()
 	w.player().pos = PLATE - E
