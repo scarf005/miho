@@ -61,6 +61,23 @@ func test_thunder_flickers_on_every_tile_it_covers() -> void:
 		assert_true(seen.flashes.any(func(f): return f.at == p and f.zap), str(p))
 
 
+func test_a_creature_s_bolt_flickers_on_its_whole_line_the_moment_the_round_plays() -> void:
+	var w := _stage()
+	var general := FloorGen.spawn(w, &"jiha", ME + Vector2i(-3, 2))
+	general.magic.cooldown = 99
+	var m := _main(w)
+	var before := w.clone()
+	w.events = []
+	Cast.cast(w, general, Bestiary.spell(&"jiha", [Cards.FOX, Cards.METAL]), E)
+	var flown: Array = w.events.filter(func(e): return e.t == &"fly")
+	m.term.play(w.events, before, w)
+	var path: Array = flown.map(func(e): return e.to).filter(func(p): return m.term.sees(p))
+	assert_gt(path.size(), 1)
+	for p: Vector2i in path:
+		assert_true(m.term.anim.flashes.any(func(f): return f.at == p and f.zap), str(p))
+	m.term.rush()
+
+
 ## Seconds from the cast until nothing of the round is drawn but popups, with `n` foes in a
 ## row, each one tile on from the last, and the most popups shown at once.
 func _length(n: int) -> Array:
