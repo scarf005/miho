@@ -66,11 +66,14 @@ static func shapes(seed_value: int) -> Array[StringName]:
 	rng.seed = hash(seed_value)
 	var out: Array[StringName] = []
 	for depth in range(1, World.FLOORS + 1):
-		var open: Array = FIRST.keys().filter(
-			func(s):
-				var fresh: bool = FIRST[s] <= depth and not out.has(s)
-				return fresh and (out.is_empty() or FAMILY[s] != FAMILY[out[-1]])
-		)
+		var open := []
+		for s: StringName in FIRST:
+			if (
+				FIRST[s] <= depth
+				and not out.has(s)
+				and (out.is_empty() or FAMILY[s] != FAMILY[out[-1]])
+			):
+				open.append(s)
 		out.append(open[rng.randi_range(0, open.size() - 1)])
 	var maze := labyrinth(seed_value)
 	if maze.depth > 0:
