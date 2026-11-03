@@ -364,3 +364,42 @@ func test_the_hover_of_a_shot_in_flight_tells_the_fuse_the_furnace_gave_it() -> 
 	assert_string_contains(Info.plain(SpellInfo.shot(w, w.shots[0])), tag)
 	var own := Shot.of(w, w.player(), Spell.make(LAVA))
 	assert_false(Info.plain(SpellInfo.shot(w, own)).contains(tag))
+
+
+func test_a_beacon_bursting_in_front_of_a_foe_leaves_her_nothing_to_stand_on() -> void:
+	for far in [1, 2]:
+		var w := _world()
+		var foe := _post(w, ME + E * far)
+		w.act(_cast(Cards.recipe(&"beacon")))
+		assert_false(w.hot.has(ME), "%d tiles away" % far)
+		assert_true(w.hot.has(ME + E), "%d tiles away" % far)
+		for i in 3:
+			w.act(WAIT)
+		assert_eq(w.player().hp, 9, "%d tiles away" % far)
+		assert_lt(foe.hp, 9, "%d tiles away" % far)
+
+
+func test_a_lava_burst_of_a_creature_lays_iron_under_her_and_not_under_it() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	Cast.cast(w, foe, Spell.make(Cards.recipe(&"beacon")), -E)
+	assert_false(w.hot.has(foe.pos))
+	assert_true(w.hot.has(ME))
+
+
+func test_an_orb_that_blasts_and_holds_metal_bursts_beside_a_foe_off_its_line() -> void:
+	for cards: Array in [[ORB, FIRE, METAL], [ORB, ORB, ORB, METAL]]:
+		var w := _world()
+		var foe := _post(w, ME + E * 2 + S)
+		var flown := w.act(_cast(cards))
+		assert_eq(_bursts(flown).size(), 1, str(cards))
+		assert_eq(w.shots.size(), 0, str(cards))
+		assert_lt(foe.hp, 9, str(cards))
+
+
+func test_a_homing_orb_that_blasts_and_holds_metal_flies_on_up_to_its_foe() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2 + S)
+	var flown := w.act(_cast([ORB, FOX, FIRE, METAL]))
+	assert_eq(_bursts(flown), [], "no burst beside it")
+	assert_eq(foe.hp, 9)
