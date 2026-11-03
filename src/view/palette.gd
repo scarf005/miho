@@ -150,8 +150,9 @@ const NOISE := [
 ]
 const ALERT := [Color(0, 0, 0, 0), Color(1.0, 0.85, 0.3), Color(1.0, 0.25, 0.2)]
 const ALERT_MARK := ["", "?", "!"]
-## A travel exclusion's tint and outline.
+## A travel exclusion's tint and outline, and the mark on its centre.
 const ZONE := Color(0.85, 0.2, 0.35)
+const ZONE_MARK := "X"
 const TEXT := Color(0.8, 0.78, 0.72)
 const DIM := Color(0.35, 0.34, 0.33)
 ## A shortcut's label beside what it stands for.

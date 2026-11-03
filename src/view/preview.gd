@@ -51,6 +51,7 @@ static func paint(m: Node) -> void:
 	_inspect(m)
 	term.debug = DebugView.view(world) if m.debugging else {}
 	term.zone = m.journey.zone
+	term.zone_centres = m.journey.excluded.zones
 	term.picked = m.casting.picked
 	term.staged = m.casting.staged
 	var tints: Dictionary = m.reach.duplicate()

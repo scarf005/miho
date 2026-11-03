@@ -162,6 +162,9 @@ func draw_tiles(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		var cell := t.cell_of(p)
 		if zone.has(p):
 			bg = bg.lerp(Palette.ZONE, 0.18)
+		if t.zone_centres.has(p):
+			glyph = Palette.ZONE_MARK
+			fg = Palette.ZONE
 		t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), bg)
 		if sunk:
 			t.draw_texture(Dither.of(below[i]), cell * Term.CELL, Palette.BELOW)

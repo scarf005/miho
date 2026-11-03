@@ -39,8 +39,9 @@ var lines: Array = []
 var replay := false
 ## The tile under the pointer and what it shows there, as Info lines.
 var cursor := Vector2i(-1, -1)
-## Set by the game: the tiles in travel exclusions (tile -> true).
+## Set by the game: the tiles in travel exclusions (tile -> true), their centres (tile -> radius).
 var zone := {}
+var zone_centres := {}
 var info: Array = []:
 	set(v):
 		info = Keywords.lines(v)
