@@ -357,3 +357,18 @@ func test_a_talisman_in_a_recipe_or_a_line_is_a_word_for_its_entry() -> void:
 		assert_string_contains(Info.plain(Keywords.entry(part)), Codex.talisman_name(c))
 	assert_eq(Keywords.word_at([["구+불", Palette.TEXT]], 0.0, 0.2), Cards.part(Cards.ORB, Lang.t))
 	assert_eq(Keywords.word_at([["구+불", Palette.TEXT]], 0.0, 1.8), Cards.part(Cards.FIRE, Lang.t))
+
+
+func test_a_click_on_a_word_of_a_creature_card_aims_while_talismans_are_picked() -> void:
+	var m := _game()
+	var w: World = m.world
+	var cards := [Cards.FOX, Cards.METAL]
+	var foe := FloorGen.spawn(w, &"jiha", w.player().pos + Vector2i(1, 0))
+	foe.magic.intent.assign([{cards = cards, dir = Vector2i.LEFT}])
+	w.sense()
+	m.term.show_world(w)
+	m.forecast()
+	m.casting.add(Cards.FOX)
+	var at := _cell(m.term, SpellInfo.spell_word(cards))
+	_click(m, _over(m, at.x, int(at.y)))
+	assert_eq(m.panels.overlay, &"", "no 도감 over the aim")
