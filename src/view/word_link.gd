@@ -24,9 +24,12 @@ static func click(m: Node, local: Vector2) -> StringName:
 
 
 ## A left click at `local` on a word of the log over the map in play, or of a box
-## Shift keeps: the 도감 opens on its entry. Whether the click was used.
+## Shift keeps: the 도감 opens on its entry. Whether the click was used. With talismans
+## picked, a click on a creature card aims at it instead.
 static func open(m: Node, local: Vector2) -> bool:
 	if m.state != &"play" or m.panels.overlay != &"":
+		return false
+	if not m.casting.picked.is_empty() and Grid.inside(m.term.side_at(local)):
 		return false
 	var word := WordHover.word_at(m.term, local)
 	if word == "":
