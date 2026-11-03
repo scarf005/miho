@@ -354,12 +354,12 @@ func _title(t: Callable, whole := true) -> String:
 	var form: String = wisp() if shape == WISP else SHAPE_NAME.get(shape, Spray.called(self))
 	if mortar():
 		form = MORTAR_NAME
-	form = t.call(form)
+	form = "" if form == ROUND_NAME and has(&"shrapnel") else t.call(form)
 	if whole and shots() > 1:
 		form += t.call(" %d발") % shots()
 	if swaps():
 		form += " " + t.call(Leap.SWAP_NAME)
-	return ("·".join(parts) + " " + form).strip_edges()
+	return ("·".join(parts) + " " + form.strip_edges()).strip_edges()
 
 
 ## The slot and how many of it the name of the shape tells: 관통탄, 철갑탄 and 비격진

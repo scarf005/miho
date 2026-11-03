@@ -68,6 +68,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
     - `1초 뒤 되살아나는 시체` -> `객귀의 저주`. A thing's name is a name, and what it does goes in its entry. User: "이건 동작을 설명한건데 이걸 그대로 쓴다고? 명칭 `객귀의 저주` 로 바꿔".
   - `흙: 진흙` -> `흙 주문: 진흙이 됨`. User: "의미불명".
   - `주문과 멀리뛰기로만 건널 수 있다.` -> `이동 불가.`. User: "그냥 `이동 불가.` 태그면 끝 아닌가".
+  - `유탄 탄환` -> `유탄`. User: "이미 유탄에 탄환이란 의미가 있어서 동어반복".
 - A click on a suggested spell or a saved spell fills the queue. User: "클릭하면 당연히 프리셋으로 채워줄줄 알았는데 아니야". The keyboard alone can aim at Miho. User: "키보드만으로 스스로를 겨눌 방법이 없어". Explore never takes the stairs. User: "자동탐색 했는데 그냥 다음 층으로 올라가버림. 이래선 안됨".
 - A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯".
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
