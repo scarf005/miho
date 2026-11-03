@@ -101,3 +101,55 @@ func test_a_water_wisp_and_an_orb_without_water_leave_the_floor_alone() -> void:
 	var v := _world()
 	_splash(v, [ORB, Cards.EARTH])
 	assert_eq(v.tile(AHEAD), World.FLOOR, "an orb without water")
+
+
+func _foggy(w: World, p: Vector2i, amount := 6) -> void:
+	Gas.put(w, p, Gas.FOG, amount)
+
+
+func test_fire_on_a_fog_tile_turns_it_to_steam_of_the_same_amount() -> void:
+	var w := _world()
+	_foggy(w, AHEAD)
+	_foggy(w, AHEAD + E, 3)
+	Terrain.ignite(w, AHEAD)
+	assert_eq(Gas.at(w, AHEAD), Vector2i(Gas.STEAM, 6))
+	assert_eq(Gas.at(w, AHEAD + E), Vector2i(Gas.FOG, 3), "the next tile stays fog")
+	var told := w.events.filter(func(e): return e.t == &"gas" and e.kind == Gas.STEAM)
+	assert_eq(told.size(), 1)
+
+
+func test_fire_leaves_smoke_and_steam_as_they_are_and_fog_on_no_fire_stays_fog() -> void:
+	var w := _world()
+	Gas.put(w, AHEAD, Gas.SMOKE, 6)
+	Gas.put(w, AHEAD + E, Gas.STEAM, 6)
+	_foggy(w, AHEAD + E * 2)
+	Terrain.ignite(w, AHEAD)
+	Terrain.ignite(w, AHEAD + E)
+	assert_eq(Gas.at(w, AHEAD).x, Gas.SMOKE)
+	assert_eq(Gas.at(w, AHEAD + E).x, Gas.STEAM)
+	assert_eq(Gas.at(w, AHEAD + E * 2).x, Gas.FOG)
+
+
+func test_fog_over_a_burning_tile_is_steam_after_a_round() -> void:
+	var w := _world()
+	w.set_tile(AHEAD, World.GRASS)
+	Terrain.ignite(w, AHEAD)
+	assert_true(w.burning.has(AHEAD))
+	for p in Terrain.near(AHEAD):
+		_foggy(w, p, Gas.MAX)
+	Gas.tick(w)
+	assert_eq(Gas.at(w, AHEAD).x, Gas.STEAM, "no smoke over it")
+
+
+func test_a_fire_spray_turns_the_fog_it_reaches_to_steam() -> void:
+	var w := _world()
+	var reached := Spray.cover(w, w.player(), Spell.make([FIRE, FIRE]), E)
+	var far := AHEAD + E * 4
+	assert_false(reached.has(far))
+	_foggy(w, far)
+	for p in reached:
+		_foggy(w, p)
+	Cast.cast(w, w.player(), Spell.make([FIRE, FIRE]), E)
+	for p in reached:
+		assert_eq(Gas.at(w, p).x, Gas.STEAM, str(p))
+	assert_eq(Gas.at(w, far).x, Gas.FOG)
