@@ -157,11 +157,11 @@ func test_the_runs_world_and_dice_are_untouched_by_a_hovered_spell() -> void:
 	var seen := _main()
 	var plain := _main()
 	seen.hover_card = Cards.FIRE
-	seen._refresh()
+	seen.refresh()
 	var sim: ExampleSim = seen.term.sim
 	_play(sim, 30)
 	seen.hover_card = &""
-	seen._refresh()
+	seen.refresh()
 	assert_eq(seen.world.rng.state, plain.world.rng.state)
 	assert_eq(seen.world.tiles, plain.world.tiles)
 	assert_eq(seen.world.next_id, plain.world.next_id)

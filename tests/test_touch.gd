@@ -66,7 +66,7 @@ func test_the_title_asks_for_a_touch_not_a_key() -> void:
 	_finger(m, Vector2(300, 300))
 	assert_eq(m.state, &"play", "a tap anywhere starts")
 	var keys := _main(false)
-	keys._show_title()
+	keys.show_title()
 	assert_eq(keys.term.banner_lines[2], "아무 키나 눌러 시작")
 
 
