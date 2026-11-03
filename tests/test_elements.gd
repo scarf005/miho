@@ -454,6 +454,19 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 # --- the hover lines --------------------------------------------------------
 
 
+func test_a_gun_that_gives_no_light_in_flight_tells_only_its_muzzle_flash() -> void:
+	var bolt := Spell.make([FOX, METAL])
+	bolt.wisp_name = "번개"
+	for s: Spell in [bolt, Spell.make([FOX, METAL]), Spell.make([FOX, METAL, METAL])]:
+		assert_eq(s.light(Actor.FOX), {})
+		var lines := Info.plain(SpellInfo.spell(s)).split("\n")
+		assert_true(lines.has("발사 빛: 쏜 칸"), str(s.cards))
+		assert_false(lines.has("빛: 없음"), str(s.cards))
+	var cannon := Info.plain(SpellInfo.spell(Spell.make([ORB, METAL]))).split("\n")
+	assert_true(cannon.has("발사 빛: 쏜 칸"), "an orb has both")
+	assert_true(cannon.has("빛: %d칸" % Spell.make([ORB, METAL]).light(Actor.FOX).radius))
+
+
 func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
 		[[FOX, FIRE], ["불: 지나간 가연성·인화성 칸", "불붙음: %d초" % Status.ALIGHT]],
@@ -464,7 +477,7 @@ func test_a_spell_tells_every_element_number_by_its_form() -> void:
 			[
 				"발당 피해: %d" % (Elements.BULLET + 1),
 				"초당 %d칸" % Spell.BULLET_SPEED,
-				"빛: 없음\n발사 빛: 쏜 칸",
+				"발사 빛: 쏜 칸",
 				"소음: %d" % Spray.GUN_LOUD,
 			]
 		],

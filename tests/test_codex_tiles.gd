@@ -70,6 +70,25 @@ func test_each_compound_that_changes_a_tile_is_told_on_its_entry_and_no_other() 
 					)
 
 
+func test_lines_with_the_same_result_are_one_line_on_every_entry() -> void:
+	assert_string_contains(_told("벽"), "나무 주문, 구슬: 금 간 벽이 됨")
+	for e: Dictionary in Codex.entries(TILES):
+		var seen := {}
+		for line: String in Info.plain(Codex.detail(e)).split("\n"):
+			if line.ends_with("됨"):
+				var result := line.get_slice(": ", line.get_slice_count(": ") - 1)
+				assert_false(seen.has(result), "%s: %s" % [e.name, line])
+				seen[result] = true
+
+
+func test_what_a_tile_blocks_is_one_line_on_every_entry() -> void:
+	for e: Dictionary in Codex.entries(TILES):
+		var blocks := Array(Info.plain(Codex.detail(e)).split("\n")).filter(
+			func(line): return line.begins_with("막음: ")
+		)
+		assert_lte(blocks.size(), 1, "%s: %s" % [e.name, blocks])
+
+
 func test_water_puts_out_a_lantern_and_a_veil_and_the_entry_tells_what_is_left() -> void:
 	for t in [World.LANTERN, World.VEIL]:
 		var w := _tile(t)
