@@ -205,15 +205,30 @@ static func near(at: Vector2i) -> Array[Vector2i]:
 
 ## Fire relights the dark lanterns next to where a spell ends, except `struck`,
 ## and water douses lit lanterns and flames and washes away Miho's scent there.
-## Each element changes the tiles round it that its `reacts` row names.
+## Each element changes the tiles round it that its `reacts` row names, and a water
+## orb leaves shallow water on the bare floor.
 static func touch(w: World, s: Shot, at: Vector2i, struck: Vector2i) -> void:
 	var tiles := near(at)
 	react(w, s.spell, tiles, struck)
+	if s.spell.orb and s.spell.has(Cards.WATER):
+		_pool(w, tiles)
 	for p in tiles:
 		if lights(s.spell) and p != struck:
 			relight(w, p)
 		if s.spell.has(Cards.WATER):
 			wash(w, p)
+
+
+## Bare floor on `tiles` becomes shallow water, but where a plate lies hidden.
+static func _pool(w: World, tiles: Array[Vector2i]) -> void:
+	var bare: Array[Vector2i] = tiles.filter(
+		func(p): return w.tile(p) == World.FLOOR and not w.traps.has(p)
+	)
+	if bare.is_empty():
+		return
+	for p in bare:
+		w.set_tile(p, World.SHALLOW)
+	w.emit({t = &"become", at = bare[0], tiles = bare, tile = World.SHALLOW, was = World.FLOOR})
 
 
 ## The elements of `spell` that change tiles: each lone one, but 불 in steam.

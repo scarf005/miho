@@ -166,7 +166,7 @@ const JAR_SOUNDS := {
 	&"coals": &"stone",
 }
 ## The sound of a tile that forms where a compound reaches; the others are silent.
-const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall"}
+const BECOME := {World.BRIDGE: &"creak", World.SKY: &"fall", World.SHALLOW: &"splash"}
 ## The sound of a tile an element changes (Terrain.react), by the element.
 const REACT := {
 	Cards.METAL: &"rustle",

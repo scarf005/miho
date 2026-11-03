@@ -799,6 +799,15 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			var out := [["꺼짐", Lang.t("멈춘 곳 %s의 불, 등불") % _square(Grid.NEAR)]]
 			if s.orb:
 				out.append(["밀침", Lang.t("%d칸") % (Spray.PLAIN_PUSH + s.extra(e))])
+				out.append(
+					[
+						becomes(World.SHALLOW),
+						(
+							Lang.t("멈춘 곳 %s의 %s")
+							% [_square(Grid.NEAR), Lang.t(Tiles.of(World.FLOOR, "name"))]
+						)
+					]
+				)
 			return out
 		Cards.WOOD:
 			if s.orb:
