@@ -170,17 +170,25 @@ static func _spotted(w: World, p: Vector2i) -> Array:
 ## One seen event as a line, or empty. `last` is the seen event before it
 ## other than harm: harm after a claw or melee blow was told by that line, harm
 ## after a creature caught fire is told as burning, and harm from Miho's
-## spells is told as harm she dealt.
+## spells is told as harm she dealt. Each group below tells the kinds of event of
+## one thing the player reads about, and gives null for any other.
 static func _line(before: World, after: World, e: Dictionary, last: Dictionary) -> Array:
+	var line: Variant = _deed_line(before, after, e, last)
+	line = _hold_line(before, after, e) if line == null else line
+	line = _spell_line(before, after, e) if line == null else line
+	line = _find_line(before, after, e, last) if line == null else line
+	line = _ground_line(before, e) if line == null else line
+	line = _device_line(before, after, e) if line == null else line
+	return [] if line == null else line
+
+
+## What creatures do and suffer: notice, blows, harm, falling, shouting, arriving and rising.
+static func _deed_line(before: World, after: World, e: Dictionary, last: Dictionary) -> Variant:
 	var id: int = e.get("id", -1)
 	var who := _who(before, after, id)
 	match e.t:
 		&"notice":
 			return _t("{0}에게 들켰다", [who])
-		&"state":
-			var mark: String = STATE[e.mark]
-			var run := _ill(after, id, mark) if e.mark == "x" else [mark, TEXT]
-			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [run])
 		&"claw":
 			return _harm_to(before, after, e.target, e.n)
 		&"melee":
@@ -212,37 +220,26 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}이/가 되살아났다" if Raise.undead(e.kind) else "{0}이/가 나타났다", [who])
 		&"rise":
 			return _t("{0}이/가 되살아났다", [who])
-		&"curse":
-			match e.what:
-				Curse.REAPER:
-					return _t("오한이 든다...")
-				Curse.SIGHT:
-					return _t("누군가가 지켜보는 느낌이 든다...")
-			var jar := _named(Tiles.of(World.JAR, "name"))
-			return _t("{0}에서 {1}이/가 나왔다", [jar, _named(Notice.LABEL[&"body"])])
-		&"fall":
-			if e.has("depth"):
-				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
-				return _t("하늘로 떨어져 {0}으로 내려왔다", [floor_no])
-			return _t("{0}이/가 하늘로 떨어졌다", [who])
-		&"card":
-			var talisman := [Lang.t("%s 부적") % Lang.t(Cards.NAME[e.card]), Palette.CARD[e.card]]
-			return _t("{0}을 얻었다", [talisman])
-		&"scroll":
-			var scroll := [Lang.t("%s 주문서") % Lang.t(Cards.NAME[e.card]), Palette.CARD[e.card]]
-			return _t("{0}가 떨어졌다", [scroll])
-		&"heal":
-			if e.get("kimchi", false):
-				return _kimchi(e.n)
-			var one := [["1", Palette.HURT]]
-			var healed := _t("체력을 {0} 회복했다", one)
-			if e.get("grew", false):
-				healed = _t("최대 체력이 {0} 늘었다", one)
-			var plain: bool = last.get("t") == &"ascend" or e.get("spell", false)
-			return healed if plain else _t("복숭아를 먹었다. ", []) + healed
-		&"jar":
-			var what := [Jars.name_of(e.what), TEXT]
-			return _t("{0}이/가 {1}", [what, [JAR_DOES[e.what], TEXT]])
+		&"absorb":
+			return _t("{0}에게는 통하지 않았다", [who])
+		&"resist":
+			var taken := [Lang.t(Cards.NAME[e.taken[0]]), Palette.CARD[e.taken[0]]]
+			return _t("{0}이/가 {1}을/를 일부 막았다", [who, taken])
+		&"arrive":
+			return _t("{0}이/가 나타났다", [who])
+	return null
+
+
+## What holds, moves, wets or burns a creature, and what it notices: marks, status,
+## being pushed or swapped, sleep and search.
+static func _hold_line(before: World, after: World, e: Dictionary) -> Variant:
+	var id: int = e.get("id", -1)
+	var who := _who(before, after, id)
+	match e.t:
+		&"state":
+			var mark: String = STATE[e.mark]
+			var run := _ill(after, id, mark) if e.mark == "x" else [mark, TEXT]
+			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [run])
 		&"blind":
 			return _sub(before, after, id, "{0}의 {1}", "{0}", [_ill(after, id, "눈이 멀었다")])
 		&"root":
@@ -262,8 +259,6 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 				var moved := [["주문이 멈춘 자리로 옮겨 갔다", TEXT]]
 				return _sub(before, after, id, "{0}이/가 {1}", "{0}", moved)
 			return _t("{0}과/와 자리를 바꿨다", [_who(before, after, e.other)])
-		&"sprout":
-			return _t("{0}이/가 자랐다", [_named(Tiles.of(World.WOOD_WALL, "name"))])
 		&"freeze":
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [_ill(after, id, "얼어붙었다")])
 		&"wet":
@@ -276,25 +271,21 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}의 불이 꺼졌다", [who])
 		&"thaw":
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["녹았다", TEXT]])
-		&"become":
-			var name := _named(Tiles.of(e.tile, "name"))
-			if e.has("was"):
-				return _t("{0}이/가 {1}이/가 되었다", [_named(Tiles.of(e.was, "name")), name])
-			return _t("{0}이/가 생겼다", [name])
-		&"heat":
-			return _t("{0}이/가 남았다", [_named(Compounds.HOT[e.kind].name)])
-		&"cool":
-			return _t("{0}이/가 식었다", [_named(Compounds.HOT[e.kind].name)])
-		&"absorb":
-			return _t("{0}에게는 통하지 않았다", [who])
-		&"resist":
-			var taken := [Lang.t(Cards.NAME[e.taken[0]]), Palette.CARD[e.taken[0]]]
-			return _t("{0}이/가 {1}을/를 일부 막았다", [who, taken])
 		&"heed":
 			var what: String = Notice.LABEL[e.kind]
 			return _t("{0}이/가 {1}을/를 보고 살피러 갔다", [who, [what, TEXT]])
 		&"calm":
 			return _t("{0}이/가 수색을 멈췄다", [who])
+		&"sleep":
+			return _t("{0}이/가 잠들었다", [who])
+	return null
+
+
+## Spells in the making or on a target, and Miho's buffs coming and going.
+static func _spell_line(before: World, after: World, e: Dictionary) -> Variant:
+	var id: int = e.get("id", -1)
+	var who := _who(before, after, id)
+	match e.t:
 		&"charge":
 			var spell := Bestiary.spell(_actor(before, after, id).kind, e.cards)
 			var title := [spell.shown(), Palette.card(spell.slots.back())]
@@ -305,6 +296,12 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			if id == after.player().id:
 				return _t("{0}이/가 붙었다", [title])
 			return _t("{0}이/가 {1}에게 붙었다", [title, who])
+		&"fade":
+			if e.get("dropped", false):
+				return _t("{0}이/가 사라졌다", [[_title(e), TEXT]])
+			if not e.get("lit", false):
+				return []
+			return _t("{0}이/가 불빛에 사라졌다", [[_title(e), TEXT]])
 		&"yelp":
 			return _t("여우불이 {0} 울었다", [[Lure.WORD, Palette.SOUND]])
 		&"guise":
@@ -328,38 +325,46 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("{0}을/를 썼다", [_named(Guise.NAME[Guise.RAISE])])
 		&"unraise":
 			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.RAISE])])
-		&"sleep":
-			return _t("{0}이/가 잠들었다", [who])
-		&"fade":
-			if e.get("dropped", false):
-				return _t("{0}이/가 사라졌다", [[_title(e), TEXT]])
-			if not e.get("lit", false):
-				return []
-			return _t("{0}이/가 불빛에 사라졌다", [[_title(e), TEXT]])
-		&"open", &"close":
-			var opened: bool = e.t == &"open"
-			if id == after.player().id:
-				return _t("문을 열었다" if opened else "문을 닫았다")
-			if not _in_sight(before, after, id):
-				return _t("문이 열렸다" if opened else "문이 닫혔다")
-			return _t("{0}이/가 문을 열었다" if opened else "{0}이/가 문을 닫았다", [who])
-		&"drum":
-			return _t("{0}이/가 젖은 북을 쳤다" if e.wet else "{0}이/가 북을 쳤다", [who])
-		&"soak":
-			return _t("북이 젖었다")
-		&"gas":
-			return _t("{0}이/가 피어올랐다", [_gas(e.kind)])
-		&"find":
-			return _t("{0}을/를 찾았다", [_named(Tiles.of(e.kind, "name"))])
-		&"trap":
-			var plate := _named(Tiles.of(e.kind, "name"))
-			if e.has("shot"):
-				return _t("{0}이/가 {1}을/를 건드렸다", [[_title(e), TEXT], plate])
-			return _sub(before, after, id, "{0}이/가 {1}을/를 밟았다", "{0}을/를 밟았다", [plate])
-		&"trample":
-			return _t("{0}이/가 쓰러졌다", [_named(Tiles.of(e.was, "name"))])
-		&"collapse":
-			return _t("벽이 무너졌다")
+	return null
+
+
+## What Miho gains and where she goes: talismans, healing, jars, curses, the storeys,
+## the altar, the scroll, the creak, the omen, the elixir and the debug commands.
+static func _find_line(before: World, after: World, e: Dictionary, last: Dictionary) -> Variant:
+	match e.t:
+		&"card":
+			var talisman := [Lang.t("%s 부적") % Lang.t(Cards.NAME[e.card]), Palette.CARD[e.card]]
+			return _t("{0}을 얻었다", [talisman])
+		&"scroll":
+			var scroll := [Lang.t("%s 주문서") % Lang.t(Cards.NAME[e.card]), Palette.CARD[e.card]]
+			return _t("{0}가 떨어졌다", [scroll])
+		&"heal":
+			if e.get("kimchi", false):
+				return _kimchi(e.n)
+			var one := [["1", Palette.HURT]]
+			var healed := _t("체력을 {0} 회복했다", one)
+			if e.get("grew", false):
+				healed = _t("최대 체력이 {0} 늘었다", one)
+			var plain: bool = last.get("t") == &"ascend" or e.get("spell", false)
+			return healed if plain else _t("복숭아를 먹었다. ", []) + healed
+		&"jar":
+			var what := [Jars.name_of(e.what), TEXT]
+			return _t("{0}이/가 {1}", [what, [JAR_DOES[e.what], TEXT]])
+		&"curse":
+			match e.what:
+				Curse.REAPER:
+					return _t("오한이 든다...")
+				Curse.SIGHT:
+					return _t("누군가가 지켜보는 느낌이 든다...")
+			var jar := _named(Tiles.of(World.JAR, "name"))
+			return _t("{0}에서 {1}이/가 나왔다", [jar, _named(Notice.LABEL[&"body"])])
+		&"fall":
+			if e.has("depth"):
+				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
+				return _t("하늘로 떨어져 {0}으로 내려왔다", [floor_no])
+			return _t("{0}이/가 하늘로 떨어졌다", [_who(before, after, e.get("id", -1))])
+		&"ascend":
+			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
 		&"altar":
 			var altar := _named(Tiles.of(World.ALTAR, "name"))
 			return _t("{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다", [altar])
@@ -367,23 +372,42 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			return _t("두루마리를 읽었다. 이 층의 지도가 드러났다")
 		&"creak":
 			return _t("꼬리가 모두 돌아왔다")
-		&"ascend":
-			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
 		&"omen":
 			return _t("{0}이/가 오고 있다", [_kind(&"saja")])
-		&"arrive":
-			return _t("{0}이/가 나타났다", [who])
+		&"won":
+			var human := [["사람이 되었다", Palette.KIND[&"miho"]]]
+			return _t("영약을 마시고 {0}", human)
+		&"cheat":
+			return _cheat(e)
+	return null
+
+
+## How the floor changes: tiles growing, turning, burning, breaking, and gas and hot ground.
+static func _ground_line(before: World, e: Dictionary) -> Variant:
+	match e.t:
+		&"sprout":
+			return _t("{0}이/가 자랐다", [_named(Tiles.of(World.WOOD_WALL, "name"))])
+		&"become":
+			var name := _named(Tiles.of(e.tile, "name"))
+			if e.has("was"):
+				return _t("{0}이/가 {1}이/가 되었다", [_named(Tiles.of(e.was, "name")), name])
+			return _t("{0}이/가 생겼다", [name])
+		&"heat":
+			return _t("{0}이/가 남았다", [_named(Compounds.HOT[e.kind].name)])
+		&"cool":
+			return _t("{0}이/가 식었다", [_named(Compounds.HOT[e.kind].name)])
+		&"gas":
+			return _t("{0}이/가 피어올랐다", [_gas(e.kind)])
 		&"blast":
 			return _t("{0}이/가 폭발했다", [_gas(e.kind)])
+		&"trample":
+			return _t("{0}이/가 쓰러졌다", [_named(Tiles.of(e.was, "name"))])
+		&"collapse":
+			return _t("벽이 무너졌다")
 		&"crumble":
 			return _t("{0}이/가 꺼졌다", [_named(Tiles.of(e.was, "name"))])
 		&"wake":
 			return _t("{0}이/가 깨어났다", [_named(Tiles.of(World.STATUE, "name"))])
-		&"cheat":
-			return _cheat(e)
-		&"won":
-			var human := [["사람이 되었다", Palette.KIND[&"miho"]]]
-			return _t("영약을 마시고 {0}", human)
 		&"ignite":
 			var fierce := Tiles.fierce[before.tile(e.at)] == 1
 			var flame: Array = Palette.FIERCE_BURNING if fierce else Palette.BURNING
@@ -397,13 +421,39 @@ static func _line(before: World, after: World, e: Dictionary, last: Dictionary) 
 			if before.tile(e.at) == World.LANTERN:
 				return _t("등불이 꺼졌다")
 			return _t("{0}의 불이 꺼졌다", [_tile(before, e.at)])
+		&"smash":
+			return _smash(e)
+	return null
+
+
+## What creatures and Miho do with doors, drums, plates and lanterns.
+static func _device_line(before: World, after: World, e: Dictionary) -> Variant:
+	var id: int = e.get("id", -1)
+	var who := _who(before, after, id)
+	match e.t:
+		&"open", &"close":
+			var opened: bool = e.t == &"open"
+			if id == after.player().id:
+				return _t("문을 열었다" if opened else "문을 닫았다")
+			if not _in_sight(before, after, id):
+				return _t("문이 열렸다" if opened else "문이 닫혔다")
+			return _t("{0}이/가 문을 열었다" if opened else "{0}이/가 문을 닫았다", [who])
+		&"drum":
+			return _t("{0}이/가 젖은 북을 쳤다" if e.wet else "{0}이/가 북을 쳤다", [who])
+		&"soak":
+			return _t("북이 젖었다")
+		&"find":
+			return _t("{0}을/를 찾았다", [_named(Tiles.of(e.kind, "name"))])
+		&"trap":
+			var plate := _named(Tiles.of(e.kind, "name"))
+			if e.has("shot"):
+				return _t("{0}이/가 {1}을/를 건드렸다", [[_title(e), TEXT], plate])
+			return _sub(before, after, id, "{0}이/가 {1}을/를 밟았다", "{0}을/를 밟았다", [plate])
 		&"relight":
 			if id >= 0:
 				return _t("{0}이/가 등불을 다시 켰다", [who])
 			return _t("등불이 다시 켜졌다")
-		&"smash":
-			return _smash(e)
-	return []
+	return null
 
 
 ## What a blow left of a tile.
