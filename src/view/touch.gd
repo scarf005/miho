@@ -336,6 +336,11 @@ func _play_tap(pos: Vector2, local: Vector2) -> void:
 			main.menu.debug.pick(main, _click(pos))
 	elif WordLink.open(main, local):
 		return
+	elif Grid.inside(term.side_at(local)) and not main.casting.picked.is_empty():
+		if term.side_at(local) == main.look.hover:
+			main.click(_click(pos))
+		else:
+			Preview.point(main, pos)
 	elif Grid.inside(term.side_at(local)):
 		Preview.point(main, pos)
 		_freeze(not main.term.info.is_empty())
