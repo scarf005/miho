@@ -110,6 +110,7 @@ func test_a_creature_tells_its_element() -> void:
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "오행: 수(물)")
 	assert_string_contains(text, "면역: 불 주문, 불타는 칸")
+	assert_string_contains(text, "내성: 불이 섞인 주문")
 
 
 func test_a_creature_tells_the_talisman_it_drops_until_miho_has_it() -> void:

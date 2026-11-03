@@ -1764,8 +1764,14 @@ msgstr "Electric"
 msgid "막는 원소가 섞인 주문: ×%d"
 msgstr "Spells with a blocked element mixed in: ×%d"
 
-msgid "피해 절반: "
-msgstr "Half damage: "
+msgid "내성"
+msgstr "Resistance"
+
+msgid "해당 주문에 피해를 절반만 입음"
+msgstr "Takes half the harm from that spell"
+
+msgid "내성: "
+msgstr "Resists: "
 
 msgid "불이 섞인 주문"
 msgstr "Spells with fire mixed in"

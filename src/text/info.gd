@@ -400,7 +400,7 @@ static func _immunities(kind: StringName, wet: bool) -> Array:
 		&"fire":
 			out.append(_immune("불 주문, 불타는 칸", Palette.CARD[Cards.FIRE]))
 			out.append(
-				[[Lang.t("피해 절반: "), Palette.DIM], [Lang.t("불이 섞인 주문"), Palette.CARD[Cards.FIRE]]]
+				[[Lang.t("내성: "), Palette.DIM], [Lang.t("불이 섞인 주문"), Palette.CARD[Cards.FIRE]]]
 			)
 		&"nofire":
 			out.append(_immune("불 없는 주문", Palette.DIM))

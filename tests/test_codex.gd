@@ -539,3 +539,8 @@ func test_the_options_list_the_codex_between_the_language_and_the_keys() -> void
 	var menu := Menu.new()
 	menu.open(&"options")
 	assert_eq(menu.panel().rows[at][0][0], "도감")
+
+
+func test_the_word_resistance_in_a_hover_opens_its_entry_that_tells_half_harm() -> void:
+	assert_gte(Keywords.locate("내성").x, 0)
+	assert_string_contains(_text(Codex.detail(_entry(6, "내성"))), "해당 주문에 피해를 절반만 입음")
