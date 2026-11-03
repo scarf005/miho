@@ -328,6 +328,39 @@ func test_the_forecast_shows_the_burst_short_of_the_foe_as_the_round_plays_it() 
 	assert_eq(foe.hp, 9 - f.harm[foe.id])
 
 
+func test_a_piercing_round_ends_at_its_range_with_a_foe_there_or_not() -> void:
+	var w := _world()
+	var last := _post(w, ME + E * Spell.RANGE)
+	var past := _post(w, ME + E * (Spell.RANGE + 1))
+	w.act(_cast([FOX, METAL]))
+	_settle(w)
+	assert_lt(last.hp, 9)
+	assert_eq(past.hp, 9, "it ended on its last tile")
+	assert_eq(w.shots, [])
+
+
+func test_an_armour_piercing_round_does_not_bore_a_wall_on_its_last_tile() -> void:
+	var w := _world()
+	w.set_tile(ME + E * Spell.RANGE, World.WALL)
+	var past := _post(w, ME + E * (Spell.RANGE + 1))
+	w.act(_cast([FOX, METAL, METAL]))
+	_settle(w)
+	assert_eq(past.hp, 9)
+
+
+func test_an_ally_holds_back_a_piercing_round_that_would_go_on_into_her() -> void:
+	var w := _world()
+	var a := FloorGen.spawn(w, Forge.FURNACE, ME + S * 3)
+	var foe := _post(w, a.pos + E * 3)
+	w.player().pos = a.pos + E * 5
+	var plan := {cards = [FOX, METAL], dir = E}
+	assert_true(Aim.catches(w, a, plan, foe), "it goes on through the foe")
+	w.set_tile(a.pos + E * 4, World.WALL)
+	assert_false(Aim.catches(w, a, plan, foe), "a wall stops it")
+	plan = {cards = [FOX, METAL, METAL], dir = E}
+	assert_true(Aim.catches(w, a, plan, foe), "a 철갑탄 goes through the wall")
+
+
 func test_an_ally_holds_back_a_burst_that_would_go_off_early_beside_its_own() -> void:
 	var w := _world()
 	var a := FloorGen.spawn(w, Forge.FURNACE, ME + S * 3)
@@ -430,3 +463,56 @@ func test_a_creature_s_hover_tells_what_its_fused_blast_does() -> void:
 	var told: Array = SpellInfo.cast(spell).filter(func(row): return row[0] == "피해")
 	w.act(_cast(spell.cards))
 	assert_eq(told[0][1], "%d" % (9 - foe.hp))
+
+
+func test_a_round_that_carries_shrapnel_bursts_beside_a_foe_and_goes_no_farther() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 3)
+	var beside := _post(w, ME + E * 3 + S)
+	var far := _post(w, ME + E * 6 + S)
+	w.act(_cast([FOX, EARTH, METAL, METAL]))
+	assert_eq(foe.hp, 9 - Compounds.SHRAPNEL)
+	assert_eq(beside.hp, 9 - Compounds.SHRAPNEL)
+	assert_eq(far.hp, 9, "it went no farther")
+	assert_eq(w.shots.map(func(s): return [s.pos, s.dir]), [[ME + E * 2, Vector2i.ZERO]])
+
+
+func test_a_round_that_carries_a_compound_stops_on_the_foe_and_acts_there() -> void:
+	var frost := _world()
+	var cold := _post(frost, ME + E * 3)
+	var behind := _post(frost, ME + E * 5)
+	var bullet := Elements.BULLET
+	frost.act(_cast([FOX, Cards.WATER, METAL, METAL]))
+	assert_eq(cold.hp, 9 - bullet)
+	assert_gt(cold.ailments.frozen, 0)
+	assert_eq(behind.hp, 9, "it stopped on the foe")
+	var thorn := _world()
+	var pricked := _post(thorn, ME + E * 3)
+	var beside := _post(thorn, ME + E * 3 + S)
+	var far := _post(thorn, ME + E * 5)
+	thorn.act(_cast([FOX, Cards.WOOD, METAL, METAL]))
+	assert_eq(pricked.hp, 9 - bullet - Compounds.THORN)
+	assert_eq(beside.hp, 9 - Compounds.THORN)
+	assert_eq(far.hp, 9, "it stopped on the foe")
+	assert_eq(thorn.shots, [], "a bullet does not stick")
+
+
+func test_a_round_with_a_lone_element_still_goes_through() -> void:
+	var w := _world()
+	var first := _post(w, ME + E * 2)
+	var second := _post(w, ME + E * 4)
+	w.act(_cast([FOX, FIRE, METAL]))
+	assert_lt(first.hp, 9)
+	assert_lt(second.hp, 9)
+
+
+func test_the_hover_of_a_round_with_a_compound_tells_a_fuse_and_nothing_goes_through() -> void:
+	var fused := Info.plain(SpellInfo.spell(Spell.make([FOX, EARTH, METAL, METAL])))
+	assert_string_contains(fused, Info.FUSE)
+	assert_false(fused.contains(SpellInfo.PIERCE), fused)
+	assert_false(fused.contains(Spell.BULLET_NAME), fused)
+	var plain := Info.plain(SpellInfo.spell(Spell.make([FOX, Cards.WATER, METAL, METAL])))
+	assert_false(plain.contains(SpellInfo.PIERCE), plain)
+	assert_string_contains(
+		Info.plain(SpellInfo.spell(Spell.make([FOX, FIRE, METAL]))), SpellInfo.PIERCE
+	)
