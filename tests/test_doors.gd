@@ -225,7 +225,7 @@ func test_hovering_a_door_shows_its_state_sound_and_light() -> void:
 	var w := _world()
 	w.sense()
 	var shut := Info.plain(Info.terrain(w, DOOR_AT))
-	assert_string_contains(shut, "막음: 시야\n")
+	assert_string_contains(shut, "막음: 시야, 기체\n")
 	assert_string_contains(shut, "여닫을 때 소음: %d" % Terrain.SLIDE)
 	assert_string_contains(shut, "♥")
 	_put(w, DOOR_AT, World.DOOR_OPEN)
