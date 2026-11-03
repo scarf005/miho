@@ -915,6 +915,9 @@ msgstr "%s damage/s: %d"
 msgid "소음: %d"
 msgstr "Noise: %d"
 
+msgid "근접 소음: %d"
+msgstr "Melee noise: %d"
+
 msgid "사라짐: 추락한 적"
 msgstr "Gone: enemy that falls"
 
@@ -1547,6 +1550,9 @@ msgstr "Took {0} damage"
 
 msgid "소음"
 msgstr "Noise"
+
+msgid "근접 소음"
+msgstr "Melee noise"
 
 msgid "%d층 %d초"
 msgstr "Floor %d %d s"

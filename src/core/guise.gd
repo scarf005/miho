@@ -6,6 +6,8 @@ extends RefCounted
 ## `only`. 쇠발톱 and 사령술 go on her whatever the direction (ANYWHERE). A buff takes at
 ## least 3 talismans and holds 목. It has no time limit, stays on her from storey
 ## to storey (but RAISE), and she can drop it: one round, no tail (`dispel`).
+## The casts of 둔갑, 쇠발톱, 은신 and 불여우 are heard (LOUD); the other two are
+## silent.
 ##
 ## 그림자 (SHADOW: 여, the 단비 slot of 수+목, and any number of 수): a dark wisp
 ## rides her (Elements.stick), darkening the tiles round her (Spell.light: 3, and
@@ -22,25 +24,27 @@ extends RefCounted
 ## hunter is not fooled, nor a tracker (Bestiary tracks): the form changes, the
 ## smell does not. Nor is a cunning creature (SEES_THROUGH). One that sees her
 ## put the guise on and is sharp (ALARMED) hunts her at once, so it is not fooled
-## while it hunts; a dull one that sees it is fooled. It is silent. The guise ends at
+## while it hunts; a dull one that sees it is fooled. The guise ends at
 ## the end of the round in which she has stood next to a creature of heaven BESIDE
 ## rounds in a row, when she casts any spell, or when she is hurt.
 ##
 ## 쇠발톱 (TALON, the 3단 of 화, 금 and 목): each claw of hers harms TALON_HARM
 ## more, or TALON_ABSORBED more against a creature that absorbs 쇠
-## (Harm.claw_harm). The spell is silent.
+## (Harm.claw_harm), and is heard TALON_LOUD tiles even on a sneak attack
+## (Harm.claw_loud).
 ##
 ## 은신 (CLOAK: 여 and the 균열 slot of 목+토): she wears the hat of 감투 도깨비
 ## (Hat): a creature knows her only from the next tile or while a wisp of another
-## clings to her, a hunter too. The spell is silent. A tracker follows her scent
+## clings to her, a hunter too. A tracker follows her scent
 ## even while it hunts (Mind.hunt), and a clever creature throws its wisp at where
 ## it suspects her (Aim.suspected).
 ##
 ## 불여우 (FLAME: 여 and the 들불 slot of 목+불): she counts as a fire creature
 ## (Actor.nature_kind = FLAME_KIND), under the rule creatures obey (Bestiary.absorbs,
 ## weak): fire spells and burning tiles do her no harm, water harms her twice over,
-## and every spell of hers that holds 불 and harms does FLAME_HARM more (`flame_harm`).
-## The spell is silent. Thrown along a direction it is the 여우불 of 들불, as ever.
+## and a spell of hers that holds 불 harms a creature that would stop it whole by
+## absorbing fire, for FLAME_THROUGH at most, and feeds it nothing (`through`).
+## Thrown along a direction it is the 여우불 of 들불, as ever.
 ##
 ## 사령술 (RAISE, a set of 여, 토, 금, 수 and 목: Cards.SETS): the dead she sees rise as
 ## allies (Raise). The one buff with a time limit: it ends when she goes to another
@@ -89,6 +93,12 @@ const ALARMED := Bestiary.SHARP
 const SEES_THROUGH := Bestiary.CUNNING
 const TALON_HARM := 2
 const TALON_ABSORBED := 1
+## The buffs whose cast is heard CAST_LOUD tiles as a rustle, and a claw under 쇠발톱,
+## TALON_LOUD.
+const LOUD := [GUISE, TALON, CLOAK, FLAME]
+const CAST_LOUD := 3
+const CAST_WORD := "바스락"
+const TALON_LOUD := 3
 
 
 ## The refusal for a spell that does not go on oneself, listing every one that does.
@@ -173,6 +183,8 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 	var own := kind(spell)
 	if (dir != Vector2i.ZERO or Forge.around(spell)) and not ANYWHERE.has(own):
 		return false
+	if LOUD.has(own):
+		Hearing.noise(w, caster.pos, CAST_LOUD, CAST_WORD, caster.faction == Actor.FOX, caster.id)
 	match own:
 		GUISE:
 			_alarm(w, caster)

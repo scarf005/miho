@@ -7,6 +7,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - The magic system is 음양오행: shapes 여 and 구, and the five elements. A new spell is made by combining the existing talismans: pairs, then 상생 and 상극 chains of three, four and five (docs/plan-compounds.md). Never add a new talisman or card outside this system.
 - A buff, a spell cast on oneself, always holds 목. User: "버프형 주문은 반드시 목 있어야 함. 여 + 불 + 목, 여 + 수 + 목처럼".
 - A buff takes at least 3 talismans, has no time limit and can be dropped at will. User: "변신형 주문은 전부 최소 주문 3장 조합하게 하고 전부 유지시간은 무한대로 하되 스스로 해제 가능하게". 은신 and 둔갑 can be seen through. User: "은신과 둔갑은 파훼당할수 있게 해".
+- The cast of 둔갑, 은신, 불여우 and 쇠발톱 is heard 3 tiles, and a claw under 쇠발톱 is heard 3 tiles, a sneak one too. User: "둔갑, 은신, 불여우, 쇠발톱 모두 시전시 소음 3으로 바꾸고, 쇠발톱은 (영구 유지 가능한 페널티로) 근접 공격 소음을 3으로 바꿔".
 - A creature with wits sees through a 둔갑 cast in front of it. User: "지능이 있는 적 눈앞에서 둔갑하면 소용없게, 지능이 없는 적을 추가로 만들어줘". 천년 이무기 is not fooled by 둔갑 either.
 - 분신 has 3 tails of its own and fights on its own. User: "분신은 꼬리 3개 전투 알아서 하게해 (spellforged servitor처럼)", "분신의 꼬리가 3개라는 뜻이고 주문 가격은 알아서 정해줘". The recipe is 여+토+화+목, so it costs what `Spell.COST` says for four cards. User: "여+토+화+목", "분신은 최대 둘까지만". A third pushes out the oldest, as DCSS `summoned_monster` does. 사령술 costs 7 tails and is the one buff with a time limit, the storey it is cast on. User: "7꼬리 주문, 한 층 내내 지속, 시야의 죽은 적을 발견하면 시귀/강시 등으로 되살아남". 시귀 and 강시 are now named 객귀 and 달걀귀신. User: "객귀와 달걀귀신 ㄱㄱ".
 - 사령술 and 윤회 are two spells. User: "윤회랑 별개의 사령술 주술을 추가하라 했는데?"

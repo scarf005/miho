@@ -42,20 +42,24 @@ const CONDITIONS := {
 	"둔갑":
 	[
 		["풀림: 피해, 주문, 적 옆 %d초 연속", Guise.BESIDE],
+		["소음: %d", Guise.CAST_LOUD],
 		NOT_FOOLED,
 	],
 	Guise.NAME[Guise.TALON]:
 	[
 		["발톱 피해: +%d", Guise.TALON_HARM],
 		["%s 면역인 적: +%d", Cards.NAME[Cards.METAL], Guise.TALON_ABSORBED],
+		["소음: %d", Guise.CAST_LOUD],
+		["근접 소음: %d", Guise.TALON_LOUD],
 	],
 	Guise.NAME[Guise.CLOAK]:
 	[
 		["보임: %d칸 안, 도깨비불 붙음", Hat.REACH],
+		["소음: %d", Guise.CAST_LOUD],
 		CLOAK_SMELT,
 		CLOAK_SHOT,
 	],
-	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM]],
+	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM], ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
@@ -362,11 +366,15 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	return lines
 
 
-## What Miho's claws do: plain, and to a creature caught unawares; a line each.
+## What Miho's claws do: plain, and to a creature caught unawares; a line each, and how
+## far they are heard under 쇠발톱.
 static func _claws(a: Actor) -> Array:
-	return [
+	var out := [
 		_amount("발톱 피해: ", Harm.claw_harm(a, false)), _amount("기습 피해: ", Harm.claw_harm(a, true))
 	]
+	if a.buffs.talon:
+		out.append([[Lang.t("근접 소음: %d") % Guise.TALON_LOUD, Palette.TEXT]])
+	return out
 
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.

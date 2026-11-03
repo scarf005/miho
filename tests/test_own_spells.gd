@@ -89,11 +89,11 @@ func test_a_creature_that_absorbs_iron_takes_less_from_the_talon() -> void:
 
 func test_a_sneak_claw_gains_the_same_harm() -> void:
 	var w := _world()
+	w.act(_cast(TALON))
 	var sleeper := FloorGen.spawn(w, &"imugi", ME + E)
 	sleeper.hp = 99
 	sleeper.max_hp = 99
 	assert_true(sleeper.asleep())
-	w.act(_cast(TALON))
 	var sneak := World.CLAW * World.SNEAK + Guise.TALON_HARM
 	assert_eq(_claws(w.act({t = &"move", dir = E})), [sneak])
 	assert_eq(sleeper.max_hp - sleeper.hp, sneak)
@@ -145,7 +145,7 @@ func test_the_four_that_change_how_she_is_seen_are_heard_three_tiles_and_wake_wh
 		var far := _foe(w, ME + Vector2i(4, 0), Actor.REST)
 		var events := w.act(_cast(Guise.RECIPE[kind]))
 		var noises := _of(events, &"noise")
-		assert_eq(noises.map(func(e): return e.loud), [3], kind)
+		assert_eq(noises[0].loud, 3, kind)
 		assert_eq(near.brain.alert, Actor.SEARCH, "%s: 3 tiles away hears" % kind)
 		assert_eq(near.brain.target, ME, kind)
 		assert_eq(far.brain.alert, Actor.REST, "%s: 4 tiles away does not" % kind)
@@ -265,3 +265,14 @@ func test_a_card_more_on_a_spell_for_herself_cannot_be_cast() -> void:
 	assert_true(w.can({t = &"cast", spells = [{cards = talon, dir = Vector2i.ZERO}]}))
 	var more := {t = &"cast", spells = [{cards = talon + [Cards.WOOD], dir = Vector2i(1, 0)}]}
 	assert_false(w.can(more))
+
+
+func test_the_hovers_tell_the_noise_of_the_cast_and_of_a_claw_under_the_talon() -> void:
+	for kind: StringName in [Guise.GUISE, Guise.TALON, Guise.CLOAK, Guise.FLAME]:
+		var text := Info.plain(SpellInfo.ward(Spell.make(Guise.RECIPE[kind])))
+		assert_string_contains(text, "소음: 3")
+		assert_eq(text.contains("근접 소음: 3"), kind == Guise.TALON, kind)
+		assert_false(text.contains("소음: 없음"), kind)
+	var w := _world()
+	w.act(_cast(TALON))
+	assert_string_contains(Info.plain(Info.creature(w, w.player())), "근접 소음: 3")

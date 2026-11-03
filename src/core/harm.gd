@@ -19,11 +19,17 @@ static func claw_harm(me: Actor, sneak: bool, foe: Actor = null) -> int:
 	return World.CLAW * (World.SNEAK if sneak else 1) + Guise.talon_harm(me, foe)
 
 
+## How far a claw of `me` is heard: 3 tiles, 1 on a sneak attack, and always as far as
+## 쇠발톱 says.
+static func claw_loud(me: Actor, sneak: bool) -> int:
+	return Guise.TALON_LOUD if me.buffs.talon else (1 if sneak else 3)
+
+
 static func claw(w: World, me: Actor, foe: Actor) -> void:
 	var sneak := caught_unawares(w, foe)
 	var n := claw_harm(me, sneak, foe)
 	w.emit({t = &"claw", id = me.id, target = foe.id, at = foe.pos, n = n, sneak = sneak})
-	Hearing.noise(w, foe.pos, 1 if sneak else 3, "퍽", true, me.id)
+	Hearing.noise(w, foe.pos, claw_loud(me, sneak), "퍽", true, me.id)
 	hurt(w, foe, n)
 	if foe.alive():
 		Mind.provoke(w, foe, me)
