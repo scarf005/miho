@@ -25,6 +25,7 @@ extends RefCounted
 ## drums and creatures. blocks: thick enough, it blocks sight. erases: Miho's
 ## scent is lost where it lies. explodes: fire on a tile of it sets off the whole
 ## cloud at once (`light`): BLAST harm to whoever stands in it, which is then alight.
+## boils: the kind that fire on its tile turns it to, of the same amount.
 
 const FOG := 0
 const STEAM := 1
@@ -32,14 +33,21 @@ const SMOKE := 2
 const INCENSE := 3
 const MARSH := 4
 const ROWS := {
-	FOG: {name = "안개", decay = 20},
+	FOG: {name = "안개", decay = 20, boils = STEAM},
 	STEAM: {name = "증기", decay = 50, harm = 1, wets = true},
 	SMOKE: {name = "연기", decay = 50, erases = true},
 	INCENSE: {name = "향 연기", decay = 20, blocks = false, erases = true},
 	MARSH: {name = "늪 기체", decay = 20, blocks = false, explodes = true},
 }
 const DEFAULT := {
-	name = "", decay = 0, harm = 0, wets = false, blocks = true, erases = false, explodes = false
+	name = "",
+	decay = 0,
+	harm = 0,
+	wets = false,
+	blocks = true,
+	erases = false,
+	explodes = false,
+	boils = -1
 }
 ## The harm of a blast to each creature in the cloud, and how far it is heard.
 const BLAST := 2
@@ -102,12 +110,19 @@ static func add(w: World, p: Vector2i, kind: int, amount: int) -> void:
 		w.emit({t = &"gas", at = p, kind = kind})
 
 
-## Fire is on p: a cloud of an exploding gas there goes off, the tiles joined to p
-## by that gas all at once. Each creature in it is hurt BLAST and set alight, each
-## tile that burns catches, and the gas is gone.
+## Fire is on p: fog there turns to steam. A cloud of an exploding gas goes off, the
+## tiles joined to p by that gas all at once. Each creature in it is hurt BLAST and
+## set alight, each tile that burns catches, and the gas is gone.
 static func light(w: World, p: Vector2i) -> void:
-	var kind := at(w, p).x
-	if w.gas.is_empty() or not of(kind, "explodes"):
+	var here := at(w, p)
+	var kind := here.x
+	if w.gas.is_empty():
+		return
+	if of(kind, "boils") >= 0:
+		w.gas.erase(p)
+		add(w, p, of(kind, "boils"), here.y)
+		return
+	if not of(kind, "explodes"):
 		return
 	var cloud: Array[Vector2i] = [p]
 	var i := 0
@@ -136,7 +151,8 @@ static func tick(w: World) -> void:
 		return
 	for p: Vector2i in w.burning.keys():
 		light(w, p)
-		add(w, p, SMOKE, SMOKE_PUFF)
+		if at(w, p).x != STEAM:
+			add(w, p, SMOKE, SMOKE_PUFF)
 	for p: Vector2i in w.vents:
 		put(w, p, w.vents[p], VENT_LEVEL - (at(w, p).y if at(w, p).x == w.vents[p] else 0))
 	if w.gas.is_empty():

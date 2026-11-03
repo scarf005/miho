@@ -146,9 +146,10 @@ func test_a_fire_spray_turns_the_fog_it_reaches_to_steam() -> void:
 	var reached := Spray.cover(w, w.player(), Spell.make([FIRE, FIRE]), E)
 	var far := AHEAD + E * 4
 	assert_false(reached.has(far))
-	_foggy(w, far)
+	var thin := Gas.OPAQUE - 1
+	_foggy(w, far, thin)
 	for p in reached:
-		_foggy(w, p)
+		_foggy(w, p, thin)
 	Cast.cast(w, w.player(), Spell.make([FIRE, FIRE]), E)
 	for p in reached:
 		assert_eq(Gas.at(w, p).x, Gas.STEAM, str(p))

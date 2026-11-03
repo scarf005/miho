@@ -841,6 +841,10 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append([[Lang.t("북: %d초 동안 소음 없음") % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
 		out.append([[Lang.t("지워짐: 냄새"), Palette.DIM]])
+	var steam: int = Gas.of(g.x, "boils")
+	if steam >= 0:
+		var became := [[Gas.of(steam, "name"), Palette.GAS[steam][1]]]
+		out.append(Lang.runs("불: {0}이/가 됨", became, Palette.DIM))
 	return out
 
 
