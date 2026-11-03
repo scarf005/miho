@@ -177,3 +177,12 @@ func test_a_water_orb_takes_the_heat_off_the_ground_it_turns_to_water() -> void:
 	assert_eq(w.tile(on), World.SHALLOW)
 	assert_false(w.hot.has(on))
 	assert_true(w.hot.has(past), "not past the 3x3")
+
+
+func test_a_water_orb_on_burning_floor_puts_it_out_and_leaves_water() -> void:
+	var w := _world()
+	var on := AHEAD + Vector2i(0, 1)
+	w.burning[on] = 3
+	_splash(w, [ORB, WATER])
+	assert_false(w.burning.has(on))
+	assert_eq(w.tile(on), World.SHALLOW)
