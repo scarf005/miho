@@ -36,11 +36,11 @@ func key(action: StringName, far: bool) -> bool:
 	elif action in [&"cancel", &"look"]:
 		stop()
 	elif action == &"exclude" and m.world.known[Grid.index(hover)] == 1:
-		m.excluded.cycle(hover)
-		m.zones_changed()
-	elif action.begins_with("pick_") and m.excluded.zones.has(hover):
-		m.excluded.set_radius(hover, int(action.trim_prefix("pick_")))
-		m.zones_changed()
+		m.journey.excluded.cycle(hover)
+		m.journey.zones_changed()
+	elif action.begins_with("pick_") and m.journey.excluded.zones.has(hover):
+		m.journey.excluded.set_radius(hover, int(action.trim_prefix("pick_")))
+		m.journey.zones_changed()
 	else:
 		stop()
 		return false

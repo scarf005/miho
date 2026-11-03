@@ -82,9 +82,9 @@ func test_a_tap_on_the_next_tile_steps_there_as_a_click_does() -> void:
 func test_a_tap_on_a_far_known_tile_walks_there() -> void:
 	var m := _main()
 	_finger(m, _tile_at(m, Vector2i(9, 8)))
-	assert_true(m.walking, "a walk is under way")
+	assert_true(m.journey.walking, "a walk is under way")
 	for i in 400:
-		if not m.walking:
+		if not m.journey.walking:
 			break
 		await get_tree().process_frame
 	assert_eq(_me(m), Vector2i(9, 8))

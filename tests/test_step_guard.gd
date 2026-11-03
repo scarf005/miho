@@ -15,7 +15,7 @@ func _press(m: Node, key: String, echo := false) -> void:
 
 
 func _settle(m: Node) -> void:
-	while m.busy or m.walking:
+	while m.busy or m.journey.walking:
 		await get_tree().process_frame
 
 
@@ -306,7 +306,7 @@ func test_rest_refuses_with_an_awake_enemy_in_sight_and_takes_no_turn() -> void:
 	_press(m, "Z")
 	await _settle(m)
 	assert_eq(m.world.round_no, round_no)
-	assert_eq(m.messages.lines.back().text, m.WATCHED[&"rest"])
+	assert_eq(m.messages.lines.back().text, Journey.WATCHED[&"rest"])
 
 
 func test_rest_works_with_no_enemy_in_sight() -> void:

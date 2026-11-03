@@ -91,7 +91,7 @@ func _run() -> void:
 	await get_tree().create_timer(0.6).timeout
 	for k in keys:
 		await _send(k)
-		while main.busy or main.walking or main.state == &"replay":
+		while main.busy or main.journey.walking or main.state == &"replay":
 			await get_tree().process_frame
 		await get_tree().create_timer(0.2).timeout
 	await get_tree().create_timer(0.5).timeout

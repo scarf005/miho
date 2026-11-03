@@ -17,6 +17,6 @@ func test_explore_rests_until_the_tails_regrow_first() -> void:
 	m.world.depth = 2
 	m.world.tails = 1
 	m.forecast()
-	assert_eq(m._exploring(), {t = &"wait"})
+	assert_eq(m.journey.exploring(), {t = &"wait"})
 	m.world.tails = m.world.max_tails()
-	assert_eq(m._exploring().t, &"move")
+	assert_eq(m.journey.exploring().t, &"move")

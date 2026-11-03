@@ -50,7 +50,7 @@ static func paint(m: Node) -> void:
 	var term: Term = m.term
 	_inspect(m)
 	term.debug = DebugView.view(world) if m.debugging else {}
-	term.zone = m.zone
+	term.zone = m.journey.zone
 	term.picked = m.casting.picked
 	term.staged = m.casting.staged
 	var tints: Dictionary = m.reach.duplicate()
@@ -79,7 +79,7 @@ static func paint(m: Node) -> void:
 		and Grid.inside(hover)
 		and Grid.cheb(hover, me) > 1
 	):
-		for p in m._path_to(hover):
+		for p in m.journey.path_to(hover):
 			tints[p] = Color(Palette.TEXT, 0.12)
 	var a := world.actor_at(hover) if Grid.inside(hover) else null
 	if a != null and a.faction != Actor.FOX and Hat.shown(world, a):
@@ -167,7 +167,7 @@ static func _lines(m: Node) -> Array:
 	return (
 		m.menu.debug.head()
 		+ lines
-		+ m.excluded.lines(m.look.hover, m.zone)
+		+ m.journey.excluded.lines(m.look.hover, m.journey.zone)
 		+ Info.ahead(m.world, m.ahead, m.look.hover)
 	)
 

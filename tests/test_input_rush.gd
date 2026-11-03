@@ -74,10 +74,10 @@ func test_a_held_key_repeats_through_animations() -> void:
 
 func test_a_key_during_a_walk_stops_it_at_once() -> void:
 	var m := _main()
-	m._journey(func(): return {t = &"move", dir = Vector2i.RIGHT})
-	assert_true(m.walking, "still walking")
+	m.journey.go(func(): return {t = &"move", dir = Vector2i.RIGHT})
+	assert_true(m.journey.walking, "still walking")
 	m._unhandled_input(_key("Period"))
-	assert_false(m.walking)
+	assert_false(m.journey.walking)
 	assert_false(m.busy)
 
 

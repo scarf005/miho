@@ -24,16 +24,9 @@ extends Node
 ## into sight (StepGuard). Erasing the run asks first as well. The run is saved once a second
 ## (Autosave) and the title continues it; a run that ends leaves no save.
 
-## How much faster rounds play while walking many rounds.
-const WALK_SPEED := 3.0
 ## Message lines shown over the map, and for how many rounds.
 const LOG_ROWS := 3
 const LOG_FADE := 5
-## Why exploring or resting does not start.
-const WATCHED := {
-	&"explore": "깨어 있는 적이 보여서 탐험할 수 없다",
-	&"rest": "깨어 있는 적이 보여서 쉴 수 없다",
-}
 ## Time per frame spent replaying a saved run on Continue; the rest draws the count.
 const REPLAY_BUDGET_MS := 40
 
@@ -67,9 +60,7 @@ var save_path := SaveGame.PATH
 var settings: Settings
 var glass: ColorRect
 var pan: Tween
-## A walk of many rounds is under way, and a key or click asked it to stop.
-var walking := false
-var halt := false
+var journey := Journey.new(self)
 var messages := Messages.new()
 var menu := Menu.new()
 ## The page open over the game (a full screen, or the debug box), or empty.
@@ -81,13 +72,6 @@ var known: World
 var ahead := {}
 var reach := {}
 var aims := {}
-## Shortest walks from Miho over what she knows, around the travel exclusions
-## and where creatures were last seen (Travel.search, Sightings), and the tiles
-## the exclusions cover.
-var routes := {}
-var excluded := Exclusions.new()
-var sightings := Sightings.new()
-var zone := {}
 
 
 func _ready() -> void:
@@ -184,7 +168,7 @@ func new_run(seed_value := randi()) -> void:
 	erasing = false
 	kills = 0
 	casting.last_spell = ""
-	excluded.clear()
+	journey.excluded.clear()
 	messages = Messages.new()
 	term.log_lines = []
 	reel.clear()
@@ -198,11 +182,11 @@ func new_run(seed_value := randi()) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	var press := event.is_pressed() and not event.is_echo()
-	var walked := walking or state == &"replay"
+	var walked := journey.walking or state == &"replay"
 	if event is InputEventKey and event.keycode == KEY_SHIFT and not event.is_echo():
 		WordHover.hold(self, event.pressed)
 	if event.is_pressed() and state in [&"play", &"replay"]:
-		halt = halt or walking and press
+		journey.halt = journey.halt or journey.walking and press
 		skip = skip or press
 		term.rush()
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
@@ -275,7 +259,7 @@ func resume() -> void:
 	run = saved
 	run_seed = run.seed_value
 	kills = run.kills
-	excluded.zones = run.exclusions.duplicate()
+	journey.excluded.zones = run.exclusions.duplicate()
 	pending = null
 	state = &"play"
 	term.banner_lines = []
@@ -362,15 +346,12 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"cancel":
 		_open(&"options")
 	elif action == &"stairs":
-		_journey(_to_exit, _walled_in(Travel.exit(world), "아직 계단을 찾지 못했다"))
-	elif action in WATCHED and Travel.watched(world):
-		say(WATCHED[action])
-		sfx.play(&"click")
+		journey.to_stairs()
 	elif action == &"explore":
-		_journey(_exploring, "" if _explore_walled() else "더 탐험할 곳이 없다")
+		journey.explore()
 	elif action == &"exclude_clear":
-		excluded.clear()
-		zones_changed()
+		journey.excluded.clear()
+		journey.zones_changed()
 	elif action == &"spellbook":
 		_open(&"spells")
 	elif Keys.SLOTS.has(action):
@@ -384,7 +365,7 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"restart":
 		new_game()
 	elif action == &"rest":
-		_journey(_resting, "꼬리가 이미 다 자랐다")
+		journey.rest()
 	elif action == &"close":
 		_shut()
 	elif action == &"dispel":
@@ -446,7 +427,7 @@ func use_tile(tile: Vector2i, hold: bool) -> void:
 	elif Grid.cheb(tile, me) == 1:
 		move(tile - me)
 	else:
-		_journey(func(): return _step_on(_path_to(tile)), _walled_in(tile, ""))
+		journey.to_tile(tile)
 
 
 ## A screen point in the term's space, through the CRT curve when it is on.
@@ -500,7 +481,7 @@ func act(action: Dictionary) -> Array:
 	var depth := world.depth
 	var events := world.act(action)
 	if world.depth != depth:
-		excluded.clear()
+		journey.excluded.clear()
 		run.exclusions = {}
 	reel.record(before, action, events)
 	kills += events.filter(func(e): return e.t == &"die" and e.get("foe", false)).size()
@@ -527,38 +508,6 @@ func act(action: Dictionary) -> Array:
 	return events
 
 
-## Plays `next` (an action, or empty when done) round after round. Stops
-## before a step whose forecast shows harm or being noticed or that ends next
-## to fire, and after a round
-## in which something Miho should react to happened (Travel.interrupted), or
-## when a key or click asks. `why` is said when it cannot take a first step.
-func _journey(next: Callable, why := "") -> void:
-	casting.clear()
-	var sighted := Travel.in_sight(world)
-	var rounds := 0
-	walking = true
-	halt = false
-	term.speed = settings.speed * WALK_SPEED
-	while not halt and state == &"play":
-		var action: Dictionary = next.call()
-		if action.is_empty():
-			if rounds == 0 and why != "":
-				say(why)
-			break
-		var f: Forecast = ahead.get(action.get("dir", Vector2i.ZERO))
-		if f == null or f.drops_me() or Travel.hazard(world, action, f) != &"":
-			break
-		var before := world.clone()
-		var events: Array = await act(action)
-		rounds += 1
-		if Travel.interrupted(before, world, events, sighted):
-			break
-	walking = false
-	term.speed = settings.speed
-	if rounds == 0:
-		sfx.play(&"click")
-
-
 ## Shuts the open door next to Miho; with several, waits for a direction key.
 func _shut() -> void:
 	var doors := Grid.DIRS.filter(func(d): return world.can({t = &"close", dir = d}))
@@ -580,61 +529,6 @@ func _fight() -> void:
 		return
 	casting.clear()
 	await act(step)
-
-
-func _step_on(path: Array[Vector2i]) -> Dictionary:
-	return {t = &"move", dir = path[0] - world.player().pos} if not path.is_empty() else {}
-
-
-## The shortest walk to `tile`: around the exclusions, unless `tile` is in one,
-## which Miho may walk into when told to.
-func _path_to(tile: Vector2i) -> Array[Vector2i]:
-	return Travel.route(Travel.search(world, sightings.at) if zone.has(tile) else routes, tile)
-
-
-## What is said when the way to `goal` is shut only by the exclusions, else `otherwise`.
-func _walled_in(goal: Vector2i, otherwise: String) -> String:
-	var shut := (
-		Grid.inside(goal)
-		and Travel.route(routes, goal).is_empty()
-		and not Travel.route(Travel.search(world, sightings.at), goal).is_empty()
-	)
-	return "위험구역 너머로는 갈 수 없다" if shut else otherwise
-
-
-## Whether nothing is left to explore only because of the exclusions.
-func _explore_walled() -> bool:
-	return (
-		not excluded.is_empty()
-		and Travel.explore_step(world, routes) == Vector2i.ZERO
-		and Travel.explore_step(world, Travel.search(world, sightings.at)) != Vector2i.ZERO
-	)
-
-
-## The exclusions changed: keep them in the save and work out the walks again.
-func zones_changed() -> void:
-	run.exclusions = excluded.zones.duplicate()
-	run.write()
-	forecast()
-
-
-func _to_exit() -> Dictionary:
-	return _step_on(Travel.route(routes, Travel.exit(world)))
-
-
-## A step towards the nearest unexplored ground, after resting until the tails
-## have all regrown (DCSS explore_auto_rest).
-func _exploring() -> Dictionary:
-	var d := Travel.explore_step(world, routes)
-	if d == Vector2i.ZERO:
-		if _explore_walled():
-			say("위험구역 너머는 탐험할 수 없다")
-		return {}
-	return _resting() if world.tails < world.max_tails() else {t = &"move", dir = d}
-
-
-func _resting() -> Dictionary:
-	return {t = &"wait"} if world.tails < world.max_tails() else {}
 
 
 # --- messages and panels --------------------------------------------------------
@@ -758,9 +652,7 @@ func forecast() -> void:
 	_unask()
 	known = world.known_clone()
 	var me := world.player().pos
-	zone = excluded.tiles(world)
-	sightings.update(world)
-	routes = Travel.search(world, excluded.tiles(world, me).merged(sightings.at))
+	journey.plan()
 	ahead = {}
 	aims = {}
 	reach = {}

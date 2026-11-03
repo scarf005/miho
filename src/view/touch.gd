@@ -235,7 +235,7 @@ func input(event: InputEvent, now := _now()) -> void:
 
 
 func _gesture(e: Dictionary) -> void:
-	if main.busy or main.walking or main.state == &"replay":
+	if main.busy or main.journey.walking or main.state == &"replay":
 		return
 	if frozen and e.t == &"tap" and WordHover.on_pin(main.term, main.to_term(e.pos)):
 		WordLink.open(main, main.to_term(e.pos))
