@@ -24,6 +24,7 @@ func _play(n: int) -> SaveGame:
 			action = step
 		w.act(action)
 		run.record(action, i, w.outcome != &"")
+	run.flush()
 	return run
 
 
@@ -73,20 +74,37 @@ func test_loading_rebuilds_the_message_log() -> void:
 	assert_eq(back.messages.lines, live.lines)
 
 
-func test_each_round_is_on_disk_as_it_is_played() -> void:
+func test_rounds_reach_the_disk_at_the_flush() -> void:
 	var run := SaveGame.new(PATH, SEED)
+	run.flush()
 	assert_null(SaveGame.load_from(PATH), "nothing before the first round")
 	run.record({t = &"wait"}, 0, false)
+	assert_null(SaveGame.load_from(PATH), "a round played waits in memory")
+	run.flush()
 	assert_eq(SaveGame.load_from(PATH).actions.size(), 1)
 	run.record({t = &"wait"}, 0, false)
+	assert_eq(SaveGame.load_from(PATH).actions.size(), 1)
+	run.flush()
 	assert_eq(SaveGame.load_from(PATH).actions.size(), 2)
+
+
+func test_a_flush_with_nothing_new_writes_nothing() -> void:
+	var run := _play(3)
+	run.flush()
+	DirAccess.remove_absolute(PATH)
+	run.flush()
+	assert_false(FileAccess.file_exists(PATH))
 
 
 func test_a_finished_run_leaves_no_save() -> void:
 	var run := _play(3)
+	run.flush()
 	assert_true(FileAccess.file_exists(PATH))
+	run.record({t = &"wait"}, 3, false)
 	run.record({t = &"wait"}, 3, true)
-	assert_false(FileAccess.file_exists(PATH))
+	assert_false(FileAccess.file_exists(PATH), "the file goes at once")
+	run.flush()
+	assert_false(FileAccess.file_exists(PATH), "and what waited in memory goes with it")
 	assert_null(SaveGame.load_from(PATH))
 	run.erase()
 	assert_false(FileAccess.file_exists(PATH), "erasing nothing is harmless")
@@ -149,4 +167,5 @@ func test_a_replay_stops_at_an_action_the_rules_refuse() -> void:
 func test_a_run_with_a_closed_door_loads() -> void:
 	var run := SaveGame.new(PATH, SEED)
 	run.record({t = &"close", dir = Vector2i(1, 0)}, 0, false)
+	run.flush()
 	assert_not_null(SaveGame.load_from(PATH), "a run that closed a door is still a run")

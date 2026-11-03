@@ -236,6 +236,7 @@ func test_the_title_does_not_offer_the_commands_and_the_saved_run_stays() -> voi
 	var saved := SaveGame.new(path, 7)
 	for i in 3:
 		saved.record({t = &"wait"}, 0, false)
+	saved.flush()
 	var m := _main(path)
 	assert_eq(m.state, &"title")
 	await _key(m, "Escape")

@@ -212,6 +212,7 @@ func test_a_drop_replays_from_a_save() -> void:
 		assert_true(w.can(actions[i]), str(actions[i]))
 		w.act(actions[i])
 		run.record(actions[i], 0, false)
+	run.flush()
 	var back := SaveGame.load_from(SAVE)
 	assert_not_null(back)
 	assert_true(back.replay())

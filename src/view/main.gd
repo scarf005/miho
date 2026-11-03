@@ -21,8 +21,8 @@ extends Node
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
 ## anywhere to hurl; click a talisman to queue it or a 도감 word to open it; right-click clears.
 ## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
-## into sight (StepGuard). Erasing the run asks first as well. The run is saved after every round
-## (SaveGame) and the title continues it; a run that ends leaves no save.
+## into sight (StepGuard). Erasing the run asks first as well. The run is saved once a second
+## (Autosave) and the title continues it; a run that ends leaves no save.
 
 ## How much faster rounds play while walking many rounds.
 const WALK_SPEED := 3.0
@@ -74,8 +74,7 @@ var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
 var kills := 0
-## This run as saved after every round, and the run on disk that the title
-## offers to continue (null when there is none).
+## This run, and the run on disk that the title offers to continue (null when there is none).
 var run := SaveGame.new()
 var pending: SaveGame
 var save_path := SaveGame.PATH
@@ -113,6 +112,7 @@ func _ready() -> void:
 	touch.main = self
 	add_child(touch)
 	touch.start()
+	add_child(Autosave.new(self))
 	sfx = Sfx.new()
 	term.add_child(sfx)
 	term.shown.connect(sfx.on_event)
@@ -191,6 +191,7 @@ func _fit() -> void:
 
 
 func _new_run(seed_value := randi()) -> void:
+	run.flush()
 	world = World.create(seed_value)
 	run_seed = seed_value
 	run = SaveGame.new(save_path, seed_value)
@@ -700,7 +701,6 @@ func _act(action: Dictionary) -> Array:
 		run.exclusions = {}
 	reel.record(before, action, events)
 	kills += events.filter(func(e): return e.t == &"die" and e.get("foe", false)).size()
-	# Saved before the round plays out, so closing the game at any point keeps it.
 	run.record(action, kills, world.outcome != &"")
 	sfx.listener.position = term.cell_centre(world.player().pos)
 	await term.play(events, before, world)

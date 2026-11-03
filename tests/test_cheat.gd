@@ -345,6 +345,7 @@ func test_a_saved_run_with_debug_actions_plays_back_to_the_same_world() -> void:
 		assert_true(w.can(action), str(action))
 		w.act(action)
 		run.record(action, 0, false)
+	run.flush()
 	var back := SaveGame.load_from(PATH)
 	assert_not_null(back, "a save with debug actions loads")
 	assert_true(back.replay())

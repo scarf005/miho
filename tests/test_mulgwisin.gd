@@ -380,6 +380,7 @@ func test_a_saved_run_with_a_seize_plays_back_the_same() -> void:
 		assert_gt(
 			w.player().ailments.rooted + (w.player().max_hp - w.player().hp), 0, "she was seized"
 		)
+		run.flush()
 		var back := SaveGame.load_from(PATH)
 		assert_true(back.replay())
 		var me := back.world.player()

@@ -34,6 +34,7 @@ func _play(n: int) -> SaveGame:
 		run.record(action, i, w.outcome != &"")
 		log.add_round(before, w, events)
 		run.keep(w, log)
+	run.flush()
 	return run
 
 
@@ -112,6 +113,7 @@ func test_a_run_that_went_on_from_a_state_comes_back_the_same() -> void:
 		run.record(action, i, false)
 		run.messages.add_round(before, w, events)
 		run.keep(w, run.messages)
+	run.flush()
 	var back := SaveGame.load_from(PATH)
 	assert_true(back.replay())
 	assert_eq(back.world.round_no, w.round_no)
@@ -132,6 +134,7 @@ func test_an_action_the_rules_refuse_goes_back_to_the_last_state() -> void:
 func test_a_run_with_no_state_is_still_dropped() -> void:
 	var run := SaveGame.new(PATH, SEED)
 	run.record({t = &"wait"}, 0, false)
+	run.flush()
 	_version(SaveGame.VERSION - 1)
 	assert_null(SaveGame.load_from(PATH))
 
@@ -189,6 +192,7 @@ func test_a_run_that_lost_the_state_its_actions_start_from_is_not_played_from_th
 	var action := _action(w, 0)
 	w.act(action)
 	run.record(action, 0, false)
+	run.flush()
 	DirAccess.remove_absolute(PATH + SaveGame.STATES)
 	assert_null(SaveGame.load_from(PATH))
 
@@ -216,3 +220,14 @@ func test_a_world_written_down_does_not_change_with_the_one_it_was() -> void:
 	w.set_tile(at, World.WALL if was != World.WALL else World.FLOOR)
 	from_data.set_tile(at, World.WALL if was != World.WALL else World.FLOOR)
 	assert_eq(Snapshot.world(data).tile(at), was)
+
+
+func test_a_state_reaches_the_disk_at_the_flush() -> void:
+	var run := SaveGame.new(PATH, SEED)
+	var w := World.create(SEED)
+	w.act({t = &"wait"})
+	run.record({t = &"wait"}, 0, false)
+	run.keep(w, Messages.new())
+	assert_false(FileAccess.file_exists(PATH + SaveGame.STATES), "it waits in memory")
+	run.flush()
+	assert_true(SaveGame.load_from(PATH).states.has("last"))

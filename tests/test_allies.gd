@@ -356,6 +356,7 @@ func test_a_saved_run_with_a_copy_replays_to_the_same_world() -> void:
 			run.record(action, w.round_no, w.outcome != &"")
 			assert_lte(_copies(w).size(), Bunsin.MOST)
 	assert_gt(gone, 0, "a third pushed one out")
+	run.flush()
 	var back := SaveGame.load_from(PATH)
 	assert_true(back.replay())
 	var state := func(a: Actor) -> Array: return [a.id, a.pos, a.hp, a.magic.mana, a.magic.imprint]

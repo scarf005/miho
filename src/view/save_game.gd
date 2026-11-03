@@ -6,6 +6,7 @@ extends RefCounted
 ## the message log and the kill count. Beside it, in a file of its own, lie the last state
 ## written (Snapshot) and, once a run has gone back to one, the state its actions start from:
 ## a run the rules no longer fit goes on from the last state, without the actions after it.
+## A round played waits in memory until `flush` (Autosave) writes what has changed.
 
 const PATH := "user://save.cfg"
 ## Bumped when a change to the rules would make old actions play differently.
@@ -33,6 +34,9 @@ var states := {}
 var based := false
 ## Whether the actions no longer fit, so that `begin` goes back to the last state.
 var stale := false
+## What has changed since the files were written.
+var _actions_changed := false
+var _states_changed := false
 
 
 func _init(at := PATH, seed_of := 0) -> void:
@@ -72,25 +76,33 @@ static func load_from(from := PATH) -> SaveGame:
 	return s
 
 
-## Takes an action that was played and saves, or removes the file when the run
-## is `over`.
+## Takes an action that was played, or removes the file at once when the run is `over`.
 func record(action: Dictionary, total: int, over: bool) -> void:
 	if over:
 		erase()
 		return
 	actions.append(action.duplicate(true))
 	kills = total
-	write()
+	_actions_changed = true
 
 
-## Writes a state of the round just played, with its lines in `log`, when one is due.
+## Takes a state of the round just played, with its lines in `log`, when one is due.
 func keep(w: World, log: Messages) -> void:
 	if w.outcome == &"" and _state_due(w):
 		states.last = {world = Snapshot.of(w), log = log.saved(), kills = kills, depth = w.depth}
+		_states_changed = true
+
+
+## Writes what has changed since the last time.
+func flush() -> void:
+	if _actions_changed:
+		write()
+	if _states_changed:
 		_write_states()
 
 
 func write() -> void:
+	_actions_changed = false
 	if path == "":
 		return
 	var c := ConfigFile.new()
@@ -105,6 +117,8 @@ func write() -> void:
 
 ## Removes the file: the run is over, or a new one replaces it.
 func erase() -> void:
+	_actions_changed = false
+	_states_changed = false
 	for file in [path, path + STATES]:
 		if path != "" and FileAccess.file_exists(file):
 			DirAccess.remove_absolute(file)
@@ -169,6 +183,7 @@ func _state_due(w: World) -> bool:
 
 
 func _write_states() -> void:
+	_states_changed = false
 	if path == "":
 		return
 	states.seed = seed_value

@@ -340,6 +340,7 @@ func test_a_save_replays_a_rising() -> void:
 		w.act(action)
 		run.record(action, 0, false)
 	assert_eq(_risen(w).size(), 1)
+	run.flush()
 	var back := SaveGame.load_from(SAVE)
 	assert_not_null(back)
 	assert_true(back.replay())

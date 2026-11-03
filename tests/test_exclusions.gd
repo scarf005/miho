@@ -145,6 +145,7 @@ func test_a_run_saves_and_loads_its_zones() -> void:
 	var run := SaveGame.new(PATH, 2)
 	run.exclusions = {Vector2i(7, 7): 5, Vector2i(9, 3): 0}
 	run.record({t = &"wait"}, 0, false)
+	run.flush()
 	var back := SaveGame.load_from(PATH)
 	assert_eq(back.exclusions, run.exclusions)
 	assert_true(back.replay(), "zones do not touch the replay")

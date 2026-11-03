@@ -296,6 +296,7 @@ func test_a_save_replays_to_the_same_world() -> void:
 		assert_true(w.can(actions[i]), str(actions[i]))
 		w.act(actions[i])
 		run.record(actions[i], 0, false)
+	run.flush()
 	var back := SaveGame.load_from(SAVE)
 	assert_not_null(back)
 	assert_true(back.replay())
