@@ -8,10 +8,20 @@ var _started := 0
 var _script := ""
 
 
+## Lists no orphans: the list walks every object alive after each test, the worlds Built keeps
+## too, and nothing reads it. GUT's total of orphans comes from Performance and stays.
+class NoOrphans:
+	extends "res://addons/gut/orphan_counter.gd".GutOrphanage
+
+	func _get_system_orphan_node_ids():
+		return []
+
+
 func run() -> void:
 	# A frame of a test waits on nothing, and no one reads the orphans the last wait counts.
 	OS.low_processor_usage_mode = false
 	gut._time_to_wait_for_final_queue_free = 0.0
+	gut.get_orphan_counter().orphanage = NoOrphans.new()
 	gut.start_script.connect(_start)
 	gut.end_script.connect(_end)
 
