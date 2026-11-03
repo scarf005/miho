@@ -128,14 +128,55 @@ func test_the_cloak_goes_on_her_only_with_no_direction() -> void:
 	assert_true(w.player().buffs.cloak)
 
 
-func test_they_are_silent_and_hurt_nobody() -> void:
+func test_they_hurt_nobody() -> void:
 	for cards in [TALON, CLOAK]:
 		var w := _world()
 		var foe := FloorGen.spawn(w, &"imugi", ME + Vector2i(3, 0))
 		var health := foe.hp
-		var events := w.act(_cast(cards))
-		assert_eq(_of(events, &"noise").size(), 0)
+		w.act(_cast(cards))
 		assert_eq(foe.hp, health)
+
+
+func test_the_four_that_change_how_she_is_seen_are_heard_three_tiles_and_wake_what_hears() -> void:
+	for kind: StringName in [Guise.GUISE, Guise.TALON, Guise.CLOAK, Guise.FLAME]:
+		var w := _world()
+		w.player().buffs.prey = &"dokkaebi"
+		var near := _foe(w, ME + Vector2i(3, 0), Actor.REST)
+		var far := _foe(w, ME + Vector2i(4, 0), Actor.REST)
+		var events := w.act(_cast(Guise.RECIPE[kind]))
+		var noises := _of(events, &"noise")
+		assert_eq(noises.map(func(e): return e.loud), [3], kind)
+		assert_eq(near.brain.alert, Actor.SEARCH, "%s: 3 tiles away hears" % kind)
+		assert_eq(near.brain.target, ME, kind)
+		assert_eq(far.brain.alert, Actor.REST, "%s: 4 tiles away does not" % kind)
+
+
+func test_the_shadow_and_the_raising_stay_silent() -> void:
+	for kind: StringName in [Guise.SHADOW, Guise.RAISE]:
+		var w := _world()
+		var events := w.act(_cast(Guise.RECIPE[kind]))
+		assert_eq(_of(events, &"noise").size(), 0, kind)
+
+
+func _claw_noise(w: World, sleeper: bool) -> Array:
+	var foe := FloorGen.spawn(w, &"imugi", ME + E)
+	foe.hp = 99
+	foe.max_hp = 99
+	if not sleeper:
+		foe.brain.alert = Actor.HUNT
+	var blows := _of(w.act({t = &"move", dir = E}), &"noise").filter(func(e): return e.word == "퍽")
+	return blows.slice(0, 1).map(func(e): return e.loud)
+
+
+func test_a_claw_is_heard_three_tiles_with_the_talon_even_on_a_sneak_attack() -> void:
+	var w := _world()
+	assert_eq(_claw_noise(w, true), [1], "a sneak claw is quiet without it")
+	w = _world()
+	assert_eq(_claw_noise(w, false), [3])
+	w = _world()
+	w.act(_cast(TALON))
+	assert_eq(_claw_noise(w, true), [3])
+	assert_eq(_claw_noise(w, true), [3])
 
 
 func test_with_the_cloak_a_creature_that_is_not_hunting_does_not_know_her() -> void:
