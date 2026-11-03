@@ -276,3 +276,11 @@ func test_the_hovers_tell_the_noise_of_the_cast_and_of_a_claw_under_the_talon() 
 	var w := _world()
 	w.act(_cast(TALON))
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), "근접 소음: 3")
+
+
+func test_a_buff_hover_tells_the_noise_of_its_cast_under_its_name_and_no_bare_noise_of_it() -> void:
+	for kind: StringName in [Guise.GUISE, Guise.TALON, Guise.CLOAK, Guise.FLAME]:
+		var text := Info.plain(SpellInfo.spell(Spell.make(Guise.RECIPE[kind])))
+		var lines := Array(text.split("\n")).map(func(l: String): return l.strip_edges())
+		assert_has(lines, "%s 소음: %d" % [Lang.t(Guise.NAME[kind]), Guise.CAST_LOUD])
+		assert_does_not_have(lines, "소음: %d" % Guise.CAST_LOUD, kind)
