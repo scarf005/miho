@@ -44,6 +44,8 @@ var held := false
 var erasing := false
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
+## Miho's scent trail is tinted on the tiles she has seen.
+var scenting := false
 var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
@@ -375,6 +377,9 @@ func do_action(action: StringName, shift: bool) -> void:
 			_fight()
 		else:
 			casting.aim_next()
+	elif action == &"scent":
+		scenting = not scenting
+		refresh()
 	elif action == &"debug":
 		debugging = not debugging
 		refresh()

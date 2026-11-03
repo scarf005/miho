@@ -70,6 +70,8 @@ var pin := {}
 ## Set by the game: the debug view (DebugView.view) while it is on, else empty.
 ## It shows every tile, creature and goal as if Miho knew them.
 var debug := {}
+## Set by the game: the tiles of Miho's scent trail to tint, with their freshness (Scent.fresh).
+var scent := {}
 var speed := 1.0
 ## Saved spells (Settings.spells), listed on the status row by their slot keys.
 var saved := {}
@@ -335,6 +337,7 @@ func _draw_game() -> void:
 	TermMarks.telegraphs(self, actors)
 	if not anim.playing:
 		TermMarks.paths(self)
+		TermMarks.scent(self)
 		for l: Array in lines:
 			if in_view(l[0]) and in_view(l[1]):
 				var a := cell_centre(l[0])

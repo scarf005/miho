@@ -14,13 +14,6 @@ static func view(w: World) -> Dictionary:
 	for a in w.actors:
 		if a.alive() and a.faction != Actor.FOX and a.brain.alert != Actor.REST:
 			goals.append({from = a.pos, to = a.brain.target, alert = a.brain.alert})
-	var scent := {}
-	if w.scent.size() == w.tiles.size():
-		for i in w.scent.size():
-			var age := w.round_no + 1 - w.scent[i]
-			var limit := Scent.reach(w, Grid.at(i))
-			if w.scent[i] > 0 and age <= limit:
-				scent[Grid.at(i)] = 1.0 - float(age) / (limit + 1)
 	var sounds := []
 	for e in w.events:
 		if e.t == &"noise":
@@ -30,18 +23,13 @@ static func view(w: World) -> Dictionary:
 				if found.dist[i] >= 0:
 					reach[Grid.at(i)] = found.dist[i]
 			sounds.append({at = e.at, word = e.word, loud = e.loud, heard = e.heard, reach = reach})
-	return {goals = goals, scent = scent, sounds = sounds}
+	return {goals = goals, scent = Scent.fresh(w), sounds = sounds}
 
 
-## Draws the overlay on `t` from t.debug: Miho's scent trail (fresher is
-## brighter), the tiles each sound of this round reached with its edge and
-## word marked, and for each creature on the hunt or search a line to the tile
-## it is bound for. It adds no popup or mark: those are Perceived's.
+## Draws the overlay on `t` from t.debug: the tiles each sound of this round reached with its
+## edge and word marked, and for each creature on the hunt or search a line to the tile it is
+## bound for. It adds no popup or mark: those are Perceived's.
 static func draw(t: Term) -> void:
-	for p: Vector2i in t.debug.get("scent", {}):
-		if t.in_view(p):
-			var tint := Color(Palette.SIDE[0], 0.06 + 0.3 * t.debug.scent[p])
-			t.draw_rect(Rect2(t.cell_of(p) * Term.CELL, Term.CELL), tint)
 	for s: Dictionary in t.debug.get("sounds", []):
 		for p: Vector2i in s.reach:
 			if t.in_view(p):

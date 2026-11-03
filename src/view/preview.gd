@@ -50,6 +50,7 @@ static func paint(m: Node) -> void:
 	var term: Term = m.term
 	_inspect(m)
 	term.debug = DebugView.view(world) if m.debugging else {}
+	term.scent = term.debug.scent if m.debugging else Scent.fresh(world, true) if m.scenting else {}
 	term.zone = m.journey.zone
 	term.zone_centres = m.journey.excluded.zones
 	term.picked = m.casting.picked

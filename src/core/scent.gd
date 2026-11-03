@@ -33,6 +33,23 @@ static func reach(w: World, p: Vector2i) -> int:
 	return TRAIL_AGE + (STRONG_EXTRA if w.strong.has(p) else 0)
 
 
+## The tiles whose scent a hunter would still follow, each with its freshness, 1.0 laid this
+## round and falling to 0 at the end of its reach. With `known_only`, only tiles Miho has seen.
+static func fresh(w: World, known_only := false) -> Dictionary:
+	var out := {}
+	if w.scent.size() != w.tiles.size():
+		return out
+	for i in w.scent.size():
+		if w.scent[i] == 0 or (known_only and w.known[i] != 1):
+			continue
+		var p := Grid.at(i)
+		var age := w.round_no + 1 - w.scent[i]
+		var limit := reach(w, p)
+		if age <= limit:
+			out[p] = 1.0 - float(age) / (limit + 1)
+	return out
+
+
 static func clear(w: World, p: Vector2i) -> void:
 	_ready(w)
 	w.scent[Grid.index(p)] = 0

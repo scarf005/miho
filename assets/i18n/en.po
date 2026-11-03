@@ -1074,6 +1074,9 @@ msgstr "Mark danger zone"
 msgid "위험구역 모두 지우기"
 msgstr "Clear danger zones"
 
+msgid "냄새 보기"
+msgstr "Show scent"
+
 msgid "디버그 보기"
 msgstr "Debug view"
 

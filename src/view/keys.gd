@@ -69,6 +69,7 @@ const ACTIONS := {
 	&"close": ["문 닫기", ["C"]],
 	&"exclude": ["위험구역 표시", ["V"]],
 	&"exclude_clear": ["위험구역 모두 지우기", ["Shift+V"]],
+	&"scent": ["냄새 보기", ["T"]],
 	&"debug": ["디버그 보기", ["F3"]],
 	&"cheat": ["디버그 명령", ["F4"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],

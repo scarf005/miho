@@ -65,6 +65,16 @@ static func paths(t: Term) -> void:
 
 
 ## A bolt on tile `at`: its streak flickers white and yellow a few times (Palette.ZAP).
+## Miho's scent trail: a faint tint and an inset frame on each tile, both stronger the fresher
+## the scent. The middle of the tile stays clear, so no glyph is covered.
+static func scent(t: Term) -> void:
+	for p: Vector2i in t.scent:
+		if t.in_view(p):
+			var tile := Rect2(t.cell_of(p) * Term.CELL, Term.CELL)
+			t.draw_rect(tile, Color(Palette.SCENT, 0.03 + 0.07 * t.scent[p]))
+			t.draw_rect(tile.grow(-3), Color(Palette.SCENT, 0.2 + 0.7 * t.scent[p]), false, 2.0)
+
+
 static func bolt(t: Term, at: Vector2i) -> void:
 	for k in ZAPS:
 		t.anim.flash(at, Palette.ZAP[k % Palette.ZAP.size()], ZAP_GAP * k, true)

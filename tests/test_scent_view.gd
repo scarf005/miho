@@ -1,5 +1,5 @@
 extends GutTest
-## The scent view: the trail Miho left, shown on the tiles she has seen, and that it changes nothing.
+## The scent view: the trail Miho left, on the tiles she has seen, and that it changes nothing.
 
 const E := Vector2i(1, 0)
 const SETTINGS := "user://test_scent_view_settings.cfg"
@@ -99,7 +99,7 @@ func test_toggling_the_scent_shows_the_trail_and_changes_nothing() -> void:
 	var m := _main()
 	m.settings.path = SETTINGS
 	m._key(_press("Right"))
-	var before := m.world.clone()
+	var before: World = m.world.clone()
 	var saved: int = m.run.actions.size()
 	assert_true(m.term.scent.is_empty(), "off by default")
 	m._key(_press(Keys.keys_of(&"scent")[0]))
