@@ -31,6 +31,7 @@ extends Node
 ## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
 ## --lang=en shows English (Korean otherwise).
 ## --crt=n sets the CRT strength, 0-100 (50 by default).
+## --still stops what only sways, as flames, so that two pictures of one state match.
 ## Runs start from default settings and keys, and never save them. They keep no
 ## run either, unless --save=path names a file (a title that offers to continue
 ## it takes Enter, not any key, to start).
@@ -51,6 +52,7 @@ static func attach(main: Node) -> void:
 	if not args.has("shot"):
 		return
 	main.save_path = args.get("save", "")
+	main.term.still = args.has("still")
 	main._new_run(int(args.get("seed", randi())))
 	if args.has("depth"):
 		for depth in range(2, int(args.depth) + 1):

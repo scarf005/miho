@@ -52,6 +52,7 @@ func show_scene(scene: Dictionary, rank := 0) -> void:
 	_scene = scene
 	_rank = rank
 	speed = get_parent().speed
+	still = get_parent().still
 	set_process(true)
 	visible = true
 	_begin()

@@ -28,7 +28,7 @@ static func telegraphs(t: Term, actors: Dictionary) -> void:
 			for k in ray.size():
 				if not t._shown(ray[k]):
 					continue
-				var pulse := 0.5 + 0.5 * sin(t._time * 8.0 - k * 0.6)
+				var pulse := 0.5 + 0.5 * sin(t._sway * 8.0 - k * 0.6)
 				var c := Color(Palette.SIDE[a.faction], 0.16 + 0.14 * pulse)
 				var tile := Rect2(t._cell(ray[k]) * Term.CELL, Term.CELL)
 				t.draw_rect(tile, c)

@@ -127,6 +127,7 @@ var bar: Variant = StatusBar
 var readable := InfoBox.READABLE * CELL.x
 
 var sim: ExampleSim = null
+var still := false
 var _font: FontFile
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
@@ -148,6 +149,8 @@ var _shot_light := {}
 ## shot id -> the tiles it last flew through, newest last (TRAIL of them).
 var _trails := {}
 var _time := 0.0
+## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
+var _sway := 0.0
 var _bubbles := Bubbles.new()
 
 
@@ -226,11 +229,13 @@ func _shown(p: Vector2i) -> bool:
 
 func _process(delta: float) -> void:
 	_time += delta
+	var swayed := 0.0 if still else delta
+	_sway += swayed
 	var now := _time
 	_popups = _popups.filter(func(p): return now - p.born < p.life)
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
 	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
-	_popups.append_array(_bubbles.rise(world, delta, now))
+	_popups.append_array(_bubbles.rise(world, swayed, now))
 
 
 ## Shows the world as it is now, with nothing in flight.
@@ -454,8 +459,8 @@ func side_at(local: Vector2) -> Vector2i:
 ## How bright a flame is now: lanterns waver a little, fire a lot.
 func _flicker(phase: float, fire: bool) -> float:
 	if fire:
-		return 0.78 + 0.14 * sin(_time * 9.3 + phase) + 0.08 * sin(_time * 23.0 + phase)
-	return 0.9 + 0.07 * sin(_time * 6.1 + phase) + 0.04 * sin(_time * 15.7 + phase)
+		return 0.78 + 0.14 * sin(_sway * 9.3 + phase) + 0.08 * sin(_sway * 23.0 + phase)
+	return 0.9 + 0.07 * sin(_sway * 6.1 + phase) + 0.04 * sin(_sway * 15.7 + phase)
 
 
 func _field() -> PackedVector3Array:
@@ -477,7 +482,7 @@ func _field() -> PackedVector3Array:
 		if not _shot_light.has(key):
 			_shot_light[key] = Light.spread(s.pos, l.radius, world.light_mask())
 		var spread: PackedFloat32Array = _shot_light[key]
-		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_time * 11.0 + id))
+		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_sway * 11.0 + id))
 		for i in spread.size():
 			if spread[i] > 0.0:
 				out[i] += c * spread[i]

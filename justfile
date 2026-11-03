@@ -248,7 +248,7 @@ shot path *args: rust
     PULSE_SINK=miho_shot gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- \
         {{ godot }} --path . -- --shot="$(realpath -m '{{ path }}')" {{ args }}
 
-# Capture a fixed set of scenes into dir (.screenshots/frames/a) with `just shot`, to compare two builds with `just frames-diff`.
+# Capture a fixed set of scenes into dir (.screenshots/frames/a) with `just shot`, CRT and swaying off except in the crt scene, to compare two builds with `just frames-diff`.
 frames dir:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -262,14 +262,15 @@ frames dir:
         "codex-detail --seed=3 --keys=Space,Slash,Right,Right,Down,Down"
         "options --seed=3 --keys=Space,Escape"
         "cast --seed=3 --keys=Space,spawn:haetae:2:0,1,aim:2:0,film:Space:1:0.15"
+        "crt --seed=3 --keys=Space --crt=50"
     )
     for scene in "${scenes[@]}"; do
         read -r name args <<<"$scene"
-        just shot "{{ dir }}/$name.png" $args >/dev/null 2>&1 || { echo "error: scene $name failed" >&2; exit 1; }
+        just shot "{{ dir }}/$name.png" --still --crt=0 $args >/dev/null 2>&1 || { echo "error: scene $name failed" >&2; exit 1; }
         echo "$name"
     done
 
-# Compare the PNGs of two `just frames` runs; names the scenes that differ and exits 1. The CRT shader flickers the brightness by 1.2% with the clock, so a pixel counts as different only past 3%. A cast scene is caught mid-flight with a fading noise word: it differs past an RMSE of 1% of the range.
+# Compare the PNGs of two `just frames` runs; names the scenes that differ and exits 1. A still scene must match to the pixel. The CRT shader flickers the brightness by 1.2% with the clock, so in the crt scene a pixel counts as different only past 3%. A cast scene is caught mid-flight with a fading noise word: it differs past an RMSE of 1% of the range.
 frames-diff a b:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -282,7 +283,9 @@ frames-diff a b:
         elif [[ "$name" == cast* ]]; then
             differs=$(compare -metric RMSE "$f" "$other" null: 2>&1 | rg -o '\(([0-9.e-]+)\)' -r '$1' | awk '{ print ($1 > 0.01) }')
         else
-            differs=$(compare -metric AE -fuzz 3% "$f" "$other" null: 2>&1 | cut -d' ' -f1 | awk '{ print ($1 > 0) }')
+            fuzz=0
+            [[ "$name" == crt* ]] && fuzz=3
+            differs=$(compare -metric AE -fuzz "$fuzz%" "$f" "$other" null: 2>&1 | cut -d' ' -f1 | awk '{ print ($1 > 0) }')
         fi
         if [ "${differs:-1}" != 0 ]; then
             echo "differs: $name"
