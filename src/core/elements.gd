@@ -66,7 +66,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	if (
 		spell.has(Cards.FIRE)
 		and (spell.shape == Spell.WISP or Bestiary.burns(a.nature_kind()))
-		and not Guise.through(w, s.caster, spell, a.nature_kind())
+		and not Guise.through(w, s, a)
 	):
 		Status.ignite(w, a)
 	if a.alive():
@@ -99,10 +99,7 @@ static func absorbed(w: World, s: Shot, a: Actor) -> bool:
 
 ## Whether `a` absorbs every element of `s` and `s` is not the fire of 불여우.
 static func stops(w: World, s: Shot, a: Actor) -> bool:
-	return (
-		Bestiary.absorbs(a.nature_kind(), s.spell)
-		and not Guise.through(w, s.caster, s.spell, a.nature_kind())
-	)
+	return Bestiary.absorbs(a.nature_kind(), s.spell) and not Guise.through(w, s, a)
 
 
 ## `a` absorbs only part of `spell`: the elements it took are told.
@@ -126,7 +123,7 @@ static func dealt(a: Actor, spell: Spell, n: int) -> int:
 ## fire of 불여우 that `a` would stop whole.
 static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
 	var m := dealt(a, s.spell, n)
-	if Guise.through(w, s.caster, s.spell, a.nature_kind()):
+	if Guise.through(w, s, a):
 		m = mini(m, Guise.FLAME_THROUGH)
 	if m > 0:
 		Harm.hurt(w, a, m, Bestiary.weak(a.nature_kind(), s.spell))
@@ -200,11 +197,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			else:
 				resisted(w, spell, b)
 				harm(w, s, b, n)
-				if (
-					fire
-					and Bestiary.burns(b.nature_kind())
-					and not Guise.through(w, s.caster, spell, b.nature_kind())
-				):
+				if fire and Bestiary.burns(b.nature_kind()) and not Guise.through(w, s, b):
 					Status.ignite(w, b)
 			Mind.struck(w, b, s)
 		var o := w.shot_at(p, s)

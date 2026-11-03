@@ -321,16 +321,17 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 	return TALON_ABSORBED if eats else TALON_HARM
 
 
-## Whether the spell of `caster` gets through `kind`, which would stop it whole
-## (Bestiary.absorbs): the caster is 불여우 and the spell holds 불. It harms for FLAME_THROUGH
+## Whether the spell `s` gets through `a`, which would stop it whole (Bestiary.absorbs): the
+## caster is 불여우, is not `a` itself and the spell holds 불. It harms for FLAME_THROUGH
 ## at most, sets nothing alight and feeds nothing (Elements.strike, splash, harm).
-static func through(w: World, caster: int, spell: Spell, kind: StringName) -> bool:
-	var me := w.actor(caster)
+static func through(w: World, s: Shot, a: Actor) -> bool:
+	var me := w.actor(s.caster)
 	return (
 		me != null
+		and me != a
 		and me.buffs.flame
-		and spell.nature().has(Cards.FIRE)
-		and Bestiary.absorbs(kind, spell)
+		and s.spell.nature().has(Cards.FIRE)
+		and Bestiary.absorbs(a.nature_kind(), s.spell)
 	)
 
 
