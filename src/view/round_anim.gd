@@ -158,9 +158,13 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 				actors[e.id].pos = at
 			flash(at, Color(Palette.SIDE[0], 0.9))
 		&"spray":
-			var color := Palette.card(Spell.make(e.cards).slots[0])
+			var spell := Spell.make(e.cards)
+			var color := Palette.card(spell.slots[0])
 			for p: Vector2i in e.tiles:
-				flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
+				if spell.electric():
+					TermMarks.bolt(_term, p)
+				else:
+					flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
 		&"sprout":
 			for p: Vector2i in e.tiles:
 				flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))

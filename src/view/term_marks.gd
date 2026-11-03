@@ -64,7 +64,6 @@ static func paths(t: Term) -> void:
 					t.draw_glyph(t.cell_of(p), Palette.BOLT[s.dir], Color(c, 0.8))
 
 
-## A bolt on tile `at`: its streak flickers white and yellow a few times (Palette.ZAP).
 ## Miho's scent trail: a faint tint and an inset frame on each tile, both stronger the fresher
 ## the scent. The middle of the tile stays clear, so no glyph is covered.
 static func scent(t: Term) -> void:
@@ -75,9 +74,11 @@ static func scent(t: Term) -> void:
 			t.draw_rect(tile.grow(-3), Color(Palette.SCENT, 0.2 + 0.7 * t.scent[p]), false, 2.0)
 
 
-static func bolt(t: Term, at: Vector2i) -> void:
+## Lightning on tile `at`, `after` seconds from now: its streak flickers white and yellow a
+## few times (Palette.ZAP).
+static func bolt(t: Term, at: Vector2i, after := 0.0) -> void:
 	for k in ZAPS:
-		t.anim.flash(at, Palette.ZAP[k % Palette.ZAP.size()], ZAP_GAP * k, true)
+		t.anim.flash(at, Palette.ZAP[k % Palette.ZAP.size()], after + ZAP_GAP * k, true)
 
 
 ## The zigzag of lightning across a cell: the pixel font has no glyph for it.

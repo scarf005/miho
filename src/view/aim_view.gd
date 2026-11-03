@@ -25,7 +25,8 @@ static func paint(
 			var from: Vector2i = path.tiles[mini(1, path.tiles.size() - 1)]
 			term.lines.append([from, target.pos, Color(Palette.SIDE[0], 0.7), k])
 	for e in f.sprays:
-		var color := Palette.card(Spell.make(e.cards).slots[0])
+		var spell := Spell.make(e.cards)
+		var color: Color = Palette.ZAP[1] if spell.electric() else Palette.card(spell.slots[0])
 		for p: Vector2i in e.tiles:
 			tints[p] = Color(color, 0.22)
 	for leap: Array in f.leaps:

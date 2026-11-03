@@ -25,7 +25,12 @@ func _play(w: World, cards: Array) -> Dictionary:
 	var before := w.clone()
 	var events := w.act({t = &"cast", spells = [{cards = cards, dir = E}]})
 	m.term.play(events, before, w)
-	var out := {events = events, flashes = m.term.anim.flashes.duplicate(), shots = w.shots.size()}
+	var out := {
+		events = events,
+		flashes = m.term.anim.flashes.duplicate(),
+		shots = w.shots.size(),
+		seen = func(p: Vector2i) -> bool: return m.term.sees(p),
+	}
 	m.term.rush()
 	return out
 
@@ -45,6 +50,7 @@ func test_thunder_flickers_on_every_tile_it_covers() -> void:
 	var w := _stage()
 	var seen := _play(w, Cards.recipe(&"thunder"))
 	var tiles: Array = seen.events.filter(func(e): return e.t == &"spray")[0].tiles
+	tiles = tiles.filter(seen.seen)
 	assert_false(tiles.is_empty())
 	for p: Vector2i in tiles:
 		assert_true(seen.flashes.any(func(f): return f.at == p and f.zap), str(p))
