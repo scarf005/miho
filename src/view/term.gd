@@ -155,6 +155,7 @@ func _ready() -> void:
 	_font = Fonts.pixel()
 	size = Vector2(cols, rows) * CELL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(RedrawPace.new(self))
 
 
 ## Fills `view` (in the parent's space) with cells at `zoom` times their size,
@@ -230,7 +231,6 @@ func _process(delta: float) -> void:
 	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
 	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
 	_popups.append_array(_bubbles.rise(world, delta, now))
-	queue_redraw()
 
 
 ## Shows the world as it is now, with nothing in flight.
@@ -255,6 +255,7 @@ func show_world(w: World) -> void:
 			_lanterns.append(_flame(w, p, glow.radius, glow.color, false))
 		if w.burning.has(p):
 			_lanterns.append(_flame(w, p, Light.FIRE_RADIUS, Light.FIRE, true))
+	queue_redraw()
 	settled.emit(w)
 
 
