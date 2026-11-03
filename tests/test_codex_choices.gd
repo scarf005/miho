@@ -240,7 +240,7 @@ func test_a_screen_with_no_room_for_the_stages_tells_them_all() -> void:
 	var copies := []
 	copies.resize(Spell.MAX_SLOTS)
 	copies.fill(part)
-	assert_string_contains(Info.plain(codex.panel().aside), "+".join(copies))
+	assert_string_contains(Info.plain(codex._lines()), "+".join(copies))
 
 
 func test_the_leap_tells_the_stage_picked() -> void:

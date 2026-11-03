@@ -89,7 +89,18 @@ static func card(c: StringName, after: Spell) -> Array:
 	return lines
 
 
-## A talisman in the 도감: one copy, then each further copy with the lines it changes.
+## A talisman in the 도감 at stage `n`: `n` copies of it, the first as the talisman itself.
+static func stage(c: StringName, n: int) -> Array:
+	if n == 1:
+		return card(c, null)
+	var copies := []
+	copies.resize(n)
+	copies.fill(c)
+	return spell(Spell.make(copies))
+
+
+## A talisman where the 도감 has no room to pick a stage: one copy, then each further copy with
+## the lines it changes.
 static func stacked(c: StringName) -> Array:
 	var lines := card(c, null)
 	var before := spell(Spell.make([c])).slice(1).map(func(l): return Info.plain([l]))

@@ -96,7 +96,7 @@ func test_the_spells_are_the_forms_the_elements_and_the_shapes() -> void:
 	for shape in [Spell.SHAPE_NAME[Spell.WISP], Spell.SHAPE_NAME[Spell.ORB], SpellInfo.SPRAY_NAME]:
 		assert_true(names.has(shape), shape)
 	var fire := _text(Codex.detail(_entry(1, "불 부적")))
-	assert_eq(fire, _text(SpellInfo.stacked(Cards.FIRE)))
+	assert_eq(fire, _text(SpellInfo.stage(Cards.FIRE, 1)))
 
 
 func test_a_shape_tells_its_talismans_and_its_numbers() -> void:

@@ -151,7 +151,14 @@ static func _spell_entries() -> Array[Dictionary]:
 		)
 		if c == Cards.VAULT:
 			out.back().scene = SpellScene.leaps()
+			var more := SpellScene.parts(out.back().scene).slice(1)
+			out.back().stages = [lines] + more.map(_spell_text)
 	return out
+
+
+## The text of a spell made of the talismans of `part`, a part of an example.
+static func _spell_text(part: Dictionary) -> Callable:
+	return func(): return SpellInfo.spell(Spell.make(part.spell))
 
 
 ## What Miho finds on a floor: the elixir, the peach, kimchi, a scroll, the elements.
@@ -217,9 +224,11 @@ static func foe(kind: StringName, at_rank := 1) -> Actor:
 	return a
 
 
-## The lines of an entry: what the hover tells of it, less how it stands now.
-static func detail(entry: Dictionary) -> Array:
-	return entry.lines.call()
+## The lines of an entry: what the hover tells of it, less how it stands now. An entry with
+## `stages` tells the one of its parts that is picked (`at`).
+static func detail(entry: Dictionary, at := 0) -> Array:
+	var stages: Array = entry.get("stages", [])
+	return entry.lines.call() if stages.is_empty() else stages[posmod(at, stages.size())].call()
 
 
 ## `lines` cut to rows `width` cells wide. A line of parts with a SEP run
@@ -475,9 +484,13 @@ func go(t: int) -> void:
 ## The detail of the selected entry of `list`, cut to the room.
 func _lines(list := entries(tab, rank)) -> Array:
 	var side := _side_x(list)
-	var example := _example(list[selected], side)
+	var entry: Dictionary = list[selected]
+	var example := _example(entry, side)
 	var taken: float = 0.0 if example.is_empty() else CodexSim.beside(example.scale)
-	return flow(detail(list[selected]), room.x - side - 1.0 - taken)
+	var text: Array = (
+		entry.whole.call() if example.is_empty() and entry.has("whole") else detail(entry, part)
+	)
+	return flow(text, room.x - side - 1.0 - taken)
 
 
 ## The column the detail starts at: after the longest name of `list`, but not
@@ -520,11 +533,14 @@ static func talisman_name(c: StringName) -> String:
 	return Lang.t("%s 부적") % Lang.t(Cards.NAME[c])
 
 
-## A talisman: its example plays it 1 to Spell.MAX_SLOTS times over (SpellScene.counts).
+## A talisman: its example and its text at 1 to Spell.MAX_SLOTS copies, a part for each
+## (SpellScene.counts); all the copies at once on a screen with no room to pick them.
 static func _talisman(c: StringName) -> Dictionary:
-	var lines := func(): return SpellInfo.stacked(c)
+	var lines := func(): return SpellInfo.stage(c, 1)
 	var out := _entry(Lang.t(Cards.GLYPH[c], "talisman"), Palette.CARD[c], talisman_name(c), lines)
 	out.scene = SpellScene.counts(c)
+	out.stages = range(1, Spell.MAX_SLOTS + 1).map(func(n): return SpellInfo.stage.bind(c, n))
+	out.whole = SpellInfo.stacked.bind(c)
 	return out
 
 
