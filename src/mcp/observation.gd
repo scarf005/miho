@@ -207,6 +207,8 @@ static func _creature(k: World, a: Actor) -> String:
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
+	if Elements.charge(a) != 1:
+		line += ", electric x%d" % Elements.charge(a)
 	if a.fighting():
 		var rival := k.actor(a.ties.rival)
 		line += ", fighting " + (rival.info().name if rival != null else "something unseen")

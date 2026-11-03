@@ -475,3 +475,11 @@ func test_a_creature_of_earth_tells_it_takes_no_harm_from_electricity() -> void:
 	assert_eq(Elements.charge(foe), 0)
 	assert_string_contains(Info.plain(Info.creature(w, foe)), "면역: 전기")
 	assert_false(Info.plain(Info.creature(w, FloorGen.spawn(w, &"bulgae", at))).contains("전기"))
+
+
+func test_a_wet_creature_of_earth_is_not_told_immune_to_electricity() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"dueoksini", w.player().pos + Vector2i(1, 0))
+	foe.ailments.wet = 3
+	assert_eq(Elements.charge(foe), Elements.WEAK)
+	assert_false(Info.plain(Info.creature(w, foe)).contains("면역: 전기"))

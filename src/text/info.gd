@@ -186,12 +186,12 @@ static func _head(a: Actor) -> Array:
 
 ## Name and health, elements, weakness and immunities.
 static func _profile(a: Actor) -> Array:
-	return [_head(a)] + nature(a.nature_kind())
+	return [_head(a)] + nature(a.nature_kind(), a.ailments.wet > 0)
 
 
 ## The elements of a creature of `kind`, what beats them and what it takes no
 ## harm from (DCSS `_monster_stat_description`).
-static func nature(kind: StringName) -> Array:
+static func nature(kind: StringName, wet := false) -> Array:
 	var lines := []
 	var elements := Bestiary.elements(kind)
 	if not elements.is_empty():
@@ -207,7 +207,7 @@ static func nature(kind: StringName) -> Array:
 			)
 		lines.append(line)
 		lines.append(_weakness(kind))
-	lines.append_array(_immunities(kind))
+	lines.append_array(_immunities(kind, wet))
 	return lines
 
 
@@ -393,7 +393,7 @@ static func _weakness(kind: StringName) -> Array:
 
 
 ## Everything the creature takes no harm or effect from, one "면역" line each.
-static func _immunities(kind: StringName) -> Array:
+static func _immunities(kind: StringName, wet: bool) -> Array:
 	var spec := Bestiary.info(kind)
 	var out := []
 	match spec.get("absorb", &""):
@@ -404,7 +404,7 @@ static func _immunities(kind: StringName) -> Array:
 			)
 		&"nofire":
 			out.append(_immune("불 없는 주문", Palette.DIM))
-	if Elements.charge_of(kind) == 0 and spec.get("absorb", &"") != &"nofire":
+	if Elements.charge_of(kind) == 0 and not wet and spec.get("absorb", &"") != &"nofire":
 		out.append(_immune(ELECTRIC, Palette.TEXT))
 	if spec.get("deaf", false):
 		out.append(_immune("소음", Palette.SOUND))
