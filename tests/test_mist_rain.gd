@@ -154,3 +154,26 @@ func test_a_fire_spray_turns_the_fog_it_reaches_to_steam() -> void:
 	for p in reached:
 		assert_eq(Gas.at(w, p).x, Gas.STEAM, str(p))
 	assert_eq(Gas.at(w, far).x, Gas.FOG)
+
+
+func test_a_water_orb_leaves_the_stairs_the_elixir_and_a_peach_as_they_were() -> void:
+	var w := _world()
+	w.stairs = AHEAD + Vector2i(0, 1)
+	w.elixir = AHEAD + Vector2i(0, -1)
+	w.peaches.append(AHEAD + Vector2i(-1, 0))
+	_splash(w, [ORB, WATER])
+	for p: Vector2i in [w.stairs, w.elixir, AHEAD + Vector2i(-1, 0)]:
+		assert_eq(w.tile(p), World.FLOOR, str(p))
+	assert_eq(w.tile(AHEAD), World.SHALLOW)
+
+
+func test_a_water_orb_takes_the_heat_off_the_ground_it_turns_to_water() -> void:
+	var w := _world()
+	var on := AHEAD + Vector2i(0, 1)
+	var past := AHEAD + Vector2i(0, 2)
+	w.hot[on] = Vector2i(Compounds.MOLTEN, 3)
+	w.hot[past] = Vector2i(Compounds.MOLTEN, 3)
+	_splash(w, [ORB, WATER])
+	assert_eq(w.tile(on), World.SHALLOW)
+	assert_false(w.hot.has(on))
+	assert_true(w.hot.has(past), "not past the 3x3")
