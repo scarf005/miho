@@ -361,6 +361,23 @@ func test_the_furnace_example_bursts_more_than_one_orb_on_its_creature() -> void
 		assert_gt(_bursts_on_a_creature(scene), 1, "an orb in the first rounds and another later")
 
 
+func test_a_lone_elements_spray_a_creature_casts_in_its_example_covers_miho() -> void:
+	for rank in range(1, Bestiary.RANKS + 1):
+		for e in Codex.entries(0, rank):
+			for scene in SpellScene.resolve(e.scene):
+				if not scene.has("charged") or Spray.called(Spell.make(scene.charged)) == "":
+					continue
+				var w := CodexScene.build(scene, rank)
+				var me := w.player().pos
+				var sprays := w.act(CodexScene.actions(scene)[0]).filter(
+					func(ev): return ev.t == &"spray"
+				)
+				assert_true(
+					sprays.any(func(ev): return ev.tiles.has(me)),
+					"%s: %s reaches her at rank %d" % [e.name, scene.label, rank]
+				)
+
+
 func test_the_example_of_a_spell_that_harms_harms_the_creature_it_shows() -> void:
 	for tab in [SPELLS, COMPOUNDS]:
 		for e in Codex.entries(tab):

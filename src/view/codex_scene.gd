@@ -184,9 +184,23 @@ static func _foe_part(kind: StringName, map: String, label: String) -> Dictionar
 static func charged(kind: StringName, cards: Array) -> Dictionary:
 	var turns := Spell.make(cards).turn() > 0
 	var label := Bestiary.spell(kind, cards).shown()
-	return _foe_part(kind, AIMS, label).merged(
+	return _foe_part(kind, _aimed(kind, cards), label).merged(
 		{charged = cards, do = DODGES if turns else WATCHES}, true
 	)
+
+
+## The map of a creature that charges `cards` at Miho: AIMS, or for a spray that does not
+## cover her from there (Aim charges one only when it does) the farthest place it does.
+static func _aimed(kind: StringName, cards: Array) -> String:
+	var spell := Spell.make(cards)
+	if spell.shape != Spell.SPRAY or spell.has(&"beacon"):
+		return AIMS
+	for gap in range(AIMS.find("m") - AIMS.find("@"), 0, -1):
+		var map := "  @" + " ".repeat(gap - 1) + "m"
+		var w := build({key = kind, map = map})
+		if Spray.cover(w, w.actors.back(), spell, -EAST).has(w.player().pos):
+			return map
+	return AIMS
 
 
 ## The scene as a World from its start, on a storey of rank `rank`; 0 for DEPTH.
@@ -200,6 +214,8 @@ static func build(scene: Dictionary, rank := 0) -> World:
 	if scene.has("charged"):
 		var by: Actor = w.actors.back()
 		by.magic.intent.assign([{cards = scene.charged, dir = -EAST}])
+		if scene.charged == Bestiary.KINDLE:  # Aim.kindle: it lights ground that burns under her
+			w.set_tile(w.player().pos, World.GRASS)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	w.sense()
