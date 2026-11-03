@@ -91,7 +91,10 @@ func run(events: Array, before: World, facts: Array) -> void:
 	playing = true
 	_bolts.clear()
 	for e in events:
-		if e.t == &"spray" and Spell.make(e.cards).electric():
+		if (
+			e.t == &"spray" and Spell.make(e.cards).electric()
+			or e.get("bolt", false) and e.t == &"spawn"
+		):
 			_bolts[e.shot] = true
 	var passes := Afterimage.plan(events)
 	var impact := Impact.of(events)
