@@ -445,18 +445,19 @@ static func _chase(w: World, a: Actor) -> void:
 			_align(w, a, me)
 
 
-## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground or onto a
-## plate it keeps off (Traps.bars). A dull creature takes the tile of a foe's projectile for
+## Free tiles of its ground (Bestiary.ground), never into fire, onto hot ground that would
+## sear it (Compounds.spared) or onto a plate it keeps off (Traps.bars). A dull creature takes the tile of a foe's projectile for
 ## free (`_blind_to`).
 static func _walkable(w: World, a: Actor) -> Callable:
 	var ground := Bestiary.ground(a.kind)
+	var spared := Compounds.spared(a)
 	return func(p):
 		return (
 			p == a.pos
 			or (
 				(w.vacant(p, ground) or _blind_to(w, a, p, ground))
 				and not w.burning.has(p)
-				and not w.hot.has(p)
+				and (spared or not w.hot.has(p))
 				and not Traps.bars(w, a, p)
 			)
 		)

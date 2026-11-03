@@ -132,7 +132,7 @@ func test_molten_iron_sears_harder_than_lava_and_a_fire_eater_takes_none() -> vo
 	Compounds.heat(w, [dog.pos], Compounds.MOLTEN)
 	events = w.act(WAIT)
 	assert_eq(_harm(events, dog.id), 0, "해태 eats fire")
-	assert_false(_of(events, &"absorb").is_empty())
+	assert_true(_of(events, &"sear").is_empty(), "no word of what does nothing to it")
 
 
 func test_heaven_walks_round_hot_ground() -> void:

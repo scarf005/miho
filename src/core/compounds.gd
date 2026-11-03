@@ -18,10 +18,10 @@ extends RefCounted
 ## 들불 sets what burns alight, and the creatures it reaches (Status), and
 ## that fire always spreads (World.wild).
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
-## water: whoever stands on it as a round ends takes its harm, unless it eats
-## fire. Heaven walks round it, so a fused orb (Shot.fused) sears those it reaches as it
-## bursts (`_flare`): one beside the burst would step off. A burst spares its caster, so it
-## lays none under it.
+## water: whoever stands on it as a round ends takes its harm, unless it flies or eats
+## fire (`spared`), which also cross it. The rest of heaven walks round it, so a fused orb
+## (Shot.fused) sears those it reaches as it bursts (`_flare`): one beside the burst would
+## step off. A burst spares its caster, so it lays none under it.
 ## 유탄 hurts every creature it reaches for SHRAPNEL. On an orb (비격진) it
 ## bursts: MORTAR harm and a harm more for every lone 쇠, the creature the orb
 ## struck among them once, and every breakable wall in reach takes a hit.
@@ -249,7 +249,7 @@ static func tick(w: World) -> void:
 	for p: Vector2i in w.hot.keys():
 		var h: Vector2i = w.hot[p]
 		var a := w.actor_at(p)
-		if a != null and not Bestiary.flies(a.kind):
+		if a != null and not spared(a):
 			_sear(w, a, h.x)
 		if h.y <= 1:
 			w.hot.erase(p)
@@ -260,17 +260,25 @@ static func tick(w: World) -> void:
 		w.emit({t = &"cool", at = cooled[kind][0], tiles = cooled[kind], kind = kind})
 
 
+## Whether hot ground does nothing to `a`: it flies, or eats fire.
+static func spared(a: Actor) -> bool:
+	return (
+		Bestiary.flies(a.kind)
+		or Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
+	)
+
+
 ## Hot ground of `kind` sears `a` on it.
 static func _sear(w: World, a: Actor, kind: int) -> void:
 	w.emit({t = &"sear", id = a.id, at = a.pos, kind = kind})
 	Harm.fire(w, a, HOT[kind].harm, a.pos)
 
 
-## A fused orb of lava bursts: it sears those on `tiles`, in the air too, but one seared this
-## round already, so that the orbs of one volley sear a creature once.
+## A fused orb of lava bursts: it sears those on `tiles`, but one that hot ground spares or
+## seared this round already, so that the orbs of one volley sear a creature once.
 static func _flare(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 	for a in Spray.on(w, s, tiles):
-		if not w.events.any(func(e): return e.t == &"sear" and e.id == a.id):
+		if not spared(a) and not w.events.any(func(e): return e.t == &"sear" and e.id == a.id):
 			_sear(w, a, MOLTEN)
 
 
