@@ -18,7 +18,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 용암 is 구+불+흙, an orb that does not home: range 5, speed 2, bursts when spent, 3x3 hot iron. 봉화 hurls it homing in 8 directions. 용광로 is 구+불+흙+쇠: a furnace on a random free tile within 3 that hurls it every 2 s at a foe in sight. Without 구 they are no spell. User: "용암은 용암 구슬을 발사하는 주문으로 바꿔 (구+불+흙)", "봉화는 8방향으로 '유도' 용암 구슬 발사하는 주문으로 바꿔", "3칸 이내 범위에 무작위로 1개".
 - A plain orb and 비격진 differ: 비격진 bursts 2 tiles round with its own wave. User: "이제 일반 구슬도 폭발하면서 비격진이랑 일반 구슬이랑 차이가 없어 차별화시켜."
 - A spell of 쇠 that explodes has a proximity fuse: in flight it bursts beside a foe, so stepping aside does not dodge it. User: "폭발성 쇠 조합 주문들은 '근접신관' 기능 추가해. 즉 날아가다 적이 옆으로 이동해도 피할수 없고", "구+쇠면 근접신관을 다는거로 하자". A burst lays no hot iron under its caster. User: "2칸 거리면 적 앞애서 터져서 피해 없어야하는거아냐?"
-- A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?"
+- A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?". Every lightning spell, 낙뢰 too, strikes at once and flickers as the white and yellow zigzag (`TermMarks.zigzag`), no font glyph. User: "번개 주문은 번개니까 날아가는 애니메이션 없이 '즉시' 일어나야함", "지그재그말한거엿어".
 - Flyers: 박쥐 on low storeys, 삼족오 of fire on high ones. User: "비행형 적 박쥐 (저층)와 삼족오(불, 고층) 추가해."
 - The guns of 쇠: 쇠 is 권총, 쇠쇠 소총, 여+쇠 관통탄, 여+쇠+쇠 철갑탄. User: "쇠 = 권총, 쇠쇠 = 소총, 여 + 쇠 = 관통탄, 여쇠쇠 = 철갑탄".
 - 이무기 has a strong melee as well as its spell. User: "이무기에 강한 근접 공격 추가". Storey 2 sends a 도깨비, not a 달걀귀신. User: "2층엔 도깨비로". Flyers and creatures that absorb fire cross hot iron unharmed.
