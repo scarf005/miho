@@ -228,17 +228,24 @@ func test_the_longest_spell_name_fits_the_screen_at_every_zoom_of_a_1280x720_win
 	var m := _main()
 	var t: Term = m.term
 	var longest := ""
-	var seqs := [[]]
+	# Spell.make folds Spell.queue over its cards and its title reads the slots alone: of the
+	# card orders that fill the same slots one is enough.
+	var queues := [{slots = [] as Array[StringName], cards = []}]
+	var seen := {}
 	for n in Spell.MAX_SLOTS:
 		var next := []
-		for s in seqs:
+		for q: Dictionary in queues:
 			for c in Cards.ALL:
-				next.append(s + [c])
-		seqs = next
-		for s in seqs:
-			var spell := Spell.make(s)
-			if spell != null and Term._cells(spell.title()) > Term._cells(longest):
-				longest = spell.title()
+				var slots := Spell.queue(q.slots, c)
+				if seen.has(slots):
+					continue
+				seen[slots] = true
+				var cards: Array = q.cards + [c]
+				next.append({slots = slots, cards = cards})
+				var spell := Spell.make(cards)
+				if spell != null and Term._cells(spell.title()) > Term._cells(longest):
+					longest = spell.title()
+		queues = next
 	var name := "+9 " + longest
 	for zoom in Settings.ZOOMS:
 		t.fit(Vector2(1280, 720), zoom)
