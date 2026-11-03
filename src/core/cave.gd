@@ -96,11 +96,7 @@ static func _delve(w: World, area: Rect2i) -> void:
 		if tiles[i] != World.WALL or not area.has_point(p):
 			continue
 		var around := _around(tiles, i)
-		if (
-			around.count < AROUND.x
-			or around.count > AROUND.y
-			or (around.groups > 1 and w.rng.randf() >= JOINS)
-		):
+		if around.x < AROUND.x or around.x > AROUND.y or (around.y > 1 and w.rng.randf() >= JOINS):
 			continue
 		tiles[i] = World.FLOOR
 		left -= 1
@@ -109,16 +105,16 @@ static func _delve(w: World, area: Rect2i) -> void:
 	w.tiles = tiles
 
 
-## How many of the eight tiles round tile `i` are open, and in how many groups (DCSS
+## How many of the eight tiles round tile `i` are open (x), and in how many groups (y) (DCSS
 ## ngb_count, ngb_groups): diagonal tiles join a group too, but the sides reach no corner.
-static func _around(tiles: PackedByteArray, i: int) -> Dictionary:
-	var p := Grid.at(i)
+static func _around(tiles: PackedByteArray, i: int) -> Vector2i:
+	var dirs := Grid.DIRS
 	var count := 0
 	var groups := 0
 	var prev2 := false
-	var prev: bool = tiles[Grid.index(p + Grid.DIRS[0])] == World.FLOOR
+	var prev: bool = tiles[i + dirs[0].y * Grid.W + dirs[0].x] == World.FLOOR
 	for d in range(7, -1, -1):
-		var cur: bool = tiles[Grid.index(p + Grid.DIRS[d])] == World.FLOOR
+		var cur: bool = tiles[i + dirs[d].y * Grid.W + dirs[d].x] == World.FLOOR
 		count += 1 if cur else 0
 		if cur and not prev and (d % 2 == 1 or not prev2):
 			groups += 1
@@ -126,7 +122,7 @@ static func _around(tiles: PackedByteArray, i: int) -> Dictionary:
 		prev = cur
 	if prev and groups == 0:
 		groups = 1
-	return {count = count, groups = groups}
+	return Vector2i(count, groups)
 
 
 ## A tunnel from the middle of each room no walk reaches to the first room's middle, in a
@@ -152,9 +148,15 @@ static func _bare(w: World, area: Rect2i) -> void:
 		for x in range(area.position.x, area.end.x):
 			var p := Vector2i(x, y)
 			if w.tile(p) != World.FLOOR:
-				var by_floor := Grid.DIRS.any(func(d): return w.tile(p + d) == World.FLOOR)
-				tiles[Grid.index(p)] = World.WALL if by_floor else World.SKY
+				tiles[Grid.index(p)] = World.WALL if _by_floor(w, p) else World.SKY
 	w.tiles = tiles
+
+
+static func _by_floor(w: World, p: Vector2i) -> bool:
+	for d: Vector2i in Grid.DIRS:
+		if w.tile(p + d) == World.FLOOR:
+			return true
+	return false
 
 
 ## The walls one tile thick with floor on both sides, as [tile, across], in a random order.
