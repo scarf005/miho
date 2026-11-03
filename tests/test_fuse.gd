@@ -403,3 +403,32 @@ func test_a_homing_orb_that_blasts_and_holds_metal_flies_on_up_to_its_foe() -> v
 	var flown := w.act(_cast([ORB, FOX, FIRE, METAL]))
 	assert_eq(_bursts(flown), [], "no burst beside it")
 	assert_lt(foe.hp, 9, "it struck")
+
+
+func test_an_orb_that_blasts_beside_a_foe_spares_her_and_the_ground_under_her() -> void:
+	for cards: Array in [[ORB, FIRE, METAL], [ORB, ORB, ORB, METAL]]:
+		var w := _world()
+		w.tiles[Grid.index(ME)] = World.GRASS
+		_post(w, ME + E * 2)
+		w.act(_cast(cards))
+		assert_eq(w.player().hp, 9, str(cards))
+		assert_false(w.burning.has(ME), str(cards))
+
+
+func test_a_creature_s_blast_beside_her_spares_the_creature() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2)
+	w.events = []
+	Cast.cast(w, foe, Spell.make([ORB, FIRE, METAL]), -E)
+	assert_eq(_bursts(w.events), [ME + E])
+	assert_eq(foe.hp, 9)
+	assert_lt(w.player().hp, 9)
+
+
+func test_a_creature_s_hover_tells_what_its_fused_blast_does() -> void:
+	var w := _world()
+	var foe := _post(w, ME + E * 2 + S)
+	var spell := Spell.make([ORB, ORB, ORB, METAL])
+	var told: Array = SpellInfo.cast(spell).filter(func(row): return row[0] == "피해")
+	w.act(_cast(spell.cards))
+	assert_eq(told[0][1], "%d" % (9 - foe.hp))

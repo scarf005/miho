@@ -52,3 +52,10 @@ func test_an_input_is_drawn_on_its_frame() -> void:
 	_pace._input(InputEventMouseMotion.new())
 	await get_tree().process_frame
 	assert_eq(_drawn, before + 1)
+
+
+func test_a_term_that_was_stopped_draws_nothing_for_what_it_still_holds() -> void:
+	var popup := {at = Vector2i(1, 1), text = "쿵", color = Color.WHITE, born = 0.0, life = 9.0}
+	_m.term._popups.append(popup)
+	_m.term.set_process(false)
+	assert_eq(await _frames(10), 0)

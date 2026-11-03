@@ -255,3 +255,4 @@ func test_a_state_ahead_of_the_actions_on_disk_is_not_started_from() -> void:
 	back.begin()
 	assert_eq(back.played, 0)
 	assert_eq(back.world.round_no, 0)
+	assert_false(back.states.has("last"), "the actions after it would not be its own")
