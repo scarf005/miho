@@ -1,86 +1,37 @@
 class_name World
 extends RefCounted
-## The whole game state and the turn rules. `act` runs one round and returns
-## the events the view animates; `preview` runs an action on a copy so the
-## view can show its exact outcome before the player commits. One round is one
-## second of game time.
+## The whole game state, and the way into the turn rules. `act` runs one round
+## (Round) and returns the events the view animates; `preview` runs an action on a
+## copy so the view can show its exact outcome before the player commits. One
+## round is one second of game time. This file holds the state, the tile queries
+## and the constants the rules share; each rule lives in the module named here.
 ##
-## Round order: Miho acts, then every projectile flies (interleaved, one tile per
-## sub-step), then every other creature acts. A creature spends one round
-## charging (telegraphed) before it casts, and its new projectiles first fly
-## after Miho's next action.
+## Round holds the order of a round, Miho's action, her tails and what a storey
+## climbed gives back. She has depth plus the altar's bonus tails (max_tails).
 ##
-## Information comes from light and sound. A creature sees a tile in its line
-## of sight when the tile is lit or close by (Miho's fox eyes reach 2 tiles in
-## the dark, heaven's 1). Noise spreads around walls; Miho hears everything in
-## range, heaven creatures go to search where they heard an alarm or saw one of
-## Miho's projectiles, and hunt her once they see her (Mind; how they read a
-## projectile depends on their wits), shouting to those in earshot. A resting
-## creature standing at its home is asleep (Actor.asleep): it sees nothing, even
-## next to it, until noise or a wound wakes it; a patrol, which walks while it
-## rests, and a 장승, never sleep. Claws strike three times as hard at a creature that is
-## not hunting and does not see Miho (Brogue CE Combat.c sneak attack;
-## Harm.caught_unawares), so Miho can creep up on a sleeper. A creature
-## that was hurt stays wary for WARY_ROUNDS: it does not go back to rest and
-## sees Miho one tile farther in the dark.
+## Information comes from light and sound: Sight, Light, Hearing and Scent. In
+## the dark a creature sees NIGHT tiles (Miho 2, heaven 1). What heaven does with
+## it is Mind and Notice; a resting creature is asleep (Actor.asleep) and a claw
+## at one that is not hunting is a sneak attack (Harm.caught_unawares, SNEAK times
+## CLAW). A creature that was hurt stays wary for WARY_ROUNDS (Mind).
 ##
-## Terrain feeds both senses. Bamboo hides whoever stands in it from all but
-## the tiles next to it and rustles underfoot; floorboards creak. Treading
-## on either is heard; Miho's treads alarm heaven. Ponds cannot be walked
-## but spells fly over them.
+## Terrain, with the doors, lanterns, walls and windows that break, is Terrain;
+## the furniture of a room is Structures, the gas on the tiles Gas, hot ground,
+## ice, thorns and mud Compounds, and what water, fire and frost leave on a
+## creature Status. Fire on the tiles burns each round for FIRE_DAMAGE, or
+## FIERCE_DAMAGE on a fierce tile, and is ash after BURN_ROUNDS.
 ##
-## Gas (fog, steam, smoke) lies on tiles, spreads and thins every round, and
-## thick enough it blocks sight: see Gas.
+## Plates in the floor and hidden doors are Traps, war drums Drums, creaking
+## floorboards Creak. Heaven falls into groups that fight each other (Mind).
 ##
-## Compound spells leave hot ground, ice, thorns and mud: see Compounds.
-## Water wets creatures, fire sets them alight and frost freezes them: see Status.
+## A storey is built by FloorGen: pavilions in open sky joined by skybridges. Sky
+## cannot be walked, but sight, light, sound and spells cross it (open_air). A
+## creature pushed into it falls, and Miho lands on the storey below (Fall). 도약
+## leaps her across it (Leap). Every storey she has left is kept as she left it
+## (Storeys). A storey may hold one event room (EventRooms).
 ##
-## Heaven falls into groups, and a creature struck by another group fights it
-## for a while (Mind).
-##
-## A war drum calls heaven: see Drums. A plate in the floor goes off under whoever
-## steps on it or a shot flies over it, and shows only on a lit tile or right next to
-## Miho: see Traps.
-## Some walls between rooms are hidden doors, found the same way.
-##
-## Lanterns, doors, walls and windows break; Terrain holds those rules. A door
-## slides: walking into a closed one opens it with a sound and costs the move, and
-## the close action shuts an open one. Creatures of heaven open doors on their way
-## and leave them open. A closed door blocks sight, but its paper lets light through.
-## A heaven creature that is not hunting and sees a lantern that went out or
-## broke, a door or wall that broke, a burnt tile or a fallen creature goes to
-## search there, once per change (Notice). A fallen creature leaves a body mark.
-##
-## Fire sets doors, bamboo and floorboards alight where a fire spell flies or
-## ends, and around a fire orb's burst. A burning tile lights its surroundings,
-## crackles (an alarm), hides nothing, burns whoever stands in it each round
-## for FIRE_DAMAGE and may spread to each flammable neighbour; after BURN_ROUNDS
-## it is ash. Fire on a fierce tile (straw, leaves, reeds, shelves) is worse: it
-## burns for FIERCE_DAMAGE, and a fierce tile it catches spreads once more in the
-## same round. Fire hurts those who stay in it: a tile set alight during a round
-## burns nobody until the next round, so a creature it caught can step off. A
-## fire orb's burst hurts every creature around it for FIRE_DAMAGE at once
-## too (twice that to one weak to fire). Heaven walks around fire; water douses it.
-##
-## A storey is a few pavilions standing in open sky, joined by skybridges. Sky
-## cannot be walked, but sight, light, sound and spells cross it. A bridge is
-## walkable, creaks, never burns and is always lit by the moon, so whoever
-## crosses one is seen from afar; so is a courtyard, ground with no roof.
-## Screens, jars and censers stand in rooms and react when hit (Structures).
-##
-## A creature pushed into the sky falls (Fall): heaven's is gone, Miho lands on
-## the storey below. 도약 leaps her across it (Leap). Every storey she has left
-## is kept as she left it (Storeys).
-##
-## A spell cast with no direction goes on Miho: a buff (Guise.RECIPE). A
-## hovering wisp of 여 alone yelps, an alarm (Lure). Each storey climbed gives back
-## one health. A storey may hold one event room, built by hand, whose reward is
-## used on the spot: see EventRooms. The debug commands take no round: see Cheat.
-##
-## Miho grows one more tail on every storey (일미호 to 구미호). Her action
-## is a move, a wait, or any number of spells whose cards together cost no more
-## than her unspent tails. A spent tail regrows every TAIL_REGROW rounds, and a
-## kill gives one back.
+## A spell cast with no direction goes on Miho: a buff (Guise). A hovering wisp
+## of 여 alone yelps, an alarm (Lure). The debug commands take no round (Cheat).
 
 const FLOORS := 9
 const REAPER_OMEN := 300

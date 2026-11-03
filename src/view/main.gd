@@ -1,15 +1,16 @@
 extends Node
 ## Game flow and input, through the actions in Keys. Arrows, numpad or
 ## hjklyubn move, and keep moving while held; moving into a creature strikes it
-## with claws. Space, Enter or . waits. The queue and its aim are Casting's, walks of many
-## rounds Journey's, the look cursor and what the pointer is over LookMode's, the page over the
-## game Panels'. , casts the queue on Miho (Guise), as does a click on her; g or a click on her
-## with no queue drops a buff. Esc clears the queue and what is held and, with nothing to clear,
-## opens the options. c shuts an open door next to Miho (a direction key picks one when several
-## are open). Tab fights like DCSS (Fight): it claws the nearest creature in sight or steps
-## towards it. F3 shows the debug view (DebugView), which changes nothing in the game; F4, or a
-## click on its label, lists the debug commands (DebugMenu) in a box over the game, which play as
-## actions.
+## with claws. Space, Enter or . waits, or hurls what is queued. The queue and its aim
+## are Casting's, walks of many rounds Journey's, the look cursor and what the pointer
+## is over LookMode's, the page over the game Panels'. , casts the queue on Miho (Guise),
+## as does a click on her; g, or a click on her with nothing queued, lists the buffs to drop.
+## Esc clears the queue and what is held and, with nothing to clear, opens the options.
+## c shuts an open door next to Miho (a direction key picks one when several are open).
+## Tab fights like DCSS (Fight): it claws the nearest creature in sight or steps towards it,
+## and with a queue moves the aim. F3 shows the debug view (DebugView), which changes nothing
+## in the game; F4, or a click on its label, lists the debug commands (DebugMenu) in a box
+## over the game, which play as actions.
 ## Mouse: click a neighbour to move or a farther known tile to walk there, or with a queue click
 ## anywhere to hurl; click a talisman to queue it or a 도감 word to open it; right-click clears.
 ## A step onto a plate found, fire or a drop asks first, and a held key stops when a creature comes
