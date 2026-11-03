@@ -139,10 +139,7 @@ func test_fire_on_its_own_is_the_element_and_fire_one_stands_on_is_the_floor() -
 	var stand := [["불 위: 3초", Palette.TEXT]]
 	var element := Keywords.entry_at(row, 0.0, Term.text_cells("면역: ") + 0.5)
 	var ground := Keywords.entry_at(stand, 0.0, 0.5)
-	assert_eq(
-		Keywords.locate("불"),
-		Vector2i(1, Codex.entries(1).find_custom(func(e): return e.name == "불"))
-	)
+	assert_eq(Keywords.locate("불"), Keywords.locate(Codex.talisman_name(Cards.FIRE)))
 	assert_eq(Keywords.word_at(row, 0.0, Term.text_cells("면역: ") + 0.5), "불")
 	assert_eq(Keywords.word_at(stand, 0.0, 0.5), "불 위")
 	assert_eq(Keywords.locate("불 위").x, 4)

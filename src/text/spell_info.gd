@@ -71,6 +71,11 @@ static func _recipe_runs(cards: Array) -> Array:
 	return runs
 
 
+## Talismans joined by "+", as plain text.
+static func recipe_text(cards: Array) -> String:
+	return "+".join(cards.map(func(c): return Cards.part(c, Lang.t)))
+
+
 ## A talisman, and what the queue becomes with it (null when it does not fit).
 static func card(c: StringName, after: Spell) -> Array:
 	var head := [

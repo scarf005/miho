@@ -250,3 +250,107 @@ func test_the_side_buttons_do_nothing_on_another_page() -> void:
 	m.panels.open(&"help")
 	_click(m, Vector2.ZERO, MOUSE_BUTTON_XBUTTON1)
 	assert_eq(m.panels.overlay, &"help")
+
+
+func _foe_detail(m: Node, kind: StringName, rank: int) -> void:
+	m.panels.open(&"codex")
+	m.menu.codex.go(0)
+	m.menu.codex.rank = rank
+	m.menu.codex.select(Codex.foes().find(kind))
+	m.term.panel = m.menu.panel()
+
+
+func test_a_spell_of_a_creature_shows_its_recipe_and_a_click_opens_it_at_that_recipe() -> void:
+	var m := _game()
+	var cards := [Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB, Cards.WATER]
+	_foe_detail(m, &"haetae", Bestiary.RANKS)
+	var recipe := SpellInfo.recipe_text(cards)
+	var at := _cell(m.term, recipe)
+	var local := (at + Vector2(0.5, 0.5)) * Term.CELL
+	assert_string_contains(Info.plain(WordHover.at(m.term, local)), recipe)
+	_click(m, _over(m, at.x, int(at.y)))
+	var codex: Codex = m.menu.codex
+	var entry: Dictionary = Codex.entries(codex.tab)[codex.selected]
+	assert_eq(entry.name, Bestiary.spell(&"haetae", cards).shot_shown())
+	assert_string_contains(Info.plain(Codex.detail(entry, codex.part)), recipe)
+	_esc(m)
+	assert_eq(codex.tab, 0, "Esc goes back to the creature")
+
+
+func test_a_spell_named_as_a_gas_still_shows_its_recipe() -> void:
+	var m := _game()
+	var cards := [Cards.WATER, Cards.FIRE]
+	_foe_detail(m, &"cheonnyeon", Bestiary.RANKS)
+	var at := _cell(m.term, SpellInfo.recipe_text(cards))
+	var local := (at + Vector2(0.5, 0.5)) * Term.CELL
+	assert_string_contains(Info.plain(WordHover.at(m.term, local)), SpellInfo.recipe_text(cards))
+	_click(m, _over(m, at.x, int(at.y)))
+	var codex: Codex = m.menu.codex
+	assert_eq(codex.tab, 2, "the spell, not the gas of its name")
+	assert_eq(Codex.entries(2)[codex.selected].name, Bestiary.spell(&"cheonnyeon", cards).shown())
+
+
+func test_a_box_shift_keeps_gives_the_recipe_of_the_spell_in_it() -> void:
+	var m := _game()
+	var w: World = m.world
+	var foe := FloorGen.spawn(w, &"jiha", w.player().pos + Vector2i(1, 0))
+	foe.rank = 1
+	w.sense()
+	m.term.show_world(w)
+	m.forecast()
+	m.look.hover = foe.pos
+	m.refresh()
+	WordHover.hold(m, true)
+	assert_false(m.term.pin.is_empty())
+	var recipe := SpellInfo.recipe_text(Bestiary.casts(&"jiha", 1)[0])
+	var at := _cell(m.term, recipe)
+	var word := WordHover.at(m.term, (at + Vector2(0.5, 0.5)) * Term.CELL)
+	assert_string_contains(Info.plain(word), recipe)
+
+
+func test_the_spell_a_creature_charges_in_the_sidebar_is_a_word() -> void:
+	var m := _game()
+	var w: World = m.world
+	var cards := [Cards.FOX, Cards.METAL]
+	var foe := FloorGen.spawn(w, &"jiha", w.player().pos + Vector2i(1, 0))
+	foe.magic.intent.assign([{cards = cards, dir = Vector2i.LEFT}])
+	w.sense()
+	m.term.show_world(w)
+	m.forecast()
+	var recipe := SpellInfo.recipe_text(cards)
+	var at := _cell(m.term, recipe)
+	assert_true(at.x < m.term.side.x, "in the sidebar")
+	assert_string_contains(
+		Info.plain(WordHover.at(m.term, (at + Vector2(0.5, 0.5)) * Term.CELL)), recipe
+	)
+	var rounds: int = w.round_no
+	_click(m, _over(m, at.x, int(at.y)))
+	assert_eq(m.panels.overlay, &"codex")
+	assert_eq(w.round_no, rounds)
+
+
+func test_every_spell_of_every_creature_has_an_entry_that_tells_its_recipe() -> void:
+	for kind: StringName in Codex.foes():
+		for rank in Bestiary.RANKS:
+			for cards: Array in Bestiary.casts(kind, rank + 1):
+				var recipe := SpellInfo.recipe_text(cards)
+				var what := "%s %s" % [kind, recipe]
+				assert_ne(Keywords.locate(recipe).x, -1, what)
+				assert_string_contains(Info.plain(Keywords.entry(recipe)), recipe, what)
+
+
+func test_a_title_with_a_count_is_a_word_for_that_recipe() -> void:
+	var cards := [Cards.ORB, Cards.ORB, Cards.ORB, Cards.ORB, Cards.WATER]
+	var title := Bestiary.spell(&"haetae", cards).shown()
+	var text := Keywords.word_at([["해태가 %s을 던졌다" % title, Palette.TEXT]], 0.0, 5.0)
+	assert_eq(text, title)
+	assert_string_contains(Info.plain(Keywords.entry(title)), SpellInfo.recipe_text(cards))
+
+
+func test_a_talisman_in_a_recipe_or_a_line_is_a_word_for_its_entry() -> void:
+	for c: StringName in Cards.FORMS + Cards.ELEMENTS:
+		var part := Cards.part(c, Lang.t)
+		assert_eq(Keywords.locate(part), Keywords.locate(Codex.talisman_name(c)), part)
+		assert_string_contains(Info.plain(Keywords.entry(part)), Codex.talisman_name(c))
+	assert_eq(Keywords.word_at([["구+불", Palette.TEXT]], 0.0, 0.2), Cards.part(Cards.ORB, Lang.t))
+	assert_eq(Keywords.word_at([["구+불", Palette.TEXT]], 0.0, 1.8), Cards.part(Cards.FIRE, Lang.t))
