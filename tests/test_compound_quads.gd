@@ -523,19 +523,19 @@ func test_samsara_cast_by_a_creature_of_heaven_heals_it_and_stuns_miho() -> void
 	assert_true(_of(events, &"heal").is_empty(), "the log tells only Miho's")
 
 
-func test_conquest_hurts_every_foe_in_sight_and_doubles_it_for_one_with_a_weakness() -> void:
+func test_conquest_hurts_every_foe_in_sight_alike_its_elements_holding_weak_and_immune() -> void:
 	var w := _world()
 	var plain := _post(w, ME + E * 3)
-	var weak := FloorGen.spawn(w, &"cheonnyeon", ME + E * 5)
-	weak.magic.cooldown = 99
-	weak.max_hp = 20
-	weak.hp = 20
+	var boss := FloorGen.spawn(w, &"cheonnyeon", ME + E * 5)
+	boss.magic.cooldown = 99
+	boss.max_hp = 20
+	boss.hp = 20
 	_wall_across(w, ME.x + 8)
 	var hidden := _post(w, ME + Vector2i(10, 0))
 	w.sense()
 	var events := w.act(_cast(_made(Cards.CONQUEST)))
 	assert_eq(_first(events, plain.id), Compounds.CONQUEST_HARM)
-	assert_eq(_first(events, weak.id), 2 * Compounds.CONQUEST_HARM)
+	assert_eq(_first(events, boss.id), Compounds.CONQUEST_HARM)
 	assert_eq(hidden.hp, hidden.max_hp)
 	assert_false(_of(events, &"noise").filter(func(e): return e.loud == Compounds.BOOM).is_empty())
 

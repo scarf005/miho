@@ -206,7 +206,8 @@ func _profile(kind: StringName) -> String:
 	var info := Bestiary.info(kind)
 	var weak := ",".join(Bestiary.weak_to(kind).map(func(c): return String(c)))
 	var tag := "%s|%s|%s|%s|%s|%s"
-	var facts := [info.get("absorb", ""), info.get("eats", ""), weak, Bestiary.burns(kind)]
+	var immune := ",".join(Bestiary.immune_to(kind).map(func(c): return String(c)))
+	var facts := [info.get("absorb", "") + immune, info.get("eats", ""), weak, Bestiary.burns(kind)]
 	return tag % (facts + [info.get("hat", false), Bestiary.swims(kind)])
 
 
@@ -349,6 +350,9 @@ func _creature_table() -> void:
 				other.append(flag)
 		if info.get("absorb", &"") != &"":
 			other.append("absorbs %s" % info.absorb)
+		if not Bestiary.immune_to(kind).is_empty():
+			var immune := Bestiary.immune_to(kind).map(func(c): return Cards.NAME[c])
+			other.append("immune to %s" % ",".join(immune))
 		if info.has("drop"):
 			other.append("drops %s" % Cards.NAME[info.drop])
 		if info.get("move", &"") != &"":

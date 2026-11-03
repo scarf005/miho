@@ -4,7 +4,7 @@ extends RefCounted
 ## room lies on one side of it. The fire never dies down by itself and blocks
 ## walking and spells but not sight; it lights the room. Whoever stands next to
 ## it (in eight directions) when a round ends burns for World.FIRE_DAMAGE, unless
-## it eats fire. A water spell that ends beside it, a jet of water or frost
+## it is fireproof. A water spell that ends beside it, a jet of water or frost
 ## (the element that beats fire, Cards.BEATS) puts out the tiles it reaches
 ## (Terrain.wash, Compounds): ash, or ice after frost. A peach lies in the far
 ## half, away from the fire.

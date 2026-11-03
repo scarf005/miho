@@ -108,8 +108,7 @@ static func can(w: World, action: Dictionary) -> bool:
 			return Cards.ALL.any(func(c): return not w.cards.has(c))
 		&"summon":
 			return (
-				Bestiary.KINDS.has(action.kind)
-				and action.kind != &"miho"
+				Bestiary.HEALTH.has(action.kind)
 				and _free(w, action.at, Bestiary.ground(action.kind))
 			)
 		&"heal":

@@ -23,6 +23,7 @@ func _world() -> World:
 	var w := World.new()
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.WALL)
+	w.rooms = [Rect2i(1, 1, Grid.W - 2, Grid.H - 2)]
 	for y in range(1, Grid.H - 1):
 		for x in range(1, Grid.W - 1):
 			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
@@ -99,17 +100,23 @@ func test_an_earth_creature_stops_water_and_is_weak_to_wood() -> void:
 
 
 func test_a_stopped_water_orb_does_not_push_an_earth_creature() -> void:
-	var w := _world()
-	var foe := _foe(w, &"dueoksini")
-	foe.ailments.rooted = 0
-	w.act(_cast([ORB, WATER]))
-	assert_eq(foe.pos, FOE)
+	var pushed := {}
+	for kind in [&"dokkaebi", &"dueoksini"]:
+		var w := _world()
+		var foe := _foe(w, kind)
+		foe.ailments.rooted = 0
+		foe.ailments.stunned = 99
+		w.act(_cast([ORB, WATER]))
+		pushed[kind] = foe.pos != FOE
+	assert_true(pushed[&"dokkaebi"], "the same orb pushes a creature of no element")
+	assert_false(pushed[&"dueoksini"])
 
 
 func test_a_water_spray_reaches_but_does_nothing_to_an_earth_creature() -> void:
 	var w := _world()
 	var foe := _foe(w, &"dueoksini", ME + E * 2)
 	foe.ailments.rooted = 0
+	foe.ailments.stunned = 99
 	var events := w.act(_cast([WATER]))
 	assert_false(_of(events, &"absorb", foe.id).is_empty())
 	assert_eq(foe.pos, ME + E * 2, "not pushed")
@@ -220,7 +227,7 @@ func test_weak_and_immune_in_one_spell_harm_as_they_are() -> void:
 
 
 func test_a_spell_with_an_immune_element_and_another_is_halved() -> void:
-	var mixed := [ORB, ORB, ORB, WATER, METAL]
+	var mixed := [ORB, ORB, WATER, METAL]
 	var got := _struck(&"dueoksini", mixed)
 	assert_true(got.resisted)
 	assert_false(got.stopped)
@@ -231,8 +238,8 @@ func test_a_spell_with_an_immune_element_and_another_is_halved() -> void:
 func test_an_orb_blast_is_stopped_by_a_neighbour_immune_to_all_of_it() -> void:
 	var w := _world()
 	_foe(w, &"dokkaebi")
-	var side := _foe(w, &"dueoksini", FOE + Vector2i(0, 1))
-	var events := w.act(_cast([ORB, ORB, WATER]))
+	var side := _foe(w, &"haetae", FOE + Vector2i(0, 1))
+	var events := w.act(_cast([ORB, ORB, FIRE]))
 	assert_true(_of(events, &"hurt", side.id).is_empty())
 	assert_false(_of(events, &"absorb", side.id).is_empty())
 
@@ -359,8 +366,8 @@ func test_the_hover_tells_each_creature_s_immunity_by_its_elements() -> void:
 	assert_eq(_told(&"dueoksini", "내성"), ["내성: 물이 섞인 주문"])
 	assert_eq(_told(&"bulgae", "면역"), ["면역: 쇠"])
 	assert_eq(_told(&"bulgae", "내성"), ["내성: 쇠가 섞인 주문"])
-	assert_eq(_told(&"cheonnyeon", "면역"), ["면역: 불, 쇠, 나무"])
-	assert_eq(_told(&"cheonnyeon", "내성"), ["내성: 불, 쇠, 나무가 섞인 주문"])
+	assert_eq(_told(&"cheonnyeon", "면역"), ["면역: 불, 나무, 쇠"])
+	assert_eq(_told(&"cheonnyeon", "내성"), ["내성: 불, 나무, 쇠가 섞인 주문"])
 	assert_eq(_told(&"cheonnyeon", "약점"), ["약점: 물, 흙, 전기"])
 
 

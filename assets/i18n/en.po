@@ -1734,9 +1734,6 @@ msgstr "Enemies chasing"
 msgid "체력"
 msgstr "Health"
 
-msgid "약점인 적 피해"
-msgstr "Damage to a weak enemy"
-
 msgid "%d칸, 바깥으로"
 msgstr "%d tiles, outward"
 
@@ -1779,8 +1776,14 @@ msgstr "Takes half the harm from that spell"
 msgid "내성: "
 msgstr "Resists: "
 
-msgid "불이 섞인 주문"
-msgstr "Spells with fire mixed in"
+msgid "{0}이/가 섞인 주문"
+msgstr "Spells with {0} mixed in"
+
+msgid "불에 타지 않음"
+msgstr "Does not burn"
+
+msgid "피해 없음: %s"
+msgstr "No harm: %s"
 
 msgid "초당 %d칸"
 msgstr "%d tiles/s"

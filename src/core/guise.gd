@@ -41,7 +41,7 @@ extends RefCounted
 ##
 ## 불여우 (FLAME: 여 and the 들불 slot of 목+불): she counts as a fire creature
 ## (Actor.nature_kind = FLAME_KIND), under the rule creatures obey (Bestiary.absorbs,
-## weak): fire spells and burning tiles do her no harm, water harms her twice over,
+## weak): fire spells, 쇠 and burning tiles do her no harm, water harms her twice over,
 ## and a spell of hers that holds 불 harms a creature that would stop it whole by
 ## absorbing fire, for FLAME_THROUGH at most, and feeds it nothing (`through`).
 ## Thrown along a direction it is the 여우불 of 들불, as ever.
@@ -74,9 +74,8 @@ const RECIPE := {
 	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
 	RAISE: Cards.COMPOUND[RAISE].made,
 }
-## The creature whose elements 불여우 gives her: a 불개, a fire creature that
-## does nothing more with them.
-const FLAME_KIND := &"bulgae"
+## The creature whose elements 불여우 gives her: of fire, and immune to fire besides.
+const FLAME_KIND := &"flame_fox"
 ## The most her spells that hold 불 harm a creature that would stop them whole.
 const FLAME_THROUGH := 1
 ## The spells that go on her whatever the direction they are cast along.

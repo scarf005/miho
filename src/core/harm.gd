@@ -65,10 +65,10 @@ static func hurt(w: World, a: Actor, n: int, weak := false) -> void:
 	reward(w, a)
 
 
-## Ground fire of `n` at `a`: a creature that absorbs fire takes it in (told at `at`),
+## Ground fire of `n` at `a`: it does nothing to a fireproof creature (told at `at`),
 ## else it is hurt. Whether it was hurt.
 static func fire(w: World, a: Actor, n: int, at: Vector2i) -> bool:
-	if Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE])):
+	if Bestiary.fireproof(a.nature_kind()):
 		w.emit({t = &"absorb", id = a.id, at = at})
 		return false
 	hurt(w, a, n)

@@ -58,7 +58,7 @@ static func text(world: World) -> String:
 	if me.buffs.cloak:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
 	if me.buffs.flame:
-		var line := "fire creature: no harm from fire, lightning harms only wet, water harms twice"
+		var line := "fire creature: no harm from fire or metal, water harms twice"
 		out.append(
 			"%s, her fire harms what is immune to fire %d at most" % [line, Guise.FLAME_THROUGH]
 		)
@@ -209,6 +209,13 @@ static func _creature(k: World, a: Actor) -> String:
 	var weak := Bestiary.weak_to(a.kind)
 	if not weak.is_empty():
 		line += ", weak to " + ", ".join(weak)
+	var immune := Bestiary.immune_to(a.kind)
+	if not immune.is_empty():
+		line += ", immune to " + ", ".join(immune)
+	if a.info().get("absorb", &"") == &"nofire":
+		line += ", immune to spells without fire"
+	if Bestiary.fireproof(a.kind) and not immune.has(Cards.FIRE):
+		line += ", does not burn"
 	if Elements.charge(a) != 1:
 		line += ", electric x%d" % Elements.charge(a)
 	if a.fighting():

@@ -18,8 +18,8 @@ extends RefCounted
 ## 들불 sets what burns alight, and the creatures it reaches (Status), and
 ## that fire always spreads (World.wild).
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
-## water: whoever stands on it as a round ends takes its harm, unless it flies or eats
-## fire (`spared`), which also cross it. The rest of heaven walks round it, so a fused orb
+## water: whoever stands on it as a round ends takes its harm, unless it flies or is
+## fireproof (`spared`), which also cross it. The rest of heaven walks round it, so a fused orb
 ## (Shot.fused) sears those it reaches as it bursts (`_flare`): one beside the burst would
 ## step off. A burst spares its caster, so it lays none under it.
 ## 유탄 hurts every creature it reaches for SHRAPNEL. On an orb (비격진) it
@@ -63,7 +63,8 @@ extends RefCounted
 ## (Mind.lose) and washes the scent away.
 ## 5단, of all five, heard BOOM tiles but 윤회:
 ## 윤회 heals the caster 1 and stuns each creature SAMSARA_STUN.
-## 상극 hurts each creature CONQUEST_HARM, twice over when it has a weakness.
+## 상극 hurts each creature CONQUEST_HARM: of all five elements, what a creature is weak
+## to and what it is immune to cancel out (Elements.dealt).
 ## 황룡 fells every breakable wall it reaches, pushes each creature DRAGON_PUSH
 ## tiles away from its centre and stuns it DRAGON_STUN.
 ## Open ground is walkable, not a door, a skybridge or water, not the stairs,
@@ -263,12 +264,9 @@ static func tick(w: World) -> void:
 		w.emit({t = &"cool", at = cooled[kind][0], tiles = cooled[kind], kind = kind})
 
 
-## Whether hot ground does nothing to `a`: it flies, or eats fire.
+## Whether hot ground does nothing to `a`: it flies, or is fireproof.
 static func spared(a: Actor) -> bool:
-	return (
-		Bestiary.flies(a.kind)
-		or Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
-	)
+	return Bestiary.flies(a.kind) or Bestiary.fireproof(a.nature_kind())
 
 
 ## Hot ground of `kind` sears `a` on it.

@@ -91,8 +91,8 @@ func test_weakness_follows_the_beats_table_both_ways() -> void:
 	assert_eq(Bestiary.weak_to(&"miho"), [] as Array[StringName])
 	assert_eq(
 		Bestiary.weak_to(&"cheonnyeon"),
-		[Cards.FIRE, Cards.WATER, Cards.EARTH] as Array[StringName],
-		"one weakness per element it holds"
+		[Cards.WATER, Cards.EARTH] as Array[StringName],
+		"one weakness per element it holds, but what it is immune to"
 	)
 
 

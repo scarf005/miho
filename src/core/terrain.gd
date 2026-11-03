@@ -345,7 +345,7 @@ static func relight_beside(w: World, a: Actor) -> bool:
 
 
 ## Each burning tile crackles, burns and dries whoever stands in it (unless it
-## eats fire, or burns already: Status) if it was already alight when the
+## is fireproof, or burns already: Status) if it was already alight when the
 ## round began (`alight`): for World.FIERCE_DAMAGE on a fierce tile, else
 ## World.FIRE_DAMAGE. It may set each flammable neighbour alight (a wild one
 ## always does), and burns down to ash; a plank gives way to the sky with a crack

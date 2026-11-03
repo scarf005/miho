@@ -36,10 +36,8 @@ extends RefCounted
 ## Fall), as Brogue MONST_FLIES. flits: goes a random way one move in Mind.FLITS (Mind._flit),
 ## as Brogue MONST_FLITS.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
-## absorb: &"fire" absorbs the fire of a spell (해태 guards against fire): a spell
-## whose elements are all fire is stopped whole, effects and all; one with other
-## elements too is only halved in harm (rounded down) and keeps its effects.
-## &"nofire" stops every spell with no fire among its elements, one with no
+## absorb: an immunity besides those of its elements (`immune_to`). &"fire": 불여우's own to
+## fire. &"nofire" stops every spell with no fire among its elements, one with no
 ## element included (불가사리 dies only in fire). 전기 is never absorbed.
 ## eats: the element whose spells feed it when it stops them: max HP and HP
 ## grow by GROWTH.
@@ -57,11 +55,13 @@ extends RefCounted
 ## `undead`.
 ## hat: wears the invisibility hat, or lies under the water, seen only from the next
 ## tile or with a wisp clinging to it (Hat).
-## A creature's elements are those of the spells it casts (Spell.nature). A
-## spell with an element beating one of them hits it twice as hard (Cards.BEATS),
-## and only once as hard when it is partly absorbed too (Elements.dealt). 전기
-## ignores the weakness: it follows the elements the creature has
-## (Elements.charge).
+## A creature's elements are those of the spells it casts (Spell.nature). Each is immune to
+## the element it beats and weak to the one that beats it (Cards.BEATS), immune winning. A
+## spell whose elements are all immune is stopped whole, effects and all; one with other
+## elements too is only halved in harm (rounded down) and keeps its effects. A spell with
+## an element it is weak to hits it twice as hard, and only once as hard when it is partly
+## absorbed too (Elements.dealt). 전기 ignores all that: it follows the elements the
+## creature has (Elements.charge).
 
 const FOX := Cards.FOX
 const ORB := Cards.ORB
@@ -215,7 +215,6 @@ const KINDS := {
 		step = 4,
 		wits = 1,
 		patrol = true,
-		absorb = &"fire",
 		stokes = true,
 	},
 	&"bitjaru":
@@ -328,7 +327,6 @@ const KINDS := {
 		wits = 1,
 		patrol = true,
 		drop = Cards.FIRE,
-		absorb = &"fire",
 	},
 	&"bakjwi":
 	{
@@ -355,7 +353,6 @@ const KINDS := {
 		flies = true,
 		wits = 1,
 		patrol = true,
-		absorb = &"fire",
 	},
 	&"haetae":
 	{
@@ -381,7 +378,6 @@ const KINDS := {
 		step = 3,
 		wits = 1,
 		drop = Cards.WATER,
-		absorb = &"fire",
 	},
 	&"cheonha":
 	{
@@ -485,7 +481,6 @@ const KINDS := {
 		move = &"align",
 		step = 3,
 		wits = 1,
-		absorb = &"fire",
 	},
 	&"eodeopsini":
 	{
@@ -537,9 +532,17 @@ const KINDS := {
 		casts = [Forge.ORB],
 		cd = Forge.FIRE_ROUNDS,
 		move = &"static",
+	},
+	Guise.FLAME_KIND:
+	{
+		name = "불여우",
+		glyph = "@",
+		casts = [[FOX, Cards.FIRE]],
 		absorb = &"fire",
 	},
 }
+
+static var _elements := {}
 
 
 static func info(kind: StringName) -> Dictionary:
@@ -642,12 +645,24 @@ static func flies(kind: StringName) -> bool:
 	return info(kind).get("flies", false)
 
 
-## The elements of `spell` that `kind` absorbs: only fire, for a fire absorber.
-## 전기 is no element, so nothing of it is absorbed.
+## The elements a creature of `kind` is immune to, in 오행 order: those its own beat
+## (Cards.BEATS), and fire for one that has `absorb = &"fire"`.
+static func immune_to(kind: StringName) -> Array[StringName]:
+	var beaten := elements(kind).map(func(e): return Cards.BEATS[e])
+	if info(kind).get("absorb", &"") == &"fire":
+		beaten.append(Cards.FIRE)
+	var out: Array[StringName] = []
+	out.assign(Cards.ELEMENTS.filter(func(c): return beaten.has(c)))
+	return out
+
+
+## The elements of `spell` that `kind` absorbs. 전기 is no element, so nothing of it is
+## absorbed.
 static func taken(kind: StringName, spell: Spell) -> Array[StringName]:
 	var out: Array[StringName] = []
-	if info(kind).get("absorb", &"") == &"fire" and not spell.electric():
-		out.assign(spell.nature().filter(func(e): return e == Cards.FIRE))
+	if not spell.electric():
+		var immune := immune_to(kind)
+		out.assign(spell.nature().filter(func(e): return immune.has(e)))
 	return out
 
 
@@ -657,12 +672,10 @@ static func taken(kind: StringName, spell: Spell) -> Array[StringName]:
 static func absorbs(kind: StringName, spell: Spell) -> bool:
 	if spell.electric():
 		return false
-	match info(kind).get("absorb", &""):
-		&"fire":
-			return not taken(kind, spell).is_empty() and taken(kind, spell) == spell.nature()
-		&"nofire":
-			return not spell.nature().has(Cards.FIRE)
-	return false
+	if info(kind).get("absorb", &"") == &"nofire" and not spell.nature().has(Cards.FIRE):
+		return true
+	var part := taken(kind, spell)
+	return not part.is_empty() and part == spell.nature()
 
 
 ## Whether the creature absorbs some of the elements of the spell but not all:
@@ -677,8 +690,14 @@ static func eats(kind: StringName, spell: Spell) -> bool:
 
 
 ## A creature's elements: those of the spells it casts at any rank
-## (Spell.nature), in 오행 order.
+## (Spell.nature), in 오행 order. Every step asks (Compounds.spared), so each kind is read once.
 static func elements(kind: StringName) -> Array[StringName]:
+	if not _elements.has(kind):
+		_elements[kind] = _read_elements(kind)
+	return _elements[kind]
+
+
+static func _read_elements(kind: StringName) -> Array[StringName]:
 	var out: Array[StringName] = []
 	if info(kind).has("mana"):
 		return out
@@ -692,11 +711,15 @@ static func elements(kind: StringName) -> Array[StringName]:
 	return out
 
 
-## The elements that beat one of the creature's own, in 오행 order.
+## The elements that beat one of the creature's own and that it is not immune to, in 오행
+## order.
 static func weak_to(kind: StringName) -> Array[StringName]:
 	var mine := elements(kind)
+	var immune := immune_to(kind)
 	var out: Array[StringName] = []
-	out.assign(Cards.ELEMENTS.filter(func(c): return mine.has(Cards.BEATS[c])))
+	out.assign(
+		Cards.ELEMENTS.filter(func(c): return mine.has(Cards.BEATS[c]) and not immune.has(c))
+	)
 	return out
 
 
@@ -709,3 +732,9 @@ static func weak(kind: StringName, spell: Spell) -> bool:
 ## Wood creatures catch fire when a fire spell hits them.
 static func burns(kind: StringName) -> bool:
 	return elements(kind).has(Cards.WOOD)
+
+
+## Whether fire on the ground and 불붙음 do nothing to a creature of `kind`: it is immune
+## to fire, or it is of fire, which a fire spell still hits.
+static func fireproof(kind: StringName) -> bool:
+	return elements(kind).has(Cards.FIRE) or immune_to(kind).has(Cards.FIRE)

@@ -11,6 +11,7 @@ const FIRE_ORB := [Cards.ORB, Cards.FIRE]
 const WATER_WISP := [Cards.FOX, Cards.WATER]
 const WATER_ORB := [Cards.ORB, Cards.WATER]
 const EARTH_WISP := [Cards.FOX, Cards.EARTH]
+const METAL_WISP := [Cards.FOX, Cards.METAL]
 const FIRE_SPRAY := [Cards.FIRE, Cards.FIRE, Cards.FIRE]
 const WEST := Vector2i(-1, 0)
 ## Tiles away she sees in the dark hall, where a forecast keeps a creature.
@@ -137,7 +138,7 @@ func test_a_fire_spell_does_no_harm_worn_and_harms_without() -> void:
 
 
 func test_she_meets_every_spell_as_a_fire_creature_does() -> void:
-	for cards: Array in [FIRE_WISP, FIRE_ORB, FIRE_SPRAY, WATER_WISP, WATER_ORB, EARTH_WISP]:
+	for cards: Array in [METAL_WISP, WATER_WISP, WATER_ORB, EARTH_WISP]:
 		assert_eq(_loss(cards, true), _loss(cards, false, &"bulgae"), "%s" % [cards])
 
 

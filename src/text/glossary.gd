@@ -101,6 +101,7 @@ static func rows() -> Dictionary:
 			"풀린 뒤에야 다시 묶을 수 있다."
 		],
 		"불에 탐": ["불붙음: 불이 든 주문에 맞을 때"],
+		Info.FIREPROOF: [Lang.t("피해 없음: %s") % ", ".join(_fireproof())],
 		"위치 감지": ["추격: 항상", "보지 못해도 당신을 쫓아감", no_sleep],
 		Info.SMELL:
 		[
@@ -150,6 +151,12 @@ static func rows() -> Dictionary:
 			Lang.t("지워짐: %s") % ", ".join(_scent_erasers()),
 		],
 	}
+
+
+## What does nothing to a fireproof creature (Harm.fire, Status.ignite).
+static func _fireproof() -> Array:
+	var names := [Lang.t(Cards.NAME[Cards.FIRE]), Lang.t(Status.NAME[&"alight"])]
+	return names + Compounds.HOT.map(func(h): return Lang.t(h.name))
 
 
 ## What flying crosses and what it does not step on (Terrain.stepped).

@@ -100,7 +100,6 @@ func test_the_poker_takes_no_harm_from_fire() -> void:
 	w.burning[a.pos] = World.BURN_ROUNDS
 	w.act(WAIT)
 	assert_eq(a.hp, Bestiary.hp(&"bujigaengi", 1))
-	assert_true(Bestiary.absorbs(&"bujigaengi", Spell.make([Cards.ORB, Cards.FIRE])))
 
 
 func test_the_broom_sweeps_along_miho_s_scent() -> void:
@@ -147,7 +146,7 @@ func test_the_hover_and_the_doc_tell_each_trick() -> void:
 		text[&"oedari"], "근접: 씨름 · 피해: %d · 던짐: %d칸" % [melee.damage, melee.throw]
 	)
 	assert_string_contains(text[&"bujigaengi"], "등불 켜기")
-	assert_string_contains(text[&"bujigaengi"], "면역: 불")
+	assert_string_contains(text[&"bujigaengi"], "면역: 쇠")
 	assert_string_contains(text[&"bitjaru"], "후각이 뛰어나다")
 	assert_false(text[&"bitjaru"].contains("말할 수 있다"))
 

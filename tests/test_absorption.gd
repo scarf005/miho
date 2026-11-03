@@ -10,10 +10,11 @@ const E := Vector2i(1, 0)
 const FOE := Vector2i(7, 8)
 const LAVA := [ORB, FIRE, Cards.EARTH]
 const LAVA_TWICE := [ORB, ORB, FIRE, Cards.EARTH]
-## A creature of fire: it absorbs fire. A creature of water: it also absorbs fire,
-## and is weak to earth.
-const FIRE_EATER := &"bulgae"
+## A creature of wood absorbs earth. A creature of water absorbs fire and is weak to
+## earth. A creature of fire absorbs metal.
+const EARTH_EATER := &"cheonha"
 const WATER_EATER := &"haetae"
+const METAL_EATER := &"bulgae"
 
 
 ## An open hall, Miho at (4, 8) with tails to spare.
@@ -60,9 +61,9 @@ func _first(events: Array, id: int) -> int:
 	return _of(events, &"hurt", id)[0].n
 
 
-func test_lava_on_a_fire_absorber_is_halved_and_still_leaves_hot_ground() -> void:
+func test_lava_on_an_earth_absorber_is_halved_and_still_leaves_hot_ground() -> void:
 	var w := _world()
-	var foe := _foe(w, FIRE_EATER)
+	var foe := _foe(w, EARTH_EATER)
 	assert_eq(Spell.make(LAVA_TWICE).damage(3), 2, "the harm before it is halved")
 	var events := w.act(_cast(LAVA_TWICE))
 	assert_eq(_first(events, foe.id), 1)
@@ -79,7 +80,7 @@ func test_a_lone_fire_on_a_fire_absorber_is_stopped_with_no_effect() -> void:
 	assert_false(control.burning.is_empty(), "the same fire's blast sets the grass alight")
 	var w := _world()
 	w.tiles[Grid.index(beside)] = World.GRASS
-	var foe := _foe(w, FIRE_EATER)
+	var foe := _foe(w, WATER_EATER)
 	var events := w.act(_cast([ORB, FIRE]))
 	assert_false(_of(events, &"absorb", foe.id).is_empty())
 	assert_true(_of(events, &"hurt", foe.id).is_empty())
@@ -89,12 +90,13 @@ func test_a_lone_fire_on_a_fire_absorber_is_stopped_with_no_effect() -> void:
 
 func test_a_harm_of_one_partly_absorbed_is_nothing_and_the_effect_applies() -> void:
 	var w := _world()
-	var foe := _foe(w, FIRE_EATER)
-	assert_eq(Spell.make(LAVA).damage(3), 1)
-	var events := w.act(_cast(LAVA))
+	var foe := _foe(w, &"dueoksini")
+	var mud := [Cards.FOX, Cards.WATER, Cards.EARTH]
+	assert_eq(Spell.make(mud).damage(3), 1)
+	var events := w.act(_cast(mud))
 	assert_true(_of(events, &"hurt", foe.id).is_empty())
 	assert_false(_of(events, &"resist", foe.id).is_empty())
-	assert_false(w.hot.is_empty())
+	assert_gt(foe.ailments.wet, 0)
 
 
 func test_a_weak_element_doubles_the_harm_though_the_spell_has_another() -> void:
@@ -119,24 +121,26 @@ func test_weak_and_partly_absorbed_deals_the_harm_as_it_is() -> void:
 func test_two_weak_elements_still_deal_twice_the_harm() -> void:
 	var w := _world()
 	var foe := _foe(w, &"cheonnyeon")
-	var steam := Spell.make([ORB, Cards.WATER, FIRE])
-	assert_eq(Bestiary.weak_to(foe.kind).filter(func(e): return steam.nature().has(e)).size(), 2)
-	assert_eq(_first(w.act(_cast([ORB, Cards.WATER, FIRE])), foe.id), Elements.WEAK)
+	var mud := [ORB, Cards.WATER, Cards.EARTH]
+	var spell := Spell.make(mud)
+	assert_eq(Bestiary.weak_to(foe.kind).filter(func(e): return spell.nature().has(e)).size(), 2)
+	assert_eq(_first(w.act(_cast(mud)), foe.id), Elements.WEAK)
 
 
 func test_the_forecast_shows_the_halved_harm() -> void:
 	var w := _world()
-	var foe := _foe(w, FIRE_EATER)
+	var foe := _foe(w, &"dueoksini")
+	var mud := [ORB, ORB, Cards.WATER, Cards.EARTH]
 	w.tiles[Grid.index(FOE + Vector2i(0, 2))] = World.LANTERN
 	w.sense()
-	assert_eq(Forecast.of(w, _cast(LAVA_TWICE)).harm.get(foe.id), 1)
-	assert_eq(_first(w.act(_cast(LAVA_TWICE)), foe.id), 1)
+	assert_eq(Forecast.of(w, _cast(mud)).harm.get(foe.id), 1)
+	assert_eq(_first(w.act(_cast(mud)), foe.id), 1)
 
 
 func test_an_orb_blast_halves_what_a_neighbour_absorbs_in_part() -> void:
 	var w := _world()
 	var centre := _foe(w, &"dokkaebi")
-	var side := _foe(w, FIRE_EATER, FOE + Vector2i(0, 1))
+	var side := _foe(w, METAL_EATER, FOE + Vector2i(0, 1))
 	var cards := [ORB, FIRE, FIRE, FIRE, Cards.METAL]
 	var spell := Spell.make(cards)
 	var blast := spell.blast(spell.damage(3))
@@ -150,7 +154,7 @@ func test_an_orb_blast_halves_what_a_neighbour_absorbs_in_part() -> void:
 func test_a_blast_is_stopped_whole_by_a_neighbour_that_absorbs_all_of_it() -> void:
 	var w := _world()
 	_foe(w, &"dokkaebi")
-	var side := _foe(w, FIRE_EATER, FOE + Vector2i(0, 1))
+	var side := _foe(w, WATER_EATER, FOE + Vector2i(0, 1))
 	var events := w.act(_cast([ORB, FIRE]))
 	assert_true(_of(events, &"hurt", side.id).is_empty())
 	assert_false(_of(events, &"absorb", side.id).is_empty())
@@ -163,7 +167,7 @@ func test_a_spell_with_no_element_is_not_weak_hit_and_a_starfish_stops_it() -> v
 	assert_true(sleep.nature().is_empty())
 	assert_false(Bestiary.weak(foe.kind, sleep))
 	assert_true(Bestiary.absorbs(foe.kind, sleep))
-	assert_false(Bestiary.absorbs(FIRE_EATER, sleep))
+	assert_false(Bestiary.absorbs(WATER_EATER, sleep))
 	assert_false(Bestiary.absorbs(foe.kind, Spell.make([Cards.FOX, FIRE, Cards.METAL])))
 
 
@@ -208,7 +212,7 @@ func test_electricity_hurts_a_dry_creature_of_wood_or_fire_and_stuns_it() -> voi
 
 
 func test_electricity_is_never_absorbed() -> void:
-	for kind in [FIRE_EATER, WATER_EATER, &"bulgasari"]:
+	for kind in [METAL_EATER, WATER_EATER, &"bulgasari"]:
 		assert_false(_zap(kind).stopped, kind)
 	assert_true(_zap(&"bulgasari", true).stunned, "a wet starfish is shocked, not stopped")
 

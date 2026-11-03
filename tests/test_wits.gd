@@ -245,11 +245,12 @@ func test_a_bulgae_hit_by_a_fire_orb_from_the_dark_hunts_miho_and_closes_in() ->
 	var w := _world()
 	w.cards.assign([Cards.FIRE, Cards.ORB])
 	var foe := _foe(w, &"bulgae", ME + Vector2i(6, 0))
+	foe.hp = 20
 	var struck := false
 	for i in 12:
 		foe.brain.post = foe.pos
 		var events := w.act(WAIT if i > 0 else _cast([Cards.FIRE, Cards.ORB]))
-		struck = events.any(func(e): return e.t == &"absorb" and e.id == foe.id)
+		struck = events.any(func(e): return e.t == &"hurt" and e.id == foe.id)
 		if struck:
 			break
 	assert_true(struck, "the orb reached it")

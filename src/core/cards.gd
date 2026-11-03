@@ -364,11 +364,7 @@ const COMPOUND := {
 		made = [WOOD, EARTH, WATER, FIRE, METAL],
 		shape = [Spray.SIGHT, 0],
 		sound = &"explosion",
-		told =
-		[
-			["피해", "%d", Compounds.CONQUEST_HARM],
-			["약점인 적 피해", "%d", Elements.WEAK * Compounds.CONQUEST_HARM],
-		],
+		told = [["피해", "%d", Compounds.CONQUEST_HARM]],
 		nature = ELEMENTS,
 		boom = true,
 	},

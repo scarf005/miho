@@ -75,8 +75,8 @@ static func dry(w: World, a: Actor) -> bool:
 
 
 ## Fire strikes `a`: it thaws when frozen and dries when wet; else a creature
-## of heaven is alight for ALIGHT rounds, and Miho's tile catches fire
-## (`wild`: it always spreads).
+## of heaven is alight for ALIGHT rounds, unless it is fireproof (Bestiary.fireproof), and
+## Miho's tile catches fire (`wild`: it always spreads).
 static func ignite(w: World, a: Actor, wild := false) -> void:
 	if a.alive() and a.ailments.frozen > 0:
 		_thaw(w, a)
@@ -85,6 +85,8 @@ static func ignite(w: World, a: Actor, wild := false) -> void:
 		return
 	if a.is_miho() or not a.alive():
 		Terrain.ignite(w, a.pos, true, wild)
+		return
+	if Bestiary.fireproof(a.nature_kind()):
 		return
 	if a.ailments.alight <= 0:
 		w.emit({t = &"alight", id = a.id, at = a.pos, rounds = ALIGHT})

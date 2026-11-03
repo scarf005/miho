@@ -172,13 +172,13 @@ func test_a_bat_next_to_miho_sometimes_flits_instead_of_biting() -> void:
 	assert_between(bites, 150, 260, "bit %d of %d" % [bites, rounds])
 
 
-func test_the_three_legged_crow_stops_a_spell_of_only_fire() -> void:
+func test_the_three_legged_crow_stops_a_spell_of_only_metal() -> void:
 	var w := _world()
 	var a := _flyer(w, ME + E * 2)
 	var hp := a.hp
 	w.tails = 9
 	w.cards.assign(Cards.ALL)
-	var events := w.act({t = &"cast", spells = [{cards = [Cards.ORB, Cards.FIRE], dir = E}]})
+	var events := w.act({t = &"cast", spells = [{cards = [Cards.ORB, Cards.METAL], dir = E}]})
 	for i in 4:
 		if a.hp != hp or events.any(func(e): return e.t == &"absorb"):
 			break

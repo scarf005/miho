@@ -23,6 +23,10 @@ const CLOAK_SHOT := [
 ]
 ## What 불여우 does to a creature that would stop her fire whole.
 const FLAME_THROUGH := ["불 면역을 %d 피해까지 무시", Guise.FLAME_THROUGH]
+## The 내성 of a creature, its elements as {0}.
+const MIXED := "{0}이/가 섞인 주문"
+## A fire creature's tag (Bestiary.fireproof): a creature immune to fire says that instead.
+const FIREPROOF := "불에 타지 않음"
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
 ## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
@@ -402,19 +406,25 @@ static func _weakness(kind: StringName) -> Array:
 	return line
 
 
-## Everything the creature takes no harm or effect from, one "면역" line each.
+## Everything the creature takes no harm or effect from, one "면역" line each, its elements
+## on one (DCSS `_monster_stat_description`), and what it takes half of. For 불가사리
+## `불 없는 주문` already holds its element.
 static func _immunities(kind: StringName, wet: bool) -> Array:
 	var spec := Bestiary.info(kind)
+	var nofire: bool = spec.get("absorb", &"") == &"nofire"
+	var immune := Bestiary.immune_to(kind)
 	var out := []
-	match spec.get("absorb", &""):
-		&"fire":
-			out.append(_immune("불", Palette.CARD[Cards.FIRE]))
-			out.append(
-				[[Lang.t("내성: "), Palette.DIM], [Lang.t("불이 섞인 주문"), Palette.CARD[Cards.FIRE]]]
-			)
-		&"nofire":
-			out.append(_immune("불 없는 주문", Palette.DIM))
-	if Elements.charge_of(kind) == 0 and not wet and spec.get("absorb", &"") != &"nofire":
+	if nofire:
+		out.append(_immune("불 없는 주문", Palette.DIM))
+	if not immune.is_empty():
+		var names := ", ".join(immune.map(func(c): return Lang.t(Cards.NAME[c])))
+		var shade: Color = Palette.CARD[immune[0]] if immune.size() == 1 else Palette.TEXT
+		if not nofire:
+			out.append(_immune(names, shade))
+		out.append(
+			[[Lang.t("내성: "), Palette.DIM]] + Lang.runs(MIXED, [[names, shade]], Palette.DIM)
+		)
+	if Elements.charge_of(kind) == 0 and not wet and not nofire:
 		out.append(_immune(ELECTRIC, Palette.TEXT))
 	if spec.get("deaf", false):
 		out.append(_immune("소음", Palette.SOUND))
@@ -450,19 +460,12 @@ static func _conditions(w: World, a: Actor) -> Array:
 		if a.buffs.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))
-	if (
-		w.burning.has(a.pos)
-		and a.ailments.alight <= 0
-		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
-	):
+	if w.burning.has(a.pos) and a.ailments.alight <= 0 and not Bestiary.fireproof(a.nature_kind()):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
 		var fire := Lang.t("맹렬한 불" if fierce else "불")
 		out.append([[Lang.t("%s 위: %d초") % [fire, w.burning[a.pos]], Palette.TEXT]])
 		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
-	if (
-		Veil.scorches(w, a.pos)
-		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
-	):
+	if Veil.scorches(w, a.pos) and not Bestiary.fireproof(a.nature_kind()):
 		out.append(_amount("도깨비불 장막 옆 칸 초당 피해: ", World.FIRE_DAMAGE))
 	for s in Walk.riders(w, a):
 		var runs := [[s.spell.shot_shown(), Palette.card(s.spell.slots.back())]]
@@ -576,6 +579,8 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append(Lang.t("발소리: %d칸") % spec.step)
 	if elements.has(Cards.WOOD):
 		out.append(Lang.t("불에 탐"))
+	if elements.has(Cards.FIRE) and not Bestiary.immune_to(a.kind).has(Cards.FIRE):
+		out.append(Lang.t(FIREPROOF))
 	if spec.get("hunts", false):
 		out.append(Lang.t("위치 감지"))
 	if spec.get("tracks", false):

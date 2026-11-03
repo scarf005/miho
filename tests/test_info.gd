@@ -129,7 +129,7 @@ func test_a_creature_tells_what_it_is_weak_to() -> void:
 	var dog := Info.plain(Info.creature(w, FloorGen.spawn(w, &"haetae", at)))
 	assert_string_contains(dog, "약점: 흙, 전기\n")
 	var boss := Info.plain(Info.creature(w, FloorGen.spawn(w, &"cheonnyeon", at)))
-	assert_string_contains(boss, "약점: 불, 물, 흙, 전기\n")
+	assert_string_contains(boss, "약점: 물, 흙, 전기\n")
 	assert_has(Glossary.rows()["약점"], "피해: ×2", "the doubling is told once")
 	var plain := Info.plain(Info.creature(w, FloorGen.spawn(w, &"jangseung", at)))
 	assert_false(plain.contains("약점"), "a creature without an element has no weakness")
@@ -176,7 +176,8 @@ func test_every_immunity_is_its_own_line() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
 	var told := {
-		&"bulgae": ["면역: 불"],
+		&"bulgae": ["면역: 쇠"],
+		&"haetae": ["면역: 불"],
 		&"bulgasari": ["면역: 불 없는 주문"],
 		&"jangseung": ["면역: 소음"],
 		&"dokkaebi": [],

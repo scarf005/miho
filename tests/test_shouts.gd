@@ -86,7 +86,7 @@ func test_a_hunter_keeps_its_own_quarry() -> void:
 
 func test_a_silent_kind_makes_no_sound_when_it_notices() -> void:
 	for kind in Bestiary.KINDS:
-		if kind != &"miho" and not Bestiary.info(kind).has("shout"):
+		if Bestiary.HEALTH.has(kind) and not Bestiary.info(kind).has("shout"):
 			var w := _world()
 			Mind.hunt_from(w, _creature(w, kind, ME + Vector2i(1, 0)), ME)
 			assert_eq(_shouts(w.events), [], kind)
