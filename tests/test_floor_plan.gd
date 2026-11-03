@@ -62,6 +62,7 @@ func _across(w: World, p: Vector2i) -> Vector2i:
 
 func test_every_wall_has_a_tile_that_is_neither_wall_nor_sky_within_one_step() -> void:
 	for w in _storeys:
+		var thick := []
 		for i in w.tiles.size():
 			var p := Grid.at(i)
 			if not Terrain.wall(w.tiles[i]):
@@ -71,17 +72,22 @@ func test_every_wall_has_a_tile_that_is_neither_wall_nor_sky_within_one_step() -
 					var q: Vector2i = p + d
 					return Grid.inside(q) and not Terrain.wall(w.tile(q)) and w.tile(q) != World.SKY
 			)
-			assert_true(open, "%s wall %s is thick" % [_label(w), p])
+			if not open:
+				thick.append(p)
+		assert_eq(thick, [], "%s walls are thick" % _label(w))
 
 
 func test_rooms_are_at_least_three_wide_and_a_wall_apart() -> void:
 	for w in _storeys:
 		assert_gte(w.rooms.size(), FloorGen.MIN_ROOMS, _label(w))
+		var faults := []
 		for a in w.rooms:
-			assert_gte(mini(a.size.x, a.size.y), FloorGen.ROOM_LEAST, "%s %s" % [_label(w), a])
+			if mini(a.size.x, a.size.y) < FloorGen.ROOM_LEAST:
+				faults.append(a)
 			for b in w.rooms:
-				if a != b:
-					assert_false(a.grow(1).intersects(b), "%s %s and %s" % [_label(w), a, b])
+				if a != b and a.grow(1).intersects(b):
+					faults.append([a, b])
+		assert_eq(faults, [], _label(w))
 
 
 func test_on_pavilions_miho_starts_in_the_westmost_room_and_the_exit_is_in_the_farthest() -> void:

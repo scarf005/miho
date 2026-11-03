@@ -593,9 +593,11 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		assert_eq(w.tile(w.stairs), World.FLOOR)
 		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist
+		var cut_off := []
 		for i in w.tiles.size():
-			if w.open_floor(Grid.at(i)):
-				assert_gt(dist[i], -1, "seed %d tile %s" % [seed_value, Grid.at(i)])
+			if dist[i] < 0 and w.open_floor(Grid.at(i)):
+				cut_off.append(Grid.at(i))
+		assert_eq(cut_off, [], "seed %d tiles" % seed_value)
 		assert_true(w.lit(w.stairs), "seed %d" % seed_value)
 		assert_false(w.lit(w.start), "seed %d" % seed_value)
 		var guards := w.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()

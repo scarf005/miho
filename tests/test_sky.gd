@@ -80,9 +80,11 @@ func test_every_walkable_tile_the_exit_and_the_peaches_are_reachable_once_seals_
 		func(w: World, label: String):
 			var open := Masks.opened(w)
 			var dist: PackedInt32Array = Grid.search(w.start, open).dist
+			var cut_off := []
 			for i in w.tiles.size():
-				if w.open_floor(Grid.at(i)):
-					assert_gt(dist[i], -1, "%s tile %s" % [label, Grid.at(i)])
+				if dist[i] < 0 and w.open_floor(Grid.at(i)):
+					cut_off.append(Grid.at(i))
+			assert_eq(cut_off, [], "%s tiles" % label)
 			var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
 			assert_gt(dist[Grid.index(exit)], -1, "%s exit" % label)
 			for p in w.peaches:

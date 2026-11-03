@@ -102,11 +102,14 @@ func test_every_storey_has_rooms_a_wall_apart_and_the_start_in_the_first() -> vo
 			var w: World = row.w
 			assert_true(w.rooms[0].has_point(w.start), _label(w, kind))
 			assert_gte(w.rooms.size() + w.sites.size(), FloorGen.MIN_ROOMS - 1, _label(w, kind))
+			var faults := []
 			for a in w.rooms:
-				assert_gte(mini(a.size.x, a.size.y), FloorGen.ROOM_LEAST, _label(w, kind))
+				if mini(a.size.x, a.size.y) < FloorGen.ROOM_LEAST:
+					faults.append(a)
 				for b in w.rooms:
-					if a != b:
-						assert_false(a.grow(1).intersects(b), "%s %s %s" % [_label(w, kind), a, b])
+					if a != b and a.grow(1).intersects(b):
+						faults.append([a, b])
+			assert_eq(faults, [], _label(w, kind))
 
 
 func test_a_storey_has_all_its_hidden_doors_on_every_skeleton() -> void:

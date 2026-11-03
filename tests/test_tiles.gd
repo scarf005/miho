@@ -125,16 +125,21 @@ func test_the_masks_for_rust_keep_their_old_tests() -> void:
 
 func test_worlds_of_several_seeds_follow_the_old_tables_at_every_tile() -> void:
 	for s: int in SEEDS:
-		var w := World.create(s)
+		var w := Built.world(s)
 		var floor_mask := Masks.floor_of(w)
+		var faults := []
 		for i in w.tiles.size():
 			var p := Grid.at(i)
 			var t := w.tile(p)
 			var inner := p.x > 0 and p.y > 0 and p.x < Grid.W - 1 and p.y < Grid.H - 1
 			var wall := t == World.WALL or t == World.WALL_CRACKED
-			assert_eq(w.open_floor(p), WALKABLE.has(t), "seed %d %s" % [s, p])
-			assert_eq(floor_mask[i] == 1, WALKABLE.has(t), "seed %d %s" % [s, p])
-			assert_eq(Terrain.breakable(w, p), BREAKS.has(t) and (inner or not wall), str(p))
+			if (
+				w.open_floor(p) != WALKABLE.has(t)
+				or (floor_mask[i] == 1) != WALKABLE.has(t)
+				or Terrain.breakable(w, p) != (BREAKS.has(t) and (inner or not wall))
+			):
+				faults.append(p)
+		assert_eq(faults, [], "seed %d" % s)
 
 
 func test_grass_takes_fire_at_15_percent_fierce_kinds_always_and_every_other_kind_at_half() -> void:

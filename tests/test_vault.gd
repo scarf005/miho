@@ -59,9 +59,11 @@ func test_a_vault_is_shut_off_but_for_a_plain_wall_and_holds_two_peaches() -> vo
 			assert_eq(w.tile(at), World.WALL, label)
 			var open := _reach(w, true)
 			var inside := _inside(w)
+			var cut_off := []
 			for i in w.tiles.size():
-				if w.open_floor(Grid.at(i)):
-					assert_gt(open[i], -1, label + " whole once open")
+				if open[i] < 0 and w.open_floor(Grid.at(i)):
+					cut_off.append(Grid.at(i))
+			assert_eq(cut_off, [], label + " whole once open")
 			assert_gt(inside.size(), 0, label)
 			var prize := w.peaches.filter(func(p): return inside.has(p))
 			assert_eq(prize.size(), Vault.PRIZE, label)
@@ -102,9 +104,11 @@ func test_every_storey_stays_whole_with_the_vault_shut_and_with_it_open() -> voi
 		var shut := _reach(w, false)
 		var exit := w.elixir if w.depth >= World.FLOORS else w.stairs
 		assert_gt(shut[Grid.index(exit)], -1, _label(w) + " exit")
+		var cut_off := []
 		for i in w.tiles.size():
-			if w.open_floor(Grid.at(i)) and not inside.has(Grid.at(i)):
-				assert_gt(shut[i], -1, "%s tile %s outside the vault" % [_label(w), Grid.at(i)])
+			if shut[i] < 0 and w.open_floor(Grid.at(i)) and not inside.has(Grid.at(i)):
+				cut_off.append(Grid.at(i))
+		assert_eq(cut_off, [], "%s tiles outside the vault" % _label(w))
 
 
 func test_every_wall_round_a_vault_breaks_like_any_other_wall() -> void:
@@ -129,9 +133,11 @@ func test_breaking_the_wall_of_a_vault_opens_it_to_the_whole_storey() -> void:
 			Terrain.hit(broken, at)
 			Terrain.hit(broken, at)
 			var reach := _reach(broken, false)
+			var cut_off := []
 			for i in broken.tiles.size():
-				if broken.open_floor(Grid.at(i)):
-					assert_gt(reach[i], -1, "%s tile %s" % [_label(w), Grid.at(i)])
+				if reach[i] < 0 and broken.open_floor(Grid.at(i)):
+					cut_off.append(Grid.at(i))
+			assert_eq(cut_off, [], "%s tiles" % _label(w))
 			for p in broken.peaches:
 				assert_gt(reach[Grid.index(p)], -1, "%s peach" % _label(w))
 

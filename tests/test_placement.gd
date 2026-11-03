@@ -225,9 +225,11 @@ func test_a_storey_with_patches_stays_connected_with_its_start_and_stairs_free()
 	for w in _storeys_built:
 		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist
+		var cut_off := []
 		for i in w.tiles.size():
-			if w.open_floor(Grid.at(i)):
-				assert_gt(dist[i], -1, "tile %s of depth %d" % [Grid.at(i), w.depth])
+			if dist[i] < 0 and w.open_floor(Grid.at(i)):
+				cut_off.append(Grid.at(i))
+		assert_eq(cut_off, [], "tiles of depth %d" % w.depth)
 		assert_eq(w.tile(w.start), World.FLOOR)
 		assert_true(w.lit(w.elixir if w.depth >= World.FLOORS else w.stairs), "depth %d" % w.depth)
 		assert_false(w.lit(w.start), "depth %d" % w.depth)
