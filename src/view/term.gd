@@ -661,7 +661,11 @@ func _draw_map(light: PackedVector3Array, me_pos: Vector2i) -> void:
 			)
 		else:
 			var v := fg.get_luminance()
-			fg = Palette.MEMORY_FG * (0.6 + v * 0.6)
+			fg = (
+				Palette.MEMORY_FG * (0.6 + v * 0.6)
+				if item.size() < 3
+				else Color(item[1] * 0.6, 1.0)
+			)
 			bg = Palette.MEMORY_BG if item.size() < 3 else Color(item[2] * 0.5, 1.0)
 		var sunk := t == World.SKY and below.size() > i and below[i] != World.SKY
 		glyph = " " if sunk else glyph
