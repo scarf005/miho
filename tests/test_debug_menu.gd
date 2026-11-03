@@ -439,6 +439,21 @@ func test_the_box_fits_every_screen_and_zoom_with_the_status_rows_left() -> void
 			m._close()
 
 
+func test_the_box_keeps_off_miho_and_beside_the_creature_list() -> void:
+	var m := _main()
+	m._open(&"cheat")
+	var corner := PanelView.frame(m.term)
+	var me: Actor = m.world.player()
+	me.pos = Vector2i(corner.get_center().x, corner.end.y - 1) - m.term.side + m.term.cam
+	assert_true(Grid.inside(me.pos), "a tile under the corner")
+	m._close()
+	m._open(&"cheat")
+	var box := PanelView.frame(m.term)
+	assert_false(box.has_point(m.term._cell(me.pos)), "Miho stays in view")
+	assert_eq(box.position.x, float(m.term.side.x))
+	assert_eq(PanelView.row_at(m.term, (box.position + Vector2(3, 3.5)) * Term.CELL), 0)
+
+
 func test_a_touch_screen_spaces_the_rows_by_its_stride_and_finds_them_there() -> void:
 	var m := _main()
 	PanelView.stride = 2
