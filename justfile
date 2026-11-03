@@ -292,6 +292,12 @@ frames-diff a b:
             status=1
         fi
     done
+    for f in '{{ b }}'/*.png; do
+        if [ ! -f '{{ a }}'/"$(basename "$f")" ]; then
+            echo "differs: $(basename "$f" .png)"
+            status=1
+        fi
+    done
     exit $status
 
 # Time storey generation, a round, forecasts, a Continue replay, the 도감 and spell examples.
