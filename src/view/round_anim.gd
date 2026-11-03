@@ -27,6 +27,11 @@ const DELAY := {
 	&"drum": 0.3,
 	&"trap": 0.2,
 }
+## Seconds between one arc of lightning and the next: arcs overlap, each flickering on its own.
+const ARC_STAGGER := 0.03
+## Seconds a tile lit up lasts, and one flickering with lightning.
+const FLASH_LIFE := 0.35
+const ZAP_LIFE := 0.18
 
 ## Whether a round is playing, so `actors` and `shots` are what is drawn.
 var playing := false
@@ -37,6 +42,8 @@ var flashes: Array[Dictionary] = []
 var ghosts: Array[Dictionary] = []
 ## shot id -> the tiles it last flew through, newest last (TRAIL of them).
 var trails := {}
+## shot id -> true for each lightning (Spell.electric) spray of the round in play.
+var _bolts := {}
 var _term: Term
 
 
@@ -52,7 +59,7 @@ func moving() -> bool:
 ## Drops what has faded by time `now`.
 func expire(now: float) -> void:
 	popups = popups.filter(func(p): return now - p.born < p.life)
-	flashes = flashes.filter(func(f): return now - f.born < 0.35)
+	flashes = flashes.filter(func(f): return now - f.born < (ZAP_LIFE if f.zap else FLASH_LIFE))
 	ghosts.assign(ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
 
 
@@ -82,6 +89,10 @@ func run(events: Array, before: World, facts: Array) -> void:
 	for s in before.shots:
 		shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	playing = true
+	_bolts.clear()
+	for e in events:
+		if e.t == &"spray" and Spell.make(e.cards).electric():
+			_bolts[e.shot] = true
 	var passes := Afterimage.plan(events)
 	var impact := Impact.of(events)
 	var drawn := {}
@@ -131,7 +142,8 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 		&"burst", &"hit", &"fade", &"snuff":
 			if not e.get("through", false):
 				shots.erase(e.shot)
-			flash(at, Color(1, 1, 1, 0.5))
+			if not _bolts.has(e.get("shot", -1)):
+				flash(at, Color(1, 1, 1, 0.5))
 		&"clash":
 			shots.erase(e.shot)
 			shots.erase(e.other)
@@ -181,6 +193,8 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 	if not popup.is_empty():
 		popups.append(popup.merged({born = _term.time}))
 	_term.shown.emit(e, _term.cell_centre(fact.where))
+	if _bolts.has(e.get("shot", -1)):
+		return ARC_STAGGER if e.t == &"spray" else 0.0
 	return DELAY.get(e.t, 0.0)
 
 
@@ -197,7 +211,7 @@ func draw() -> void:
 	for f in flashes:
 		if not t.in_view(f.at) or t.time < f.born:
 			continue
-		var k: float = 1.0 - (t.time - f.born) / 0.35
+		var k: float = 1.0 - (t.time - f.born) / (ZAP_LIFE if f.zap else FLASH_LIFE)
 		var c: Color = f.color
 		t.draw_rect(
 			Rect2(t.cell_of(f.at) * Term.CELL, Term.CELL),

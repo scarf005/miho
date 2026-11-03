@@ -4,7 +4,7 @@ extends RefCounted
 
 ## How many times a bolt flickers, the seconds between and the zigzag it draws in a cell.
 const ZAPS := 3
-const ZAP_GAP := 0.07
+const ZAP_GAP := 0.035
 const ZIGZAG := [Vector2(0.65, 0.05), Vector2(0.3, 0.52), Vector2(0.6, 0.52), Vector2(0.35, 0.95)]
 
 

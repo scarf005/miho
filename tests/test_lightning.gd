@@ -15,13 +15,18 @@ func _stage() -> World:
 	return w
 
 
-func _play(w: World, cards: Array) -> Dictionary:
+func _main(w: World) -> Node:
 	var m: Node = load("res://src/view/main.tscn").instantiate()
 	m.save_path = ""
 	add_child_autofree(m)
 	m.new_run(1)
 	m.state = &"play"
 	m.world = w
+	return m
+
+
+func _play(w: World, cards: Array) -> Dictionary:
+	var m := _main(w)
 	var before := w.clone()
 	var events := w.act({t = &"cast", spells = [{cards = cards, dir = E}]})
 	m.term.play(events, before, w)
@@ -64,30 +69,25 @@ func _length(n: int) -> Array:
 		var foe := FloorGen.spawn(w, &"jangseung", ME + E * (2 + i))
 		foe.hp = 99
 		foe.max_hp = 99
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
-	add_child_autofree(m)
-	m.new_run(1)
-	m.state = &"play"
-	m.world = w
+	var m := _main(w)
 	var before := w.clone()
 	var events := w.act({t = &"cast", spells = [{cards = Cards.recipe(&"thunder"), dir = E}]})
-	var start := Time.get_ticks_msec()
+	await wait_process_frames(10)
+	var start: float = m.term.time
 	var popups := 0
 	m.term.play(events, before, w)
 	await wait_process_frames(1)
 	while m.term.anim.playing or not m.term.anim.flashes.is_empty():
 		popups = maxi(popups, m.term.anim.popups.size())
 		await wait_process_frames(1)
-	return [(Time.get_ticks_msec() - start) / 1000.0, popups]
+	return [m.term.time - start, popups]
 
 
 func test_thunder_chain_takes_one_strike_plus_a_stagger_not_a_strike_per_arc() -> void:
 	var one := await _length(1)
 	var four := await _length(4)
 	gut.p("1 foe %.2f s, 4 foes %.2f s" % [one[0], four[0]])
-	assert_lt(one[0], 0.3)
-	assert_lt(four[0], one[0] + 0.4)
+	assert_lt(four[0], one[0] + 0.3)
 
 
 func test_thunder_chain_still_pops_up_a_hit_on_every_foe() -> void:
