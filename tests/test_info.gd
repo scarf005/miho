@@ -109,7 +109,7 @@ func test_a_creature_tells_its_element() -> void:
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(1, 0))
 	var text := Info.plain(Info.creature(w, foe))
 	assert_string_contains(text, "오행: 수(물)")
-	assert_string_contains(text, "면역: 불 주문, 불타는 칸")
+	assert_string_contains(text, "면역: 불")
 	assert_string_contains(text, "내성: 불이 섞인 주문")
 
 
@@ -176,7 +176,7 @@ func test_every_immunity_is_its_own_line() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
 	var told := {
-		&"bulgae": ["면역: 불 주문, 불타는 칸"],
+		&"bulgae": ["면역: 불"],
 		&"bulgasari": ["면역: 불 없는 주문"],
 		&"jangseung": ["면역: 소음"],
 		&"dokkaebi": [],
@@ -311,10 +311,10 @@ func test_a_creature_in_fire_tells_the_harm_unless_it_eats_fire() -> void:
 	w.burning[at] = 3
 	var foe := FloorGen.spawn(w, &"dokkaebi", at)
 	assert_string_contains(
-		Info.plain(Info.creature(w, foe)), "불타는 칸 위: 3초\n  초당 피해: %d" % World.FIRE_DAMAGE
+		Info.plain(Info.creature(w, foe)), "불 위: 3초\n  초당 피해: %d" % World.FIRE_DAMAGE
 	)
 	var dog := FloorGen.spawn(w, &"bulgae", at)
-	assert_false(Info.plain(Info.creature(w, dog)).contains("불타는 칸 위"))
+	assert_false(Info.plain(Info.creature(w, dog)).contains("불 위"))
 
 
 func test_a_creature_tells_each_spell_on_one_row_with_its_harm_and_reach() -> void:

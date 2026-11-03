@@ -164,6 +164,11 @@ static func _entries() -> Dictionary:
 					at[key] = Vector2i(tab, k)
 		for i in Info.WITS.size():
 			at[_key(Lang.t(Info.WITS_WHO[i]))] = at[_key(Lang.t(Info.WITS[i]))]
+		# The burning floor and the element are both 불: the bare word is the element
+		# (면역: 불), the floor is told where one stands on it (불 위: 3초).
+		var fire := _key(Lang.t(Cards.NAME[Cards.FIRE]))
+		at[_key(Lang.t("%s 위") % fire)] = at[fire]
+		at[fire] = Vector2i(1, tabs[1].find_custom(func(e): return _key(e.name) == fire))
 		var names := at.keys()
 		names.sort_custom(func(a: String, b: String): return a.length() > b.length())
 		var sorted := {}

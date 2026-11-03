@@ -132,3 +132,19 @@ func test_the_log_colours_being_rooted_by_who_suffers_it() -> void:
 	assert_eq(_rooted_line(w, foe.id).back()[1], Palette.BAD_FOE)
 	assert_ne(Palette.BAD_FOE, Palette.TEXT, "it still tells")
 	assert_ne(Palette.BAD_FOE, Palette.BAD)
+
+
+func test_fire_on_its_own_is_the_element_and_fire_one_stands_on_is_the_floor() -> void:
+	var row := [["면역: 불", Palette.TEXT]]
+	var stand := [["불 위: 3초", Palette.TEXT]]
+	var element := Keywords.entry_at(row, 0.0, Term.text_cells("면역: ") + 0.5)
+	var floor_ := Keywords.entry_at(stand, 0.0, 0.5)
+	assert_eq(
+		Keywords.locate("불"),
+		Vector2i(1, Codex.entries(1).find_custom(func(e): return e.name == "불"))
+	)
+	assert_eq(Keywords.word_at(row, 0.0, Term.text_cells("면역: ") + 0.5), "불")
+	assert_eq(Keywords.word_at(stand, 0.0, 0.5), "불 위")
+	assert_eq(Keywords.locate("불 위").x, 4)
+	assert_ne(element, floor_)
+	assert_string_contains(Info.plain(floor_), "초당 피해")

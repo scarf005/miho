@@ -76,7 +76,7 @@ func test_the_same_direction_again_steps_onto_the_fire() -> void:
 	_blaze(m)
 	_press(m, "Right")
 	assert_eq(m.world.player().pos, ME)
-	assert_string_contains(_prompt(m), "불타는 칸")
+	assert_string_contains(_prompt(m), "불")
 	_press(m, "Right")
 	await _settle(m)
 	assert_eq(m.world.player().pos, ME + E)

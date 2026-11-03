@@ -124,7 +124,7 @@ const COMPOUND := {
 		sound = &"flame",
 		told =
 		[
-			["불타는 칸", "가연성·인화성 칸"],
+			["불", "가연성·인화성 칸"],
 			["번질 확률", "%d%%", roundi(Terrain.WILD_SPREAD * 100)],
 			["불붙음", "%d초", Status.ALIGHT],
 			["초당 피해", "%d", World.FIRE_DAMAGE],

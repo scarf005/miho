@@ -591,9 +591,6 @@ msgstr "%s talisman"
 msgid "계단"
 msgstr "Stairs"
 
-msgid "불타는 칸"
-msgstr "Burning tile"
-
 msgid "맹렬한 불"
 msgstr "Fierce fire"
 
@@ -771,9 +768,6 @@ msgstr "Weakness: "
 msgid " (불과 함께)"
 msgstr " (with fire)"
 
-msgid "불 주문, 불타는 칸"
-msgstr "Fire spells, burning tiles"
-
 msgid "불 없는 주문"
 msgstr "Spells without fire"
 
@@ -788,6 +782,9 @@ msgstr "Blind"
 
 msgid "%s: %d초"
 msgstr "%s: %d s"
+
+msgid "%s 위"
+msgstr "On %s"
 
 msgid "%s 위: %d초"
 msgstr "On %s: %d s"

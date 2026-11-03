@@ -398,7 +398,7 @@ static func _immunities(kind: StringName, wet: bool) -> Array:
 	var out := []
 	match spec.get("absorb", &""):
 		&"fire":
-			out.append(_immune("불 주문, 불타는 칸", Palette.CARD[Cards.FIRE]))
+			out.append(_immune("불", Palette.CARD[Cards.FIRE]))
 			out.append(
 				[[Lang.t("내성: "), Palette.DIM], [Lang.t("불이 섞인 주문"), Palette.CARD[Cards.FIRE]]]
 			)
@@ -446,7 +446,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		and not Bestiary.absorbs(a.nature_kind(), Spell.make([Cards.FOX, Cards.FIRE]))
 	):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
-		var fire := Lang.t("맹렬한 불" if fierce else "불타는 칸")
+		var fire := Lang.t("맹렬한 불" if fierce else "불")
 		out.append([[Lang.t("%s 위: %d초") % [fire, w.burning[a.pos]], Palette.TEXT]])
 		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
 	if (

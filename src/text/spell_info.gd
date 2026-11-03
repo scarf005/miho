@@ -374,7 +374,7 @@ static func _compound(s: Spell) -> Array:
 	for c in s.compounds():
 		lines.append_array(_does(c))
 	var plain := {
-		Cards.FIRE: [["불타는 칸", "가연성·인화성 칸"], ["불붙음", "나무 적"], ["다시 켜짐", "꺼진 등불"]],
+		Cards.FIRE: [["불", "가연성·인화성 칸"], ["불붙음", "나무 적"], ["다시 켜짐", "꺼진 등불"]],
 		Cards.WATER:
 		[["꺼짐", "불, 등불"], ["밀침", Lang.t("%d칸") % (Spray.PLAIN_PUSH + s.extra(Cards.WATER))]],
 		Cards.WOOD: [["묶임", Lang.t("%d초") % (Elements.ROOT + s.extra(Cards.WOOD))]],
@@ -774,7 +774,7 @@ static func _orb_harm(s: Spell) -> Array:
 static func _effect(s: Spell, e: StringName) -> Array:
 	match e:
 		Cards.FIRE:
-			var out := [["불타는 칸", "지나간 가연성·인화성 칸"]]
+			var out := [["불", "지나간 가연성·인화성 칸"]]
 			if s.orb and not s.edged():
 				out.append(
 					[

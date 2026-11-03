@@ -456,7 +456,7 @@ func test_hovering_a_wooden_wall_tells_its_rules() -> void:
 
 func test_a_spell_tells_every_element_number_by_its_form() -> void:
 	var cases := [
-		[[FOX, FIRE], ["불타는 칸: 지나간 가연성·인화성 칸", "불붙음: %d초" % Status.ALIGHT]],
+		[[FOX, FIRE], ["불: 지나간 가연성·인화성 칸", "불붙음: %d초" % Status.ALIGHT]],
 		[[ORB, FIRE, FIRE], ["폭발: 주위 8칸, 피해 %d" % (World.FIRE_DAMAGE + 1)]],
 		[[ORB, WATER], ["꺼짐: 멈춘 곳 3×3의 불, 등불", "소음: 없음"]],
 		[

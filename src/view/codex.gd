@@ -571,7 +571,7 @@ static func _extras() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], Lang.t("계단"), _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
-	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불타는 칸", fire, &"burning"))
+	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불", fire, &"burning"))
 	var fierce := func(w: World):
 		w.set_tile(AT, World.STRAW)
 		w.burning[AT] = World.BURN_ROUNDS

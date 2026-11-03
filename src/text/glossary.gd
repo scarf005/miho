@@ -18,7 +18,7 @@ static func rows() -> Dictionary:
 	var burn := Lang.t("불타는 시간: %d초") % World.BURN_ROUNDS
 	var night: int = World.NIGHT[Actor.HEAVEN]
 	var no_sleep := Lang.t(Info.NO_SLEEP) + "."
-	var no_scent := ", ".join(SpellInfo.tiles_with("scentless") + [Lang.t("불타는 칸")])
+	var no_scent := ", ".join(SpellInfo.tiles_with("scentless") + [Lang.t("불")])
 	return {
 		Info.ALLY: ["자리 바꿈: 걸어 들어갈 때", Lang.t("함께 올라감: %d칸 안에 있을 때") % Storeys.FOLLOW],
 		"밀침": ["벽에 부딪히면 남은 칸 수만큼 벽과 함께 피해를 입는다."],

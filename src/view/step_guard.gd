@@ -103,7 +103,7 @@ func holds_back(m: Node, action: Dictionary) -> bool:
 ## What is asked before stepping `d`; the keys answer it unless `touch`.
 static func question(w: World, d: Vector2i, touch: bool) -> String:
 	var to := w.player().pos + d
-	var name := Lang.t("불타는 칸" if w.burning.has(to) else Tiles.of(w.tile(to), "name"))
+	var name := Lang.t("불" if w.burning.has(to) else Tiles.of(w.tile(to), "name"))
 	var text := Lang.t("%s 갈까?") % toward(name)
 	return text if touch else text + " Y/N"
 

@@ -178,13 +178,13 @@ func test_every_named_tile_is_its_hover_facts() -> void:
 
 func test_the_terrain_also_lists_the_stairs_fire_hot_ground_gas_and_the_fallen() -> void:
 	var names := _names(4)
-	for name in ["계단", "불타는 칸", "시체"]:
+	for name in ["계단", "불", "시체"]:
 		assert_true(names.has(name), name)
 	for spec in Compounds.HOT:
 		assert_true(names.has(spec.name), spec.name)
 	for kind in Gas.ROWS:
 		assert_true(names.has(Gas.of(kind, "name")), str(kind))
-	assert_string_contains(_text(Codex.detail(_entry(4, "불타는 칸"))), "초당 피해:")
+	assert_string_contains(_text(Codex.detail(_entry(4, "불"))), "초당 피해:")
 	assert_string_contains(_text(Codex.detail(_entry(4, "증기"))), "시야 막음")
 	assert_string_contains(_text(Codex.detail(_entry(4, "시체"))), Info.TRACE)
 	assert_string_contains(_text(Codex.detail(_entry(4, "뜨거운 땅"))), "초 남음")
@@ -203,7 +203,7 @@ func test_a_gas_entry_tells_what_the_gas_is_not_how_much_of_it_lies_there() -> v
 
 
 func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
-	for name in ["불타는 칸", "증기", "시체", "뜨거운 쇠"]:
+	for name in ["불", "증기", "시체", "뜨거운 쇠"]:
 		var text := _text(Codex.detail(_entry(4, name)))
 		assert_false(text.begins_with("바닥"), name)
 		assert_false(text.is_empty(), name)
