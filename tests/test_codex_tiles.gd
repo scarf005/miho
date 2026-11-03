@@ -44,6 +44,12 @@ func _whole(name: String) -> String:
 	return text
 
 
+func _blocks_gas(name: String) -> bool:
+	return Array(_told(name).split("\n")).any(
+		func(line): return line.begins_with("막음: ") and line.contains("기체")
+	)
+
+
 ## The labels on the lines that end in `change`.
 func _labels(text: String, change: String) -> Array:
 	var out := []
@@ -157,8 +163,8 @@ func test_a_tile_gas_cannot_lie_on_tells_so_unless_it_is_solid() -> void:
 	for t in [World.DOOR, World.WINDOW, World.SKY, World.FLOOR]:
 		var w := _tile(t)
 		Gas.put(w, Codex.AT, Gas.FOG, 1)
-		assert_eq(_told(Tiles.of(t, "name")).contains("막음: 기체"), not w.gas.has(Codex.AT), str(t))
-	assert_false(_told("벽").contains("막음: 기체"), "a wall is taken for granted")
+		assert_eq(_blocks_gas(Tiles.of(t, "name")), not w.gas.has(Codex.AT), str(t))
+	assert_false(_blocks_gas("벽"), "a wall is taken for granted")
 
 
 func test_what_never_takes_fire_is_tagged_and_the_tag_tells_it() -> void:

@@ -3324,6 +3324,12 @@ msgstr "Ground."
 msgid "막음: 기체"
 msgstr "Blocks: gas"
 
+msgid "막음: 시야, 기체"
+msgstr "Blocks: sight, gas"
+
+msgid "막음: 길, 기체"
+msgstr "Blocks: path, gas"
+
 msgid "만드는 주문: %s"
 msgstr "Made by: %s"
 

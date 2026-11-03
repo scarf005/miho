@@ -155,7 +155,7 @@ func test_the_hover_of_a_tile_is_its_facts_then_its_light() -> void:
 	assert_string_contains(_text(hover.slice(facts.size())), "어두움")
 	w.set_tile(Codex.AT, World.WALL)
 	assert_eq(
-		Info.terrain(w, Codex.AT), Info.terrain_facts(w, Codex.AT), "a wall has no light line"
+		Info.terrain(w, Codex.AT), Info.terrain_facts(w, Codex.AT, true), "a wall has no light line"
 	)
 
 

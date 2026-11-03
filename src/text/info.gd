@@ -648,7 +648,10 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 	var t := w.tile(p)
 	var breakable := Terrain.breakable(w, p)
 	var burns := w.burning.has(p) and w.seen[Grid.index(p)] == 1
-	var lies := _lies(w, p, [Tiles.of(t, "name"), _notes(t, breakable, burns, Terrain.plank(w, p))])
+	var plain := _notes(t, breakable, burns, Terrain.plank(w, p))
+	if now:
+		plain.append_array(_reacts(t, breakable))
+	var lies := _lies(w, p, [Tiles.of(t, "name"), plain])
 	var name: String = lies[0]
 	var notes: Array = lies[1]
 	var health: int = Tiles.of(t, "health") if breakable else 0
@@ -731,6 +734,13 @@ static func _notes(t: int, breakable: bool, burns: bool, plank: bool) -> Array[S
 			out.append(Lang.t("번질 확률: %d%%") % spread)
 	if plank:
 		out.append(Lang.t("불탄 뒤: %s") % Lang.t(Tiles.of(World.SKY, "name")))
+	return out
+
+
+## What a lone element makes of a kind of tile, for the hover; the 도감 tells it among the
+## other deeds that leave the same (TileActs).
+static func _reacts(t: int, breakable: bool) -> Array[String]:
+	var out: Array[String] = []
 	for e in Cards.ELEMENTS:
 		var change: Variant = Tiles.of(t, "reacts").get(e)
 		if change != null and (breakable or not Terrain.wall(t)):
@@ -786,7 +796,7 @@ static func _fixture_notes(t: int) -> Array[String]:
 		World.STATUE:
 			out.append(Lang.t("막음: 길"))
 		World.WINDOW:
-			out.append(Lang.t("막음: 길"))
+			out.append(Lang.t("막음: 길, 기체"))
 	return out
 
 
@@ -795,7 +805,7 @@ static func _device_notes(t: int) -> Array[String]:
 	var out: Array[String] = []
 	match t:
 		World.DOOR:
-			out.append(Lang.t("막음: 시야"))
+			out.append(Lang.t("막음: 시야, 기체"))
 			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
 		World.DOOR_OPEN:
 			out.append(Lang.t("여닫을 때 소음: %d") % Terrain.SLIDE)
@@ -829,6 +839,7 @@ static func _ground_notes(t: int) -> Array[String]:
 			out.append(Lang.t("이동 불가."))
 		World.SKY:
 			out.append(Lang.t("이동 불가."))
+			out.append(Lang.t("막음: 기체"))
 			out.append(Lang.t("사라짐: 추락한 적"))
 			out.append(Lang.t("층당 추락 피해: %d") % Fall.DAMAGE)
 		World.THORNS:

@@ -231,7 +231,8 @@ static func spell(s: Spell) -> Array:
 		lines.append_array(_does(c))
 	if s.swaps():
 		lines.append_array(_swap())
-	lines.append(_line("빛", _light(s.light(Actor.FOX))))
+	if not (s.gun() and s.light(Actor.FOX).is_empty()):
+		lines.append(_line("빛", _light(s.light(Actor.FOX))))
 	if s.gun():
 		lines.append(_pair(MUZZLE))
 	return lines + _lines(_sounds(s)) + ward(s)

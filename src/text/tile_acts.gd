@@ -43,12 +43,9 @@ static func _bare() -> Dictionary:
 	return _changes(World.FLOOR, _spells())
 
 
-## The tile's own `reacts` row is told by Info._notes.
 static func _tile(t: int) -> Array:
-	var deeds := _water() + ([] if t in HIT_TOLD else _hits()) + _spells()
+	var deeds := _elements() + _water() + ([] if t in HIT_TOLD else _hits()) + _spells()
 	var rows := _changes(t, deeds)
-	if Tiles.of(t, "reacts").has(Cards.WATER):
-		rows.erase(Tiles.of(Tiles.of(t, "reacts")[Cards.WATER], "name"))
 	var bare: Dictionary = _once(["bare"], _bare)
 	var out := []
 	if bare.keys().all(func(to): return _holds(rows, to, bare[to])):
@@ -56,8 +53,6 @@ static func _tile(t: int) -> Array:
 		for to: String in bare:
 			rows[to] = rows[to].filter(func(label): return label not in bare[to])
 	out.append_array(_rows(rows))
-	if Tiles.gas[t] == 0 and (Tiles.walk[t] == 1 or Tiles.sight[t] == 0):
-		out.append(Lang.t("막음: 기체"))
 	var left := _burnt(t)
 	if left != Tiles.DEFAULT.burns_to:
 		out.append(Lang.t("불탄 뒤: %s") % Lang.t(Tiles.of(left, "name")))
@@ -137,6 +132,17 @@ static func _burnt(t: int) -> int:
 	w.burning[AT] = 1
 	Terrain.burn(w, [])
 	return w.tile(AT)
+
+
+## The lone elements but water on the tile, by its `reacts` row.
+static func _elements() -> Array:
+	var out := []
+	for e: StringName in Cards.ELEMENTS:
+		if e != Cards.WATER:
+			var at: Array[Vector2i] = [AT]
+			var deed := func(w): Terrain.react(w, Spell.make([e]), at)
+			out.append([Lang.t("%s 주문") % Lang.t(Cards.NAME[e]), deed])
+	return out
 
 
 ## The deeds of water, as [label, what it does to a World]. A third field is the label
