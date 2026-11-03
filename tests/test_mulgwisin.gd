@@ -11,7 +11,7 @@ const ME := Vector2i(6, 8)
 const SHORE := 8
 const POND_END := 14
 const PLANNED := [4, 5, 6, 7, 8, 9]
-const SEEDS := 10
+const SEEDS := 5
 const PATH := "user://test_mulgwisin.cfg"
 
 
