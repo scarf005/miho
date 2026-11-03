@@ -6,6 +6,27 @@ const MAPS := preload("res://tools/maps.gd")
 const SEEDS := 200
 const CLIMBED := 12
 
+var _climbs := []
+
+
+## Whole runs of the seeds up to CLIMBED * 2, climbed once: {layout, faults, elixir, boss}, the
+## faults by storey for the seeds below CLIMBED.
+func _climbed() -> Array:
+	if _climbs.is_empty():
+		for seed_value in CLIMBED * 2:
+			var w := Built.world(seed_value)
+			var climb := {layout = [MAPS._layout(w)], faults = {}}
+			for depth in range(2, World.FLOORS + 1):
+				Storeys.leave(w)
+				Storeys.enter(w, depth)
+				climb.layout.append(MAPS._layout(w))
+				if seed_value < CLIMBED:
+					climb.faults[depth] = MAPS.faults(w)
+			climb.elixir = Grid.inside(w.elixir)
+			climb.boss = w.actors.any(func(a): return Bestiary.info(a.kind).get("boss", false))
+			_climbs.append(climb)
+	return _climbs
+
 
 func test_no_run_stands_on_one_shape_twice() -> void:
 	for seed_value in SEEDS:
@@ -44,15 +65,7 @@ func test_a_maze_comes_in_about_two_runs_in_five_on_one_storey_from_the_third_to
 
 func test_storeys_of_one_depth_differ_across_runs_and_storeys_of_one_run_differ_in_make_up(
 ) -> void:
-	var layouts := []
-	for seed_value in CLIMBED * 2:
-		var w := World.create(seed_value)
-		var layout := [MAPS._layout(w)]
-		for depth in range(2, World.FLOORS + 1):
-			Storeys.leave(w)
-			Storeys.enter(w, depth)
-			layout.append(MAPS._layout(w))
-		layouts.append(layout)
+	var layouts := _climbed().map(func(c): return c.layout)
 	assert_lt(MAPS._overlap(layouts), 0.441)
 	assert_lt(MAPS._make_up(layouts), 0.9)
 
@@ -133,15 +146,10 @@ func test_the_elements_of_a_run_follow_one_another_by_what_each_grows_into() -> 
 
 func test_a_whole_run_keeps_the_rules_on_every_storey_it_climbs() -> void:
 	for seed_value in CLIMBED:
-		var w := World.create(seed_value)
-		for depth in range(2, World.FLOORS + 1):
-			Storeys.leave(w)
-			Storeys.enter(w, depth)
+		var climb: Dictionary = _climbed()[seed_value]
+		for depth: int in climb.faults:
 			assert_eq(
-				MAPS.faults(w), [] as Array[String], "seed %d storey %d" % [seed_value, depth]
+				climb.faults[depth], [] as Array[String], "seed %d storey %d" % [seed_value, depth]
 			)
-		assert_true(Grid.inside(w.elixir), "seed %d holds the elixir" % seed_value)
-		assert_true(
-			w.actors.any(func(a): return Bestiary.info(a.kind).get("boss", false)),
-			"seed %d holds the boss" % seed_value
-		)
+		assert_true(climb.elixir, "seed %d holds the elixir" % seed_value)
+		assert_true(climb.boss, "seed %d holds the boss" % seed_value)
