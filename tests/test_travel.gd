@@ -324,3 +324,9 @@ func test_a_walk_past_the_elixir_goes_round_it() -> void:
 	var w := _world()
 	w.elixir = Vector2i(6, 8)
 	assert_false(Travel.route(Travel.search(w), Vector2i(9, 8)).has(w.elixir))
+
+
+func test_a_walk_starts_from_stairs_she_stands_on() -> void:
+	var w := _world()
+	w.stairs = w.player().pos
+	assert_eq(Travel.route(Travel.search(w), Vector2i(6, 8)).back(), Vector2i(6, 8))

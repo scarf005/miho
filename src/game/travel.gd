@@ -55,7 +55,7 @@ static func search(w: World, avoid := {}) -> Dictionary:
 		shut[p] = true
 	var found := Grid.search(w.player().pos, open(w, shut))
 	found.from = w.player().pos
-	found.exits = exits
+	found.exits = exits.filter(func(p): return p != found.from)
 	for p: Vector2i in exits:
 		if p != found.from and walkable(w, p) and not avoid.has(p):
 			_reach(found, p)
