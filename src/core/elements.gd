@@ -195,6 +195,8 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 static func bore(w: World, s: Shot, to: Vector2i) -> bool:
 	if s.pierced or not Terrain.wall(w.tile(to)) or not w.open_air(to + s.dir):
 		return false
+	if s.flown + 2 > Spell.RANGE:
+		return false
 	s.pierced = true
 	s.flown += 1
 	return true

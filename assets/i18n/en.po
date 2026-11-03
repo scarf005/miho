@@ -2922,6 +2922,9 @@ msgstr "Struck: fire on flammable and combustible tiles beside it"
 msgid "관통탄"
 msgstr "Piercing round"
 
+msgid "탄환"
+msgstr "Bullet"
+
 msgid "탐험"
 msgstr "Explore"
 

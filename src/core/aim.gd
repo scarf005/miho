@@ -64,8 +64,9 @@ static func spared(w: World, a: Actor, foe: Actor) -> Array[Dictionary]:
 
 
 ## Whether `plan` of `a` would catch one of its own side: on the tiles a spray covers,
-## on the line to `foe`, or round where a projectile that blasts or carries a compound
-## ends: at `foe`, or short of it where a fuse goes off (Flight.fuse).
+## on the line to `foe` or the whole line of one that pierces, or round where a projectile
+## that blasts or carries a compound ends: at `foe`, or short of it where a fuse goes off
+## (Flight.fuse).
 static func catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 	var spell := Spell.make(plan.cards)
 	var tiles: Array[Vector2i] = []
@@ -73,11 +74,15 @@ static func catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 		tiles = Spray.cover(w, a, spell, plan.dir)
 	else:
 		var end := foe.pos
-		for i in range(1, Grid.cheb(a.pos, foe.pos)):
-			tiles.append(a.pos + plan.dir * i)
-			if Flight.fused(spell) and Flight.beside_foe(w, tiles.back(), a.faction):
-				end = tiles.back()
-				break
+		if spell.pierces():
+			tiles = _pierced(w, a.pos, plan.dir, spell)
+			end = tiles.back() if not tiles.is_empty() else end
+		else:
+			for i in range(1, Grid.cheb(a.pos, foe.pos)):
+				tiles.append(a.pos + plan.dir * i)
+				if Flight.fused(spell) and Flight.beside_foe(w, tiles.back(), a.faction):
+					end = tiles.back()
+					break
 		if spell.blasts() or not spell.compounds().is_empty():
 			var r := Compounds.REACH
 			for c: StringName in spell.compounds():
@@ -86,6 +91,27 @@ static func catches(w: World, a: Actor, plan: Dictionary, foe: Actor) -> bool:
 	return w.actors.any(
 		func(b): return b != a and b.alive() and b.faction == a.faction and tiles.has(b.pos)
 	)
+
+
+## The tiles a piercing `spell` flies from `from` along `dir`, straight to its range, one
+## wall on the way for one that bores (Elements.bore).
+static func _pierced(w: World, from: Vector2i, dir: Vector2i, spell: Spell) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var to := from
+	var flown := 0
+	var bored := not spell.bores()
+	while flown < Spell.RANGE:
+		to += dir
+		flown += 1
+		if not w.open_air(to):
+			var bores := not bored and Terrain.wall(w.tile(to)) and w.open_air(to + dir)
+			if not bores or flown + 1 > Spell.RANGE:
+				break
+			bored = true
+			to += dir
+			flown += 1
+		out.append(to)
+	return out
 
 
 ## Whether `a` is an ally that can pay for a spell that flies, and so wants room

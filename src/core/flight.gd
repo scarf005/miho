@@ -85,7 +85,7 @@ static func step(w: World, s: Shot) -> void:
 	var a := w.actor_at(to)
 	if a != null:
 		fly(w, s, to)
-		if s.spell.pierces():
+		if s.spell.pierces() and s.flown < Spell.RANGE:
 			s.gone = not Elements.pass_through(w, s, a)
 			w._light_dirty = true
 			return

@@ -93,8 +93,10 @@ const MAX_LEVEL := 5
 ## The 쇠 that make a wisp go through a wall too (`bores`), and its name.
 const PIERCE_METALS := 2
 const PIERCE_NAME := "철갑탄"
-## A wisp with one 쇠: Miho's, and a creature's (`wisp_name` set).
+## A wisp with one 쇠: Miho's, one of hers that carries a compound and does not pierce, and a
+## creature's (`wisp_name` set).
 const BULLET_NAME := "관통탄"
+const ROUND_NAME := "탄환"
 const BOLT_NAME := "번개"
 ## An orb that carries 유탄, and its name.
 const MORTAR_NAME := "비격진"
@@ -373,7 +375,9 @@ func wisp() -> String:
 	if bores():
 		return PIERCE_NAME
 	if bullet():
-		return BULLET_NAME if wisp_name == "" else BOLT_NAME
+		if wisp_name != "":
+			return BOLT_NAME
+		return BULLET_NAME if pierces() else ROUND_NAME
 	return wisp_name if wisp_name != "" else SHAPE_NAME[WISP]
 
 
@@ -437,9 +441,9 @@ func gun() -> bool:
 
 
 ## A wisp of 쇠 that goes through every creature it hits: 관통탄 and 철갑탄. A creature's
-## 번개 (Elements.bolt) ends on the first.
+## 번개 (Elements.bolt) and a 탄환, which carries a compound to the foe, end on the first.
 func pierces() -> bool:
-	return bores() or bullet() and wisp_name == ""
+	return bores() or bullet() and wisp_name == "" and compounds().is_empty()
 
 
 ## An armour-piercing wisp (철갑탄): 여 with two 쇠. It goes through one wall too.
@@ -447,7 +451,7 @@ func bores() -> bool:
 	return shape == WISP and count(Cards.METAL) >= PIERCE_METALS
 
 
-## A wisp with one 쇠: a bullet (관통탄, and a creature's 번개).
+## A wisp with one 쇠: a bullet (관통탄, 탄환, and a creature's 번개).
 func bullet() -> bool:
 	return shape == WISP and has(Cards.METAL) and not bores()
 
