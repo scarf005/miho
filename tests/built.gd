@@ -45,3 +45,13 @@ static func made(seed_value: int, depth: int, skeleton := &"") -> Dictionary:
 ## The world of `made`.
 static func storey(seed_value: int, depth: int, skeleton := &"") -> World:
 	return made(seed_value, depth, skeleton).w
+
+
+## A game scene that saves nothing and takes its runs' worlds from `world`. The seed makes
+## the run its _ready starts one that has been built.
+static func main() -> Node:
+	var m: Node = load("res://src/view/main.tscn").instantiate()
+	m.save_path = ""
+	m.make_world = world
+	seed(1)
+	return m

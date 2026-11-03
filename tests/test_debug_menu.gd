@@ -17,7 +17,7 @@ func after_all() -> void:
 
 ## The game in play, or at the title when a save path is given.
 func _main(save_path := "") -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
+	var m: Node = Built.main()
 	m.save_path = save_path
 	add_child_autofree(m)
 	if save_path.is_empty():

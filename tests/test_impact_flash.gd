@@ -6,8 +6,7 @@ const ME := Codex.ME
 
 
 func _game(w: World) -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.new_run(1)
 	m.state = &"play"

@@ -52,6 +52,8 @@ var kills := 0
 var run := SaveGame.new()
 var pending: SaveGame
 var save_path := SaveGame.PATH
+## Builds the world of a new run from its seed.
+var make_world := World.create
 var settings: Settings
 var glass: ColorRect
 var pan: Tween
@@ -156,7 +158,7 @@ func fit() -> void:
 ## Replaces the world with a new run, `seed_value` its seed.
 func new_run(seed_value := randi()) -> void:
 	run.flush()
-	world = World.create(seed_value)
+	world = make_world.call(seed_value)
 	run_seed = seed_value
 	run = SaveGame.new(save_path, seed_value)
 	erasing = false

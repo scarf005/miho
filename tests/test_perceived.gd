@@ -183,8 +183,7 @@ func test_every_mark_on_the_map_was_told_and_every_popup_has_a_line() -> void:
 
 
 func _main() -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	Keys.reset()
 	m.new_run(2)

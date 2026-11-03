@@ -327,8 +327,7 @@ func test_the_info_tells_the_reach_what_it_clears_and_its_sound() -> void:
 
 
 func _main() -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	Keys.reset()
 	m.new_run(3)

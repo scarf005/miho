@@ -44,8 +44,7 @@ func _hall() -> World:
 
 
 func _main(touch := true) -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.new_run(3)
 	m.state = &"play"

@@ -9,8 +9,7 @@ var _drawn := 0
 
 
 func before_each() -> void:
-	_m = load("res://src/view/main.tscn").instantiate()
-	_m.save_path = ""
+	_m = Built.main()
 	add_child_autofree(_m)
 	await get_tree().process_frame
 	_m.new_run(3)

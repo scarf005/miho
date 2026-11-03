@@ -13,8 +13,7 @@ func after_all() -> void:
 
 ## The game with a screen `rows` cells high, 6 list rows at 10.
 func _main(rows := 18) -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.new_run(3)
 	m.state = &"play"

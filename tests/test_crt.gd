@@ -32,8 +32,7 @@ func test_the_pointer_bends_more_as_the_strength_rises_and_not_at_all_at_zero() 
 
 
 func _main(strength: int) -> Node:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.settings.path = ""
 	m.settings.crt = strength

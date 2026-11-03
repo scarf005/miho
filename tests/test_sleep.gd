@@ -178,8 +178,7 @@ func test_the_forecast_notices_an_awake_creature_but_not_a_sleeper() -> void:
 
 
 func test_the_map_shows_no_vision_of_a_sleeper_and_tints_it_as_catchable() -> void:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	Keys.reset()
 	m.new_run(3)

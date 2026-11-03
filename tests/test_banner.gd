@@ -97,8 +97,7 @@ func test_fire_and_a_fall_read_as_such() -> void:
 
 
 func test_the_log_opens_over_the_banner_and_closes_back_to_it() -> void:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	Keys.reset()
 	m.new_run(7)

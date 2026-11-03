@@ -223,8 +223,7 @@ func test_a_count_of_one_reads_in_the_singular() -> void:
 
 
 func test_the_log_page_follows_a_language_chosen_in_the_same_menu() -> void:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.settings.path = ""
 	m.settings.language = "ko"

@@ -99,8 +99,7 @@ func test_the_log_is_pointed_at_where_it_is_drawn_in_a_portrait_screen() -> void
 
 
 func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -> void:
-	var m: Node = load("res://src/view/main.tscn").instantiate()
-	m.save_path = ""
+	var m: Node = Built.main()
 	add_child_autofree(m)
 	m.new_run(3)
 	m.state = &"play"
