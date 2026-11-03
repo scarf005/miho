@@ -408,9 +408,7 @@ func test_it_stands_on_water_alone_on_every_storey_it_is_planned_for() -> void:
 	for depth: int in PLANNED:
 		assert_true(FloorGen.PLAN[depth].has(KIND), "storey %d" % depth)
 		for s in SEEDS:
-			var w := World.create(s * World.FLOORS + depth)
-			w.depth = depth
-			FloorGen.build(w)
+			var w := Built.storey(s * World.FLOORS + depth, depth)
 			for a in w.actors.filter(func(b): return b.kind == KIND):
 				placed += 1
 				assert_true(_water(w, a.pos), "seed %d at %s" % [s, a.pos])
