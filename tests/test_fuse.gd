@@ -271,6 +271,37 @@ func test_the_orbs_of_a_volley_sear_a_foe_once() -> void:
 	assert_eq(seared.size(), 1)
 
 
+func _seared(events: Array[Dictionary], a: Actor) -> Array:
+	return events.filter(func(e): return e.t == &"sear" and e.id == a.id)
+
+
+func test_a_volley_sears_a_flyer_over_water_once() -> void:
+	var w := _world()
+	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 2)
+	w.tiles[Grid.index(bat.pos)] = World.POND
+	bat.max_hp = 40
+	bat.hp = 40
+	Elements.root(w, bat, 9)
+	w.sense()
+	w.events = []
+	Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
+	assert_gt(_bursts(w.events).size(), 1)
+	assert_eq(_seared(w.events, bat).size(), 1)
+
+
+func test_a_burst_on_hot_iron_a_round_later_sears_again() -> void:
+	var w := _world()
+	var bat := FloorGen.spawn(w, &"bakjwi", ME + E * 2)
+	bat.max_hp = 40
+	bat.hp = 40
+	Elements.root(w, bat, 9)
+	w.sense()
+	for i in 2:
+		w.events = []
+		Cast.cast(w, w.player(), Spell.make(Cards.recipe(&"beacon")), E)
+		assert_eq(_seared(w.events, bat).size(), 1, "volley %d" % i)
+
+
 func test_her_homing_lava_flies_on_up_to_a_foe_and_a_beacon_s_goes_off_beside_it() -> void:
 	var w := _world()
 	_post(w, ME + E * 4)
