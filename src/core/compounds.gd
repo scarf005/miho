@@ -20,7 +20,8 @@ extends RefCounted
 ## 용암 leaves hot ground (HOT) for HOT_ROUNDS on walkable ground that is not
 ## water: whoever stands on it as a round ends takes its harm, unless it eats
 ## fire. Heaven walks round it, so a fused orb (Shot.fused) sears those it reaches as it
-## bursts (`_flare`): one beside the burst would step off.
+## bursts (`_flare`): one beside the burst would step off. A burst spares its caster, so it
+## lays none under it.
 ## 유탄 hurts every creature it reaches for SHRAPNEL. On an orb (비격진) it
 ## bursts: MORTAR harm and a harm more for every lone 쇠, the creature the orb
 ## struck among them once, and every breakable wall in reach takes a hit.
@@ -136,7 +137,8 @@ static func ground(w: World, s: Shot, c: StringName, tiles: Array[Vector2i]) -> 
 		&"lava":
 			if s.fused:
 				_flare(w, s, tiles)
-			heat(w, tiles, MOLTEN)
+			var caster := w.actor(s.caster)
+			heat(w, tiles.filter(func(p): return caster == null or p != caster.pos), MOLTEN)
 		&"frost":
 			_become(
 				w, tiles.filter(func(p): return w.tile(p) in [World.POND, World.VEIL]), World.ICE

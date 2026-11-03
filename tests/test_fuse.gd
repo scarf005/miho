@@ -1,6 +1,6 @@
 extends GutTest
-## The proximity fuse (Flight.fuse): what holds 유탄, and the orbs a furnace or 봉화 lets out,
-## burst as soon as a foe stands beside them in flight.
+## The proximity fuse (Flight.fuse): what holds 유탄, an orb of 쇠 that blasts, and the orbs a
+## furnace or 봉화 lets out burst as soon as a foe stands beside them in flight.
 
 const ORB := Cards.ORB
 const FOX := Cards.FOX
@@ -375,7 +375,7 @@ func test_a_beacon_bursting_in_front_of_a_foe_leaves_her_nothing_to_stand_on() -
 		assert_true(w.hot.has(ME + E), "%d tiles away" % far)
 		for i in 3:
 			w.act(WAIT)
-		assert_eq(w.player().hp, 9, "%d tiles away" % far)
+		assert_eq(w.player().hp, 9 if far > 1 else 9 - 2, "only its strikes when beside her")
 		assert_lt(foe.hp, 9, "%d tiles away" % far)
 
 
@@ -402,4 +402,4 @@ func test_a_homing_orb_that_blasts_and_holds_metal_flies_on_up_to_its_foe() -> v
 	var foe := _post(w, ME + E * 2 + S)
 	var flown := w.act(_cast([ORB, FOX, FIRE, METAL]))
 	assert_eq(_bursts(flown), [], "no burst beside it")
-	assert_eq(foe.hp, 9)
+	assert_lt(foe.hp, 9, "it struck")

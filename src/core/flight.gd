@@ -116,11 +116,14 @@ static func step(w: World, s: Shot) -> void:
 
 
 ## Whether what `spell` hurls goes off beside a foe: a wisp or an orb that holds 유탄, but for
-## a piercing one, which goes on through them, and what lets out orbs of lava (Forge, whose
+## a piercing one, which goes on through them, a straight orb of 쇠 that blasts (one that does
+## not would end beside the foe and do nothing), and what lets out orbs of lava (Forge, whose
 ## orbs hold no 쇠 themselves, so that Shot.fused tells it of them).
 static func fused(spell: Spell) -> bool:
 	if (spell.orb or spell.shape == Spell.WISP) and spell.has(&"shrapnel"):
 		return not spell.pierces()
+	if spell.shape == Spell.ORB and spell.blasts() and spell.cards.has(Cards.METAL):
+		return true
 	return Forge.around(spell)
 
 

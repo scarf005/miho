@@ -15,7 +15,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 오작교 bridges the sky along the aimed way. User: "오작교 7x7 말고 해당 방향으로 8x3으로 바꿔줘".
 - 용암 is 구+불+흙, an orb that does not home: range 5, speed 2, bursts when spent, 3x3 hot iron. 봉화 hurls it homing in 8 directions. 용광로 is 구+불+흙+쇠: a furnace on a random free tile within 3 that hurls it every 2 s at a foe in sight. Without 구 they are no spell. User: "용암은 용암 구슬을 발사하는 주문으로 바꿔 (구+불+흙)", "봉화는 8방향으로 '유도' 용암 구슬 발사하는 주문으로 바꿔", "3칸 이내 범위에 무작위로 1개".
 - A plain orb and 비격진 differ: 비격진 bursts 2 tiles round with its own wave. User: "이제 일반 구슬도 폭발하면서 비격진이랑 일반 구슬이랑 차이가 없어 차별화시켜."
-- A spell of 쇠 that explodes has a proximity fuse: in flight it bursts beside a foe, so stepping aside does not dodge it. User: "폭발성 쇠 조합 주문들은 '근접신관' 기능 추가해. 즉 날아가다 적이 옆으로 이동해도 피할수 없고".
+- A spell of 쇠 that explodes has a proximity fuse: in flight it bursts beside a foe, so stepping aside does not dodge it. User: "폭발성 쇠 조합 주문들은 '근접신관' 기능 추가해. 즉 날아가다 적이 옆으로 이동해도 피할수 없고", "구+쇠면 근접신관을 다는거로 하자". A burst lays no hot iron under its caster. User: "2칸 거리면 적 앞애서 터져서 피해 없어야하는거아냐?"
 - A creature's 번개 is lightning, never a wisp: it crosses its range at once and stays nowhere. User: "왜 도깨비불같이 동작함? 노란색/하얀색 색상에 번개와 닮은 유니코드 심볼로 으로 멋있게 번쩍거려야하는거아냐?"
 - Flyers: 박쥐 on low storeys, 삼족오 of fire on high ones. User: "비행형 적 박쥐 (저층)와 삼족오(불, 고층) 추가해."
 - 전기 hurts wood and fire. User: "전기는 나무, 불은 피해 입도록 하고 흙만 면역으로 해".
