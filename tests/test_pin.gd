@@ -220,3 +220,19 @@ func test_a_talisman_under_the_pointer_plays_no_example_over_a_page() -> void:
 	assert_true(m.term.example.is_empty(), "opening the page stops it")
 	m.refresh()
 	assert_true(m.term.example.is_empty(), "the pointer on the talisman row does not start it")
+
+
+func test_a_word_in_a_kept_box_over_a_creature_card_opens_while_talismans_are_picked() -> void:
+	var m := _foe_hover()
+	FloorGen.spawn(m.world, &"jiha", _me(m) + Vector2i(1, 0)).magic.cooldown = 99
+	m.world.sense()
+	m.term.show_world(m.world)
+	m.forecast()
+	_shift(m, true)
+	m.casting.add(Cards.FOX)
+	var first: Vector2 = m.to_term(_word(m)) / Term.CELL
+	m.term.pin.fit.at -= first.floor()
+	var at := _word(m)
+	assert_true(Grid.inside(m.term.side_at(m.to_term(at))), "over the card")
+	_click(m, at, true)
+	assert_eq(m.panels.overlay, &"codex")
