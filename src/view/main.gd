@@ -44,8 +44,6 @@ var held := false
 var erasing := false
 ## The debug view is on: the whole storey, creatures and their goals are shown.
 var debugging := false
-## Miho's scent trail is tinted on the tiles she has seen.
-var scenting := false
 var skip := false
 ## This run's seed, and the creatures of heaven that fell in it.
 var run_seed := 0
@@ -378,7 +376,8 @@ func do_action(action: StringName, shift: bool) -> void:
 		else:
 			casting.aim_next()
 	elif action == &"scent":
-		scenting = not scenting
+		settings.scent = not settings.scent
+		settings.save()
 		refresh()
 	elif action == &"debug":
 		debugging = not debugging
@@ -487,6 +486,7 @@ func act(action: Dictionary) -> Array:
 	var before := world.clone()
 	var depth := world.depth
 	var events := world.act(action)
+	term.scent = Preview.trail(self)
 	if world.depth != depth:
 		journey.excluded.clear()
 		run.exclusions = {}

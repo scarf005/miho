@@ -5,7 +5,7 @@ extends RefCounted
 ## reads and writes them through Keys.
 
 const PATH := "user://settings.cfg"
-const NAMES := ["volume", "music", "crt", "zoom", "speed", "language"]
+const NAMES := ["volume", "music", "crt", "zoom", "speed", "scent", "language"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -24,6 +24,8 @@ var music := 60
 var crt := Crt.MIDDLE
 var zoom := 0.0
 var speed := 1.0
+## Miho's scent trail is tinted on the tiles she has seen.
+var scent := true
 ## The language code (Lang.NAMES); with none saved, the system's.
 var language := String(Lang.detect())
 ## The highlight replay of each storey left behind: off, with no row in the options
@@ -76,6 +78,8 @@ func from_config(c: ConfigFile) -> void:
 		crt = clampi(int(shown), 0, 100)
 	zoom = _one_of(c.get_value("settings", "zoom", zoom), ZOOMS, zoom)
 	speed = _one_of(c.get_value("settings", "speed", speed), SPEEDS, speed)
+	var smelled = c.get_value("settings", "scent", scent)
+	scent = smelled if smelled is bool else scent
 	var code = c.get_value("settings", "language", language)
 	language = code if code is String and Lang.NAMES.has(StringName(code)) else language
 	spells = {}

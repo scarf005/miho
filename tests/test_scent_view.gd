@@ -108,8 +108,9 @@ func test_the_scent_is_on_by_default_and_a_saved_off_stays_off() -> void:
 	var back := Settings.new()
 	back.from_config(c)
 	assert_false(back.scent)
-	back.from_config(ConfigFile.new())
-	assert_true(back.scent, "a file without the option keeps the default")
+	var fresh := Settings.new()
+	fresh.from_config(ConfigFile.new())
+	assert_true(fresh.scent, "a file without the option keeps the default")
 
 
 func test_the_settings_page_has_a_scent_row_that_flips_the_setting() -> void:

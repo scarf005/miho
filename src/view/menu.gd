@@ -45,6 +45,7 @@ const OPTIONS := [
 	&"crt",
 	&"zoom",
 	&"speed",
+	&"scent",
 	&"language",
 	&"codex",
 	&"keys",
@@ -63,6 +64,7 @@ const OPTION_NAMES := {
 	&"crt": "브라운관 효과",
 	&"zoom": "화면 크기",
 	&"speed": "움직임 속도",
+	&"scent": "냄새 보기",
 	&"language": "언어",
 	&"replay": "명장면 다시보기",
 	&"codex": "도감",
@@ -520,6 +522,8 @@ func _change(step: int) -> StringName:
 			settings.zoom = _cycle(Settings.ZOOMS, settings.zoom, step)
 		&"speed":
 			settings.speed = _cycle(Settings.SPEEDS, settings.speed, step)
+		&"scent":
+			settings.scent = not settings.scent
 		&"language":
 			var codes := Lang.NAMES.keys()
 			settings.language = codes[posmod(
@@ -610,6 +614,7 @@ func _options() -> Array:
 		&"zoom": Lang.t("맞춤") if settings.zoom == 0.0 else str(settings.zoom),
 		&"language": Lang.NAMES[StringName(settings.language)],
 		&"speed": "%dx" % int(settings.speed),
+		&"scent": _on(settings.scent),
 		&"replay": _on(settings.replay),
 		&"seed": Lang.t("%d 복사했다") % seed_value if copied else str(seed_value),
 	}

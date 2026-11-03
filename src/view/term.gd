@@ -335,9 +335,9 @@ func _draw_game() -> void:
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
 	layer.draw_tiles(light, me_pos)
 	TermMarks.telegraphs(self, actors)
+	TermMarks.scent(self)
 	if not anim.playing:
 		TermMarks.paths(self)
-		TermMarks.scent(self)
 		for l: Array in lines:
 			if in_view(l[0]) and in_view(l[1]):
 				var a := cell_centre(l[0])
@@ -498,25 +498,34 @@ func _heart(at: Vector2, full: bool, color: Color) -> void:
 
 
 ## Cells a string takes as the font draws it, each character rounded up to a
-## half (× and ° a half, Hangul a whole); ♥ and ♡ are drawn as hearts a cell wide.
+## half (× and ° a half, Hangul a whole); ♥ and ♡ are drawn as hearts a cell wide, ■ and □
+## as the segments of a bar (NoiseMeter.segment) half a cell wide.
 static func text_cells(s: String) -> float:
 	var n := 0.0
 	for c in s:
 		if not _widths.has(c):
 			var px := Fonts.pixel().get_string_size(c, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE).x
-			_widths[c] = 1.0 if c in ["♥", "♡"] else maxf(0.5, ceilf(px / CELL.x * 2.0) / 2.0)
+			_widths[c] = (
+				1.0
+				if c in ["♥", "♡"]
+				else 0.5 if c in ["■", "□"] else maxf(0.5, ceilf(px / CELL.x * 2.0) / 2.0)
+			)
 		n += _widths[c]
 	return n
 
 
 ## A line of text at the font's doubled grid, Hangul a cell wide and ASCII
-## half; ♥ and ♡ are drawn as pixel hearts a cell wide.
+## half; ♥ and ♡ are drawn as pixel hearts a cell wide, ■ and □ as bar segments.
 func draw_text(at: Vector2, s: String, color: Color) -> void:
 	var x := at.x
 	for part in _hearts_split(Lang.singular(s)):
 		if part == "♥" or part == "♡":
 			_heart(
 				Vector2(x, at.y), part == "♥", color if part == "♥" else Color(Palette.DIM, color.a)
+			)
+		elif part == "■" or part == "□":
+			NoiseMeter.segment(
+				self, Vector2(x, at.y), color if part == "■" else Color(Palette.DIM, color.a)
 			)
 		else:
 			var y := at.y * CELL.y + (CELL.y - SIZE) / 2.0 + SIZE * 0.75
@@ -532,12 +541,12 @@ func draw_text(at: Vector2, s: String, color: Color) -> void:
 		x += text_cells(part)
 
 
-## Text cut into runs of plain text and single hearts.
+## Text cut into runs of plain text and single hearts or bar segments.
 static func _hearts_split(s: String) -> Array[String]:
 	var out: Array[String] = []
 	var run := ""
 	for c in s:
-		if c == "♥" or c == "♡":
+		if c in ["♥", "♡", "■", "□"]:
 			if run != "":
 				out.append(run)
 			out.append(c)

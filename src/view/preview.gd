@@ -48,9 +48,9 @@ static func point(m: Node, screen: Vector2) -> void:
 static func paint(m: Node) -> void:
 	var world: World = m.world
 	var term: Term = m.term
+	term.scent = trail(m)
 	_inspect(m)
 	term.debug = DebugView.view(world) if m.debugging else {}
-	term.scent = term.debug.scent if m.debugging else Scent.fresh(world, true) if m.scenting else {}
 	term.zone = m.journey.zone
 	term.zone_centres = m.journey.excluded.zones
 	term.picked = m.casting.picked
@@ -98,6 +98,12 @@ static func paint(m: Node) -> void:
 			tints[b.pos] = Color(Palette.ALERT[1], 0.35)
 	term.tints = tints
 	term.marks = marks
+
+
+## The tiles of the scent trail to tint, with their freshness: those Miho has seen, or every
+## one in the debug view; none with the setting off.
+static func trail(m: Node) -> Dictionary:
+	return Scent.fresh(m.world, not m.debugging) if m.debugging or m.settings.scent else {}
 
 
 static func _inspect(m: Node) -> void:
@@ -164,7 +170,9 @@ static func _lines(m: Node) -> Array:
 	if m.look.hover_status:
 		return Info.creature(m.known, m.known.player())
 	var lines: Array = (
-		DebugView.at(m.world, m.look.hover) if m.debugging else Info.at(m.known, m.look.hover)
+		DebugView.at(m.world, m.look.hover)
+		if m.debugging
+		else Info.at(m.known, m.look.hover, m.term.scent)
 	)
 	return (
 		m.menu.debug.head()

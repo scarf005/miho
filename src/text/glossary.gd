@@ -146,6 +146,7 @@ static func rows() -> Dictionary:
 		[
 			"남김: 당신이 선 칸",
 			Lang.t("남는 시간: %d초") % Scent.TRAIL_AGE,
+			Lang.t("막대: 남은 시간만큼 참"),
 			Lang.t("진한 냄새 남는 시간: %d초") % (Scent.TRAIL_AGE + Scent.STRONG_EXTRA),
 			Lang.t("안 남는 칸: %s") % no_scent,
 			Lang.t("지워짐: %s") % ", ".join(_scent_erasers()),

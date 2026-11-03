@@ -64,14 +64,14 @@ static func paths(t: Term) -> void:
 					t.draw_glyph(t.cell_of(p), Palette.BOLT[s.dir], Color(c, 0.8))
 
 
-## Miho's scent trail: a faint tint and an inset frame on each tile, both stronger the fresher
-## the scent. The middle of the tile stays clear, so no glyph is covered.
+## Miho's scent trail: each tile filled with a translucent tint, stronger the fresher the scent.
 static func scent(t: Term) -> void:
 	for p: Vector2i in t.scent:
 		if t.in_view(p):
-			var tile := Rect2(t.cell_of(p) * Term.CELL, Term.CELL)
-			t.draw_rect(tile, Color(Palette.SCENT, 0.03 + 0.07 * t.scent[p]))
-			t.draw_rect(tile.grow(-3), Color(Palette.SCENT, 0.2 + 0.7 * t.scent[p]), false, 2.0)
+			t.draw_rect(
+				Rect2(t.cell_of(p) * Term.CELL, Term.CELL),
+				Color(Palette.SCENT, 0.08 + 0.27 * t.scent[p])
+			)
 
 
 ## Lightning on tile `at`, `after` seconds from now: its streak flickers white and yellow a

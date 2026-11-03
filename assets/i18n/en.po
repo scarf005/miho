@@ -2340,6 +2340,9 @@ msgstr "Leaves: your tile"
 msgid "남는 시간: %d초"
 msgstr "Time remaining: %d s"
 
+msgid "막대: 남은 시간만큼 참"
+msgstr "Bar: fills with time remaining"
+
 msgid "남은 냄새: %d초 이내"
 msgstr "Scent left: within %d s"
 

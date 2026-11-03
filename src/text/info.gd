@@ -12,6 +12,8 @@ const STATE := ["쉬는 중", "수색 중", "추격 중"]
 const WITS := ["둔함", "영리함", "교활함"]
 ## WITS as a word before a noun: 교활한 적, which the 도감 links to 교활함 (Keywords).
 const WITS_WHO := ["둔한", "영리한", "교활한"]
+## Segments of the scent meter a tile's hover tells, as the noise bar has.
+const SCENT_BAR := 5
 ## The tag of a creature that follows Miho by her scent (Bestiary tracks), told in the glossary.
 const SMELL := "후각이 뛰어나다"
 const SMELL_WHO := "후각이 뛰어난"
@@ -146,8 +148,9 @@ static func _text(line: Variant) -> String:
 	return Lang.t(line[0]) % line.slice(1).map(func(a): return Lang.t(a) if a is String else a)
 
 
-## Lines for map tile p, or empty when Miho knows nothing there.
-static func at(w: World, p: Vector2i) -> Array:
+## Lines for map tile p, or empty when Miho knows nothing there. A tile of `scent` (the
+## freshness of each, Scent.fresh) ends with its meter.
+static func at(w: World, p: Vector2i, scent := {}) -> Array:
 	if not Grid.inside(p):
 		return []
 	var i := Grid.index(p)
@@ -160,7 +163,16 @@ static func at(w: World, p: Vector2i) -> Array:
 			return SpellInfo.shot(w, s)
 	if w.known[i] == 0:
 		return []
-	return terrain(w, p)
+	var lines := terrain(w, p)
+	if scent.has(p):
+		var filled := clampi(ceili(scent[p] * SCENT_BAR), 1, SCENT_BAR)
+		lines.append(
+			[
+				[Lang.t("냄새") + " ", Palette.TEXT],
+				["■".repeat(filled) + "□".repeat(SCENT_BAR - filled), Palette.SCENT]
+			]
+		)
+	return lines
 
 
 ## The projectile `at` shows for map tile p: one in sight with no creature shown on its tile.

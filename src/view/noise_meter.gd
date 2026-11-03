@@ -57,11 +57,17 @@ static func draw(t: Term, from := Vector2(-1, -1)) -> void:
 			Rect2(start * Term.CELL, Vector2(width(), 1) * Term.CELL), Color(Palette.VOID, 0.85)
 		)
 	t.draw_text(start, Lang.t("소음"), Palette.TEXT)
-	var cell := Term.CELL
 	for i in maxi(BAR_CELLS, FILLED[band_no]):
-		var seg := (
-			((start + Vector2(Term.text_cells(Lang.t("소음")) + 0.5 + i * 0.5, 0)) * cell).round()
-			+ Vector2(2, cell.y * 0.35)
-		)
 		var color: Color = Palette.DIM if i >= FILLED[band_no] else Palette.NOISE[band_no - 1]
-		t.draw_rect(Rect2(seg, Vector2(cell.x * 0.5 - 4, cell.y * 0.3)), color)
+		segment(t, start + Vector2(Term.text_cells(Lang.t("소음")) + 0.5 + i * 0.5, 0), color)
+
+
+## One segment of a bar in half the cell at `at` (cells).
+static func segment(t: Term, at: Vector2, color: Color) -> void:
+	var cell := Term.CELL
+	t.draw_rect(
+		Rect2(
+			(at * cell).round() + Vector2(2, cell.y * 0.35), Vector2(cell.x * 0.5 - 4, cell.y * 0.3)
+		),
+		color
+	)
