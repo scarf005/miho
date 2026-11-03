@@ -125,10 +125,12 @@ static func frontier(w: World, found: Dictionary) -> Vector2i:
 	var best := Vector2i(-1, -1)
 	var best_cost := INF
 	for i in dist.size():
+		if dist[i] <= 0 or dist[i] >= best_cost:
+			continue
 		var p := Grid.at(i)
 		var cost := dist[i] + Vector2(p - found.from).length() * 0.01
 		var exit_tile := p == w.stairs or p == w.elixir
-		if dist[i] > 0 and cost < best_cost and not exit_tile and _borders_unknown(w, p):
+		if cost < best_cost and not exit_tile and _borders_unknown(w, p):
 			best = p
 			best_cost = cost
 	return best
