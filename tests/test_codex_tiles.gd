@@ -60,20 +60,23 @@ func _labels(text: String, change: String) -> Array:
 
 
 func test_each_compound_that_changes_a_tile_is_told_on_its_entry_and_no_other() -> void:
+	var faults := []
 	for t: int in Tiles.ROWS:
 		var name: String = Tiles.of(t, "name")
 		var text := _whole(name)
+		var told := {}
+		for other: int in Tiles.ROWS:
+			told[other] = _labels(text, SpellInfo.becomes(other))
 		var laid := _laid(t)
 		for c: StringName in laid:
 			var to: int = laid[c].tile(Codex.AT)
 			var label := Lang.t(Cards.NAME[c])
 			if to != t:
-				assert_has(_labels(text, SpellInfo.becomes(to)), label, "%s %s" % [name, c])
-			else:
-				for other: int in Tiles.ROWS:
-					assert_does_not_have(
-						_labels(text, SpellInfo.becomes(other)), label, "%s %s" % [name, c]
-					)
+				if not told[to].has(label):
+					faults.append("%s %s: not told" % [name, c])
+			elif told.values().any(func(labels): return labels.has(label)):
+				faults.append("%s %s: told" % [name, c])
+	assert_eq(faults, [])
 
 
 func test_lines_with_the_same_result_are_one_line_on_every_entry() -> void:
