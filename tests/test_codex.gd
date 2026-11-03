@@ -411,10 +411,11 @@ func test_page_down_and_page_up_move_a_page_stop_at_the_ends_and_repeat() -> voi
 	assert_eq(menu.panel().top, 1, "the page ends at the foot of the view")
 	menu.key(_tap("PageUp", true))
 	assert_eq(menu.panel().selected, 0)
-	for i in 4 * last:
+	var past_the_end := last / fits + 3
+	for i in past_the_end:
 		menu.key(_tap("PageDown", true))
 	assert_eq(menu.panel().selected, last, "stops at the last entry")
-	for i in 4 * last:
+	for i in past_the_end:
 		menu.key(_tap("PageUp", true))
 	assert_eq(menu.panel().selected, 0, "stops at the first entry")
 

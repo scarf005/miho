@@ -116,7 +116,7 @@ func test_repeated_lines_are_counted() -> void:
 	log.add([["2층", Palette.TEXT]], 2)
 	assert_eq(log.lines.map(func(l): return Messages.plain(Messages.shown(l))), ["멀리서 탁 ×2", "2층"])
 	for i in Messages.KEEP + 5:
-		log.add([[str(i), Palette.TEXT]], 3)
+		log.add([[str(i), Palette.TEXT]], 3 + i)
 	assert_eq(log.lines.size(), Messages.KEEP)
 
 
