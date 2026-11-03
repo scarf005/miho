@@ -46,7 +46,8 @@ static func fly(w: World, s: Shot, to: Vector2i) -> void:
 	w.emit({t = &"fly", shot = s.id, from = s.pos, to = to})
 	s.pos = to
 	s.flown += 1
-	w._changed()
+	if Light.glows(s):
+		w._light_dirty = true
 	if s.spell.has(Cards.FIRE):
 		Terrain.ignite(w, to)
 	if w.actor_at(to) == null:
@@ -81,6 +82,7 @@ static func step(w: World, s: Shot) -> void:
 		fly(w, s, to)
 		if s.spell.pierces():
 			s.gone = not Elements.pass_through(w, s, a)
+			w._light_dirty = true
 			return
 		s.gone = true
 		strike(w, s, a)
@@ -95,6 +97,7 @@ static func step(w: World, s: Shot) -> void:
 			return
 		if s.spell.orb:
 			o.gone = true
+			w._light_dirty = true
 			w.emit({t = &"snuff", shot = o.id, at = to})
 		elif o.spell.orb:
 			Elements.land(w, s)
@@ -134,6 +137,7 @@ static func effects(w: World, s: Shot, at: Vector2i, struck := Vector2i(-1, -1))
 
 
 static func strike(w: World, s: Shot, a: Actor) -> void:
+	w._light_dirty = true
 	var spell := s.spell
 	var at := a.pos
 	w.emit(

@@ -317,10 +317,10 @@ static func douse(w: World, p: Vector2i) -> void:
 ## A searching creature with a spell that `lights` lights a lantern that went out
 ## next to it; true when it did.
 static func relight_beside(w: World, a: Actor) -> bool:
-	if not a.repertoire().any(func(cast): return lights(Spell.make(cast))):
-		return false
 	for d in Grid.DIRS:
 		if w.tile(a.pos + d) == World.LANTERN_OUT:
+			if not a.repertoire().any(func(cast): return lights(Spell.make(cast))):
+				return false
 			w.set_tile(a.pos + d, World.LANTERN)
 			w.emit({t = &"relight", at = a.pos + d, id = a.id})
 			return true

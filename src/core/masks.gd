@@ -72,9 +72,23 @@ static func opened(w: World, blocked: Array = []) -> PackedByteArray:
 	return open
 
 
-## A creature's `test` of the tiles it may step on (its own among them) for every tile.
+## A creature's `test` of the tiles it may step on (its own among them) for every tile, where
+## `test` never holds on the tile of another creature alive (Mind._walkable), so it is not asked.
 static func walk(w: World, a: Actor, test: Callable) -> PackedByteArray:
-	return Grid.mask(w.tiles, Bestiary.ground(a.kind), odd(w) + [a.pos], test)
+	var fall: Array = w.burning.keys() + w.traps.keys()
+	for s in w.shots:
+		fall.append(s.pos)
+	var alive: Array[Actor] = []
+	for b in w.actors:
+		if not b.alive():
+			fall.append(b.pos)
+		elif Grid.inside(b.pos):
+			alive.append(b)
+	var out := Grid.mask(w.tiles, Bestiary.ground(a.kind), fall, test)
+	for b in alive:
+		out[Grid.index(b.pos)] = 0
+	out[Grid.index(a.pos)] = 1
+	return out
 
 
 ## The tiles a noise spreads over: all but walls.

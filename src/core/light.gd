@@ -57,7 +57,7 @@ static func sources(w: World) -> Array[Dictionary]:
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
 	for a in w.actors:
-		if a.alive() and (a.ailments.alight > 0 or a.kind == Forge.FURNACE):
+		if borne(a):
 			out.append({at = a.pos, radius = FIRE_RADIUS, color = FIRE})
 	for p in w.flares:
 		out.append({at = p, radius = MUZZLE_RADIUS, color = FIRE})
@@ -67,6 +67,16 @@ static func sources(w: World) -> Array[Dictionary]:
 			if not l.is_empty():
 				out.append({at = s.pos, radius = l.radius, color = l.color})
 	return out
+
+
+## Whether `a` is a light as it goes.
+static func borne(a: Actor) -> bool:
+	return a.alive() and (a.ailments.alight > 0 or a.kind == Forge.FURNACE)
+
+
+## Whether the projectile `s` is a light as it flies.
+static func glows(s: Shot) -> bool:
+	return not s.spell.light(s.faction).is_empty()
 
 
 static func level(c: Vector3) -> float:

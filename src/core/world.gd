@@ -368,7 +368,7 @@ func hides(p: Vector2i) -> bool:
 
 func actor_at(p: Vector2i) -> Actor:
 	for a in actors:
-		if a.alive() and a.pos == p:
+		if a.pos == p and a.alive():
 			return a
 	return null
 
@@ -409,14 +409,14 @@ func clear_line(a: Vector2i, b: Vector2i) -> bool:
 	return true
 
 
-## `opaque` for every tile at once, for Sight (cached until something moves).
+## `opaque` for every tile at once, for Sight (cached until the board changes).
 func opaque_mask() -> PackedByteArray:
 	if _opaque.is_empty():
 		_opaque = Masks.opaque(self)
 	return _opaque
 
 
-## `blocks_light` for every tile at once, for Light (cached until something moves).
+## `blocks_light` for every tile at once, for Light (cached until the board changes).
 func light_mask() -> PackedByteArray:
 	if _shade.is_empty():
 		_shade = Masks.shade(self)
@@ -446,7 +446,7 @@ func lit(p: Vector2i) -> bool:
 	return Grid.inside(p) and _lit_mask()[p.y * Grid.W + p.x] == 1
 
 
-## Tiles in line of sight from p, lit or not (cached until something moves).
+## Tiles in line of sight from p, lit or not (cached until the board changes).
 func fov(p: Vector2i) -> PackedByteArray:
 	if not _fov.has(p):
 		_fov[p] = Sight.field(p, VIEW, opaque_mask())

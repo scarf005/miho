@@ -17,10 +17,12 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 	var loud := 0 if w.tile(to) == World.MUD else maxi(a.info().get("step", 0), tread[0])
 	w.emit({t = &"move", id = a.id, from = from, to = to, word = tread[1], loud = loud})
 	a.pos = to
-	for s in riders(w, a):
+	var on := riders(w, a)
+	for s in on:
 		s.pos = to
 		w.emit({t = &"ride", shot = s.id, to = to})
-	w._changed()
+	if Light.borne(a) or on.any(Light.glows):
+		w._light_dirty = true
 	Hearing.noise(w, to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.stepped(w, a, from, to)
 

@@ -18,6 +18,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 		return
 	if spell.gun():
 		w.flares.append(caster.pos)
+		w._light_dirty = true
 	Hearing.noise(
 		w, caster.pos, spell.cast_noise(), spell.cast_word(), caster.faction == Actor.FOX, caster.id
 	)

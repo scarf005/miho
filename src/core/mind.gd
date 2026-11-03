@@ -119,7 +119,7 @@ static func _take_on(w: World, a: Actor) -> void:
 		return
 	var near: Actor = null
 	for b in w.actors:
-		if b.alive() and b.faction != a.faction and Hat.sees(w, a, b):
+		if b.faction != a.faction and b.alive() and Hat.sees(w, a, b):
 			if near == null or Homing.closer(a.pos, b, near):
 				near = b
 	if near == null:
@@ -485,6 +485,7 @@ static func _walk(w: World, a: Actor, to: Vector2i) -> void:
 		return
 	if s.spell.pierces():
 		s.gone = not Elements.pass_through(w, s, a)
+		w._light_dirty = true
 	else:
 		s.gone = true
 		Flight.strike(w, s, a)
@@ -504,10 +505,10 @@ static func _step_to(w: World, a: Actor, goal: Vector2i, keep := 0) -> bool:
 	var best_cost := INF
 	for d in Grid.DIRS:
 		var p := a.pos + d
-		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or not walk.call(p):
+		if not Grid.inside(p) or dist[Grid.index(p)] < 0 or dist[Grid.index(p)] >= here:
 			continue
 		var cost := dist[Grid.index(p)] + Vector2(goal - p).length() * 0.01
-		if dist[Grid.index(p)] < here and cost < best_cost:
+		if cost < best_cost and walk.call(p):
 			best = p
 			best_cost = cost
 	if best == a.pos:

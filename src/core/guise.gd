@@ -199,6 +199,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 			return true
 	for old in shadows(w, caster):
 		old.gone = true
+		w._light_dirty = true
 		w.emit({t = &"fade", shot = old.id, at = old.pos})
 	var s := Shot.of(w, caster, dark(spell))
 	s.spell.called = NAME[SHADOW]

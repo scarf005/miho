@@ -326,6 +326,7 @@ static func bolt(s: Spell) -> bool:
 static func land(w: World, s: Shot) -> void:
 	if bolt(s.spell):
 		s.gone = true
+		w._light_dirty = true
 		return
 	s.life = Spell.WISP_LIFE
 	w.emit({t = &"land", shot = s.id, at = s.pos})
