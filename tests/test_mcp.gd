@@ -308,3 +308,21 @@ func test_observation_tells_what_a_creature_is_weak_to() -> void:
 	assert_string_contains(wood[0], ", weak to metal")
 	var plain: Array = lines.filter(func(l): return l.contains("장승 ("))
 	assert_false(plain[0].contains("weak to"))
+
+
+func test_observation_tells_what_a_creature_is_immune_to() -> void:
+	var tools := _game()
+	var w := tools.world
+	FloorGen.spawn(w, &"bulgae", w.player().pos + Vector2i(1, 0))
+	FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(0, 1))
+	FloorGen.spawn(w, &"jangseung", w.player().pos + Vector2i(-1, 0))
+	w.sense()
+	var lines: Array = _call(tools, "observe").text.split("\n")
+	var dog: Array = lines.filter(func(l): return l.contains("불개"))
+	assert_string_contains(dog[0], ", immune to metal")
+	assert_string_contains(dog[0], ", does not burn")
+	var water: Array = lines.filter(func(l): return l.contains("해태"))
+	assert_string_contains(water[0], ", immune to fire")
+	assert_false(water[0].contains("does not burn"))
+	var plain: Array = lines.filter(func(l): return l.contains("장승 ("))
+	assert_false(plain[0].contains("immune to"))
