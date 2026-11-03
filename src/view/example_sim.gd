@@ -40,7 +40,7 @@ func follow(_p: Vector2i) -> void:
 
 func _process(delta: float) -> void:
 	super(delta)
-	if _animating:
+	if anim.playing:
 		return
 	_left -= delta * speed
 	if _left <= 0.0:
@@ -67,9 +67,9 @@ func stop() -> void:
 
 func _begin() -> void:
 	rush()
-	_popups.clear()
-	_flashes.clear()
-	_trails.clear()
+	anim.popups.clear()
+	anim.flashes.clear()
+	anim.trails.clear()
 	_clear()
 	var scene := SpellScene.ready(_scene)
 	_actions = CodexScene.actions(scene)

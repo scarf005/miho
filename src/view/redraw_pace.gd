@@ -28,8 +28,4 @@ func _input(_event: InputEvent) -> void:
 
 
 func _moving() -> bool:
-	return (
-		term._animating
-		or term.sim != null
-		or not (term._popups.is_empty() and term._flashes.is_empty() and term._ghosts.is_empty())
-	)
+	return term.sim != null or term.anim.moving()

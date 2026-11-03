@@ -36,7 +36,7 @@ func test_a_quiet_screen_is_drawn_at_the_calm_pace() -> void:
 
 
 func test_a_popup_is_drawn_every_frame_until_it_is_gone() -> void:
-	_m.term._popups.append(
+	_m.term.anim.popups.append(
 		{at = Vector2i(1, 1), text = "쿵", color = Color.WHITE, born = 0.0, life = 9.0}
 	)
 	assert_eq(await _frames(10), 10)
@@ -56,6 +56,6 @@ func test_an_input_is_drawn_on_its_frame() -> void:
 
 func test_a_term_that_was_stopped_draws_nothing_for_what_it_still_holds() -> void:
 	var popup := {at = Vector2i(1, 1), text = "쿵", color = Color.WHITE, born = 0.0, life = 9.0}
-	_m.term._popups.append(popup)
+	_m.term.anim.popups.append(popup)
 	_m.term.set_process(false)
 	assert_eq(await _frames(10), 0)

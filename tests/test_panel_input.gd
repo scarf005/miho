@@ -223,7 +223,7 @@ func test_a_popup_of_the_storey_she_left_is_gone_when_she_lands() -> void:
 	var m := _main()
 	var at := Vector2i(5, 5)
 	var plate := {t = &"trap", at = at, kind = World.TRAP_ALARM, where = at}
-	m.term._apply(plate, plate)
-	assert_false(m.term._popups.is_empty())
-	m.term._apply({t = &"fall", id = 0, from = at, at = at, depth = 1}, {})
-	assert_true(m.term._popups.is_empty())
+	m.term.anim.apply(plate, plate)
+	assert_false(m.term.anim.popups.is_empty())
+	m.term.anim.apply({t = &"fall", id = 0, from = at, at = at, depth = 1}, {})
+	assert_true(m.term.anim.popups.is_empty())

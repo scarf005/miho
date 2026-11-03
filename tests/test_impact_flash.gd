@@ -35,7 +35,7 @@ func _flashed_at_the_touch(w: World, cards: Array, kind: StringName) -> Dictiona
 	assert_gt(touch, -1)
 	var at: Vector2i = events[touch].at
 	m.term.play(events.slice(touch), before, w)
-	var drawn: Array = m.term._flashes.map(func(f): return f.at)
+	var drawn: Array = m.term.anim.flashes.map(func(f): return f.at)
 	m.term.rush()
 	return {at = at, drawn = drawn}
 

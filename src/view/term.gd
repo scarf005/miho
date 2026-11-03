@@ -19,34 +19,11 @@ const CELL := Vector2(32, 40)
 const MAP := Vector2i(8, 0)
 ## Screen rows each creature takes in the sidebar, and its state there.
 const SIDE_ROWS := 3
-## Cells a popup starts above its tile, so the creature it is about stays in view.
-const POPUP_ABOVE := 0.6
-## Tiles of tail drawn behind a projectile.
-const TRAIL := 4
 const SIZE := 32
 const BIG := 48
 const SMALL := 16
 ## Pixels between the lines of wisps chasing one creature.
 const LINE_GAP := 5.0
-const DELAY := {
-	&"move": 0.05,
-	&"spawn": 0.04,
-	&"fly": 0.03,
-	&"land": 0.05,
-	&"hit": 0.1,
-	&"burst": 0.1,
-	&"splash": 0.22,
-	&"blast": 0.25,
-	&"spray": 0.25,
-	&"clash": 0.1,
-	&"claw": 0.16,
-	&"melee": 0.16,
-	&"die": 0.14,
-	&"sprout": 0.16,
-	&"charge": 0.08,
-	&"drum": 0.3,
-	&"trap": 0.2,
-}
 ## Cells each character takes, measured once (_cells).
 static var _widths := {}
 
@@ -128,6 +105,8 @@ var readable := InfoBox.READABLE * CELL.x
 
 var sim: ExampleSim = null
 var still := false
+## The round playing and what it leaves on screen.
+var anim := RoundAnim.new(self)
 var _font: FontFile
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
@@ -136,18 +115,8 @@ var _rushed := false
 var _vis := PackedByteArray()
 ## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
 var _veiled := {}
-var _actors := {}
-var _shots := {}
-var _animating := false
-var _popups: Array[Dictionary] = []
-## event index -> the Perceived fact of the round being played.
-var _told := {}
-var _flashes: Array[Dictionary] = []
-var _ghosts: Array[Dictionary] = []
 var _lanterns: Array[Dictionary] = []
 var _shot_light := {}
-## shot id -> the tiles it last flew through, newest last (TRAIL of them).
-var _trails := {}
 var _time := 0.0
 ## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
 var _sway := 0.0
@@ -231,11 +200,8 @@ func _process(delta: float) -> void:
 	_time += delta
 	var swayed := 0.0 if still else delta
 	_sway += swayed
-	var now := _time
-	_popups = _popups.filter(func(p): return now - p.born < p.life)
-	_flashes = _flashes.filter(func(f): return now - f.born < 0.35)
-	_ghosts.assign(_ghosts.filter(func(g): return now - g.born < Afterimage.LIFE))
-	_popups.append_array(_bubbles.rise(world, swayed, now))
+	anim.expire(_time)
+	anim.popups.append_array(_bubbles.rise(world, swayed, _time))
 
 
 ## Shows the world as it is now, with nothing in flight.
@@ -244,12 +210,7 @@ func show_world(w: World) -> void:
 	_vis = w.seen
 	_veiled = Hat.unseen(w)
 	follow(w.player().pos)
-	_actors.clear()
-	_shots.clear()
-	_animating = false
-	for id in _trails.keys():
-		if not w.shots.any(func(s): return s.id == id and s.dir != Vector2i.ZERO):
-			_trails.erase(id)
+	anim.settle(w)
 	_lanterns.clear()
 	for i in w.tiles.size():
 		var p := Grid.at(i)
@@ -284,40 +245,19 @@ func play(events: Array, before: World, after: World) -> void:
 	var perceived := Perceived.of(before, after, events)
 	_vis = perceived.vis
 	_veiled = perceived.veiled
-	_told.clear()
-	for f in perceived.facts:
-		if f.i >= 0:
-			_told[f.i] = f
-	_actors.clear()
-	for a in before.actors:
-		if a.alive():
-			_actors[a.id] = a.clone()
-	_shots.clear()
-	for s in before.shots:
-		_shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
-	_animating = true
-	var passes := Afterimage.plan(events)
-	var impact := Impact.of(events)
-	var drawn := {}
-	for i in events.size():
-		var veiled := _veiled if debug.is_empty() else {}
-		var left := Afterimage.copies(passes.get(i, []), _actors, _time, veiled)
-		_ghosts.append_array(left.filter(func(g): return _visible(g.at)))
-		var wait: float = (
-			DELAY.get(events[i].t, 0.0) if drawn.has(i) else _apply(events[i], _told.get(i, {}))
-		)
-		for j: int in impact.get(i, []):
-			_apply(events[j], _told.get(j, {}))
-			drawn[j] = true
-			wait = 0.0
-		if wait > 0.0 and not _rushed:
-			_hold = get_tree().create_timer(wait / speed)
-			await _hold.timeout
+	await anim.run(events, before, perceived.facts)
 	noise = NoiseMeter.level(_vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
 	show_world(after)
+
+
+## Waits `wait` seconds of the round in progress, none once it is rushed.
+func hold(wait: float) -> void:
+	if wait > 0.0 and not _rushed:
+		_hold = get_tree().create_timer(wait / speed)
+		await _hold.timeout
 
 
 ## Finishes the round in progress at once: `play` returns before this does, so
@@ -341,92 +281,6 @@ func _hatted(a: Actor) -> bool:
 ## Whether tile p is drawn: seen, or any tile with the debug view on.
 func _revealed(p: Vector2i) -> bool:
 	return Grid.inside(p) and (not debug.is_empty() or _vis[Grid.index(p)] == 1)
-
-
-## Applies one event to what is drawn; `fact` is what Miho is told of it, or
-## empty. Returns how long to hold it.
-func _apply(e: Dictionary, fact: Dictionary) -> float:
-	var at: Vector2i = e.get("to", e.get("at", Vector2i(-1, -1)))
-	if not Grid.inside(at) and _actors.has(e.get("id", -1)):
-		at = _actors[e.id].pos
-	match e.t:
-		&"move":
-			if _actors.has(e.id):
-				_actors[e.id].pos = e.to
-		&"cast":
-			if Spell.make(e.cards).gun():
-				_flash(at, Color(Palette.BURNING[1], 0.9))
-		&"spawn":
-			if not e.get("bolt", false):
-				_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
-		&"fly":
-			if not _shots.has(e.shot):
-				TermMarks.bolt(self, e.to)
-			else:
-				_shots[e.shot].pos = e.to
-				var tail: Array = _trails.get(e.shot, [])
-				tail.append(e.from)
-				_trails[e.shot] = tail.slice(-TRAIL)
-		&"stick":
-			_shots[e.shot] = {pos = e.at, spell = Spell.make(e.cards), faction = e.faction}
-		&"ride":
-			if _shots.has(e.shot):
-				_shots[e.shot].pos = e.to
-		&"burst", &"hit", &"fade", &"snuff":
-			if not e.get("through", false):
-				_shots.erase(e.shot)
-			_flash(at, Color(1, 1, 1, 0.5))
-		&"clash":
-			_shots.erase(e.shot)
-			_shots.erase(e.other)
-			_flash(at, Color(1, 1, 1, 0.8))
-		&"claw", &"melee":
-			_flash(at, Palette.HURT)
-		&"drum":
-			_flash(at, Color(Palette.SOUND, 0.6))
-		&"trap":
-			_flash(at, Color(Palette.TILES[e.kind][1], 0.6))
-		&"fall" when e.has("depth"):
-			_popups.clear()
-		&"ascend":
-			_popups.clear()
-		&"splash":
-			for f: Array in Impact.flashes(e):
-				_flash(f[0], f[1], f[2])
-		&"die":
-			_actors.erase(e.id)
-		&"ally":
-			if world.actor(e.id) != null:
-				_actors[e.id] = world.actor(e.id).clone()
-				_actors[e.id].pos = at
-			_flash(at, Color(Palette.SIDE[0], 0.9))
-		&"spray":
-			var color := Palette.card(Spell.make(e.cards).slots[0])
-			for p: Vector2i in e.tiles:
-				_flash(p, Color(color, 0.8), 0.02 * Grid.cheb(p, e.at))
-		&"sprout":
-			for p: Vector2i in e.tiles:
-				_flash(p, Color(Palette.CARD[Cards.WOOD], 0.8), 0.04 * Grid.cheb(p, e.at))
-		&"blast":
-			for p: Vector2i in e.tiles:
-				_flash(p, Color(Palette.BURNING[1], 0.9), 0.03 * Grid.cheb(p, e.at))
-		&"become", &"heat":
-			var color: Color = Palette.HOT[1] if e.t == &"heat" else Palette.TILES[e.tile][1]
-			for p: Vector2i in e.tiles:
-				_flash(p, Color(color, 0.8), 0.04 * Grid.cheb(p, e.at))
-	if fact.is_empty():
-		return 0.0
-	var popup := Perceived.popup_of(fact)
-	if not popup.is_empty():
-		_popups.append(popup.merged({born = _time}))
-	shown.emit(e, cell_centre(fact.where))
-	return DELAY.get(e.t, 0.0)
-
-
-## A tile lit up for a moment, starting `after` seconds from now.
-func _flash(at: Vector2i, color: Color, after := 0.0, zap := false) -> void:
-	if _visible(at):
-		_flashes.append({at = at, color = color, born = _time + after, zap = zap})
 
 
 ## Screen position of the centre of map tile p, in this node's space.
@@ -472,7 +326,7 @@ func _field() -> PackedVector3Array:
 		var amount: PackedFloat32Array = l.amount
 		for j in lit.size():
 			out[lit[j]] += c * amount[j]
-	var shots := _shots if _animating else _world_shots()
+	var shots := anim.shots if anim.playing else _world_shots()
 	for id in shots:
 		var s: Dictionary = shots[id]
 		var l: Dictionary = s.spell.light(s.faction)
@@ -528,12 +382,12 @@ func _draw() -> void:
 
 func _draw_game() -> void:
 	var light := _field()
-	var actors := _actors if _animating else _world_actors()
+	var actors := anim.actors if anim.playing else _world_actors()
 	var me := world.player()
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
 	_draw_map(light, me_pos)
 	TermMarks.telegraphs(self, actors)
-	if not _animating:
+	if not anim.playing:
 		TermMarks.paths(self)
 		for l: Array in lines:
 			if _shown(l[0]) and _shown(l[1]):
@@ -543,25 +397,7 @@ func _draw_game() -> void:
 				draw_line(a + side, b + side, l[2], 2.0)
 		DebugView.draw(self)
 	_draw_things(light, actors)
-	Afterimage.draw(self, _ghosts, _time)
-	for f in _flashes:
-		if not _shown(f.at) or _time < f.born:
-			continue
-		var k: float = 1.0 - (_time - f.born) / 0.35
-		var c: Color = f.color
-		draw_rect(Rect2(_cell(f.at) * CELL, CELL), Color(c, c.a * k * (0.35 if f.zap else 1.0)))
-		if f.zap:
-			TermMarks.zigzag(self, _cell(f.at), c)
-	for p in _popups:
-		if not _shown(p.at):
-			continue
-		var k: float = (_time - p.born) / p.life
-		var c: Color = p.color
-		var at := _cell(p.at) + Vector2(0, p.get("above", -POPUP_ABOVE) - 0.6 * k)
-		if p.text.length() == 1:
-			_glyph(at, p.text, Color(c, 1.0 - k * k))
-		else:
-			_text(at, p.text, Color(c, 1.0 - k * k))
+	anim.draw()
 	if not replay:
 		if side.x > 0:
 			_draw_side(actors, me_pos)
@@ -719,10 +555,10 @@ static func _lit(c: Color, l: Vector3, floor_level: float) -> Color:
 
 
 func _draw_things(light: PackedVector3Array, actors: Dictionary) -> void:
-	var shots := _shots if _animating else _world_shots()
+	var shots := anim.shots if anim.playing else _world_shots()
 	for id in shots:
 		var s: Dictionary = shots[id]
-		var tail: Array = _trails.get(id, [])
+		var tail: Array = anim.trails.get(id, [])
 		var c := Palette.shot_color(s.spell, s.faction)
 		for k in tail.size():
 			var p: Vector2i = tail[k]

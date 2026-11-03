@@ -64,7 +64,7 @@ static func paths(t: Term) -> void:
 ## A bolt on tile `at`: its streak flickers white and yellow a few times (Palette.ZAP).
 static func bolt(t: Term, at: Vector2i) -> void:
 	for k in ZAPS:
-		t._flash(at, Palette.ZAP[k % Palette.ZAP.size()], ZAP_GAP * k, true)
+		t.anim.flash(at, Palette.ZAP[k % Palette.ZAP.size()], ZAP_GAP * k, true)
 
 
 ## The zigzag of lightning across a cell: the pixel font has no glyph for it.
