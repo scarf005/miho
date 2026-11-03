@@ -3,6 +3,7 @@ extends GutTest
 ## where the storeys put them.
 
 const SEEDS := 4
+const OWN_PILLARS: Array[StringName] = [Skeletons.GARDEN]
 const KINDS := [World.GRASS, World.LEAVES, World.STRAW, World.REEDS, World.SHALLOW, World.PILLAR]
 
 var _storeys_built: Array[World] = []
@@ -141,6 +142,9 @@ func _laid(w: World, row: Dictionary) -> Array[Vector2i]:
 func test_no_tile_of_a_row_appears_before_its_first_tier_or_after_its_last() -> void:
 	for w in _storeys_built:
 		for row: Dictionary in Placement.ROWS:
+			# A skeleton of OWN_PILLARS stands pillars of its own on any storey.
+			if row.get("what") == World.PILLAR and Skeletons.pick(w) in OWN_PILLARS:
+				continue
 			if w.depth < row.tiers[0] or w.depth > row.tiers[1]:
 				assert_eq(_laid(w, row), [], "storey %d has no %s" % [w.depth, row.keys()])
 

@@ -37,10 +37,6 @@ const CITADEL := &"citadel"
 const ALL: Array[StringName] = [
 	PAVILIONS, RING, AVENUE, TOWERS, BROKEN, SCATTERED, GARDEN, KEEP, RUIN, CITADEL
 ]
-## The skeleton of each storey, from the first; a seed varies its shape.
-const STOREYS: Array[StringName] = [
-	AVENUE, RING, GARDEN, SCATTERED, BROKEN, TOWERS, KEEP, RUIN, CITADEL
-]
 ## The skeletons with one way to the exit: no two routes are asked of them.
 const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
@@ -83,7 +79,7 @@ const RUIN_Y := Vector2i(1, 3)
 
 ## The skeleton of the storey being built.
 static func pick(w: World) -> StringName:
-	return STOREYS[w.depth - 1]
+	return RunPlan.shapes(w.rng.seed)[w.depth - 1]
 
 
 ## Draws a storey on `skeleton`.

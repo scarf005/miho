@@ -157,7 +157,7 @@ const PLAN := {
 const FIRST_PEACH_FLOOR := 3
 const MIN_ROOMS := 9
 ## How many times a storey starts over when what is laid in it spoils it.
-const BUILDS := 20
+const BUILDS := 60
 ## A room is at least ROOM_LEAST tiles across; one that fits in ROOM_MOST stays
 ## whole at the chance WHOLE, and is cut again otherwise.
 const ROOM_LEAST := 3

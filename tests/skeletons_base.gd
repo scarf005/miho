@@ -21,7 +21,7 @@ const DEAD_ENDS := {
 	citadel = 8,
 }
 ## How many tiles two seeds' outlines differ by at least, on one storey.
-const OUTLINES_APART := 60
+const OUTLINES_APART := 50
 
 ## The skeletons this script tries.
 var kinds: Array[StringName] = []
