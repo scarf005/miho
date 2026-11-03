@@ -300,7 +300,7 @@ frames-diff a b:
     done
     exit $status
 
-# Time storey generation, a round, forecasts, a Continue replay, the 도감 and spell examples.
+# Time storey generation, a round, forecasts, a Continue replay, the 도감, spell examples and a draw of a lit map.
 bench: rust
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/bench.gd
@@ -308,6 +308,7 @@ bench: rust
     {{ godot }} --headless --path . -s tools/bench_mind.gd
     {{ godot }} --headless --path . -s tools/bench_codex.gd
     {{ godot }} --headless --path . -s tools/bench_example.gd
+    {{ godot }} --headless --path . -s tools/bench_term.gd
 
 # List what each 도감 example does in its window as markdown rows; MISS marks one that does not show what its entry says.
 audit-codex: rust import
