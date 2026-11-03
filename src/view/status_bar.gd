@@ -15,8 +15,8 @@ static func draw(t: Term) -> void:
 	var w := t.world
 	var me := w.player()
 	var row := t.rows - 2
-	t._glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
-	t._pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
+	t.draw_glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
+	t.draw_pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
 	var held := _held(t)
 	for i in w.max_tails():
 		var c: Color = Palette.SIDE[0]
@@ -24,20 +24,20 @@ static func draw(t: Term) -> void:
 			c = Palette.DIM
 		elif i >= w.tails - held:
 			c = Palette.CARD[Cards.EARTH]
-		t._glyph(Vector2(Term.MAP.x + i, row), "~", c)
+		t.draw_glyph(Vector2(Term.MAP.x + i, row), "~", c)
 	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
-	t._text(Vector2(t.cols - t._cells(right), row), right, Palette.TEXT)
+	t.draw_text(Vector2(t.cols - t.text_cells(right), row), right, Palette.TEXT)
 	if not t.debug.is_empty():
-		t._text(debug_label(t).position, Lang.t("디버그"), Palette.SOUND)
-	buffs(t, Vector2(t.cols - t._cells(right) - 1.0, row))
+		t.draw_text(debug_label(t).position, Lang.t("디버그"), Palette.SOUND)
+	buffs(t, Vector2(t.cols - t.text_cells(right) - 1.0, row))
 	for slot in saved_slots(t):
 		var spell := Spell.from_key(t.saved[slot.action])
 		var ready := _castable(t, spell, held)
-		t._key(Vector2(slot.x, row), slot.key, Palette.KEY if ready else Palette.DIM)
+		t.draw_key(Vector2(slot.x, row), slot.key, Palette.KEY if ready else Palette.DIM)
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
-			t._glyph(
-				Vector2(slot.x + Term._key_cells(slot.key) + k, row),
+			t.draw_glyph(
+				Vector2(slot.x + Term.key_cells(slot.key) + k, row),
 				Lang.t(Cards.GLYPH[spell.slots[k]], "talisman"),
 				c if ready else c * 0.4
 			)
@@ -51,8 +51,8 @@ static func draw(t: Term) -> void:
 				Rect2(Vector2(x, row) * Term.CELL, Vector2(2, 1) * Term.CELL),
 				Palette.CARD[card] * 0.45
 			)
-		t._key(Vector2(x + 0.5, row), str(i + 1))
-		t._glyph(Vector2(x + 1, row), Lang.t(Cards.GLYPH[card], "talisman"), Palette.CARD[card])
+		t.draw_key(Vector2(x + 0.5, row), str(i + 1))
+		t.draw_glyph(Vector2(x + 1, row), Lang.t(Cards.GLYPH[card], "talisman"), Palette.CARD[card])
 	var slots: Array[StringName] = []
 	if queued != null:
 		slots = queued.slots
@@ -61,23 +61,24 @@ static func draw(t: Term) -> void:
 		if i < slots.size():
 			var c := Palette.card(slots[i])
 			t.draw_rect(Rect2(at * Term.CELL, Term.CELL).grow(-2), c * 0.35)
-			t._glyph(at, Lang.t(Cards.GLYPH[slots[i]], "talisman"), c)
+			t.draw_glyph(at, Lang.t(Cards.GLYPH[slots[i]], "talisman"), c)
 		else:
-			t._glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
+			t.draw_glyph(at, "·", Palette.TEXT if fits(t, i - slots.size() + 1) else Palette.DIM)
 	for combo in combos(t):
 		if combo.c == &"":
-			t._text(Vector2(combo.x, row), "+%d" % combo.more, Palette.DIM)
+			t.draw_text(Vector2(combo.x, row), "+%d" % combo.more, Palette.DIM)
 			continue
-		t._glyph(
+		t.draw_glyph(
 			Vector2(combo.x, row), Lang.t(Cards.GLYPH[combo.c], "talisman"), Palette.card(combo.c)
 		)
 	var name := _name(t, queued)
 	var at := title_at(t, name)
 	if at.y < row:
 		t.draw_rect(
-			Rect2(at * Term.CELL, Vector2(t._cells(name), 1) * Term.CELL), Color(Palette.VOID, 0.85)
+			Rect2(at * Term.CELL, Vector2(t.text_cells(name), 1) * Term.CELL),
+			Color(Palette.VOID, 0.85)
 		)
-	t._text(at, name, Palette.TEXT)
+	t.draw_text(at, name, Palette.TEXT)
 	NoiseMeter.draw(t)
 
 
@@ -90,20 +91,20 @@ static func buffs(t: Term, end: Vector2) -> void:
 	var at := end
 	for kind: StringName in Guise.worn(t.world, t.world.player()):
 		var name := Lang.t(Guise.NAME[kind])
-		at.x -= t._cells(name) + 1.0
+		at.x -= t.text_cells(name) + 1.0
 		var last: StringName = Spell.make(Guise.RECIPE[kind]).slots.back()
-		t._text(at, name, Palette.card(last))
+		t.draw_text(at, name, Palette.card(last))
 	for kind: StringName in Curse.worn(t.world):
 		var name := Lang.t(Curse.NAME[kind])
-		at.x -= t._cells(name) + 1.0
-		t._text(at, name, Palette.BAD)
+		at.x -= t.text_cells(name) + 1.0
+		t.draw_text(at, name, Palette.BAD)
 
 
 ## The cells of the debug label, left of the storey and time on the upper row.
 static func debug_label(t: Term) -> Rect2:
 	var right := Lang.t("%d층 %d초") % [t.world.depth, t.world.round_no]
-	var width := t._cells(Lang.t("디버그"))
-	return Rect2(t.cols - t._cells(right) - width - 1, t.rows - 2, width, 1)
+	var width := t.text_cells(Lang.t("디버그"))
+	return Rect2(t.cols - t.text_cells(right) - width - 1, t.rows - 2, width, 1)
 
 
 ## Whether a point in the term's space is on the debug label, which is shown while the
@@ -140,10 +141,10 @@ static func _name(t: Term, spell: Spell) -> String:
 static func title_at(t: Term, name: String) -> Vector2:
 	var bar := NoiseMeter.at(t)
 	var end: float = bar.x - 0.5 if bar.y == t.rows - 1 else float(t.cols)
-	var x := end - t._cells(name)
+	var x := end - t.text_cells(name)
 	if x >= queue_x(t) + Spell.MAX_SLOTS + 0.5:
 		return Vector2(x, t.rows - 1)
-	return Vector2(maxf(0.0, t.cols - t._cells(name)), mini(t.rows - 3, int(bar.y) - 1))
+	return Vector2(maxf(0.0, t.cols - t.text_cells(name)), mini(t.rows - 3, int(bar.y) - 1))
 
 
 ## The compounds Miho can make now: all their elements held and the tails for
@@ -176,7 +177,7 @@ static func combos(t: Term) -> Array:
 	var step := 1.0 + COMBO_GAP
 	var shown := list.size()
 	if shown * step - COMBO_GAP > room:
-		shown = maxi(0, floori((room - Term._cells("+%d" % list.size())) / step))
+		shown = maxi(0, floori((room - Term.text_cells("+%d" % list.size())) / step))
 	for i in shown:
 		out.append({c = list[i], x = start + i * step})
 	if shown < list.size() and room > 0:
@@ -195,7 +196,7 @@ static func saved_slots(t: Term) -> Array:
 			continue
 		var keys := Keys.keys_of(action)
 		var key := Keys.label(keys[0]) if not keys.is_empty() else ""
-		var width: float = Term._key_cells(key) + Spell.from_key(t.saved[action]).slots.size()
+		var width: float = Term.key_cells(key) + Spell.from_key(t.saved[action]).slots.size()
 		out.append({action = action, key = key, x = x, width = width})
 		x += width + 1.0
 	return out
@@ -229,7 +230,9 @@ static func hand_at(t: Term, local: Vector2) -> String:
 	var c := local / Term.CELL
 	var label := _name(t, spell)
 	var name := title_at(t, label)
-	var on_name := floori(c.y) == int(name.y) and c.x >= name.x and c.x < name.x + t._cells(label)
+	var on_name := (
+		floori(c.y) == int(name.y) and c.x >= name.x and c.x < name.x + t.text_cells(label)
+	)
 	return spell.key() if on_name or queue_at(t, local) >= 0 else ""
 
 

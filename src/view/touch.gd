@@ -285,7 +285,7 @@ func _tap(pos: Vector2) -> void:
 		Banner.keep(main)
 	if button != &"":
 		hud.pressed = button
-		hud.pressed_at = term._time
+		hud.pressed_at = term.time
 		main.sfx.play(&"click")
 		_press(button)
 	elif main.overlay != &"" and main.menu.page == &"spells":

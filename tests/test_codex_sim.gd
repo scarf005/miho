@@ -199,7 +199,9 @@ func test_the_detail_never_runs_under_the_example() -> void:
 				assert_false(shown.example.is_empty(), "%s has room" % room)
 				var edge: float = room.x - CodexSim.beside(shown.example.scale)
 				for line: Array in shown.aside:
-					var width: float = line.reduce(func(n, r): return n + Term._cells(r[0]), 0.0)
+					var width: float = line.reduce(
+						func(n, r): return n + Term.text_cells(r[0]), 0.0
+					)
 					assert_true(Codex.SIDE_X + width <= edge, "%s at %s" % [line, room])
 
 

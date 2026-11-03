@@ -328,7 +328,7 @@ func test_the_detail_wraps_to_the_room_and_scrolls() -> void:
 	assert_true(panel.aside_down)
 	assert_false(panel.aside_up)
 	for line in panel.aside:
-		assert_lte(Term._cells(Info.plain([line]).replace("\n", "")), width)
+		assert_lte(Term.text_cells(Info.plain([line]).replace("\n", "")), width)
 	menu.key(_press("PageDown"))
 	assert_true(menu.panel().aside_up)
 	menu.key(_press("PageUp"))

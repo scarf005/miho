@@ -324,7 +324,7 @@ func _spells(list: Array[Spell]) -> Array:
 	var rows := []
 	for s in list:
 		var key := slot_key(settings.spells, s.key())
-		var row := [[key, Palette.KEY, 4.0 - Term._key_cells(key), &"key"]]
+		var row := [[key, Palette.KEY, 4.0 - Term.key_cells(key), &"key"]]
 		for k in s.slots.size():
 			row.append(
 				[Lang.t(Cards.GLYPH[s.slots[k]], "talisman"), Palette.card(s.slots[k]), 4.0 + k]

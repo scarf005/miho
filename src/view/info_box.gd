@@ -85,4 +85,4 @@ static func _indented(line: Array) -> int:
 
 
 static func _width(line: Array) -> float:
-	return line.reduce(func(n, r): return n + Term._cells(r[0]), 0.0)
+	return line.reduce(func(n, r): return n + Term.text_cells(r[0]), 0.0)

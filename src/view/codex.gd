@@ -213,12 +213,12 @@ static func _by_parts(line: Array, width: float) -> Array:
 	var row := []
 	var x := 0.0
 	for part: Array in parts:
-		var size := Term._cells("".join(part.map(func(run): return run[0])))
-		var sep := Term._cells(SEP) if x > 0.0 else 0.0
+		var size := Term.text_cells("".join(part.map(func(run): return run[0])))
+		var sep := Term.text_cells(SEP) if x > 0.0 else 0.0
 		if x > 0.0 and x + sep + size > width:
 			out.append(row)
 			row = [["  ", Palette.DIM]]
-			x = Term._cells("  ")
+			x = Term.text_cells("  ")
 			sep = 0.0
 		if x + sep + size > width:
 			var words := _by_words(part, width - x)
@@ -243,20 +243,20 @@ static func _by_words(line: Array, width: float) -> Array:
 	for run: Array in line:
 		for m in _words.search_all(run[0]):
 			var word := m.get_string()
-			if x > 0.0 and x + Term._cells(word) > width:
+			if x > 0.0 and x + Term.text_cells(word) > width:
 				out.append(row)
 				row = []
 				x = 0.0
 				word = word.lstrip(" ")
-			while Term._cells(word) > width:
+			while Term.text_cells(word) > width:
 				var cut := 1
-				while Term._cells(word.left(cut + 1)) <= width:
+				while Term.text_cells(word.left(cut + 1)) <= width:
 					cut += 1
 				out.append(row + [Keywords.piece(run, word.left(cut))])
 				row = []
 				word = word.substr(cut)
 			row.append(Keywords.piece(run, word))
-			x += Term._cells(word)
+			x += Term.text_cells(word)
 	out.append(row)
 	return out
 
@@ -454,7 +454,7 @@ static func _side_x(list: Array) -> float:
 		(
 			5.0
 			+ list.reduce(
-				func(n: float, e: Dictionary) -> float: return maxf(n, Term._cells(e.name)), 0.0
+				func(n: float, e: Dictionary) -> float: return maxf(n, Term.text_cells(e.name)), 0.0
 			)
 		)
 	)

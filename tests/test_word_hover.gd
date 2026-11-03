@@ -35,8 +35,10 @@ func test_a_status_and_a_condition_have_the_entry_the_dogam_tells() -> void:
 func test_the_entry_is_of_the_word_under_the_pointer_and_of_no_other_cell() -> void:
 	var row := [["둔함", Palette.DIM], [" · ", Palette.DIM], ["고정", Palette.DIM]]
 	assert_eq(_head(Keywords.entry_at(row, 13.0, 13.5)), "둔함.")
-	assert_eq(_head(Keywords.entry_at(row, 13.0, 13.0 + Term._cells("둔함") + 0.2)), "", "between")
-	assert_eq(_head(Keywords.entry_at(row, 13.0, 13.0 + Term._cells("둔함 · ") + 0.2)), "고정.")
+	assert_eq(
+		_head(Keywords.entry_at(row, 13.0, 13.0 + Term.text_cells("둔함") + 0.2)), "", "between"
+	)
+	assert_eq(_head(Keywords.entry_at(row, 13.0, 13.0 + Term.text_cells("둔함 · ") + 0.2)), "고정.")
 	assert_eq(Keywords.entry_at(row, 13.0, 12.5), [], "left of the row")
 
 
@@ -112,7 +114,7 @@ func test_the_map_hover_comes_back_when_the_word_under_the_pointer_has_faded() -
 	for i in row:
 		m.term.log_lines.append([[["·", Palette.TEXT]], 1.0])
 	m.term.log_lines.append([[["당신이 불붙음 상태다", Palette.TEXT]], 1.0])
-	var local := _over(Term.MAP.x + 0.5 + Term._cells("당신이 ") + 0.5, row)
+	var local := _over(Term.MAP.x + 0.5 + Term.text_cells("당신이 ") + 0.5, row)
 	var move := InputEventMouseMotion.new()
 	move.position = m.term.get_global_transform() * local
 	m._unhandled_input(move)

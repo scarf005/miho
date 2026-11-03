@@ -60,7 +60,7 @@ func test_a_saved_spell_row_draws_its_key_slots_cost_and_name_apart() -> void:
 	for run: Array in row:
 		var at: float = run[2] if run.size() > 2 else x
 		assert_gte(at, x, run[0])
-		x = at + Term._cells(run[0])
+		x = at + Term.text_cells(run[0])
 
 
 func test_missing_or_wrong_values_fall_back_to_defaults() -> void:

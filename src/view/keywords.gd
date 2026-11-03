@@ -206,7 +206,7 @@ static func word_at(row: Array, x: float, col: float) -> String:
 		x = column(run, x)
 		for c in run[0]:
 			starts.append(x)
-			x += Term._cells(c)
+			x += Term.text_cells(c)
 			text += c
 	starts.append(x)
 	for m in _entries().find.search_all(text):
@@ -226,18 +226,18 @@ static func rows_of(runs: Array, width: float) -> Array:
 	var out := [[]]
 	var x := 0.0
 	for run: Array in runs:
-		if x + Term._cells(run[0]) <= width:
+		if x + Term.text_cells(run[0]) <= width:
 			out[-1].append(run)
-			x += Term._cells(run[0])
+			x += Term.text_cells(run[0])
 			continue
 		var words: PackedStringArray = run[0].split(" ")
 		for i in words.size():
 			var word: String = (" " if i > 0 else "") + words[i]
-			if x > 0.0 and x + Term._cells(word) > width:
+			if x > 0.0 and x + Term.text_cells(word) > width:
 				out.append([])
 				x = 0.0
 				word = word.lstrip(" ")
 			if word != "":
 				out[-1].append(piece(run, word))
-				x += Term._cells(word)
+				x += Term.text_cells(word)
 	return out

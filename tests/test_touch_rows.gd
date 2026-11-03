@@ -220,7 +220,7 @@ func test_every_button_label_fits_inside_its_button_in_both_orientations() -> vo
 		for item in TouchHud.layout(&"play", area, unit, p.wide, 8):
 			if item.kind != &"button":
 				continue
-			var need: float = Term._cells(item.label) * p.cw + 4.0
+			var need: float = Term.text_cells(item.label) * p.cw + 4.0
 			assert_gte(item.rect.size.x / unit, need, "%s fits at %s" % [item.label, css])
 
 

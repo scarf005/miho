@@ -100,7 +100,7 @@ func test_a_click_on_a_word_of_the_log_over_the_map_opens_it_and_plays_no_round(
 	var rounds: int = m.world.round_no
 	var actions: int = m.run.actions.size()
 	var me: Vector2i = m.world.player().pos
-	var col := Term.MAP.x + 0.5 + Term._cells("바닥이 ") + 0.5
+	var col := Term.MAP.x + 0.5 + Term.text_cells("바닥이 ") + 0.5
 	_click(m, _over(m, col, 0))
 	assert_eq(m.overlay, &"codex")
 	assert_eq(Vector2i(m.menu.codex.tab, m.menu.codex.selected), Keywords.locate("진흙"))

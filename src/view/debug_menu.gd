@@ -73,7 +73,7 @@ func panel() -> Dictionary:
 ## The box in the top right corner of the screen, in cells: as wide as its rows,
 ## and as high, but the two status rows stay in view.
 func _box() -> Rect2:
-	var wide := Term._cells(Lang.t(Cheat.NAME.get(page, "디버그 명령"))) + 2.0
+	var wide := Term.text_cells(Lang.t(Cheat.NAME.get(page, "디버그 명령"))) + 2.0
 	var rows := _rows()
 	for row: Array in rows:
 		wide = maxf(wide, PanelView.end(row))
@@ -116,7 +116,7 @@ func _rows() -> Array:
 					row.append([str(AMOUNTS[amount]), Palette.SIDE[0]])
 				rows.append(row)
 	var value: float = (
-		2.0 + GAP + rows.reduce(func(n, r): return maxf(n, Term._cells(r[0][0])), 0.0)
+		2.0 + GAP + rows.reduce(func(n, r): return maxf(n, Term.text_cells(r[0][0])), 0.0)
 	)
 	for row: Array in rows:
 		if row.size() > 1:

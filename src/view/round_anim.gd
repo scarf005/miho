@@ -86,9 +86,9 @@ func run(events: Array, before: World, facts: Array) -> void:
 	var impact := Impact.of(events)
 	var drawn := {}
 	for i in events.size():
-		var veiled := t._veiled if t.debug.is_empty() else {}
-		var left := Afterimage.copies(passes.get(i, []), actors, t._time, veiled)
-		ghosts.append_array(left.filter(func(g): return t._visible(g.at)))
+		var veiled := t.veiled if t.debug.is_empty() else {}
+		var left := Afterimage.copies(passes.get(i, []), actors, t.time, veiled)
+		ghosts.append_array(left.filter(func(g): return t.sees(g.at)))
 		var wait: float = (
 			DELAY.get(events[i].t, 0.0) if drawn.has(i) else apply(events[i], told.get(i, {}))
 		)
@@ -175,39 +175,39 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 		return 0.0
 	var popup := Perceived.popup_of(fact)
 	if not popup.is_empty():
-		popups.append(popup.merged({born = _term._time}))
+		popups.append(popup.merged({born = _term.time}))
 	_term.shown.emit(e, _term.cell_centre(fact.where))
 	return DELAY.get(e.t, 0.0)
 
 
 ## A tile lit up for a moment, starting `after` seconds from now.
 func flash(at: Vector2i, color: Color, after := 0.0, zap := false) -> void:
-	if _term._visible(at):
-		flashes.append({at = at, color = color, born = _term._time + after, zap = zap})
+	if _term.sees(at):
+		flashes.append({at = at, color = color, born = _term.time + after, zap = zap})
 
 
 ## Draws the afterimages, flashes and popups over the map.
 func draw() -> void:
 	var t := _term
-	Afterimage.draw(t, ghosts, t._time)
+	Afterimage.draw(t, ghosts, t.time)
 	for f in flashes:
-		if not t._shown(f.at) or t._time < f.born:
+		if not t.in_view(f.at) or t.time < f.born:
 			continue
-		var k: float = 1.0 - (t._time - f.born) / 0.35
+		var k: float = 1.0 - (t.time - f.born) / 0.35
 		var c: Color = f.color
 		t.draw_rect(
-			Rect2(t._cell(f.at) * Term.CELL, Term.CELL),
+			Rect2(t.cell_of(f.at) * Term.CELL, Term.CELL),
 			Color(c, c.a * k * (0.35 if f.zap else 1.0))
 		)
 		if f.zap:
-			TermMarks.zigzag(t, t._cell(f.at), c)
+			TermMarks.zigzag(t, t.cell_of(f.at), c)
 	for p in popups:
-		if not t._shown(p.at):
+		if not t.in_view(p.at):
 			continue
-		var k: float = (t._time - p.born) / p.life
+		var k: float = (t.time - p.born) / p.life
 		var c: Color = p.color
-		var at := t._cell(p.at) + Vector2(0, p.get("above", -POPUP_ABOVE) - 0.6 * k)
+		var at := t.cell_of(p.at) + Vector2(0, p.get("above", -POPUP_ABOVE) - 0.6 * k)
 		if p.text.length() == 1:
-			t._glyph(at, p.text, Color(c, 1.0 - k * k))
+			t.draw_glyph(at, p.text, Color(c, 1.0 - k * k))
 		else:
-			t._text(at, p.text, Color(c, 1.0 - k * k))
+			t.draw_text(at, p.text, Color(c, 1.0 - k * k))

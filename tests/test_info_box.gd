@@ -107,9 +107,9 @@ func _hovers_are_inside(view: Vector2, zooms: Array) -> void:
 		for name: String in hovers:
 			var screen := _screen(view, zoom, hovers[name])
 			var t: Term = screen[0]
-			var laid := t._info_layout(t.info)
+			var laid := t.info_layout(t.info)
 			for p in screen[1] + [null]:
-				var fit := t._info_at(laid.fit, laid.room, p)
+				var fit := t.info_at(laid.fit, laid.room, p)
 				var box := Rect2(fit.at, fit.cells * fit.scale)
 				var where := "%s %s zoom %s cursor %s: %s" % [name, view, zoom, p, box]
 				assert_true(Rect2(0, 0, t.cols, t.rows - 2).grow(0.001).encloses(box), where)
@@ -138,7 +138,7 @@ func _hovers_lose_no_line(view: Vector2, zooms: Array) -> void:
 		for name: String in hovers:
 			var screen := _screen(view, zoom, hovers[name])
 			var drawn := ""
-			for column: Array in screen[0]._info_fit().columns:
+			for column: Array in screen[0].fit_far_from().columns:
 				for line: Array in column[1]:
 					drawn += "".join(line.map(func(run): return run[0])) + "\n"
 			var said := ""
@@ -155,7 +155,7 @@ func _hovers_lose_no_line(view: Vector2, zooms: Array) -> void:
 func test_a_row_breaks_between_its_parts_and_indents_the_rest() -> void:
 	var parts := ["가나다 라", "마바사", "아자차"]
 	var row := Info._row(parts.map(func(p: String): return [[p, Color.WHITE]]))
-	var room := 2.0 * Term._cells(parts[0]) + Term._cells(Codex.SEP) + 0.1
+	var room := 2.0 * Term.text_cells(parts[0]) + Term.text_cells(Codex.SEP) + 0.1
 	var rows := Codex.flow([row], room).map(func(r): return Info.plain([r]))
 	assert_eq(rows, ["가나다 라 · 마바사", "  아자차"])
 
@@ -164,8 +164,8 @@ func test_the_hover_box_sits_on_the_far_side_of_the_map_from_the_cursor() -> voi
 	var screen := _screen(Vector2(1280, 720), 1.0, [[["abc", Color.WHITE]]])
 	var t: Term = screen[0]
 	var v := t.map_view()
-	assert_eq(t._info_fit(Vector2i(0, 0)).at, Vector2(Term.MAP.x + v.x - 2.5, v.y - 1.0))
-	assert_eq(t._info_fit(Vector2i(v.x - 1, v.y - 1)).at, Vector2(Term.MAP.x, 0))
+	assert_eq(t.fit_far_from(Vector2i(0, 0)).at, Vector2(Term.MAP.x + v.x - 2.5, v.y - 1.0))
+	assert_eq(t.fit_far_from(Vector2i(v.x - 1, v.y - 1)).at, Vector2(Term.MAP.x, 0))
 
 
 func test_a_hover_that_fits_stays_one_column_at_full_size() -> void:

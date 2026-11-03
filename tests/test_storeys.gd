@@ -63,7 +63,7 @@ func test_the_status_row_fits_nine_tails_and_the_saved_spells() -> void:
 	assert_gt(slots[0].x, Term.MAP.x + 9.0, "saved spells start after the ninth tail")
 	var right := "%d층 %d초" % [World.FLOORS, 999]
 	var last: Dictionary = slots[-1]
-	assert_lt(last.x + last.width, t.cols - t._cells(right) - t._cells("디버그") - 1)
+	assert_lt(last.x + last.width, t.cols - t.text_cells(right) - t.text_cells("디버그") - 1)
 
 
 func test_a_longer_saved_spell_key_pushes_the_next_spell_along() -> void:

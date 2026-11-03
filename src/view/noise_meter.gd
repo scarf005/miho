@@ -21,7 +21,7 @@ const BAR_WIDTH := 5.0
 ## Cells from the caption's start to the end of the longest bar, the caption in
 ## the language shown.
 static func width() -> float:
-	return Term._cells(Lang.t("소음")) + 0.5 + BAR_WIDTH
+	return Term.text_cells(Lang.t("소음")) + 0.5 + BAR_WIDTH
 
 
 ## How far the loudest noise in `events` is heard, in tiles, from those made on a
@@ -56,11 +56,11 @@ static func draw(t: Term, from := Vector2(-1, -1)) -> void:
 		t.draw_rect(
 			Rect2(start * Term.CELL, Vector2(width(), 1) * Term.CELL), Color(Palette.VOID, 0.85)
 		)
-	t._text(start, Lang.t("소음"), Palette.TEXT)
+	t.draw_text(start, Lang.t("소음"), Palette.TEXT)
 	var cell := Term.CELL
 	for i in maxi(BAR_CELLS, FILLED[band_no]):
 		var seg := (
-			((start + Vector2(Term._cells(Lang.t("소음")) + 0.5 + i * 0.5, 0)) * cell).round()
+			((start + Vector2(Term.text_cells(Lang.t("소음")) + 0.5 + i * 0.5, 0)) * cell).round()
 			+ Vector2(2, cell.y * 0.35)
 		)
 		var color: Color = Palette.DIM if i >= FILLED[band_no] else Palette.NOISE[band_no - 1]

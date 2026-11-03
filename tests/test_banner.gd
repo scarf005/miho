@@ -167,7 +167,7 @@ func test_a_banner_row_has_the_same_margin_on_both_sides() -> void:
 					for lines: Array in _lines():
 						t.banner_lines.assign(lines)
 						for row: Array in Banner.rows(t):
-							var width := Term._cells(row[1])
+							var width := Term.text_cells(row[1])
 							var where := (
 								"%s %s zoom %s side %d: %s" % [lang, view, zoom, side, row[1]]
 							)

@@ -170,7 +170,7 @@ static func draw(t: Term) -> void:
 		Rect2(Vector2.ZERO, Vector2(t.cols, t.map_view().y) * Term.CELL), Color(0, 0, 0, 0.8)
 	)
 	for r: Array in rows(t):
-		t._text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
+		t.draw_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines
@@ -189,7 +189,7 @@ static func rows(t: Term) -> Array:
 	var y := maxi(0, (t.map_view().y - height) / 2)
 	for i in rows_of_line.size():
 		for text: String in rows_of_line[i]:
-			var x := maxf(0.0, (t.cols - Term._cells(text)) / 2.0)
+			var x := maxf(0.0, (t.cols - Term.text_cells(text)) / 2.0)
 			out.append([i, text, Vector2(x, y)])
 			y += 1
 		y += 1
@@ -201,7 +201,7 @@ static func rect(t: Term, i: int) -> Rect2:
 	var out := Rect2()
 	for r: Array in rows(t):
 		if r[0] == i:
-			var at_line := Rect2(r[2], Vector2(Term._cells(r[1]), 1))
+			var at_line := Rect2(r[2], Vector2(Term.text_cells(r[1]), 1))
 			out = at_line if out.size == Vector2.ZERO else out.merge(at_line)
 	return out
 

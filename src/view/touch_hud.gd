@@ -177,7 +177,7 @@ func _creatures(t: Term) -> Array[Dictionary]:
 	var strip := _rect(t, &"strip")
 	if t.world == null or strip.size == Vector2.ZERO:
 		return out
-	var list := t._side_list(t._world_actors(), t.world.player().pos, 99)
+	var list := t.side_list(t.world_actors(), t.world.player().pos, 99)
 	var from := clampi(first[&"strip"], 0, maxi(0, list.size() - STRIP_CARDS))
 	var card := Vector2(strip.size.x / STRIP_CARDS, strip.size.y)
 	for k in mini(STRIP_CARDS, list.size() - from):
@@ -209,7 +209,7 @@ func _chips(t: Term) -> Array[Dictionary]:
 func _count(t: Term, kind: StringName) -> int:
 	if kind == &"saved":
 		return Keys.SLOTS.filter(func(s): return t.saved.has(s)).size()
-	return t._side_list(t._world_actors(), t.world.player().pos, 99).size()
+	return t.side_list(t.world_actors(), t.world.player().pos, 99).size()
 
 
 ## The finger drags `dx` (the term's pixels) along the strip or the saved row at
@@ -339,11 +339,11 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	var w := t.world
 	var me := w.player()
 	var at := _cell(rect.position)
-	t._glyph(at, "@", Palette.KIND[&"miho"])
-	t._pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
+	t.draw_glyph(at, "@", Palette.KIND[&"miho"])
+	t.draw_pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
 	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
-	t._text(Vector2(_cell(rect.end).x - t._cells(right), at.y), right, Palette.TEXT)
-	StatusBar.buffs(t, Vector2(_cell(rect.end).x - t._cells(right) - 1.0, at.y))
+	t.draw_text(Vector2(_cell(rect.end).x - t.text_cells(right), at.y), right, Palette.TEXT)
+	StatusBar.buffs(t, Vector2(_cell(rect.end).x - t.text_cells(right) - 1.0, at.y))
 	var held: int = StatusBar._held(t)
 	for i in w.max_tails():
 		var c: Color = Palette.SIDE[0]
@@ -351,7 +351,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 			c = Palette.DIM
 		elif i >= w.tails - held:
 			c = Palette.CARD[Cards.EARTH]
-		t._glyph(at + Vector2(i, 1), "~", c)
+		t.draw_glyph(at + Vector2(i, 1), "~", c)
 	NoiseMeter.draw(t, Vector2(_cell(rect.end).x - NoiseMeter.width(), at.y + 1))
 
 
@@ -365,9 +365,11 @@ func _draw_strip(t: Term) -> void:
 ## `<` and `>` at the ends of a scrolling row that has more beyond them.
 func _more(t: Term, row: Rect2, before: bool, after: bool) -> void:
 	if before:
-		t._small(_cell(row.position), "<", Palette.DIM)
+		t.draw_small(_cell(row.position), "<", Palette.DIM)
 	if after:
-		t._small(_cell(Vector2(row.end.x - Term.CELL.x * 0.5, row.position.y)), ">", Palette.DIM)
+		t.draw_small(
+			_cell(Vector2(row.end.x - Term.CELL.x * 0.5, row.position.y)), ">", Palette.DIM
+		)
 
 
 func _draw_saved(t: Term, row: Rect2) -> void:
@@ -380,10 +382,10 @@ func _draw_saved(t: Term, row: Rect2) -> void:
 		_lit(t, item)
 		var at := _cell(_shown(item).position)
 		var label := slot_label(chip.action, Keys.SLOTS.find(chip.action))
-		t._key(at + Vector2(0.1, 0), label, Palette.KEY if ready else Palette.DIM)
+		t.draw_key(at + Vector2(0.1, 0), label, Palette.KEY if ready else Palette.DIM)
 		for k in spell.slots.size():
 			var c := Palette.card(spell.slots[k])
-			t._glyph(
+			t.draw_glyph(
 				at + Vector2(0.5 + k, 0.4),
 				Lang.t(Cards.GLYPH[spell.slots[k]], "talisman"),
 				c if ready else c * 0.4
@@ -408,7 +410,7 @@ func _draw_card(t: Term, item: Dictionary) -> void:
 	if queued != null and queued.cards.has(card):
 		t.draw_rect(rect, Palette.CARD[card] * 0.45)
 	_lit(t, item)
-	t._glyph(
+	t.draw_glyph(
 		_cell(rect.get_center()) - Vector2(0.5, 0.5),
 		Lang.t(Cards.GLYPH[card], "talisman"),
 		Palette.CARD[card]
@@ -423,25 +425,25 @@ func _draw_queue(t: Term, item: Dictionary) -> void:
 		slots = queued.slots
 	if item.n < 0:
 		var name: String = StatusBar._name(t, queued)
-		var at := _cell(rect.get_center()) - Vector2(t._cells(name) / 2.0, 0.5)
-		t._text(Vector2(maxf(at.x, _cell(rect.position).x), at.y), name, Palette.TEXT)
+		var at := _cell(rect.get_center()) - Vector2(t.text_cells(name) / 2.0, 0.5)
+		t.draw_text(Vector2(maxf(at.x, _cell(rect.position).x), at.y), name, Palette.TEXT)
 		return
 	_lit(t, item)
 	var middle := _cell(rect.get_center()) - Vector2(0.5, 0.5)
 	if item.n < slots.size():
 		var c := Palette.card(slots[item.n])
 		t.draw_rect(rect, c * 0.35)
-		t._glyph(middle, Lang.t(Cards.GLYPH[slots[item.n]], "talisman"), c)
+		t.draw_glyph(middle, Lang.t(Cards.GLYPH[slots[item.n]], "talisman"), c)
 	else:
 		var more := StatusBar.fits(t, item.n - slots.size() + 1)
-		t._glyph(middle, "·", Palette.TEXT if more else Palette.DIM)
+		t.draw_glyph(middle, "·", Palette.TEXT if more else Palette.DIM)
 
 
 func _draw_button(t: Term, item: Dictionary) -> void:
 	var rect := _shown(item)
-	if item.id == pressed and t._time - pressed_at < FLASH:
+	if item.id == pressed and t.time - pressed_at < FLASH:
 		t.draw_rect(rect, Color(Palette.TEXT, 0.3))
 	_lit(t, item)
 	var label: String = Lang.t(item.label, "button")
-	var at := _cell(rect.get_center()) - Vector2(t._cells(label) / 2.0, 0.5)
-	t._text(at, label, Palette.TEXT)
+	var at := _cell(rect.get_center()) - Vector2(t.text_cells(label) / 2.0, 0.5)
+	t.draw_text(at, label, Palette.TEXT)

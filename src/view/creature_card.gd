@@ -13,35 +13,35 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 			Rect2(at * Term.CELL, Vector2(width, Term.SIDE_ROWS) * Term.CELL),
 			Color(Palette.TEXT, 0.12)
 		)
-	t._glyph(at, Lang.t(a.info().glyph, "creature"), Palette.KIND[a.kind])
-	t._text(at + Vector2(1.5, 0), Lang.t(a.info().name), Palette.KIND[a.kind])
-	t._pips(at + Vector2(0, 1), a.hp, a.max_hp, Palette.HURT, int(width) - 1)
-	t._status(at + Vector2(width - 1, 1), a)
+	t.draw_glyph(at, Lang.t(a.info().glyph, "creature"), Palette.KIND[a.kind])
+	t.draw_text(at + Vector2(1.5, 0), Lang.t(a.info().name), Palette.KIND[a.kind])
+	t.draw_pips(at + Vector2(0, 1), a.hp, a.max_hp, Palette.HURT, int(width) - 1)
+	t.draw_status(at + Vector2(width - 1, 1), a)
 	var doing: String = Info.doing(t.world, a) if a.ailments.blind <= 0 else Lang.t("눈멂")
 	if a.fighting() and a.ailments.blind <= 0:
 		doing = Lang.t("싸우는 중")
 	var doing_runs := Keywords.runs(doing, Palette.ALERT[maxi(a.brain.alert, 1)])
 	var plans: Array = a.magic.intent.map(func(p): return [Bestiary.spell(a.kind, p.cards), p.dir])
-	var named := func(p: Array) -> float: return t._cells(p[0].shown()) + 1.5
+	var named := func(p: Array) -> float: return t.text_cells(p[0].shown()) + 1.5
 	var wide: float = plans.reduce(func(n, p): return n + named.call(p), 0.0)
-	var x := t._cells(doing) + 0.5
+	var x := t.text_cells(doing) + 0.5
 	if x + wide > width:
 		x = 0.0
 	else:
 		var dx := 0.0
 		for run: Array in doing_runs:
-			dx += t._run(at + Vector2(dx, 2), run)
+			dx += t.draw_run(at + Vector2(dx, 2), run)
 	var fits: bool = x + wide <= width
 	for plan: Array in plans:
 		var spell: Spell = plan[0]
 		if fits:
-			t._text(at + Vector2(x, 2), spell.shown(), Palette.card(spell.slots.back()))
+			t.draw_text(at + Vector2(x, 2), spell.shown(), Palette.card(spell.slots.back()))
 			x += named.call(plan) - 1.5
 		else:
 			for slot: StringName in spell.slots:
-				t._glyph(
+				t.draw_glyph(
 					at + Vector2(x, 2), Lang.t(Cards.GLYPH[slot], "talisman"), Palette.card(slot)
 				)
 				x += 1
-		t._glyph(at + Vector2(x, 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
+		t.draw_glyph(at + Vector2(x, 2), Palette.BOLT[plan[1]], Palette.SIDE[1])
 		x += 1.5 if fits else 1.0

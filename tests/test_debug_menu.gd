@@ -447,7 +447,7 @@ func test_the_box_keeps_off_miho_and_beside_the_creature_list() -> void:
 	me.pos = Vector2i(corner.get_center().x, corner.end.y - 1) - m.term.side + m.term.cam
 	assert_true(Grid.inside(me.pos), "a tile under the corner")
 	var box := PanelView.frame(m.term)
-	assert_false(box.has_point(m.term._cell(me.pos)), "Miho stays in view")
+	assert_false(box.has_point(m.term.cell_of(me.pos)), "Miho stays in view")
 	assert_eq(box.position.x, float(m.term.side.x))
 	assert_eq(PanelView.row_at(m.term, (box.position + Vector2(3, 3.5)) * Term.CELL), 0)
 

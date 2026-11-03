@@ -79,7 +79,7 @@ Every list, menu and scrolling pane follows standard conventions:
 - Tabs switch with Left/Right, Tab or a click.
 - The selection stays in view. Esc closes and returns to where the list was opened.
 - Every screen is reachable from the Esc menu.
-- A shortcut label beside what it stands for (a talisman number, a saved spell key) is small and dim, one look on every screen (`Term._key`): `1~7` are easy to remember, so the label never competes with the glyph. A key that is itself the content of a line, as in the help and key pages, stays body size.
+- A shortcut label beside what it stands for (a talisman number, a saved spell key) is small and dim, one look on every screen (`Term.draw_key`): `1~7` are easy to remember, so the label never competes with the glyph. A key that is itself the content of a line, as in the help and key pages, stays body size.
 
 An example in the 도감 shows the spell doing what it does: it hits. User: "도감의 조합 애니메이션들 전부 확인하는게 좋을꺼야. 가령 용광로 설명에선 한 발도 못 맞춤".
 

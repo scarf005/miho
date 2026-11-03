@@ -98,7 +98,7 @@ func test_the_bar_clears_the_queue_and_the_name_at_every_zoom() -> void:
 					assert_gte(bar.x, StatusBar.queue_x(t) + Spell.MAX_SLOTS, "queue: " + ctx)
 				var name := StatusBar.title_at(t, "도깨비불")
 				if name.y == bar.y:
-					assert_lte(name.x + Term._cells("도깨비불"), bar.x, "name: " + ctx)
+					assert_lte(name.x + Term.text_cells("도깨비불"), bar.x, "name: " + ctx)
 
 
 func test_the_bar_is_not_the_spell_name_to_the_mouse() -> void:

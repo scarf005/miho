@@ -64,7 +64,7 @@ static func copies(
 static func draw(t: Term, ghosts: Array[Dictionary], now: float) -> void:
 	for g in ghosts:
 		var k: float = 1.0 - (now - g.born) / LIFE
-		if k <= 0.0 or not t._shown(g.at):
+		if k <= 0.0 or not t.in_view(g.at):
 			continue
-		t.draw_rect(Rect2(t._cell(g.at) * Term.CELL, Term.CELL), Color(Palette.VOID, 0.5 * k))
-		t._glyph(t._cell(g.at), g.glyph, Color(g.color, OPACITY * k))
+		t.draw_rect(Rect2(t.cell_of(g.at) * Term.CELL, Term.CELL), Color(Palette.VOID, 0.5 * k))
+		t.draw_glyph(t.cell_of(g.at), g.glyph, Color(g.color, OPACITY * k))

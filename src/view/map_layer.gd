@@ -42,7 +42,7 @@ static func _flame(w: World, p: Vector2i, radius: int, color: Vector3, fire: boo
 
 ## How bright a flame is now: lanterns waver a little, fire a lot.
 func flicker(phase: float, fire: bool) -> float:
-	var sway := _term._sway
+	var sway := _term.sway
 	if fire:
 		return 0.78 + 0.14 * sin(sway * 9.3 + phase) + 0.08 * sin(sway * 23.0 + phase)
 	return 0.9 + 0.07 * sin(sway * 6.1 + phase) + 0.04 * sin(sway * 15.7 + phase)
@@ -67,7 +67,7 @@ func field(shots: Dictionary) -> PackedVector3Array:
 		if not _shot_light.has(key):
 			_shot_light[key] = Light.spread(s.pos, l.radius, _term.world.light_mask())
 		var spread: PackedFloat32Array = _shot_light[key]
-		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_term._sway * 11.0 + id))
+		var c: Vector3 = l.color * (0.92 + 0.08 * sin(_term.sway * 11.0 + id))
 		for i in spread.size():
 			if spread[i] > 0.0:
 				out[i] += c * spread[i]
@@ -80,14 +80,14 @@ func field(shots: Dictionary) -> PackedVector3Array:
 func draw_tiles(light: PackedVector3Array, me_pos: Vector2i) -> void:
 	var t := _term
 	var world := t.world
-	var vis := t._vis
+	var vis := t.vis
 	var tints := t.tints
 	var zone := t.zone
 	var known_only := t.debug.is_empty()
 	var below := Storeys.below(world)
 	for i in world.tiles.size():
 		var p := Grid.at(i)
-		if world.known[i] == 0 and vis[i] == 0 and known_only or not t._shown(p):
+		if world.known[i] == 0 and vis[i] == 0 and known_only or not t.in_view(p):
 			continue
 		var tile := world.tiles[i]
 		var spec: Array = Palette.TILES[tile]
@@ -159,13 +159,13 @@ func draw_tiles(light: PackedVector3Array, me_pos: Vector2i) -> void:
 		bg *= grain
 		var tint: Color = tints.get(p, Color(0, 0, 0, 0))
 		bg = bg.lerp(Color(tint, 1.0), tint.a)
-		var cell := t._cell(p)
+		var cell := t.cell_of(p)
 		if zone.has(p):
 			bg = bg.lerp(Palette.ZONE, 0.18)
 		t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), bg)
 		if sunk:
 			t.draw_texture(Dither.of(below[i]), cell * Term.CELL, Palette.BELOW)
-		t._glyph(cell, glyph, fg)
+		t.draw_glyph(cell, glyph, fg)
 		if zone.has(p):
 			_outline(p, cell)
 
@@ -199,24 +199,28 @@ func draw_things(light: PackedVector3Array, actors: Dictionary, shots: Dictionar
 		var c := Palette.shot_color(s.spell, s.faction)
 		for k in tail.size():
 			var p: Vector2i = tail[k]
-			if p == s.pos or not t._revealed(p) or not t._shown(p):
+			if p == s.pos or not t.revealed(p) or not t.in_view(p):
 				continue
 			var fade := float(k + 1) / tail.size()
-			var r := Rect2(t._cell(p) * Term.CELL, Term.CELL)
+			var r := Rect2(t.cell_of(p) * Term.CELL, Term.CELL)
 			t.draw_rect(r, Color(Palette.VOID, 0.75))
 			t.draw_rect(r, Color(c, 0.12 + 0.3 * fade))
-			t._glyph(t._cell(p), "•" if k >= tail.size() - 2 else "·", Color(c, 0.35 + 0.65 * fade))
+			t.draw_glyph(
+				t.cell_of(p), "•" if k >= tail.size() - 2 else "·", Color(c, 0.35 + 0.65 * fade)
+			)
 	for id in shots:
 		var s: Dictionary = shots[id]
-		if t._revealed(s.pos) and t._shown(s.pos):
-			t._glyph(
-				t._cell(s.pos), Palette.shot_glyph(s.spell), Palette.shot_color(s.spell, s.faction)
+		if t.revealed(s.pos) and t.in_view(s.pos):
+			t.draw_glyph(
+				t.cell_of(s.pos),
+				Palette.shot_glyph(s.spell),
+				Palette.shot_color(s.spell, s.faction)
 			)
 	for id in actors:
 		var a: Actor = actors[id]
-		if not a.is_miho() and not t._revealed(a.pos) or not t._shown(a.pos) or t._hatted(a):
+		if not a.is_miho() and not t.revealed(a.pos) or not t.in_view(a.pos) or t.hatted(a):
 			continue
-		var cell := t._cell(a.pos)
+		var cell := t.cell_of(a.pos)
 		var l := light[Grid.index(a.pos)]
 		var c: Color = Palette.KIND[a.kind]
 		if not a.is_miho():
@@ -227,22 +231,24 @@ func draw_things(light: PackedVector3Array, actors: Dictionary, shots: Dictionar
 		t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), Color(0, 0, 0, 0.55))
 		if t.tints.has(a.pos):
 			t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), t.tints[a.pos])
-		t._glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)
+		t.draw_glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)
 		for s: Dictionary in shots.values():
 			if s.pos == a.pos:
 				var glow := Palette.shot_color(s.spell, s.faction)
-				t._small(cell + Vector2(0, -0.05), Palette.shot_glyph(s.spell), glow)
-		if a.faction != Actor.FOX and t._visible(a.pos):
+				t.draw_small(cell + Vector2(0, -0.05), Palette.shot_glyph(s.spell), glow)
+		if a.faction != Actor.FOX and t.sees(a.pos):
 			var mark := Perceived.mark_of(a)
 			if mark != "":
-				t._small(cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.brain.alert, 1)])
-		t._status(cell + Vector2(0, 0.55), a)
+				t.draw_small(
+					cell + Vector2(0.62, -0.05), mark, Palette.ALERT[maxi(a.brain.alert, 1)]
+				)
+		t.draw_status(cell + Vector2(0, 0.55), a)
 	for p in t.marks:
 		var m: Array = t.marks[p]
-		if t._shown(p):
-			var at := t._cell(p) + Vector2(0.62, 0.55)
+		if t.in_view(p):
+			var at := t.cell_of(p) + Vector2(0.62, 0.55)
 			var size := Vector2(
-				t._font.get_string_size(m[0], 0, -1, Term.SMALL).x + 2, Term.SMALL + 2
+				t.font.get_string_size(m[0], 0, -1, Term.SMALL).x + 2, Term.SMALL + 2
 			)
 			t.draw_rect(Rect2(at * Term.CELL - Vector2(1, 1), size), Color(Palette.VOID, 0.8))
-			t._small(at, m[0], m[1])
+			t.draw_small(at, m[0], m[1])

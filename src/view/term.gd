@@ -24,7 +24,7 @@ const BIG := 48
 const SMALL := 16
 ## Pixels between the lines of wisps chasing one creature.
 const LINE_GAP := 5.0
-## Cells each character takes, measured once (_cells).
+## Cells each character takes, measured once (text_cells).
 static var _widths := {}
 
 var world: World
@@ -109,22 +109,24 @@ var still := false
 var anim := RoundAnim.new(self)
 ## The tiles, the light on them and what stands there.
 var layer := MapLayer.new(self)
-var _font: FontFile
+var font: FontFile
+## What Miho sees now, one byte a tile (World.seen).
+var vis := PackedByteArray()
+## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
+var veiled := {}
+## The clock of what fades (popups, flashes, afterimages).
+var time := 0.0
+## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
+var sway := 0.0
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
 ## Set by `rush` until the next `play`: the round in progress holds no more.
 var _rushed := false
-var _vis := PackedByteArray()
-## Ids of the creatures under a hat (Hat) that are not drawn, though their tile is.
-var _veiled := {}
-var _time := 0.0
-## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
-var _sway := 0.0
 var _bubbles := Bubbles.new()
 
 
 func _ready() -> void:
-	_font = Fonts.pixel()
+	font = Fonts.pixel()
 	size = Vector2(cols, rows) * CELL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(RedrawPace.new(self))
@@ -185,30 +187,31 @@ func map_rect() -> Rect2:
 	return Rect2(from * CELL, (to - from) * CELL)
 
 
-## The screen cell of map tile p, and whether it is inside the map area.
-func _cell(p: Vector2i) -> Vector2:
+## The screen cell of map tile p.
+func cell_of(p: Vector2i) -> Vector2:
 	return Vector2(side + p - cam)
 
 
-func _shown(p: Vector2i) -> bool:
+## Whether map tile p is inside the map area.
+func in_view(p: Vector2i) -> bool:
 	var c := p - cam
 	var v := map_view()
 	return c.x >= 0 and c.y >= 0 and c.x < v.x and c.y < v.y
 
 
 func _process(delta: float) -> void:
-	_time += delta
+	time += delta
 	var swayed := 0.0 if still else delta
-	_sway += swayed
-	anim.expire(_time)
-	anim.popups.append_array(_bubbles.rise(world, swayed, _time))
+	sway += swayed
+	anim.expire(time)
+	anim.popups.append_array(_bubbles.rise(world, swayed, time))
 
 
 ## Shows the world as it is now, with nothing in flight.
 func show_world(w: World) -> void:
 	world = w
-	_vis = w.seen
-	_veiled = Hat.unseen(w)
+	vis = w.seen
+	veiled = Hat.unseen(w)
 	follow(w.player().pos)
 	anim.settle(w)
 	layer.light_up(w)
@@ -221,10 +224,10 @@ func play(events: Array, before: World, after: World) -> void:
 	world = after
 	_rushed = false
 	var perceived := Perceived.of(before, after, events)
-	_vis = perceived.vis
-	_veiled = perceived.veiled
+	vis = perceived.vis
+	veiled = perceived.veiled
 	await anim.run(events, before, perceived.facts)
-	noise = NoiseMeter.level(_vis, events)
+	noise = NoiseMeter.level(vis, events)
 	if not replay:
 		for p in Perceived.spotted(before, after):
 			shown.emit({t = &"spot", at = p}, cell_centre(p))
@@ -247,29 +250,29 @@ func rush() -> void:
 
 
 ## Whether Miho sees tile p: what the log and the popups are told from.
-func _visible(p: Vector2i) -> bool:
-	return Perceived.sees(_vis, p)
+func sees(p: Vector2i) -> bool:
+	return Perceived.sees(vis, p)
 
 
 ## Whether `a` wears a hat that hides it now; the debug view sees through it.
-func _hatted(a: Actor) -> bool:
-	return debug.is_empty() and _veiled.has(a.id)
+func hatted(a: Actor) -> bool:
+	return debug.is_empty() and veiled.has(a.id)
 
 
 ## Whether tile p is drawn: seen, or any tile with the debug view on.
-func _revealed(p: Vector2i) -> bool:
-	return Grid.inside(p) and (not debug.is_empty() or _vis[Grid.index(p)] == 1)
+func revealed(p: Vector2i) -> bool:
+	return Grid.inside(p) and (not debug.is_empty() or vis[Grid.index(p)] == 1)
 
 
 ## Screen position of the centre of map tile p, in this node's space.
 func cell_centre(p: Vector2i) -> Vector2:
-	return (_cell(p) + Vector2(0.5, 0.5)) * CELL
+	return (cell_of(p) + Vector2(0.5, 0.5)) * CELL
 
 
 ## The map tile under a point in this node's space, or (-1, -1).
 func tile_at(local: Vector2) -> Vector2i:
 	var c := Vector2i((local / CELL).floor()) - side + cam
-	return c if Grid.inside(c) and _shown(c) else Vector2i(-1, -1)
+	return c if Grid.inside(c) and in_view(c) else Vector2i(-1, -1)
 
 
 ## Where the creature listed in the sidebar (or the touch strip) under a point stands, or (-1, -1).
@@ -281,7 +284,7 @@ func side_at(local: Vector2) -> Vector2i:
 			return at
 	if world == null or c.x < 0 or c.x >= side.x or c.y < 0 or c.y >= rows - foot:
 		return Vector2i(-1, -1)
-	var list := _side_list(_world_actors(), world.player().pos)
+	var list := side_list(world_actors(), world.player().pos)
 	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
 
 
@@ -292,7 +295,8 @@ func _world_shots() -> Dictionary:
 	return out
 
 
-func _world_actors() -> Dictionary:
+## The living creatures of the world, id -> Actor.
+func world_actors() -> Dictionary:
 	var out := {}
 	for a in world.actors:
 		if a.alive():
@@ -323,7 +327,7 @@ func _draw() -> void:
 func _draw_game() -> void:
 	var shots := anim.shots if anim.playing else _world_shots()
 	var light := layer.field(shots)
-	var actors := anim.actors if anim.playing else _world_actors()
+	var actors := anim.actors if anim.playing else world_actors()
 	var me := world.player()
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
 	layer.draw_tiles(light, me_pos)
@@ -331,7 +335,7 @@ func _draw_game() -> void:
 	if not anim.playing:
 		TermMarks.paths(self)
 		for l: Array in lines:
-			if _shown(l[0]) and _shown(l[1]):
+			if in_view(l[0]) and in_view(l[1]):
 				var a := cell_centre(l[0])
 				var b := cell_centre(l[1])
 				var side: Vector2 = (b - a).orthogonal().normalized() * LINE_GAP * l[3]
@@ -350,9 +354,11 @@ func _draw_game() -> void:
 		Banner.draw(self)
 
 
-func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
+## The creatures of `actors` the sidebar lists, nearest to `me_pos` first, as many as fit
+## or `limit`.
+func side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
 	var list: Array = actors.values().filter(
-		func(a): return not a.is_miho() and _revealed(a.pos) and not _hatted(a)
+		func(a): return not a.is_miho() and revealed(a.pos) and not hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
 	return list.slice(0, (rows - foot) / SIDE_ROWS if limit < 0 else limit)
@@ -360,7 +366,7 @@ func _side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
 
 ## Creatures in sight, nearest first, as Brogue lists them (CreatureCard).
 func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
-	var list := _side_list(actors, me_pos)
+	var list := side_list(actors, me_pos)
 	for k in list.size():
 		CreatureCard.draw(self, list[k], Vector2(0, k * SIDE_ROWS), MAP.x)
 
@@ -368,9 +374,9 @@ func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
 ## A frame on the tile under the pointer, and what is there in a box on the
 ## far side of the map from it.
 func _draw_info() -> void:
-	var shown := Grid.inside(cursor) and _shown(cursor)
+	var shown := Grid.inside(cursor) and in_view(cursor)
 	if shown:
-		var r := Rect2(_cell(cursor) * CELL, CELL)
+		var r := Rect2(cell_of(cursor) * CELL, CELL)
 		draw_rect(r.grow(-1), Color(Palette.TEXT, 0.7), false, 2.0)
 	if not info.is_empty() and pin.is_empty():
 		var fit := info_fit()
@@ -388,7 +394,7 @@ func _draw_box(fit: Dictionary) -> void:
 		for k in column[1].size():
 			var x: float = column[0]
 			for run: Array in column[1][k]:
-				x += _run(Vector2(x, k), run)
+				x += draw_run(Vector2(x, k), run)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -396,13 +402,13 @@ func _draw_box(fit: Dictionary) -> void:
 ## lies in the map area, or in the whole width when that would make the text
 ## too small to read, on the far side from the map tile `p` (null for none). With
 ## `extra` cells for the example (`example` of the layout); none when they do not fit.
-func _info_fit(p: Variant = null, lines: Array = info, extra := Vector2.ZERO) -> Dictionary:
-	var laid := _info_layout(lines, extra)
-	return _info_at(laid.fit, laid.room, p)
+func fit_far_from(p: Variant = null, lines: Array = info, extra := Vector2.ZERO) -> Dictionary:
+	var laid := info_layout(lines, extra)
+	return info_at(laid.fit, laid.room, p)
 
 
-## The layout of `lines` and the room it lies in; where it sits is `_info_at`.
-func _info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
+## The layout of `lines` and the room it lies in; where it sits is `info_at`.
+func info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
 	var v := map_view()
 	var room := Rect2(Vector2(side), Vector2(v))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
@@ -411,11 +417,12 @@ func _info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
 		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
 		fit = InfoBox.layout(lines, room.size, least, extra)
 		if fit.get("scale", 0.0) < least and extra != Vector2.ZERO:
-			return _info_layout(lines)
+			return info_layout(lines)
 	return {fit = fit, room = room}
 
 
-func _info_at(fit: Dictionary, room: Rect2, p: Variant) -> Dictionary:
+## `fit` with `at`, its top-left cell in `room`, on the far side from the map tile `p`.
+func info_at(fit: Dictionary, room: Rect2, p: Variant) -> Dictionary:
 	var v := map_view()
 	var wide: Vector2 = fit.cells * fit.scale
 	var at := Vector2(room.position.x, room.end.y - wide.y)
@@ -429,7 +436,7 @@ func _info_at(fit: Dictionary, room: Rect2, p: Variant) -> Dictionary:
 ## The layout of `info`: on the far side of the map from the tile under the pointer.
 func info_fit() -> Dictionary:
 	var extra := Vector2(CodexScene.VIEW) if sim != null else Vector2.ZERO
-	return _info_fit(cursor if Grid.inside(cursor) and _shown(cursor) else null, info, extra)
+	return fit_far_from(cursor if Grid.inside(cursor) and in_view(cursor) else null, info, extra)
 
 
 ## The layout of the hint under the cell the pointer is in, inside the screen.
@@ -440,12 +447,12 @@ func hint_fit() -> Dictionary:
 
 func _draw_log() -> void:
 	for r: Array in log_rows():
-		var width: float = r[2].reduce(func(n, run): return n + _cells(run[0]), 0.0)
+		var width: float = r[2].reduce(func(n, run): return n + text_cells(run[0]), 0.0)
 		var box := Rect2(Vector2(side.x, r[0]) * CELL, Vector2(width + 1.0, 1) * CELL)
 		draw_rect(box, Color(Palette.VOID, 0.7 * r[3]))
 		var x: float = r[1]
 		for run: Array in r[2]:
-			x += _run(Vector2(x, r[0]), run, r[3])
+			x += draw_run(Vector2(x, r[0]), run, r[3])
 
 
 ## The log as it is drawn, [screen row, column of the first run, runs, alpha] for
@@ -459,23 +466,23 @@ func log_rows() -> Array:
 
 
 ## A run at `at`, on its background if it has one, faded to `alpha`; the cells it takes.
-func _run(at: Vector2, run: Array, alpha := 1.0) -> float:
+func draw_run(at: Vector2, run: Array, alpha := 1.0) -> float:
 	if run.slice(2).has(&"key"):
-		_key(at, run[0], Color(run[1], run[1].a * alpha))
-		return _key_cells(run[0])
-	var width := _cells(run[0])
+		draw_key(at, run[0], Color(run[1], run[1].a * alpha))
+		return key_cells(run[0])
+	var width := text_cells(run[0])
 	var back := Keywords.back(run)
 	if back.a > 0.0:
 		draw_rect(Rect2(at * CELL, Vector2(width, 1) * CELL), Color(back, back.a * alpha))
-	_text(at, run[0], Color(run[1], run[1].a * alpha))
+	draw_text(at, run[0], Color(run[1], run[1].a * alpha))
 	return width
 
 
 ## Health as hearts, at most `room` of them; more health is written as a number.
-func _pips(at: Vector2, n: int, of: int, color: Color, room := 6) -> void:
+func draw_pips(at: Vector2, n: int, of: int, color: Color, room := 6) -> void:
 	if of > room:
 		_heart(at, true, color)
-		_text(at + Vector2(1, 0), "%d/%d" % [n, of], color)
+		draw_text(at + Vector2(1, 0), "%d/%d" % [n, of], color)
 		return
 	for i in of:
 		_heart(at + Vector2(i, 0), i < n, color if i < n else Palette.DIM)
@@ -488,7 +495,7 @@ func _heart(at: Vector2, full: bool, color: Color) -> void:
 
 ## Cells a string takes as the font draws it, each character rounded up to a
 ## half (× and ° a half, Hangul a whole); ♥ and ♡ are drawn as hearts a cell wide.
-static func _cells(s: String) -> float:
+static func text_cells(s: String) -> float:
 	var n := 0.0
 	for c in s:
 		if not _widths.has(c):
@@ -500,7 +507,7 @@ static func _cells(s: String) -> float:
 
 ## A line of text at the font's doubled grid, Hangul a cell wide and ASCII
 ## half; ♥ and ♡ are drawn as pixel hearts a cell wide.
-func _text(at: Vector2, s: String, color: Color) -> void:
+func draw_text(at: Vector2, s: String, color: Color) -> void:
 	var x := at.x
 	for part in _hearts_split(Lang.singular(s)):
 		if part == "♥" or part == "♡":
@@ -510,7 +517,7 @@ func _text(at: Vector2, s: String, color: Color) -> void:
 		else:
 			var y := at.y * CELL.y + (CELL.y - SIZE) / 2.0 + SIZE * 0.75
 			draw_string(
-				_font,
+				font,
 				Vector2(x * CELL.x, y).round(),
 				part,
 				HORIZONTAL_ALIGNMENT_LEFT,
@@ -518,7 +525,7 @@ func _text(at: Vector2, s: String, color: Color) -> void:
 				SIZE,
 				color
 			)
-		x += _cells(part)
+		x += text_cells(part)
 
 
 ## Text cut into runs of plain text and single hearts.
@@ -541,37 +548,38 @@ static func _hearts_split(s: String) -> Array[String]:
 ## One glyph centred in the cell at `cell` (in cells, may be fractional).
 ## Half-width glyphs are drawn at three times the font's pixel grid and
 ## Hangul at twice, so both fill a cell and keep square pixels.
-func _glyph(cell: Vector2, c: String, color: Color) -> void:
+func draw_glyph(cell: Vector2, c: String, color: Color) -> void:
 	if c == "":
 		return
 	var px := BIG if c.unicode_at(0) < 0x1100 else SIZE
-	var w := _font.get_string_size(c, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	var w := font.get_string_size(c, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
 	var at := cell * CELL + Vector2((CELL.x - w) / 2.0, (CELL.y - px) / 2.0 + px * 0.75)
-	draw_string(_font, at.round(), c, HORIZONTAL_ALIGNMENT_LEFT, -1, px, color)
+	draw_string(font, at.round(), c, HORIZONTAL_ALIGNMENT_LEFT, -1, px, color)
 
 
 ## A shortcut's label at the top of `cell`, small beside what it stands for.
-func _key(cell: Vector2, s: String, color := Palette.KEY) -> void:
-	_small(cell + Vector2(0, 0.05), s, color)
+func draw_key(cell: Vector2, s: String, color := Palette.KEY) -> void:
+	draw_small(cell + Vector2(0, 0.05), s, color)
 
 
 ## The cells a shortcut's label takes, at the font's doubled grid.
-static func _key_cells(s: String) -> float:
+static func key_cells(s: String) -> float:
 	var px := Fonts.pixel().get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL).x
 	return ceilf(px / CELL.x * 2.0) / 2.0
 
 
-func _small(cell: Vector2, s: String, color: Color) -> void:
+## Text at the font's own size, at the top of `cell`.
+func draw_small(cell: Vector2, s: String, color: Color) -> void:
 	var at := cell * CELL + Vector2(0, SMALL * 0.75)
-	draw_string(_font, at.round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL, color)
+	draw_string(font, at.round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, SMALL, color)
 
 
 ## The marks of what holds `a`, small at `cell`: its status (Status.of), then
 ## rooted and stunned.
-func _status(cell: Vector2, a: Actor) -> void:
+func draw_status(cell: Vector2, a: Actor) -> void:
 	var held: Array = Palette.CONDITION.keys().filter(func(k): return a.ailments.get(k) > 0)
 	var marks: Array = held.map(func(k): return Palette.CONDITION[k])
 	if Palette.STATUS.has(Status.of(a)):
 		marks.push_front(Palette.STATUS[Status.of(a)])
 	for i in marks.size():
-		_small(cell + Vector2(i * 0.33, 0), marks[i][0], marks[i][1])
+		draw_small(cell + Vector2(i * 0.33, 0), marks[i][0], marks[i][1])

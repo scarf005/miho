@@ -121,7 +121,7 @@ func test_the_box_keeps_its_text_clear_of_the_example_and_drops_it_when_there_is
 	var t: Term = autofree(Term.new())
 	t.cols = 12
 	t.rows = 6
-	assert_false(t._info_fit(null, lines, extra).has("example"), "a screen too small drops it")
+	assert_false(t.fit_far_from(null, lines, extra).has("example"), "a screen too small drops it")
 
 
 func test_the_spellbook_puts_the_example_where_no_text_is_and_none_where_none_fits() -> void:

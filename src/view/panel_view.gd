@@ -28,7 +28,7 @@ static func fits(screen_rows: int, detail: int) -> int:
 ## would hide Miho.
 static func frame(t: Term) -> Rect2:
 	var box: Rect2 = t.panel.get("box", Rect2(0, 0, t.cols, t.rows))
-	if t.panel.has("box") and t.world != null and box.has_point(t._cell(t.world.player().pos)):
+	if t.panel.has("box") and t.world != null and box.has_point(t.cell_of(t.world.player().pos)):
 		box.position.x = minf(t.side.x, box.position.x)
 	return box
 
@@ -61,22 +61,24 @@ static func draw(t: Term) -> void:
 		var y := rows - detail.size() + k
 		var x := 2.0
 		for run: Array in detail[k]:
-			x += t._run(Vector2(x, y), run)
+			x += t.draw_run(Vector2(x, y), run)
 	if cols >= TAB_COLS or panel.get("tabs", []).is_empty():
-		t._text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
+		t.draw_text(Vector2(2, 1), panel.title, Palette.KIND[&"miho"])
 	var tab_x := _tabs_at(t)
 	for k in panel.get("tabs", []).size():
-		t._text(Vector2(tab_x, 1), panel.tabs[k], Palette.TEXT if k == panel.tab else Palette.DIM)
-		tab_x += t._cells(panel.tabs[k]) + 1.0
+		t.draw_text(
+			Vector2(tab_x, 1), panel.tabs[k], Palette.TEXT if k == panel.tab else Palette.DIM
+		)
+		tab_x += t.text_cells(panel.tabs[k]) + 1.0
 	var aside_x: float = panel.get("aside_x", cols)
 	for k in panel.get("aside", []).size():
 		var x := aside_x
 		for run: Array in panel.aside[k]:
-			x += t._run(Vector2(x, 3 + k), run)
+			x += t.draw_run(Vector2(x, 3 + k), run)
 	if panel.get("aside_up", false):
-		t._glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
+		t.draw_glyph(Vector2(cols - 2, 2), "▲", Palette.DIM)
 	if panel.get("aside_down", false):
-		t._glyph(Vector2(cols - 2, rows - 1), "▼", Palette.DIM)
+		t.draw_glyph(Vector2(cols - 2, rows - 1), "▼", Palette.DIM)
 	_draw_choices(t, panel.get("choices", {}))
 	var shown := span(t)
 	for k in range(shown.x, mini(shown.x + shown.y, panel.rows.size())):
@@ -91,11 +93,11 @@ static func draw(t: Term) -> void:
 		var x := 2.0
 		for run: Array in panel.rows[k]:
 			x = Keywords.column(run, x)
-			x += t._run(Vector2(x, y + (stride - 1) / 2.0), run)
+			x += t.draw_run(Vector2(x, y + (stride - 1) / 2.0), run)
 	if shown.x > 0:
-		t._glyph(Vector2(1, 2), "▲", Palette.DIM)
+		t.draw_glyph(Vector2(1, 2), "▲", Palette.DIM)
 	if shown.x + shown.y < panel.rows.size():
-		t._glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
+		t.draw_glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
 	t.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -112,16 +114,16 @@ static func _draw_choices(t: Term, choices: Dictionary) -> void:
 				Rect2(at * Term.CELL, Vector2(t.cols - at.x, 1) * Term.CELL),
 				Color(Palette.TEXT, alpha)
 			)
-		t._text(at, choices.names[k], Palette.TEXT if k == choices.at else Palette.DIM)
+		t.draw_text(at, choices.names[k], Palette.TEXT if k == choices.at else Palette.DIM)
 	if choices.top > 0:
-		t._glyph(choices.from - Vector2(1, 0), "▲", Palette.DIM)
+		t.draw_glyph(choices.from - Vector2(1, 0), "▲", Palette.DIM)
 	if last < choices.names.size():
-		t._glyph(choices.from + Vector2(-1, choices.fit - 1), "▼", Palette.DIM)
+		t.draw_glyph(choices.from + Vector2(-1, choices.fit - 1), "▼", Palette.DIM)
 	var keys: Vector2 = (
 		choices.from + Vector2(t.cols - choices.from.x - 2.0, choices.at - choices.top)
 	)
-	t._key(keys, "[", Palette.DIM)
-	t._key(keys + Vector2(1, 0), "]", Palette.DIM)
+	t.draw_key(keys, "[", Palette.DIM)
+	t.draw_key(keys + Vector2(1, 0), "]", Palette.DIM)
 
 
 ## The part of an example under a point in the term's space, or -1.
@@ -139,7 +141,7 @@ static func choice_at(t: Term, local: Vector2) -> int:
 static func end(line: Array, x := 2.0) -> float:
 	for run: Array in line:
 		x = Keywords.column(run, x)
-		x += Term._key_cells(run[0]) if run.slice(2).has(&"key") else Term._cells(run[0])
+		x += Term.key_cells(run[0]) if run.slice(2).has(&"key") else Term.text_cells(run[0])
 	return x
 
 
@@ -162,7 +164,7 @@ static func tab_at(t: Term, local: Vector2) -> int:
 	var x := _tabs_at(t)
 	var row := floori(local.y / Term.CELL.y)
 	for k in t.panel.get("tabs", []).size():
-		var width: float = t._cells(t.panel.tabs[k]) + 1.0
+		var width: float = t.text_cells(t.panel.tabs[k]) + 1.0
 		var on_strip := row == 1 or (stride > 1 and row >= 0 and row <= 2)
 		if on_strip and local.x / Term.CELL.x >= x and local.x / Term.CELL.x < x + width:
 			return k

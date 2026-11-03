@@ -22,15 +22,15 @@ func test_a_wide_line_wraps_at_spaces_keeping_text_and_colours() -> void:
 	var rows := Keywords.rows_of(HEARD, 10.0)
 	assert_eq(rows.map(_text), ["멀리서 탁 소리를", "들었다 · 소리: 4칸"])
 	for row: Array in rows:
-		assert_lte(row.reduce(func(n, r): return n + Term._cells(r[0]), 0.0), 10.0)
+		assert_lte(row.reduce(func(n, r): return n + Term.text_cells(r[0]), 0.0), 10.0)
 	assert_eq(rows[0].slice(1), [["탁", Palette.SOUND], [" 소리를", Palette.TEXT]])
 	assert_eq(rows[1].slice(1), [[" · ", Palette.DIM], ["소리: 4칸", Palette.SOUND]])
 
 
 func test_cells_follow_the_width_the_font_draws() -> void:
-	assert_eq(Term._cells("물×2 물줄기"), 5.5, "× is narrow, so no gap opens after it")
-	assert_eq([Term._cells("°"), Term._cells("·"), Term._cells("a")], [0.5, 0.5, 0.5])
-	assert_eq([Term._cells("가"), Term._cells("←"), Term._cells("♥")], [1.0, 1.0, 1.0])
+	assert_eq(Term.text_cells("물×2 물줄기"), 5.5, "× is narrow, so no gap opens after it")
+	assert_eq([Term.text_cells("°"), Term.text_cells("·"), Term.text_cells("a")], [0.5, 0.5, 0.5])
+	assert_eq([Term.text_cells("가"), Term.text_cells("←"), Term.text_cells("♥")], [1.0, 1.0, 1.0])
 
 
 func test_a_word_wider_than_the_screen_takes_a_row_of_its_own() -> void:

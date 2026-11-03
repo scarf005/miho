@@ -243,7 +243,7 @@ func test_the_longest_spell_name_fits_the_screen_at_every_zoom_of_a_1280x720_win
 				var cards: Array = q.cards + [c]
 				next.append({slots = slots, cards = cards})
 				var spell := Spell.make(cards)
-				if spell != null and Term._cells(spell.title()) > Term._cells(longest):
+				if spell != null and Term.text_cells(spell.title()) > Term.text_cells(longest):
 					longest = spell.title()
 		queues = next
 	var name := "+9 " + longest
@@ -253,7 +253,7 @@ func test_the_longest_spell_name_fits_the_screen_at_every_zoom_of_a_1280x720_win
 			m.world.cards.assign(Cards.ALL.slice(0, count))
 			var at := StatusBar.title_at(t, name)
 			var ctx := "%s at zoom %s with %d talismans" % [name, zoom, count]
-			assert_true(at.x >= 0.0 and at.x + Term._cells(name) <= t.cols, "on screen: " + ctx)
+			assert_true(at.x >= 0.0 and at.x + Term.text_cells(name) <= t.cols, "on screen: " + ctx)
 			assert_true(
 				at.y < t.rows - 1 or at.x >= StatusBar.queue_x(t) + Spell.MAX_SLOTS,
 				"clear of the queue: " + ctx

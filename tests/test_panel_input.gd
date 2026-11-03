@@ -164,7 +164,7 @@ func test_a_click_on_a_tab_of_the_codex_shows_it() -> void:
 	_codex(m)
 	var x := 6.0
 	for k in 3:
-		x += Term._cells(Codex.TABS[k]) + 1.0
+		x += Term.text_cells(Codex.TABS[k]) + 1.0
 	_mouse(m, MOUSE_BUTTON_LEFT, int(x), 1)
 	assert_eq(m.term.panel.tab, 3)
 
