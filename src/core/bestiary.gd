@@ -302,6 +302,7 @@ const KINDS := {
 		glyph = "이",
 		group = &"dragon",
 		shout = {word = "쉭", loud = 3},
+		melee = {name = "아가리", hit = "물려", damage = 3},
 		casts = [[ORB]],
 		ranks =
 		{

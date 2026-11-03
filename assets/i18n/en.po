@@ -96,6 +96,9 @@ msgstr "grr"
 msgid "앞발"
 msgstr "paw"
 
+msgid "아가리"
+msgstr "maw"
+
 msgid "천하대장군"
 msgstr "Cheonhadaejanggun"
 
