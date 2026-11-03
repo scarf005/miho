@@ -262,7 +262,7 @@ static func ward(s: Spell) -> Array:
 			[[Info._text(Info.NOT_FOOLED), Palette.TEXT]],
 			_line("발톱", "기습"),
 			_line("풀림", Lang.t("적 옆에서 %d초, 주문 사용, 피해") % Guise.BESIDE),
-			_line("소음", "%d" % Guise.CAST_LOUD),
+			_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
 		]
 	if kind == Guise.TALON:
 		return [
@@ -271,7 +271,7 @@ static func ward(s: Spell) -> Array:
 			_line(
 				Lang.t("%s 면역인 적") % Lang.t(Cards.NAME[Cards.METAL]), "+%d" % Guise.TALON_ABSORBED
 			),
-			_line("소음", "%d" % Guise.CAST_LOUD),
+			_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
 			_line("근접 소음", "%d" % Guise.TALON_LOUD),
 		]
 	if kind == Guise.CLOAK:
@@ -280,7 +280,7 @@ static func ward(s: Spell) -> Array:
 			_pair(hat_seen()),
 			[[Info._text(Info.CLOAK_SMELT), Palette.TEXT]],
 			[[Info._text(Info.CLOAK_SHOT), Palette.TEXT]],
-			_line("소음", "%d" % Guise.CAST_LOUD),
+			_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
 		]
 	if kind == Guise.FLAME:
 		return (
@@ -288,7 +288,7 @@ static func ward(s: Spell) -> Array:
 			+ Info.nature(Guise.FLAME_KIND)
 			+ [
 				[[Info._text(Info.FLAME_THROUGH), Palette.TEXT]],
-				_line("소음", "%d" % Guise.CAST_LOUD),
+				_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
 			]
 		)
 	if kind == Guise.RAISE:
