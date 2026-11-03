@@ -3027,11 +3027,8 @@ msgstr "Pin the box"
 msgid "불여우"
 msgstr "Fire fox"
 
-msgid "불 주문 피해"
-msgstr "Fire spell damage"
-
-msgid "불 주문 피해: +%d"
-msgstr "Fire spell damage: +%d"
+msgid "불 면역을 %d 피해까지 무시"
+msgstr "Ignores fire immunity up to %d harm"
 
 msgid "{0}으로/로 변했다"
 msgstr "Turned into {0}"

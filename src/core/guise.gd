@@ -77,8 +77,8 @@ const RECIPE := {
 ## The creature whose elements 불여우 gives her: a 불개, a fire creature that
 ## does nothing more with them.
 const FLAME_KIND := &"bulgae"
-## What her harming spells that hold 불 do more as 불여우.
-const FLAME_HARM := 1
+## The most her spells that hold 불 harm a creature that would stop them whole.
+const FLAME_THROUGH := 1
 ## The spells that go on her whatever the direction they are cast along.
 const ANYWHERE := [TALON, RAISE]
 ## The spells that take no other slot beside them.
@@ -322,18 +322,17 @@ static func talon_harm(me: Actor, foe: Actor = null) -> int:
 	return TALON_ABSORBED if eats else TALON_HARM
 
 
-## What 불여우 adds to the harm of a spell of `caster` that holds 불. 낙뢰 is no element.
-static func flame_harm(w: World, caster: int, spell: Spell) -> int:
+## Whether the spell of `caster` gets through `kind`, which would stop it whole
+## (Bestiary.absorbs): the caster is 불여우 and the spell holds 불. It harms for FLAME_THROUGH
+## at most, sets nothing alight and feeds nothing (Elements.strike, splash, harm).
+static func through(w: World, caster: int, spell: Spell, kind: StringName) -> bool:
 	var me := w.actor(caster)
-	if me == null or not me.buffs.flame or spell.electric():
-		return 0
-	return FLAME_HARM if spell.holds(Cards.FIRE) else 0
-
-
-## The harm a hit of the flying shot `s` does, by what 불여우 adds.
-static func shot_harm(w: World, s: Shot) -> int:
-	var n := s.spell.damage(s.distance())
-	return n + flame_harm(w, s.caster, s.spell) if n > 0 else n
+	return (
+		me != null
+		and me.buffs.flame
+		and spell.nature().has(Cards.FIRE)
+		and Bestiary.absorbs(kind, spell)
+	)
 
 
 ## Whether `by` takes `a` for someone else: `a` is in guise and `by` is a creature

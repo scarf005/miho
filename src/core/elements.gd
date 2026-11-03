@@ -35,7 +35,7 @@ extends RefCounted
 ## 쇠 or 물, or a wet one, twice over; else a creature with 흙 is
 ## immune to its harm and stun; any other takes it once (`charge`). Nothing of
 ## it is absorbed. Miho as 불여우 (Actor.nature_kind) meets them as a fire creature,
-## and each harm of her spells that hold 불 is Guise.FLAME_HARM more (`harm`).
+## and her fire that a creature would stop whole harms it Guise.FLAME_THROUGH at most (`harm`).
 
 const ROOT := 2
 const STUN := 1
@@ -63,7 +63,11 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 		Mind.struck(w, a, s)
 		return false
 	harm(w, s, a, n)
-	if spell.has(Cards.FIRE) and (spell.shape == Spell.WISP or Bestiary.burns(a.nature_kind())):
+	if (
+		spell.has(Cards.FIRE)
+		and (spell.shape == Spell.WISP or Bestiary.burns(a.nature_kind()))
+		and not Guise.through(w, s.caster, spell, a.nature_kind())
+	):
 		Status.ignite(w, a)
 	if a.alive():
 		if spell.orb and spell.has(Cards.METAL) and not spell.mortar():
@@ -79,9 +83,10 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 
 
 ## Whether `a` stops `s` whole, taking no harm or effect from it; one that eats
-## it grows. A spell it absorbs only in part is told (`resisted`) and goes on.
+## it grows. A spell it absorbs only in part is told (`resisted`) and goes on, and so
+## does the fire of 불여우 (Guise.through).
 static func absorbed(w: World, s: Shot, a: Actor) -> bool:
-	if not Bestiary.absorbs(a.nature_kind(), s.spell):
+	if not stops(w, s, a):
 		resisted(w, s.spell, a)
 		return false
 	w.emit({t = &"absorb", id = a.id, at = a.pos})
@@ -90,6 +95,14 @@ static func absorbed(w: World, s: Shot, a: Actor) -> bool:
 		a.hp += Bestiary.GROWTH
 		w.emit({t = &"grow", id = a.id, hp = a.hp, max_hp = a.max_hp})
 	return true
+
+
+## Whether `a` absorbs every element of `s` and `s` is not the fire of 불여우.
+static func stops(w: World, s: Shot, a: Actor) -> bool:
+	return (
+		Bestiary.absorbs(a.nature_kind(), s.spell)
+		and not Guise.through(w, s.caster, s.spell, a.nature_kind())
+	)
 
 
 ## `a` absorbs only part of `spell`: the elements it took are told.
@@ -109,10 +122,12 @@ static func dealt(a: Actor, spell: Spell, n: int) -> int:
 	return n * WEAK if weak else n / HALF
 
 
-## `s` hurts `a` for n, and what 불여우 adds when n is not none, as `dealt` says.
+## `s` hurts `a` for n, as `dealt` says, by Guise.FLAME_THROUGH at most when it is the
+## fire of 불여우 that `a` would stop whole.
 static func harm(w: World, s: Shot, a: Actor, n: int) -> void:
-	var more := Guise.flame_harm(w, s.caster, s.spell) if n > 0 else 0
-	var m := dealt(a, s.spell, n + more)
+	var m := dealt(a, s.spell, n)
+	if Guise.through(w, s.caster, s.spell, a.nature_kind()):
+		m = mini(m, Guise.FLAME_THROUGH)
 	if m > 0:
 		Harm.hurt(w, a, m, Bestiary.weak(a.nature_kind(), s.spell))
 
@@ -180,12 +195,16 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			Terrain.ignite(w, p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
-			if Bestiary.absorbs(b.nature_kind(), spell):
+			if stops(w, s, b):
 				w.emit({t = &"absorb", id = b.id, at = p})
 			else:
 				resisted(w, spell, b)
 				harm(w, s, b, n)
-				if fire and Bestiary.burns(b.nature_kind()):
+				if (
+					fire
+					and Bestiary.burns(b.nature_kind())
+					and not Guise.through(w, s.caster, spell, b.nature_kind())
+				):
 					Status.ignite(w, b)
 			Mind.struck(w, b, s)
 		var o := w.shot_at(p, s)

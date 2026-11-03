@@ -208,6 +208,7 @@ func test_a_spray_of_fire_reaches_what_ate_fire_whole_and_feeds_nothing() -> voi
 		var told := events.filter(func(e): return e.t == &"absorb" and e.id == foe.id)
 		assert_eq(told.is_empty(), worn, "worn: %s" % worn)
 		assert_eq(foe.max_hp, 30)
+		assert_eq(foe.ailments.alight, 0)
 
 
 func test_a_creature_that_eats_fire_off_the_ground_still_takes_none_from_it() -> void:
@@ -373,3 +374,14 @@ func test_the_hover_on_her_and_on_the_spell_tell_the_fire_she_gets_through() -> 
 	assert_string_contains(Info.plain(Info.creature(w, w.player())), line)
 	assert_false(Info.plain(Info.creature(w, w.player())).contains("불 주문 피해"))
 	assert_string_contains(Info.plain(SpellInfo.ward(Spell.make(Guise.RECIPE[Guise.FLAME]))), line)
+
+
+func test_her_glyph_is_red_only_while_the_fire_fox_is_worn() -> void:
+	var w := _world()
+	var foe := _dummy(w, &"haetae", AWAY)
+	assert_eq(Palette.glyph_color(w.player()), Palette.KIND[&"miho"])
+	_wear(w)
+	assert_eq(Palette.glyph_color(w.player()), Palette.HURT)
+	assert_eq(Palette.glyph_color(foe), Palette.KIND[&"haetae"])
+	w.act({t = &"dispel", kind = Guise.FLAME})
+	assert_eq(Palette.glyph_color(w.player()), Palette.KIND[&"miho"])

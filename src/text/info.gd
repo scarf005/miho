@@ -21,6 +21,8 @@ const CLOAK_SMELT := ["%s 적은 쫓아온다.", SMELL_WHO]
 const CLOAK_SHOT := [
 	"%s 적과 %s 적은 의심 가는 칸에 도깨비불을 쏜다.", WITS_WHO[Bestiary.SHARP], WITS_WHO[Bestiary.CUNNING]
 ]
+## What 불여우 does to a creature that would stop her fire whole.
+const FLAME_THROUGH := ["불 면역을 %d 피해까지 무시", Guise.FLAME_THROUGH]
 ## The tag of a change creatures notice (Notice), told in the glossary.
 const TRACE := "흔적."
 ## The tag of a creature of Miho's side (Actor.ally), told in the glossary.
@@ -59,7 +61,7 @@ const CONDITIONS := {
 		CLOAK_SMELT,
 		CLOAK_SHOT,
 	],
-	Guise.NAME[Guise.FLAME]: [["불 주문 피해: +%d", Guise.FLAME_HARM], ["소음: %d", Guise.CAST_LOUD]],
+	Guise.NAME[Guise.FLAME]: [FLAME_THROUGH, ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
@@ -353,7 +355,7 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	lines.append_array(_tags(Curse.worn(w).map(func(c): return Curse.NAME[c])))
 	lines.append_array(nature(a.nature_kind()))
 	if a.buffs.flame:
-		lines.append([[Lang.t("불 주문 피해: +%d") % Guise.FLAME_HARM, Palette.TEXT]])
+		lines.append([[_text(FLAME_THROUGH), Palette.TEXT]])
 	if a.buffs.guise:
 		var form: String = Lang.t(Bestiary.info(a.buffs.form).name)
 		lines.append([[Lang.t("둔갑"), Palette.TEXT], [": " + form, Palette.SIDE[0]]])

@@ -225,7 +225,7 @@ func draw_things(light: PackedVector3Array, actors: Dictionary, shots: Dictionar
 			continue
 		var cell := t.cell_of(a.pos)
 		var l := light[Grid.index(a.pos)]
-		var c: Color = Palette.KIND[a.kind]
+		var c: Color = Palette.glyph_color(a)
 		if not a.is_miho():
 			c = c * clampf(0.55 + Light.level(l), 0.55, 1.2)
 			c.a = 1.0

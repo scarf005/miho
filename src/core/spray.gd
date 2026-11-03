@@ -540,7 +540,8 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 		return
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
-			Status.ignite(w, a, true)
+			if not Guise.through(w, s.caster, s.spell, a.nature_kind()):
+				Status.ignite(w, a, true)
 			Mind.struck(w, a, s)
 
 

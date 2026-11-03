@@ -15,7 +15,7 @@ static func draw(t: Term) -> void:
 	var w := t.world
 	var me := w.player()
 	var row := t.rows - 2
-	t.draw_glyph(Vector2(0, row), "@", Palette.KIND[&"miho"])
+	t.draw_glyph(Vector2(0, row), "@", Palette.glyph_color(me))
 	t.draw_pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
 	var held := _held(t)
 	for i in w.max_tails():

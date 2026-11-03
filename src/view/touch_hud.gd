@@ -339,7 +339,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	var w := t.world
 	var me := w.player()
 	var at := _cell(rect.position)
-	t.draw_glyph(at, "@", Palette.KIND[&"miho"])
+	t.draw_glyph(at, "@", Palette.glyph_color(me))
 	t.draw_pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
 	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
 	t.draw_text(Vector2(_cell(rect.end).x - t.text_cells(right), at.y), right, Palette.TEXT)

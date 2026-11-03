@@ -13,7 +13,7 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 			Rect2(at * Term.CELL, Vector2(width, Term.SIDE_ROWS) * Term.CELL),
 			Color(Palette.TEXT, 0.12)
 		)
-	t.draw_glyph(at, Lang.t(a.info().glyph, "creature"), Palette.KIND[a.kind])
+	t.draw_glyph(at, Lang.t(a.info().glyph, "creature"), Palette.glyph_color(a))
 	t.draw_text(at + Vector2(1.5, 0), Lang.t(a.info().name), Palette.KIND[a.kind])
 	t.draw_pips(at + Vector2(0, 1), a.hp, a.max_hp, Palette.HURT, int(width) - 1)
 	t.draw_status(at + Vector2(width - 1, 1), a)

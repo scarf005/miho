@@ -250,7 +250,7 @@ static func ward(s: Spell) -> Array:
 			[_line(on, name)]
 			+ Info.nature(Guise.FLAME_KIND)
 			+ [
-				_line("불 주문 피해", "+%d" % Guise.FLAME_HARM),
+				[[Info._text(Info.FLAME_THROUGH), Palette.TEXT]],
 				_line("소음", "%d" % Guise.CAST_LOUD),
 			]
 		)
@@ -541,7 +541,7 @@ static func shot(w: World, s: Shot) -> Array:
 		]
 	]
 	lines.append_array(_nature(spell))
-	lines.append(_line("피해", str(Guise.shot_harm(w, s)), Palette.HURT))
+	lines.append(_line("피해", str(s.spell.damage(s.distance())), Palette.HURT))
 	if s.turn > 0:
 		var t := w.actor(s.target)
 		lines.append(_line("대상", "없음" if t == null else Lang.t(t.info().name)))

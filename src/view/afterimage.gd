@@ -56,7 +56,7 @@ static func copies(
 		if actors.has(p.id) and not hidden.has(p.id):
 			var a: Actor = actors[p.id]
 			var glyph := Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature")
-			out.append({at = p.at, glyph = glyph, color = Palette.KIND[a.kind], born = born})
+			out.append({at = p.at, glyph = glyph, color = Palette.glyph_color(a), born = born})
 	return out
 
 

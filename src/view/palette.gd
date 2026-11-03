@@ -172,6 +172,11 @@ const BOLT := {
 }
 
 
+## The colour a creature's glyph is drawn in: its kind's, red on Miho as 불여우.
+static func glyph_color(a: Actor) -> Color:
+	return HURT if a.buffs.flame else KIND[a.kind]
+
+
 ## How strongly gas of `amount` tints its tile: thin gas lightly, and gas thick
 ## enough to block sight (Gas.OPAQUE) heavily.
 static func gas_alpha(amount: int) -> float:

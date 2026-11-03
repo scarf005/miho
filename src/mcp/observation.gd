@@ -59,7 +59,9 @@ static func text(world: World) -> String:
 		out.append("cloaked: seen only within %d tile" % Hat.REACH)
 	if me.buffs.flame:
 		var line := "fire creature: no harm from fire, lightning harms only wet, water harms twice"
-		out.append("%s, fire spells harm %d more" % [line, Guise.FLAME_HARM])
+		out.append(
+			"%s, her fire harms what is immune to fire %d at most" % [line, Guise.FLAME_THROUGH]
+		)
 	if me.buffs.raise:
 		out.append(
 			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
@@ -238,7 +240,7 @@ static func _shot(k: World, s: Shot) -> String:
 			side,
 			s.spell.title(),
 			NAMES.get(s.dir, "none"),
-			Guise.shot_harm(k, s),
+			s.spell.damage(s.distance()),
 			s.pace() if s.dir != Vector2i.ZERO else 0
 		]
 	)

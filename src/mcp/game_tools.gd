@@ -111,8 +111,8 @@ const SPELLS := {
 			% Guise.NAME[Guise.FLAME]
 		)
 		+ (
-			"creature, takes no harm from fire and her fire spells harm %d more) or the 3 element "
-			% Guise.FLAME_HARM
+			"creature, takes no harm from fire and her fire harms what is immune to it %d at most) or the 3 element "
+			% Guise.FLAME_THROUGH
 		)
 		+ (
 			"compound %s (her claws harm more), which goes on her whatever dir. They last "
