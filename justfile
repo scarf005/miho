@@ -279,6 +279,10 @@ shot path *args: rust
     PULSE_SINK=miho_shot gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- \
         {{ godot }} --path . -- --shot="$(realpath -m '{{ path }}')" {{ args }}
 
+# Print the first seeds that draw a 미궁, with its storey and concept, to pass to `just shot --seed= --depth=`.
+maze-seeds:
+    {{ godot }} --headless --path . -s tools/maze_seeds.gd
+
 # Capture a fixed set of scenes into dir (.screenshots/frames/a) with `just shot`, CRT and swaying off except in the crt scene, to compare two builds with `just frames-diff`.
 frames dir:
     #!/usr/bin/env bash
