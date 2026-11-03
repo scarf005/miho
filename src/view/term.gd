@@ -347,7 +347,8 @@ func _draw_game() -> void:
 	var me_pos: Vector2i = actors[me.id].pos if actors.has(me.id) else me.pos
 	layer.draw_tiles(light, me_pos)
 	TermMarks.telegraphs(self, actors)
-	TermMarks.scent(self)
+	if not replay:
+		TermMarks.scent(self)
 	if not anim.playing:
 		TermMarks.paths(self)
 		for l: Array in lines:
