@@ -12,6 +12,7 @@ runs:
         echo "EMSDK_VERSION=4.0.20" >> "$GITHUB_ENV"
         echo "MIHO_NIGHTLY=nightly-2026-05-03" >> "$GITHUB_ENV"
         echo "MIHO_EMSDK=$HOME/emsdk" >> "$GITHUB_ENV"
+        echo "MIHO_WEB_TEMPLATE=$HOME/miho-web-template.zip" >> "$GITHUB_ENV"
     # Almost all of the build is std and the Rust crates. The toolchain is
     # cached too, as a fresh rust-src makes -Zbuild-std compile std again.
     - uses: actions/cache@v6
@@ -35,6 +36,10 @@ runs:
         mkdir -p "$dir"
         unzip -q -j templates.tpz 'templates/web*' -d "$dir"
         echo "GODOT=$HOME/godot/Godot_v$GODOT_VERSION-stable_linux.x86_64" >> "$GITHUB_ENV"
+    # From `just web-template-release`.
+    - name: Web template
+      shell: bash
+      run: curl -fsSL -o "$MIHO_WEB_TEMPLATE" "https://github.com/$GITHUB_REPOSITORY/releases/download/web-template-$GODOT_VERSION/miho-web-template.zip"
     - name: Emscripten
       shell: bash
       run: |
