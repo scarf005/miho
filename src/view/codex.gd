@@ -254,8 +254,8 @@ static func _terrain_entries() -> Array[Dictionary]:
 			var tile := func(w: World): w.set_tile(AT, t)
 			var glyph: Array = Palette.TILES[t]
 			out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
-			if t == World.JAR:
-				out.back().lines = func(): return _ground(tile) + Info.jar_facts()
+			var kept := func(): return Info.jar_facts() if t == World.JAR else []
+			out.back().lines = func(): return _ground(tile) + kept.call() + TileActs.lines(t)
 	out.append_array(_extras())
 	return out
 
@@ -667,11 +667,13 @@ static func _extras() -> Array[Dictionary]:
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], Lang.t("계단"), _stairs))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
 	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불", fire, &"burning"))
+	out.back().lines = func(): return _ground(fire).slice(1) + TileActs.fire()
 	var fierce := func(w: World):
 		w.set_tile(AT, World.STRAW)
 		w.burning[AT] = World.BURN_ROUNDS
 	var flame: Array = Palette.FIERCE_BURNING
 	out.append(_mark(flame[0], flame[1], "맹렬한 불", fierce, &"fierce"))
+	out.back().lines = func(): return _ground(fierce).slice(1) + TileActs.fire()
 	for kind in Compounds.HOT.size():
 		var heat := func(w: World): w.hot[AT] = Vector2i(kind, Compounds.HOT_ROUNDS)
 		var row := StringName("hot%d" % kind)

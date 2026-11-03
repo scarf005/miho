@@ -888,9 +888,6 @@ msgstr "Relit by: fire, searching enemy"
 msgid "막음: 시야, 빛"
 msgstr "Blocks: sight, light"
 
-msgid "밟으면: 쓰러짐"
-msgstr "Stepped on: falls over"
-
 msgid "막음: 길, 시야, 빛"
 msgstr "Blocks: path, sight, light"
 
@@ -3290,3 +3287,45 @@ msgstr "Harm to a foe right beside you"
 
 msgid "즉시"
 msgstr "instant"
+
+msgid "밟으면: %s"
+msgstr "Stepped on: %s"
+
+msgid "떠나면: %s"
+msgstr "Stepped off: %s"
+
+msgid "소화"
+msgstr "Douses"
+
+msgid "소화."
+msgstr "Douses."
+
+msgid "붙지 않음: %s"
+msgstr "Does not catch: %s"
+
+msgid "깔리지 않음: %s"
+msgstr "Does not take: %s"
+
+msgid "불: 폭발"
+msgstr "Fire: explodes"
+
+msgid "폭발 피해: "
+msgstr "Blast damage: "
+
+msgid "폭발 소음: %d"
+msgstr "Blast noise: %d"
+
+msgid "불붙음: %d초"
+msgstr "On fire: %ds"
+
+msgid "땅."
+msgstr "Ground."
+
+msgid "막음: 기체"
+msgstr "Blocks: gas"
+
+msgid "만드는 주문: %s"
+msgstr "Made by: %s"
+
+msgid "부딪침"
+msgstr "Bump"

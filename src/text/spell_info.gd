@@ -892,7 +892,12 @@ static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 
 ## The label of what turns into tile kind `to`: "바닥이 됨".
 static func becomes(to: int) -> String:
-	var runs := Lang.runs("{0}이/가 됨", [[Tiles.of(to, "name"), LABEL]], LABEL)
+	return turned(Tiles.of(to, "name"))
+
+
+## The label of what turns into what is called `name`.
+static func turned(name: String) -> String:
+	var runs := Lang.runs("{0}이/가 됨", [[name, LABEL]], LABEL)
 	return "".join(runs.map(func(r): return r[0]))
 
 

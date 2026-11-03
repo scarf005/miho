@@ -37,6 +37,15 @@ static func rows() -> Dictionary:
 			Lang.t("번지는 속도: 초당 %d칸") % Terrain.FIERCE_STEPS,
 			Lang.t("초당 피해: %d") % World.FIERCE_DAMAGE
 		],
+		"소화":
+		[
+			Lang.t("붙지 않음: %s") % Lang.t("불"),
+			(
+				Lang.t("깔리지 않음: %s")
+				% ", ".join(Compounds.HOT.map(func(spec): return Lang.t(spec.name)))
+			),
+		],
+		"땅": TileActs.ground(),
 		"함정":
 		[
 			Lang.t("발견: 밝은 칸 또는 %d칸 안") % Traps.REACH,

@@ -44,12 +44,13 @@ func _whole(name: String) -> String:
 	return text
 
 
-## The labels on the line that ends in `change`.
+## The labels on the lines that end in `change`.
 func _labels(text: String, change: String) -> Array:
+	var out := []
 	for line in text.split("\n"):
 		if line.ends_with(": " + change):
-			return Array(line.trim_suffix(": " + change).split(", "))
-	return []
+			out.append_array(line.trim_suffix(": " + change).split(", "))
+	return out
 
 
 func test_each_compound_that_changes_a_tile_is_told_on_its_entry_and_no_other() -> void:

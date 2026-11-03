@@ -823,7 +823,6 @@ static func _ground_notes(t: int) -> Array[String]:
 	match t:
 		World.REEDS:
 			out.append(Lang.t("막음: 시야"))
-			out.append(Lang.t("밟으면: 쓰러짐"))
 		World.BOARD_ROTTEN:
 			out.append(Lang.t("소음: %d") % Terrain.CRACK)
 		World.POND:
@@ -836,6 +835,12 @@ static func _ground_notes(t: int) -> Array[String]:
 			out.append(Lang.t("지날 때 피해: %d") % Compounds.THORN)
 		World.MUD:
 			out.append(Lang.t("밟으면: 묶임 %d초") % Compounds.MUD)
+	if Tiles.of(t, "trample") >= 0:
+		out.append(Lang.t("밟으면: %s") % SpellInfo.becomes(Tiles.of(t, "trample")))
+	if Tiles.of(t, "crumbles") >= 0:
+		out.append(Lang.t("떠나면: %s") % SpellInfo.becomes(Tiles.of(t, "crumbles")))
+	if Tiles.of(t, "douses"):
+		out.append(Lang.t("소화."))
 	return out
 
 
@@ -859,6 +864,7 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if Gas.of(g.x, "harm") > 0:
 		out.append(_amount("초당 피해: ", Gas.of(g.x, "harm")))
 	if Gas.of(g.x, "wets"):
+		out.append([[Lang.t("젖음: %d초") % Status.WET, Palette.DIM]])
 		out.append([[Lang.t("북: %d초 동안 소음 없음") % Drums.WET_ROUNDS, Palette.DIM]])
 	if Gas.of(g.x, "erases"):
 		out.append([[Lang.t("지워짐: 냄새"), Palette.DIM]])
@@ -866,7 +872,12 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 	if steam >= 0:
 		var became := [[Gas.of(steam, "name"), Palette.GAS[steam][1]]]
 		out.append(Lang.runs("불: {0}이/가 됨", became, Palette.DIM))
-	return out
+	if Gas.of(g.x, "explodes"):
+		out.append([[Lang.t("불: 폭발"), Palette.DIM]])
+		out.append(_amount("폭발 피해: ", Gas.BLAST))
+		out.append([[Lang.t("폭발 소음: %d") % Gas.BLAST_LOUD, Palette.DIM]])
+		out.append([[Lang.t("불붙음: %d초") % Status.ALIGHT, Palette.DIM]])
+	return out if now else out + TileActs.gas(g.x)
 
 
 ## What a round on a burning tile costs, fierce (Tiles.fierce) or not.
