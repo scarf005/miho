@@ -50,6 +50,7 @@ const WORLD_VARS: Array[String] = [
 	"cards",
 	"round_no",
 	"rounds",
+	"gas_heat",
 	"outcome",
 	"changes",
 	"bodies",
