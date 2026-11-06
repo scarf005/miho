@@ -493,3 +493,24 @@ func test_the_log_tells_who_hit_the_wall() -> void:
 	w.push(foe, Vector2i(0, -1), 1)
 	var lines := Messages.of(before, w, w.events.slice(from)).map(Messages.plain)
 	assert_true(lines.has("도깨비가 벽에 부딪혀 피해를 1 입었다"), str(lines))
+
+
+func test_a_fall_into_a_walled_court_lands_near_it_on_ground_walked_to_from_the_start() -> void:
+	var w := World.create(6)
+	var p := Vector2i(-1, -1)
+	for i in w.tiles.size():
+		if w.tiles[i] == World.WALL and FloorGen.nearest_free(w, Grid.at(i), Masks.air(w)).x < 0:
+			p = Grid.at(i)
+			break
+	assert_gte(p.x, 0, "storey 1 of seed 6 has a court walled off")
+	_climb(w)
+	_edge(w, p)
+	w.push(w.player(), E, 1)
+	assert_eq(w.depth, 1)
+	var at := w.player().pos
+	var walked: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
+	assert_gte(walked[Grid.index(at)], 0, "she can walk there from the start")
+	for i in walked.size():
+		var q := Grid.at(i)
+		if walked[i] >= 0 and q != at and w.vacant(q) and not w.traps.has(q):
+			assert_gte(Grid.cheb(q, p), Grid.cheb(at, p), "no free tile is nearer: %s" % q)
