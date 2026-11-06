@@ -20,8 +20,8 @@ const GAPS := [1, 2]
 ## near the wall and away from the room's middle, and PRIZE peaches lie in r.
 ## False, with nothing changed, when r has a hidden door, can be reached another
 ## way, a wall with nothing to stand beside has no sky to fall to, or the storey
-## would not be whole once the wall is gone.
-static func make(w: World, r: Rect2i) -> bool:
+## would not be whole once the wall is gone. The room in front is none of `home`.
+static func make(w: World, r: Rect2i, home: Array[Rect2i] = []) -> bool:
 	var ways := []
 	for x in range(r.position.x, r.end.x):
 		ways.append([Vector2i(x, r.position.y - 1), Vector2i.UP])
@@ -32,7 +32,11 @@ static func make(w: World, r: Rect2i) -> bool:
 	if ways.any(func(s): return w.secrets.has(s[0])):
 		return false
 	ways = ways.filter(func(s): return w.open_floor(s[0]))
-	var fronts := ways.filter(func(s): return FloorGen.room_at(w, s[0] + s[1]).has_area())
+	var fronts := ways.filter(
+		func(s):
+			var front := FloorGen.room_at(w, s[0] + s[1])
+			return front.has_area() and front not in home
+	)
 	if fronts.is_empty():
 		return false
 	var before := w.tiles.duplicate()

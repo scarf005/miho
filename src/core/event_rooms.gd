@@ -50,17 +50,22 @@ static func _try(
 	var rooms := w.rooms.filter(func(r): return r not in home)
 	FloorGen.shuffle(rng, rooms)
 	for r: Rect2i in rooms:
-		if not doorways(w, r).any(func(p): return w.secrets.has(p)) and _make(w, kind, r, rng):
+		if (
+			not doorways(w, r).any(func(p): return w.secrets.has(p))
+			and _make(w, kind, r, rng, home)
+		):
 			w.rooms.erase(r)
 			w._changed()
 			return true
 	return false
 
 
-static func _make(w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerator) -> bool:
+static func _make(
+	w: World, kind: StringName, r: Rect2i, rng: RandomNumberGenerator, home: Array[Rect2i]
+) -> bool:
 	match kind:
 		&"vault":
-			return Vault.make(w, r)
+			return Vault.make(w, r, home)
 		&"altar":
 			return Altar.make(w, r)
 		&"veil":
