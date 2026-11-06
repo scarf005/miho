@@ -221,6 +221,13 @@ static func build(w: World, skeleton := &"") -> Dictionary:
 	return set_room
 
 
+## The storey Miho is on, built: `build`, and the outside ground round the first (Outside).
+static func storey(w: World) -> void:
+	build(w)
+	if w.depth == 1:
+		Outside.lay(w)
+
+
 ## Whether no plate shuts a tile in, the exit can be walked to with nothing to break
 ## or put out on the way, the start is dark and the exit lit, and the skeleton's routes
 ## still stand (Skeletons.routes_hold).
@@ -249,6 +256,8 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.gas.clear()
 	w.gas_heat.clear()
 	w.vents.clear()
+	w.vent_levels.clear()
+	w.trail_end = Vector2i(-1, -1)
 	w.traps.clear()
 	w.changes.clear()
 	w.bodies.clear()

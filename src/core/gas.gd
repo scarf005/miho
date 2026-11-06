@@ -166,6 +166,11 @@ static func light(w: World, p: Vector2i) -> void:
 	w._changed()
 
 
+## The amount the vent on p keeps up.
+static func level_of(w: World, p: Vector2i) -> int:
+	return w.vent_levels.get(p, VENT_LEVEL)
+
+
 ## One round of gas.
 static func tick(w: World) -> void:
 	if w.outcome != &"":
@@ -175,7 +180,7 @@ static func tick(w: World) -> void:
 		if at(w, p).x != STEAM:
 			add(w, p, SMOKE, SMOKE_PUFF)
 	for p: Vector2i in w.vents:
-		put(w, p, w.vents[p], VENT_LEVEL - (at(w, p).y if at(w, p).x == w.vents[p] else 0))
+		put(w, p, w.vents[p], level_of(w, p) - (at(w, p).y if at(w, p).x == w.vents[p] else 0))
 	if w.gas.is_empty():
 		return
 	spread(w)

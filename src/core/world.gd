@@ -34,6 +34,8 @@ extends RefCounted
 ## of 여 alone yelps, an alarm (Lure). The debug commands take no round (Cheat).
 
 const FLOORS := 9
+## The depth of the house, off the pavilion (`Storeys` keeps it like any storey).
+const HOUSE := 0
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
 ## Once the storey's first 저승사자 has fallen, the next comes REAPER_AGAIN rounds later and
@@ -143,6 +145,8 @@ const STOREY: Array[String] = [
 	"first_reaper",
 	"reaper_due",
 	"reaper_step",
+	"trail_end",
+	"vent_levels",
 ]
 
 var depth := 1
@@ -173,6 +177,10 @@ var gas := {}
 var gas_heat := {}
 ## Tiles that breathe gas: position -> gas kind (Gas).
 var vents := {}
+## The gas a vent keeps, where it is not Gas.VENT_LEVEL: position -> 2..4 (Outside).
+var vent_levels := {}
+## The tile of the map's edge where the trail leaves the storey, or (-1, -1) (Outside).
+var trail_end := Vector2i(-1, -1)
 ## Tiles a gun lights this round (Spray).
 var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).
@@ -242,7 +250,7 @@ static func create(seed_value: int) -> World:
 	me.hp = Bestiary.info(&"miho").hp
 	me.max_hp = me.hp
 	w.actors.append(me)
-	FloorGen.build(w)
+	FloorGen.storey(w)
 	w.sense()
 	return w
 

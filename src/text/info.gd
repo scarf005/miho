@@ -687,7 +687,7 @@ static func terrain_facts(w: World, p: Vector2i, now := false) -> Array:
 			[Lang.t(Gas.of(w.vents[p], "name")), Palette.GAS[w.vents[p]][1]]
 		]
 		lines.append(vent)
-		lines.append([[Lang.t("  최대 양: %d") % Gas.VENT_LEVEL, Palette.DIM]])
+		lines.append([[Lang.t("  최대 양: %d") % Gas.level_of(w, p), Palette.DIM]])
 	if t == World.DRUM:
 		lines.append_array(_drum_line(w, p))
 	lines.append_array(_change_lines(w, p))

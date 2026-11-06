@@ -55,6 +55,7 @@ const ELEMENT_OF := {Skeletons.GROVE: Cards.WOOD, Skeletons.FLOODED: Cards.WATER
 const LIGHT_SALT := 0x51ED
 const ELEMENT_SALT := 0x0E1E
 const MAZE_SALT := 0x3A2E
+const OUTSIDE_SALT := 0x0D7E
 ## The share of runs with a maze and the storeys one may stand on (least, most).
 const MAZE_RUNS := 0.4
 const MAZE_DEPTH := Vector2i(3, 7)
@@ -116,3 +117,11 @@ static func element(seed_value: int, depth: int, shape: StringName) -> StringNam
 	for d in mini(depth, World.FLOORS) - 1:
 		out = Cards.GROWS[out]
 	return out
+
+
+## The look of the ground round the pavilion on storey 1 of a run on `seed_value`
+## (Outside.DESIGNS).
+static func outside(seed_value: int) -> StringName:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_value) ^ OUTSIDE_SALT
+	return Outside.DESIGNS[rng.randi_range(0, Outside.DESIGNS.size() - 1)]

@@ -97,6 +97,8 @@ static func _built(w: World, made: Dictionary) -> PackedByteArray:
 		w.seals,
 		w.sites,
 		w.vents,
+		w.vent_levels,
+		w.trail_end,
 		w.gas,
 		w.tail_bonus,
 		w.next_id,

@@ -71,7 +71,7 @@ static func enter(w: World, depth: int) -> void:
 	if w.storeys.has(depth):
 		_restore(w, depth)
 	else:
-		FloorGen.build(w)
+		FloorGen.storey(w)
 	if w.elixir_held:
 		w.elixir = Vector2i(-1, -1)
 	w.shots.assign(riding)
@@ -105,4 +105,6 @@ static func _restore(w: World, depth: int) -> void:
 
 ## The tiles of the storey below, or none when it is not kept.
 static func below(w: World) -> PackedByteArray:
+	if w.depth <= 1:
+		return PackedByteArray()
 	return w.storeys.get(w.depth - 1, {}).get("tiles", PackedByteArray())

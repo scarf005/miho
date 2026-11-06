@@ -35,6 +35,8 @@ const WORLD_VARS: Array[String] = [
 	"wild",
 	"gas",
 	"vents",
+	"vent_levels",
+	"trail_end",
 	"flares",
 	"wet",
 	"hot",

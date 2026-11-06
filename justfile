@@ -283,6 +283,10 @@ shot path *args: rust
 maze-seeds:
     {{ godot }} --headless --path . -s tools/maze_seeds.gd
 
+# Print the first seeds with the tile beside the trail's exit on storey 1 and the key that steps onto it, to pass to `just shot --seed= --keys=at:X:Y,<key>`.
+outside-seeds:
+    {{ godot }} --headless --path . -s tools/outside_seeds.gd
+
 # Capture a fixed set of scenes into dir (.screenshots/frames/a) with `just shot`, CRT and swaying off except in the crt scene, to compare two builds with `just frames-diff`.
 frames dir:
     #!/usr/bin/env bash
