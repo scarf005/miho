@@ -597,3 +597,13 @@ func test_a_cloud_of_fog_is_one_line_in_the_log() -> void:
 	for x in range(3, 8):
 		fog.append({t = &"gas", at = Vector2i(x, 5), kind = Gas.FOG})
 	assert_eq(Messages.of(w, w, fog).map(Messages.plain), ["안개가 피어올랐다"])
+
+
+func test_sinkhole_drops_a_skybridge_and_what_stands_on_it() -> void:
+	var w := _world()
+	var on := ME + E * 3
+	_put(w, on, World.BRIDGE)
+	var foe := _post(w, on)
+	w.act(_cast(_made(&"sinkhole")))
+	assert_eq(w.tile(on), World.SKY)
+	assert_false(foe.alive())

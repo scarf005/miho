@@ -188,3 +188,11 @@ func test_the_outside_is_kept_as_she_left_it() -> void:
 	assert_eq(w.vent_levels, kept.vents)
 	assert_eq(w.trail_end, kept.trail)
 	assert_eq(w.gate, kept.gate)
+
+
+func test_the_moon_lights_all_the_outside_ground() -> void:
+	for s in 3:
+		var w := Built.world(s)
+		assert_gt(w.vents.size(), 0)
+		for p: Vector2i in w.vents:
+			assert_true(w.lit(p), "seed %d at %s" % [s, p])
