@@ -131,3 +131,21 @@ static func ascend(w: World) -> void:
 		me.hp += World.HEAL
 		w.emit({t = &"heal", id = me.id, hp = me.hp})
 	w.sense()
+
+
+## Down the stairs (World.down) onto the up stairs of the storey below, the allies by her
+## along, as she left it. She keeps no more tails than it gives, as after a fall, and heals
+## nothing; its 저승사자 comes sooner (Curse.descend).
+static func descend(w: World) -> void:
+	var party := Storeys.followers(w)
+	Storeys.leave(w)
+	Storeys.enter(w, w.depth - 1)
+	var me := w.player()
+	var spot := FloorGen.nearest_free(w, w.stairs)
+	me.pos = spot if spot.x >= 0 else w.stairs
+	Storeys.carry(w)
+	Storeys.bring(w, party)
+	w.tails = mini(w.tails, w.max_tails())
+	w.emit({t = &"descend", depth = w.depth})
+	Curse.descend(w)
+	w.sense()

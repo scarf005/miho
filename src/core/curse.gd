@@ -7,7 +7,8 @@ extends RefCounted
 ## omen has been told, or is due this round, it comes at the end of this round. Every storey has
 ## its own clock, so World.curses keeps the new round of its arrival, always a round still to
 ## come, and `_reaper` can compare with `==`. Once it has come the curse is not picked, nor on
-## the top storey, where it never comes.
+## the top storey, where it never comes. Each way down the stairs puts it on the storey below
+## the same way, unless it has come there (`descend`).
 ##
 ## AGAIN: when the 저승사자 this clock sent has fallen, the clock starts again: the next one
 ## comes World.REAPER_AGAIN rounds later at World.REAPER_FAR tiles (Chebyshev) from the target
@@ -78,6 +79,14 @@ static func strike(w: World, at: Vector2i) -> void:
 			var body := Notice.lay(w, Raise.STRONG if w.depth >= STRONG_FROM else Raise.WEAK, at)
 			body.rises = w.round_no + RISE_ROUNDS
 			w.emit({t = &"curse", what = what, at = at})
+
+
+## Miho has come down the stairs onto this storey: REAPER falls on it, unless its 저승사자
+## has come.
+static func descend(w: World) -> void:
+	if w.round_no < arrival(w):
+		_hasten(w)
+		w.emit({t = &"curse", what = REAPER})
 
 
 ## The curse the world's dice pick now.

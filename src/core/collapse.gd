@@ -25,15 +25,9 @@ static func count(base: int) -> int:
 	return roundi(base * SCALE)
 
 
-## The tiles Miho must always be able to walk to: the stairs, and from the second storey the
-## tile she came up on.
+## The tiles Miho must always be able to walk to: the stairs up and down.
 static func goals(w: World) -> Array:
-	var tiles := []
-	if Grid.inside(w.stairs):
-		tiles.append(w.stairs)
-	if w.depth >= 2:
-		tiles.append(w.start)
-	return tiles
+	return [w.stairs, w.down].filter(Grid.inside)
 
 
 ## The end of a round.

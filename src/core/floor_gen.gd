@@ -305,6 +305,7 @@ static func _build(w: World, skeleton: StringName, outside: bool) -> Dictionary:
 		w.elixir = _centre(goal)
 	else:
 		w.stairs = _centre(goal)
+	w.down = w.start if w.depth >= 2 else Vector2i(-1, -1)
 	var element := RunPlan.element(w.rng.seed, w.depth, skeleton)
 	_lanterns(w, home, goal, RunPlan.light(w.rng.seed, w.depth))
 	_features(w, goal, element)

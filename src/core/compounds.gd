@@ -293,7 +293,7 @@ static func open(w: World, p: Vector2i, bridge := false) -> bool:
 		and t not in [World.DOOR, World.DOOR_OPEN]
 		and (bridge or t != World.BRIDGE)
 		and not Tiles.of(t, "douses")
-		and not (p == w.stairs or p == w.elixir or w.peaches.has(p))
+		and not (p in [w.stairs, w.down, w.elixir] or w.peaches.has(p))
 		and not w.burning.has(p)
 	)
 

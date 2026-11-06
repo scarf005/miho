@@ -127,3 +127,10 @@ func test_an_ally_beside_her_comes_down_with_her() -> void:
 	assert_not_null(w.actor(ally.id))
 	assert_lt(Grid.cheb(w.actor(ally.id).pos, w.player().pos), 2)
 
+
+func test_no_spell_turns_or_grows_over_the_stairs_down() -> void:
+	var w := World.create(3)
+	_climb(w)
+	w.player().pos = w.down + _off(w, w.down)
+	assert_false(Compounds.open(w, w.down))
+	assert_eq(Elements.growable(w, [w.down] as Array[Vector2i]), [] as Array[Vector2i])

@@ -122,6 +122,7 @@ const STOREY: Array[String] = [
 	"rooms",
 	"start",
 	"stairs",
+	"down",
 	"elixir",
 	"peaches",
 	"jars",
@@ -156,6 +157,8 @@ var tiles := PackedByteArray()
 var rooms: Array[Rect2i] = []
 var start := Vector2i.ZERO
 var stairs := Vector2i(-1, -1)
+## The stairs down, on the start of every storey from the second (FloorGen.build).
+var down := Vector2i(-1, -1)
 var elixir := Vector2i(-1, -1)
 var peaches: Array[Vector2i] = []
 ## What each jar on this storey holds, fixed when it was built: tile -> effect (Jars).
