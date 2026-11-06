@@ -440,8 +440,10 @@ static func sound_of(e: Dictionary) -> StringName:
 	match e.t:
 		&"move":
 			return WORDS.get(e.word, &"step")
-		&"leap":
+		&"leap", &"vault":
 			return &"hiss"
+		&"unvault":
+			return &"hiss" if e.get("fall", false) else &"tick"
 		&"swap":
 			return &"foxfire"
 		&"ally":
@@ -526,7 +528,7 @@ static func sound_of(e: Dictionary) -> StringName:
 		&"ascend":
 			return &"ascend"
 		&"fall":
-			return &"scream" if e.has("depth") else &""
+			return &"scream" if e.has("depth") and not e.get("soft", false) else &""
 		&"won":
 			return &"win"
 		&"lost":
