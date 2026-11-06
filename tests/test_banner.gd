@@ -48,6 +48,14 @@ func test_a_blow_from_a_seen_creature_names_it() -> void:
 	assert_eq(_head(w), foe.info().name + "에게 쓰러졌다")
 
 
+func test_the_sister_falling_heads_the_banner() -> void:
+	var w := _world()
+	var sister := FloorGen.spawn(w, &"sister", ME + Vector2i(9, 0))
+	Harm.hurt(w, sister, 1)
+	assert_eq(w.outcome, &"lost")
+	assert_eq(_head(w), "여동생이 쓰러졌다")
+
+
 func test_a_blow_from_an_unseen_creature_names_nobody() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i.RIGHT)

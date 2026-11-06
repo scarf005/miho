@@ -1,6 +1,6 @@
 extends GutTest
 ## The house (World.HOUSE) at the end of the trail from storey 1: the trail leads there and
-## back, each map kept as she left it; it is a hut in a clearing with nobody in it; the rules
+## back, each map kept as she left it; it is a hut in a clearing with the sister in it; the rules
 ## that count storeys take storey 1's; the same seed builds the same house whenever she comes.
 
 const WAIT := {t = &"wait"}
@@ -73,11 +73,28 @@ func test_the_house_takes_storey_one_values() -> void:
 	assert_eq(Raise.rises(w, &"dokkaebi"), Raise.rises(Built.world(3), &"dokkaebi"))
 
 
-func test_the_house_is_a_hut_in_a_clearing_with_nobody_in_it() -> void:
+## The house of seed `s`, Miho at the trail's end.
+func _house(s := 3) -> World:
+	var w := World.create(s)
+	_take_trail(w)
+	return w
+
+
+func _sister(w: World) -> Actor:
+	for a in w.actors:
+		if a.kind == &"sister":
+			return a
+	return null
+
+
+func test_the_house_is_a_hut_in_a_clearing_with_the_sister_inside() -> void:
 	for s in 6:
 		var w := World.create(s)
 		_take_trail(w)
-		assert_eq(w.actors.size(), 1, "seed %d: only Miho" % s)
+		var sister := _sister(w)
+		assert_eq(w.actors.size(), 2, "seed %d: Miho and her sister" % s)
+		assert_true(sister.ally(), "seed %d" % s)
+		assert_false(w.events.any(func(e): return e.t == &"ally"), "seed %d: not told" % s)
 		assert_false(World.SKY in w.tiles, "seed %d" % s)
 		var board := w.tiles.find(World.BOARD)
 		assert_gt(board, -1, "seed %d: a floor of boards" % s)
@@ -86,6 +103,9 @@ func test_the_house_is_a_hut_in_a_clearing_with_nobody_in_it() -> void:
 		var open := Grid.search(w.start, Masks.floor_of(w))
 		assert_lt(shut.dist[board], 0, "seed %d: the hut's walls shut it" % s)
 		assert_gt(open.dist[board], 0, "seed %d: its door lets her in" % s)
+		assert_lt(shut.dist[Grid.index(sister.pos)], 0, "seed %d: the sister is inside" % s)
+		for d in Placement.SIDES:
+			assert_ne(sister.pos, Grid.at(door) + d, "seed %d: the doorway is free" % s)
 		assert_true(Outside._edge(w.trail_end), "seed %d: the exit is on the edge" % s)
 
 
@@ -169,3 +189,128 @@ func test_the_agent_is_told_the_house_and_the_trail_exit() -> void:
 	w.known.fill(1)
 	var head := Observation.text(w).split("\n")[0]
 	assert_true(head.begins_with("house, round 0,"), head)
+
+
+## A free tile beside the sister.
+func _by_sister(w: World) -> Vector2i:
+	return FloorGen.nearest_free(w, _sister(w).pos)
+
+
+func test_the_sister_stays_behind() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	var at := sister.pos
+	w.player().pos = _by_sister(w)
+	assert_does_not_have(Storeys.followers(w.clone()).map(func(a): return a.id), sister.id)
+	_take_trail(w)
+	assert_eq(w.depth, 1)
+	assert_null(_sister(w))
+	_take_trail(w)
+	assert_eq(_sister(w).pos, at)
+
+
+## The rounds the sister coughed in, whether Miho heard each, and the log, over `n` waits.
+func _coughs(w: World, n: int) -> Dictionary:
+	var out := {rounds = [], heard = [], lines = []}
+	for i in n:
+		var before := w.clone()
+		var events := w.act(WAIT)
+		for e in events:
+			if e.t == &"cough":
+				out.rounds.append(w.round_no)
+				out.heard.append(e.heard)
+		out.lines.append_array(Messages.of(before, w, events).map(Messages.plain))
+	return out
+
+
+func test_the_sister_coughs_now_and_then() -> void:
+	var w := _house()
+	w.player().pos = _by_sister(w)
+	w.sense()
+	var told := _coughs(w, 80)
+	assert_gt(told.rounds.size(), 4)
+	for k in range(1, told.rounds.size()):
+		assert_between(told.rounds[k] - told.rounds[k - 1], 5, 15)
+	assert_false(told.heard.has(false))
+	assert_eq(told.lines.count("여동생이 기침했다"), told.rounds.size())
+
+
+func test_a_cough_heard_through_the_wall_is_told_once() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	var dist: PackedInt32Array = Grid.search(sister.pos, Masks.heard(w), 5).dist
+	var floor_tiles := Masks.floor_of(w)
+	for i in dist.size():
+		if dist[i] >= 3 and floor_tiles[i] == 1 and w.vacant(Grid.at(i)):
+			w.player().pos = Grid.at(i)
+			w.sense()
+			if not w.sees(w.player(), sister.pos):
+				break
+	assert_false(w.sees(w.player(), sister.pos), "she stands out of sight")
+	var told := _coughs(w, 20)
+	assert_gt(told.rounds.size(), 0)
+	assert_false(told.heard.has(false))
+	assert_eq(told.lines.count("여동생이 기침했다"), told.rounds.size())
+	assert_false(told.lines.any(func(l): return l.contains("소리를 들었다")), str(told.lines))
+
+
+func test_a_cough_out_of_earshot_is_not_heard() -> void:
+	var w := _house()
+	var dist: PackedInt32Array = Grid.search(_sister(w).pos, Masks.heard(w), 5).dist
+	assert_lt(dist[Grid.index(w.player().pos)], 0, "the trail's end is out of earshot")
+	var told := _coughs(w, 20)
+	assert_gt(told.rounds.size(), 0)
+	assert_false(told.heard.has(true))
+	assert_eq(told.lines.count("여동생이 기침했다"), 0)
+
+
+func test_the_run_ends_when_the_sister_falls() -> void:
+	var w := _house()
+	var before := w.clone()
+	w.events = []
+	Harm.hurt(w, _sister(w), 1)
+	assert_eq(w.outcome, &"lost")
+	assert_has(w.events.map(func(e): return e.t), &"lost")
+	var lines := Messages.of(before, w, w.events).map(Messages.plain)
+	assert_has(lines, "여동생이 쓰러졌다", "told out of sight too")
+
+
+func test_the_run_ends_when_miho_strikes_her_sister() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	w.player().pos = _by_sister(w)
+	w.cards.assign(Cards.ALL)
+	w.tails = 3
+	w.sense()
+	var dir := sister.pos - w.player().pos
+	w.act({t = &"cast", spells = [{cards = [Cards.FIRE], dir = dir}]})
+	assert_false(sister.alive())
+	assert_eq(w.outcome, &"lost")
+
+
+func test_the_reaper_goes_for_the_sister_only() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	var me := w.player()
+	me.pos = _by_sister(w)
+	var saja := FloorGen.spawn(w, &"saja", FloorGen.nearest_free(w, me.pos))
+	w.sense()
+	for i in 20:
+		if w.outcome != &"":
+			break
+		w.act(WAIT)
+		assert_eq(saja.ties.rival, sister.id)
+	assert_eq(w.outcome, &"lost")
+	assert_false(sister.alive())
+	assert_eq(me.hp, me.max_hp, "it never struck her")
+
+
+func test_the_returning_reaper_is_counted_from_the_sister() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	assert_eq(Curse.target(w), sister.pos)
+	w.reaper_step = 3
+	w.reaper_due = w.round_no
+	var told := w.act(WAIT).filter(func(e): return e.t == &"arrive")
+	assert_eq(told.size(), 1)
+	assert_eq(Grid.cheb(told[0].at, sister.pos), Curse.distance(3))

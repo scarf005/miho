@@ -127,6 +127,8 @@ const SOUNDS := [
 	[{t = &"elixir"}, &"card"],
 	[{t = &"won"}, &"win"],
 	[{t = &"lost"}, &"lose"],
+	[{t = &"cough"}, &"cough"],
+	[{t = &"noise", word = "콜록"}, &"cough"],
 	[{t = &"noise", word = Traps.GONG}, &"gong"],
 	[{t = &"noise", word = "우지끈"}, &"fall"],
 ]
