@@ -67,7 +67,6 @@ static func build(w: World) -> void:
 	var sister := FloorGen.spawn(w, Sister.KIND, bed, true)
 	sister.magic.cooldown = rng.randi_range(Sister.COUGH.x, Sister.COUGH.y)
 	w.rooms.assign([inside, Rect2i(middle - CLEARING, CLEARING * 2 + Vector2i.ONE)])
-	w.tail_bonus = w.storeys.get(1, {}).get("tail_bonus", 0)
 	w._changed()
 
 

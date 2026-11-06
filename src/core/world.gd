@@ -335,8 +335,10 @@ func storey() -> int:
 	return maxi(depth, 1)
 
 
+## The tails Miho may hold: the storey's count and its tail_bonus, storey 1's on the house.
 func max_tails() -> int:
-	return Elixir.TAILS if elixir_held else storey() + tail_bonus
+	var bonus: int = storeys[1].tail_bonus if depth == HOUSE and storeys.has(1) else tail_bonus
+	return Elixir.TAILS if elixir_held else storey() + bonus
 
 
 func tile(p: Vector2i) -> int:
