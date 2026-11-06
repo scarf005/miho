@@ -54,7 +54,7 @@ func _row(m: Node, cmd: StringName) -> void:
 ## A free tile next to Miho.
 func _beside(m: Node) -> Vector2i:
 	for d in Grid.DIRS:
-		if m.world.vacant(m.world.player().pos + d):
+		if Cheat._free(m.world, m.world.player().pos + d):
 			return m.world.player().pos + d
 	return Vector2i(-1, -1)
 
@@ -254,8 +254,8 @@ func test_a_pick_that_does_not_fit_asks_again_and_escape_opens_the_list() -> voi
 
 func test_damage_picks_a_creature_with_tab_and_hurts_it_by_the_amount() -> void:
 	var m := _main()
-	var near := _foe(m, &"dokkaebi", Vector2i(1, 0))
-	var far := _foe(m, &"bujigaengi", Vector2i(0, -4))
+	var near := _foe(m, &"dokkaebi", Vector2i(-1, 0))
+	var far := _foe(m, &"bujigaengi", Vector2i(0, -3))
 	var hp := far.hp
 	await _key(m, "F4")
 	_row(m, &"damage")
@@ -271,7 +271,7 @@ func test_damage_picks_a_creature_with_tab_and_hurts_it_by_the_amount() -> void:
 
 func test_a_creature_pick_refuses_an_empty_tile_and_miho() -> void:
 	var m := _main()
-	_foe(m, &"dokkaebi", Vector2i(1, 0))
+	_foe(m, &"dokkaebi", Vector2i(-1, 0))
 	await _key(m, "F4")
 	_row(m, &"kill")
 	await _key(m, "Enter")
@@ -363,7 +363,7 @@ func test_a_held_key_never_answers_a_pick() -> void:
 
 func test_a_creature_picked_for_damage_brings_the_list_back_on_that_row() -> void:
 	var m := _main()
-	_foe(m, &"dokkaebi", Vector2i(1, 0))
+	_foe(m, &"dokkaebi", Vector2i(-1, 0))
 	await _key(m, "F4")
 	_row(m, &"damage")
 	await _key(m, "Enter")
