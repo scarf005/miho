@@ -313,7 +313,7 @@ static func _centre(r: Rect2i) -> Vector2i:
 
 
 ## Empties the storey of everything but Miho: every tile `fill`, no creature, projectile, room,
-## pickup, fire, gas, plate, curse or memory, and its clock at 0.
+## pickup, fire, wet tile, gas, plate, curse or memory, and its clock at 0.
 static func clear(w: World, fill: int) -> void:
 	var me := w.player()
 	w.tiles = PackedByteArray()
@@ -329,6 +329,8 @@ static func clear(w: World, fill: int) -> void:
 	w.peaches.clear()
 	w.jars.clear()
 	w.burning.clear()
+	w.wild.clear()
+	w.wet.clear()
 	w.hot.clear()
 	w.gas.clear()
 	w.gas_heat.clear()
