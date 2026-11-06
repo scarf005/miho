@@ -285,12 +285,13 @@ static func _flare(w: World, s: Shot, tiles: Array[Vector2i]) -> void:
 			_sear(w, a, MOLTEN)
 
 
-## Open ground a compound may turn into another kind.
-static func open(w: World, p: Vector2i) -> bool:
+## Open ground a compound may turn into another kind, a skybridge too when `bridge`.
+static func open(w: World, p: Vector2i, bridge := false) -> bool:
 	var t := w.tile(p)
 	return (
 		w.open_floor(p)
-		and t not in [World.DOOR, World.DOOR_OPEN, World.BRIDGE]
+		and t not in [World.DOOR, World.DOOR_OPEN]
+		and (bridge or t != World.BRIDGE)
 		and not Tiles.of(t, "douses")
 		and not (p == w.stairs or p == w.elixir or w.peaches.has(p))
 		and not w.burning.has(p)
@@ -387,8 +388,7 @@ static func sinkable(w: World, tiles: Array[Vector2i], most := -1, goals := []) 
 	for p in tiles:
 		if gone.size() == most:
 			break
-		var ground := open(w, p) or w.tile(p) == World.BRIDGE
-		if p != me and ground and (not guard or linked(w, gone + [p], goals)):
+		if p != me and open(w, p, true) and (not guard or linked(w, gone + [p], goals)):
 			gone.append(p)
 	return gone
 

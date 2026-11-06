@@ -599,11 +599,15 @@ func test_a_cloud_of_fog_is_one_line_in_the_log() -> void:
 	assert_eq(Messages.of(w, w, fog).map(Messages.plain), ["안개가 피어올랐다"])
 
 
-func test_sinkhole_drops_a_skybridge_and_what_stands_on_it() -> void:
+func test_sinkhole_drops_a_skybridge_and_what_stands_on_it_but_a_peach_s() -> void:
 	var w := _world()
 	var on := ME + E * 3
+	var peach := on + Vector2i(0, 1)
 	_put(w, on, World.BRIDGE)
+	_put(w, peach, World.BRIDGE)
+	w.peaches.append(peach)
 	var foe := _post(w, on)
 	w.act(_cast(_made(&"sinkhole")))
 	assert_eq(w.tile(on), World.SKY)
 	assert_false(foe.alive())
+	assert_eq(w.tile(peach), World.BRIDGE)
