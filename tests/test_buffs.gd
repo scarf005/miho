@@ -62,7 +62,7 @@ func test_each_buff_holds_wood_and_goes_on_her_in_every_card_order() -> void:
 	for kind: StringName in Guise.RECIPE:
 		var cards: Array = Guise.RECIPE[kind]
 		assert_true(cards.size() >= 3, kind)
-		assert_true(Spell.make(cards).holds(Cards.WOOD), kind)
+		assert_true(Spell.make(cards).cards.has(Cards.WOOD), kind)
 		for order: Array in _orders(cards):
 			var s := Spell.make(order)
 			assert_eq(Guise.kind(s), kind, str(order))
