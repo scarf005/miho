@@ -86,7 +86,10 @@ func test_some_storeys_have_a_yard_with_a_guard_and_a_stand_in_a_room_of_their_o
 			if site.kind != &"yard":
 				continue
 			found += 1
-			assert_eq(w.sites.size() + w.seals.size(), 1, "one event room: " + _label(w))
+			var rooms := w.sites.filter(
+				func(s): return s.kind not in [&"labyrinth", Labyrinth.PRIZE]
+			)
+			assert_eq(rooms.size() + w.seals.size(), 1, "one event room: " + _label(w))
 			assert_eq(w.tile(site.at), World.TALISMAN)
 			var guards := w.actors.filter(func(a): return a.brain.guard)
 			assert_eq(guards.size(), 1, _label(w))

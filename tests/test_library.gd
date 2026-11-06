@@ -71,7 +71,10 @@ func test_some_storeys_have_a_library_in_a_room_of_their_own() -> void:
 			if site.kind != &"library":
 				continue
 			found += 1
-			assert_eq(w.sites.size() + w.seals.size(), 1, "one event room: " + _label(w))
+			var rooms := w.sites.filter(
+				func(s): return s.kind not in [&"labyrinth", Labyrinth.PRIZE]
+			)
+			assert_eq(rooms.size() + w.seals.size(), 1, "one event room: " + _label(w))
 			assert_eq(w.tile(site.at), World.SHELF)
 			assert_gte(w.tiles.count(World.SHELF), 2, _label(w))
 			assert_true(w.rooms.all(func(r): return not r.has_point(site.at)), "off the room list")

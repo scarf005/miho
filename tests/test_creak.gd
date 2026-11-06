@@ -75,7 +75,10 @@ func test_some_storeys_have_a_creaking_floor_with_a_sleeping_beast_in_a_room_of_
 			if site.kind != &"creak":
 				continue
 			found += 1
-			assert_eq(w.sites.size() + w.seals.size(), 1, "one event room: " + _label(w))
+			var rooms := w.sites.filter(
+				func(s): return s.kind not in [&"labyrinth", Labyrinth.PRIZE]
+			)
+			assert_eq(rooms.size() + w.seals.size(), 1, "one event room: " + _label(w))
 			var beast := w.actor(site.id)
 			assert_eq(beast.kind, &"haetae", _label(w))
 			assert_eq(beast.pos, site.at)
