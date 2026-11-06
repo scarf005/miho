@@ -26,6 +26,15 @@ const BAMBOO := &"bamboo"
 const PLATES := &"plates"
 const CELLS := &"cells"
 const CONCEPTS: Array[StringName] = [ORTHODOX, ISLAND, CIRCUIT, BAMBOO, PLATES, CELLS]
+## The name of each kind, as the debug commands say it.
+const NAME := {
+	ORTHODOX: "정통",
+	ISLAND: "섬",
+	CIRCUIT: "순환",
+	BAMBOO: "대숲",
+	PLATES: "함정",
+	CELLS: "방",
+}
 ## The site of the talisman inside: it gives what a yard's stand gives (Yard.arrive).
 const PRIZE := &"maze_prize"
 ## How wide the maze may be and how tall it is: a cell and its wall `step` tiles, with one wall
@@ -65,8 +74,10 @@ const GUARD_FAR := 8
 const GUARD_KINDS := [[4, &"bitjaru"], [6, &"dueoksini"], [World.FLOORS, &"eodeopsini"]]
 
 
-static func draw(w: World) -> Dictionary:
-	var concept: StringName = RunPlan.labyrinth(w.rng.seed).concept
+## Draws a maze of `concept`, the run's (RunPlan.labyrinth) when none is given.
+static func draw(w: World, concept := &"") -> Dictionary:
+	if concept == &"":
+		concept = RunPlan.labyrinth(w.rng.seed).concept
 	var wide: int = WIDE[w.rng.randi_range(0, WIDE.size() - 1)]
 	var gap := w.rng.randi_range(GAP.x, GAP.y)
 	var on_west := w.rng.randf() < 0.5

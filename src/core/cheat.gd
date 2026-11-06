@@ -5,7 +5,8 @@ extends RefCounted
 ## A command takes no round: nothing flies, no creature acts and the clock stays
 ## put. The four toggles are kept in World.cheats and copied with it: 무적 (Miho
 ## takes no harm), 꼬리 무제한 (casting spends no tails), 지도 밝히기 (every tile
-## known and seen) and 적 멈춤 (creatures take no turns). Harming a creature goes
+## known and seen) and 적 멈춤 (creatures take no turns); 지도 생성 turns the last two on.
+## Harming a creature goes
 ## by Harm.hurt, so a death drops its scroll and gives Miho a tail.
 
 ## What every spell is said to cost the tails Miho may spend while they are free.
@@ -28,6 +29,7 @@ const NAME := {
 	&"heal": "체력 회복",
 	&"halt": "적 멈춤",
 	&"elixir": "영약 받기",
+	&"generate": "지도 생성",
 }
 ## The parts of each command and their types.
 const ARGS := {
@@ -46,6 +48,13 @@ const ARGS := {
 	&"heal": {},
 	&"halt": {},
 	&"elixir": {},
+	&"generate":
+	{
+		depth = TYPE_INT,
+		shape = TYPE_STRING_NAME,
+		concept = TYPE_STRING_NAME,
+		seed_value = TYPE_INT,
+	},
 }
 
 
@@ -117,6 +126,13 @@ static func can(w: World, action: Dictionary) -> bool:
 			return me.hp < me.max_hp
 		&"elixir":
 			return not w.elixir_held
+		&"generate":
+			return (
+				action.depth >= 1
+				and action.depth <= World.FLOORS
+				and (action.shape == &"" or Skeletons.ALL.has(action.shape))
+				and (action.concept == &"" or Labyrinth.CONCEPTS.has(action.concept))
+			)
 	return true
 
 
@@ -160,6 +176,8 @@ static func handled(w: World, action: Dictionary) -> bool:
 			me.hp = me.max_hp
 		&"elixir":
 			Elixir.keep(w)
+		&"generate":
+			e.merge(_generate(w, action))
 		_:
 			w.cheats[action.cmd] = not on(w, action.cmd)
 			e.on = on(w, action.cmd)
@@ -169,6 +187,42 @@ static func handled(w: World, action: Dictionary) -> bool:
 	w._changed()
 	w.sense()
 	return true
+
+
+## 지도 생성: storey `depth` built in place of the one Miho is on, as a run on `seed_value`
+## builds it, on `shape` and a 미궁 of `concept` where they are given (DCSS
+## wizard_recreate_level), and shown whole and still with 지도 밝히기 and 적 멈춤 on. Returns
+## what was built, for the log: {depth, seed_value, shape, concept on a 미궁, element, light,
+## room, the set room's kind, if one was made}.
+static func _generate(w: World, action: Dictionary) -> Dictionary:
+	var me := w.player()
+	if me.buffs.raise:
+		Guise.dispel(w, me, Guise.RAISE)
+	w.depth = action.depth
+	w.rng.seed = action.seed_value
+	w.scent.clear()
+	w.strong.clear()
+	var shape: StringName = action.shape if action.shape != &"" else Skeletons.pick(w)
+	var set_room := FloorGen.storey(w, shape, action.concept)
+	if w.elixir_held:
+		w.elixir = Vector2i(-1, -1)
+	w.regrow = 0
+	w.tails = w.max_tails()
+	w.cheats[&"reveal"] = true
+	w.cheats[&"halt"] = true
+	var made := {
+		depth = w.depth,
+		seed_value = action.seed_value,
+		shape = shape,
+		element = RunPlan.element(action.seed_value, w.depth, shape),
+		light = RunPlan.light(action.seed_value, w.depth),
+	}
+	if shape == Skeletons.LABYRINTH:
+		var drawn: StringName = RunPlan.labyrinth(action.seed_value).concept
+		made.concept = action.concept if action.concept != &"" else drawn
+	if not set_room.is_empty():
+		made.room = set_room.kind
+	return made
 
 
 ## Puts `a` on `to`, and the wisps riding it with it, without a step.

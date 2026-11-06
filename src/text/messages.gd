@@ -508,7 +508,24 @@ static func _cheat(e: Dictionary) -> Array:
 			return _t("체력을 모두 회복했다")
 		&"elixir":
 			return _t("영약을 얻었다")
+		&"generate":
+			return _generated(e)
 	return _t("{0}을/를 켰다" if e.on else "{0}을/를 껐다", [name])
+
+
+## What 지도 생성 built: the storey, seed, shape, 미궁, element, light and set room.
+static func _generated(e: Dictionary) -> Array:
+	var depth := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
+	var shape := [Skeletons.NAME[e.shape], TEXT]
+	var line := _t("{0} 지도를 만들었다. 시드: {1}, 모양: {2}", [depth, [str(e.seed_value), TEXT], shape])
+	if e.has("concept"):
+		line += _t(", 미궁: {0}", [[Labyrinth.NAME[e.concept], TEXT]])
+	var element := [Cards.NAME[e.element], Palette.card(e.element)]
+	var light := [RunPlan.LIGHT_NAME[RunPlan.LIGHTS.find(e.light)], TEXT]
+	line += _t(", 원소: {0}, 빛: {1}", [element, light])
+	if e.has("room"):
+		line += _t(", 짜인 방: {0}", [[SetRooms.NAME[e.room], TEXT]])
+	return line
 
 
 static func _hurt_line(before: World, after: World, e: Dictionary, last: Dictionary) -> Array:

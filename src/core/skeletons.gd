@@ -70,6 +70,28 @@ const ALL: Array[StringName] = [
 	WINDING,
 	LABYRINTH,
 ]
+## The name of each skeleton, as the debug commands say it.
+const NAME := {
+	PAVILIONS: "누각",
+	RING: "고리 회랑",
+	AVENUE: "천상 대로",
+	TOWERS: "쌍탑",
+	BROKEN: "부서진 층",
+	SCATTERED: "흩어진 정자",
+	GARDEN: "연못 정원",
+	KEEP: "겹누각",
+	RUIN: "무너진 정자",
+	CITADEL: "겹누각 성채",
+	GROVE: "대숲",
+	FLOODED: "물 찬 층",
+	TIMBER: "나무벽 층",
+	HOLLOW: "가운데 뚫린 층",
+	CAVE: "무너진 석굴",
+	ASKEW: "어긋난 전각",
+	MIRROR: "좌우 대칭 전각",
+	WINDING: "꺾인 복도",
+	LABYRINTH: "미궁",
+}
 ## The skeletons with one way to the exit: no two routes are asked of them.
 const ONE_WAY: Array[StringName] = [PAVILIONS, KEEP, CITADEL, WINDING, LABYRINTH]
 ## Tiles this near the start room and the exit room may lie on both routes (`two_ways`).
@@ -124,8 +146,8 @@ static func pick(w: World) -> StringName:
 	return RunPlan.shapes(w.rng.seed)[w.depth - 1]
 
 
-## Draws a storey on `skeleton`.
-static func draw(w: World, skeleton: StringName) -> Dictionary:
+## Draws a storey on `skeleton`, a 미궁 of `concept` (Labyrinth.draw).
+static func draw(w: World, skeleton: StringName, concept := &"") -> Dictionary:
 	match skeleton:
 		RING:
 			return _ring(w)
@@ -162,7 +184,7 @@ static func draw(w: World, skeleton: StringName) -> Dictionary:
 		WINDING:
 			return Winding.draw(w)
 		LABYRINTH:
-			return Labyrinth.draw(w)
+			return Labyrinth.draw(w, concept)
 	return FloorGen.pavilions(w)
 
 

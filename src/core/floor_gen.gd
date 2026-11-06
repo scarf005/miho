@@ -209,13 +209,14 @@ static var _door_kinds := PackedByteArray([World.WALL, World.FLOOR, World.DOOR, 
 ## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
 ## in its rooms has spoiled (`_sound`) starts over. The storey that stays has no
 ## window an event room left bare (`_shut_windows`). On a storey with an `outside`, Miho
-## starts before its way out (Outside.doorstep).
-static func build(w: World, skeleton := &"", outside := false) -> Dictionary:
+## starts before its way out (Outside.doorstep). A 미궁 is of `concept` (Labyrinth.CONCEPTS),
+## the run's when none is given.
+static func build(w: World, skeleton := &"", outside := false, concept := &"") -> Dictionary:
 	if skeleton == &"":
 		skeleton = Skeletons.pick(w)
 	var set_room := {}
 	for attempt in BUILDS:
-		set_room = _build(w, skeleton, outside)
+		set_room = _build(w, skeleton, outside, concept)
 		if _sound(w, skeleton):
 			break
 	_shut_windows(w)
@@ -223,10 +224,11 @@ static func build(w: World, skeleton := &"", outside := false) -> Dictionary:
 
 
 ## The storey Miho is on, built: `build`, and the outside ground round the first (Outside).
-static func storey(w: World) -> void:
-	build(w, &"", w.depth == 1)
+static func storey(w: World, skeleton := &"", concept := &"") -> Dictionary:
+	var set_room := build(w, skeleton, w.depth == 1, concept)
 	if w.depth == 1:
 		Outside.lay(w)
+	return set_room
 
 
 ## Whether no plate shuts a tile in, the exit can be walked to with nothing to break
@@ -246,7 +248,9 @@ static func _sound(w: World, skeleton: StringName) -> bool:
 	)
 
 
-static func _build(w: World, skeleton: StringName, outside: bool) -> Dictionary:
+static func _build(
+	w: World, skeleton: StringName, outside: bool, concept: StringName
+) -> Dictionary:
 	var me := w.player()
 	w.actors.assign([me])
 	w.shots.clear()
@@ -276,7 +280,7 @@ static func _build(w: World, skeleton: StringName, outside: bool) -> Dictionary:
 	var plan := {}
 	var goal := Rect2i()
 	for attempt in 100:
-		plan = _carve(w, skeleton)
+		plan = _carve(w, skeleton, concept)
 		goal = plan.goal
 		if (
 			w.rooms.size() >= MIN_ROOMS
@@ -332,7 +336,7 @@ static func _centre(r: Rect2i) -> Vector2i:
 ## Clears the storey and draws it on `skeleton`, with its far doorways, hidden doors
 ## and windows; returns the plan (Skeletons.draw) with every link it cut in `links`,
 ## in order, each {at, a, b}: the tile that makes the link, and the tiles it joins.
-static func _carve(w: World, skeleton: StringName) -> Dictionary:
+static func _carve(w: World, skeleton: StringName, concept := &"") -> Dictionary:
 	w.tiles = PackedByteArray()
 	w.tiles.resize(Grid.W * Grid.H)
 	w.tiles.fill(World.SKY)
@@ -341,7 +345,7 @@ static func _carve(w: World, skeleton: StringName) -> Dictionary:
 	w.seals.clear()
 	w.sites.clear()
 	w.tail_bonus = 0
-	var plan := Skeletons.draw(w, skeleton)
+	var plan := Skeletons.draw(w, skeleton, concept)
 	var hidden: Array = _loops(w, plan.spots, plan.links) + plan.get("sealed", [])
 	shuffle(w.rng, hidden)
 	_hide_doors(w, hidden)

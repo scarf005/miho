@@ -3413,3 +3413,108 @@ msgstr "Shrink danger zone"
 
 msgid "위험구역 반지름"
 msgstr "Zone radius"
+
+msgid "지도 생성"
+msgstr "Generate map"
+
+msgid "정통"
+msgstr "Classic"
+
+msgid "섬"
+msgstr "Island"
+
+msgid "순환"
+msgstr "Circuit"
+
+msgid "방"
+msgstr "Chambers"
+
+msgid "보통"
+msgstr "Medium"
+
+msgid "갈대 정원"
+msgstr "Reed garden"
+
+msgid "불타기 쉬운 곳간"
+msgstr "Tinder granary"
+
+msgid "안개 연못"
+msgstr "Misty pond"
+
+msgid "경보 복도"
+msgstr "Alarm corridor"
+
+msgid "깨어나는 석상"
+msgstr "Waking statues"
+
+msgid "무너지는 마루"
+msgstr "Rotten floor"
+
+msgid "늪지"
+msgstr "Swamp"
+
+msgid "누각"
+msgstr "Pavilions"
+
+msgid "고리 회랑"
+msgstr "Ring hall"
+
+msgid "천상 대로"
+msgstr "Heavenly avenue"
+
+msgid "쌍탑"
+msgstr "Twin towers"
+
+msgid "부서진 층"
+msgstr "Broken floor"
+
+msgid "흩어진 정자"
+msgstr "Scattered pavilions"
+
+msgid "연못 정원"
+msgstr "Pond garden"
+
+msgid "겹누각"
+msgstr "Keep"
+
+msgid "무너진 정자"
+msgstr "Ruin"
+
+msgid "겹누각 성채"
+msgstr "Citadel"
+
+msgid "물 찬 층"
+msgstr "Flooded floor"
+
+msgid "나무벽 층"
+msgstr "Timber floor"
+
+msgid "가운데 뚫린 층"
+msgstr "Hollow floor"
+
+msgid "무너진 석굴"
+msgstr "Collapsed cave"
+
+msgid "어긋난 전각"
+msgstr "Askew hall"
+
+msgid "좌우 대칭 전각"
+msgstr "Mirror hall"
+
+msgid "꺾인 복도"
+msgstr "Winding corridor"
+
+msgid "미궁"
+msgstr "Labyrinth"
+
+msgid "{0} 지도를 만들었다. 시드: {1}, 모양: {2}"
+msgstr "Generated the map of {0}. Seed: {1}, shape: {2}"
+
+msgid ", 미궁: {0}"
+msgstr ", labyrinth: {0}"
+
+msgid ", 원소: {0}, 빛: {1}"
+msgstr ", element: {0}, light: {1}"
+
+msgid ", 짜인 방: {0}"
+msgstr ", set room: {0}"

@@ -49,6 +49,8 @@ const FAMILY := {
 }
 ## The chance a room has a lantern on a dark, a middling and a bright storey.
 const LIGHTS: Array[float] = [0.1, 0.45, 0.85]
+## The name of each, as the debug commands say it.
+const LIGHT_NAME := ["어두움", "보통", "밝음"]
 ## The shapes of one element.
 const ELEMENT_OF := {Skeletons.GROVE: Cards.WOOD, Skeletons.FLOODED: Cards.WATER}
 ## What makes the draws of a storey's light and element differ from those of its shape.

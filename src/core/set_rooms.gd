@@ -28,6 +28,16 @@ const ROWS := [
 	{kind = &"rotten", tier = 6},
 	{kind = &"swamp", tier = 7},
 ]
+## The name of each kind, as the debug commands say it.
+const NAME := {
+	&"garden": "갈대 정원",
+	&"granary": "불타기 쉬운 곳간",
+	&"mist": "안개 연못",
+	&"corridor": "경보 복도",
+	&"statues": "깨어나는 석상",
+	&"rotten": "무너지는 마루",
+	&"swamp": "늪지",
+}
 ## A swamp is mud grown from the middle of the room like a patch (Placement), of
 ## at least MUD_LEAST tiles, with marsh gas breathed from MARSH_VENTS of them (one
 ## more in a room of LARGE_AREA tiles).

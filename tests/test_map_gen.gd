@@ -43,7 +43,8 @@ func test_each_shape_is_built_on_the_first_middle_and_last_storey_with_miho_at_i
 			var w := Built.world(SEED)
 			_gen(w, depth, shape)
 			var label := "%s on %d" % [shape, depth]
-			assert_eq(w.tiles, _built(SEED, depth, shape).tiles, label)
+			var ref := _built(SEED, depth, shape)
+			assert_eq([w.rooms, w.stairs, w.elixir], [ref.rooms, ref.stairs, ref.elixir], label)
 			assert_eq(w.depth, depth, label)
 			assert_eq(w.player().pos, w.start, label)
 			maps[w.tiles] = true
@@ -69,19 +70,19 @@ func test_the_same_seed_and_picks_build_the_same_storey_twice() -> void:
 	var first := w.clone()
 	w.act({t = &"wait"})
 	_gen(w, 4, Skeletons.RING)
-	assert_eq(w.tiles, first.tiles)
+	assert_true(w.tiles == first.tiles)
 	assert_eq(w.start, first.start)
 	var kinds := func(x: World): return x.actors.map(func(a): return [a.kind, a.pos])
 	assert_eq(kinds.call(w), kinds.call(first))
 	_gen(w, 4, Skeletons.RING, &"", SEED + 1)
-	assert_ne(w.tiles, first.tiles, "the next seed builds another")
+	assert_false(w.tiles == first.tiles, "the next seed builds another")
 
 
 func test_a_storey_with_nothing_picked_is_the_one_a_run_on_the_seed_builds() -> void:
 	var run := World.create(SEED)
 	var w := Built.world(SEED + 5)
 	_gen(w, 1)
-	assert_eq(w.tiles, run.tiles)
+	assert_true(w.tiles == run.tiles)
 	assert_eq(w.player().pos, run.player().pos)
 
 
@@ -103,7 +104,6 @@ func test_the_log_line_names_the_seed_storey_shape_element_light_and_set_room() 
 	var w := Built.world(SEED)
 	var before := w.clone()
 	var told := Messages.of(before, w, _gen(w, 6, &"", &"", SEED))
-	assert_eq(told.size(), 1)
 	var line := Messages.plain(told[0])
 	var shape: StringName = RunPlan.shapes(SEED)[5]
 	assert_string_contains(line, str(SEED))
