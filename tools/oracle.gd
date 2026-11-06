@@ -51,6 +51,8 @@ const WORLD_VARS: Array[String] = [
 	"round_no",
 	"rounds",
 	"gas_heat",
+	"elixir_held",
+	"elixir_asked",
 	"outcome",
 	"changes",
 	"bodies",
@@ -442,8 +444,10 @@ func _save_run(number: int, seed_value: int, rich: bool, k := 0) -> void:
 	)
 
 
-## Plays `action` when it fits the rules.
+## Plays `action` when it fits the rules; while the elixir asks, drinking it instead.
 func _play(save: SaveGame, w: World, action: Dictionary) -> bool:
+	if w.elixir_asked:
+		action = {t = &"drink", yes = true}
 	if action.is_empty() or not w.can(action):
 		return false
 	var events := w.act(action)
