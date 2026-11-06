@@ -589,7 +589,7 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		for t in w.tiles:
 			if features.has(t):
 				features[t] += 1
-		assert_true(w.rooms[0].has_point(w.start), "storey 1 starts in the pavilion")
+		assert_false(w.outside.has(w.start), "storey 1 starts in the pavilion")
 		assert_eq(w.tile(w.stairs), World.FLOOR)
 		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist

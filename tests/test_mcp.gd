@@ -115,11 +115,18 @@ func test_an_illegal_act_changes_nothing_and_says_so() -> void:
 
 func test_a_step_into_a_wall_is_refused() -> void:
 	var tools := _game()
-	tools.world.player().pos = Vector2i(3, 24)
-	tools.world.sense()
+	var w := tools.world
+	var at := Vector2i(-1, -1)
+	for i in w.tiles.size():
+		var p := Grid.at(i)
+		if w.tile(p) == World.FLOOR and w.vacant(p) and w.tile(p + Vector2i(-1, 0)) == World.WALL:
+			at = p
+			break
+	w.player().pos = at
+	w.sense()
 	var r := _call(tools, "act", {action = "move", dir = "w"})
 	assert_true(r.error)
-	assert_eq(tools.world.player().pos, Vector2i(3, 24))
+	assert_eq(w.player().pos, at)
 	assert_eq(tools.world.round_no, 0)
 
 

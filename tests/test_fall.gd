@@ -496,13 +496,20 @@ func test_the_log_tells_who_hit_the_wall() -> void:
 
 
 func test_a_fall_into_a_walled_court_lands_near_it_on_ground_walked_to_from_the_start() -> void:
-	var w := World.create(6)
+	var w: World
 	var p := Vector2i(-1, -1)
-	for i in w.tiles.size():
-		if w.tiles[i] == World.WALL and FloorGen.nearest_free(w, Grid.at(i), Masks.air(w)).x < 0:
-			p = Grid.at(i)
+	for s in 40:
+		w = World.create(s)
+		for i in w.tiles.size():
+			if (
+				w.tiles[i] == World.WALL
+				and FloorGen.nearest_free(w, Grid.at(i), Masks.air(w)).x < 0
+			):
+				p = Grid.at(i)
+				break
+		if p.x >= 0:
 			break
-	assert_gte(p.x, 0, "storey 1 of seed 6 has a court walled off")
+	assert_gte(p.x, 0, "storey 1 of a seed has a court walled off")
 	_climb(w)
 	_edge(w, p)
 	w.push(w.player(), E, 1)
