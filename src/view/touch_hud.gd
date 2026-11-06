@@ -349,7 +349,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	var at := _cell(rect.position)
 	t.draw_glyph(at, "@", Palette.glyph_color(me))
 	t.draw_pips(at + Vector2(1.5, 0), me.hp, me.max_hp, Palette.HURT)
-	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
+	var right := Lang.t("%s %d초") % [Messages.storey(w.depth), w.round_no]
 	t.draw_text(Vector2(_cell(rect.end).x - t.text_cells(right), at.y), right, Palette.TEXT)
 	StatusBar.buffs(t, Vector2(_cell(rect.end).x - t.text_cells(right) - 1.0, at.y))
 	var held: int = StatusBar._held(t)

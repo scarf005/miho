@@ -543,11 +543,11 @@ msgstr "became human"
 msgid "쓰러졌다"
 msgstr "fell"
 
-msgid "%d층 · %d초"
-msgstr "Floor %d · %d s"
+msgid "%s · %d초"
+msgstr "%s · %d s"
 
-msgid "%d층 · %d분 %d초"
-msgstr "Floor %d · %d min %d s"
+msgid "%s · %d분 %d초"
+msgstr "%s · %d min %d s"
 
 msgid "처치 %d"
 msgstr "Kills %d"
@@ -596,6 +596,12 @@ msgstr "%s talisman"
 
 msgid "내려가는 계단"
 msgstr "Stairs down"
+
+msgid "오솔길"
+msgstr "Trail"
+
+msgid "집"
+msgstr "House"
 
 msgid "계단"
 msgstr "Stairs"
@@ -1473,6 +1479,9 @@ msgstr "All tails came back"
 msgid "{0}으로 내려갔다"
 msgstr "Went down to {0}"
 
+msgid "{0}으로 갔다"
+msgstr "Went to {0}"
+
 msgid "{0}으로 올라갔다"
 msgstr "Climbed to {0}"
 
@@ -1571,9 +1580,6 @@ msgstr "Noise"
 
 msgid "근접 소음"
 msgstr "Melee noise"
-
-msgid "%d층 %d초"
-msgstr "Floor %d %d s"
 
 msgid "디버그"
 msgstr "Debug"
@@ -3133,6 +3139,9 @@ msgstr "%s foes and %s foes shoot wisps at tiles they suspect."
 
 msgid "{0} 눈앞에서 {1}할까?"
 msgstr "{1} in front of {0}?"
+
+msgid "주문을 쓸까?"
+msgstr "Cast the spell?"
 
 msgid "사령술"
 msgstr "Necromancy"

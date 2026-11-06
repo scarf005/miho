@@ -96,8 +96,8 @@ static func over(w: World, kills: int, seed_value: int) -> Array[String]:
 ## The storey and the time of the whole run, 1 round a second.
 static func _time(w: World) -> String:
 	if w.rounds < 60:
-		return Lang.t("%d층 · %d초") % [w.depth, w.rounds]
-	return Lang.t("%d층 · %d분 %d초") % [w.depth, w.rounds / 60, w.rounds % 60]
+		return Lang.t("%s · %d초") % [Messages.storey(w.depth), w.rounds]
+	return Lang.t("%s · %d분 %d초") % [Messages.storey(w.depth), w.rounds / 60, w.rounds % 60]
 
 
 ## How Miho fell, from what came just before her last wound this round. A creature

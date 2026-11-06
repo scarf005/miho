@@ -112,6 +112,11 @@ static func shown(line: Dictionary) -> Array:
 	return line.shown[code]
 
 
+## The name of storey `depth` on every screen: 집 for the house (World.HOUSE), else N층.
+static func storey(depth: int) -> String:
+	return Lang.t("집") if depth == World.HOUSE else Lang.t("%d층") % depth
+
+
 ## A line's text without its colours.
 static func plain(runs: Array) -> String:
 	return "".join(runs.map(func(r): return r[0]))
@@ -366,15 +371,17 @@ static func _find_line(before: World, after: World, e: Dictionary, last: Diction
 			return _t("{0}에서 {1}이/가 나왔다", [jar, _named(Notice.LABEL[&"body"])])
 		&"fall":
 			if e.has("depth"):
-				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
+				var floor_no := [storey(e.depth), Palette.KIND[&"miho"]]
 				if e.get("soft", false):
 					return _t("{0}으로 내려왔다", [floor_no])
 				return _t("{0}으로 추락했다", [floor_no])
 			return _t("{0}이/가 하늘로 떨어졌다", [_who(before, after, e.get("id", -1))])
 		&"ascend":
-			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
+			return _t("{0}으로 올라갔다", [[storey(e.depth), Palette.KIND[&"miho"]]])
 		&"descend":
-			return _t("{0}으로 내려갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
+			return _t("{0}으로 내려갔다", [[storey(e.depth), Palette.KIND[&"miho"]]])
+		&"trail":
+			return _t("{0}으로 갔다", [[storey(e.depth), Palette.KIND[&"miho"]]])
 		&"altar":
 			var altar := _named(Tiles.of(World.ALTAR, "name"))
 			return _t("{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다", [altar])
@@ -501,7 +508,7 @@ static func _cheat(e: Dictionary) -> Array:
 		&"move_foe":
 			return _t("{0}을/를 옮겼다", [kind])
 		&"floor":
-			return _t("{0}으로 이동했다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
+			return _t("{0}으로 이동했다", [[storey(e.depth), Palette.KIND[&"miho"]]])
 		&"summon":
 			return _t("{0}을/를 불러냈다", [kind])
 		&"heal":

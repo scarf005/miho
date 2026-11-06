@@ -627,9 +627,11 @@ static func tile_name(w: World, p: Vector2i) -> String:
 	return _lies(w, p, [Tiles.of(w.tile(p), "name"), []])[0]
 
 
-## What lies on tile `p` besides its own kind, as [name, notes]: the stairs up or down, a
-## pickup or a scroll; else `plain`, the same pair for the tile's kind.
+## What lies on tile `p` besides its own kind, as [name, notes]: the trail's exit, the stairs
+## up or down, a pickup or a scroll; else `plain`, the same pair for the tile's kind.
 static func _lies(w: World, p: Vector2i, plain: Array) -> Array:
+	if p == w.trail_end:
+		return ["오솔길", []]
 	if p == w.stairs:
 		return ["계단", [Lang.t("체력: +%d") % World.HEAL, "꼬리: 모두 회복"]]
 	if p == w.down:

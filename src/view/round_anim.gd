@@ -169,7 +169,7 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 			flash(at, Color(Palette.TILES[e.kind][1], 0.6))
 		&"fall" when e.has("depth"):
 			popups.clear()
-		&"ascend", &"descend":
+		&"ascend", &"descend", &"trail":
 			popups.clear()
 		&"splash":
 			for f: Array in Impact.flashes(e):

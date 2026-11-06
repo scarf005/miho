@@ -7,10 +7,13 @@ extends RefCounted
 ## direction key also stops once a creature is in sight that was not when the key
 ## went down (`sighted`). A 둔갑 cast before a creature it would not fool asks too:
 ## the prompt waits in `casting` (the spells) until the self key again, or Y, casts
-## them. This is view state: a prompt takes no turn and is not in the save.
+## them. Any spell in the house (World.HOUSE) asks the same way. This is view state: a prompt
+## takes no turn and is not in the save.
 
 ## What is asked before a 둔갑 a creature would see through.
 const WATCHED := "{0} 눈앞에서 {1}할까?"
+## What is asked before any spell in the house.
+const HOUSE_CAST := "주문을 쓸까?"
 
 ## The direction a step waits to be confirmed in, or zero.
 var asking := Vector2i.ZERO
@@ -85,17 +88,21 @@ static func ask(m: Node, line: Array) -> void:
 	m.sfx.play(&"warn")
 
 
-## Whether the action waits on a prompt, now up: a 둔갑 cast that a creature she
-## knows of would see through (Guise.watcher).
+## Whether the action waits on a prompt, now up: any spell in the house, or a 둔갑 cast
+## that a creature she knows of would see through (Guise.watcher).
 func holds_back(m: Node, action: Dictionary) -> bool:
 	if action.t != &"cast" or action.spells == casting:
 		return false
-	var foe := Guise.watcher(m.known, action.spells)
-	if foe == null:
-		return false
+	var line := [[Lang.t(HOUSE_CAST), Palette.TEXT]]
+	if m.known.depth != World.HOUSE:
+		var foe := Guise.watcher(m.known, action.spells)
+		if foe == null:
+			return false
+		var args := [
+			[foe.info().name, Palette.KIND[foe.kind]], [Guise.NAME[Guise.GUISE], Palette.TEXT]
+		]
+		line = Lang.runs(WATCHED, args, Palette.TEXT)
 	casting = action.spells
-	var args := [[foe.info().name, Palette.KIND[foe.kind]], [Guise.NAME[Guise.GUISE], Palette.TEXT]]
-	var line := Lang.runs(WATCHED, args, Palette.TEXT)
 	ask(m, line if m.touch.enabled else line + [[" Y/N", Palette.TEXT]])
 	return true
 

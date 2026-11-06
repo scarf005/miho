@@ -25,7 +25,7 @@ static func draw(t: Term) -> void:
 		elif i >= w.tails - held:
 			c = Palette.CARD[Cards.EARTH]
 		t.draw_glyph(Vector2(Term.MAP.x + i, row), "~", c)
-	var right := Lang.t("%d층 %d초") % [w.depth, w.round_no]
+	var right := Lang.t("%s %d초") % [Messages.storey(w.depth), w.round_no]
 	t.draw_text(Vector2(t.cols - t.text_cells(right), row), right, Palette.TEXT)
 	if not t.debug.is_empty():
 		t.draw_text(debug_label(t).position, Lang.t("디버그"), Palette.SOUND)
@@ -106,7 +106,7 @@ static func buffs(t: Term, end: Vector2) -> void:
 
 ## The cells of the debug label, left of the storey and time on the upper row.
 static func debug_label(t: Term) -> Rect2:
-	var right := Lang.t("%d층 %d초") % [t.world.depth, t.world.round_no]
+	var right := Lang.t("%s %d초") % [Messages.storey(t.world.depth), t.world.round_no]
 	var width := t.text_cells(Lang.t("디버그"))
 	return Rect2(t.cols - t.text_cells(right) - width - 1, t.rows - 2, width, 1)
 

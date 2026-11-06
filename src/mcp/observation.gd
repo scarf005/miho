@@ -32,7 +32,7 @@ const LEGEND := (
 	+ "¨grass ▤straw ‖reeds _flattened-reeds ◆leaves ßpillar "
 	+ "◇ice ‡thorns †altar(lit or not: see look) ╫veil(fire) ¶stone-lamp ◊talisman-stand "
 	+ "▒shelf(unread or read: see look) ║screen 0jar &censer "
-	+ "▫courtyard 8statue ╪rotten-floorboards "
+	+ "▫courtyard(also the trail: look) 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs >stairs-down !elixir "
 	+ "%peach, kimchi or fallen-creature(see look) ?scroll(see look) ●○*projectile "
@@ -43,14 +43,18 @@ const LEGEND := (
 static func text(world: World) -> String:
 	var k := world.known_clone()
 	var me := k.player()
+	var storey := "house" if k.depth == World.HOUSE else "storey %d/%d" % [k.depth, World.FLOORS]
 	var out: Array[String] = [
 		(
-			"storey %d/%d, round %d, hp %d/%d, tails %d/%d"
-			% [k.depth, World.FLOORS, k.round_no, me.hp, me.max_hp, k.tails, k.max_tails()]
+			"%s, round %d, hp %d/%d, tails %d/%d"
+			% [storey, k.round_no, me.hp, me.max_hp, k.tails, k.max_tails()]
 		),
 		"talismans: " + ", ".join(_cards(k)),
 		"Miho at (%d,%d)" % [me.pos.x, me.pos.y],
 	]
+	if Grid.inside(k.trail_end) and k.known[Grid.index(k.trail_end)] == 1:
+		var end := k.trail_end
+		out.append("trail exit at (%d,%d): storey 1 <-> house" % [end.x, end.y])
 	if me.buffs.guise:
 		out.append("in guise as %s" % Bestiary.info(me.buffs.form).name)
 	if me.buffs.talon:

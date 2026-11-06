@@ -386,7 +386,10 @@ func _forecast(args: Dictionary) -> Dictionary:
 		out.append("ally appears: (%d,%d)" % [p.x, p.y])
 	if f.after.depth != world.depth:
 		var way := "falls" if f.drops_me() else "climbs"
-		out.append("Miho %s to storey %d" % [way, f.after.depth])
+		if World.HOUSE in [world.depth, f.after.depth]:
+			way = "walks the trail"
+		var to := "house" if f.after.depth == World.HOUSE else "storey %d" % f.after.depth
+		out.append("Miho %s to %s" % [way, to])
 	return _ok("\n".join(out))
 
 
