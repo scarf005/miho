@@ -19,7 +19,7 @@ func _action(w: World, i: int) -> Dictionary:
 	var step := {t = &"move", dir = Grid.DIRS[i % 8]}
 	if i % 5 == 4 and w.can(cast):
 		return cast
-	var out := w.player().pos + step.dir == w.gate
+	var out: bool = w.player().pos + step.dir == w.gate
 	return step if w.can(step) and not out else {t = &"wait"}
 
 
