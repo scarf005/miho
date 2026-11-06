@@ -121,6 +121,7 @@ const SOUNDS := [
 	[{t = &"curse", what = Curse.SIGHT}, Sfx.EERIE],
 	[{t = &"curse", what = Curse.BODY}, Sfx.EERIE],
 	[{t = &"ascend"}, &"ascend"],
+	[{t = &"descend"}, &"descend"],
 	[{t = &"fall", depth = 2}, &"scream"],
 	[{t = &"elixir"}, &"card"],
 	[{t = &"won"}, &"win"],

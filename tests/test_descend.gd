@@ -134,3 +134,47 @@ func test_no_spell_turns_or_grows_over_the_stairs_down() -> void:
 	w.player().pos = w.down + _off(w, w.down)
 	assert_false(Compounds.open(w, w.down))
 	assert_eq(Elements.growable(w, [w.down] as Array[Vector2i]), [] as Array[Vector2i])
+
+
+func test_a_walk_goes_round_the_stairs_down_and_ends_on_them_only_when_told() -> void:
+	var w := World.create(3)
+	_climb(w)
+	w.known.fill(1)
+	var d := Vector2i.ZERO
+	for one in Grid.DIRS:
+		if w.vacant(w.down + one) and w.vacant(w.down - one) and d == Vector2i.ZERO:
+			d = one
+	w.player().pos = w.down + d
+	w.sense()
+	var found := Travel.search(w)
+	assert_does_not_have(Travel.route(found, w.down - d), w.down)
+	assert_eq(Travel.route(found, w.down), [w.down] as Array[Vector2i])
+	assert_ne(w.player().pos + Travel.explore_step(w, found), w.down)
+
+
+func test_the_hover_names_the_stairs_down_and_their_curse() -> void:
+	var w := World.create(3)
+	_climb(w)
+	var text := Info.plain(Info.terrain_facts(w, w.down))
+	assert_true(text.begins_with("내려가는 계단\n저승의 저주\n"), text)
+
+
+func test_the_agent_map_draws_the_stairs_down() -> void:
+	var w := World.create(3)
+	_climb(w)
+	w.player().pos = w.down + _off(w, w.down)
+	w.sense()
+	var rows := Observation.text(w).split("\n")
+	var head := "map, x across 0-%d, y down 0-%d:" % [Grid.W - 1, Grid.H - 1]
+	var row: String = rows[rows.find(head) + 2 + w.down.y]
+	assert_eq(row[3 + w.down.x], ">")
+
+
+func test_the_log_tells_the_storey_she_went_down_to() -> void:
+	var w := World.create(3)
+	_climb(w)
+	var before := w.clone()
+	w.events = []
+	_descend(w)
+	var lines := Messages.of(before, w, w.events).map(Messages.plain)
+	assert_eq(lines, ["1층으로 내려갔다", "오한이 든다..."], "the stairs she took up are no find")
