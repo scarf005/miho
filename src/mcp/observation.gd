@@ -42,7 +42,7 @@ const LEGEND := (
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
 	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs >stairs-down !elixir "
 	+ "%peach, kimchi or fallen-creature(see look) ?scroll(see look) ●○*projectile "
-	+ "@Miho(or an allied 분신)"
+	+ "@Miho(or an allied 분신, or her sister in the house: see ally)"
 )
 
 
