@@ -183,7 +183,9 @@ const TOOLS := [
 		(
 			"Take an action. move steps in dir, or claws a creature there, or knocks a lantern or window, "
 			+ "or slides a closed door open (Miho stays put); close shuts the open door in dir; "
-			+ "wait passes a round; cast hurls spells. explore, rest (until the tails regrow), "
+			+ "wait passes a round; cast hurls spells; drink answers the question that stepping on "
+			+ "the elixir asks, and nothing else is allowed until then. "
+			+ "explore, rest (until the tails regrow), "
 			+ (
 				"stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to %d, "
 				% MAX_ROUNDS
@@ -206,6 +208,7 @@ const TOOLS := [
 						"wait",
 						"cast",
 						"dispel",
+						"drink",
 						"explore",
 						"rest",
 						"stairs",
@@ -215,6 +218,8 @@ const TOOLS := [
 				dir = DIRS,
 				spells = SPELLS,
 				kind = KINDS,
+				yes =
+				{type = "boolean", description = "drink: true drinks the elixir, false keeps it."},
 				x = {type = "integer", description = "travel: tile column."},
 				y = {type = "integer", description = "travel: tile row."},
 			},
@@ -405,7 +410,10 @@ func _act(args: Dictionary) -> Dictionary:
 ## rest, stairs, travel with a goal), or {error} when the arguments are not valid.
 func _action(args: Dictionary) -> Dictionary:
 	var name: Variant = args.get("action")
-	var out := {error = "action must be move, close, wait, cast, explore, rest, stairs or travel."}
+	var out := {
+		error =
+		"action must be move, close, wait, cast, dispel, drink, explore, rest, stairs or travel."
+	}
 	match name:
 		"wait", "explore", "rest", "stairs":
 			out = {t = StringName(name)}
@@ -420,6 +428,12 @@ func _action(args: Dictionary) -> Dictionary:
 			out = _cast(args.get("spells"))
 		"dispel":
 			out = {t = &"dispel", kind = StringName(str(args.get("kind", "")))}
+		"drink":
+			out = (
+				{t = &"drink", yes = args.yes}
+				if args.get("yes") is bool
+				else {error = "drink needs yes: true or false."}
+			)
 		"travel":
 			out = _travel(args.get("x"), args.get("y"))
 	return out
@@ -477,6 +491,12 @@ func _card(name: Variant) -> StringName:
 func _refusal(action: Dictionary) -> String:
 	if world.outcome != &"":
 		return "The game is over. Call new_game."
+	if world.elixir_asked or action.t == &"drink":
+		return (
+			"The elixir waits for an answer: only drink, with yes, is allowed."
+			if world.elixir_asked
+			else "There is no question about the elixir to answer."
+		)
 	if world.player().ailments.stunned > 0:
 		return "Miho is stunned and cannot act."
 	if action.t == &"move":

@@ -66,6 +66,28 @@ static func text(world: World) -> String:
 		out.append(
 			"raising the dead: a body in sight rises as an ally, until she leaves the storey"
 		)
+	if k.elixir_asked:
+		(
+			out
+			. append(
+				"the elixir waits: answer with act drink, yes true (game ends, she becomes human) or false"
+			)
+		)
+	if k.elixir_held:
+		out.append(
+			(
+				"carrying the elixir: lantern light, every creature on the storey hunts her, "
+				+ (
+					"%d tails at most and %d back each round, no %s or %s"
+					% [
+						Elixir.TAILS,
+						Elixir.REGROWN,
+						Guise.NAME[Guise.GUISE],
+						Guise.NAME[Guise.CLOAK]
+					]
+				)
+			)
+		)
 	if k.curses.has(Curse.REAPER):
 		out.append("cursed: the reaper comes %d rounds sooner on this storey" % Curse.SOONER)
 	if k.curses.has(Curse.SIGHT):

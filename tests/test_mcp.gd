@@ -326,3 +326,40 @@ func test_observation_tells_what_a_creature_is_immune_to() -> void:
 	assert_false(water[0].contains("does not burn"))
 	var plain: Array = lines.filter(func(l): return l.contains("장승 ("))
 	assert_false(plain[0].contains("immune to"))
+
+
+## A game on a hall with the elixir east of Miho, which she has stepped onto.
+func _asked() -> GameTools:
+	var tools := GameTools.new()
+	tools.world = Arena.hall(Vector2i(4, 4))
+	tools.world.elixir = Vector2i(5, 4)
+	_call(tools, "act", {action = "move", dir = "e"})
+	return tools
+
+
+func test_the_elixir_question_is_told_and_only_drink_answers_it() -> void:
+	var tools := _asked()
+	assert_string_contains(_call(tools, "observe").text, "the elixir waits")
+	var refused := _call(tools, "act", {action = "wait"})
+	assert_true(refused.error)
+	assert_string_contains(refused.text, "drink")
+	assert_true(_call(tools, "act", {action = "drink"}).error, "an answer needs yes")
+
+
+func test_drinking_the_elixir_wins_and_keeping_it_shows_in_the_observation() -> void:
+	var tools := _asked()
+	assert_string_contains(_call(tools, "act", {action = "drink", yes = true}).text, "won")
+	tools = _asked()
+	var kept := _call(tools, "act", {action = "drink", yes = false})
+	assert_false(kept.error)
+	assert_string_contains(kept.text, "carrying the elixir")
+	assert_false(_call(tools, "act", {action = "wait"}).error, "and she goes on")
+
+
+func test_a_walk_stops_at_the_elixir_and_does_not_drink_it() -> void:
+	var tools := GameTools.new()
+	tools.world = Arena.hall(Vector2i(4, 4))
+	tools.world.elixir = Vector2i(9, 4)
+	_call(tools, "act", {action = "travel", x = 9, y = 4})
+	assert_true(tools.world.elixir_asked)
+	assert_eq(tools.world.outcome, &"")
