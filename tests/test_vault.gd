@@ -7,6 +7,9 @@ const WAIT := {t = &"wait"}
 const SEEDS := 12
 const GATE := Vector2i(10, 8)
 const LANTERNS: Array[Vector2i] = [Vector2i(7, 6), Vector2i(7, 8), Vector2i(7, 10)]
+## The rooms of `_nook`.
+const HALL := Rect2i(3, 3, 13, 11)
+const NOOK := Rect2i(17, 6, 5, 4)
 
 var _storeys: Array[World] = []
 
@@ -268,3 +271,42 @@ func test_the_sealing_wall_and_its_lanterns_hover_like_any_other_wall_and_dark_l
 		assert_eq(text, Info.plain(Info.terrain(plain, p)))
 		assert_false(text.contains("봉인") or text.contains("/3"), text)
 	assert_eq(w.tile(GATE), World.WALL)
+
+
+# --- walling it up -----------------------------------------------------------
+
+
+## A room HALL with Miho in it, and east of it the vault room NOOK behind a doorway at
+## (16, 7). A floor tile in NOOK's north wall at (19, 5) leads to the wall at (18..20, 4),
+## which has sky north of it when `sky`, and wall when not.
+func _nook(sky: bool) -> World:
+	var w := World.new()
+	w.tiles.resize(Grid.W * Grid.H)
+	w.tiles.fill(World.SKY)
+	FloorGen._fill(w, Rect2i(2, 2, 21, 13), World.WALL)
+	if sky:
+		FloorGen._fill(w, Rect2i(17, 2, 6, 2), World.SKY)
+	FloorGen._fill(w, HALL, World.FLOOR)
+	FloorGen._fill(w, NOOK, World.FLOOR)
+	w.tiles[Grid.index(Vector2i(16, 7))] = World.FLOOR
+	w.tiles[Grid.index(Vector2i(19, 5))] = World.FLOOR
+	w.rooms.assign([HALL, NOOK])
+	w.start = Vector2i(5, 8)
+	w.depth = 2
+	return w
+
+
+func test_a_wall_the_vault_leaves_with_nothing_beside_it_falls_to_the_sky() -> void:
+	var w := _nook(true)
+	assert_true(Vault.make(w, NOOK))
+	for x in range(18, 21):
+		assert_eq(w.tile(Vector2i(x, 4)), World.SKY, "x %d" % x)
+	assert_eq(w.tile(Vector2i(19, 5)), World.WALL)
+
+
+func test_no_vault_is_made_where_such_a_wall_has_no_sky_to_fall_to() -> void:
+	var w := _nook(false)
+	var before := w.tiles.duplicate()
+	assert_false(Vault.make(w, NOOK))
+	assert_eq(w.tiles, before)
+	assert_eq(w.seals, {})
