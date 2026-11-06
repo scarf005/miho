@@ -51,17 +51,17 @@ func _row(m: Node, cmd: StringName) -> void:
 	m.menu.debug.selected = DebugMenu.COMMANDS.find(cmd)
 
 
-## A free tile next to Miho.
-func _beside(m: Node) -> Vector2i:
+## A free tile `far` tiles from Miho in one of the eight ways.
+func _beside(m: Node, far := 1) -> Vector2i:
 	for d in Grid.DIRS:
-		if Cheat._free(m.world, m.world.player().pos + d):
-			return m.world.player().pos + d
+		if Cheat._free(m.world, m.world.player().pos + d * far):
+			return m.world.player().pos + d * far
 	return Vector2i(-1, -1)
 
 
-## A creature of `kind` summoned `by` tiles from Miho, by the debug command.
-func _foe(m: Node, kind: StringName, by: Vector2i) -> Actor:
-	var at: Vector2i = m.world.player().pos + by
+## A creature of `kind` summoned on a free tile `far` tiles from Miho, by the debug command.
+func _foe(m: Node, kind: StringName, far := 1) -> Actor:
+	var at := _beside(m, far)
 	m.world.act({t = &"cheat", cmd = &"summon", kind = kind, at = at})
 	m.forecast()
 	return m.world.actor_at(at)
@@ -254,8 +254,8 @@ func test_a_pick_that_does_not_fit_asks_again_and_escape_opens_the_list() -> voi
 
 func test_damage_picks_a_creature_with_tab_and_hurts_it_by_the_amount() -> void:
 	var m := _main()
-	var near := _foe(m, &"dokkaebi", Vector2i(-1, 0))
-	var far := _foe(m, &"bujigaengi", Vector2i(0, -3))
+	var near := _foe(m, &"dokkaebi")
+	var far := _foe(m, &"bujigaengi", 3)
 	var hp := far.hp
 	await _key(m, "F4")
 	_row(m, &"damage")
@@ -271,7 +271,7 @@ func test_damage_picks_a_creature_with_tab_and_hurts_it_by_the_amount() -> void:
 
 func test_a_creature_pick_refuses_an_empty_tile_and_miho() -> void:
 	var m := _main()
-	_foe(m, &"dokkaebi", Vector2i(-1, 0))
+	_foe(m, &"dokkaebi")
 	await _key(m, "F4")
 	_row(m, &"kill")
 	await _key(m, "Enter")
@@ -285,7 +285,7 @@ func test_a_creature_pick_refuses_an_empty_tile_and_miho() -> void:
 
 func test_moving_a_creature_picks_it_then_a_tile() -> void:
 	var m := _main()
-	var foe := _foe(m, &"dokkaebi", Vector2i(0, -3))
+	var foe := _foe(m, &"dokkaebi", 3)
 	var to := _beside(m)
 	await _key(m, "F4")
 	_row(m, &"move_foe")
@@ -345,7 +345,7 @@ func test_a_right_click_in_a_list_of_its_own_goes_back_to_its_row_as_escape_does
 
 func test_a_held_key_never_answers_a_pick() -> void:
 	var m := _main()
-	_foe(m, &"dokkaebi", Vector2i(2, 0))
+	_foe(m, &"dokkaebi", 2)
 	await _key(m, "F4")
 	_row(m, &"kill")
 	await _key(m, "Enter")
@@ -363,7 +363,7 @@ func test_a_held_key_never_answers_a_pick() -> void:
 
 func test_a_creature_picked_for_damage_brings_the_list_back_on_that_row() -> void:
 	var m := _main()
-	_foe(m, &"dokkaebi", Vector2i(-1, 0))
+	_foe(m, &"dokkaebi")
 	await _key(m, "F4")
 	_row(m, &"damage")
 	await _key(m, "Enter")
