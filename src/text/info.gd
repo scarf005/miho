@@ -886,6 +886,10 @@ static func _gas(w: World, p: Vector2i, now := true) -> Array:
 		out.append(Lang.runs("불: {0}이/가 됨", became, Palette.DIM))
 	if now:
 		return out
+	var cooled: int = Gas.of(g.x, "cools")
+	if cooled >= 0:
+		var cools := [[Gas.of(cooled, "name"), Palette.GAS[cooled][1]]]
+		out.append(Lang.runs("식으면: {0}", cools, Palette.DIM))
 	if Gas.of(g.x, "explodes"):
 		out.append([[Lang.t("불: 폭발"), Palette.DIM]])
 		out.append(_amount("폭발 피해: ", Gas.BLAST))
