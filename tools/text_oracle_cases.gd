@@ -304,8 +304,18 @@ static func _by_last(me: int, foe: int) -> Array:
 	for curse in Curse.NAME:
 		out.append([{t = &"curse", what = curse}])
 	for cmd in Cheat.NAME:
+		if cmd == &"generate":
+			continue
 		for on in [true, false]:
 			out.append([{t = &"cheat", cmd = cmd, kind = &"saja", depth = 2, on = on}])
+	var made := {t = &"cheat", cmd = &"generate", depth = 2, seed_value = 7}
+	made.merge({element = Cards.ELEMENTS[0], light = RunPlan.LIGHTS[0]})
+	for shape in Skeletons.NAME:
+		out.append([made.merged({shape = shape})])
+	for concept in Labyrinth.NAME:
+		out.append([made.merged({shape = Skeletons.LABYRINTH, concept = concept})])
+	for room in SetRooms.NAME:
+		out.append([made.merged({shape = Skeletons.NAME.keys()[0], room = room})])
 	for kind in Gas.ROWS:
 		out.append([{t = &"gas", kind = kind}])
 		out.append([{t = &"blast", kind = kind}])
