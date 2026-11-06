@@ -533,6 +533,9 @@ func act(action: Dictionary) -> Array:
 
 ## Shuts the open door next to Miho; with several, waits for a direction key.
 func _shut() -> void:
+	if look.shuts(look.hover):
+		act({t = &"close", dir = look.hover - world.player().pos})
+		return
 	var doors := Grid.DIRS.filter(func(d): return world.can({t = &"close", dir = d}))
 	if doors.size() == 1:
 		act({t = &"close", dir = doors[0]})

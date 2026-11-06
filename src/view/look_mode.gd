@@ -35,6 +35,10 @@ func key(action: StringName, far: bool) -> bool:
 			m.use_tile(goal, false)
 	elif action in [&"cancel", &"look"]:
 		stop()
+	elif action == &"close" and shuts(hover):
+		var dir: Vector2i = hover - m.world.player().pos
+		stop()
+		m.act({t = &"close", dir = dir})
 	elif action == &"exclude" and m.world.known[Grid.index(hover)] == 1:
 		m.journey.excluded.cycle(hover)
 		m.journey.zones_changed()
@@ -45,6 +49,44 @@ func key(action: StringName, far: bool) -> bool:
 		stop()
 		return false
 	return true
+
+
+## Whether the close key shuts the door on `tile`: an open door next to Miho.
+func shuts(tile: Vector2i) -> bool:
+	return Grid.inside(tile) and m.world.can({t = &"close", dir = tile - m.world.player().pos})
+
+
+## The keys that act on the tile `hover` now, as [action, label] in the order of the box: each
+## is the one that `key` or the game takes there (the exclusion keys and Enter only in look
+## mode, Enter with no talisman picked).
+func hints() -> Array:
+	var out := []
+	if not Grid.inside(hover):
+		return out
+	if shuts(hover):
+		out.append([&"close", "닫기"])
+	if not active:
+		return out
+	if m.world.known[Grid.index(hover)] == 1:
+		match m.journey.excluded.zones.get(hover, -1):
+			-1:
+				out.append([&"exclude", "위험구역 표시"])
+			0:
+				out.append([&"exclude", "위험구역 지우기"])
+			_:
+				out.append([&"exclude", "위험구역 줄이기"])
+				out.append([&"pick_1", "위험구역 반지름"])
+	if hover != m.world.player().pos and m.casting.picked.is_empty() and _walkable(hover):
+		var a: Actor = m.world.actor_at(hover)
+		out.append([&"confirm", "공격" if a != null and a.faction != Actor.FOX else "이동"])
+	return out
+
+
+func _walkable(tile: Vector2i) -> bool:
+	var d: Vector2i = tile - m.world.player().pos
+	if Grid.cheb(tile, m.world.player().pos) == 1:
+		return m.world.can({t = &"move", dir = d})
+	return not m.journey.path_to(tile).is_empty()
 
 
 ## Puts the cursor, which shows what the pointer would, on a tile.

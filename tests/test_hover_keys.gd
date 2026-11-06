@@ -139,10 +139,12 @@ func test_the_pointer_alone_lists_only_what_the_keys_do_without_look_mode() -> v
 func test_the_row_follows_a_rebind() -> void:
 	var m := _main(false)
 	var at := _door(m, World.DOOR_OPEN)
-	Keys.bind(&"close", ["B"])
+	Keys.bind(&"close", ["F6"])
 	_look(m, at)
 	assert_true(_lists(m, &"close", "닫기"), _row(m))
-	assert_true(_row(m).begins_with("B "), _row(m))
+	assert_true(_row(m).contains("F6 " + Lang.t("닫기")), _row(m))
+	_press(m, "F6")
+	assert_eq(m.world.tile(at), World.DOOR)
 
 
 func test_a_touch_screen_shows_no_row() -> void:

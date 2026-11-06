@@ -129,8 +129,8 @@ static func _tell(m: Node) -> Dictionary:
 	term.cursor = m.look.hover
 	var lines := _lines(m)
 	var word := subject(m) if not lines.is_empty() else ""
-	var row := detail_row()
-	var shown: bool = word != "" and not row.is_empty() and not m.touch.enabled
+	var row := key_row(m, word != "")
+	var shown: bool = not lines.is_empty() and not row.is_empty() and not m.touch.enabled
 	term.info = lines + [row] if shown else lines
 	term.subject = word
 	return _example(m)
@@ -236,10 +236,20 @@ static func _talisman(c: StringName) -> String:
 	return Lang.t(Cards.NAME[c]) if Cards.compounds().has(c) else Codex.talisman_name(c)
 
 
-## The last row of a box that has an entry: the key of `describe`, at body size as a key
-## that is the content of its line is, then 자세히. Empty when the action has no key.
-static func detail_row() -> Array:
-	var keys := Keys.keys_of(&"describe")
-	if keys.is_empty():
-		return []
-	return [[Keys.label(keys[0]), Palette.TEXT], [" " + Lang.t("자세히"), Palette.DIM]]
+## The last row of a box: the key of every action that works on what it shows, the detail key
+## first when the box has an entry (`entry`), each key at body size as a key that is the content
+## of its line is, then its name. Empty when no action has a key.
+static func key_row(m: Node, entry: bool) -> Array:
+	var shown := [[&"describe", "자세히"]] if entry else []
+	shown.append_array(m.look.hints())
+	var row := []
+	for hint: Array in shown:
+		var keys := Keys.keys_of(hint[0])
+		if keys.is_empty():
+			continue
+		var key := Keys.label(keys[0])
+		if hint[0] == &"pick_1":
+			key += "~" + Keys.label(Keys.keys_of(&"pick_%d" % Exclusions.MAX_RADIUS)[0])
+		row.append([("  " if not row.is_empty() else "") + key, Palette.TEXT])
+		row.append([" " + Lang.t(hint[1]), Palette.DIM])
+	return row

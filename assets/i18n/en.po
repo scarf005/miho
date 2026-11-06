@@ -3395,3 +3395,15 @@ msgstr "Yes"
 
 msgid "아니요"
 msgstr "No"
+
+msgid "닫기"
+msgstr "Close"
+
+msgid "위험구역 지우기"
+msgstr "Clear danger zone"
+
+msgid "위험구역 줄이기"
+msgstr "Shrink danger zone"
+
+msgid "위험구역 반지름"
+msgstr "Zone radius"
