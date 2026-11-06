@@ -9,22 +9,8 @@ const DRUM_AT := Vector2i(20, 8)
 
 ## An open hall walled at the edges with no light, a drum at DRUM_AT, Miho at (4, 8).
 func _world() -> World:
-	var w := World.new()
-	w.tiles.resize(Grid.W * Grid.H)
-	w.tiles.fill(World.WALL)
-	for y in range(1, Grid.H - 1):
-		for x in range(1, Grid.W - 1):
-			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
+	var w := Arena.hall(Vector2i(4, 8))
 	_put(w, DRUM_AT, World.DRUM)
-	w.rooms.assign([Rect2i(1, 1, Grid.W - 2, Grid.H - 2)])
-	var me := Actor.new()
-	me.id = w.new_id()
-	me.kind = &"miho"
-	me.faction = Actor.FOX
-	me.hp = 3
-	me.max_hp = 3
-	me.pos = Vector2i(4, 8)
-	w.actors.append(me)
 	w.depth = 2
 	w.tails = 4
 	return w

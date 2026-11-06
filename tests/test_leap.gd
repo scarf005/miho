@@ -14,28 +14,9 @@ const ME := Vector2i(4, 8)
 
 ## An open hall walled at the edges, every tile known and seen, Miho at ME.
 func _world() -> World:
-	var w := World.new()
-	w.tiles.resize(Grid.W * Grid.H)
-	w.tiles.fill(World.WALL)
-	w.rooms = [Rect2i(1, 1, Grid.W - 2, Grid.H - 2)]
-	for y in range(1, Grid.H - 1):
-		for x in range(1, Grid.W - 1):
-			w.tiles[Grid.index(Vector2i(x, y))] = World.FLOOR
-	var me := Actor.new()
-	me.id = w.new_id()
-	me.kind = &"miho"
-	me.faction = Actor.FOX
-	me.hp = 3
-	me.max_hp = 3
-	me.pos = ME
-	w.actors.append(me)
-	w.known.resize(w.tiles.size())
-	w.known.fill(1)
-	w.seen = w.known.duplicate()
-	w.dim.resize(w.tiles.size())
-	w.depth = 5
+	var w := Arena.hall(ME)
 	w.tails = 5
-	w.cards.append_array([Cards.EARTH, Cards.WATER, WOOD, Cards.FIRE])
+	w.cards.assign([Cards.FOX, Cards.ORB, Cards.EARTH, Cards.WATER, WOOD, Cards.FIRE])
 	return w
 
 
