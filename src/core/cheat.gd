@@ -27,6 +27,7 @@ const NAME := {
 	&"reveal": "지도 밝히기",
 	&"heal": "체력 회복",
 	&"halt": "적 멈춤",
+	&"elixir": "영약 받기",
 }
 ## The parts of each command and their types.
 const ARGS := {
@@ -44,6 +45,7 @@ const ARGS := {
 	&"reveal": {},
 	&"heal": {},
 	&"halt": {},
+	&"elixir": {},
 }
 
 
@@ -113,6 +115,8 @@ static func can(w: World, action: Dictionary) -> bool:
 			)
 		&"heal":
 			return me.hp < me.max_hp
+		&"elixir":
+			return not w.elixir_held
 	return true
 
 
@@ -154,6 +158,8 @@ static func handled(w: World, action: Dictionary) -> bool:
 			e.merge({kind = action.kind, at = action.at})
 		&"heal":
 			me.hp = me.max_hp
+		&"elixir":
+			Elixir.keep(w)
 		_:
 			w.cheats[action.cmd] = not on(w, action.cmd)
 			e.on = on(w, action.cmd)

@@ -39,6 +39,9 @@ static func play(seed_value: int) -> Dictionary:
 		if rounds >= ROUND_LIMIT:
 			end = &"limit"
 			break
+		if w.elixir_asked:
+			w.act({t = &"drink", yes = true})
+			continue
 		memory.update(w)
 		var action := choose(w, memory)
 		if action.is_empty() or not w.can(action):

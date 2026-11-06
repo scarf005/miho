@@ -98,7 +98,7 @@ static func perceive(w: World, a: Actor) -> void:
 		return
 	var me := w.player()
 	a.brain.sees_me = Guise.knows(w, a)
-	if a.brain.sees_me or a.info().get("hunts", false):
+	if a.brain.sees_me or w.elixir_held or a.info().get("hunts", false):
 		hunt_from(w, a, me.pos)
 		return
 	if a.brain.alert == Actor.HUNT or a.ailments.blind > 0:

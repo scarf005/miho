@@ -72,6 +72,8 @@ static func enter(w: World, depth: int) -> void:
 		_restore(w, depth)
 	else:
 		FloorGen.build(w)
+	if w.elixir_held:
+		w.elixir = Vector2i(-1, -1)
 	w.shots.assign(riding)
 	for s in riding:
 		s.gone = false

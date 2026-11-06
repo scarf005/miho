@@ -4,6 +4,8 @@ extends RefCounted
 
 
 static func action(w: World, what: Dictionary) -> bool:
+	if w.elixir_asked or what.get("t") == &"drink":
+		return what.get("t") == &"drink" and Elixir.can(w, what)
 	match what.get("t"):
 		&"wait":
 			return true
@@ -75,6 +77,8 @@ static func cast(w: World, spells: Array) -> bool:
 			return false
 		cost += Cheat.cost(w, spell)
 		var d: Vector2i = one.get("dir", Vector2i.ZERO)
+		if Elixir.barred(w, spell, d):
+			return false
 		if not Leap.open(w, me, spell, d) or aims.has(d):
 			return false
 		aims[d] = true

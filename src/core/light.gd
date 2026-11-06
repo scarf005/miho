@@ -54,6 +54,8 @@ static func sources(w: World) -> Array[Dictionary]:
 		while i >= 0:
 			out.append({at = Grid.at(i), radius = GLOW[t].radius, color = GLOW[t].color})
 			i = w.tiles.find(t, i + 1)
+	if w.elixir_held:
+		out.append({at = w.player().pos, radius = LANTERN_RADIUS, color = LANTERN})
 	for p in w.burning:
 		out.append({at = p, radius = FIRE_RADIUS, color = FIRE})
 	for a in w.actors:
@@ -72,6 +74,11 @@ static func sources(w: World) -> Array[Dictionary]:
 ## Whether `a` is a light as it goes.
 static func borne(a: Actor) -> bool:
 	return a.alive() and (a.ailments.alight > 0 or a.kind == Forge.FURNACE)
+
+
+## Whether `a` is Miho with the elixir, whose tile shines as a lantern's does.
+static func carries(w: World, a: Actor) -> bool:
+	return w.elixir_held and a.is_miho()
 
 
 ## Whether the projectile `s` is a light as it flies.

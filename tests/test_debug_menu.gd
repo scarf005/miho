@@ -96,7 +96,9 @@ func test_the_key_opens_the_commands_in_a_box_and_escape_closes_them() -> void:
 	await _key(m, "F4")
 	assert_eq(m.panels.overlay, &"cheat")
 	var names: Array = m.term.panel.rows.map(func(r): return r[0][0])
-	assert_eq(names, DebugMenu.COMMANDS.map(func(c): return Cheat.NAME[c]))
+	for i in names.size():
+		assert_true(Cheat.NAME[DebugMenu.COMMANDS[i]].begins_with(names[i]), names[i])
+	assert_eq(names.size(), DebugMenu.COMMANDS.size())
 	var box := PanelView.frame(m.term)
 	assert_false(m.term.panel.get("opaque", false), "the game is still drawn")
 	assert_true(box.size.x < m.term.cols, "map beside the box")

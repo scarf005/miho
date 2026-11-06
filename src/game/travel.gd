@@ -213,9 +213,12 @@ static func _watching(a: Actor) -> bool:
 ## of heaven came into sight that was not in sight when the walk began (ids in
 ## `sighted`), one Miho sees noticed her, she was hurt, heard a noise, picked
 ## up a talisman, found a plate in the floor, saw one go off, first saw a
-## useful thing (Perceived.spotted), or the storey or the game ended.
+## useful thing (Perceived.spotted), the storey or the game ended, or the elixir asks to be
+## drunk.
 static func interrupted(before: World, after: World, events: Array, sighted: Dictionary) -> bool:
-	if after.depth != before.depth or after.outcome != &"" or not after.heard.is_empty():
+	if after.depth != before.depth or after.outcome != &"" or after.elixir_asked:
+		return true
+	if not after.heard.is_empty():
 		return true
 	if not Perceived.spotted(before, after).is_empty():
 		return true

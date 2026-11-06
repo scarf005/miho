@@ -15,7 +15,7 @@ static func run(w: World, action: Dictionary) -> Array[Dictionary]:
 	w.events = []
 	w.heard = []
 	w._changed()
-	if not w.can(action) or Cheat.handled(w, action):
+	if not w.can(action) or Cheat.handled(w, action) or Elixir.handled(w, action):
 		return w.events
 	var me := w.player()
 	_regrow(w)
@@ -73,6 +73,9 @@ static func run(w: World, action: Dictionary) -> Array[Dictionary]:
 static func _regrow(w: World) -> void:
 	if w.tails >= w.max_tails():
 		w.regrow = 0
+		return
+	if w.elixir_held:
+		w.tails = mini(w.tails + Elixir.REGROWN, w.max_tails())
 		return
 	w.regrow += 1
 	if w.regrow >= World.TAIL_REGROW:

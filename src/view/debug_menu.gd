@@ -28,6 +28,7 @@ const COMMANDS: Array[StringName] = [
 	&"reveal",
 	&"heal",
 	&"halt",
+	&"elixir",
 ]
 ## The rows of 적 제거.
 const KILLS := ["하나", "모두"]

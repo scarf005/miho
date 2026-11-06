@@ -248,7 +248,7 @@ func test_a_jet_pushes_heaven_into_the_sky_and_miho_onto_a_peach() -> void:
 	assert_false(w.peaches.has(ME + E))
 	w.elixir = me.pos + E
 	w.push(me, E, 3)
-	assert_eq(w.outcome, &"won", "and onto the elixir drinks it")
+	assert_true(w.elixir_asked, "and onto the elixir asks whether to drink it")
 	assert_eq(me.pos, w.elixir, "she stops there")
 
 

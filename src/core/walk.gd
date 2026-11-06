@@ -31,7 +31,7 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 	for s in on:
 		s.pos = to
 		w.emit({t = &"ride", shot = s.id, to = to})
-	if Light.borne(a) or on.any(Light.glows):
+	if Light.borne(a) or Light.carries(w, a) or on.any(Light.glows):
 		w._light_dirty = true
 	Hearing.noise(w, to, loud, tread[1], a.faction == Actor.FOX, a.id)
 	Terrain.stepped(w, a, from, to)
@@ -47,15 +47,14 @@ static func riders(w: World, a: Actor) -> Array[Shot]:
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
-## the elixir wins, a peach heals, a scroll gives its talisman. True when the
+## the elixir asks whether to drink it, a peach heals, a scroll gives its talisman. True when the
 ## storey or the run ends.
 static func arrive(w: World, me: Actor) -> bool:
 	if me.pos == w.stairs:
 		Round.ascend(w)
 		return true
 	if me.pos == w.elixir:
-		w.outcome = &"won"
-		w.emit({t = &"won"})
+		Elixir.ask(w, me)
 		return true
 	if w.peaches.has(me.pos):
 		w.peaches.erase(me.pos)

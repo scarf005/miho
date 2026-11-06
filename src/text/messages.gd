@@ -374,6 +374,8 @@ static func _find_line(before: World, after: World, e: Dictionary, last: Diction
 			return _t("꼬리가 모두 돌아왔다")
 		&"omen":
 			return _t("{0}이/가 오고 있다", [_kind(&"saja")])
+		&"elixir":
+			return _t("영약을 얻었다")
 		&"won":
 			var human := [["사람이 되었다", Palette.KIND[&"miho"]]]
 			return _t("영약을 마시고 {0}", human)
@@ -492,6 +494,8 @@ static func _cheat(e: Dictionary) -> Array:
 			return _t("{0}을/를 불러냈다", [kind])
 		&"heal":
 			return _t("체력을 모두 회복했다")
+		&"elixir":
+			return _t("영약을 얻었다")
 	return _t("{0}을/를 켰다" if e.on else "{0}을/를 껐다", [name])
 
 

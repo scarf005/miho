@@ -109,6 +109,7 @@ const GLOBAL := [
 	&"heal",
 	&"altar",
 	&"creak",
+	&"elixir",
 	&"read",
 	&"ascend",
 	&"fall",
@@ -468,7 +469,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"bite" if e.get("peach", false) or e.get("kimchi", false) else &"card"
 		&"jar":
 			return JAR_SOUNDS[e.what]
-		&"grow", &"card", &"altar", &"creak":
+		&"grow", &"card", &"altar", &"creak", &"elixir":
 			return &"card"
 		&"read", &"scroll":
 			return &"page"

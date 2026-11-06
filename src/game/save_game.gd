@@ -232,6 +232,8 @@ static func _shaped(action: Dictionary) -> bool:
 			return spells is Array and spells.all(_spell_shaped)
 		&"dispel":
 			return action.get("kind") is StringName
+		&"drink":
+			return action.get("yes") is bool
 		&"cheat":
 			return Cheat.shaped(action)
 	return false

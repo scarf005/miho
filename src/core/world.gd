@@ -182,6 +182,10 @@ var shots: Array[Shot] = []
 var next_id := 1
 var tails := 1
 var regrow := 0
+## Whether Miho carries the elixir (Elixir), whatever storey she is on, and whether the
+## question of drinking it waits for an answer.
+var elixir_held := false
+var elixir_asked := false
 var cheats := {}
 var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
 var round_no := 0
@@ -242,6 +246,8 @@ func clone() -> World:
 	w.rounds = rounds
 	w.tails = tails
 	w.regrow = regrow
+	w.elixir_held = elixir_held
+	w.elixir_asked = elixir_asked
 	w.cheats = cheats.duplicate()
 	w.cards = cards.duplicate()
 	w.outcome = outcome
@@ -288,7 +294,7 @@ func player() -> Actor:
 
 
 func max_tails() -> int:
-	return depth + tail_bonus
+	return Elixir.TAILS if elixir_held else depth + tail_bonus
 
 
 func tile(p: Vector2i) -> int:
