@@ -480,3 +480,108 @@ func test_the_debug_label_opens_the_box_when_clicked_and_does_nothing_when_the_v
 	await _key(m, "Escape")
 	assert_eq(m.panels.overlay, &"", "Esc closes it to the game")
 	assert_true(m.term.panel.is_empty())
+
+
+## The 지도 생성 page, opened from its row.
+func _map_page(m: Node) -> void:
+	await _key(m, "F4")
+	_row(m, &"generate")
+	await _key(m, "Enter")
+
+
+func _labels(m: Node) -> Array:
+	return m.term.panel.rows.map(func(r): return r[0][0])
+
+
+func test_the_map_page_steps_its_values_with_left_and_right_and_shows_the_maze_row_on_a_maze(
+) -> void:
+	var m := _main()
+	await _map_page(m)
+	assert_eq(m.menu.debug.page, &"generate")
+	assert_eq(_labels(m), ["층", "모양", "시드", "생성"])
+	assert_eq(m.term.panel.rows[0][1][0], "1")
+	assert_eq(m.term.panel.rows[1][1][0], "무작위")
+	assert_eq(m.term.panel.rows[2][1][0], str(m.world.rng.seed))
+	await _key(m, "Left")
+	assert_eq(m.term.panel.rows[0][1][0], str(FLOORS), "the storey wraps")
+	await _key(m, "Down")
+	await _key(m, "Right")
+	assert_eq(m.term.panel.rows[1][1][0], Skeletons.NAME[Skeletons.ALL[0]])
+	await _key(m, "Left")
+	await _key(m, "Left")
+	assert_eq(m.term.panel.rows[1][1][0], Skeletons.NAME[Skeletons.LABYRINTH])
+	assert_eq(_labels(m), ["층", "모양", "미궁", "시드", "생성"])
+	await _key(m, "Down")
+	await _key(m, "Right")
+	assert_eq(m.term.panel.rows[2][1][0], Labyrinth.NAME[Labyrinth.CONCEPTS[0]])
+	await _key(m, "Down")
+	var seed_value: int = m.world.rng.seed
+	await _key(m, "Right")
+	assert_eq(m.term.panel.rows[3][1][0], str(seed_value + 1))
+	await _key(m, "Down")
+	await _key(m, "Down")
+	assert_eq(m.menu.debug.selected, 0, "Down wraps")
+	await _key(m, "End")
+	assert_eq(m.menu.debug.selected, 4)
+	await _key(m, "Home")
+	assert_eq(m.menu.debug.selected, 0)
+	await _key(m, "Escape")
+	assert_eq(m.menu.debug.page, &"")
+	assert_eq(m.menu.debug.selected, DebugMenu.COMMANDS.find(&"generate"))
+
+
+func test_build_plays_the_picks_and_the_page_stays_on_its_row() -> void:
+	var m := _main()
+	await _map_page(m)
+	await _key(m, "Right")
+	await _key(m, "Right")
+	await _key(m, "Down")
+	await _key(m, "Right")
+	await _key(m, "End")
+	await _key(m, "Enter")
+	var built: Dictionary = m.run.actions.back()
+	var want := {
+		t = &"cheat",
+		cmd = &"generate",
+		depth = 3,
+		shape = Skeletons.ALL[0],
+		concept = &"",
+		seed_value = m.run_seed,
+	}
+	assert_eq(built, want)
+	assert_eq(m.world.depth, 3)
+	assert_true(Cheat.on(m.world, &"reveal"))
+	assert_eq(m.panels.overlay, &"cheat", "the page is back")
+	assert_eq(m.menu.debug.page, &"generate")
+	assert_eq(m.menu.debug.selected, 3)
+
+
+func test_a_click_on_build_plays_it() -> void:
+	var m := _main()
+	await _map_page(m)
+	await _mouse(m, _row_cell(m, 3))
+	assert_eq(m.run.actions.back().cmd, &"generate")
+	assert_eq(m.panels.overlay, &"cheat")
+
+
+func test_the_key_on_the_map_builds_the_next_seed_with_the_same_picks() -> void:
+	var m := _main()
+	var acts: int = m.run.actions.size()
+	await _key(m, "F2")
+	assert_eq(m.run.actions.size(), acts, "nothing until the page has picks")
+	await _map_page(m)
+	assert_eq(m.term.panel.rows[3][1][0], Keys.label(Keys.keys_of(&"regenerate")[0]))
+	await _key(m, "Down")
+	await _key(m, "Right")
+	await _key(m, "End")
+	await _key(m, "Enter")
+	await _key(m, "Escape")
+	await _key(m, "Escape")
+	assert_eq(m.panels.overlay, &"")
+	await _key(m, "F2")
+	var next: Dictionary = m.run.actions.back()
+	assert_eq(next.seed_value, m.run_seed + 1)
+	assert_eq(next.shape, Skeletons.ALL[0])
+	assert_eq(m.panels.overlay, &"", "the map stays in view")
+	await _key(m, "F2")
+	assert_eq(m.run.actions.back().seed_value, m.run_seed + 2)
