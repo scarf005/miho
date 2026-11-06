@@ -21,7 +21,7 @@ const BARRED := [Guise.GUISE, Guise.CLOAK]
 const BARRED_WHY := "영약을 지닌 동안에는 걸 수 없다"
 ## The rule as the 도감 tells it (Info.CONDITIONS).
 const TOLD := [
-	["빛: 반지름 %d칸", Light.LANTERN_RADIUS],
+	["빛: %d칸", Light.LANTERN_RADIUS],
 	"이 층의 모든 적이 당신을 쫓는다.",
 	["최대 꼬리: %d", TAILS],
 	["꼬리 회복: 초당 %d", REGROWN],

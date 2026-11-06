@@ -3369,9 +3369,6 @@ msgstr "Cannot be cast while carrying the elixir"
 msgid "영약 받기"
 msgstr "Get the elixir"
 
-msgid "빛: 반지름 %d칸"
-msgstr "Light: radius %d"
-
 msgid "이 층의 모든 적이 당신을 쫓는다."
 msgstr "Every enemy on the floor hunts you."
 
