@@ -274,3 +274,26 @@ func test_a_run_on_a_maze_saves_the_same_door_as_it_found_it() -> void:
 	var copy := w.clone()
 	assert_eq(Labyrinth.site(copy).at, Labyrinth.site(w).at)
 	assert_eq(copy.tiles, w.tiles)
+
+
+## The bridge to the maze ends in a room or a gallery, never on a wall's crossing in front of a
+## doorway that two rooms share. The seeds and storeys the skeleton tests carve.
+func test_the_bridge_to_the_maze_leads_into_a_room_not_a_doorway() -> void:
+	for seed_value in 6:
+		for depth in range(1, World.FLOORS + 1):
+			var w := Built.world(seed_value * World.FLOORS + depth)
+			w.depth = depth
+			var links: Array = FloorGen._carve(w, Skeletons.LABYRINTH).links
+			var door: Vector2i = Labyrinth.site(w).at
+			if door.x < 0:
+				continue
+			var d := (
+				Vector2i.RIGHT if w.tile(door + Vector2i.RIGHT) == World.BRIDGE else Vector2i.LEFT
+			)
+			var mouth := door + d
+			while w.tile(mouth) == World.BRIDGE:
+				mouth += d
+			assert_false(
+				links.any(func(l): return l.at == mouth + d),
+				"seed %d storey %d mouth %s" % [seed_value, depth, mouth]
+			)
