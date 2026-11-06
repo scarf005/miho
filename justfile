@@ -119,6 +119,10 @@ test: rust import
     echo "$SECONDS s on $jobs shards"
     exit "$failed"
 
+# Run the given test scripts alone: just test-file tests/test_curse.gd tests/test_rules.gd
+test-file +files: rust
+    {{ godot }} --headless --path . -s addons/gut/gut_cmdln.gd -gconfig= {{ prepend("-gtest=res://", files) }} -gexit
+
 # Print digests of what seeds build and play, to hold a speed change to the same result.
 digest seeds="33" rounds="40": rust
     {{ godot }} --headless --path . -s tools/storey_digest.gd -- {{ seeds }} {{ rounds }}
