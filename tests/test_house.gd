@@ -385,3 +385,12 @@ func test_a_death_in_the_round_she_comes_beside_her_comes_first() -> void:
 	w.act(step)
 	assert_false(w.player().alive())
 	assert_eq(w.outcome, &"lost")
+
+
+func test_a_stun_on_the_sister_wears_off() -> void:
+	var w := _house()
+	var sister := _sister(w)
+	sister.ailments.stunned = 2
+	for i in 3:
+		w.act({t = &"wait"})
+	assert_eq(sister.ailments.stunned, 0)
