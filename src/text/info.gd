@@ -608,7 +608,7 @@ static func _traits(a: Actor, elements: Array) -> Array:
 	if spec.get("hunts", false):
 		out.append(Lang.t("위치 감지"))
 	if a.kind == &"saja":
-		out.append(Lang.t("다시 옴: %d초부터 절반씩") % World.REAPER_AGAIN)
+		out.append(Lang.t("재등장: %d초 뒤, 이후 절반씩") % World.REAPER_AGAIN)
 	if spec.get("tracks", false):
 		out.append(Lang.t(SMELL))
 	if spec.get("stokes", false):
