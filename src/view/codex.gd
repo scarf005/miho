@@ -259,7 +259,7 @@ static func _elixir_entry() -> Dictionary:
 	var out := _feature(Palette.ELIXIR[0], Palette.ELIXIR[1], Elixir.NAME, _elixir, &"elixir")
 	var parts := [
 		CodexScene.of(&"elixir").merged({label = Lang.t("바닥")}),
-		CodexScene.of(Elixir.NAME).merged({label = Lang.t("지님")}),
+		CodexScene.of(Elixir.NAME).merged({label = Lang.t("지녔을 때")}),
 	]
 	out.scene = {key = &"", each = parts}
 	out.stages = [out.lines, Info.carried_facts]
