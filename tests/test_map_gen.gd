@@ -107,9 +107,9 @@ func test_a_build_shows_the_whole_storey_lit_and_seen_and_keeps_creatures_still(
 func test_the_log_line_names_the_seed_storey_shape_element_light_and_set_room() -> void:
 	var w := Built.world(SEED)
 	var before := w.clone()
-	var told := Messages.of(before, w, _gen(w, 6, &"", &"", SEED))
-	var line := Messages.plain(told[0])
 	var shape: StringName = RunPlan.shapes(SEED)[5]
+	var told := Messages.of(before, w, _gen(w, 6, shape, &"", SEED))
+	var line := Messages.plain(told[0])
 	assert_string_contains(line, str(SEED))
 	assert_string_contains(line, Lang.t("%d층") % 6)
 	assert_string_contains(line, Skeletons.NAME[shape])

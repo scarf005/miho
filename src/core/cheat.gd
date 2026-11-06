@@ -190,16 +190,21 @@ static func handled(w: World, action: Dictionary) -> bool:
 
 
 ## 지도 생성: storey `depth` built in place of the one Miho is on, as a run on `seed_value`
-## builds it, on `shape` and a 미궁 of `concept` where they are given (DCSS
-## wizard_recreate_level), and shown whole and still with 지도 밝히기 and 적 멈춤 on. Returns
-## what was built, for the log: {depth, seed_value, shape, concept on a 미궁, element, light,
-## room, the set room's kind, if one was made}.
+## builds it after the storeys under it, on `shape` and a 미궁 of `concept` where they are
+## given (DCSS wizard_recreate_level), and shown whole and still with 지도 밝히기 and 적 멈춤
+## on. Returns what was built, for the log: {depth, seed_value, shape, concept on a 미궁,
+## element, light, room, the set room's kind, if one was made}.
 static func _generate(w: World, action: Dictionary) -> Dictionary:
 	var me := w.player()
 	if me.buffs.raise:
 		Guise.dispel(w, me, Guise.RAISE)
-	w.depth = action.depth
 	w.rng.seed = action.seed_value
+	if action.shape == &"":
+		# A run builds a storey on what the storeys under it left of the draw.
+		for depth in range(1, action.depth):
+			w.depth = depth
+			FloorGen.storey(w)
+	w.depth = action.depth
 	w.scent.clear()
 	w.strong.clear()
 	var shape: StringName = action.shape if action.shape != &"" else Skeletons.pick(w)
