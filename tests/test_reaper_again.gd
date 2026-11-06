@@ -142,3 +142,9 @@ func test_the_top_storey_has_no_clock() -> void:
 	var w := _world(World.FLOORS)
 	_slay(w, _first(w))
 	assert_eq(_wait(w, 200).came.size(), 0)
+
+
+func test_the_gap_and_the_distance_stay_at_one_for_any_large_step() -> void:
+	for step in [10, 63, 64, 65, 128, 1000]:
+		assert_eq(Curse.gap(step), 1, "gap %d" % step)
+		assert_eq(Curse.distance(step), 1, "distance %d" % step)
