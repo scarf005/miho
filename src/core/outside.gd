@@ -3,9 +3,9 @@ extends RefCounted
 ## The ground round the pavilion on storey 1: every sky tile of the storey FloorGen built
 ## becomes grass with a pattern of one of DESIGNS over it (RunPlan.outside), and a vent of
 ## fog with a level of its own (World.vent_levels), so a thick bank of it blocks sight in
-## patches. Miho starts outside the pavilion's entrance, and a trail of 마당 runs from there
-## to the edge of the map, where it ends in World.trail_end. All from a generator of its own,
-## so the same seed lays the same outside.
+## patches. A sky court that no way leads to becomes wall. Miho starts outside the pavilion's
+## entrance, and a trail of 마당 runs from there to the edge of the map, where it ends in
+## World.trail_end. All from a generator of its own, so the same seed lays the same outside.
 
 const DESIGNS: Array[StringName] = [&"meadow", &"grove", &"waterside"]
 ## What lies over the grass in each design, the first laid first: [tile, chance of the noise].
@@ -53,6 +53,12 @@ static func lay(w: World) -> void:
 		w.start = path[0]
 		w.trail_end = path[-1]
 		w.player().pos = w.start
+		w._changed()
+		var reached: PackedInt32Array = Grid.search(w.start, Masks.opened(w)).dist
+		for i in sky.size():
+			if sky[i] == 1 and reached[i] < 0:
+				w.tiles[i] = World.WALL
+				sky[i] = 0
 	w._changed()
 	for i in sky.size():
 		var p := Grid.at(i)

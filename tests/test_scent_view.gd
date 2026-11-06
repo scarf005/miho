@@ -130,7 +130,7 @@ func test_the_scent_is_tinted_from_the_start_and_the_key_flips_the_saved_setting
 	var m := _main()
 	m.settings = Settings.new()
 	m.settings.path = SETTINGS
-	m._key(_press("Right"))
+	m._key(_press("Left"))
 	var before: World = m.world.clone()
 	var saved: int = m.run.actions.size()
 	assert_false(m.term.scent.is_empty(), "on by default")
@@ -151,7 +151,7 @@ func test_the_trail_is_current_while_a_step_plays() -> void:
 	var m := _main()
 	m.settings = Settings.new()
 	m.settings.path = ""
-	m.act({t = &"move", dir = E})
+	m.act({t = &"move", dir = -E})
 	assert_true(m.busy, "the step is still playing")
 	assert_eq(m.term.scent, Scent.fresh(m.world, true), "the trail of the round being shown")
 	assert_true(m.term.scent.has(m.world.player().pos))

@@ -115,11 +115,11 @@ func test_an_illegal_act_changes_nothing_and_says_so() -> void:
 
 func test_a_step_into_a_wall_is_refused() -> void:
 	var tools := _game()
-	tools.world.player().pos = Vector2i(1, 24)
+	tools.world.player().pos = Vector2i(3, 24)
 	tools.world.sense()
 	var r := _call(tools, "act", {action = "move", dir = "w"})
 	assert_true(r.error)
-	assert_eq(tools.world.player().pos, Vector2i(1, 24))
+	assert_eq(tools.world.player().pos, Vector2i(3, 24))
 	assert_eq(tools.world.round_no, 0)
 
 
