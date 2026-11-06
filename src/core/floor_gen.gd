@@ -208,13 +208,14 @@ static var _door_kinds := PackedByteArray([World.WALL, World.FLOOR, World.DOOR, 
 ## Builds the storey on `skeleton` (Skeletons.pick when none is given); returns the
 ## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
 ## in its rooms has spoiled (`_sound`) starts over. The storey that stays has no
-## window an event room left bare (`_shut_windows`).
-static func build(w: World, skeleton := &"") -> Dictionary:
+## window an event room left bare (`_shut_windows`). On a storey with an `outside`, Miho
+## starts before its way out (Outside.doorstep).
+static func build(w: World, skeleton := &"", outside := false) -> Dictionary:
 	if skeleton == &"":
 		skeleton = Skeletons.pick(w)
 	var set_room := {}
 	for attempt in BUILDS:
-		set_room = _build(w, skeleton)
+		set_room = _build(w, skeleton, outside)
 		if _sound(w, skeleton):
 			break
 	_shut_windows(w)
@@ -223,7 +224,7 @@ static func build(w: World, skeleton := &"") -> Dictionary:
 
 ## The storey Miho is on, built: `build`, and the outside ground round the first (Outside).
 static func storey(w: World) -> void:
-	build(w)
+	build(w, &"", w.depth == 1)
 	if w.depth == 1:
 		Outside.lay(w)
 
@@ -245,7 +246,7 @@ static func _sound(w: World, skeleton: StringName) -> bool:
 	)
 
 
-static func _build(w: World, skeleton: StringName) -> Dictionary:
+static func _build(w: World, skeleton: StringName, outside: bool) -> Dictionary:
 	var me := w.player()
 	w.actors.assign([me])
 	w.shots.clear()
@@ -287,8 +288,10 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w._changed()
 	var home := w.rooms[0]
 	w.start = _centre(home)
-	if w.depth == 1:
-		w.start = Outside.doorstep(w)
+	if outside:
+		if not goal.has_area():
+			goal = _farthest(w, w.start)
+		w.start = Outside.doorstep(w, _centre(goal))
 	me.pos = w.start
 	w.rooms.erase(goal)
 	EventRooms.build(w, home)

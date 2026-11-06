@@ -19,14 +19,19 @@ const LAYERS := {
 const FOG_LEAST := 2
 
 
-## The tile inside the way out nearest Miho, where she starts on storey 1 (FloorGen._build),
-## or her own when no way leads out.
-static func doorstep(w: World) -> Vector2i:
+## The tile inside the way out farthest to walk from `exit`, the nearest Miho of those as far,
+## where she starts on storey 1 (FloorGen._build); her own when no way leads out.
+static func doorstep(w: World, exit: Vector2i) -> Vector2i:
 	var sky := _sky(w)
+	var dist: PackedInt32Array = Grid.search(exit, Masks.floor_of(w)).dist
+	var out := w.start
+	var best := -1
 	for e in _entrances(w):
-		if trail(e.start, sky).size() > 1:
-			return e.inside
-	return w.start
+		var d := dist[Grid.index(e.inside)]
+		if d > best and trail(e.start, sky).size() > 1:
+			out = e.inside
+			best = d
+	return out
 
 
 ## Lays the outside on the storey FloorGen.build made: ground over the sky, the gate, the trail
