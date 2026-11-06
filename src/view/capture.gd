@@ -10,7 +10,7 @@ extends Node
 ## `kill:x:y` (the creature there falls, leaving its body mark),
 ## `peace` (every creature of heaven is gone, for long waits),
 ## `reveal` (the debug command that shows the whole map), `cheat:cmd` (any debug command
-## without parts, such as `god` or `elixir`, played as a round),
+## without parts, such as `god` or `elixir`, run at once and taking no round),
 ## `tile:x:y:n` (make a tile kind n, a World constant), `jar:x:y:effect` (a jar holding
 ## that Jars effect, such as kimchi), `at:x:y` (put Miho there), `save:slot:key` (a
 ## saved spell by its Spell.key),
