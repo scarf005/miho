@@ -160,12 +160,12 @@ static func fell(w: World, a: Actor) -> void:
 
 ## Rounds the `step`th 저승사자 after the first comes after the one before.
 static func gap(step: int) -> int:
-	return maxi(1, World.REAPER_AGAIN >> step)
+	return maxi(1, World.REAPER_AGAIN >> mini(step, 62))
 
 
 ## Tiles the `step`th 저승사자 after the first comes from its target.
 static func distance(step: int) -> int:
-	return maxi(1, World.REAPER_FAR >> step)
+	return maxi(1, World.REAPER_FAR >> mini(step, 62))
 
 
 ## The tile the next 저승사자 hunts and is counted from: Miho. The map of houses (#6) names

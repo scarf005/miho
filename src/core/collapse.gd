@@ -53,12 +53,15 @@ static func _ruins(_w: World) -> bool:
 static func _crumble(w: World) -> void:
 	var keep := goals(w) + [w.player().pos]
 	var changed: Array[Vector2i] = []
+	var gone: Array[Vector2i] = []
 	if w.depth >= 2:
 		changed.append_array(_rot(w, keep))
-		changed.append_array(_sink(w))
+		gone = _sink(w)
+		changed.append_array(gone)
 	changed.append_array(_heat(w, keep))
 	if not changed.is_empty():
 		w._changed()
+	if not gone.is_empty():
 		w.emit({t = &"quake", tiles = changed})
 
 

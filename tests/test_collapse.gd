@@ -205,5 +205,7 @@ func test_a_quake_comes_only_in_a_round_where_floor_became_sky() -> void:
 		for i in 60:
 			var sky := _count(w, SKIES)
 			var quakes := w.act(WAIT).filter(func(e): return e.t == &"quake")
-			assert_eq(not quakes.is_empty(), _count(w, SKIES) > sky, "depth %d round %d" % [depth, i])
+			assert_eq(
+				not quakes.is_empty(), _count(w, SKIES) > sky, "depth %d round %d" % [depth, i]
+			)
 			w.actors.assign(w.actors.filter(func(a): return a.is_miho()))
