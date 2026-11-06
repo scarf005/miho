@@ -113,6 +113,8 @@ Every task runs in its own worktree. A lane runs focused tests only. The oracle,
 
 A commit that finishes every point of an issue ends its body with `Closes #N`, so the push to main closes the issue. A commit that does part of one writes `Part of #N`. User: "커밋에 `closes #1` 처럼 하지 않은건가요? 그렇게 해야할것같은데요".
 
+Force-push is allowed on every branch of this repository, main too, so a needed history fix (a rebase, a reworded or dropped commit) is done, never skipped or worked round. Push with `--force-with-lease`, keep every commit that is not the one being fixed, and never move a released tag. User: "그냥 이 repo는 force push 허용한다고 명시좀 해주세요. force push 핑계로 작업 버리는 일좀 막게."
+
 Passing tests and lint do not prove a lane is done. Before merging a lane that changes anything the player sees or hears, the parent must do all of the following:
 1. Read every added or changed user-facing string in the diff against the text rules above, then read it aloud as Korean and rewrite it if a player would not say it. Before a tag, read the whole list from `just strings`.
 2. Drive the changed UI with `just shot ... --keys=...` and look at the frames.
