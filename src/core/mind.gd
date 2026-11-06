@@ -67,6 +67,8 @@ static func heaven_phase(w: World) -> void:
 			Fall.stranded(w, a)
 			continue
 		if a.kind == Sister.KIND:
+			if a.ailments.stunned > 0:
+				Status.lapse(w, a, &"stunned")
 			Sister.turn(w, a)
 			continue
 		a.brain.acted += 1
