@@ -34,7 +34,8 @@ extends RefCounted
 ## of 여 alone yelps, an alarm (Lure). The debug commands take no round (Cheat).
 
 const FLOORS := 9
-## The depth of the house, off the pavilion (`Storeys` keeps it like any storey).
+## The depth of the house at the end of the trail (House), off the pavilion (`Storeys` keeps it
+## like any storey); the rules that count storeys take storey 1's there (`storey`).
 const HOUSE := 0
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
@@ -184,9 +185,11 @@ var gas_heat := {}
 var vents := {}
 ## The gas a vent keeps, where it is not Gas.VENT_LEVEL: position -> 2..4 (Outside).
 var vent_levels := {}
-## The ground round the pavilion on storey 1 but the trail: position -> true (Outside).
+## The ground under the moon round the pavilion on storey 1 and round the hut of the house,
+## but the trail: position -> true (Outside, House).
 var outside := {}
-## The tile of the map's edge where the trail leaves the storey, or (-1, -1) (Outside).
+## The tile of the map's edge where the trail leaves storey 1 for the house and the house for
+## storey 1, or (-1, -1) (Outside, House).
 var trail_end := Vector2i(-1, -1)
 ## The door of the pavilion on storey 1 that the way out leads through, or (-1, -1) (Outside).
 var gate := Vector2i(-1, -1)
@@ -327,8 +330,13 @@ func player() -> Actor:
 	return actors[0]
 
 
+## The storey whose count the rules use: the depth, and storey 1's on the house (HOUSE).
+func storey() -> int:
+	return maxi(depth, 1)
+
+
 func max_tails() -> int:
-	return Elixir.TAILS if elixir_held else depth + tail_bonus
+	return Elixir.TAILS if elixir_held else storey() + tail_bonus
 
 
 func tile(p: Vector2i) -> int:

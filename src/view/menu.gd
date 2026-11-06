@@ -136,7 +136,7 @@ func sync(m: Node) -> void:
 	debug.world = m.world
 	title = m.state == &"title"
 	buffs = Guise.worn(m.world, m.world.player())
-	codex.rank = Bestiary.rank(m.world.depth)
+	codex.rank = Bestiary.rank(m.world.storey())
 
 
 ## Opens a page, `size` the screen in cells when it changes.

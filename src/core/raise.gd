@@ -37,7 +37,7 @@ static func risen(a: Actor) -> bool:
 
 ## What rises on this storey from the body of a creature of `kind`.
 static func rises(w: World, kind: StringName) -> StringName:
-	var r := Bestiary.rank(w.depth)
+	var r := Bestiary.rank(w.storey())
 	return STRONG if Bestiary.hp(kind, r) >= Bestiary.hp(STRONG, r) else WEAK
 
 

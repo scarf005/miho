@@ -280,12 +280,12 @@ static func sprout(w: World, s: Shot, at: Vector2i) -> void:
 
 
 ## The tiles a wooden wall can grow on: open ground with nothing on it, not
-## burning, not a door, the stairs up or down, the elixir or a peach.
+## burning, not a door, the stairs up or down, the elixir, the trail's exit or a peach.
 static func growable(w: World, tiles: Array[Vector2i]) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	for p in tiles:
 		var sites := w.sites.any(func(site): return site.at == p)
-		var special := p in [w.stairs, w.down, w.elixir] or w.peaches.has(p) or sites
+		var special := p in [w.stairs, w.down, w.elixir, w.trail_end] or w.peaches.has(p) or sites
 		if (
 			w.open_floor(p)
 			and w.tile(p) not in [World.DOOR, World.DOOR_OPEN]

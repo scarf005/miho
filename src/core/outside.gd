@@ -68,12 +68,12 @@ static func lay(w: World) -> void:
 		if sky[i] == 1:
 			w.tiles[i] = World.GRASS
 	for layer: Array in LAYERS[RunPlan.outside(w.rng.seed)]:
-		var laid := _noise(layer[1], rng)
+		var laid := noise(layer[1], rng)
 		for i in sky.size():
 			if sky[i] == 1 and laid[i] == 1:
 				w.tiles[i] = layer[0]
-	var a := _noise(PondGarden.NOISE, rng)
-	var b := _noise(PondGarden.NOISE, rng)
+	var a := noise(PondGarden.NOISE, rng)
+	var b := noise(PondGarden.NOISE, rng)
 	if not path.is_empty():
 		w.tiles[Grid.index(gate)] = World.DOOR
 		for p in path:
@@ -108,7 +108,7 @@ static func _sky(w: World) -> PackedByteArray:
 
 
 ## 1 for each tile of the board that cellular noise of `chance` makes solid.
-static func _noise(chance: float, rng: RandomNumberGenerator) -> PackedByteArray:
+static func noise(chance: float, rng: RandomNumberGenerator) -> PackedByteArray:
 	var out := PackedByteArray()
 	out.resize(Grid.W * Grid.H)
 	var board := Rect2i(0, 0, Grid.W, Grid.H)
@@ -184,6 +184,14 @@ static func trail(from: Vector2i, open: PackedByteArray) -> Array[Vector2i]:
 		out.push_front(Grid.at(end))
 		end = parent[end]
 	return out
+
+
+## The trail's tile beside its exit (World.trail_end), or (-1, -1) when there is no trail.
+static func beside(w: World) -> Vector2i:
+	for d in Placement.SIDES:
+		if w.trail_end.x >= 0 and w.tile(w.trail_end + d) == World.COURTYARD:
+			return w.trail_end + d
+	return Vector2i(-1, -1)
 
 
 static func _edge(p: Vector2i) -> bool:

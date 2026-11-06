@@ -133,6 +133,24 @@ static func ascend(w: World) -> void:
 	w.sense()
 
 
+## Along the trail (World.trail_end) from storey 1 to the house or back, the allies by her
+## along, onto the trail's tile beside its exit there. Her health and tails stay as they are.
+static func trail(w: World) -> void:
+	var party := Storeys.followers(w)
+	Storeys.leave(w)
+	Storeys.enter(w, World.HOUSE if w.depth == 1 else 1)
+	var me := w.player()
+	var at := Outside.beside(w)
+	if me.pos != at:
+		var off_exit := Masks.floor_of(w, [w.trail_end], func(_p): return false)
+		var spot := FloorGen.nearest_free(w, at, off_exit)
+		me.pos = spot if spot.x >= 0 else w.start
+	Storeys.carry(w)
+	Storeys.bring(w, party)
+	w.emit({t = &"trail", depth = w.depth})
+	w.sense()
+
+
 ## Down the stairs (World.down) onto the up stairs of the storey below, the allies by her
 ## along, as she left it. She keeps no more tails than it gives, as after a fall, and heals
 ## nothing; its 저승사자 comes sooner (Curse.descend).

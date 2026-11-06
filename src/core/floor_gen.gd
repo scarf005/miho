@@ -223,8 +223,12 @@ static func build(w: World, skeleton := &"", outside := false, concept := &"") -
 	return set_room
 
 
-## The storey Miho is on, built: `build`, and the outside ground round the first (Outside).
+## The storey Miho is on, built: the house (House), else `build`, and the outside ground round
+## the first (Outside). Returns the set room `build` made.
 static func storey(w: World, skeleton := &"", concept := &"") -> Dictionary:
+	if w.depth == World.HOUSE:
+		House.build(w)
+		return {}
 	var set_room := build(w, skeleton, w.depth == 1, concept)
 	if w.depth == 1:
 		Outside.lay(w)
@@ -801,13 +805,14 @@ static func _blob(w: World, r: Rect2i, t: int) -> Array[Vector2i]:
 	return out
 
 
-## Plain floor that is not the start, the stairs or the elixir.
+## Plain floor that is not the start, the stairs, the elixir or the trail's exit.
 static func _bare(w: World, p: Vector2i) -> bool:
 	return (
 		w.tile(p) == World.FLOOR
 		and p != w.start
 		and p != w.stairs
 		and p != w.elixir
+		and p != w.trail_end
 		and not w.traps.has(p)
 	)
 
@@ -981,7 +986,7 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.pos = at
 	a.brain.home = at
 	a.brain.post = at
-	a.rank = Bestiary.rank(w.depth)
+	a.rank = Bestiary.rank(w.storey())
 	a.hp = Bestiary.hp(kind, a.rank)
 	a.max_hp = a.hp
 	a.magic.mana = Bestiary.mana(kind)

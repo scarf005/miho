@@ -40,8 +40,8 @@ static func tick(w: World) -> void:
 
 
 ## Whether the map is one of houses, where nothing collapses.
-static func _ruins(_w: World) -> bool:
-	return false
+static func _ruins(w: World) -> bool:
+	return w.depth == World.HOUSE
 
 
 static func _crumble(w: World) -> void:

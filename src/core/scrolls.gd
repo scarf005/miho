@@ -70,6 +70,7 @@ static func _holds(w: World, p: Vector2i) -> bool:
 		and w.actor_at(p) == null
 		and p != w.stairs
 		and p != w.down
+		and p != w.trail_end
 		and p != w.elixir
 		and not w.peaches.has(p)
 		and not w.traps.has(p)
