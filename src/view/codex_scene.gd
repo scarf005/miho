@@ -50,6 +50,7 @@ const MARKS := {
 	",": World.GRASS,
 	";": World.STRAW,
 	"l": World.LANTERN_OUT,
+	"=": World.TRAP_COLLAPSE,
 }
 const HUNTER := "  @      m"
 ## A creature that walks to Miho and strikes, one that strikes where it stands, and one that
@@ -97,6 +98,7 @@ const TABLE := {
 	&"thunder": ["      w/  @  w  w/      w", "c..."],
 	Guise.NAME[Guise.RAISE]: [RISES, "s>>....", Guise.RECIPE[Guise.RAISE]],
 	Elixir.NAME: ["  @       z", "c..", [Cards.FOX, Cards.FIRE]],
+	Guise.NAME[Guise.VAULT]: ["  @=", "s>....", Guise.RECIPE[Guise.VAULT]],
 	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],
 	Curse.NAME[Curse.SIGHT]: ["  @D J", "c..", [Cards.ORB]],
 	Curse.NAME[Curse.BODY]: ["  @D", CASTS, [Cards.ORB]],
@@ -220,6 +222,10 @@ static func _aimed(kind: StringName, cards: Array) -> String:
 ## The scene as a World from its start, on a storey of rank `rank`; 0 for DEPTH.
 static func build(scene: Dictionary, rank := 0) -> World:
 	var w := hall(rank)
+	if w.depth > 1 and scene.map.contains("="):  # an empty storey below for a plate to drop her to
+		w.depth -= 1
+		Storeys.leave(w)
+		w.depth += 1
 	var rows: PackedStringArray = scene.map.split("/")
 	var top := HALL.position.y + (HALL.size.y - rows.size()) / 2
 	for y in rows.size():
@@ -335,6 +341,8 @@ static func _place(w: World, key: Variant, mark: String, p: Vector2i) -> void:
 		_:
 			if MARKS.has(mark):
 				w.set_tile(p, MARKS[mark])
+				if Tiles.of(MARKS[mark], "trap"):
+					w.traps[p] = MARKS[mark]
 			else:
 				Gas.put(w, p, int(mark), Gas.MAX)
 

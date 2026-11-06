@@ -46,7 +46,8 @@ static func counts(c: StringName) -> Dictionary:
 	return {key = &"", each = each}
 
 
-## The example of 도약 alone and with 1 to LEAP_WOODS 목 behind it, a part for each.
+## The example of 도약 alone and with 1 to LEAP_WOODS 목 behind it, a part for each, and
+## last 도약 on Miho herself, where she falls and is not hurt.
 static func leaps() -> Dictionary:
 	var each := []
 	for n in LEAP_WOODS + 1:
@@ -57,6 +58,7 @@ static func leaps() -> Dictionary:
 		each.append(
 			of(cards).merged({label = Lang.t(Cards.NAME[Cards.VAULT]) if n == 0 else label})
 		)
+	each.append(CodexScene.of(Guise.NAME[Guise.VAULT]).merged({label = Lang.t("자신에게")}))
 	return {key = &"", each = each}
 
 

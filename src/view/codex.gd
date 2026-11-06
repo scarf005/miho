@@ -158,16 +158,21 @@ static func _spell_entries() -> Array[Dictionary]:
 			out.back().scene = SpellScene.leaps()
 			var more := SpellScene.parts(out.back().scene).slice(1)
 			out.back().stages = [lines] + more.map(_spell_text)
-			var woods := [cards] + more.map(func(p): return p.spell)
+			var woods := [cards] + more.map(_cards_of)
 			out.back().recipes = woods
 			out.back().titles = woods.map(func(w): return Spell.make(w).shown())
 	_add_casts(out)
 	return out
 
 
+## The talismans of `part`, an example of SpellScene or a row of CodexScene.
+static func _cards_of(part: Dictionary) -> Array:
+	return part.get("spell", part.get("cards"))
+
+
 ## The text of a spell made of the talismans of `part`, a part of an example.
 static func _spell_text(part: Dictionary) -> Callable:
-	return func(): return SpellInfo.spell(Spell.make(part.spell))
+	return func(): return SpellInfo.spell(Spell.make(_cards_of(part)))
 
 
 ## The spells creatures cast that `out` and the talismans do not tell, under the name of one shot:
