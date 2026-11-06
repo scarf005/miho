@@ -193,14 +193,9 @@ func test_the_outside_is_kept_as_she_left_it() -> void:
 func test_the_moon_lights_all_the_outside_ground_the_map_s_edge_too() -> void:
 	for s in 3:
 		var w := Built.world(s)
-		var edge := 0
-		for i in w.tiles.size():
-			var p := Grid.at(i)
-			var rim := Outside._edge(p) and w.tiles[i] in GROUND
-			edge += 1 if rim else 0
-			if rim or w.vents.has(p):
-				assert_true(w.lit(p), "seed %d at %s" % [s, p])
-		assert_gt(edge, 0)
+		for p: Vector2i in w.outside:
+			assert_true(w.lit(p), "seed %d at %s" % [s, p])
+		assert_true(w.outside.keys().any(Outside._edge), "seed %d reaches the edge" % s)
 
 
 func test_the_moon_lights_no_vent_but_those_outside() -> void:
