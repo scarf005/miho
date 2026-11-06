@@ -81,6 +81,7 @@ const NAMES := [
 	&"orb3",
 	&"orb4",
 	&"orb5",
+	&"cough",
 ]
 ## The events a spell's own sounds come from (`_spell_sounds`).
 const SPELL_EVENTS := [&"cast", &"hit", &"burst", &"splash"]
@@ -204,6 +205,7 @@ const WORDS := {
 	"푸드덕": &"hiss",  # i18n: keep
 	"타닥": &"burn",  # i18n: keep
 	"캥": &"foxfire",  # i18n: keep
+	"콜록": &"cough",  # i18n: keep
 }
 
 ## Every stream is read once for the whole run, not once per Sfx.
@@ -541,6 +543,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"scream" if e.has("depth") and not e.get("soft", false) else &""
 		&"won":
 			return &"win"
+		&"cough":
+			return &"cough"
 		&"lost":
 			return &"lose"
 		&"noise":
