@@ -3345,8 +3345,8 @@ msgstr "Drink the elixir?"
 msgid "영약을 얻었다"
 msgstr "Got the elixir"
 
-msgid "영약을 지니고 있다"
-msgstr "Carrying the elixir"
+msgid "영약을 지닌 동안에는 걸 수 없다"
+msgstr "Cannot be cast while carrying the elixir"
 
 msgid "영약 받기"
 msgstr "Get the elixir"
@@ -3354,14 +3354,17 @@ msgstr "Get the elixir"
 msgid "빛: 반지름 %d칸"
 msgstr "Light: radius %d"
 
-msgid "추적: 이 층의 모든 적"
-msgstr "Hunted by: every enemy on the floor"
+msgid "이 층의 모든 적이 당신을 쫓는다."
+msgstr "Every enemy on the floor hunts you."
 
-msgid "꼬리: 최대 %d, 초당 +%d"
-msgstr "Tails: up to %d, +%d per second"
+msgid "최대 꼬리: %d"
+msgstr "Most tails: %d"
 
-msgid "걸 수 없음: %s, %s"
-msgstr "Cannot cast: %s, %s"
+msgid "꼬리 회복: 초당 %d"
+msgstr "Tails regrown: %d per second"
+
+msgid "걸 수 없는 주문: %s, %s"
+msgstr "Spells barred: %s, %s"
 
 msgid "예"
 msgstr "Yes"
