@@ -49,7 +49,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - Delete every line that would not change what the player does. That includes "water is wet" lines and restatements of another line.
 - A thing lists what it has. Never add a line that denies what another thing has: kimchi does not say `최대 체력: 오르지 않음` when the peach says `가득 찼을 때 최대 체력: +1`, and a wall does not say `부술 수 없다.` when a cracked wall says `부서짐: 구슬`. The same goes for what the player already assumes, such as `멈춤: 첫 적` beside `관통`, or `바닥이 됨: 풀` on a spell with `피해: 1`. User: "이 두 문장이 대체 뭔 가치가 있음". A negative stays only when nothing else tells it and the player would act otherwise: `냄새가 남지 않음.`
 - Do not write hints, guesses or control tips, for example "숨은 문일 수 있다", "뒤에 숨을 수 있다" or "X키로 닫는다".
-- The one key label a hover box carries is the detail key, as DCSS `direction_chooser::print_key_hints` prints `v - describe`. User: "dcss/cataclysm처럼 상세보기 키를 UI에 표시해줘".
+- A hover box lists the key of every action the player can take on what it shows, the detail key first, as DCSS `direction_chooser::print_key_hints` prints `v - describe`. User: "dcss/cataclysm처럼 상세보기 키를 UI에 표시해줘", issue #15: "x로 문 위로 호버한 경우 `m 자세히` -> `m 자세히 c 닫기 v 위험구역 표시`".
 - No onomatopoeia in hover or 도감, because rules use only the radius: write `소음: N`. The map popup and the log keep the word.
 - A rule shared by many things lives once in a 도감 glossary entry. The thing itself shows only the tag.
 - Log lines are short past-tense events. Do not use exclamations.
@@ -74,7 +74,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `주문과 멀리뛰기로만 건널 수 있다.` -> `이동 불가.`. User: "그냥 `이동 불가.` 태그면 끝 아닌가".
   - `유탄 탄환` -> `유탄`. User: "이미 유탄에 탄환이란 의미가 있어서 동어반복".
   - `하늘로 떨어져 2층으로 내려왔다` + `착지했다` -> `2층으로 추락했다`, or `2층으로 내려왔다` when 도약 softens it. One line, no restated cause. User: "ㄴㄴ `2층으로 내려왔다` or `2층으로 추락했다` 같이".
-- A click on a suggested spell or a saved spell fills the queue. User: "클릭하면 당연히 프리셋으로 채워줄줄 알았는데 아니야". The keyboard alone can aim at Miho. User: "키보드만으로 스스로를 겨눌 방법이 없어". Explore never takes the stairs. User: "자동탐색 했는데 그냥 다음 층으로 올라가버림. 이래선 안됨".
+- A click on a suggested spell or a saved spell fills the queue. User: "클릭하면 당연히 프리셋으로 채워줄줄 알았는데 아니야". The keyboard alone can aim at Miho. User: "키보드만으로 스스로를 겨눌 방법이 없어". Explore never takes the stairs. User: "자동탐색 했는데 그냥 다음 층으로 올라가버림. 이래선 안됨". On storey 1 Miho starts inside the pavilion and its door to the outside is a 1-tile 위험구역, so explore stays inside but she can walk out. User: "천상누각 밖으로 나가는 문은 1칸짜리 위험구역으로 만들고 미호를 천상누각 안에서 시작하게 함으로써 자연스럽게 자동 탐색으로는 밖으로 나가지 못하게, 하지만 원한다면 나갈 수 있게".
 - A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯". Every Y/N question ends this way: `영약을 마실까? Y/N`, `주문을 쓸까? Y/N`, not `영약을 마십니까?`. User chose `~할까?` ("후자로 ㄱㄱ").
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 - One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
