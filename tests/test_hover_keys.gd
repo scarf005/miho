@@ -91,7 +91,7 @@ func test_the_exclude_key_listed_marks_then_the_row_offers_to_narrow_and_clear()
 	_press(m, "V")
 	assert_eq(m.journey.excluded.zones.get(at), 0)
 	assert_true(_lists(m, &"exclude", "위험구역 지우기"), _row(m))
-	assert_false(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))
+	assert_true(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))
 	_press(m, "V")
 	assert_false(m.journey.excluded.zones.has(at))
 
@@ -152,3 +152,25 @@ func test_a_touch_screen_shows_no_row() -> void:
 	var at := _door(m, World.DOOR_OPEN)
 	_look(m, at)
 	assert_false(_row(m).contains(Lang.t("닫기")))
+
+
+func test_an_unseen_creature_lists_a_move_not_an_attack() -> void:
+	var m := _main(false)
+	var at: Vector2i = m.world.player().pos + Vector2i(1, 0)
+	FloorGen.spawn(m.world, KIND, at).magic.cooldown = 99
+	m.world.seen[Grid.index(at)] = 0
+	m.world.known[Grid.index(at)] = 1
+	m.forecast()
+	_look(m, at)
+	assert_true(_lists(m, &"confirm", "이동"), _row(m))
+	assert_false(_row(m).contains(Lang.t("공격")), _row(m))
+
+
+func test_the_range_label_needs_a_key_on_both_ends() -> void:
+	var m := _main(false)
+	var at: Vector2i = m.world.player().pos + Vector2i(3, 0)
+	_look(m, at)
+	_press(m, "V")
+	Keys.bind(&"pick_%d" % Exclusions.MAX_RADIUS, [])
+	m.refresh()
+	assert_true(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))

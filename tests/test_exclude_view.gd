@@ -201,3 +201,13 @@ func _press(key: String) -> InputEventKey:
 	var e := Keys.event(key)
 	e.pressed = true
 	return e
+
+
+func test_a_new_storey_below_the_gate_outside_adds_no_gate_zone() -> void:
+	var m := _main()
+	m.world.player().pos = m.world.trail_end
+	m.journey.start_zones()
+	assert_true(m.journey.excluded.is_empty())
+	m.world.player().pos = m.world.start
+	m.journey.start_zones()
+	assert_eq(m.journey.excluded.zones, {m.world.gate: 0})
