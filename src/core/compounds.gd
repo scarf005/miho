@@ -299,14 +299,14 @@ static func open(w: World, p: Vector2i) -> bool:
 
 ## Lays hot ground of `kind` on the walkable dry tiles; the harsher kind and the
 ## longer time stay where it lies already.
-static func heat(w: World, tiles: Array[Vector2i], kind: int) -> void:
+static func heat(w: World, tiles: Array[Vector2i], kind: int, tell := true) -> void:
 	var laid: Array[Vector2i] = []
 	for p in tiles:
 		if w.open_floor(p) and not Tiles.of(w.tile(p), "douses"):
 			var was: Vector2i = w.hot.get(p, Vector2i(kind, 0))
 			w.hot[p] = Vector2i(maxi(was.x, kind), maxi(was.y, HOT_ROUNDS))
 			laid.append(p)
-	if not laid.is_empty():
+	if tell and not laid.is_empty():
 		w.emit({t = &"heat", at = laid[0], tiles = laid, kind = kind})
 
 
@@ -370,12 +370,7 @@ static func _renew(w: World, s: Shot) -> void:
 ## The open ground on `tiles` becomes sky, but Miho's tile and any tile that
 ## would cut her from the stairs (or the elixir), taken in the order of `tiles`.
 static func _sink(w: World, tiles: Array[Vector2i]) -> void:
-	var me := w.player().pos
-	var guard := linked(w, [])
-	var gone: Array[Vector2i] = []
-	for p in tiles:
-		if p != me and open(w, p) and (not guard or linked(w, gone + [p])):
-			gone.append(p)
+	var gone := sinkable(w, tiles)
 	for p in gone:
 		w.hot.erase(p)
 		w.traps.erase(p)
@@ -383,14 +378,33 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 	Scrolls.displace(w, gone)
 
 
+## The first `most` (all, below 0) of `tiles` that can go without cutting Miho off from
+## the stairs, or from every tile in `goals`. Her own tile stays.
+static func sinkable(w: World, tiles: Array[Vector2i], most := -1, goals := []) -> Array[Vector2i]:
+	var me := w.player().pos
+	var guard := linked(w, [], goals)
+	var gone: Array[Vector2i] = []
+	for p in tiles:
+		if gone.size() == most:
+			break
+		if p != me and open(w, p) and (not guard or linked(w, gone + [p], goals)):
+			gone.append(p)
+	return gone
+
+
 ## Whether Miho can walk to the stairs (the elixir where there are none) with
-## the tiles in `blocked` gone; false when there is no goal.
-static func linked(w: World, blocked: Array) -> bool:
-	var goal := w.stairs if Grid.inside(w.stairs) else w.elixir
-	if not Grid.inside(goal):
-		return false
-	var dist: PackedInt32Array = Grid.search(goal, Masks.opened(w, blocked)).dist
-	return dist[Grid.index(w.player().pos)] >= 0
+## the tiles in `blocked` gone; false when there is no goal. With `goals`, to every
+## one of them instead.
+static func linked(w: World, blocked: Array, goals := []) -> bool:
+	if goals.is_empty():
+		goals = [w.stairs if Grid.inside(w.stairs) else w.elixir]
+	var mask := Masks.opened(w, blocked)
+	for goal: Vector2i in goals:
+		if not Grid.inside(goal) or goal in blocked:
+			return false
+		if Grid.search(goal, mask).dist[Grid.index(w.player().pos)] < 0:
+			return false
+	return true
 
 
 ## The creatures of heaven on `tiles`, the nearest pairs first, are set on each
