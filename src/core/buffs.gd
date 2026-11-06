@@ -11,11 +11,13 @@ var form := &""
 var guise := false
 var beside := 0
 ## Whether it holds 쇠발톱 (her claws harm more), 은신 (the hat's rule, Hat) and
-## 불여우 (it counts as a fire creature: `nature_kind`) and 사령술 (Raise).
+## 불여우 (it counts as a fire creature: `nature_kind`), 사령술 (Raise) and 도약 (the next
+## fall harms nothing: Fall).
 var talon := false
 var cloak := false
 var flame := false
 var raise := false
+var vault := false
 
 
 func copy() -> Buffs:
@@ -28,4 +30,5 @@ func copy() -> Buffs:
 	c.cloak = cloak
 	c.flame = flame
 	c.raise = raise
+	c.vault = vault
 	return c

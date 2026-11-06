@@ -14,6 +14,7 @@ extends RefCounted
 ## vents steam to fly: Compounds.STEAM of it lies on the tiles she leaves, from the
 ## one she starts on up to the third last. A tile's steam has the heat of its
 ## distance from the landing less 1 (`heat`), so it cools to fog before it spreads onto her.
+## Under the 도약 buff (Guise.VAULT) a fall lands her in a ring of that steam (`vent`).
 ##
 ## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
@@ -28,11 +29,22 @@ const SWAP_LOUD := 5
 ## What a 도약 behind a projectile is called.
 const SWAP_NAME := "바꿔치기"
 const SWAP_WORD := "펑"
+## The Chebyshev distance from a landing of the ring of steam a softened fall vents.
+const RING := 2
 
 
 ## The heat of the steam a leap lays on `p`, for a landing on `to`.
 static func heat(p: Vector2i, to: Vector2i) -> int:
 	return mini(Gas.MAX, Grid.cheb(p, to) - 1)
+
+
+## Steam on the ring RING tiles round `at`, with the heat of its distance from `at`.
+static func vent(w: World, at: Vector2i) -> void:
+	for dy in range(-RING, RING + 1):
+		for dx in range(-RING, RING + 1):
+			var q := at + Vector2i(dx, dy)
+			if Grid.cheb(q, at) == RING:
+				Gas.add(w, q, Gas.STEAM, Compounds.STEAM, heat(q, at))
 
 
 ## Where a leap from `from` along `dir` lands, or `from` when it lands nowhere.

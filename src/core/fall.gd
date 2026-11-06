@@ -9,10 +9,11 @@ extends RefCounted
 ## it (Storeys), and on down while that storey is sky there too. She lands on
 ## the tile she fell at, or the free tile nearest it across floor and sky, and
 ## loses DAMAGE health for each storey fallen; her tails are kept up to what
-## that storey allows. On the first storey she has nowhere to fall to, and
-## stops at the edge like at a wall. Pushed onto the stairs, the elixir or a peach,
-## Miho takes them as if she had stepped there (Walk.arrive). A creature that
-## slides at all gives one `push` event first, at the tile it slides from.
+## that storey allows. Under the 도약 buff (Guise.VAULT) the fall harms nothing, however
+## many storeys it drops her, and spends the buff (Guise.land). On the first storey she has
+## nowhere to fall to, and stops at the edge like at a wall. Pushed onto the stairs, the
+## elixir or a peach, Miho takes them as if she had stepped there (Walk.arrive). A creature
+## that slides at all gives one `push` event first, at the tile it slides from.
 ## A collapsing floor (Traps) drops a creature the same way, from where it stands.
 
 const DAMAGE := 1
@@ -143,17 +144,21 @@ static func _gone(w: World, a: Actor, told: Array) -> void:
 static func _drop(w: World, me: Actor, into: Vector2i) -> void:
 	var from := me.pos
 	var top := w.depth
+	var soft := me.buffs.vault
 	Storeys.leave(w)
 	Storeys.enter(w, w.depth - 1)
 	while w.depth > 1 and w.tile(into) == World.SKY:
 		Storeys.leave(w)
 		Storeys.enter(w, w.depth - 1)
-	w.emit({t = &"fall", id = me.id, from = from, at = into, depth = w.depth})
+	w.emit({t = &"fall", id = me.id, from = from, at = into, depth = w.depth, soft = soft})
 	me.pos = Vector2i(-1, -1)  # in the air, off the tile she may land on
 	var spot := FloorGen.nearest_free(w, into, Masks.air(w))
 	me.pos = spot if spot.x >= 0 else w.start
 	Storeys.carry(w)
-	Harm.hurt(w, me, (top - w.depth) * DAMAGE)
+	if soft:
+		Guise.land(w, me)
+	else:
+		Harm.hurt(w, me, (top - w.depth) * DAMAGE)
 	w.tails = mini(w.tails, w.max_tails())
 	w._changed()
 	w.sense()

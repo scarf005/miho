@@ -6,7 +6,7 @@ extends RefCounted
 ## `only`. 쇠발톱 and 사령술 go on her whatever the direction (ANYWHERE). A buff takes at
 ## least 3 talismans and holds 목. It has no time limit, stays on her from storey
 ## to storey (but RAISE), and she can drop it: one round, no tail (`dispel`).
-## The casts of 둔갑, 쇠발톱, 은신 and 불여우 are heard (LOUD); the other two are
+## The casts of 둔갑, 쇠발톱, 은신, 불여우 and 도약 are heard (LOUD); the other two are
 ## silent.
 ##
 ## 그림자 (SHADOW: 여, the 단비 slot of 수+목, and any number of 수): a dark wisp
@@ -50,6 +50,11 @@ extends RefCounted
 ## allies (Raise). The one buff with a time limit: it ends when she goes to another
 ## storey, by any way (Storeys.enter). The spell is silent and goes on her whatever the
 ## direction (ANYWHERE).
+##
+## 도약 (VAULT: the talisman alone): the next fall harms nothing, however many storeys
+## it drops her, and ends the buff (`land`); a fall that does not happen (the first
+## storey) leaves it. She lands in a ring of steam (Leap.vent). Cast along a direction
+## it is the leap, as ever; only the aim at herself puts it on her, and only once.
 
 const SHADOW := &"shadow"
 const GUISE := &"guise"
@@ -57,6 +62,7 @@ const TALON := &"talon"
 const CLOAK := &"cloak"
 const FLAME := &"flame"
 const RAISE := &"raise"
+const VAULT := Cards.VAULT
 const NAME := {
 	SHADOW: "그림자",
 	GUISE: "둔갑",
@@ -64,6 +70,7 @@ const NAME := {
 	CLOAK: "은신",
 	FLAME: "불여우",
 	RAISE: Cards.NAME[RAISE],
+	VAULT: Cards.NAME[VAULT],
 }
 ## The talismans that make each, at their weakest.
 const RECIPE := {
@@ -73,6 +80,7 @@ const RECIPE := {
 	CLOAK: [Cards.FOX, Cards.WOOD, Cards.EARTH],
 	FLAME: [Cards.FOX, Cards.FIRE, Cards.WOOD],
 	RAISE: Cards.COMPOUND[RAISE].made,
+	VAULT: Cards.COMPOUND[VAULT].made,
 }
 ## The creature whose elements 불여우 gives her: of fire, and immune to fire besides.
 const FLAME_KIND := &"flame_fox"
@@ -83,6 +91,7 @@ const ANYWHERE := [TALON, RAISE]
 ## The spells that take no other slot beside them.
 const ALONE := [TALON, Cards.BUNSIN, RAISE, &"beacon", &"furnace"]
 const NO_PREY := "아직 처치한 적이 없다"
+const WORN := "이미 건 주문은 다시 걸 수 없다"
 const NO_ORB := "구슬 없이는 던질 수 없다"
 const MIXED := "다른 부적과 섞을 수 없는 주문이다"
 const BESIDE := 2
@@ -94,7 +103,7 @@ const TALON_HARM := 2
 const TALON_ABSORBED := 1
 ## The buffs whose cast is heard CAST_LOUD tiles as a rustle, and a claw under 쇠발톱,
 ## TALON_LOUD.
-const LOUD := [GUISE, TALON, CLOAK, FLAME]
+const LOUD := [GUISE, TALON, CLOAK, FLAME, VAULT]
 const CAST_LOUD := 3
 const CAST_WORD := "바스락"
 const TALON_LOUD := 3
@@ -119,11 +128,13 @@ static func _only(t: Callable) -> String:
 	return t.call("스스로에겐 %s만 걸 수 있다") % ", ".join(spells)
 
 
-## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, FLAME, RAISE, or empty when
-## it does not go on oneself.
+## What `spell` does cast on oneself: SHADOW, GUISE, TALON, CLOAK, FLAME, RAISE, VAULT, or empty
+## when it does not go on oneself.
 static func kind(spell: Spell) -> StringName:
 	if spell == null:
 		return &""
+	if spell.slots.size() == 1 and spell.slots[0] == Cards.VAULT:
+		return VAULT
 	if spell.slots.size() == 1 and ANYWHERE.has(spell.slots[0]):
 		return spell.slots[0]
 	if (
@@ -161,6 +172,8 @@ static func why(a: Actor, spell: Spell, dir := Vector2i.ZERO) -> String:
 			return only()
 		GUISE:
 			return NO_PREY if a.buffs.prey == &"" else ""
+		VAULT:
+			return WORN if a.buffs.vault else ""
 	return ""
 
 
@@ -207,6 +220,10 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> bool:
 		RAISE:
 			caster.buffs.raise = true
 			w.emit({t = &"raise", id = caster.id, at = caster.pos})
+			return true
+		VAULT:
+			caster.buffs.vault = true
+			w.emit({t = &"vault", id = caster.id, at = caster.pos})
 			return true
 	for old in shadows(w, caster):
 		old.gone = true
@@ -276,6 +293,7 @@ static func worn(w: World, a: Actor) -> Array:
 		CLOAK: a.buffs.cloak,
 		FLAME: a.buffs.flame,
 		RAISE: a.buffs.raise,
+		VAULT: a.buffs.vault,
 	}
 	return RECIPE.keys().filter(func(k): return on[k])
 
@@ -311,6 +329,16 @@ static func dispel(w: World, a: Actor, which: StringName) -> void:
 		RAISE:
 			a.buffs.raise = false
 			w.emit({t = &"unraise", id = a.id, at = a.pos})
+		VAULT:
+			a.buffs.vault = false
+			w.emit({t = &"unvault", id = a.id, at = a.pos})
+
+
+## `a` lands from a fall that 도약 softened: the buff is spent and steam rings the landing.
+static func land(w: World, a: Actor) -> void:
+	a.buffs.vault = false
+	w.emit({t = &"unvault", id = a.id, at = a.pos, fall = true})
+	Leap.vent(w, a.pos)
 
 
 ## What 쇠발톱 adds to a claw of `me` at `foe`, or at no creature in particular.
