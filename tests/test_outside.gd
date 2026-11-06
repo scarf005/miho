@@ -55,12 +55,12 @@ func _open(w: World) -> World:
 	return w
 
 
-func test_storey_one_starts_inside_the_pavilion_off_the_trail() -> void:
+func test_storey_one_starts_inside_the_pavilion_before_the_gate() -> void:
 	for s in SEEDS:
 		var w := Built.world(s)
 		assert_false(w.tile(w.start) in GROUND, "seed %d starts inside" % s)
 		assert_false(w.start in _joined(w, w.trail_end, World.COURTYARD), "seed %d" % s)
-		assert_true(w.rooms[0].has_point(w.start), "seed %d starts in its home room" % s)
+		assert_true(w.gate - w.start in Placement.SIDES, "seed %d starts before the gate" % s)
 		assert_eq(w.player().pos, w.start)
 
 
@@ -81,11 +81,11 @@ func test_miho_walks_from_the_start_out_through_the_gate() -> void:
 		assert_true(w.gate in route, "seed %d leaves through the gate" % s)
 
 
-func test_exploring_with_the_gate_excluded_never_reaches_the_trail() -> void:
+func test_exploring_with_the_gate_excluded_never_reaches_the_outside() -> void:
 	for s in SEEDS:
 		var w := _open(Built.world(s))
 		var found := Travel.search(w, {w.gate: true})
-		for p in _joined(w, w.trail_end, World.COURTYARD):
+		for p in w.vents.keys() + _joined(w, w.trail_end, World.COURTYARD):
 			assert_eq(found.dist[Grid.index(p)], -1, "seed %d: %s" % [s, p])
 		assert_gte(
 			Travel.search(w).dist[Grid.index(w.trail_end)], 0, "seed %d: open without it" % s
