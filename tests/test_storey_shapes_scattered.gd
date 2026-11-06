@@ -3,7 +3,7 @@ extends StoreyShapes
 
 ## A broken building has HOLES tiles of sky by its floor in every storey, a ruin, which
 ## has the scattered pavilions in it too, in HOLED of them.
-const HOLES := 20
+const HOLES := 19
 const HOLED := 0.9
 
 

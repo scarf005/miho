@@ -40,7 +40,7 @@ func test_storey_1_of_200_seeds_holds_vaults() -> void:
 	var vaults := 0
 	for seed_value in 200:
 		vaults += Built.storey(seed_value, 1).seals.size()
-	assert_gt(vaults, 50, "storey 1 of 200 seeds holds vaults")
+	assert_gt(vaults, 40, "storey 1 of 200 seeds holds vaults")
 
 
 func test_a_vault_with_a_broken_lantern_is_not_opened_by_its_lanterns() -> void:

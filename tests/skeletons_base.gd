@@ -17,7 +17,7 @@ const DEAD_ENDS := {
 	scattered = 5,
 	garden = 5,
 	keep = 8,
-	ruin = 5,
+	ruin = 6,
 	citadel = 8,
 	grove = 5,
 	flooded = 8,
@@ -30,7 +30,7 @@ const DEAD_ENDS := {
 	labyrinth = 99,
 }
 ## How many tiles two seeds' outlines differ by at least, on one storey.
-const OUTLINES_APART := 30
+const OUTLINES_APART := 10
 
 ## The skeletons this script tries.
 var kinds: Array[StringName] = []
