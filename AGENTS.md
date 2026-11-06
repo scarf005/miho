@@ -79,6 +79,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
 - One thing keeps one name on every screen: 불붙음, 젖음, 묶임, 소음, 피해. A label is the word a Korean game prints (`속도`, `관통`, `착지`, `소화`), never a verb that reads as prose or a coined noun.
 - Every bare tag that carries a rule has an entry in `Glossary.rows`, its rule read from the code that applies it. A tag whose rule changes nothing the player does is deleted. Every name that has an entry in any 도감 tab (`Codex.entries`, so a new entry needs no list) is a word: in the 도감 detail, the spellbook detail, the log and help pages and the log over the map, the pointer over it shows the entry in a box under the pointer, and a left click or a tap opens that entry in its own tab, Esc going back (Keywords, WordHover, WordLink). A name is found whole or before a particle, never inside a longer word. A hover box follows the pointer, so while Shift is held (a long press on touch) the box that is open stays and its words work the same way (`WordHover.hold`, `Term.pin`): the map, sidebar creature, status row, talisman, saved spell and queue slot boxes and a word box on a page.
+- The 도감 has no tab for characters, so 여동생 has no 도감 entry. User: "도감에 인물에 대한 탭은 없으니, 여동생은 도감에서 빼주세요."
 
 ## UI conventions
 
