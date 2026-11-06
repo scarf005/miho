@@ -189,11 +189,12 @@ static func handled(w: World, action: Dictionary) -> bool:
 	return true
 
 
-## 지도 생성: storey `depth` built in place of the one Miho is on, as a run on `seed_value`
-## builds it after the storeys under it, on `shape` and a 미궁 of `concept` where they are
-## given (DCSS wizard_recreate_level), and shown whole and still with 지도 밝히기 and 적 멈춤
-## on. Returns what was built, for the log: {depth, seed_value, shape, concept on a 미궁,
-## element, light, room, the set room's kind, if one was made}.
+## 지도 생성: storey `depth` built in place of the one Miho is on, from the draw of `seed_value`:
+## with no `shape`, after the storeys under it are built from it, as a run on that seed builds
+## it when its play drew nothing from World.rng between them; else on `shape` and a 미궁 of
+## `concept` where it is given (DCSS wizard_recreate_level). It is shown whole and still with
+## 지도 밝히기 and 적 멈춤 on. Returns what was built, for the log: {depth, seed_value, shape,
+## concept on a 미궁, element, light, room, the set room's kind, if one was made}.
 static func _generate(w: World, action: Dictionary) -> Dictionary:
 	var me := w.player()
 	if me.buffs.raise:
