@@ -88,6 +88,8 @@ static func text(world: World) -> String:
 				)
 			)
 		)
+	if me.buffs.vault:
+		out.append("next fall harms nothing")
 	if k.curses.has(Curse.REAPER):
 		out.append("cursed: the reaper comes %d rounds sooner on this storey" % Curse.SOONER)
 	if k.curses.has(Curse.SIGHT):

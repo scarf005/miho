@@ -54,8 +54,8 @@ const DIRS := {
 }
 const KINDS := {
 	"type": "string",
-	"enum": ["shadow", "guise", "talon", "cloak", "flame", "raise"],
-	"description": "dispel: the buff on Miho to drop."
+	"enum": ["shadow", "guise", "talon", "cloak", "flame", "raise", "vault"],
+	"description": "dispel: the buff on Miho to drop (vault: the next fall harms nothing)."
 }
 const SPELLS := {
 	type = "array",
