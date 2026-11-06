@@ -218,7 +218,7 @@ static func _cosine(a: Dictionary, b: Dictionary) -> float:
 
 static func _head() -> Array[String]:
 	return [
-		"| 층 | 층 수 | 결함 | 사건 방 | 짜인 방 | 방 | ms |",
+		"| 층 | 층 수 | 결함 | 사건 방 | 특수 방 | 방 | ms |",
 		"|---|---|---|---|---|---|---|",
 	]
 

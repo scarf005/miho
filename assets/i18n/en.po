@@ -3435,6 +3435,12 @@ msgstr "Island"
 msgid "순환"
 msgstr "Circuit"
 
+msgid "대숲 길"
+msgstr "Bamboo paths"
+
+msgid "함정 회랑"
+msgstr "Trap galleries"
+
 msgid "방"
 msgstr "Chambers"
 
@@ -3492,6 +3498,9 @@ msgstr "Ruin"
 msgid "겹누각 성채"
 msgstr "Citadel"
 
+msgid "대숲 층"
+msgstr "Bamboo grove floor"
+
 msgid "물 찬 층"
 msgstr "Flooded floor"
 
@@ -3525,8 +3534,8 @@ msgstr ", labyrinth: {0}"
 msgid ", 원소: {0}, 빛: {1}"
 msgstr ", element: {0}, light: {1}"
 
-msgid ", 짜인 방: {0}"
-msgstr ", set room: {0}"
+msgid ", 특수 방: {0}"
+msgstr ", special room: {0}"
 
 msgid "층"
 msgstr "Floor"

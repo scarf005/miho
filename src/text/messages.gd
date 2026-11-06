@@ -531,7 +531,7 @@ static func _generated(e: Dictionary) -> Array:
 	var light := [RunPlan.LIGHT_NAME[RunPlan.LIGHTS.find(e.light)], TEXT]
 	line += _t(", 원소: {0}, 빛: {1}", [element, light])
 	if e.has("room"):
-		line += _t(", 짜인 방: {0}", [[SetRooms.NAME[e.room], TEXT]])
+		line += _t(", 특수 방: {0}", [[SetRooms.NAME[e.room], TEXT]])
 	return line
 
 

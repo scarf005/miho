@@ -1,6 +1,6 @@
 class_name SetRooms
 extends RefCounted
-## Set rooms (짜인 방): rooms made of terrain alone, no key and no prize. Unlike
+## Set rooms (특수 방): rooms made of terrain alone, no key and no prize. Unlike
 ## an event room (EventRooms) one stays on World.rooms, so creatures are placed
 ## in it as in any other. Each storey tries one, after the patches are laid: of
 ## the kinds (ROWS) whose first storey has come, in a random order, the first that

@@ -82,7 +82,7 @@ const NAME := {
 	KEEP: "겹누각",
 	RUIN: "무너진 정자",
 	CITADEL: "겹누각 성채",
-	GROVE: "대숲",
+	GROVE: "대숲 층",
 	FLOODED: "물 찬 층",
 	TIMBER: "나무벽 층",
 	HOLLOW: "가운데 뚫린 층",

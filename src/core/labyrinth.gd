@@ -31,8 +31,8 @@ const NAME := {
 	ORTHODOX: "정통",
 	ISLAND: "섬",
 	CIRCUIT: "순환",
-	BAMBOO: "대숲",
-	PLATES: "함정",
+	BAMBOO: "대숲 길",
+	PLATES: "함정 회랑",
 	CELLS: "방",
 }
 ## The site of the talisman inside: it gives what a yard's stand gives (Yard.arrive).
