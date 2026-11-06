@@ -47,15 +47,14 @@ static func riders(w: World, a: Actor) -> Array[Shot]:
 
 
 ## Miho has come onto her tile, by a step or a push: the stairs take her up,
-## the elixir asks whether to drink it, a peach heals, a scroll gives its talisman. True when the
-## storey or the run ends.
+## the elixir asks whether to drink it, a peach heals, a scroll gives its talisman. True when
+## the storey or the run ends; the question leaves the round to go on.
 static func arrive(w: World, me: Actor) -> bool:
 	if me.pos == w.stairs:
 		Round.ascend(w)
 		return true
 	if me.pos == w.elixir:
 		Elixir.ask(w, me)
-		return true
 	if w.peaches.has(me.pos):
 		w.peaches.erase(me.pos)
 		var grew := me.hp >= me.max_hp

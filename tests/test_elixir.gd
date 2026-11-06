@@ -34,6 +34,18 @@ func _foe(w: World, at: Vector2i) -> Actor:
 	return a
 
 
+func test_the_step_onto_the_elixir_is_a_whole_round() -> void:
+	var w := _world()
+	var foe := _foe(w, w.player().pos + Vector2i(8, 1))
+	foe.brain.alert = Actor.HUNT
+	var from := foe.pos
+	var round_no := w.round_no
+	_stand(w)
+	assert_true(w.elixir_asked)
+	assert_eq(w.round_no, round_no + 1)
+	assert_ne(foe.pos, from, "the creatures acted")
+
+
 func test_stepping_on_the_elixir_asks_and_allows_only_the_answer() -> void:
 	var w := _world()
 	_stand(w)
