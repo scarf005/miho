@@ -40,7 +40,7 @@ static func push(w: World, a: Actor, dir: Vector2i, n: int) -> void:
 		if i == 0:
 			w.emit({t = &"push", id = a.id, at = a.pos})
 		Walk.move(w, a, to)
-		if a.is_miho() and Walk.arrive(w, a):
+		if a.is_miho() and (Walk.arrive(w, a) or w.elixir_asked):
 			return
 		if not a.alive() or w.depth != depth:
 			return
