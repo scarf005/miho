@@ -287,7 +287,7 @@ shot path *args: rust
 maze-seeds:
     {{ godot }} --headless --path . -s tools/maze_seeds.gd
 
-# Print the first seeds with the tile beside the trail's exit on storey 1 and the key that steps onto it, to pass to `just shot --seed= --keys=at:X:Y,<key>`.
+# Print the first seeds with the tile beside the trail's exit on storey 1, the key that steps onto it and the sister's tile in the house, to pass to `just shot --seed= --keys=at:X:Y,<key>`.
 outside-seeds:
     {{ godot }} --headless --path . -s tools/outside_seeds.gd
 

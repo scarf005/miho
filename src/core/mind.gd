@@ -30,15 +30,17 @@ const GRUDGE_ROUNDS := 10
 const FLITS := 3
 
 
-## `a` is of Miho's side from now on, in her train, however it came to be.
-static func enlist(w: World, a: Actor) -> void:
+## `a` is of Miho's side from now on, in her train, however it came to be; told unless
+## `quiet`.
+static func enlist(w: World, a: Actor, quiet := false) -> void:
 	a.faction = Actor.FOX
 	a.ties.leader = w.player().id
 	a.ties.rival = 0
 	a.ties.grudge = 0
 	a.brain.alert = Actor.REST
 	a.magic.intent.clear()
-	w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
+	if not quiet:
+		w.emit({t = &"ally", id = a.id, at = a.pos, kind = a.kind})
 
 
 ## One round of spent mana growing back, as Round._regrow does for tails; it
@@ -63,6 +65,9 @@ static func heaven_phase(w: World) -> void:
 			continue
 		if Bestiary.swims(a.kind) and Tiles.water[w.tile(a.pos)] != 1:
 			Fall.stranded(w, a)
+			continue
+		if a.kind == Sister.KIND:
+			Sister.turn(w, a)
 			continue
 		a.brain.acted += 1
 		_regrow(a)
@@ -112,8 +117,13 @@ static func perceive(w: World, a: Actor) -> void:
 
 ## `a` takes on the nearest of the other side it sees, by (distance, id), unless
 ## that is Miho, whom it hunts as ever. A fight among its own side goes on, and with
-## nobody in sight it goes on walking to where it last saw its rival.
+## nobody in sight it goes on walking to where it last saw its rival. One that has a prey
+## (Sister.prey) goes for it every round, seen or not.
 static func _take_on(w: World, a: Actor) -> void:
+	var prey := Sister.prey(w, a)
+	if prey != null:
+		feud(w, a, prey)
+		return
 	var rival := w.actor(a.ties.rival) if a.fighting() else null
 	if rival != null and rival.faction == a.faction:
 		return

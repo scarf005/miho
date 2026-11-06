@@ -5,7 +5,8 @@ extends RefCounted
 ## or at the end of the round. A fact is an event she is told of: one that
 ## happened on a seen tile, one with no place, or a noise she heard out of
 ## sight, copied with `where` (the tile it happened on) and `i` (its index in
-## the round's events). Anything else that happened gives no fact.
+## the round's events). The sister's cough is told when heard, in place of its noise, and her
+## fall wherever she is (Sister). Anything else that happened gives no fact.
 ## The map also marks a creature in sight by its state, so a creature that comes
 ## into sight marked, or changes its mark in sight, gives a `state` fact (i is
 ## -1) unless the round's facts already tell it: a seen notice, heed or blinding.
@@ -30,9 +31,11 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 		out.vis[i] |= after.seen[i]
 	out.veiled = _veiled(before, after)
 	var where := {}
+	var kinds := {}
 	for w: World in [after, before]:
 		for a in w.actors:
 			where[a.id] = a.pos
+			kinds[a.id] = a.kind
 	var factions := {}
 	for s in before.shots:
 		factions[s.id] = s.faction
@@ -52,7 +55,12 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 			or (e.has("from") and sees(out.vis, e.from))
 		)
 		if e.t == &"noise":
-			told = e.heard and not sees(out.vis, e.at)
+			var coughed: bool = i + 1 < events.size() and events[i + 1].t == &"cough"
+			told = e.heard and not sees(out.vis, e.at) and not coughed
+		if e.t == &"cough":
+			told = e.heard
+		if e.t == &"die" and kinds.get(e.id) == Sister.KIND:
+			told = true
 		if ["id", "target", "rival"].any(func(k): return out.veiled.has(e.get(k, -1))):
 			told = false
 		if told:
@@ -167,6 +175,8 @@ static func popup_of(fact: Dictionary) -> Dictionary:
 			}
 		&"noise", &"shout":
 			return {at = at, text = Lang.t(fact.word), color = Palette.SOUND, life = 1.4}
+		&"cough":
+			return {at = at, text = Lang.t(Sister.COUGH_WORD), color = Palette.SOUND, life = 1.4}
 		&"find":
 			var plate: Array = Palette.TILES[fact.kind]
 			return {at = at, text = plate[0], color = plate[1], life = 1.6}

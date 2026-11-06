@@ -100,10 +100,13 @@ static func _time(w: World) -> String:
 	return Lang.t("%s · %d분 %d초") % [Messages.storey(w.depth), w.rounds / 60, w.rounds % 60]
 
 
-## How Miho fell, from what came just before her last wound this round. A creature
-## she does not see at the end goes unnamed.
+## How Miho fell, from what came just before her last wound this round, or that the sister
+## fell while she lives (Sister.fell). A creature she does not see at the end goes unnamed.
 static func _fallen(w: World) -> String:
 	var me := w.player()
+	if me.alive():
+		var sister := [Bestiary.info(Sister.KIND).name, Palette.KIND[Sister.KIND]]
+		return Messages.plain(Lang.runs("{0}이/가 쓰러졌다", [sister], Palette.TEXT))
 	var wounds := 0
 	for i in range(w.events.size() - 1, -1, -1):
 		var e: Dictionary = w.events[i]

@@ -220,11 +220,16 @@ static func _deed_line(before: World, after: World, e: Dictionary, last: Diction
 				return []
 			if e.get("gone", false):
 				return _t("{0}이/가 사라졌다", [who])
+			var fallen := _actor(before, after, id)
+			if fallen != null and fallen.kind == Sister.KIND:
+				return _t("{0}이/가 쓰러졌다", [_kind(Sister.KIND)])
 			return _sub(before, after, id, "{0}이/가 {1}", "{0}", [["쓰러졌다", TEXT]])
 		&"ally":
 			return _t("{0}이/가 되살아났다" if Raise.undead(e.kind) else "{0}이/가 나타났다", [who])
 		&"rise":
 			return _t("{0}이/가 되살아났다", [who])
+		&"cough":
+			return _t("{0}이/가 기침했다", [_kind(Sister.KIND)])
 		&"absorb":
 			return _t("{0}에게는 통하지 않았다", [who])
 		&"resist":

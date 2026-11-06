@@ -283,7 +283,7 @@ func test_the_run_ends_when_miho_strikes_her_sister() -> void:
 	w.tails = 3
 	w.sense()
 	var dir := sister.pos - w.player().pos
-	w.act({t = &"cast", spells = [{cards = [Cards.FIRE], dir = dir}]})
+	w.act({t = &"cast", spells = [{cards = [Cards.ORB], dir = dir}]})
 	assert_false(sister.alive())
 	assert_eq(w.outcome, &"lost")
 
@@ -292,14 +292,13 @@ func test_the_reaper_goes_for_the_sister_only() -> void:
 	var w := _house()
 	var sister := _sister(w)
 	var me := w.player()
-	me.pos = _by_sister(w)
 	var saja := FloorGen.spawn(w, &"saja", FloorGen.nearest_free(w, me.pos))
 	w.sense()
-	for i in 20:
+	for i in 40:
 		if w.outcome != &"":
 			break
 		w.act(WAIT)
-		assert_eq(saja.ties.rival, sister.id)
+		assert_true(not sister.alive() or saja.ties.rival == sister.id)
 	assert_eq(w.outcome, &"lost")
 	assert_false(sister.alive())
 	assert_eq(me.hp, me.max_hp, "it never struck her")

@@ -14,6 +14,8 @@ static func draw(t: Term, a: Actor, at: Vector2, width: float) -> void:
 			Rect2(at * Term.CELL, Vector2(width, Term.SIDE_ROWS) * Term.CELL),
 			Color(Palette.TEXT, 0.12)
 		)
+	if a.info().has("back"):
+		t.draw_rect(Rect2(at * Term.CELL, Term.CELL), a.info().back)
 	t.draw_glyph(at, Lang.t(a.info().glyph, "creature"), Palette.glyph_color(a))
 	t.draw_text(at + Vector2(1.5, 0), Lang.t(a.info().name), Palette.KIND[a.kind])
 	t.draw_pips(at + Vector2(0, 1), a.hp, a.max_hp, Palette.HURT, int(width) - 1)
@@ -71,12 +73,15 @@ static func row(t: Term, a: Actor, width: float) -> Array:
 	return out
 
 
-## What the third row holds: `doing`, its runs (none when they and the spells do not fit), `x`
+## What the third row holds: `doing`, its runs (none when they and the spells do not fit, or for
+## the sister, who does nothing), `x`
 ## where the spells start, `plans`, each [spell, direction], and `fits`, whether by name.
 static func _third(t: Term, a: Actor, width: float) -> Dictionary:
 	var doing: String = Info.doing(t.world, a) if a.ailments.blind <= 0 else Lang.t("눈멂")
 	if a.fighting() and a.ailments.blind <= 0:
 		doing = Lang.t("싸우는 중")
+	if a.kind == Sister.KIND:
+		doing = ""
 	var runs := Keywords.runs(doing, Palette.ALERT[maxi(a.brain.alert, 1)])
 	var plans: Array = a.magic.intent.map(func(p): return [Bestiary.spell(a.kind, p.cards), p.dir])
 	var wide: float = plans.reduce(func(n, p): return n + _named(t, p), 0.0)

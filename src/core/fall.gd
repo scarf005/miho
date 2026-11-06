@@ -137,6 +137,7 @@ static func _gone(w: World, a: Actor, told: Array) -> void:
 	if not a.ally():
 		w.player().buffs.prey = a.kind
 		Harm.reward(w, a)
+	Sister.fell(w, a)
 	w._changed()
 
 

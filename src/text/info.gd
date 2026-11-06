@@ -190,10 +190,12 @@ static func shot_at(w: World, p: Vector2i) -> Shot:
 
 ## A creature as the hover tells it: what it is, how it stands now (state,
 ## conditions, sight, the harm a claw does it now), then what it strikes and
-## casts with.
+## casts with. The sister, who does nothing, has her name, health and conditions.
 static func creature(w: World, a: Actor) -> Array:
 	if a.is_miho():
 		return _miho(w, a, _head(a))
+	if a.kind == Sister.KIND:
+		return [_head(a)] + _conditions(w, a)
 	return _profile(a) + _situation(w, a) + SpellInfo.returns(a, w) + _arms(a, w.cards)
 
 

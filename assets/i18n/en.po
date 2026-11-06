@@ -3545,3 +3545,12 @@ msgstr "Random"
 
 msgid "다음 시드로 생성"
 msgstr "Generate the next seed"
+
+msgid "여동생"
+msgstr "Sister"
+
+msgid "{0}이/가 기침했다"
+msgstr "{0} coughed"
+
+msgid "콜록"
+msgstr "cough"

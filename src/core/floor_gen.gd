@@ -975,8 +975,9 @@ static func nearest_free(w: World, from: Vector2i, open := PackedByteArray()) ->
 	return Grid.at(best) if best >= 0 else Vector2i(-1, -1)
 
 
-## A creature spawned in a doorway stands in an open door.
-static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
+## A creature spawned in a doorway stands in an open door. One of Miho's side joins her
+## untold when `quiet`.
+static func spawn(w: World, kind: StringName, at: Vector2i, quiet := false) -> Actor:
 	if w.tile(at) == World.DOOR:
 		w.set_tile(at, World.DOOR_OPEN)
 	var a := Actor.new()
@@ -992,5 +993,5 @@ static func spawn(w: World, kind: StringName, at: Vector2i) -> Actor:
 	a.magic.mana = Bestiary.mana(kind)
 	w.actors.append(a)
 	if not a.info().has("group"):
-		Mind.enlist(w, a)
+		Mind.enlist(w, a, quiet)
 	return a

@@ -35,6 +35,7 @@ extends RefCounted
 ## flies: crosses sky and water and touches nothing on the ground (`ground`, Terrain.stepped,
 ## Fall), as Brogue MONST_FLIES. flits: goes a random way one move in Mind.FLITS (Mind._flit),
 ## as Brogue MONST_FLITS.
+## back: the colour the map fills its tile with under its glyph, lit or dark.
 ## patrol: walks between rooms while resting. hunts: always knows where Miho is.
 ## absorb: an immunity besides those of its elements (`immune_to`). &"fire": 불여우's own to
 ## fire. &"nofire" stops every spell with no fire among its elements, one with no
@@ -95,6 +96,7 @@ const HEALTH := {
 	&"dueoksini": [6, 7, 9, 11, 12],
 	Cards.BUNSIN: [3, 3, 3, 3, 3],
 	Forge.FURNACE: [3, 4, 6, 8, 9],
+	Sister.KIND: [1, 1, 1, 1, 1],
 }
 ## Copies of 구 a creature's orb has beyond its rank (`tiered`).
 const ORB_EXTRA := 1
@@ -539,6 +541,13 @@ const KINDS := {
 		glyph = "@",
 		casts = [[FOX, Cards.FIRE]],
 		absorb = &"fire",
+	},
+	Sister.KIND:
+	{
+		name = "여동생",
+		glyph = "@",
+		move = &"static",
+		back = Color(0.1, 0.18, 0.55),
 	},
 }
 

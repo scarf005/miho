@@ -231,7 +231,8 @@ func draw_things(light: PackedVector3Array, actors: Dictionary, shots: Dictionar
 			c.a = 1.0
 		elif Light.level(l) < Light.LIT:
 			c = c.darkened(0.45)
-		t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), Color(0, 0, 0, 0.55))
+		var back: Color = a.info().get("back", Color(0, 0, 0, 0.55))
+		t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), back)
 		if t.tints.has(a.pos):
 			t.draw_rect(Rect2(cell * Term.CELL, Term.CELL), t.tints[a.pos])
 		t.draw_glyph(cell, Lang.t(Bestiary.info(Guise.looks(a)).glyph, "creature"), c)

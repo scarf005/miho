@@ -3,8 +3,9 @@ extends RefCounted
 ## The house at the end of the trail from storey 1 (World.HOUSE): a clearing of grass and leaves
 ## in a forest of bamboo under the moon, and in it a hut of wood walls with one door, boards and
 ## straw. A trail of 마당 runs from the door to the nearest edge of the map, where it ends in
-## World.trail_end, the way back to storey 1. Nobody lives here. All from a generator of its
-## own, so the same seed builds the same house whenever Miho comes.
+## World.trail_end, the way back to storey 1. The sister (Sister) stands on a tile of the hut's
+## floor off its doorway. All from a generator of its own, so the same seed builds the same
+## house whenever Miho comes.
 
 const HOUSE_SALT := 0x40C5
 ## The half sizes of the clearing round the middle of the map.
@@ -62,6 +63,9 @@ static func build(w: World) -> void:
 	w.trail_end = path[-1]
 	w.start = path[-2]
 	w.player().pos = w.start
+	var bed: Vector2i = floor_tiles.slice(STRAW).filter(func(p): return p != door - out)[0]
+	var sister := FloorGen.spawn(w, Sister.KIND, bed, true)
+	sister.magic.cooldown = rng.randi_range(Sister.COUGH.x, Sister.COUGH.y)
 	w.rooms.assign([inside, Rect2i(middle - CLEARING, CLEARING * 2 + Vector2i.ONE)])
 	w.tail_bonus = w.storeys.get(1, {}).get("tail_bonus", 0)
 	w._changed()

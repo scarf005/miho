@@ -60,6 +60,7 @@ static func hurt(w: World, a: Actor, n: int, weak := false) -> void:
 		return
 	Mind.forget(w, a)
 	if a.ally():
+		Sister.fell(w, a)
 		return
 	Notice.fallen(w, a)
 	reward(w, a)

@@ -177,10 +177,11 @@ static func distance(step: int) -> int:
 	return maxi(1, World.REAPER_FAR >> mini(step, 62))
 
 
-## The tile the next 저승사자 hunts and is counted from: Miho. The map of houses (#6) names
-## the sister here.
+## The tile the next 저승사자 hunts and is counted from: Miho, or on the map of houses the
+## sister while she lives (Sister.prey).
 static func target(w: World) -> Vector2i:
-	return w.player().pos
+	var sister := Sister.of(w)
+	return sister.pos if w.depth == World.HOUSE and sister != null else w.player().pos
 
 
 static func _again(w: World) -> void:
