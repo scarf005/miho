@@ -111,6 +111,8 @@ Every player-visible event has a fitting sound:
 
 Every task runs in its own worktree. A lane runs focused tests only. The oracle, the full suite and `SaveGame.VERSION` belong to the parent: it runs and records them in the background after the merge. User: "작업마다 개별 worktree에서 작업해", "오라클 등 전체 테스트는 병합 후 background에서 돌려".
 
+A commit that finishes every point of an issue ends its body with `Closes #N`, so the push to main closes the issue. A commit that does part of one writes `Part of #N`. User: "커밋에 `closes #1` 처럼 하지 않은건가요? 그렇게 해야할것같은데요".
+
 Passing tests and lint do not prove a lane is done. Before merging a lane that changes anything the player sees or hears, the parent must do all of the following:
 1. Read every added or changed user-facing string in the diff against the text rules above, then read it aloud as Korean and rewrite it if a player would not say it. Before a tag, read the whole list from `just strings`.
 2. Drive the changed UI with `just shot ... --keys=...` and look at the frames.
