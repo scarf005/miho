@@ -156,7 +156,7 @@ func test_the_hover_names_the_stairs_down_and_their_curse() -> void:
 	var w := World.create(3)
 	_climb(w)
 	var text := Info.plain(Info.terrain_facts(w, w.down))
-	assert_true(text.begins_with("내려가는 계단\n저승의 저주\n"), text)
+	assert_true(text.begins_with("내려가는 계단\n저승의 저주"), text)
 
 
 func test_the_agent_map_draws_the_stairs_down() -> void:
@@ -172,6 +172,7 @@ func test_the_agent_map_draws_the_stairs_down() -> void:
 
 func test_the_log_tells_the_storey_she_went_down_to() -> void:
 	var w := World.create(3)
+	w.known.fill(1)
 	_climb(w)
 	var before := w.clone()
 	w.events = []

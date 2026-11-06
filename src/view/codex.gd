@@ -685,6 +685,7 @@ static func _mark(
 static func _extras() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	out.append(_feature(Palette.STAIRS[0], Palette.STAIRS[1], Lang.t("계단"), _stairs))
+	out.append(_feature(Palette.DOWN[0], Palette.DOWN[1], Lang.t("내려가는 계단"), _down))
 	var fire := func(w: World): w.burning[AT] = World.BURN_ROUNDS
 	out.append(_mark(Palette.BURNING[0], Palette.BURNING[1], "불", fire, &"burning"))
 	out.back().lines = func(): return _ground(fire).slice(1) + TileActs.fire()
@@ -711,6 +712,10 @@ static func _extras() -> Array[Dictionary]:
 
 static func _stairs(w: World) -> void:
 	w.stairs = AT
+
+
+static func _down(w: World) -> void:
+	w.down = AT
 
 
 static func _elixir(w: World) -> void:

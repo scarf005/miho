@@ -35,6 +35,7 @@ const NAMES := [
 	&"charge",
 	&"card",
 	&"ascend",
+	&"descend",
 	&"win",
 	&"lose",
 	&"click",
@@ -112,6 +113,7 @@ const GLOBAL := [
 	&"elixir",
 	&"read",
 	&"ascend",
+	&"descend",
 	&"fall",
 	&"won",
 	&"lost",
@@ -530,6 +532,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return EERIE
 		&"ascend":
 			return &"ascend"
+		&"descend":
+			return &"descend"
 		&"fall":
 			return &"scream" if e.has("depth") and not e.get("soft", false) else &""
 		&"won":

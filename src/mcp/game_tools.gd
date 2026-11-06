@@ -187,8 +187,8 @@ const TOOLS := [
 			+ "the elixir asks, and nothing else is allowed until then. "
 			+ "explore, rest (until the tails regrow), "
 			+ (
-				"stairs (to the seen stairs) and travel (to x,y) walk many rounds, up to %d, "
-				% MAX_ROUNDS
+				"stairs (to the seen stairs up) and travel (to x,y; onto > it goes down a storey) "
+				+ "walk many rounds, up to %d, " % MAX_ROUNDS
 			)
 			+ "and stop when a step would harm Miho or get her noticed, fire is next to the step, "
 			+ "or something happens. An illegal action is refused and changes nothing."

@@ -594,6 +594,9 @@ msgstr "Codex"
 msgid "%s 부적"
 msgstr "%s talisman"
 
+msgid "내려가는 계단"
+msgstr "Stairs down"
+
 msgid "계단"
 msgstr "Stairs"
 
@@ -1466,6 +1469,9 @@ msgstr "Read the scroll. The map of this floor appeared"
 
 msgid "꼬리가 모두 돌아왔다"
 msgstr "All tails came back"
+
+msgid "{0}으로 내려갔다"
+msgstr "Went down to {0}"
 
 msgid "{0}으로 올라갔다"
 msgstr "Climbed to {0}"

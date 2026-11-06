@@ -34,7 +34,7 @@ const LEGEND := (
 	+ "▒shelf(unread or read: see look) ║screen 0jar &censer "
 	+ "▫courtyard 8statue ╪rotten-floorboards "
 	+ "^trap-plate(alarm, collapsing-floor, fire, vine: the tile name tells which, see look) "
-	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs !elixir "
+	+ "§fire ☲hot-ground ◦fog °steam ▓smoke •incense ¦marsh-gas <stairs >stairs-down !elixir "
 	+ "%peach, kimchi or fallen-creature(see look) ?scroll(see look) ●○*projectile "
 	+ "@Miho(or an allied 분신)"
 )
@@ -178,6 +178,8 @@ static func _glyph(k: World, p: Vector2i) -> String:
 		return Palette.BODY[0]
 	if p == k.stairs:
 		return Palette.STAIRS[0]
+	if p == k.down:
+		return Palette.DOWN[0]
 	if p == k.elixir:
 		return Palette.ELIXIR[0]
 	var t := k.tile(p)

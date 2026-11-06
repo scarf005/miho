@@ -373,6 +373,8 @@ static func _find_line(before: World, after: World, e: Dictionary, last: Diction
 			return _t("{0}이/가 하늘로 떨어졌다", [_who(before, after, e.get("id", -1))])
 		&"ascend":
 			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
+		&"descend":
+			return _t("{0}으로 내려갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])
 		&"altar":
 			var altar := _named(Tiles.of(World.ALTAR, "name"))
 			return _t("{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다", [altar])

@@ -49,7 +49,7 @@ static func hazard(w: World, action: Dictionary, f: Forecast) -> StringName:
 ## (tile -> true, the travel exclusions) (Grid.search, plus `from`). A walk ends on an
 ## exit and never goes through one, as stepping on it leaves the storey.
 static func search(w: World, avoid := {}) -> Dictionary:
-	var exits := [w.stairs, w.elixir].filter(Grid.inside)
+	var exits := [w.stairs, w.down, w.elixir].filter(Grid.inside)
 	var shut := avoid.duplicate()
 	for p: Vector2i in exits:
 		shut[p] = true
@@ -129,7 +129,7 @@ static func frontier(w: World, found: Dictionary) -> Vector2i:
 			continue
 		var p := Grid.at(i)
 		var cost := dist[i] + Vector2(p - found.from).length() * 0.01
-		var exit_tile := p == w.stairs or p == w.elixir
+		var exit_tile := p in [w.stairs, w.down, w.elixir]
 		if cost < best_cost and not exit_tile and _borders_unknown(w, p):
 			best = p
 			best_cost = cost
