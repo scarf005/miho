@@ -3025,7 +3025,7 @@ msgid "불: {0}이/가 됨"
 msgstr "Fire: turns to {0}"
 
 msgid "식으면: {0}"
-msgstr "Cooled: turns to {0}"
+msgstr "Cools to {0}"
 
 msgid "멈춘 곳 %s의 %s"
 msgstr "In the %s at the stop: %s"
