@@ -135,7 +135,8 @@ static func ascend(w: World) -> void:
 
 
 ## Along the trail (World.trail_end) from storey 1 to the house or back, the allies by her
-## along, onto the trail's tile beside its exit there. Her health and tails stay as they are.
+## along, onto the trail's tile beside its exit there, else the free tile nearest the exit. Her
+## health and tails stay as they are.
 static func trail(w: World) -> void:
 	var party := Storeys.followers(w)
 	Storeys.leave(w)
@@ -144,7 +145,7 @@ static func trail(w: World) -> void:
 	var at := Outside.beside(w)
 	if me.pos != at:
 		var off_exit := Masks.floor_of(w, [w.trail_end], func(_p): return false)
-		var spot := FloorGen.nearest_free(w, at, off_exit)
+		var spot := FloorGen.nearest_free(w, at if at.x >= 0 else w.trail_end, off_exit)
 		me.pos = spot if spot.x >= 0 else w.start
 	Storeys.carry(w)
 	Storeys.bring(w, party)

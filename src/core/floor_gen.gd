@@ -961,9 +961,10 @@ static func patrol_point(w: World, a: Actor) -> Vector2i:
 
 
 ## The free tile with no plate nearest `from` across the `open` tiles (floor
-## when none are given), or (-1, -1).
+## when none are given), `from` itself when it is one of them, or (-1, -1).
 static func nearest_free(w: World, from: Vector2i, open := PackedByteArray()) -> Vector2i:
-	if w.vacant(from) and not w.traps.has(from):
+	var counts := open.is_empty() or Grid.inside(from) and open[Grid.index(from)] == 1
+	if counts and w.vacant(from) and not w.traps.has(from):
 		return from
 	var mask := open if not open.is_empty() else Masks.floor_of(w)
 	var dist: PackedInt32Array = Grid.search(from, mask).dist
