@@ -262,3 +262,26 @@ func test_a_saved_run_with_the_elixir_plays_again_and_the_answer_is_a_valid_save
 	assert_true(SaveGame._shaped(DRINK_NO))
 	assert_false(SaveGame._shaped({t = &"drink"}))
 	save.erase()
+
+
+func test_a_push_off_the_elixir_takes_the_question_away_and_slides_on() -> void:
+	var w := _world()
+	_stand(w)
+	var me := w.player()
+	w.push(me, E, 2)
+	assert_eq(me.pos, w.elixir + E * 2, "the push is not cut short")
+	assert_false(w.elixir_asked)
+	assert_true(w.can({t = &"wait"}))
+	assert_false(w.can(DRINK_YES))
+
+
+func test_a_pull_into_water_off_the_elixir_takes_the_question_away() -> void:
+	var w := _world()
+	_stand(w)
+	var me := w.player()
+	var water := w.elixir + Vector2i(0, 1)
+	w.set_tile(water, World.SHALLOW)
+	var foe := _foe(w, water + E)
+	Fall.pull(w, me, foe)
+	assert_eq(me.pos, water)
+	assert_false(w.elixir_asked)

@@ -514,3 +514,17 @@ func test_a_fall_into_a_walled_court_lands_near_it_on_ground_walked_to_from_the_
 		var q := Grid.at(i)
 		if walked[i] >= 0 and q != at and w.vacant(q) and not w.traps.has(q):
 			assert_gte(Grid.cheb(q, p), Grid.cheb(at, p), "no free tile is nearer: %s" % q)
+
+
+func test_a_fall_from_the_elixir_takes_its_question_away() -> void:
+	var w := World.create(3)
+	var p := _spot(w)
+	_climb(w)
+	_edge(w, p)
+	var me := w.player()
+	w.elixir = me.pos
+	Walk.arrive(w, me)
+	assert_true(w.elixir_asked)
+	w.push(me, E, 1)
+	assert_eq(w.depth, 1)
+	assert_false(w.elixir_asked)
