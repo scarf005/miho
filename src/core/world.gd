@@ -36,6 +36,10 @@ extends RefCounted
 const FLOORS := 9
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
+## While she carries the elixir: 저승사자 comes with the chance 1 in REAPER_CHANCE a round,
+## within REAPER_NEAR tiles of her.
+const REAPER_CHANCE := 10
+const REAPER_NEAR := 12
 const TAIL_REGROW := 3
 ## Tails (or mana) one TAIL_REGROW gives back.
 const TAIL_REGROWN := 1

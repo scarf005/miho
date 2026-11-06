@@ -106,6 +106,7 @@ static func end(w: World) -> void:
 	w.round_no += 1
 	w.rounds += 1
 	Curse.tick(w)
+	Collapse.tick(w)
 
 
 static func prune(w: World) -> void:
