@@ -37,6 +37,14 @@ func _main() -> Node:
 	return m
 
 
+## A move that takes Miho onto a free tile beside her.
+func _open_move(m: Node) -> StringName:
+	for move: StringName in Keys.MOVES:
+		if Cheat._free(m.world, m.world.player().pos + Keys.MOVES[move]):
+			return move
+	return &""
+
+
 func _press(key: String) -> InputEventKey:
 	var e := Keys.event(key)
 	e.pressed = true
@@ -130,7 +138,7 @@ func test_the_scent_is_tinted_from_the_start_and_the_key_flips_the_saved_setting
 	var m := _main()
 	m.settings = Settings.new()
 	m.settings.path = SETTINGS
-	m._key(_press("Left"))
+	m._key(_press(Keys.keys_of(_open_move(m))[0]))
 	var before: World = m.world.clone()
 	var saved: int = m.run.actions.size()
 	assert_false(m.term.scent.is_empty(), "on by default")
@@ -151,7 +159,7 @@ func test_the_trail_is_current_while_a_step_plays() -> void:
 	var m := _main()
 	m.settings = Settings.new()
 	m.settings.path = ""
-	m.act({t = &"move", dir = -E})
+	m.act({t = &"move", dir = Keys.MOVES[_open_move(m)]})
 	assert_true(m.busy, "the step is still playing")
 	assert_eq(m.term.scent, Scent.fresh(m.world, true), "the trail of the round being shown")
 	assert_true(m.term.scent.has(m.world.player().pos))
