@@ -1248,8 +1248,11 @@ msgstr "{0} ate {1} and grew"
 msgid "{0}"
 msgstr "{0}"
 
-msgid "하늘로 떨어져 {0}으로 내려왔다"
-msgstr "Fell through the sky to {0}"
+msgid "{0}으로 추락했다"
+msgstr "Fell to {0}"
+
+msgid "{0}으로 내려왔다"
+msgstr "Came down to {0}"
 
 msgid "{0}이/가 하늘로 떨어졌다"
 msgstr "{0} fell into the sky"
@@ -3124,9 +3127,6 @@ msgstr "Used {0}"
 
 msgid "{0}을/를 걸었다"
 msgstr "Cast {0}"
-
-msgid "착지했다"
-msgstr "Landed"
 
 msgid "다음 낙하 피해"
 msgstr "Next fall harm"

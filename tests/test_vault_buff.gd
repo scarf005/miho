@@ -174,7 +174,7 @@ func test_the_soft_fall_is_told_and_heard() -> void:
 	w.events = []
 	w.push(w.player(), E, 1)
 	var lines := Messages.of(before, w, w.events).map(Messages.plain)
-	assert_eq(lines.slice(0, 2), ["하늘로 떨어져 2층으로 내려왔다", "착지했다"])
+	assert_eq(lines.slice(0, 1), ["2층으로 내려왔다"])
 	for e: Dictionary in w.events:
 		if e.t == &"fall":
 			assert_eq(Sfx.sound_of(e), &"")

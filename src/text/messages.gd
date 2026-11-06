@@ -329,7 +329,7 @@ static func _spell_line(before: World, after: World, e: Dictionary) -> Variant:
 			return _t("{0}을/를 걸었다", [_named(Guise.NAME[Guise.VAULT])])
 		&"unvault":
 			if e.get("fall", false):
-				return _t("착지했다")
+				return null
 			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.VAULT])])
 	return null
 
@@ -367,7 +367,9 @@ static func _find_line(before: World, after: World, e: Dictionary, last: Diction
 		&"fall":
 			if e.has("depth"):
 				var floor_no := [Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]
-				return _t("하늘로 떨어져 {0}으로 내려왔다", [floor_no])
+				if e.get("soft", false):
+					return _t("{0}으로 내려왔다", [floor_no])
+				return _t("{0}으로 추락했다", [floor_no])
 			return _t("{0}이/가 하늘로 떨어졌다", [_who(before, after, e.get("id", -1))])
 		&"ascend":
 			return _t("{0}으로 올라갔다", [[Lang.t("%d층") % e.depth, Palette.KIND[&"miho"]]])

@@ -171,7 +171,7 @@ func test_the_log_tells_that_miho_fell() -> void:
 	w.events = []
 	w.push(w.player(), E, 1)
 	var lines := Messages.of(before, w, w.events).map(Messages.plain)
-	assert_eq(lines, ["하늘로 떨어져 2층으로 내려왔다", "피해를 1 입었다"])
+	assert_eq(lines, ["2층으로 추락했다", "피해를 1 입었다"])
 
 
 func test_miho_on_the_first_storey_stops_at_the_edge() -> void:
