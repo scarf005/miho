@@ -1,6 +1,7 @@
 extends GutTest
-## Storey 1 stands on outside ground: no sky left, a trail from the start to the map's edge,
-## fog in patches over the ground, and the same outside for the same seed.
+## Storey 1 stands on outside ground: no sky left, Miho starts inside the pavilion, a trail
+## from its gate to the map's edge, fog in patches over the ground, and the same outside
+## for the same seed.
 
 const SEEDS := 12
 const GROUND := [World.GRASS, World.BAMBOO, World.LEAVES, World.SHALLOW]
@@ -43,26 +44,58 @@ func test_a_storey_below_the_first_keeps_its_sky() -> void:
 	assert_true(World.SKY in w.tiles)
 	assert_true(w.vent_levels.is_empty())
 	assert_eq(w.trail_end, Vector2i(-1, -1))
+	assert_eq(w.gate, Vector2i(-1, -1))
 
 
-func test_start_is_outside_and_the_trail_runs_to_the_edge() -> void:
+## Every tile known and seen, and no creature but Miho, so a walk sees only the map.
+func _open(w: World) -> World:
+	w.known.fill(1)
+	w.seen = w.known.duplicate()
+	w.actors.assign([w.player()])
+	return w
+
+
+func test_storey_one_starts_inside_the_pavilion_off_the_trail() -> void:
 	for s in SEEDS:
 		var w := Built.world(s)
-		var trail := _joined(w, w.start, World.COURTYARD)
-		assert_eq(w.tile(w.start), World.COURTYARD, "seed %d starts on the trail" % s)
-		assert_true(w.trail_end in trail, "seed %d" % s)
+		assert_false(w.tile(w.start) in GROUND, "seed %d starts inside" % s)
+		assert_false(w.start in _joined(w, w.trail_end, World.COURTYARD), "seed %d" % s)
+		assert_true(w.rooms[0].has_point(w.start), "seed %d starts in its home room" % s)
+		assert_eq(w.player().pos, w.start)
+
+
+func test_the_gate_leads_from_the_pavilion_onto_the_trail_to_the_edge() -> void:
+	for s in SEEDS:
+		var w := Built.world(s)
+		assert_false(w.tile(w.gate) in GROUND, "seed %d" % s)
+		assert_true(Placement.SIDES.any(func(d): return w.tile(w.gate + d) == World.COURTYARD))
 		var end := w.trail_end
 		assert_true(end.x in [0, Grid.W - 1] or end.y in [0, Grid.H - 1], "seed %d: an edge" % s)
-		assert_ne(w.start, end, "seed %d starts off the exit" % s)
-		assert_eq(w.player().pos, w.start)
-		var open := Masks.floor_of(w)
-		assert_gte(Grid.distance(w.start, open, w.stairs), 0, "seed %d walks to the stairs" % s)
+
+
+func test_miho_walks_from_the_start_out_through_the_gate() -> void:
+	for s in SEEDS:
+		var w := _open(Built.world(s))
+		var route := Travel.route(Travel.search(w), w.trail_end)
+		assert_false(route.is_empty(), "seed %d walks to the trail's end" % s)
+		assert_true(w.gate in route, "seed %d leaves through the gate" % s)
+
+
+func test_exploring_with_the_gate_excluded_never_reaches_the_trail() -> void:
+	for s in SEEDS:
+		var w := _open(Built.world(s))
+		var found := Travel.search(w, {w.gate: true})
+		for p in _joined(w, w.trail_end, World.COURTYARD):
+			assert_eq(found.dist[Grid.index(p)], -1, "seed %d: %s" % [s, p])
+		assert_gte(
+			Travel.search(w).dist[Grid.index(w.trail_end)], 0, "seed %d: open without it" % s
+		)
 
 
 func test_the_trail_breathes_no_fog() -> void:
 	for s in SEEDS:
 		var w := Built.world(s)
-		for p in _joined(w, w.start, World.COURTYARD):
+		for p in _joined(w, w.trail_end, World.COURTYARD):
 			assert_false(w.vents.has(p) or w.gas.has(p), "seed %d at %s" % [s, p])
 
 
@@ -131,13 +164,17 @@ func test_one_seed_one_outside() -> void:
 		assert_eq(a.gas, b.gas)
 		assert_eq(a.trail_end, b.trail_end)
 		assert_eq(a.start, b.start)
+		assert_eq(a.gate, b.gate)
 		assert_eq(a.rng.state, b.rng.state)
 
 
 func test_the_outside_is_kept_as_she_left_it() -> void:
 	var w := Built.world(2)
 	var kept := {
-		tiles = w.tiles.duplicate(), vents = w.vent_levels.duplicate(), trail = w.trail_end
+		tiles = w.tiles.duplicate(),
+		vents = w.vent_levels.duplicate(),
+		trail = w.trail_end,
+		gate = w.gate
 	}
 	Storeys.leave(w)
 	Storeys.enter(w, 2)
@@ -146,3 +183,4 @@ func test_the_outside_is_kept_as_she_left_it() -> void:
 	assert_eq(w.tiles, kept.tiles)
 	assert_eq(w.vent_levels, kept.vents)
 	assert_eq(w.trail_end, kept.trail)
+	assert_eq(w.gate, kept.gate)

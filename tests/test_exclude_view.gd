@@ -105,6 +105,12 @@ func test_the_clear_key_removes_every_zone() -> void:
 	assert_true(m.journey.zone.is_empty())
 
 
+func test_storey_one_starts_with_its_gate_as_a_danger_zone() -> void:
+	var m := _main()
+	assert_eq(m.journey.excluded.zones, {m.world.gate: 0})
+	assert_eq(m.run.exclusions, m.journey.excluded.zones)
+
+
 func test_zones_are_kept_in_the_run_save() -> void:
 	var m := _main()
 	_look(m, m.world.player().pos)
