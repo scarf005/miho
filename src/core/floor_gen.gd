@@ -252,31 +252,6 @@ static func _build(
 	w: World, skeleton: StringName, outside: bool, concept: StringName
 ) -> Dictionary:
 	var me := w.player()
-	w.actors.assign([me])
-	w.shots.clear()
-	w.peaches.clear()
-	w.jars.clear()
-	w.burning.clear()
-	w.hot.clear()
-	w.gas.clear()
-	w.gas_heat.clear()
-	w.vents.clear()
-	w.vent_levels.clear()
-	w.outside.clear()
-	w.trail_end = Vector2i(-1, -1)
-	w.gate = Vector2i(-1, -1)
-	w.traps.clear()
-	w.changes.clear()
-	w.bodies.clear()
-	w.round_no = 0
-	w.curses.clear()
-	w.first_reaper = -1
-	w.reaper_due = -1
-	w.reaper_step = 0
-	w.known = PackedByteArray()
-	w.seen = PackedByteArray()
-	w.dim = PackedByteArray()
-	Status.release(w, me)
 	var plan := {}
 	var goal := Rect2i()
 	for attempt in 100:
@@ -333,18 +308,50 @@ static func _centre(r: Rect2i) -> Vector2i:
 	return r.position + r.size / 2
 
 
-## Clears the storey and draws it on `skeleton`, with its far doorways, hidden doors
-## and windows; returns the plan (Skeletons.draw) with every link it cut in `links`,
-## in order, each {at, a, b}: the tile that makes the link, and the tiles it joins.
-static func _carve(w: World, skeleton: StringName, concept := &"") -> Dictionary:
+## Empties the storey of everything but Miho: every tile `fill`, no creature, projectile, room,
+## pickup, fire, gas, plate, curse or memory, and its clock at 0.
+static func clear(w: World, fill: int) -> void:
+	var me := w.player()
 	w.tiles = PackedByteArray()
 	w.tiles.resize(Grid.W * Grid.H)
-	w.tiles.fill(World.SKY)
+	w.tiles.fill(fill)
 	w.rooms.clear()
 	w.secrets.clear()
 	w.seals.clear()
 	w.sites.clear()
 	w.tail_bonus = 0
+	w.actors.assign([me])
+	w.shots.clear()
+	w.peaches.clear()
+	w.jars.clear()
+	w.burning.clear()
+	w.hot.clear()
+	w.gas.clear()
+	w.gas_heat.clear()
+	w.vents.clear()
+	w.vent_levels.clear()
+	w.outside.clear()
+	w.trail_end = Vector2i(-1, -1)
+	w.gate = Vector2i(-1, -1)
+	w.traps.clear()
+	w.changes.clear()
+	w.bodies.clear()
+	w.round_no = 0
+	w.curses.clear()
+	w.first_reaper = -1
+	w.reaper_due = -1
+	w.reaper_step = 0
+	w.known = PackedByteArray()
+	w.seen = PackedByteArray()
+	w.dim = PackedByteArray()
+	Status.release(w, me)
+
+
+## Clears the storey and draws it on `skeleton`, with its far doorways, hidden doors
+## and windows; returns the plan (Skeletons.draw) with every link it cut in `links`,
+## in order, each {at, a, b}: the tile that makes the link, and the tiles it joins.
+static func _carve(w: World, skeleton: StringName, concept := &"") -> Dictionary:
+	clear(w, World.SKY)
 	var plan := Skeletons.draw(w, skeleton, concept)
 	var hidden: Array = _loops(w, plan.spots, plan.links) + plan.get("sealed", [])
 	shuffle(w.rng, hidden)
