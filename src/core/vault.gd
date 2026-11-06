@@ -14,11 +14,13 @@ const GAPS := [1, 2]
 
 
 ## Makes room r a treasure room: every doorway in its walls is walled up (a
-## window that looked along one becomes wall) and one into another room becomes
-## the sealing wall; LANTERNS dark lanterns stand in a row in that room, near the
-## wall and away from the room's middle, and PRIZE peaches lie in r. False, with
-## nothing changed, when r has a hidden door, can be reached another way, or
-## the storey would not be whole once the wall is gone.
+## window that looked along one becomes wall), a wall that has then nothing to
+## stand beside falls away to the sky (`_fall`), and one doorway into another room
+## becomes the sealing wall; LANTERNS dark lanterns stand in a row in that room,
+## near the wall and away from the room's middle, and PRIZE peaches lie in r.
+## False, with nothing changed, when r has a hidden door, can be reached another
+## way, a wall with nothing to stand beside has no sky to fall to, or the storey
+## would not be whole once the wall is gone.
 static func make(w: World, r: Rect2i) -> bool:
 	var ways := []
 	for x in range(r.position.x, r.end.x):
@@ -39,6 +41,9 @@ static func make(w: World, r: Rect2i) -> bool:
 		for d in Placement.SIDES:
 			if w.tile(s[0] + d) == World.WINDOW:
 				w.tiles[Grid.index(s[0] + d)] = World.WALL
+	if not _fall(w, ways):
+		w.tiles = before
+		return false
 	var front: Array = fronts[w.rng.randi_range(0, fronts.size() - 1)]
 	var wall: Vector2i = front[0]
 	w.seals[wall] = []
@@ -57,6 +62,35 @@ static func make(w: World, r: Rect2i) -> bool:
 	FloorGen.shuffle(w.rng, inside)
 	w.peaches.append_array(inside.slice(0, PRIZE))
 	return true
+
+
+## The walls round the walled-up `ways` with nothing but wall and sky round them fall
+## to the sky, each once one beside it is sky; false when one is left standing.
+static func _fall(w: World, ways: Array) -> bool:
+	var bare := {}
+	for s: Array in ways:
+		for d: Vector2i in Grid.DIRS:
+			var q: Vector2i = s[0] + d
+			if Grid.inside(q) and Terrain.wall(w.tile(q)) and not _stands(w, q):
+				bare[q] = true
+	var fell := true
+	while fell:
+		fell = false
+		for q: Vector2i in bare.keys():
+			if Grid.DIRS.any(func(d): return w.tile(q + d) == World.SKY):
+				w.tiles[Grid.index(q)] = World.SKY
+				bare.erase(q)
+				fell = true
+	return bare.is_empty()
+
+
+## Whether a tile beside `p` is neither wall nor sky.
+static func _stands(w: World, p: Vector2i) -> bool:
+	for d: Vector2i in Grid.DIRS:
+		var t := w.tile(p + d)
+		if Grid.inside(p + d) and not Terrain.wall(t) and t != World.SKY:
+			return true
+	return false
 
 
 ## Puts the dark lanterns of the wall in a straight row in `hall`: the first
