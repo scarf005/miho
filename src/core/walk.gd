@@ -7,7 +7,7 @@ extends RefCounted
 
 ## A step; into a closed door it slides the door open instead and stays put.
 ## The step event carries the tread: the word of the tile stepped onto and how
-## far it is heard, which sound the step.
+## far it is heard, which sound the step. Miho moved off the elixir is asked no more.
 static func move(w: World, a: Actor, to: Vector2i) -> void:
 	if w.tile(to) == World.DOOR:
 		Terrain.open_door(w, a, to)
@@ -27,6 +27,8 @@ static func move(w: World, a: Actor, to: Vector2i) -> void:
 		}
 	)
 	a.pos = to
+	if a.is_miho() and to != w.elixir:
+		w.elixir_asked = false
 	var on := riders(w, a)
 	for s in on:
 		s.pos = to

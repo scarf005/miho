@@ -156,11 +156,12 @@ static func _walled_in(w: World, into: Vector2i) -> Vector2i:
 
 
 ## Miho falls through the sky at `into` to the storeys below. Whatever flies
-## or stands on the ones above is left there.
+## or stands on the ones above is left there, and so is the elixir's question.
 static func _drop(w: World, me: Actor, into: Vector2i) -> void:
 	var from := me.pos
 	var top := w.depth
 	var soft := me.buffs.vault
+	w.elixir_asked = false
 	Storeys.leave(w)
 	Storeys.enter(w, w.depth - 1)
 	while w.depth > 1 and w.tile(into) == World.SKY:
