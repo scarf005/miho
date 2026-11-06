@@ -1452,6 +1452,9 @@ msgstr "{0} fell"
 msgid "벽이 무너졌다"
 msgstr "The wall collapsed"
 
+msgid "바닥이 무너졌다"
+msgstr "The floor caved in"
+
 msgid "{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다"
 msgstr "{0} blazed. All tails came back and one more grew"
 

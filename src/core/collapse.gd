@@ -136,7 +136,7 @@ static func _reaper(w: World) -> void:
 	saja.brain.alert = Actor.HUNT
 	saja.brain.target = me.pos
 	w._changed()
-	w.emit({t = &"arrive", id = saja.id, at = spot, kind = &"saja", loud = true})
+	w.emit({t = &"arrive", id = saja.id, at = spot, kind = &"saja", anywhere = true})
 
 
 ## The tiles of the map in grid order that `test` takes.

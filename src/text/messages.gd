@@ -226,7 +226,7 @@ static func _deed_line(before: World, after: World, e: Dictionary, last: Diction
 			var taken := [Lang.t(Cards.NAME[e.taken[0]]), Palette.CARD[e.taken[0]]]
 			return _t("{0}이/가 {1}을/를 일부 막았다", [who, taken])
 		&"arrive":
-			return _t("{0}이/가 나타났다", [who])
+			return _t("{0}이/가 나타났다", [_kind(e.kind) if e.has("kind") else who])
 	return null
 
 
@@ -414,6 +414,8 @@ static func _ground_line(before: World, e: Dictionary) -> Variant:
 			return _t("{0}이/가 쓰러졌다", [_named(Tiles.of(e.was, "name"))])
 		&"collapse":
 			return _t("벽이 무너졌다")
+		&"quake":
+			return _t("바닥이 무너졌다")
 		&"crumble":
 			return _t("{0}이/가 꺼졌다", [_named(Tiles.of(e.was, "name"))])
 		&"wake":

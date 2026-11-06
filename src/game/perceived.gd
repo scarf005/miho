@@ -45,8 +45,9 @@ static func of(before: World, after: World, events: Array) -> Perceived:
 		if e.t == &"hit":
 			e = e.merged({faction = factions.get(e.shot, Actor.HEAVEN)})
 		var at: Vector2i = e.get("to", e.get("at", where.get(e.get("id", -1), Vector2i(-1, -1))))
-		var told := (
+		var told: bool = (
 			not Grid.inside(at) and not e.has("id")
+			or e.get("anywhere", false)
 			or sees(out.vis, at)
 			or (e.has("from") and sees(out.vis, e.from))
 		)

@@ -117,6 +117,7 @@ const GLOBAL := [
 	&"lost",
 	&"omen",
 	&"arrive",
+	&"quake",
 	&"cheat"
 ]
 ## How loud an event sounds from its place, in dB; those left out play at full.
@@ -521,6 +522,8 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"omen"
 		&"arrive":
 			return &"dread"
+		&"quake":
+			return &"rumble"
 		&"wake", &"rise":
 			return &"stone"
 		&"curse":

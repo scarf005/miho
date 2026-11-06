@@ -155,7 +155,7 @@ func test_the_reaper_clock_still_comes_with_the_elixir() -> void:
 	var w := _world()
 	w.round_no = World.REAPER_ARRIVES - 1
 	var events := w.act(WAIT)
-	var clock := _arrivals(events).filter(func(e): return not e.has("loud"))
+	var clock := _arrivals(events).filter(func(e): return not e.has("anywhere"))
 	assert_eq(clock.size(), 1)
 	assert_lte(Grid.cheb(clock[0].at, w.start), 2)
 
@@ -180,3 +180,20 @@ func test_a_saved_run_replays_the_same_collapse() -> void:
 	assert_eq(run.world.tiles, w.tiles)
 	assert_eq(run.world.hot, w.hot)
 	assert_eq(run.world.rng.state, w.rng.state)
+
+
+func test_the_log_tells_one_collapse_line_and_the_unseen_reaper() -> void:
+	var w := _world()
+	w.seen.fill(0)
+	var line := Lang.t("바닥이 무너졌다")
+	var told := 0
+	for i in 300:
+		var before := w.clone()
+		var events := w.act(WAIT)
+		var lines := Messages.of(before, w, events).map(Messages.plain)
+		assert_eq(lines.count(line), 1, "round %d" % i)
+		if not _arrivals(events).is_empty():
+			assert_true(lines.any(func(l): return l.begins_with("저승사자")), "round %d" % i)
+			told += 1
+		w.actors.assign(w.actors.filter(func(a): return a.is_miho()))
+	assert_gt(told, 0)
