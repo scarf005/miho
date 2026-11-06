@@ -81,3 +81,13 @@ func test_a_longer_saved_spell_key_pushes_the_next_spell_along() -> void:
 	var hit := StatusBar.slot_at(t, Vector2(slots[1].x + 0.1, t.rows - 2) * Term.CELL)
 	Keys.bind(&"slot_1", keys)
 	assert_eq(hit, "orb+water")
+
+
+func test_a_new_storey_starts_with_none_of_the_last_one_wet_or_wild() -> void:
+	var w := World.create(3)
+	w.wet[w.start] = 3
+	w.wild[w.start] = true
+	Round.ascend(w)
+	assert_eq(w.depth, 2)
+	assert_eq(w.wet, {})
+	assert_eq(w.wild, {})
