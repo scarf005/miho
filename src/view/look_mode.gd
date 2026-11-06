@@ -73,11 +73,13 @@ func hints() -> Array:
 				out.append([&"exclude", "위험구역 표시"])
 			0:
 				out.append([&"exclude", "위험구역 지우기"])
+				out.append([&"pick_1", "위험구역 반지름"])
 			_:
 				out.append([&"exclude", "위험구역 줄이기"])
 				out.append([&"pick_1", "위험구역 반지름"])
 	if hover != m.world.player().pos and m.casting.picked.is_empty() and _walkable(hover):
-		var a: Actor = m.world.actor_at(hover)
+		var w: World = m.world if m.debugging else m.known
+		var a: Actor = w.actor_at(hover)
 		out.append([&"confirm", "공격" if a != null and a.faction != Actor.FOX else "이동"])
 	return out
 

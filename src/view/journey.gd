@@ -119,9 +119,17 @@ func explore_walled() -> bool:
 ## alone, so exploring stays inside. Kept in the save like any zone.
 func start_zones() -> void:
 	excluded.clear()
-	if m.world.gate.x >= 0:
+	if m.world.gate.x >= 0 and _inside():
 		excluded.zones[m.world.gate] = 0
 	m.run.exclusions = excluded.zones.duplicate()
+
+
+## Whether Miho can walk to the storey's start without stepping on its gate.
+func _inside() -> bool:
+	var w: World = m.world
+	var open := Masks.opened(w)
+	open[Grid.index(w.gate)] = 0
+	return Grid.search(w.player().pos, open).dist[Grid.index(w.start)] >= 0
 
 
 ## The exclusions changed: keep them in the save and work out the walks again.

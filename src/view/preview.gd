@@ -249,7 +249,9 @@ static func key_row(m: Node, entry: bool) -> Array:
 			continue
 		var key := Keys.label(keys[0])
 		if hint[0] == &"pick_1":
-			key += "~" + Keys.label(Keys.keys_of(&"pick_%d" % Exclusions.MAX_RADIUS)[0])
+			var last := Keys.keys_of(&"pick_%d" % Exclusions.MAX_RADIUS)
+			if not last.is_empty():
+				key += "~" + Keys.label(last[0])
 		row.append([("  " if not row.is_empty() else "") + key, Palette.TEXT])
 		row.append([" " + Lang.t(hint[1]), Palette.DIM])
 	return row

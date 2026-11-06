@@ -102,6 +102,7 @@ func test_a_creature_lists_detail_first_and_attack_when_next_to_miho() -> void:
 	FloorGen.spawn(m.world, KIND, at).magic.cooldown = 99
 	m.world.sense()
 	m.term.show_world(m.world)
+	m.forecast()
 	_look(m, at)
 	var row := _row(m)
 	assert_true(row.begins_with("M " + Lang.t("자세히")), row)
