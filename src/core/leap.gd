@@ -12,7 +12,8 @@ extends RefCounted
 ## and the leaper none. The rest of the spell
 ## is cast from the landing, unless she has left the storey or fallen. She
 ## vents steam to fly: Compounds.STEAM of it lies on the tiles she leaves, from the
-## one she starts on up to the third last, so that it does not spread onto her.
+## one she starts on up to the third last. A tile's steam has the heat of its
+## distance from the landing less 1 (`heat`), so it cools to fog before it spreads onto her.
 ##
 ## 바꿔치기 (Spell.swaps): when a projectile with 도약 behind it strikes a
 ## creature, they trade places; when it stops anywhere else, Miho goes to
@@ -27,6 +28,11 @@ const SWAP_LOUD := 5
 ## What a 도약 behind a projectile is called.
 const SWAP_NAME := "바꿔치기"
 const SWAP_WORD := "펑"
+
+
+## The heat of the steam a leap lays on `p`, for a landing on `to`.
+static func heat(p: Vector2i, to: Vector2i) -> int:
+	return mini(Gas.MAX, Grid.cheb(p, to) - 1)
 
 
 ## Where a leap from `from` along `dir` lands, or `from` when it lands nowhere.
@@ -72,7 +78,8 @@ static func cast(w: World, a: Actor, spell: Spell, dir: Vector2i) -> void:
 	var left := spell.leap() - Grid.cheb(a.pos, to)
 	w.emit({t = &"leap", id = a.id, from = a.pos, to = to})
 	for i in Grid.cheb(a.pos, to) - 1:
-		Gas.add(w, a.pos + dir * i, Gas.STEAM, Compounds.STEAM)
+		var q: Vector2i = a.pos + dir * i
+		Gas.add(w, q, Gas.STEAM, Compounds.STEAM, heat(q, to))
 	Walk.move(w, a, to)
 	if w.depth != depth or not a.alive():
 		return

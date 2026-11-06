@@ -48,6 +48,8 @@ func test_a_leap_lays_steam_behind_her_and_none_on_the_last_two_tiles() -> void:
 	assert_eq(w.player().pos, ME + E * spell.leap())
 	for i in spell.leap() - 1:
 		assert_eq(w.gas.get(ME + E * i), STEAM, "tile %d" % i)
+		var q := ME + E * i
+		assert_eq(w.gas_heat[q], mini(Gas.MAX, Grid.cheb(q, w.player().pos) - 1), "heat %d" % i)
 	assert_false(w.gas.has(w.player().pos), "she lands clear of it")
 	assert_false(w.gas.has(w.player().pos - E), "and the tile before it")
 	assert_eq(w.gas.size(), spell.leap() - 1, "and none beside the line")
