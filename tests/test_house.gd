@@ -97,6 +97,22 @@ func _sister(w: World) -> Actor:
 	return null
 
 
+## Miho comes back by the trail to storey 1 and to the house after the trail's tile beside
+## each exit has changed under her.
+func test_she_comes_back_beside_the_exit_when_the_trail_beside_it_changed() -> void:
+	var w := World.create(3)
+	w.set_tile(_beside(w), World.GRASS)
+	_take_trail(w)
+	w.set_tile(_beside(w), World.WOOD_WALL)
+	for depth in [1, World.HOUSE]:
+		_take_trail(w)
+		var at := w.player().pos
+		assert_eq(w.depth, depth)
+		assert_ne(at, w.trail_end, "storey %d: off the exit" % depth)
+		assert_eq(Tiles.walk[w.tile(at)], 1, "storey %d: on ground she walks" % depth)
+		assert_lte(Grid.cheb(at, w.trail_end), 2, "storey %d: by the exit" % depth)
+
+
 func test_the_house_is_a_hut_in_a_clearing_with_the_sister_inside() -> void:
 	for s in 6:
 		var w := World.create(s)
