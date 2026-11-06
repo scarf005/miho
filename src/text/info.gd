@@ -69,6 +69,7 @@ const CONDITIONS := {
 	],
 	Guise.NAME[Guise.FLAME]: [FLAME_THROUGH, ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
+	Elixir.NAME: Elixir.TOLD,
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
 	Curse.NAME[Curse.BODY]: Curse.TOLD[Curse.BODY],
@@ -369,6 +370,8 @@ static func _miho(w: World, a: Actor, head: Array) -> Array:
 	var lines := [head] + _tails(w) + _claws(a)
 	lines.append_array(_conditions(w, a))
 	lines.append_array(_tags(Curse.worn(w).map(func(c): return Curse.NAME[c])))
+	if w.elixir_held:
+		lines.append_array(_tags([Elixir.NAME]))
 	lines.append_array(nature(a.nature_kind()))
 	if a.buffs.flame:
 		lines.append([[_text(FLAME_THROUGH), Palette.TEXT]])

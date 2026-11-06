@@ -96,6 +96,7 @@ const TABLE := {
 	Forge.FURNACE: [CAUSEWAY, "c......"],
 	&"thunder": ["      w/  @  w  w/      w", "c..."],
 	Guise.NAME[Guise.RAISE]: [RISES, "s>>....", Guise.RECIPE[Guise.RAISE]],
+	Elixir.NAME: ["  @       z", "c..", [Cards.FOX, Cards.FIRE]],
 	Curse.NAME[Curse.REAPER]: ["  @D", CASTS, [Cards.ORB]],
 	Curse.NAME[Curse.SIGHT]: ["  @D J", "c..", [Cards.ORB]],
 	Curse.NAME[Curse.BODY]: ["  @D", CASTS, [Cards.ORB]],
@@ -229,6 +230,8 @@ static func build(scene: Dictionary, rank := 0) -> World:
 		by.magic.intent.assign([{cards = scene.charged, dir = -EAST}])
 		if scene.charged == Bestiary.KINDLE:  # Aim.kindle: it lights ground that burns under her
 			w.set_tile(w.player().pos, World.GRASS)
+	if str(scene.key) == Elixir.NAME:
+		Elixir.keep(w)
 	w.known.resize(w.tiles.size())
 	w.known.fill(1)
 	w.sense()

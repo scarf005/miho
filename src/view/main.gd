@@ -209,6 +209,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			restart()
 		elif press:
 			Banner.keep(self)
+	elif state == &"play" and world.elixir_asked:
+		_answer(event)
 	elif state == &"title" and Keys.action_of(event) in [&"help", &"cancel"]:
 		panels.open(&"help" if Keys.action_of(event) == &"help" else &"options")
 	elif state == &"title" and pending != null:
@@ -224,6 +226,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		_key(event)
 	elif event is InputEventMouseButton and press:
 		click(event)
+
+
+## A press while the elixir waits for an answer (Elixir): Y drinks it and N keeps it. The
+## pages stay open to read; nothing else takes a turn.
+func _answer(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var action := Keys.action_of(event)
+	if event.keycode in [KEY_Y, KEY_N]:
+		act({t = &"drink", yes = event.keycode == KEY_Y})
+	elif action in [&"cancel", &"log", &"help", &"codex", &"restart"]:
+		do_action(action, false)
 
 
 ## Leaves the title for the run.
@@ -564,6 +578,9 @@ func show_log() -> void:
 	term.log_lines = []
 	for k in recent.size():
 		term.log_lines.append([Messages.shown(recent[k]), 1.0 - 0.3 * (recent.size() - 1 - k)])
+	if world.elixir_asked:
+		var ask := [[Lang.t(Elixir.ASK), Palette.TEXT]]
+		term.log_lines.append([ask if touch.enabled else ask + [[" Y/N", Palette.TEXT]], 1.0])
 	# The line the pointer's word hover came from may be gone or have moved.
 	var hinted := not term.hint.is_empty()
 	term.hint = WordHover.at(term, term.hint_at * Term.CELL)

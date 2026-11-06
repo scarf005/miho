@@ -170,6 +170,8 @@ func _mode() -> StringName:
 			return &"saved" if main.pending != null else &"title"
 		&"over":
 			return &"over"
+		&"play" when main.world.elixir_asked:
+			return &"elixir"
 	return &"play"
 
 
@@ -310,6 +312,8 @@ func _press(id: StringName) -> void:
 			main.resume()
 		&"new":
 			main.new_game()
+		&"yes", &"no":
+			main.act({t = &"drink", yes = id == &"yes"})
 		&"enter":
 			main.panels.input(_key(KEY_ENTER))
 		_ when Keys.SLOTS.has(id) and main.panels.overlay != &"":

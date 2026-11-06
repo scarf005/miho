@@ -82,9 +82,9 @@ static func draw(t: Term) -> void:
 	NoiseMeter.draw(t)
 
 
-## The names of the buffs on Miho and the curses on the storey (Curse), ending at `end`: they
-## have no time to run out, so the row keeps telling them. The debug label takes the place on
-## that row.
+## The names of the buffs on Miho, the elixir she carries and the curses on the storey
+## (Curse), ending at `end`: they have no time to run out, so the row keeps telling them.
+## The debug label takes the place on that row.
 static func buffs(t: Term, end: Vector2) -> void:
 	if not t.debug.is_empty():
 		return
@@ -98,6 +98,10 @@ static func buffs(t: Term, end: Vector2) -> void:
 		var name := Lang.t(Curse.NAME[kind])
 		at.x -= t.text_cells(name) + 1.0
 		t.draw_text(at, name, Palette.BAD)
+	if t.world.elixir_held:
+		var name := Lang.t(Elixir.NAME)
+		at.x -= t.text_cells(name) + 1.0
+		t.draw_text(at, name, Palette.ELIXIR[1])
 
 
 ## The cells of the debug label, left of the storey and time on the upper row.

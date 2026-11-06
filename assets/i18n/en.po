@@ -3338,3 +3338,33 @@ msgstr "Made by: %s"
 
 msgid "부딪침"
 msgstr "Bump"
+
+msgid "영약을 마십니까?"
+msgstr "Drink the elixir?"
+
+msgid "영약을 얻었다"
+msgstr "Got the elixir"
+
+msgid "영약을 지니고 있다"
+msgstr "Carrying the elixir"
+
+msgid "영약 받기"
+msgstr "Get the elixir"
+
+msgid "빛: 반지름 %d칸"
+msgstr "Light: radius %d"
+
+msgid "추적: 이 층의 모든 적"
+msgstr "Hunted by: every enemy on the floor"
+
+msgid "꼬리: 최대 %d, 초당 +%d"
+msgstr "Tails: up to %d, +%d per second"
+
+msgid "걸 수 없음: %s, %s"
+msgstr "Cannot cast: %s, %s"
+
+msgid "예"
+msgstr "Yes"
+
+msgid "아니요"
+msgstr "No"

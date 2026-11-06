@@ -38,6 +38,7 @@ const ALONE := {
 	&"title": [],
 	&"saved": [[&"continue", "이어하기"], [&"new", "새로 시작"]],
 	&"over": [[&"log", "기록"], [&"new", "재시작"]],
+	&"elixir": [[&"yes", "예"], [&"no", "아니요"]],
 }
 ## How long a pressed button stays lit, in seconds.
 const FLASH := 0.15

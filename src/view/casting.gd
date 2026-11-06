@@ -141,6 +141,9 @@ func direction(d: Vector2i, hold: bool) -> void:
 	if why != "":
 		_refuse(why)
 		return
+	if Elixir.barred(m.world, spell, d):
+		_refuse(Elixir.BARRED_WHY)
+		return
 	var spells := staged.duplicate()
 	spells.append({cards = picked.duplicate(), dir = d})
 	if not m.world.can({t = &"cast", spells = spells}):
