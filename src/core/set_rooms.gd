@@ -84,13 +84,13 @@ const CLEARED: Array[int] = [
 
 ## The first kind of the storey that fits a room is built there: {kind,
 ## room}, or an empty {} when none fits.
-static func build(w: World, home: Rect2i, goal: Rect2i) -> Dictionary:
+static func build(w: World, home: Array[Rect2i], goal: Rect2i) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = w.rng.state
 	var kinds := ROWS.filter(func(row): return w.depth >= row.tier)
 	FloorGen.shuffle(rng, kinds)
 	var rooms := w.rooms.filter(
-		func(r): return r != home and r != goal and r.get_area() >= LEAST_AREA
+		func(r): return r not in home and r != goal and r.get_area() >= LEAST_AREA
 	)
 	for row: Dictionary in kinds:
 		FloorGen.shuffle(rng, rooms)

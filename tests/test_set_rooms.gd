@@ -80,7 +80,7 @@ func test_a_set_room_is_never_the_start_room_or_the_goal_room() -> void:
 		var w := _plan()
 		w.rng.seed = seed_value
 		var before := w.tiles.duplicate()
-		var built := SetRooms.build(w, HOME, GOAL)
+		var built := SetRooms.build(w, [HOME], GOAL)
 		assert_eq(built.room, MID)
 		for r in [HOME, GOAL]:
 			for y in range(r.position.y, r.end.y):
@@ -92,7 +92,7 @@ func test_a_set_room_is_never_the_start_room_or_the_goal_room() -> void:
 func test_a_room_too_small_for_any_kind_is_left_alone() -> void:
 	var w := _plan(1, Rect2i(10, 2, 3, 3))
 	var before := w.tiles.duplicate()
-	assert_eq(SetRooms.build(w, HOME, GOAL), {})
+	assert_eq(SetRooms.build(w, [HOME], GOAL), {})
 	assert_eq(w.tiles, before)
 
 
@@ -101,9 +101,9 @@ func test_the_choice_leaves_the_worlds_draws_as_they_were_and_the_same_seed_pick
 	var a := _plan()
 	var b := _plan()
 	var state := a.rng.state
-	var built := SetRooms.build(a, HOME, GOAL)
+	var built := SetRooms.build(a, [HOME], GOAL)
 	assert_eq(a.rng.state, state, "no draw of the world's")
-	assert_eq(SetRooms.build(b, HOME, GOAL), built)
+	assert_eq(SetRooms.build(b, [HOME], GOAL), built)
 	assert_eq(a.tiles, b.tiles)
 
 
@@ -117,7 +117,7 @@ func test_the_room_is_cleared_of_patches_plates_and_vents_but_keeps_its_lantern(
 	w.traps[Vector2i(16, 6)] = World.TRAP_ALARM
 	w.vents[Vector2i(12, 4)] = Gas.FOG
 	Gas.put(w, Vector2i(12, 4), Gas.FOG, Gas.MAX)
-	SetRooms.build(w, HOME, GOAL)
+	SetRooms.build(w, [HOME], GOAL)
 	assert_eq(w.tile(lantern), World.LANTERN)
 	assert_false(w.traps.has(Vector2i(16, 6)))
 	assert_false(w.vents.has(Vector2i(12, 4)))
@@ -130,7 +130,7 @@ func test_the_room_is_cleared_of_patches_plates_and_vents_but_keeps_its_lantern(
 
 func test_a_garden_is_reeds_round_a_pool_of_shallow_water_in_the_middle() -> void:
 	var w := _plan()
-	assert_eq(SetRooms.build(w, HOME, GOAL).kind, &"garden")
+	assert_eq(SetRooms.build(w, [HOME], GOAL).kind, &"garden")
 	var pool := (mini(MID.size.x, MID.size.y) - 1) / 3
 	var centre := MID.position + MID.size / 2
 	for y in range(MID.position.y, MID.end.y):
@@ -143,7 +143,7 @@ func test_a_garden_is_reeds_round_a_pool_of_shallow_water_in_the_middle() -> voi
 
 func test_a_garden_leaves_the_storey_whole_and_reeds_hide_what_stands_behind_them() -> void:
 	var w := _plan()
-	SetRooms.build(w, HOME, GOAL)
+	SetRooms.build(w, [HOME], GOAL)
 	assert_true(FloorGen.connected(w))
 	assert_true(w.opaque(MID.position + Vector2i(1, 1)))
 

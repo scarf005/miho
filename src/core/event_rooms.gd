@@ -30,9 +30,9 @@ const ROWS := [
 ]
 
 
-## At each chance, a room but `home` becomes that event room; the first that can
-## be built is the storey's only one.
-static func build(w: World, home: Rect2i) -> void:
+## At each chance, a room but those of `home` becomes that event room; the first
+## that can be built is the storey's only one.
+static func build(w: World, home: Array[Rect2i]) -> void:
 	if w.rng.randf() < VAULTS and _try(w, home, w.rng, &"vault"):
 		return
 	var rng := RandomNumberGenerator.new()
@@ -42,10 +42,12 @@ static func build(w: World, home: Rect2i) -> void:
 			return
 
 
-## Builds a `kind` room in the first room but `home`, in a shuffled order, that
+## Builds a `kind` room in the first room not in `home`, in a shuffled order, that
 ## has no hidden door and can hold one; it leaves w.rooms.
-static func _try(w: World, home: Rect2i, rng: RandomNumberGenerator, kind: StringName) -> bool:
-	var rooms := w.rooms.filter(func(r): return r != home)
+static func _try(
+	w: World, home: Array[Rect2i], rng: RandomNumberGenerator, kind: StringName
+) -> bool:
+	var rooms := w.rooms.filter(func(r): return r not in home)
 	FloorGen.shuffle(rng, rooms)
 	for r: Rect2i in rooms:
 		if not doorways(w, r).any(func(p): return w.secrets.has(p)) and _make(w, kind, r, rng):

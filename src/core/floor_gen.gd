@@ -209,15 +209,15 @@ static var _door_kinds := PackedByteArray([World.WALL, World.FLOOR, World.DOOR, 
 ## set room it made, {kind, room}, or {} (SetRooms.build). A storey that what is laid
 ## in its rooms has spoiled (`_sound`) starts over. The storey that stays has no
 ## window an event room left bare (`_shut_windows`). On a storey with an `outside`, Miho
-## starts before its way out (Outside.doorstep). A 미궁 is of `concept` (Labyrinth.CONCEPTS),
-## the run's when none is given.
+## starts before its way out (Outside.doorstep), and one with none for her starts over. A 미궁
+## is of `concept` (Labyrinth.CONCEPTS), the run's when none is given.
 static func build(w: World, skeleton := &"", outside := false, concept := &"") -> Dictionary:
 	if skeleton == &"":
 		skeleton = Skeletons.pick(w)
 	var set_room := {}
 	for attempt in BUILDS:
 		set_room = _build(w, skeleton, outside, concept)
-		if _sound(w, skeleton):
+		if _sound(w, skeleton) and (not outside or Outside.leads_out(w)):
 			break
 	_shut_windows(w)
 	return set_room
@@ -290,13 +290,13 @@ static func _build(
 		):
 			break
 	w._changed()
-	var home := w.rooms[0]
-	w.start = _centre(home)
+	w.start = _centre(w.rooms[0])
 	if outside:
 		if not goal.has_area():
 			goal = _farthest(w, w.start)
 		w.start = Outside.doorstep(w, _centre(goal))
 	me.pos = w.start
+	var home := rooms_by(w, w.start)
 	w.rooms.erase(goal)
 	EventRooms.build(w, home)
 	if goal.has_area():
@@ -692,10 +692,10 @@ static func _farthest(w: World, from: Vector2i) -> Rect2i:
 ## start room, and none that would light the start, through a doorway, with the
 ## others. The goal room's lantern must light the goal, beside it if no corner
 ## can.
-static func _lanterns(w: World, home: Rect2i, goal: Rect2i, lit: float) -> void:
+static func _lanterns(w: World, home: Array[Rect2i], goal: Rect2i, lit: float) -> void:
 	var target := w.elixir if w.elixir.x >= 0 else w.stairs
 	for r in w.rooms:
-		if r == home or (r != goal and w.rng.randf() >= lit):
+		if r in home or (r != goal and w.rng.randf() >= lit):
 			continue
 		var corners := [r.position, Vector2i(r.end.x - 1, r.position.y), r.end - Vector2i.ONE]
 		corners.append(Vector2i(r.position.x, r.end.y - 1))
@@ -714,6 +714,11 @@ static func _lanterns(w: World, home: Rect2i, goal: Rect2i, lit: float) -> void:
 			if connected(w) and not w.lit(w.start):
 				break
 			w.set_tile(c, World.FLOOR)
+
+
+## The rooms p stands in or in a doorway of: the start rooms of Miho at p.
+static func rooms_by(w: World, p: Vector2i) -> Array[Rect2i]:
+	return w.rooms.filter(func(r): return r.grow(1).has_point(p))
 
 
 ## The room that holds p, or an empty rect.

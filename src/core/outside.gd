@@ -20,18 +20,32 @@ const FOG_LEAST := 2
 
 
 ## The tile inside the way out farthest to walk from `exit`, the nearest Miho of those as far,
-## where she starts on storey 1 (FloorGen._build); her own when no way leads out.
+## where she starts on storey 1 (FloorGen._build); her own when no way leads out. It lies in
+## a room or its doorway, and by no room with a hidden door, where she would find it at once.
 static func doorstep(w: World, exit: Vector2i) -> Vector2i:
 	var sky := _sky(w)
 	var dist: PackedInt32Array = Grid.search(exit, Masks.floor_of(w)).dist
+	var hides := func(r: Rect2i): return w.secrets.keys().any(r.grow(1).has_point)
 	var out := w.start
 	var best := -1
 	for e in _entrances(w):
 		var d := dist[Grid.index(e.inside)]
-		if d > best and trail(e.start, sky).size() > 1:
+		var rooms := FloorGen.rooms_by(w, e.inside)
+		if (
+			d > best
+			and not rooms.is_empty()
+			and not rooms.any(hides)
+			and trail(e.start, sky).size() > 1
+		):
 			out = e.inside
 			best = d
 	return out
+
+
+## Whether a way out leads from the tile Miho starts on, so `lay` keeps her there.
+static func leads_out(w: World) -> bool:
+	var sky := _sky(w)
+	return _entrances(w).any(func(e): return e.inside == w.start and trail(e.start, sky).size() > 1)
 
 
 ## Lays the outside on the storey FloorGen.build made: ground over the sky, the gate, the trail
