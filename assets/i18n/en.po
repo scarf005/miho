@@ -378,6 +378,9 @@ msgstr "crackle"
 msgid "바닥"
 msgstr "Floor"
 
+msgid "지님"
+msgstr "Carried"
+
 msgid "벽"
 msgstr "Wall"
 

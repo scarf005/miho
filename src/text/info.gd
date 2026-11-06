@@ -69,7 +69,6 @@ const CONDITIONS := {
 	],
 	Guise.NAME[Guise.FLAME]: [FLAME_THROUGH, ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
-	Elixir.NAME: Elixir.TOLD,
 	Guise.NAME[Guise.VAULT]: ["다음 낙하 피해: 0", ["소음: %d", Guise.CAST_LOUD]],
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
@@ -137,6 +136,11 @@ static func condition_facts(name: String) -> Array:
 		lines.append_array(nature(Guise.FLAME_KIND))
 	lines.append_array(_tags(CONDITIONS[name]))
 	return lines
+
+
+## What the elixir does while she carries it, as the 도감 tells it.
+static func carried_facts() -> Array:
+	return [[[Lang.t(Elixir.NAME), Palette.ELIXIR[1]]]] + _tags(Elixir.TOLD)
 
 
 ## Lines of text: a string, or a format string and its numbers; each in the language shown.

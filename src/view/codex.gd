@@ -244,13 +244,25 @@ static func _cast_part(cast: Array) -> Dictionary:
 ## What Miho finds on a floor: the elixir, the peach, kimchi, a scroll, the elements.
 static func _thing_entries() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	out.append(_feature(Palette.ELIXIR[0], Palette.ELIXIR[1], "영약", _elixir, &"elixir"))
+	out.append(_elixir_entry())
 	out.append(_feature(Palette.PEACH[0], Palette.PEACH[1], "복숭아", _peach, &"peach"))
 	var kimchi := Jars.name_of(Jars.KIMCHI)
 	out.append(_feature(Palette.KIMCHI[0], Palette.KIMCHI[1], kimchi, _kimchi, Jars.KIMCHI))
 	out.append(_feature(Palette.SCROLL, Palette.CARD[Cards.FIRE], "주문서", _scroll, &"scroll"))
 	for c in Cards.ELEMENTS:
 		out.append(_talisman(c))
+	return out
+
+
+## The elixir: on the floor, then carried (Elixir), a part for each.
+static func _elixir_entry() -> Dictionary:
+	var out := _feature(Palette.ELIXIR[0], Palette.ELIXIR[1], Elixir.NAME, _elixir, &"elixir")
+	var parts := [
+		CodexScene.of(&"elixir").merged({label = Lang.t("바닥")}),
+		CodexScene.of(Elixir.NAME).merged({label = Lang.t("지님")}),
+	]
+	out.scene = {key = &"", each = parts}
+	out.stages = [out.lines, Info.carried_facts]
 	return out
 
 

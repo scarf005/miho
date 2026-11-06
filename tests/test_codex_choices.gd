@@ -248,3 +248,15 @@ func test_the_leap_tells_the_stage_picked() -> void:
 	assert_string_contains(_aside(m), "곧게 %d칸" % far)
 	_press(m, KEY_BRACKETRIGHT)
 	assert_string_contains(_aside(m), "곧게 %d칸" % (far + Spell.LEAP_PER_WOOD))
+
+
+func test_the_elixir_is_one_entry_that_tells_what_it_does_when_carried() -> void:
+	var named := []
+	for tab in 7:
+		named.append_array(Codex.entries(tab).filter(func(e): return e.name == "영약"))
+	assert_eq(named.size(), 1, "one entry has the name")
+	assert_eq(SpellScene.parts(named[0].scene).size(), 2)
+	var text := Info.plain(Codex.detail(named[0], 1))
+	for line: Variant in Elixir.TOLD:
+		assert_string_contains(text, Info.plain(Info._tags([line])))
+	assert_eq(Keywords.locate("영약").x, 3, "the word opens it")
