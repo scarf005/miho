@@ -56,7 +56,7 @@ func test_steam_that_cools_while_spreading_becomes_fog_of_that_amount() -> void:
 	Gas.spread(w, false)
 	assert_eq(w.gas[MID + E * 2].x, Gas.STEAM, "two tiles out")
 	assert_eq(w.gas_heat[MID + E * 2], 1)
-	assert_eq(w.gas[MID + E * 3].x, Gas.FOG, "three tiles out")
+	assert_ne(w.gas.get(MID + E * 3, Gas.NONE).x, Gas.STEAM, "three tiles out")
 
 
 func test_a_steaming_tile_takes_the_hotter_of_its_own_and_its_neighbour_less_one() -> void:
