@@ -385,7 +385,9 @@ func _forecast(args: Dictionary) -> Dictionary:
 	for p: Vector2i in f.allies:
 		out.append("ally appears: (%d,%d)" % [p.x, p.y])
 	if f.after.depth != world.depth:
-		var way := "falls" if f.drops_me() else "climbs"
+		var way := "climbs" if f.after.depth > world.depth else "goes down"
+		if f.drops_me():
+			way = "falls"
 		if World.HOUSE in [world.depth, f.after.depth]:
 			way = "walks the trail"
 		var to := "house" if f.after.depth == World.HOUSE else "storey %d" % f.after.depth
