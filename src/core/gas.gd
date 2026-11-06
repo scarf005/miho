@@ -25,7 +25,15 @@ extends RefCounted
 ## drums and creatures. blocks: thick enough, it blocks sight. erases: Miho's
 ## scent is lost where it lies. explodes: fire on a tile of it sets off the whole
 ## cloud at once (`light`): BLAST harm to whoever stands in it, which is then alight.
-## boils: the kind that fire on its tile turns it to, of the same amount.
+## boils: the kind that fire on its tile turns it to, of the same amount, with
+## full heat. cools: the kind it turns to, of the same amount, when its heat is
+## spent.
+##
+## A gas with cools also has a heat of 1 to MAX per tile (`World.gas_heat`; a tile
+## without one has MAX). Spreading gives a tile the greater of its own heat and
+## that of the hottest neighbouring tile of its gas less 1, so heat runs out
+## one tile from where it was laid for each tile of spreading, and the gas that
+## is left with none is of the kind it cools to.
 
 const FOG := 0
 const STEAM := 1
@@ -34,7 +42,7 @@ const INCENSE := 3
 const MARSH := 4
 const ROWS := {
 	FOG: {name = "안개", decay = 20, boils = STEAM},
-	STEAM: {name = "증기", decay = 50, harm = 1, wets = true},
+	STEAM: {name = "증기", decay = 50, harm = 1, wets = true, cools = FOG},
 	SMOKE: {name = "연기", decay = 50, erases = true},
 	INCENSE: {name = "향 연기", decay = 20, blocks = false, erases = true},
 	MARSH: {name = "늪 기체", decay = 20, blocks = false, explodes = true},
@@ -47,7 +55,8 @@ const DEFAULT := {
 	blocks = true,
 	erases = false,
 	explodes = false,
-	boils = -1
+	boils = -1,
+	cools = -1
 }
 ## The harm of a blast to each creature in the cloud, and how far it is heard.
 const BLAST := 2
@@ -60,8 +69,13 @@ const VENT_LEVEL := 5
 const NONE := Vector2i(-1, 0)
 const INNER := Rect2i(1, 1, Grid.W - 2, Grid.H - 2)
 
+## What Rust is given for a kind that does not cool.
+const NO_KIND := 255
+
 ## The decay chance by gas kind, a byte each, for Rust.
 static var _decay := _column("decay")
+## The kind each gas cools to by gas kind, a byte each, NO_KIND for those that do not.
+static var _cool := _cools()
 
 
 ## The value of `column` for gas kind `kind`.
@@ -89,23 +103,29 @@ static func harms(w: World, p: Vector2i) -> bool:
 	return of(at(w, p).x, "harm") > 0
 
 
-## Lays `amount` of `kind` on p without a word: onto the same kind it adds (up
-## to MAX), onto another the greater one stays.
-static func put(w: World, p: Vector2i, kind: int, amount: int) -> void:
+## Lays `amount` of `kind` of `heat` on p without a word: onto the same kind it
+## adds (up to MAX) and keeps the hotter heat, onto another the greater one stays.
+static func put(w: World, p: Vector2i, kind: int, amount: int, heat := MAX) -> void:
 	if amount <= 0 or not holds(w, p):
 		return
 	var was := at(w, p)
 	if was.x == kind:
 		w.gas[p] = Vector2i(kind, mini(MAX, was.y + amount))
+		if of(kind, "cools") >= 0:
+			w.gas_heat[p] = maxi(w.gas_heat.get(p, MAX), mini(MAX, heat))
 	elif amount >= was.y:
 		w.gas[p] = Vector2i(kind, mini(MAX, amount))
+		if of(kind, "cools") >= 0:
+			w.gas_heat[p] = mini(MAX, heat)
+		else:
+			w.gas_heat.erase(p)
 	w._changed()
 
 
 ## `put`, and the cloud is told of when p had none: for spells and fire.
-static func add(w: World, p: Vector2i, kind: int, amount: int) -> void:
+static func add(w: World, p: Vector2i, kind: int, amount: int, heat := MAX) -> void:
 	var fresh := not w.gas.has(p) and holds(w, p) and amount > 0
-	put(w, p, kind, amount)
+	put(w, p, kind, amount, heat)
 	if fresh:
 		w.emit({t = &"gas", at = p, kind = kind})
 
@@ -120,6 +140,7 @@ static func light(w: World, p: Vector2i) -> void:
 		return
 	if of(kind, "boils") >= 0:
 		w.gas.erase(p)
+		# The steam it makes is of full heat (`add`).
 		add(w, p, of(kind, "boils"), here.y)
 		return
 	if not of(kind, "explodes"):
@@ -178,15 +199,21 @@ static func spread(w: World, thin := true) -> void:
 	var amount := PackedByteArray()
 	amount.resize(w.tiles.size())
 	var kind := amount.duplicate()
+	var heat := amount.duplicate()
 	for p: Vector2i in w.gas:
 		amount[Grid.index(p)] = w.gas[p].y
 		kind[Grid.index(p)] = w.gas[p].x
+		heat[Grid.index(p)] = w.gas_heat.get(p, MAX)
 	var hold := Native.mask(w.tiles, Tiles.gas)
 	var decay := _decay if thin else PackedByteArray()
-	var left := Native.gas(amount, kind, hold, decay, w.rng.randi(), Grid.W)
+	var left := Native.gas(amount, kind, heat, hold, decay, _cool, w.rng.randi(), Grid.W)
 	w.gas = {}
-	for j in range(0, left.size(), 3):
-		w.gas[Grid.at(left[j])] = Vector2i(left[j + 2], left[j + 1])
+	w.gas_heat = {}
+	for j in range(0, left.size(), 4):
+		var p := Grid.at(left[j])
+		w.gas[p] = Vector2i(left[j + 2], left[j + 1])
+		if left[j + 3] > 0:
+			w.gas_heat[p] = left[j + 3]
 
 
 static func _column(column: String) -> PackedByteArray:
@@ -194,4 +221,14 @@ static func _column(column: String) -> PackedByteArray:
 	out.resize(256)
 	for kind: int in ROWS:
 		out[kind] = of(kind, column)
+	return out
+
+
+static func _cools() -> PackedByteArray:
+	var out := PackedByteArray()
+	out.resize(256)
+	out.fill(NO_KIND)
+	for kind: int in ROWS:
+		if of(kind, "cools") >= 0:
+			out[kind] = of(kind, "cools")
 	return out

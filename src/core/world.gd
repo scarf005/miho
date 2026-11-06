@@ -117,6 +117,7 @@ const STOREY: Array[String] = [
 	"burning",
 	"wild",
 	"gas",
+	"gas_heat",
 	"vents",
 	"wet",
 	"hot",
@@ -151,6 +152,8 @@ var burning := {}
 var wild := {}
 ## Gas: position -> Vector2i(kind, amount) (Gas).
 var gas := {}
+## Heat of a gas that cools: position -> 1..Gas.MAX (Gas).
+var gas_heat := {}
 ## Tiles that breathe gas: position -> gas kind (Gas).
 var vents := {}
 ## Tiles a gun lights this round (Spray).

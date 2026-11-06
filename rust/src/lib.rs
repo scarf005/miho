@@ -690,15 +690,19 @@ impl Native {
         )
     }
 
-    /// Gas.spread: one round of gas over `amount` and `kind` (a byte per tile)
-    /// where `hold` is not 0, thinned by `decay[kind]` percent; [tile, amount,
-    /// kind] triplets of the tiles with gas left.
+    /// Gas.spread: one round of gas over `amount`, `kind` and `heat` (a byte
+    /// per tile) where `hold` is not 0, thinned by `decay[kind]` percent and
+    /// cooled into the kind `cools[kind]` unless that is 255; [tile, amount,
+    /// kind, heat] quadruplets of the tiles with gas left.
     #[func]
+    #[allow(clippy::too_many_arguments)]
     fn gas(
         amount: PackedByteArray,
         kind: PackedByteArray,
+        heat: PackedByteArray,
         hold: PackedByteArray,
         decay: PackedByteArray,
+        cools: PackedByteArray,
         seed: i64,
         width: i32,
     ) -> PackedInt32Array {
@@ -708,8 +712,10 @@ impl Native {
             gas(
                 amount,
                 kind.as_slice(),
+                heat.as_slice(),
                 hold.as_slice(),
                 decay.as_slice(),
+                cools.as_slice(),
                 seed as u64,
                 b,
             )
@@ -1262,13 +1268,28 @@ impl Rng {
 /// the outermost ring) takes the average of its own amount and that of its
 /// neighbours that hold gas, the remainder going to chance, and the kind of the
 /// strongest of them; then it loses 1 with the percent chance `decay[kind]`.
-/// Returns [tile, amount, kind] for every tile left with gas, in tile order.
-fn gas(amount: &[u8], kind: &[u8], hold: &[u8], decay: &[u8], seed: u64, b: Board) -> Vec<i32> {
+/// A kind with `cools[kind]` below 255 also carries a heat: a tile takes the
+/// greater of its own heat and the greatest heat of a neighbour of that kind
+/// less 1, and with none left the gas that remains is of kind `cools[kind]`.
+/// Returns [tile, amount, kind, heat] for every tile left with gas, in tile
+/// order; the heat is 0 for a gas that does not cool.
+#[allow(clippy::too_many_arguments)]
+fn gas(
+    amount: &[u8],
+    kind: &[u8],
+    heat: &[u8],
+    hold: &[u8],
+    decay: &[u8],
+    cools: &[u8],
+    seed: u64,
+    b: Board,
+) -> Vec<i32> {
     let mut rng = Rng(seed);
     let holds =
         |x: i32, y: i32| x > 0 && y > 0 && x < b.w - 1 && y < b.h - 1 && hold[b.index(x, y)] != 0;
     let mut spread = vec![0u8; amount.len()];
     let mut strongest = vec![0u8; amount.len()];
+    let mut warmth = vec![0i32; amount.len()];
     for y in 1..b.h - 1 {
         for x in 1..b.w - 1 {
             let i = b.index(x, y);
@@ -1291,6 +1312,22 @@ fn gas(amount: &[u8], kind: &[u8], hold: &[u8], decay: &[u8], seed: u64, b: Boar
                 let odd = rng.below(count) < sum % count;
                 spread[i] = (sum / count) as u8 + odd as u8;
                 strongest[i] = k;
+                if cools.get(k as usize).is_some_and(|&c| c != 255) {
+                    let of_k = |j: usize| {
+                        if amount[j] > 0 && kind[j] == k {
+                            heat[j] as i32
+                        } else {
+                            0
+                        }
+                    };
+                    let mut h = of_k(i);
+                    for (dx, dy) in DIRS {
+                        if holds(x + dx, y + dy) {
+                            h = h.max(of_k(b.index(x + dx, y + dy)) - 1);
+                        }
+                    }
+                    warmth[i] = h;
+                }
             }
         }
     }
@@ -1299,10 +1336,16 @@ fn gas(amount: &[u8], kind: &[u8], hold: &[u8], decay: &[u8], seed: u64, b: Boar
         if a == 0 {
             continue;
         }
-        let chance = decay.get(strongest[i] as usize).copied().unwrap_or(0) as u64;
+        let k = strongest[i] as usize;
+        let chance = decay.get(k).copied().unwrap_or(0) as u64;
         let left = a - (chance > 0 && rng.below(100) < chance) as u8;
         if left > 0 {
-            out.extend([i as i32, left as i32, strongest[i] as i32]);
+            let cools_to = cools.get(k).copied().filter(|&c| c != 255);
+            match cools_to {
+                Some(c) if warmth[i] <= 0 => out.extend([i as i32, left as i32, c as i32, 0]),
+                Some(_) => out.extend([i as i32, left as i32, k as i32, warmth[i]]),
+                None => out.extend([i as i32, left as i32, k as i32, 0]),
+            }
         }
     }
     out

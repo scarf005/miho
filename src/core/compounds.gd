@@ -32,7 +32,8 @@ extends RefCounted
 ## lanterns and wets drums (Terrain.wash), then lays RAIN_FOG of fog (Gas.FOG).
 ## 상극, the two react:
 ## 증기 lays STEAM of steam (Gas.STEAM): it blocks sight, scalds whoever stands
-## in it each round and wets drums.
+## in it each round and wets drums; it is of full heat, so it cools to fog only
+## when it has spread that many tiles (Gas).
 ## 가시 grows thorns (World.THORNS) on open ground and pricks each creature it
 ## reaches for THORN. Whoever steps onto thorns takes THORN; they let sight
 ## through and burn.
