@@ -33,7 +33,9 @@ func test_the_boss_waits_only_on_the_last_storey() -> void:
 			assert_eq(_bosses(w), 1 if depth == 9 else 0, label)
 		var eighth := _built(seed_value, 8)
 		var guards := eighth.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
-		assert_eq(eighth.actors.size() - 1, FloorGen.PLAN[8].size() + guards)
+		var walks := func(k): return not Bestiary.swims(k)
+		var walkers := eighth.actors.filter(func(a): return walks.call(a.kind)).size() - 1
+		assert_eq(walkers, FloorGen.PLAN[8].filter(walks).size() + guards, "seed %d" % seed_value)
 
 
 func test_peaches_grow_on_odd_storeys_from_the_third() -> void:
