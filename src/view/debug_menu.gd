@@ -188,9 +188,12 @@ func _step(field: StringName, by: int) -> void:
 			picks.seed_value += by
 
 
-## 지도 생성 with the picks, as an action.
+## 지도 생성 with the picks, as an action: the 미궁 only on a 미궁.
 func _generate() -> Dictionary:
-	return {t = &"cheat", cmd = &"generate"}.merged(_picks())
+	var action := {t = &"cheat", cmd = &"generate"}.merged(_picks())
+	if action.shape != Skeletons.LABYRINTH:
+		action.concept = &""
+	return action
 
 
 ## The key that builds the next seed with the same picks, on the map or in the box: the
