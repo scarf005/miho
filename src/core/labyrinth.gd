@@ -98,7 +98,7 @@ static func draw(w: World, concept := &"") -> Dictionary:
 	var home: Rect2i = w.rooms[w.rng.randi_range(0, w.rooms.size() - 1)]
 	Skeletons._first(w, home)
 	plan.goal = FloorGen._farthest(w, FloorGen._centre(home))
-	var door := _door(w, area, hall, on_west)
+	var door := _door(w, area, hall, on_west, galleries)
 	w.sites.append({kind = &"labyrinth", at = door, area = area, island = maze.island})
 	maze.door = door
 	return plan
@@ -115,9 +115,13 @@ static func site(w: World) -> Dictionary:
 # --- the door ----------------------------------------------------------------
 
 
-## A bridge from the rooms to a row of the maze with floor behind the wall on both sides, a
-## door in the maze's wall at its end, hidden at the chance of a coin, and the door tile.
-static func _door(w: World, area: Rect2i, hall: Rect2i, on_west: bool) -> Vector2i:
+## A bridge from a room or a gallery to a row of the maze with floor behind the wall on both
+## sides, a door in the maze's wall at its end, hidden at the chance of a coin, and the door
+## tile. A doorway between rooms is not a way in: its wall's crossing would open on both.
+static func _door(
+	w: World, area: Rect2i, hall: Rect2i, on_west: bool, galleries: Array[Rect2i]
+) -> Vector2i:
+	var inside := w.rooms + galleries
 	var west := area if on_west else hall
 	var east := hall if on_west else area
 	var rows := []
@@ -126,7 +130,8 @@ static func _door(w: World, area: Rect2i, hall: Rect2i, on_west: bool) -> Vector
 		var b := Vector2i(east.position.x + 1, y)
 		var hall_in := b if on_west else a
 		var maze_in := a if on_west else b
-		if Tiles.walk[w.tile(maze_in)] == 1 and w.tile(hall_in) == World.FLOOR:
+		var in_room := inside.any(func(r): return r.has_point(hall_in))
+		if Tiles.walk[w.tile(maze_in)] == 1 and w.tile(hall_in) == World.FLOOR and in_room:
 			rows.append(y)
 	if rows.is_empty():
 		return Vector2i(-1, -1)
