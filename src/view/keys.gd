@@ -72,6 +72,7 @@ const ACTIONS := {
 	&"scent": ["냄새 보기", ["T"]],
 	&"debug": ["디버그 보기", ["F3"]],
 	&"cheat": ["디버그 명령", ["F4"]],
+	&"regenerate": ["다음 시드로 생성", ["F2"]],
 	&"help": ["도움말", ["Shift+Slash", "F1"]],
 	&"codex": ["도감", ["Slash"]],
 	&"log": ["기록", ["Ctrl+P", "P"]],

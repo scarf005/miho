@@ -3518,3 +3518,12 @@ msgstr ", element: {0}, light: {1}"
 
 msgid ", 짜인 방: {0}"
 msgstr ", set room: {0}"
+
+msgid "층"
+msgstr "Floor"
+
+msgid "무작위"
+msgstr "Random"
+
+msgid "다음 시드로 생성"
+msgstr "Generate the next seed"

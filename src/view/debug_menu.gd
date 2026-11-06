@@ -2,7 +2,9 @@ class_name DebugMenu
 extends RefCounted
 ## The debug commands (Cheat) as a list in a box over the game, moved through as
 ## ListNav says. Enter on a toggle or a plain command plays it; the rest ask for
-## more first: a row opens a list of its own (Esc goes back to the row), and a
+## more first: a row opens a list of its own (Esc goes back to the row), such as the
+## picks of 지도 생성, stepped with Left and Right, with a key that builds the next seed
+## from the map too (`next_seed`), and a
 ## command that needs a tile or a creature hides the box and waits for the cursor
 ## (the pointer, or the direction keys, Shift five tiles) to be put on one and
 ## Enter or a click to pick it; Tab moves the cursor to the next creature and
@@ -23,6 +25,7 @@ const COMMANDS: Array[StringName] = [
 	&"tails",
 	&"move_foe",
 	&"floor",
+	&"generate",
 	&"card",
 	&"summon",
 	&"reveal",
@@ -32,6 +35,15 @@ const COMMANDS: Array[StringName] = [
 ]
 ## The rows of 적 제거.
 const KILLS := ["하나", "모두"]
+## The rows of 지도 생성 and their names; 미궁 shows only on a 미궁 (`_fields`).
+const FIELDS: Array[StringName] = [&"depth", &"shape", &"concept", &"seed_value", &"make"]
+const FIELD_NAME := {
+	&"depth": "층",
+	&"shape": "모양",
+	&"concept": "미궁",
+	&"seed_value": "시드",
+	&"make": "생성",
+}
 const FAR := 5
 
 var world: World
@@ -41,6 +53,9 @@ var selected := 0
 var top := 0
 var hovered := -1
 var amount := 2
+## The picks of 지도 생성: {depth, shape, concept, seed_value}, &"" for 무작위. They start
+## from the run the page is first opened in (`_picked_in`): its storey and seed.
+var picks := {}
 ## The command a row chose: {action} to play at once, or {ask} to wait for picks.
 var request := {}
 ## The command waiting for picks: {cmd, needs: [&"foe" or &"tile", ...], args}.
@@ -49,6 +64,7 @@ var room := Vector2i(40, 18)
 ## The box is opening again after a command: on the list it was left on.
 var resume := false
 var _row := 0
+var _picked_in: World
 
 
 ## Opens the box on the commands, on the row it was last left on; after a
@@ -108,6 +124,8 @@ func _rows() -> Array:
 		&"summon":
 			for kind in Codex.foes():
 				rows.append([[Lang.t(Bestiary.info(kind).name), Palette.KIND[kind]]])
+		&"generate":
+			rows = _fields().map(_field_row)
 		_:
 			for cmd in COMMANDS:
 				var row := [[Lang.t(Cheat.NAME[cmd]), Palette.TEXT]]
@@ -125,10 +143,72 @@ func _rows() -> Array:
 	return rows
 
 
+## The rows of 지도 생성 shown.
+func _fields() -> Array[StringName]:
+	var maze: bool = _picks().shape == Skeletons.LABYRINTH
+	return FIELDS.filter(func(f): return f != &"concept" or maze)
+
+
+## A row of 지도 생성: its name and its value, or for 생성 the key that builds the next seed.
+func _field_row(field: StringName) -> Array:
+	var row := [[Lang.t(FIELD_NAME[field]), Palette.TEXT]]
+	var value: Variant = picks.get(field)
+	match field:
+		&"make":
+			var keys := Keys.keys_of(&"regenerate")
+			if not keys.is_empty():
+				row.append([Keys.label(keys[0]), Palette.KEY, &"key"])
+				row.append([" " + Lang.t(Keys.ACTIONS[&"regenerate"][0]), Palette.DIM])
+		&"shape", &"concept":
+			var names: Dictionary = Skeletons.NAME if field == &"shape" else Labyrinth.NAME
+			row.append([Lang.t(names[value] if value != &"" else "무작위"), Palette.SIDE[0]])
+		_:
+			row.append([str(value), Palette.SIDE[0]])
+	return row
+
+
+## The picks of 지도 생성, from the world's storey and seed in a run that has none yet.
+func _picks() -> Dictionary:
+	if _picked_in != world:
+		_picked_in = world
+		picks = {depth = world.depth, shape = &"", concept = &"", seed_value = world.rng.seed}
+	return picks
+
+
+## Left or Right on a row of 지도 생성: the storey, shape and 미궁 go round their lists,
+## the seed steps by one.
+func _step(field: StringName, by: int) -> void:
+	match field:
+		&"depth":
+			picks.depth = posmod(picks.depth - 1 + by, World.FLOORS) + 1
+		&"shape", &"concept":
+			var all: Array = [&""] + (Skeletons.ALL if field == &"shape" else Labyrinth.CONCEPTS)
+			picks[field] = all[posmod(all.find(picks[field]) + by, all.size())]
+		&"seed_value":
+			picks.seed_value += by
+
+
+## 지도 생성 with the picks, as an action.
+func _generate() -> Dictionary:
+	return {t = &"cheat", cmd = &"generate"}.merged(_picks())
+
+
+## The key that builds the next seed with the same picks, on the map or in the box: the
+## action, or none before the page has picks in the run of `w`.
+func next_seed(w: World) -> Dictionary:
+	if w == null or _picked_in != w:
+		return {}
+	picks.seed_value += 1
+	return _generate()
+
+
 ## Handles a key press with menu movement `nav`.
 func key(e: InputEventKey, nav: StringName) -> StringName:
 	if Keys.action_of(e) == &"cheat":
 		return &"close"
+	if Keys.action_of(e) == &"regenerate":
+		var next := next_seed(world)
+		return _plays(next) if not next.is_empty() else &""
 	match nav:
 		&"up", &"down", &"page_up", &"page_down", &"home", &"end":
 			var count := _rows().size()
@@ -137,6 +217,8 @@ func key(e: InputEventKey, nav: StringName) -> StringName:
 		&"left", &"right":
 			if page == &"" and COMMANDS[selected] == &"damage":
 				amount = posmod(amount + (1 if nav == &"right" else -1), AMOUNTS.size())
+			elif page == &"generate":
+				_step(_fields()[selected], 1 if nav == &"right" else -1)
 		&"enter":
 			return _use()
 		&"back":
@@ -177,7 +259,7 @@ func _use() -> StringName:
 		return _chosen()
 	var cmd := COMMANDS[selected]
 	match cmd:
-		&"kill", &"floor", &"card", &"summon":
+		&"kill", &"floor", &"card", &"summon", &"generate":
 			_row = selected
 			page = cmd
 			selected = 0
@@ -203,6 +285,8 @@ func _chosen() -> StringName:
 			if selected == 0:
 				return _plays({cmd = &"cards"})
 			return _plays({cmd = &"card", card = Cards.ALL[selected - 1]})
+		&"generate":
+			return _plays(_generate()) if _fields()[selected] == &"make" else &""
 	return _asks(&"summon", [&"tile"], {kind = Codex.foes()[selected]})
 
 

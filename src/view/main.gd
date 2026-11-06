@@ -398,6 +398,10 @@ func do_action(action: StringName, shift: bool) -> void:
 	elif action == &"debug":
 		debugging = not debugging
 		refresh()
+	elif action == &"regenerate":
+		var next: Dictionary = menu.debug.next_seed(world)
+		if not next.is_empty():
+			act(next)
 	elif action in [&"log", &"help", &"codex", &"cheat"]:
 		panels.open(action)
 
