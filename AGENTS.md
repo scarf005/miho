@@ -73,6 +73,7 @@ These rules come from repeated user corrections. Every lane reads this file befo
   - `흙: 진흙` -> `흙 주문: 진흙이 됨`. User: "의미불명".
   - `주문과 멀리뛰기로만 건널 수 있다.` -> `이동 불가.`. User: "그냥 `이동 불가.` 태그면 끝 아닌가".
   - `유탄 탄환` -> `유탄`. User: "이미 유탄에 탄환이란 의미가 있어서 동어반복".
+  - `하늘로 떨어져 2층으로 내려왔다` + `착지했다` -> `2층으로 추락했다`, or `2층으로 내려왔다` when 도약 softens it. One line, no restated cause. User: "ㄴㄴ `2층으로 내려왔다` or `2층으로 추락했다` 같이".
 - A click on a suggested spell or a saved spell fills the queue. User: "클릭하면 당연히 프리셋으로 채워줄줄 알았는데 아니야". The keyboard alone can aim at Miho. User: "키보드만으로 스스로를 겨눌 방법이 없어". Explore never takes the stairs. User: "자동탐색 했는데 그냥 다음 층으로 올라가버림. 이래선 안됨".
 - A cast the player would regret asks at the moment it matters: `{적 이름} 눈앞에서 *둔갑*할까? Y/N`. User: "`{적 이름} 눈앞에서 *둔갑*할까? y/n` 같은 식이 더 나을듯". Every Y/N question ends this way: `영약을 마실까? Y/N`, `주문을 쓸까? Y/N`, not `영약을 마십니까?`. User chose `~할까?` ("후자로 ㄱㄱ").
 - 꼬리 and 여우불 are the player's words. A creature has 마력, and its wisps are 도깨비불, 저승불 or 혼불 (Bestiary.WISP_NAME).
