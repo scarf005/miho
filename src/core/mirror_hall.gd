@@ -2,9 +2,9 @@ class_name MirrorHall
 extends RefCounted
 ## 좌우 대칭 전각: the west half of a building drawn and turned over onto the east (DCSS
 ## layout_cathedral_of_symmetry for the idea). A lit nave down its middle holds pillars and
-## lanterns, with the exit behind a door at its end. A door of the west wing that has wall
-## where its other side should be has a hidden door there, so that the west teaches where
-## the east hides them: the hidden doors are all in the east.
+## lanterns, with the exit behind a door at its end. A door between two rooms of the west
+## wing that has wall where its other side should be has a hidden door there, so that the
+## west teaches where the east hides them: the hidden doors are all in the east.
 
 ## How far a floor of the wing stands in from the map's edge (least, most), and how tall a
 ## floor is with one wall.
@@ -46,7 +46,12 @@ static func draw(w: World) -> Dictionary:
 			break
 		var p: Vector2i = s[0]
 		var d: Vector2i = s[1]
-		if FloorGen._walled(w, p, d) and Grid.distance(p - d, open, p + d) >= FloorGen.SHORTCUT:
+		var rooms := FloorGen.room_at(w, p - d).has_area() and FloorGen.room_at(w, p + d).has_area()
+		if (
+			rooms
+			and FloorGen._walled(w, p, d)
+			and Grid.distance(p - d, open, p + d) >= FloorGen.SHORTCUT
+		):
 			FloorGen._doorway(w, p)
 			hidden.append(p)
 	left = left.filter(func(s): return not hidden.has(s[0]))
