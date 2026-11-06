@@ -289,6 +289,7 @@ const COMPOUND := {
 		told =
 		[
 			["땅", Tiles.ROWS[World.SKY].name],
+			[Tiles.ROWS[World.BRIDGE].name, Tiles.ROWS[World.SKY].name],
 			["그 칸의 적", "추락"],
 			["꺼지지 않는 칸", "당신이 선 칸, 계단으로 가는 길이 끊기는 칸"],
 		],

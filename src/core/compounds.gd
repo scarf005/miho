@@ -53,7 +53,7 @@ extends RefCounted
 ## where it relights every dark lantern the caster sees.
 ## 오작교 makes the sky and the ponds it reaches a skybridge.
 ## 안개비 lays fog and washes the scent away.
-## 땅꺼짐 turns open ground to sky, but not what would cut Miho from the stairs
+## 땅꺼짐 turns open ground and skybridges to sky, but not what would cut Miho from the stairs
 ## (or the elixir) nor her own tile, and what stands on it falls (Fall).
 ## 그믐 puts out the fires and lanterns it reaches.
 ## 이간질 sets the creatures it reaches against each other in pairs, the
@@ -367,8 +367,8 @@ static func _renew(w: World, s: Shot) -> void:
 		w.emit({t = &"heal", id = me.id, hp = me.hp, spell = true})
 
 
-## The open ground on `tiles` becomes sky, but Miho's tile and any tile that
-## would cut her from the stairs (or the elixir), taken in the order of `tiles`.
+## The open ground and the skybridges on `tiles` become sky, but Miho's tile and any
+## tile that would cut her from the stairs (or the elixir), taken in the order of `tiles`.
 static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 	var gone := sinkable(w, tiles)
 	for p in gone:
@@ -378,8 +378,8 @@ static func _sink(w: World, tiles: Array[Vector2i]) -> void:
 	Scrolls.displace(w, gone)
 
 
-## The first `most` (all, below 0) of `tiles` that can go without cutting Miho off from
-## the stairs, or from every tile in `goals`. Her own tile stays.
+## The first `most` (all, below 0) of `tiles`, open ground or skybridge, that can go
+## without cutting Miho off from the stairs, or from every tile in `goals`. Her own tile stays.
 static func sinkable(w: World, tiles: Array[Vector2i], most := -1, goals := []) -> Array[Vector2i]:
 	var me := w.player().pos
 	var guard := linked(w, [], goals)
@@ -387,7 +387,8 @@ static func sinkable(w: World, tiles: Array[Vector2i], most := -1, goals := []) 
 	for p in tiles:
 		if gone.size() == most:
 			break
-		if p != me and open(w, p) and (not guard or linked(w, gone + [p], goals)):
+		var ground := open(w, p) or w.tile(p) == World.BRIDGE
+		if p != me and ground and (not guard or linked(w, gone + [p], goals)):
 			gone.append(p)
 	return gone
 
