@@ -85,12 +85,19 @@ static func over(w: World, kills: int, seed_value: int) -> Array[String]:
 	var log_key: String = (Keys.keys_of(&"log").map(Keys.label) + ["Ctrl+P"])[0]
 	return [
 		Lang.t("사람이 되었다", "banner") if w.outcome == &"won" else _fallen(w),
-		Lang.t("%d층 · %d초") % [w.depth, w.round_no],
+		_time(w),
 		Lang.t("처치 %d") % kills,
 		seed_line(seed_value, false),
 		Lang.t("%s키를 눌러 기록 보기") % log_key,
 		Lang.t("%s키를 눌러 재시작") % OS.get_keycode_string(AGAIN),
 	]
+
+
+## The storey and the time of the whole run, 1 round a second.
+static func _time(w: World) -> String:
+	if w.rounds < 60:
+		return Lang.t("%d층 · %d초") % [w.depth, w.rounds]
+	return Lang.t("%d층 · %d분 %d초") % [w.depth, w.rounds / 60, w.rounds % 60]
 
 
 ## How Miho fell, from what came just before her last wound this round. A creature

@@ -101,6 +101,7 @@ static func end(w: World) -> void:
 				Elements.fade(w, s)
 	prune(w)
 	w.round_no += 1
+	w.rounds += 1
 	Curse.tick(w)
 
 

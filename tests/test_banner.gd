@@ -186,3 +186,19 @@ func test_a_wall_crash_reads_as_such() -> void:
 	w.set_tile(ME - Vector2i(1, 0), World.WALL)
 	w.push(w.player(), -Vector2i(1, 0), 1)
 	assert_eq(_head(w), "벽에 부딪혀 쓰러졌다")
+
+
+func _spent(rounds: int) -> World:
+	var w := _world()
+	w.rounds = rounds
+	w.round_no = 2
+	return w
+
+
+func test_a_run_under_a_minute_tells_seconds_only() -> void:
+	assert_eq(Banner.over(_spent(59), 0, 1)[1], Lang.t("%d층 · %d초") % [1, 59])
+
+
+func test_a_run_of_a_minute_or_more_tells_minutes_and_seconds_of_the_whole_run() -> void:
+	assert_eq(Banner.over(_spent(60), 0, 1)[1], Lang.t("%d층 · %d분 %d초") % [1, 1, 0])
+	assert_eq(Banner.over(_spent(185), 0, 1)[1], Lang.t("%d층 · %d분 %d초") % [1, 3, 5])

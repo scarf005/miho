@@ -182,6 +182,8 @@ var regrow := 0
 var cheats := {}
 var cards: Array[StringName] = [Cards.FOX, Cards.ORB]
 var round_no := 0
+## The rounds of the whole run, over every storey; `round_no` is the clock of one.
+var rounds := 0
 var outcome := &""
 var rng := RandomNumberGenerator.new()
 var events: Array[Dictionary] = []
@@ -234,6 +236,7 @@ func clone() -> World:
 	for s in shots:
 		w.shots.append(s.clone())
 	w.next_id = next_id
+	w.rounds = rounds
 	w.tails = tails
 	w.regrow = regrow
 	w.cheats = cheats.duplicate()

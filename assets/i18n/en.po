@@ -543,6 +543,9 @@ msgstr "fell"
 msgid "%d층 · %d초"
 msgstr "Floor %d · %d s"
 
+msgid "%d층 · %d분 %d초"
+msgstr "Floor %d · %d min %d s"
+
 msgid "처치 %d"
 msgstr "Kills %d"
 

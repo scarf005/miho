@@ -256,3 +256,16 @@ func test_a_state_ahead_of_the_actions_on_disk_is_not_started_from() -> void:
 	assert_eq(back.played, 0)
 	assert_eq(back.world.round_no, 0)
 	assert_false(back.states.has("last"), "the actions after it would not be its own")
+
+
+func test_the_rounds_of_a_run_add_up_over_its_storeys_and_are_kept() -> void:
+	var w := World.create(SEED)
+	for i in 3:
+		w.act({t = &"wait"})
+	Round.ascend(w)
+	for i in 2:
+		w.act({t = &"wait"})
+	assert_eq(w.round_no, 2)
+	assert_eq(w.rounds, 5)
+	assert_eq(w.clone().rounds, 5)
+	assert_eq(_through_bytes(w).rounds, 5)
