@@ -247,6 +247,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.burning.clear()
 	w.hot.clear()
 	w.gas.clear()
+	w.gas_heat.clear()
 	w.vents.clear()
 	w.traps.clear()
 	w.changes.clear()
