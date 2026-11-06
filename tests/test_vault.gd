@@ -304,6 +304,14 @@ func test_a_wall_the_vault_leaves_with_nothing_beside_it_falls_to_the_sky() -> v
 	assert_eq(w.tile(Vector2i(19, 5)), World.WALL)
 
 
+func test_a_wall_left_bare_by_a_window_the_vault_walls_up_falls_too() -> void:
+	var w := _nook(true)
+	w.tiles[Grid.index(Vector2i(20, 5))] = World.WINDOW
+	assert_true(Vault.make(w, NOOK))
+	assert_eq(w.tile(Vector2i(20, 5)), World.WALL)
+	assert_eq(w.tile(Vector2i(21, 4)), World.SKY)
+
+
 func test_no_vault_is_made_where_such_a_wall_has_no_sky_to_fall_to() -> void:
 	var w := _nook(false)
 	var before := w.tiles.duplicate()
