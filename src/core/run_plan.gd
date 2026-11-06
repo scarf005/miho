@@ -7,8 +7,8 @@ extends RefCounted
 ## The shapes, each with the first storey it may stand on.
 const FIRST := {
 	Skeletons.AVENUE: 1,
-	Skeletons.RING: 1,
-	Skeletons.PAVILIONS: 1,
+	Skeletons.RING: 2,
+	Skeletons.PAVILIONS: 2,
 	Skeletons.TOWERS: 2,
 	Skeletons.KEEP: 4,
 	Skeletons.CITADEL: 6,

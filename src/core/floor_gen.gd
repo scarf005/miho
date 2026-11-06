@@ -286,6 +286,8 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w._changed()
 	var home := w.rooms[0]
 	w.start = _centre(home)
+	if w.depth == 1:
+		w.start = Outside.doorstep(w)
 	me.pos = w.start
 	w.rooms.erase(goal)
 	EventRooms.build(w, home)
