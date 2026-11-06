@@ -121,6 +121,8 @@ var veiled := {}
 var time := 0.0
 ## The clock of what only sways (flames, an aim's pulse, bubbles); `still` stops it for pictures.
 var sway := 0.0
+## The time (`time`) the map began to shake.
+var shook := -INF
 ## The hold `play` waits on.
 var _hold: SceneTreeTimer
 ## Set by `rush` until the next `play`: the round in progress holds no more.
@@ -208,6 +210,17 @@ func _process(delta: float) -> void:
 	sway += swayed
 	anim.expire(time)
 	anim.popups.append_array(_bubbles.rise(world, swayed, time))
+
+
+## Starts the map shaking; pictures (`still`) do not shake.
+func shake() -> void:
+	if not still:
+		shook = time
+
+
+## Whether the map is shaking now.
+func shaking() -> bool:
+	return time - shook < Shake.LIFE
 
 
 ## Shows the world as it is now, with nothing in flight.
@@ -340,6 +353,8 @@ func _draw() -> void:
 
 
 func _draw_game() -> void:
+	# Only the map shakes: the sidebar, the log and the status rows are drawn after it is put back.
+	draw_set_transform(Shake.offset(time - shook))
 	var shots := anim.shots if anim.playing else _world_shots()
 	var light := layer.field(shots)
 	var actors := anim.actors if anim.playing else world_actors()
@@ -360,6 +375,7 @@ func _draw_game() -> void:
 		DebugView.draw(self)
 	layer.draw_things(light, actors, shots)
 	anim.draw()
+	draw_set_transform(Vector2.ZERO)
 	if not replay:
 		if side.x > 0:
 			_draw_side(actors, me_pos)

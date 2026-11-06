@@ -44,6 +44,8 @@ var ghosts: Array[Dictionary] = []
 var trails := {}
 ## shot id -> true for each lightning (Spell.electric) spray of the round in play.
 var _bolts := {}
+## Whether the round in play has shaken the map: it shakes once.
+var _shaken := false
 var _term: Term
 
 
@@ -53,7 +55,11 @@ func _init(of: Term) -> void:
 
 ## Whether anything is left to move on screen (RedrawPace).
 func moving() -> bool:
-	return playing or not (popups.is_empty() and flashes.is_empty() and ghosts.is_empty())
+	return (
+		playing
+		or _term.shaking()
+		or not (popups.is_empty() and flashes.is_empty() and ghosts.is_empty())
+	)
 
 
 ## Drops what has faded by time `now`.
@@ -89,6 +95,7 @@ func run(events: Array, before: World, facts: Array) -> void:
 	for s in before.shots:
 		shots[s.id] = {pos = s.pos, spell = s.spell, faction = s.faction}
 	playing = true
+	_shaken = false
 	_bolts.clear()
 	for e in events:
 		if (
@@ -119,6 +126,9 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 	var at: Vector2i = e.get("to", e.get("at", Vector2i(-1, -1)))
 	if not Grid.inside(at) and actors.has(e.get("id", -1)):
 		at = actors[e.id].pos
+	if not _shaken and Shake.by(e):
+		_shaken = true
+		_term.shake()
 	match e.t:
 		&"move":
 			if actors.has(e.id):
