@@ -556,6 +556,22 @@ func test_build_plays_the_picks_and_the_page_stays_on_its_row() -> void:
 	assert_eq(m.menu.debug.selected, 3)
 
 
+func test_a_maze_picked_and_hidden_by_another_shape_is_not_sent() -> void:
+	var m := _main()
+	await _map_page(m)
+	await _key(m, "Down")
+	await _key(m, "Left")
+	await _key(m, "Down")
+	await _key(m, "Right")
+	await _key(m, "Up")
+	await _key(m, "Left")
+	assert_eq(_labels(m), ["층", "모양", "시드", "생성"])
+	await _key(m, "End")
+	await _key(m, "Enter")
+	var built: Dictionary = m.run.actions.back()
+	assert_eq([built.shape, built.concept], [Skeletons.ALL[-2], &""])
+
+
 func test_a_click_on_build_plays_it() -> void:
 	var m := _main()
 	await _map_page(m)
