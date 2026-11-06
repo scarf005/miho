@@ -103,6 +103,7 @@ static func end(w: World) -> void:
 				w.emit({t = &"fade", shot = s.id, at = s.pos})
 				Elements.fade(w, s)
 	prune(w)
+	Sister.meet(w)
 	w.round_no += 1
 	w.rounds += 1
 	Curse.tick(w)

@@ -18,7 +18,7 @@ const STALL_SPOTS := 4
 
 
 ## One run of `seed_value`: {seed, end, rounds, visited, deepest, death}. `end`
-## is dead, won, limit or stuck; `death` holds depth, killer, spell, blow
+## is dead, won, rescued, limit or stuck; `death` holds depth, killer, spell, blow
 ## (one blow from full health) and rounds, for a run that ended dead.
 static func play(seed_value: int) -> Dictionary:
 	var w := World.create(seed_value)
@@ -34,7 +34,7 @@ static func play(seed_value: int) -> Dictionary:
 	var last_depth := w.depth
 	while end == &"":
 		if w.outcome != &"":
-			end = w.outcome if w.outcome == &"won" else &"dead"
+			end = &"dead" if w.outcome == &"lost" else w.outcome
 			break
 		if rounds >= ROUND_LIMIT:
 			end = &"limit"

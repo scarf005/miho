@@ -24,6 +24,12 @@ const NAMES := {
 const REMEMBERED_FLOOR := "·"
 const ALERTS := ["resting", "searching", "hunting"]
 const WITS := ["dull", "sharp", "cunning"]
+## The game over line by World.outcome.
+const OVER := {
+	&"won": "won, Miho became human",
+	&"rescued": "rescued, Miho saved her sister",
+	&"lost": "lost",
+}
 const LEGEND := (
 	"legend: ╳cracked-wall #wall(also wooden-wall, window: the tile name tells which, see look) "
 	+ ":rubble .floor(in sight) ·floor(remembered) +closed-door 'open-door "
@@ -101,7 +107,7 @@ static func text(world: World) -> String:
 	if Status.of(me) != &"":
 		out.append("Miho is %s for %d rounds" % [Status.of(me), Status.rounds(me)])
 	if k.outcome != &"":
-		out.append("game over: " + ("won, Miho became human" if k.outcome == &"won" else "lost"))
+		out.append("game over: " + OVER[k.outcome])
 	out.append_array(_map(k))
 	out.append(LEGEND)
 	var foes := _foes(k)

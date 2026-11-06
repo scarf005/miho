@@ -118,6 +118,7 @@ const GLOBAL := [
 	&"trail",
 	&"fall",
 	&"won",
+	&"rescued",
 	&"lost",
 	&"omen",
 	&"arrive",
@@ -541,7 +542,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"rustle"
 		&"fall":
 			return &"scream" if e.has("depth") and not e.get("soft", false) else &""
-		&"won":
+		&"won", &"rescued":
 			return &"win"
 		&"cough":
 			return &"cough"

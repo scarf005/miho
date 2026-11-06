@@ -521,7 +521,7 @@ func act(action: Dictionary) -> Array:
 		casting.last_spell = "+".join(action.spells.back().cards)
 		casting.forget()
 		Preview.point(self, mouse())
-	if world.depth != depth or world.outcome == &"won":
+	if world.depth != depth or world.outcome in [&"won", &"rescued"]:
 		reel.rounds.pop_back()
 		if settings.replay and action.t != &"cheat":
 			await Replay.play(self)

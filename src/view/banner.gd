@@ -83,8 +83,12 @@ static func title(pending: SaveGame, erasing: bool, touch: Touch) -> Array[Strin
 ## The lines of a run that ended in `w` with `kills` creatures put down.
 static func over(w: World, kills: int, seed_value: int) -> Array[String]:
 	var log_key: String = (Keys.keys_of(&"log").map(Keys.label) + ["Ctrl+P"])[0]
+	var head := Lang.t("사람이 되었다", "banner") if w.outcome == &"won" else _fallen(w)
+	if w.outcome == &"rescued":
+		var sister := [Bestiary.info(Sister.KIND).name, Palette.KIND[Sister.KIND]]
+		head = Messages.plain(Lang.runs("{0}을/를 구했다", [sister], Palette.TEXT))
 	return [
-		Lang.t("사람이 되었다", "banner") if w.outcome == &"won" else _fallen(w),
+		head,
 		_time(w),
 		Lang.t("처치 %d") % kills,
 		seed_line(seed_value, false),

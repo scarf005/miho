@@ -3554,3 +3554,6 @@ msgstr "{0} coughed"
 
 msgid "콜록"
 msgstr "cough"
+
+msgid "{0}을/를 구했다"
+msgstr "Saved {0}"

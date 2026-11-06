@@ -401,6 +401,8 @@ static func _find_line(before: World, after: World, e: Dictionary, last: Diction
 		&"won":
 			var human := [["사람이 되었다", Palette.KIND[&"miho"]]]
 			return _t("영약을 마시고 {0}", human)
+		&"rescued":
+			return _t("{0}을/를 구했다", [_kind(Sister.KIND)])
 		&"cheat":
 			return _cheat(e)
 	return null

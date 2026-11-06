@@ -4,7 +4,9 @@ extends RefCounted
 ## where she is put and never follows her (Storeys._follows). Every COUGH rounds, a number
 ## the dice pick anew each time, she coughs, a noise heard COUGH_LOUD tiles (`turn`; her
 ## cooldown is the one Round.end counts down). On the map of houses every 저승사자 goes for her
-## alone (`prey`, Mind._take_on). When she falls, by any hand, the run is lost (`fell`).
+## alone (`prey`, Mind._take_on). When she falls, by any hand, the run is lost (`fell`). When
+## Miho stands beside her with the elixir (World.elixir_held) at the end of a round she lives
+## through, the run ends as `rescued` (`meet`).
 
 const KIND := &"sister"
 ## The least and most rounds between two coughs.
@@ -34,6 +36,17 @@ static func turn(w: World, a: Actor) -> void:
 	Hearing.noise(w, a.pos, COUGH_LOUD, COUGH_WORD, true, -1)
 	w.emit({t = &"cough", id = a.id, at = a.pos, heard = w.heard.size() > heard})
 	a.magic.cooldown = w.rng.randi_range(COUGH.x, COUGH.y)
+
+
+## The end of a round: Miho beside the sister with the elixir saves her.
+static func meet(w: World) -> void:
+	var sister := of(w)
+	var me := w.player()
+	if w.outcome != &"" or not w.elixir_held or sister == null or not me.alive():
+		return
+	if Grid.cheb(me.pos, sister.pos) == 1:
+		w.outcome = &"rescued"
+		w.emit({t = &"rescued"})
 
 
 ## `a` has fallen: if it is the sister, the run is lost.
