@@ -73,6 +73,16 @@ func test_the_house_takes_storey_one_values() -> void:
 	assert_eq(Raise.rises(w, &"dokkaebi"), Raise.rises(Built.world(3), &"dokkaebi"))
 
 
+func test_the_house_keeps_storey_one_tails_as_they_change() -> void:
+	var w := World.create(3)
+	_take_trail(w)
+	_take_trail(w)
+	w.tail_bonus += 1
+	var tails := w.max_tails()
+	_take_trail(w)
+	assert_eq(w.max_tails(), tails)
+
+
 ## The house of seed `s`, Miho at the trail's end.
 func _house(s := 3) -> World:
 	var w := World.create(s)
