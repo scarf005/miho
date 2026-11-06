@@ -209,3 +209,14 @@ func test_a_quake_comes_only_in_a_round_where_floor_became_sky() -> void:
 				not quakes.is_empty(), _count(w, SKIES) > sky, "depth %d round %d" % [depth, i]
 			)
 			w.actors.assign(w.actors.filter(func(a): return a.is_miho()))
+
+
+func test_the_trail_exit_on_the_first_storey_never_turns_hot() -> void:
+	var w := World.create(3)
+	w.elixir_held = true
+	for i in w.tiles.size():
+		var p := Grid.at(i)
+		if p != w.trail_end and w.open_floor(p):
+			w.hot[p] = Vector2i(0, 99)
+	Collapse.tick(w)
+	assert_false(w.hot.has(w.trail_end))
