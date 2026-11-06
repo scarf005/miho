@@ -210,3 +210,51 @@ func test_the_moon_lights_no_vent_but_those_outside() -> void:
 	w.vents[p] = Gas.FOG
 	w._changed()
 	assert_false(w.lit(p))
+
+
+## Whether `p` stands between walls on two opposite sides, as a doorway does.
+func _gap(w: World, p: Vector2i) -> bool:
+	var wall := func(q): return Terrain.wall(w.tile(q))
+	return (
+		wall.call(p + Vector2i.LEFT) and wall.call(p + Vector2i.RIGHT)
+		or (wall.call(p + Vector2i.UP) and wall.call(p + Vector2i.DOWN))
+	)
+
+
+## The room round `from`: the tiles joined to it, four ways a step, through no doorway,
+## wall or sky.
+func _room_of(w: World, from: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = [from]
+	for p in out:
+		for d in Placement.SIDES:
+			var q := p + d
+			var t := w.tile(q)
+			if not Terrain.wall(t) and t != World.SKY and not _gap(w, q) and q not in out:
+				out.append(q)
+	return out
+
+
+func test_the_room_miho_starts_in_holds_no_event_room_set_room_or_hidden_door() -> void:
+	for s in 120:
+		var w := World.new()
+		w.rng.seed = s
+		var me := Actor.new()
+		me.id = w.new_id()
+		me.kind = &"miho"
+		w.actors.append(me)
+		var made := FloorGen.build(w, &"", true)
+		Outside.lay(w)
+		var mine := w.rooms.filter(func(r): return r.grow(1).has_point(w.start))
+		assert_ne(mine, [], "seed %d starts in a room or its doorway" % s)
+		assert_false(made.get("room", Rect2i()) in mine, "seed %d: set room" % s)
+		for r: Rect2i in mine:
+			for p in w.secrets:
+				assert_false(r.grow(1).has_point(p), "seed %d: hidden door at %s" % [s, p])
+		var near: Array = Placement.SIDES.map(func(d): return w.start + d) + [w.start]
+		var events: Array = w.sites.map(func(z): return z.at)
+		for i in w.tiles.size():
+			if w.tiles[i] == World.VEIL:
+				events.append(Grid.at(i))
+		for at: Vector2i in events:
+			var room := _room_of(w, at)
+			assert_false(near.any(room.has), "seed %d: event room at %s" % [s, at])
