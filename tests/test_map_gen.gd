@@ -79,11 +79,15 @@ func test_the_same_seed_and_picks_build_the_same_storey_twice() -> void:
 
 
 func test_a_storey_with_nothing_picked_is_the_one_a_run_on_the_seed_builds() -> void:
-	var run := World.create(SEED)
-	var w := Built.world(SEED + 5)
-	_gen(w, 1)
-	assert_true(w.tiles == run.tiles)
-	assert_eq(w.player().pos, run.player().pos)
+	for depth in DEPTHS:
+		var run := World.create(SEED)
+		for d in range(2, depth + 1):
+			Storeys.leave(run)
+			Storeys.enter(run, d)
+		var w := Built.world(SEED + 5)
+		_gen(w, depth)
+		assert_true(w.tiles == run.tiles, "storey %d" % depth)
+		assert_eq(w.player().pos, run.player().pos, "storey %d" % depth)
 
 
 func test_a_build_shows_the_whole_storey_lit_and_seen_and_keeps_creatures_still() -> void:
