@@ -245,6 +245,9 @@ func test_the_room_miho_starts_in_holds_no_event_room_set_room_or_hidden_door() 
 		for r: Rect2i in mine:
 			for p in w.secrets:
 				assert_false(r.grow(1).has_point(p), "seed %d: hidden door at %s" % [s, p])
+			for wall: Vector2i in w.seals:
+				for p: Vector2i in [wall] + w.seals[wall]:
+					assert_false(r.grow(1).has_point(p), "seed %d: vault front at %s" % [s, p])
 		var near: Array = Placement.SIDES.map(func(d): return w.start + d) + [w.start]
 		var events: Array = w.sites.map(func(z): return z.at)
 		for i in w.tiles.size():
