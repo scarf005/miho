@@ -260,3 +260,16 @@ func test_the_elixir_is_one_entry_that_tells_what_it_does_when_carried() -> void
 	for line: Variant in Elixir.TOLD:
 		assert_string_contains(text, Info.plain(Info._tags([line])))
 	assert_eq(Keywords.locate("영약").x, 3, "the word opens it")
+
+
+func test_the_leap_is_one_entry_and_its_word_opens_the_talisman() -> void:
+	var named := []
+	var tabs := []
+	for tab in 7:
+		var found := Codex.entries(tab).filter(func(e): return e.name == Guise.NAME[Guise.VAULT])
+		named.append_array(found)
+		tabs.append_array(found.map(func(_e): return tab))
+	assert_eq(named.size(), 1, "one entry has the name")
+	assert_eq(Keywords.locate(Guise.NAME[Guise.VAULT]).x, tabs[0], "the word opens it")
+	var ward := Info.plain(SpellInfo.own(Guise.VAULT))
+	assert_string_contains(ward, "%s 소음" % Guise.NAME[Guise.VAULT])

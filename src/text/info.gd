@@ -69,7 +69,6 @@ const CONDITIONS := {
 	],
 	Guise.NAME[Guise.FLAME]: [FLAME_THROUGH, ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
-	Guise.NAME[Guise.VAULT]: ["다음 낙하 피해: 0", ["소음: %d", Guise.CAST_LOUD]],
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
 	Curse.NAME[Curse.BODY]: Curse.TOLD[Curse.BODY],
@@ -195,13 +194,13 @@ static func shot_at(w: World, p: Vector2i) -> Shot:
 static func creature(w: World, a: Actor) -> Array:
 	if a.is_miho():
 		return _miho(w, a, _head(a))
-	return _profile(a) + _situation(w, a) + _arms(a, w.cards)
+	return _profile(a) + _situation(w, a) + SpellInfo.returns(a, w) + _arms(a, w.cards)
 
 
 ## What a creature is, whatever its state: the 도감's text. `held` are the
 ## talismans Miho holds, whose drop is no news.
 static func creature_facts(a: Actor, held: Array) -> Array:
-	return _profile(a) + _arms(a, held)
+	return _profile(a) + SpellInfo.returns(a, null) + _arms(a, held)
 
 
 static func _head(a: Actor) -> Array:
@@ -607,8 +606,6 @@ static func _traits(a: Actor, elements: Array) -> Array:
 		out.append(Lang.t(FIREPROOF))
 	if spec.get("hunts", false):
 		out.append(Lang.t("위치 감지"))
-	if a.kind == &"saja":
-		out.append(Lang.t("재등장: %d초 뒤, 이후 절반씩") % World.REAPER_AGAIN)
 	if spec.get("tracks", false):
 		out.append(Lang.t(SMELL))
 	if spec.get("stokes", false):

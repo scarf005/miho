@@ -148,3 +148,14 @@ func test_the_gap_and_the_distance_stay_at_one_for_any_large_step() -> void:
 	for step in [10, 63, 64, 65, 128, 1000]:
 		assert_eq(Curse.gap(step), 1, "gap %d" % step)
 		assert_eq(Curse.distance(step), 1, "distance %d" % step)
+
+
+func test_only_the_reaper_whose_fall_starts_the_clock_tells_when_the_next_comes() -> void:
+	var w := _world()
+	var first := _first(w)
+	var other := FloorGen.spawn(w, &"saja", Vector2i(45, 4))
+	var told := "재등장: %d초 뒤" % World.REAPER_AGAIN
+	assert_string_contains(Info.plain(Info.creature(w, first)), told)
+	assert_false(Info.plain(Info.creature(w, other)).contains("재등장"))
+	w.depth = World.FLOORS
+	assert_false(Info.plain(Info.creature(w, first)).contains("재등장"))

@@ -2730,8 +2730,11 @@ msgstr "Cannot move or cast."
 msgid "위치 감지"
 msgstr "Senses position"
 
-msgid "재등장: %d초 뒤, 이후 절반씩"
-msgstr "Returns: after %d s, then half as long each time"
+msgid "재등장: %d초 뒤"
+msgstr "Returns: after %d s"
+
+msgid "재등장 간격: 매번 절반"
+msgstr "Return wait: halves each time"
 
 msgid "위험구역 너머는 탐험할 수 없다"
 msgstr "Cannot explore past a danger zone"

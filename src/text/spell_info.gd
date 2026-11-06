@@ -292,7 +292,11 @@ static func ward(s: Spell) -> Array:
 			]
 		)
 	if kind == Guise.VAULT:
-		return [_line(on, name), _line("다음 낙하 피해", "0")]
+		return [
+			_line(on, name),
+			_line("다음 낙하 피해", "0"),
+			_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
+		]
 	if kind == Guise.RAISE:
 		return Raise.TOLD.map(func(l): return [[Info._text(l), Palette.TEXT]])
 	var dark: int = Guise.dark(s).light(Actor.FOX).radius
@@ -307,6 +311,17 @@ static func ward(s: Spell) -> Array:
 		_line("풀림", "둘레의 불, 켜진 등불"),
 		_line(Lang.t("%s 소음") % Lang.t(name), "없음"),
 	]
+
+
+## When the next 저승사자 comes: on the hover of the one whose fall starts it, in the 도감 (`w` null).
+static func returns(a: Actor, w: World) -> Array:
+	var first := w == null or (a.id == w.first_reaper and w.depth < World.FLOORS)
+	var out := [Lang.t("재등장: %d초 뒤") % World.REAPER_AGAIN, Lang.t("재등장 간격: 매번 절반")]
+	return (
+		out.slice(0, 2 if w == null else 1).map(func(l): return [[l, Palette.DIM]])
+		if a.kind == &"saja" and first
+		else []
+	)
 
 
 ## What a creature's spell asks the player to dodge, as [label, value, color]:
