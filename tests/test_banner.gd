@@ -56,6 +56,12 @@ func test_the_sister_falling_heads_the_banner() -> void:
 	assert_eq(_head(w), "여동생이 쓰러졌다")
 
 
+func test_the_sister_saved_heads_the_banner() -> void:
+	var w := _world()
+	w.outcome = &"rescued"
+	assert_eq(_head(w), "여동생을 구했다")
+
+
 func test_a_blow_from_an_unseen_creature_names_nobody() -> void:
 	var w := _world()
 	var foe := _foe(w, ME + Vector2i.RIGHT)

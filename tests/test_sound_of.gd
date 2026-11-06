@@ -126,6 +126,7 @@ const SOUNDS := [
 	[{t = &"fall", depth = 2}, &"scream"],
 	[{t = &"elixir"}, &"card"],
 	[{t = &"won"}, &"win"],
+	[{t = &"rescued"}, &"win"],
 	[{t = &"lost"}, &"lose"],
 	[{t = &"cough"}, &"cough"],
 	[{t = &"noise", word = "콜록"}, &"cough"],

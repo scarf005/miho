@@ -313,3 +313,49 @@ func test_the_returning_reaper_is_counted_from_the_sister() -> void:
 	var told := w.act(WAIT).filter(func(e): return e.t == &"arrive")
 	assert_eq(told.size(), 1)
 	assert_eq(Grid.cheb(told[0].at, sister.pos), Curse.distance(3))
+
+
+## Puts Miho two tiles from the sister and gives the step that brings her beside her.
+func _come_to_sister(w: World) -> Dictionary:
+	var at := _sister(w).pos
+	var walk := Masks.floor_of(w)
+	var free := func(p): return w.vacant(p) and walk[Grid.index(p)] == 1 and w.tile(p) != World.DOOR
+	for d in Grid.DIRS:
+		for e in Grid.DIRS:
+			var from: Vector2i = at + d + e
+			if Grid.cheb(from, at) == 2 and free.call(at + d) and free.call(from):
+				w.player().pos = from
+				w.sense()
+				return {t = &"move", dir = -e}
+	return {}
+
+
+func test_the_elixir_brought_to_the_sister_saves_her() -> void:
+	var w := _house()
+	w.elixir_held = true
+	var step := _come_to_sister(w)
+	var before := w.clone()
+	var events := w.act(step)
+	assert_eq(w.outcome, &"rescued")
+	assert_has(events.map(func(e): return e.t), &"rescued")
+	assert_has(Messages.of(before, w, events).map(Messages.plain), "여동생을 구했다")
+	assert_has(Observation.text(w).split("\n"), "game over: rescued, Miho saved her sister")
+
+
+func test_beside_the_sister_without_the_elixir_the_run_goes_on() -> void:
+	var w := _house()
+	w.act(_come_to_sister(w))
+	assert_eq(Grid.cheb(w.player().pos, _sister(w).pos), 1)
+	w.act(WAIT)
+	assert_eq(w.outcome, &"")
+
+
+func test_a_death_in_the_round_she_comes_beside_her_comes_first() -> void:
+	var w := _house()
+	w.elixir_held = true
+	var step := _come_to_sister(w)
+	w.player().hp = 1
+	w.burning[w.player().pos + step.dir] = World.BURN_ROUNDS
+	w.act(step)
+	assert_false(w.player().alive())
+	assert_eq(w.outcome, &"lost")
