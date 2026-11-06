@@ -3122,6 +3122,21 @@ msgstr "{0} rose"
 msgid "{0}을/를 썼다"
 msgstr "Used {0}"
 
+msgid "{0}을/를 걸었다"
+msgstr "Cast {0}"
+
+msgid "착지했다"
+msgstr "Landed"
+
+msgid "다음 낙하 피해"
+msgstr "Next fall harm"
+
+msgid "다음 낙하 피해: 0"
+msgstr "Next fall harm: 0"
+
+msgid "이미 건 주문은 다시 걸 수 없다"
+msgstr "A spell already cast cannot be cast again"
+
 msgid "지속 시간: 다음 층까지"
 msgstr "Lasts: until the next storey"
 

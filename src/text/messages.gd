@@ -325,6 +325,12 @@ static func _spell_line(before: World, after: World, e: Dictionary) -> Variant:
 			return _t("{0}을/를 썼다", [_named(Guise.NAME[Guise.RAISE])])
 		&"unraise":
 			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.RAISE])])
+		&"vault":
+			return _t("{0}을/를 걸었다", [_named(Guise.NAME[Guise.VAULT])])
+		&"unvault":
+			if e.get("fall", false):
+				return _t("착지했다")
+			return _t("{0}이/가 풀렸다", [_named(Guise.NAME[Guise.VAULT])])
 	return null
 
 

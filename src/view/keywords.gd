@@ -23,7 +23,8 @@ const BOON := [
 	Guise.NAME[Guise.CLOAK],
 	Guise.NAME[Guise.FLAME],
 	Guise.NAME[Guise.RAISE],
-	Elixir.NAME
+	Elixir.NAME,
+	Guise.NAME[Guise.VAULT]
 ]
 ## Particles that may follow a name, which stays a link: 진흙이, 풀을.
 const PARTICLES := "이|가|을|를|은|는|의|에서|에게|에|으로|로|과|와|도|만|까지|부터|처럼|이다"  # i18n: keep

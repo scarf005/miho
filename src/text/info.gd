@@ -70,6 +70,7 @@ const CONDITIONS := {
 	Guise.NAME[Guise.FLAME]: [FLAME_THROUGH, ["소음: %d", Guise.CAST_LOUD]],
 	Guise.NAME[Guise.RAISE]: Raise.TOLD,
 	Elixir.NAME: Elixir.TOLD,
+	Guise.NAME[Guise.VAULT]: ["다음 낙하 피해: 0", ["소음: %d", Guise.CAST_LOUD]],
 	Curse.NAME[Curse.REAPER]: Curse.TOLD[Curse.REAPER],
 	Curse.NAME[Curse.SIGHT]: Curse.TOLD[Curse.SIGHT],
 	Curse.NAME[Curse.BODY]: Curse.TOLD[Curse.BODY],
@@ -473,7 +474,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	]:
 		if c[0] > 0:
 			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
-	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME, Guise.RAISE]:
+	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME, Guise.RAISE, Guise.VAULT]:
 		if a.buffs.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	out.append_array(_status(a))

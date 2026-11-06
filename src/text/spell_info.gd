@@ -203,7 +203,7 @@ static func spell(s: Spell) -> Array:
 				[[Lang.t("착지 후: "), LABEL], [then.shown(), Palette.card(then.slots.back())]]
 			)
 			lines.append_array(spell(then).slice(1))
-		return lines
+		return lines + ward(s)
 	lines.append_array(_nature(s))
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
@@ -291,6 +291,8 @@ static func ward(s: Spell) -> Array:
 				_line(Lang.t("%s 소음") % Lang.t(name), "%d" % Guise.CAST_LOUD),
 			]
 		)
+	if kind == Guise.VAULT:
+		return [_line(on, name), _line("다음 낙하 피해", "0")]
 	if kind == Guise.RAISE:
 		return Raise.TOLD.map(func(l): return [[Info._text(l), Palette.TEXT]])
 	var dark: int = Guise.dark(s).light(Actor.FOX).radius
