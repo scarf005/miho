@@ -36,6 +36,11 @@ extends RefCounted
 const FLOORS := 9
 const REAPER_OMEN := 300
 const REAPER_ARRIVES := 320
+## Once the storey's first 저승사자 has fallen, the next comes REAPER_AGAIN rounds later and
+## REAPER_FAR tiles from its target; each next comes after half the rounds and at half the
+## tiles, down to one (Curse.gap, Curse.distance).
+const REAPER_AGAIN := 160
+const REAPER_FAR := 16
 ## While she carries the elixir: 저승사자 comes with the chance 1 in REAPER_CHANCE a round,
 ## within REAPER_NEAR tiles of her.
 const REAPER_CHANCE := 10
@@ -135,6 +140,9 @@ const STOREY: Array[String] = [
 	"known",
 	"round_no",
 	"curses",
+	"first_reaper",
+	"reaper_due",
+	"reaper_step",
 ]
 
 var depth := 1
@@ -150,6 +158,11 @@ var jars := {}
 var pungent := 0
 ## What a torn 제웅 laid on this storey: curse -> its value (Curse).
 var curses := {}
+## The id of the 저승사자 the storey's own clock sent, until it falls (-1: none), the round the
+## next one comes (-1: its clock has not started) and how many have come since (Curse).
+var first_reaper := -1
+var reaper_due := -1
+var reaper_step := 0
 var strong := {}
 ## Burning tiles: position -> rounds left; the wild ones always spread.
 var burning := {}

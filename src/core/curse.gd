@@ -9,6 +9,13 @@ extends RefCounted
 ## come, and `_reaper` can compare with `==`. Once it has come the curse is not picked, nor on
 ## the top storey, where it never comes.
 ##
+## AGAIN: when the 저승사자 this clock sent has fallen, the clock starts again: the next one
+## comes World.REAPER_AGAIN rounds later at World.REAPER_FAR tiles (Chebyshev) from the target
+## (`target`), then after half the rounds and at half the tiles each time, never under 1. Each
+## is counted from the one before, living or not, and told by an omen LEAD rounds before only
+## when it comes after more than LEAD rounds. It hunts at once. The ones the elixir brings
+## (Collapse) run apart and start nothing. A curse of REAPER hastens only the first.
+##
 ## SIGHT: creatures of heaven see MORE_SIGHT tiles farther in the dark (Sight.reach), which is
 ## what lets one notice her where she stands unlit. Her own sight stays.
 ##
@@ -116,6 +123,7 @@ static func tick(w: World) -> void:
 	_rise(w)
 	if w.depth < World.FLOORS:
 		_reaper(w)
+		_again(w)
 
 
 static func _rise(w: World) -> void:
@@ -138,5 +146,63 @@ static func _reaper(w: World) -> void:
 		var spot := FloorGen.nearest_free(w, w.start)
 		if spot.x >= 0:
 			var saja := FloorGen.spawn(w, &"saja", spot)
+			w.first_reaper = saja.id
 			w._changed()
 			w.emit({t = &"arrive", id = saja.id, at = spot})
+
+
+## `a` has fallen: if it was the 저승사자 this storey's clock sent, the clock of the next starts.
+static func fell(w: World, a: Actor) -> void:
+	if a.id == w.first_reaper:
+		w.first_reaper = -1
+		w.reaper_due = w.round_no + gap(0)
+
+
+## Rounds the `step`th 저승사자 after the first comes after the one before.
+static func gap(step: int) -> int:
+	return maxi(1, World.REAPER_AGAIN >> step)
+
+
+## Tiles the `step`th 저승사자 after the first comes from its target.
+static func distance(step: int) -> int:
+	return maxi(1, World.REAPER_FAR >> step)
+
+
+## The tile the next 저승사자 hunts and is counted from: Miho. The map of houses (#6) names
+## the sister here.
+static func target(w: World) -> Vector2i:
+	return w.player().pos
+
+
+static func _again(w: World) -> void:
+	if w.reaper_due < 0:
+		return
+	if w.round_no == w.reaper_due - LEAD and gap(w.reaper_step) > LEAD:
+		w.emit({t = &"omen"})
+	if w.round_no < w.reaper_due:
+		return
+	var to := target(w)
+	var spot := _ring(w, to, distance(w.reaper_step))
+	if spot.x < 0:
+		return
+	var saja := FloorGen.spawn(w, &"saja", spot)
+	saja.brain.alert = Actor.HUNT
+	saja.brain.target = to
+	w.reaper_step += 1
+	w.reaper_due = w.round_no + gap(w.reaper_step)
+	w._changed()
+	w.emit({t = &"arrive", id = saja.id, at = spot, kind = &"saja", anywhere = true})
+
+
+## A free tile `far` tiles from `to` that can be walked to from it, picked by the world's dice;
+## else the nearest free one.
+static func _ring(w: World, to: Vector2i, far: int) -> Vector2i:
+	var reach: PackedInt32Array = Grid.search(to, Masks.floor_of(w)).dist
+	var list: Array[Vector2i] = []
+	for i in Grid.W * Grid.H:
+		var p := Grid.at(i)
+		if Grid.cheb(p, to) == far and w.vacant(p) and not w.traps.has(p) and reach[i] >= 0:
+			list.append(p)
+	if list.is_empty():
+		return FloorGen.nearest_free(w, to)
+	return list[w.rng.randi_range(0, list.size() - 1)]

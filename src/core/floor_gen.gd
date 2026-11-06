@@ -254,6 +254,9 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.bodies.clear()
 	w.round_no = 0
 	w.curses.clear()
+	w.first_reaper = -1
+	w.reaper_due = -1
+	w.reaper_step = 0
 	w.known = PackedByteArray()
 	w.seen = PackedByteArray()
 	w.dim = PackedByteArray()

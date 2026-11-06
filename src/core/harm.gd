@@ -80,4 +80,5 @@ static func fire(w: World, a: Actor, n: int, at: Vector2i) -> bool:
 static func reward(w: World, a: Actor) -> void:
 	w.tails = mini(w.max_tails(), w.tails + 1)
 	w.emit({t = &"soul", id = a.id, at = a.pos})
+	Curse.fell(w, a)
 	Scrolls.drop(w, a)

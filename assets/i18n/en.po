@@ -2730,6 +2730,9 @@ msgstr "Cannot move or cast."
 msgid "위치 감지"
 msgstr "Senses position"
 
+msgid "다시 옴: %d초부터 절반씩"
+msgstr "Returns: from %d s, halving"
+
 msgid "위험구역 너머는 탐험할 수 없다"
 msgstr "Cannot explore past a danger zone"
 
