@@ -589,7 +589,7 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 		for t in w.tiles:
 			if features.has(t):
 				features[t] += 1
-		assert_eq(w.tile(w.start), World.COURTYARD, "storey 1 starts on its trail")
+		assert_true(w.rooms[0].has_point(w.start), "storey 1 starts in the pavilion")
 		assert_eq(w.tile(w.stairs), World.FLOOR)
 		var open := Masks.opened(w)
 		var dist: PackedInt32Array = Grid.search(w.start, open).dist
@@ -599,7 +599,6 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				cut_off.append(Grid.at(i))
 		assert_eq(cut_off, [], "seed %d tiles" % seed_value)
 		assert_true(w.lit(w.stairs), "seed %d" % seed_value)
-		assert_true(w.lit(w.start), "seed %d: the trail is moonlit" % seed_value)
 		var guards := w.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
 		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size() + guards)
 		for a in w.actors.slice(1):

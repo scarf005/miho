@@ -146,6 +146,7 @@ const STOREY: Array[String] = [
 	"reaper_due",
 	"reaper_step",
 	"trail_end",
+	"gate",
 	"vent_levels",
 ]
 
@@ -181,6 +182,8 @@ var vents := {}
 var vent_levels := {}
 ## The tile of the map's edge where the trail leaves the storey, or (-1, -1) (Outside).
 var trail_end := Vector2i(-1, -1)
+## The door of the pavilion on storey 1 that the way out leads through, or (-1, -1) (Outside).
+var gate := Vector2i(-1, -1)
 ## Tiles a gun lights this round (Spray).
 var flares: Array[Vector2i] = []
 ## Wet drums: position -> rounds left (Drums).

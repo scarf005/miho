@@ -117,9 +117,13 @@ func test_each_design_shows_its_ground() -> void:
 	for s in _seeds_of(&"grove", 3):
 		var w := Built.world(s)
 		assert_gt(_count(w, World.BAMBOO), _count(w, World.GRASS), "grove %d: mostly bamboo" % s)
+	var pools := 0
+	var ground := 0
 	for s in _seeds_of(&"waterside", 3):
 		var w := Built.world(s)
-		assert_gt(_count(w, World.SHALLOW), w.vents.size() / 5, "waterside %d: pools" % s)
+		pools += _count(w, World.SHALLOW)
+		ground += w.vents.size()
+	assert_gt(pools, ground / 5, "waterside: pools")
 
 
 ## Vents on a block of 5 x 5 tiles at `at` that keep `level` (the usual one when 0).

@@ -4,8 +4,9 @@ extends RefCounted
 ## becomes grass with a pattern of one of DESIGNS over it (RunPlan.outside), and a vent of
 ## fog with a level of its own (World.vent_levels), so a thick bank of it blocks sight in
 ## patches. A sky court that no way leads to becomes wall. Miho starts outside the pavilion's
-## entrance, and a trail of 마당 runs from there to the edge of the map, where it ends in
-## World.trail_end. All from a generator of its own, so the same seed lays the same outside.
+## gate, and a trail of 마당 runs from there to the edge of the map, where it ends in
+## World.trail_end. Miho starts where FloorGen put her, inside; the pavilion's way out is
+## World.gate. All from a generator of its own, so the same seed lays the same outside.
 
 const DESIGNS: Array[StringName] = [&"meadow", &"grove", &"waterside"]
 ## What lies over the grass in each design, the first laid first: [tile, chance of the noise].
@@ -18,21 +19,45 @@ const LAYERS := {
 const FOG_LEAST := 2
 
 
-## Lays the outside on the storey FloorGen.build made: ground over the sky, the entrance,
-## the trail and the fog.
+## Lays the outside on the storey FloorGen.build made: ground over the sky, the gate, the trail
+## and the fog. Sky beside the pavilion's walkable tiles becomes wall, but the gate, so the gate
+## is the one way out. Miho stays where FloorGen put her.
 static func lay(w: World) -> void:
 	var sky := PackedByteArray()
 	sky.resize(w.tiles.size())
 	for i in sky.size():
 		sky[i] = 1 if w.tiles[i] == World.SKY else 0
-	var way := {}
+	var walk := Masks.opened(w)
+	var seal := PackedByteArray()
+	seal.resize(sky.size())
+	for i in sky.size():
+		seal[i] = 1 if sky[i] == 1 and _beside(walk, Grid.at(i)) else 0
+	var gate := Vector2i(-1, -1)
 	var path: Array[Vector2i] = []
+	var best := -1
 	for e in _entrances(w):
-		var found := trail(e.start, sky)
-		if found.size() > 1:
-			way = e
+		var g := _gate(e)
+		if e.start != g and seal[Grid.index(e.start)] == 1:
+			continue
+		var open := _unsealed(sky, seal, g)
+		var found := trail(e.start, open)
+		if found.size() <= 1:
+			continue
+		var dist: PackedInt32Array = Grid.search(e.start, open).dist
+		var count := 0
+		for d in dist:
+			count += 1 if d >= 0 else 0
+		var shorter := found.size() < path.size()
+		var same := found.size() == path.size() and Grid.index(g) < Grid.index(gate)
+		if count > best or (count == best and (shorter or same)):
+			best = count
+			gate = g
 			path = found
-			break
+	if not path.is_empty():
+		for i in sky.size():
+			if seal[i] == 1 and Grid.at(i) != gate:
+				w.tiles[i] = World.WALL
+				sky[i] = 0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(w.rng.seed) ^ RunPlan.OUTSIDE_SALT
 	for i in sky.size():
@@ -46,13 +71,11 @@ static func lay(w: World) -> void:
 	var a := _noise(PondGarden.NOISE, rng)
 	var b := _noise(PondGarden.NOISE, rng)
 	if not path.is_empty():
-		if way.door.x >= 0:
-			w.tiles[Grid.index(way.door)] = World.DOOR
+		w.tiles[Grid.index(gate)] = World.DOOR
 		for p in path:
 			w.tiles[Grid.index(p)] = World.COURTYARD
-		w.start = path[0]
+		w.gate = gate
 		w.trail_end = path[-1]
-		w.player().pos = w.start
 		w._changed()
 		var reached: PackedInt32Array = Grid.search(w.start, Masks.opened(w)).dist
 		for i in sky.size():
@@ -79,8 +102,32 @@ static func _noise(chance: float, rng: RandomNumberGenerator) -> PackedByteArray
 	return out
 
 
-## Where Miho may start, nearest the old start first, each {start, door}: the sky tile by a
-## walkable one, or the one behind a plain wall (`door`, to be a door; else (-1, -1)).
+## The tile the pavilion's way out leads through: the door in its wall, else the trail's first tile.
+static func _gate(e: Dictionary) -> Vector2i:
+	return e.door if e.door.x >= 0 else e.start
+
+
+## The sky tiles not sealed by `seal`, the gate `g` kept open whatever its seal.
+static func _unsealed(sky: PackedByteArray, seal: PackedByteArray, g: Vector2i) -> PackedByteArray:
+	var open := sky.duplicate()
+	for i in sky.size():
+		if seal[i] == 1 and Grid.at(i) != g:
+			open[i] = 0
+	return open
+
+
+## Whether one of the 8 tiles round `p` is walkable in `walk`.
+static func _beside(walk: PackedByteArray, p: Vector2i) -> bool:
+	for dx in [-1, 0, 1]:
+		for dy in [-1, 0, 1]:
+			var q := p + Vector2i(dx, dy)
+			if Grid.inside(q) and walk[Grid.index(q)] == 1:
+				return true
+	return false
+
+
+## Where the trail may start, nearest Miho first, each {start, door}: the sky tile by a
+## walkable one (`door` (-1, -1)), or the one behind a plain wall (`door`, to be a door).
 static func _entrances(w: World) -> Array[Dictionary]:
 	var dist: PackedInt32Array = Grid.search(w.start, Masks.floor_of(w)).dist
 	var near: Array[int] = []

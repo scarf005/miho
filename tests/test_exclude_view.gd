@@ -14,6 +14,14 @@ func _main() -> Node:
 	return m
 
 
+## A new run with the start's gate zone cleared, for marking zones by hand.
+func _blank() -> Node:
+	var m := _main()
+	m.journey.excluded.clear()
+	m.journey.plan()
+	return m
+
+
 ## An open hall walled at the edges, known except past column 12, with a wall
 ## down column 8 that has a gap at (8, 8); Miho at (4, 8).
 func _hall() -> World:
@@ -46,7 +54,7 @@ func _look(m: Node, tile: Vector2i) -> void:
 
 
 func test_the_mark_key_in_look_mode_marks_and_unmarks_the_cursor_tile() -> void:
-	var m := _main()
+	var m := _blank()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
 	assert_true(m.look.key(&"exclude", false))
@@ -60,7 +68,7 @@ func test_the_mark_key_in_look_mode_marks_and_unmarks_the_cursor_tile() -> void:
 
 
 func test_a_digit_on_a_zone_centre_sets_its_radius() -> void:
-	var m := _main()
+	var m := _blank()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
 	m.look.key(&"exclude", false)
@@ -70,14 +78,14 @@ func test_a_digit_on_a_zone_centre_sets_its_radius() -> void:
 
 
 func test_a_digit_elsewhere_still_picks_a_talisman() -> void:
-	var m := _main()
+	var m := _blank()
 	_look(m, m.world.player().pos)
 	assert_false(m.look.key(&"pick_1", false), "left to the normal keys")
 	assert_true(m.journey.excluded.is_empty())
 
 
 func test_unknown_tiles_cannot_be_marked() -> void:
-	var m := _main()
+	var m := _blank()
 	var far := Vector2i(Grid.W - 1, Grid.H - 1)
 	assert_eq(m.world.known[Grid.index(far)], 0)
 	_look(m, far)
@@ -86,7 +94,7 @@ func test_unknown_tiles_cannot_be_marked() -> void:
 
 
 func test_hovering_a_zone_says_so() -> void:
-	var m := _main()
+	var m := _blank()
 	var tile: Vector2i = m.world.player().pos
 	_look(m, tile)
 	m.look.key(&"exclude", false)
@@ -96,7 +104,7 @@ func test_hovering_a_zone_says_so() -> void:
 
 
 func test_the_clear_key_removes_every_zone() -> void:
-	var m := _main()
+	var m := _blank()
 	_look(m, m.world.player().pos)
 	m.look.key(&"exclude", false)
 	m.look.active = false

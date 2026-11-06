@@ -164,7 +164,7 @@ func new_run(seed_value := randi()) -> void:
 	erasing = false
 	kills = 0
 	casting.last_spell = ""
-	journey.excluded.clear()
+	journey.start_zones()
 	messages = Messages.new()
 	term.log_lines = []
 	reel.clear()
@@ -504,8 +504,7 @@ func act(action: Dictionary) -> Array:
 	var events := world.act(action)
 	term.scent = Preview.trail(self)
 	if world.depth != depth:
-		journey.excluded.clear()
-		run.exclusions = {}
+		journey.start_zones()
 	reel.record(before, action, events)
 	kills += events.filter(func(e): return e.t == &"die" and e.get("foe", false)).size()
 	run.record(action, kills, world.outcome != &"")

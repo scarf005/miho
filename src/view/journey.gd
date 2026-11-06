@@ -115,6 +115,15 @@ func explore_walled() -> bool:
 	)
 
 
+## A new storey starts with no zones but the pavilion's gate on storey 1, a zone of the tile
+## alone, so exploring stays inside. Kept in the save like any zone.
+func start_zones() -> void:
+	excluded.clear()
+	if m.world.gate.x >= 0:
+		excluded.zones[m.world.gate] = 0
+	m.run.exclusions = excluded.zones.duplicate()
+
+
 ## The exclusions changed: keep them in the save and work out the walks again.
 func zones_changed() -> void:
 	m.run.exclusions = excluded.zones.duplicate()
