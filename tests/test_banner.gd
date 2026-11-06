@@ -196,9 +196,15 @@ func _spent(rounds: int) -> World:
 
 
 func test_a_run_under_a_minute_tells_seconds_only() -> void:
-	assert_eq(Banner.over(_spent(59), 0, 1)[1], Lang.t("%d층 · %d초") % [1, 59])
+	assert_eq(Banner.over(_spent(59), 0, 1)[1], "1층 · 59초")
 
 
 func test_a_run_of_a_minute_or_more_tells_minutes_and_seconds_of_the_whole_run() -> void:
-	assert_eq(Banner.over(_spent(60), 0, 1)[1], Lang.t("%d층 · %d분 %d초") % [1, 1, 0])
-	assert_eq(Banner.over(_spent(185), 0, 1)[1], Lang.t("%d층 · %d분 %d초") % [1, 3, 5])
+	assert_eq(Banner.over(_spent(60), 0, 1)[1], "1층 · 1분 0초")
+	assert_eq(Banner.over(_spent(185), 0, 1)[1], "1층 · 3분 5초")
+
+
+func test_a_run_that_ends_in_the_house_names_the_house() -> void:
+	var w := _spent(59)
+	w.depth = World.HOUSE
+	assert_eq(Banner.over(w, 0, 1)[1], "집 · 59초")

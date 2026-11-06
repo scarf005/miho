@@ -141,3 +141,31 @@ func test_the_reaper_comes_to_the_house_on_its_clock() -> void:
 	var told := w.act(WAIT).filter(func(e): return e.t == &"arrive")
 	assert_eq(told.size(), 1)
 	assert_lt(Grid.cheb(told[0].at, w.start), 3)
+
+
+func test_the_log_tells_where_the_trail_took_her() -> void:
+	var w := World.create(3)
+	w.known.fill(1)
+	var lines := []
+	for i in 2:
+		var before := w.clone()
+		w.events = []
+		_take_trail(w)
+		lines.append_array(Messages.of(before, w, w.events).map(Messages.plain))
+	assert_eq(lines, ["집으로 갔다", "1층으로 갔다"])
+
+
+func test_the_hover_names_the_trail_exit_alone() -> void:
+	var w := World.create(3)
+	assert_eq(Info.plain(Info.terrain_facts(w, w.trail_end)), "오솔길")
+
+
+func test_the_agent_is_told_the_house_and_the_trail_exit() -> void:
+	var w := World.create(3)
+	w.known.fill(1)
+	var exit := "trail exit at (%d,%d): storey 1 <-> house" % [w.trail_end.x, w.trail_end.y]
+	assert_has(Observation.text(w).split("\n"), exit)
+	_take_trail(w)
+	w.known.fill(1)
+	var head := Observation.text(w).split("\n")[0]
+	assert_true(head.begins_with("house, round 0,"), head)

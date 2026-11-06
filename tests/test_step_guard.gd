@@ -367,6 +367,23 @@ func test_any_other_key_keeps_the_talismans_and_casts_nothing() -> void:
 	assert_false(_prompt(m).ends_with("Y/N"))
 
 
+func test_any_spell_in_the_house_asks_and_y_casts_it() -> void:
+	for picked in [[Cards.FOX, Cards.FIRE], [Cards.WOOD, Cards.EARTH, Cards.WOOD]]:
+		var m := _keyboard()
+		m.world.depth = World.HOUSE
+		_guise_in_hand(m)
+		m.casting.picked.assign(picked)
+		m.forecast()
+		var round_no: int = m.world.round_no
+		_press(m, "Right" if picked.size() == 2 else "Comma")
+		assert_eq(m.world.round_no, round_no, str(picked))
+		assert_eq(_prompt(m), "주문을 쓸까? Y/N")
+		_press(m, "Y")
+		await _settle(m)
+		assert_gt(m.world.round_no, round_no, str(picked))
+		assert_lt(m.world.tails, 5, "the spell was cast")
+
+
 func test_a_dull_creature_that_sees_the_guise_is_not_asked_about() -> void:
 	var m := _keyboard()
 	var foe := _foe(m, ME + E * 3, &"jangseung")
