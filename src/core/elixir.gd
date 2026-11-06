@@ -16,7 +16,7 @@ const NAME := "영약"
 const TAILS := World.FLOORS
 const REGROWN := 3
 ## What is asked, and why a cast is refused.
-const ASK := "영약을 마십니까?"
+const ASK := "영약을 마실까?"
 const BARRED := [Guise.GUISE, Guise.CLOAK]
 const BARRED_WHY := "영약을 지닌 동안에는 걸 수 없다"
 ## The rule as the 도감 tells it (Info.CONDITIONS).

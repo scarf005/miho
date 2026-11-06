@@ -3339,7 +3339,7 @@ msgstr "Made by: %s"
 msgid "부딪침"
 msgstr "Bump"
 
-msgid "영약을 마십니까?"
+msgid "영약을 마실까?"
 msgstr "Drink the elixir?"
 
 msgid "영약을 얻었다"
