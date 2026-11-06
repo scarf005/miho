@@ -275,6 +275,20 @@ func test_forecast_lists_where_a_wooden_wall_grows() -> void:
 	assert_string_contains(r.text, "wooden wall grows at: (%d,%d)" % [at.x, at.y])
 
 
+func test_forecast_names_the_way_up_or_down_a_storey() -> void:
+	var tools := _game()
+	var w := tools.world
+	Storeys.leave(w)
+	Storeys.enter(w, 2)
+	for way in [[w.stairs, "climbs to storey 3"], [w.down, "goes down to storey 1"]]:
+		var to: Vector2i = way[0]
+		w.player().pos = to + Vector2i(1, 0)
+		w.set_tile(w.player().pos, World.FLOOR)
+		w.sense()
+		var r := _call(tools, "forecast", {action = "move", dir = "w"})
+		assert_string_contains(r.text, "Miho " + way[1])
+
+
 func test_no_creature_out_of_sight_is_in_the_observation() -> void:
 	var hidden := 0
 	for seed_value in range(1, 9):
