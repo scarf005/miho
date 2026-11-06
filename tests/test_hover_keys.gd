@@ -85,15 +85,15 @@ func test_the_exclude_key_listed_marks_then_the_row_offers_to_narrow_and_clear()
 	_look(m, at)
 	assert_true(_lists(m, &"exclude", "위험구역 표시"), _row(m))
 	_press(m, "V")
-	assert_eq(m.journey.excluded.zones, {at: Exclusions.DEFAULT_RADIUS})
+	assert_eq(m.journey.excluded.zones.get(at), Exclusions.DEFAULT_RADIUS)
 	assert_true(_lists(m, &"exclude", "위험구역 줄이기"), _row(m))
 	assert_true(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))
 	_press(m, "V")
-	assert_eq(m.journey.excluded.zones, {at: 0})
+	assert_eq(m.journey.excluded.zones.get(at), 0)
 	assert_true(_lists(m, &"exclude", "위험구역 지우기"), _row(m))
 	assert_false(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))
 	_press(m, "V")
-	assert_true(m.journey.excluded.is_empty())
+	assert_false(m.journey.excluded.zones.has(at))
 
 
 func test_a_creature_lists_detail_first_and_attack_when_next_to_miho() -> void:

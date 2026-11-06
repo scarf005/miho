@@ -58,8 +58,13 @@ func _assert_within(facts: Array, hover: Array, what: String) -> void:
 func test_a_foes_facts_are_its_hover_less_how_it_stands() -> void:
 	for kind in Codex.foes():
 		var w := Codex.stage()
-		var hover := Info.creature(w, FloorGen.spawn(w, kind, FAR))
-		var facts := Codex.detail(_entry(0, Bestiary.info(kind).name))
+		var a := FloorGen.spawn(w, kind, FAR)
+		var hover := Info.creature(w, a)
+		# 재등장 is told on the first 저승사자 only, and on every one in the 도감.
+		var again := SpellInfo.returns(a, null).map(func(l): return _text([l]))
+		var facts := Codex.detail(_entry(0, Bestiary.info(kind).name)).filter(
+			func(l): return _text([l]) not in again
+		)
 		_assert_within(facts, hover, kind)
 		assert_false(_text(facts).contains("발톱"), "Miho's claws are told on her, not on each foe")
 	var text := _text(Codex.detail(_entry(0, "불개")))
