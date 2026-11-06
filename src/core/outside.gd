@@ -70,6 +70,8 @@ static func lay(w: World) -> void:
 	w._changed()
 	for i in sky.size():
 		var p := Grid.at(i)
+		if sky[i] == 1 and p not in path:
+			w.outside[p] = true
 		if sky[i] == 1 and p not in path and Gas.holds(w, p):
 			w.vents[p] = Gas.FOG
 			w.vent_levels[p] = FOG_LEAST + a[i] + b[i]

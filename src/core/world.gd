@@ -148,6 +148,7 @@ const STOREY: Array[String] = [
 	"trail_end",
 	"gate",
 	"vent_levels",
+	"outside",
 ]
 
 var depth := 1
@@ -180,6 +181,8 @@ var gas_heat := {}
 var vents := {}
 ## The gas a vent keeps, where it is not Gas.VENT_LEVEL: position -> 2..4 (Outside).
 var vent_levels := {}
+## The ground round the pavilion on storey 1 but the trail: position -> true (Outside).
+var outside := {}
 ## The tile of the map's edge where the trail leaves the storey, or (-1, -1) (Outside).
 var trail_end := Vector2i(-1, -1)
 ## The door of the pavilion on storey 1 that the way out leads through, or (-1, -1) (Outside).
@@ -422,7 +425,7 @@ func light() -> PackedVector3Array:
 			while i >= 0:
 				_light[i] += Light.MOON
 				i = tiles.find(t, i + 1)
-		for p: Vector2i in vents:
+		for p: Vector2i in outside:
 			_light[Grid.index(p)] += Light.MOON
 		_lit = Native.lit(_light, Light.LIT)
 		_light_dirty = false

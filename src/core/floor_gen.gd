@@ -257,6 +257,7 @@ static func _build(w: World, skeleton: StringName) -> Dictionary:
 	w.gas_heat.clear()
 	w.vents.clear()
 	w.vent_levels.clear()
+	w.outside.clear()
 	w.trail_end = Vector2i(-1, -1)
 	w.gate = Vector2i(-1, -1)
 	w.traps.clear()

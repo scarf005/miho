@@ -18,7 +18,7 @@ const MUZZLE_RADIUS := 1
 ## Moonlight on skybridges: bright enough to be lit anywhere along the span.
 const MOON := Vector3(0.4, 0.5, 0.75)
 ## Tiles with no roof: the moon always lights them (a skybridge, a courtyard), and the
-## outside ground of storey 1 (World.vents).
+## outside ground of storey 1 (World.outside).
 const MOONLIT: Array[int] = [World.BRIDGE, World.COURTYARD]
 const DARK := Vector3(-1.4, -1.4, -1.4)
 ## The soul fire of a lit altar.
