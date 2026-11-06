@@ -456,6 +456,15 @@ func _fog_storey(seed_value: int) -> World:
 	return w
 
 
+## The first storey of _fog_storey that has a fog pond.
+func _foggy() -> World:
+	for s in 20:
+		var w := _fog_storey(s)
+		if Gas.FOG in w.vents.values():
+			return w
+	return null
+
+
 func test_a_vent_keeps_a_bank_of_gas_that_blocks_sight_indefinitely() -> void:
 	var w := _hall()
 	for x in range(20, 24):
@@ -500,7 +509,7 @@ func test_fog_ponds_of_built_storeys_keep_their_bank_for_300_rounds() -> void:
 
 
 func test_vents_are_ponds_and_gas_stops_with_no_vent() -> void:
-	var w := _fog_storey(1)
+	var w := _foggy()
 	var fog := w.vents.keys().filter(func(p): return w.vents[p] == Gas.FOG)
 	assert_false(fog.is_empty())
 	for p: Vector2i in fog:
@@ -512,7 +521,7 @@ func test_vents_are_ponds_and_gas_stops_with_no_vent() -> void:
 
 
 func test_a_clone_keeps_the_vents_and_a_preview_leaves_the_same_bank() -> void:
-	var w := _fog_storey(1)
+	var w := _foggy()
 	var c := w.clone()
 	assert_eq(c.vents, w.vents)
 	c.vents.erase(c.vents.keys()[0])
@@ -525,7 +534,7 @@ func test_a_clone_keeps_the_vents_and_a_preview_leaves_the_same_bank() -> void:
 func test_the_same_seed_and_actions_leave_the_same_bank_around_vents() -> void:
 	var runs := []
 	for i in 2:
-		var w := _fog_storey(1)
+		var w := _foggy()
 		var told := []
 		for r in 40:
 			told.append(w.act({t = &"wait"}))
