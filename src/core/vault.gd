@@ -36,12 +36,15 @@ static func make(w: World, r: Rect2i) -> bool:
 	if fronts.is_empty():
 		return false
 	var before := w.tiles.duplicate()
+	var walled: Array[Vector2i] = []
 	for s in ways:
-		w.tiles[Grid.index(s[0])] = World.WALL
+		walled.append(s[0])
 		for d in Placement.SIDES:
 			if w.tile(s[0] + d) == World.WINDOW:
-				w.tiles[Grid.index(s[0] + d)] = World.WALL
-	if not _fall(w, ways):
+				walled.append(s[0] + d)
+	for p in walled:
+		w.tiles[Grid.index(p)] = World.WALL
+	if not _fall(w, walled):
 		w.tiles = before
 		return false
 	var front: Array = fronts[w.rng.randi_range(0, fronts.size() - 1)]
@@ -64,13 +67,13 @@ static func make(w: World, r: Rect2i) -> bool:
 	return true
 
 
-## The walls round the walled-up `ways` with nothing but wall and sky round them fall
+## The walls round the `walled` tiles with nothing but wall and sky round them fall
 ## to the sky, each once one beside it is sky; false when one is left standing.
-static func _fall(w: World, ways: Array) -> bool:
+static func _fall(w: World, walled: Array[Vector2i]) -> bool:
 	var bare := {}
-	for s: Array in ways:
+	for p in walled:
 		for d: Vector2i in Grid.DIRS:
-			var q: Vector2i = s[0] + d
+			var q := p + d
 			if Grid.inside(q) and Terrain.wall(w.tile(q)) and not _stands(w, q):
 				bare[q] = true
 	var fell := true
