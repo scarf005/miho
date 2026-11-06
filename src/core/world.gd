@@ -422,6 +422,8 @@ func light() -> PackedVector3Array:
 			while i >= 0:
 				_light[i] += Light.MOON
 				i = tiles.find(t, i + 1)
+		for p: Vector2i in vents:
+			_light[Grid.index(p)] += Light.MOON
 		_lit = Native.lit(_light, Light.LIT)
 		_light_dirty = false
 	return _light
