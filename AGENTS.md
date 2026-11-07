@@ -115,6 +115,8 @@ A commit that finishes every point of an issue ends its body with `Closes #N`, s
 
 Force-push is allowed on every branch of this repository, main too, so a needed history fix (a rebase, a reworded or dropped commit) is done, never skipped or worked round. Push with `--force-with-lease`, keep every commit that is not the one being fixed, and never move a released tag. User: "그냥 이 repo는 force push 허용한다고 명시좀 해주세요. force push 핑계로 작업 버리는 일좀 막게."
 
+Work runs as a software factory (StrongDM, https://factory.strongdm.ai/): the parent writes a spec and holdout scenarios, a lane implements from the spec alone, and the parent judges the lane by the share of holdout scenarios that pass. The scenarios stay outside the repository and outside the lane's brief, so a lane cannot fit them. The merge gate below still applies. User: "소프트웨어 팩토리 방식으로 해주시고요".
+
 Closing an issue of this repository is allowed (`gh issue close`, `.claude/settings.json`): when every point of an issue, or every sub-issue of a parent issue, is done on main, close it. Do not comment on it. User: "이슈 닫는 것도 이 저장소에서 허용하게 해주세요."
 
 Passing tests and lint do not prove a lane is done. Before merging a lane that changes anything the player sees or hears, the parent must do all of the following:
