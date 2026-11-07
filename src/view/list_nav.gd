@@ -12,8 +12,17 @@ const REPEATS := [
 ]
 
 
-## The row that nav `nav` moves `selected` to; `selected` for any other nav.
-static func step(nav: StringName, selected: int, count: int, fits: int) -> int:
+## The row that nav `nav` moves `selected` to, going on past the rows in `skip`, which act on
+## nothing, in the way it moved; `selected` for any other nav.
+static func step(nav: StringName, selected: int, count: int, fits: int, skip := []) -> int:
+	var at := _moved(nav, selected, count, fits)
+	var dir := -1 if nav in [&"up", &"page_up", &"end"] else 1
+	while skip.has(at) and skip.size() < count:
+		at = posmod(at + dir, count)
+	return at
+
+
+static func _moved(nav: StringName, selected: int, count: int, fits: int) -> int:
 	if count <= 0:
 		return 0
 	match nav:

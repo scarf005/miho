@@ -55,7 +55,7 @@ func _codex(m: Node) -> void:
 func test_f10_opens_the_settings_and_closes_them_for_a_browser_that_keeps_esc() -> void:
 	var m := _main()
 	_key(m, "F10")
-	assert_eq(m.term.panel.title, "설정")
+	assert_eq(m.panels.overlay, &"options")
 	_key(m, "F10")
 	assert_true(m.term.panel.is_empty(), "back in the game")
 
@@ -63,13 +63,13 @@ func test_f10_opens_the_settings_and_closes_them_for_a_browser_that_keeps_esc() 
 func test_the_game_menu_opens_the_codex_and_esc_returns_to_it() -> void:
 	var m := _main()
 	_key(m, "Escape")
-	assert_eq(m.term.panel.title, "설정")
+	assert_eq(m.panels.overlay, &"options")
 	m.menu.selected = Menu.OPTIONS.find(&"codex")
 	_key(m, "Enter")
 	assert_eq(m.term.panel.title, "도감")
 	_key(m, "Escape")
 	assert_eq(m.panels.overlay, &"options", "the game menu is still open")
-	assert_eq(m.term.panel.title, "설정")
+	assert_eq(m.panels.overlay, &"options")
 	assert_eq(m.term.panel.selected, Menu.OPTIONS.find(&"codex"))
 	_key(m, "Escape")
 	assert_eq(m.panels.overlay, &"", "the second Esc closes the menu")
@@ -80,7 +80,7 @@ func test_a_clicked_codex_row_of_the_game_menu_opens_it() -> void:
 	_key(m, "Escape")
 	var row: int = Menu.OPTIONS.find(&"codex")
 	assert_lt(row, 14, "the row is on screen")
-	_mouse(m, MOUSE_BUTTON_LEFT, 5, 3 + row)
+	_mouse(m, MOUSE_BUTTON_LEFT, 5, 3 + row - PanelView.span(m.term).x)
 	assert_eq(m.term.panel.title, "도감")
 
 
@@ -95,7 +95,7 @@ func test_a_held_arrow_repeats_in_the_codex_the_game_menu_and_the_key_page() -> 
 	_key(m, "Escape")
 	_key(m, "Down")
 	_key(m, "Down", true)
-	assert_eq(m.term.panel.selected, 2, "the game menu repeats")
+	assert_eq(m.term.panel.selected, Menu.OPTIONS.find(&"close") + 2, "the game menu repeats")
 	_key(m, "Enter", true)
 	assert_eq(m.panels.overlay, &"options", "a held Enter does not act again")
 	m.menu.selected = Menu.OPTIONS.find(&"keys")
@@ -110,6 +110,7 @@ func test_wrap_page_and_ends_work_on_the_game_menu() -> void:
 	var last := Menu.OPTIONS.size() - 1
 	var page := PanelView.fits(10, 0)
 	_key(m, "Escape")
+	_key(m, "Home")
 	_key(m, "Up")
 	assert_eq(m.term.panel.selected, last, "Up from the first row wraps")
 	assert_eq(m.term.panel.top, last - page + 1, "and the row is in view")

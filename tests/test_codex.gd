@@ -541,12 +541,3 @@ func test_the_codex_opened_from_the_options_goes_back_to_them() -> void:
 	menu.use()
 	assert_eq(menu.back(), &"")
 	assert_eq(menu.page, &"options")
-
-
-func test_the_options_list_the_codex_between_the_language_and_the_keys() -> void:
-	var at := Menu.OPTIONS.find(&"codex")
-	assert_eq(Menu.OPTIONS[at - 1], &"language")
-	assert_eq(Menu.OPTIONS[at + 1], &"keys")
-	var menu := Menu.new()
-	menu.open(&"options")
-	assert_eq(menu.panel().rows[at][0][0], "도감")

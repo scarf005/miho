@@ -122,5 +122,6 @@ func _me(m: Node) -> Vector2i:
 
 
 func _rows(m: Node, row: int) -> Vector2:
-	var y := (3.0 + row * PanelView.stride + PanelView.stride / 2.0) * Term.CELL.y
+	var shown := row - PanelView.span(m.term).x
+	var y := (3.0 + shown * PanelView.stride + PanelView.stride / 2.0) * Term.CELL.y
 	return _screen(m, Vector2(4.0 * Term.CELL.x, y))

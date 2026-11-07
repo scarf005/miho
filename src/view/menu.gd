@@ -18,6 +18,8 @@ extends RefCounted
 ## box over the game: from the options it has no page to go back to, so Esc closes it.
 
 const VALUE_COL := 18.0
+## Cells between the longest name of a list and the values beside the names.
+const GAP := 2.0
 const MOUSE := [
 	["왼쪽 클릭", "옆 칸으로 한 걸음, 먼 칸까지 걷기"],
 	["부적 고르고 클릭", "그쪽으로 던지기"],
@@ -38,8 +40,9 @@ const LOOK := [
 ]
 ## Enter or a click raises one of these, and from 100 takes it back to 0.
 const SLIDERS := [&"volume", &"music", &"crt"]
+## The rows of the options in three groups, the settings, the pages and the run, with a
+## blank row (&"") between them.
 const OPTIONS := [
-	&"close",
 	&"volume",
 	&"music",
 	&"crt",
@@ -47,16 +50,19 @@ const OPTIONS := [
 	&"speed",
 	&"scent",
 	&"language",
+	&"",
 	&"codex",
-	&"keys",
 	&"spells",
-	&"dispel",
 	&"log",
 	&"help",
+	&"keys",
+	&"",
+	&"close",
 	&"seed",
+	&"dispel",
 	&"cheat",
 	&"restart",
-	&"quit"
+	&"quit",
 ]
 const OPTION_NAMES := {
 	&"volume": "소리 크기",
@@ -159,6 +165,9 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	codex.select(codex.selected)
 	if p == &"cheat":
 		debug.open(room)
+	if p == &"options":
+		selected = _listed().find(&"close")
+		top = ListNav.reveal(0, selected, _listed().size(), _fits())
 	if p == &"log":
 		top = maxi(0, log_rows.size() - _fits())
 
@@ -186,9 +195,11 @@ func panel() -> Dictionary:
 	var out := {title = Lang.t("도움말"), rows = _help(), words = true, bar = false}
 	match page:
 		&"options":
-			out = {title = Lang.t("설정"), rows = _options()}
+			var listed := _listed()
+			var blank := range(listed.size()).filter(func(k): return listed[k] == &"")
+			out = {title = "", rows = _options(), inert = blank}
 		&"keys":
-			out = {title = Lang.t("키 설정"), rows = _keys()}
+			out = {title = Lang.t("키 설정"), rows = _aligned(_keys())}
 		&"spells":
 			var list := spells()
 			var detail: Array = SpellInfo.spell(list[selected]) if not list.is_empty() else []
@@ -287,8 +298,9 @@ func _move(nav: StringName) -> StringName:
 			var last := maxi(0, panel().rows.size() - _fits())
 			top = ListNav.step(nav, mini(top, last), last + 1, _fits())
 		&"up", &"down", &"page_up", &"page_down", &"home", &"end":
-			var count: int = panel().rows.size()
-			selected = ListNav.step(nav, selected, count, _fits())
+			var shown := panel()
+			var count: int = shown.rows.size()
+			selected = ListNav.step(nav, selected, count, _fits(), shown.get("inert", []))
 			top = ListNav.reveal(top, selected, count, _fits())
 		&"left", &"right":
 			out = _change(1 if nav == &"right" else -1)
@@ -627,11 +639,23 @@ func _options() -> Array:
 	}
 	var rows := []
 	for o in _listed():
+		if o == &"":
+			rows.append([])
+			continue
 		var name: String = RESTART_SURE if o == &"restart" and confirming else OPTION_NAMES[o]
 		var row := [[Lang.t(name), Palette.TEXT]]
 		if values.has(o):
-			row.append([values[o], Palette.SIDE[0], VALUE_COL])
+			row.append([values[o], Palette.SIDE[0]])
 		rows.append(row)
+	return _aligned(rows)
+
+
+## Puts the value of each row that has one a GAP past the longest name among those rows.
+static func _aligned(rows: Array) -> Array:
+	var valued := rows.filter(func(r): return r.size() > 1)
+	var widest: float = valued.reduce(func(n, r): return maxf(n, PanelView.end([r[0]])), 2.0)
+	for row: Array in valued:
+		row[1].append(widest + GAP)
 	return rows
 
 
@@ -646,9 +670,7 @@ func _keys() -> Array:
 		var keys := ", ".join(Keys.keys_of(action).map(Keys.label))
 		if waiting and k == selected:
 			keys = Lang.t("키 입력 대기")
-		rows.append(
-			[[Lang.t(Keys.ACTIONS[action][0]), Palette.TEXT], [keys, Palette.SIDE[0], VALUE_COL]]
-		)
+		rows.append([[Lang.t(Keys.ACTIONS[action][0]), Palette.TEXT], [keys, Palette.SIDE[0]]])
 	rows.append([[Lang.t("모두 기본값"), Palette.TEXT]])
 	return rows
 
