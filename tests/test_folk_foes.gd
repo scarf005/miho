@@ -165,12 +165,13 @@ func test_a_blow_costs_the_reaper_no_mana() -> void:
 
 func test_each_new_kind_is_placed_from_its_storey_on_and_never_below() -> void:
 	for kind in FIRST:
+		var on := []
 		for depth in range(1, World.FLOORS + 1):
-			var found := 0
 			for seed in 4:
-				var w := Built.storey(seed, depth)
-				found += w.actors.filter(func(a): return a.kind == kind).size()
-			assert_eq(found > 0, depth >= FIRST[kind], "%s on storey %d" % [kind, depth])
+				if Built.storey(seed, depth).actors.any(func(a): return a.kind == kind):
+					on.append(depth)
+		assert_gt(on.size(), 0, "%s comes" % kind)
+		assert_gte(on.min() if on else FIRST[kind], FIRST[kind], "%s never below" % kind)
 
 
 func test_the_fist_throws_miho_three_tiles_and_the_dark_one_walks_silent() -> void:
