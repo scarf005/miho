@@ -288,6 +288,8 @@ static func _hold_line(before: World, after: World, e: Dictionary) -> Variant:
 			return _t("{0}이/가 수색을 멈췄다", [who])
 		&"sleep":
 			return _t("{0}이/가 잠들었다", [who])
+		&"sleepless":
+			return _t("{0}은/는 잠들지 않았다", [who])
 	return null
 
 

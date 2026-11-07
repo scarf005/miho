@@ -156,6 +156,7 @@ const LEVEL := {
 	&"untalon": -8.0,
 	&"unflame": -8.0,
 	&"sleep": -8.0,
+	&"sleepless": -8.0,
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
@@ -472,7 +473,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"blast"
 		&"clash", &"snuff", &"claw", &"melee", &"push", &"crash":
 			return &"clash"
-		&"absorb", &"resist":
+		&"absorb", &"resist", &"sleepless":
 			return &"absorb"
 		&"heal":
 			return &"bite" if e.get("peach", false) or e.get("kimchi", false) else &"card"

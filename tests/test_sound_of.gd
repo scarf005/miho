@@ -56,6 +56,7 @@ const SOUNDS := [
 	[{t = &"collapse"}, &"blast"],
 	[{t = &"absorb"}, &"absorb"],
 	[{t = &"resist"}, &"absorb"],
+	[{t = &"sleepless"}, &"absorb"],
 	[{t = &"grow"}, &"card"],
 	[{t = &"card"}, &"card"],
 	[{t = &"scroll"}, &"page"],

@@ -4,7 +4,15 @@ extends RefCounted
 ## has noticed. Data only; the rules are in Mind.
 
 var acted := 0
-var alert := Actor.REST
+## Any alert but rest wakes one put to sleep (`lulled`).
+var alert := Actor.REST:
+	set(value):
+		alert = value
+		if value != Actor.REST:
+			lulled = false
+## Put to sleep where it stands (Mind.sleep): a patrol rests there, as one that
+## does not patrol rests at its home, until it is alerted.
+var lulled := false
 ## Where it last saw Miho, or the spot it is searching.
 var target := Vector2i.ZERO
 var lost := 0
@@ -27,6 +35,7 @@ func copy() -> Brain:
 	var c := Brain.new()
 	c.acted = acted
 	c.alert = alert
+	c.lulled = lulled
 	c.target = target
 	c.lost = lost
 	c.wary = wary

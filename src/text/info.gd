@@ -215,12 +215,12 @@ static func _head(a: Actor) -> Array:
 
 ## Name and health, elements, weakness and immunities.
 static func _profile(a: Actor) -> Array:
-	return [_head(a)] + nature(a.nature_kind(), a.ailments.wet > 0)
+	return [_head(a)] + nature(a.nature_kind(), a.ailments.wet > 0, not a.sleeps())
 
 
 ## The elements of a creature of `kind`, what beats them and what it takes no
-## harm from (DCSS `_monster_stat_description`).
-static func nature(kind: StringName, wet := false) -> Array:
+## harm from, 최면 when `sleepless` (DCSS `_monster_stat_description`).
+static func nature(kind: StringName, wet := false, sleepless := false) -> Array:
 	var lines := []
 	var elements := Bestiary.elements(kind)
 	if not elements.is_empty():
@@ -236,7 +236,7 @@ static func nature(kind: StringName, wet := false) -> Array:
 			)
 		lines.append(line)
 		lines.append(_weakness(kind))
-	lines.append_array(_immunities(kind, wet))
+	lines.append_array(_immunities(kind, wet, sleepless))
 	return lines
 
 
@@ -430,14 +430,12 @@ static func _weakness(kind: StringName) -> Array:
 ## Everything the creature takes no harm or effect from on one "면역" line, its elements
 ## as one word (DCSS `_monster_stat_description`), then what it takes half of. For 불가사리
 ## `불 없는 주문` already holds its element.
-static func _immunities(kind: StringName, wet: bool) -> Array:
+static func _immunities(kind: StringName, wet: bool, sleepless: bool) -> Array:
 	var spec := Bestiary.info(kind)
 	var nofire: bool = spec.get("absorb", &"") == &"nofire"
 	var immune := Bestiary.immune_to(kind)
-	var words := []
+	var words := [["불 없는 주문", Palette.DIM]] if nofire else []
 	var mixed := []
-	if nofire:
-		words.append(["불 없는 주문", Palette.DIM])
 	if not immune.is_empty():
 		var names := ", ".join(immune.map(func(c): return Lang.t(Cards.NAME[c])))
 		var shade: Color = Palette.CARD[immune[0]] if immune.size() == 1 else Palette.TEXT
@@ -448,6 +446,8 @@ static func _immunities(kind: StringName, wet: bool) -> Array:
 		words.append([ELECTRIC, Palette.TEXT])
 	if spec.get("deaf", false):
 		words.append(["소음", Palette.SOUND])
+	if sleepless:
+		words.append([Lang.t(Cards.NAME[&"hypnosis"]), Palette.TEXT])
 	if words.is_empty():
 		return mixed
 	var line := [[Lang.t("면역: "), Palette.DIM]]

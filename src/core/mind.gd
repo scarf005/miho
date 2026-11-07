@@ -216,12 +216,17 @@ static func lose(a: Actor) -> void:
 
 
 ## `a` falls asleep where it stands (Actor.asleep): it rests there from now on
-## with its charged spells and fights dropped. One that does not sleep
-## (Actor.sleeps) or sleeps already is left alone.
+## with its charged spells and fights dropped, a patrol too. One that sleeps
+## already is left alone, and one that does not sleep (Actor.sleeps) is told
+## unaffected (DCSS `bolt::enchantment_affect_monster`).
 static func sleep(w: World, a: Actor) -> void:
-	if not a.alive() or not a.sleeps() or a.asleep():
+	if not a.alive() or a.asleep():
+		return
+	if not a.sleeps():
+		w.emit({t = &"sleepless", id = a.id, at = a.pos})
 		return
 	a.brain.alert = Actor.REST
+	a.brain.lulled = true
 	a.brain.home = a.pos
 	a.brain.lost = 0
 	a.ties.rival = 0
@@ -405,10 +410,12 @@ static func _follow(w: World, a: Actor) -> bool:
 	return true
 
 
+## One put to sleep (Brain.lulled) keeps to the spot it fell asleep on, as one
+## that does not patrol keeps to its home.
 static func rest(w: World, a: Actor) -> void:
-	if a.ailments.rooted > 0 or _track(w, a) or _follow(w, a):
+	if a.ailments.rooted > 0 or not a.brain.lulled and (_track(w, a) or _follow(w, a)):
 		return
-	if not a.info().get("patrol", false):
+	if a.brain.lulled or not a.info().get("patrol", false):
 		if a.pos != a.brain.home:
 			_step_to(w, a, a.brain.home)
 		return

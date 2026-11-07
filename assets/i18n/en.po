@@ -2253,6 +2253,9 @@ msgstr "{0} vanished in the light"
 msgid "{0}이/가 잠들었다"
 msgstr "{0} fell asleep"
 
+msgid "{0}은/는 잠들지 않았다"
+msgstr "{0} did not fall asleep"
+
 msgid "{0}했다"
 msgstr "Used {0}"
 

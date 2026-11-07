@@ -102,8 +102,8 @@ func test_a_wound_wakes_it() -> void:
 func test_a_creature_that_never_sleeps_stays_awake_and_still_stops_the_line() -> void:
 	for kind in [&"mulgwisin", &"cheonha", &"saja"]:
 		var w := _world()
-		w.tiles[Grid.index(ME + E * 2)] = World.POND
-		var first := _hunter(w, kind, ME + E * 2)
+		w.tiles[Grid.index(ME + E)] = World.SHALLOW
+		var first := _hunter(w, kind, ME + E)
 		var second := _hunter(w, &"imugi", ME + E * 4)
 		var before := w.clone()
 		var events := w.act(_cast())

@@ -49,18 +49,22 @@ func ally() -> bool:
 
 ## Resting at its home with its eyes shut: it sees nothing, even the tiles next
 ## to it, until noise or a wound wakes it. One that walks while resting (a
-## patrol, or one on its way home) is awake, and one that always knows where
-## Miho is (`hunts`) or cannot walk (a 장승, `move` static) never sleeps.
+## patrol not put to sleep, or one on its way home) is awake, and one that always
+## knows where Miho is (`hunts`) or cannot walk (a 장승, `move` static) never sleeps.
 func asleep() -> bool:
-	return brain.alert == REST and pos == brain.home and sleeps()
+	return (
+		brain.alert == REST
+		and pos == brain.home
+		and sleeps()
+		and (brain.lulled or not info().get("patrol", false))
+	)
 
 
-## Whether it can sleep at all: a creature of heaven that does not patrol, always
-## hunt, stand fixed or live under water (the tags 순찰, 위치 감지, 고정 and 수중).
+## Whether it can sleep at all: a creature of heaven that does not always hunt,
+## stand fixed or live under water (the tags 위치 감지, 고정 and 수중).
 func sleeps() -> bool:
 	return (
 		faction == HEAVEN
-		and not info().get("patrol", false)
 		and not info().get("hunts", false)
 		and info().get("move", &"static") != &"static"
 		and not Bestiary.swims(kind)
