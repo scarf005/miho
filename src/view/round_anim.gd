@@ -27,6 +27,8 @@ const DELAY := {
 	&"drum": 0.3,
 	&"trap": 0.2,
 }
+## Seconds a tile of a push (Fall) takes on average: the slide leaves fast and stops soft.
+const SLIDE := 0.04
 ## Seconds between one arc of lightning and the next: arcs overlap, each flickering on its own.
 const ARC_STAGGER := 0.03
 ## Seconds a tile lit up lasts, and one flickering with lightning.
@@ -105,24 +107,71 @@ func run(events: Array, before: World, facts: Array) -> void:
 			_bolts[e.shot] = true
 	var passes := Afterimage.plan(events)
 	var impact := Impact.of(events)
+	var waits := holds(events, told)
 	var drawn := {}
 	for i in events.size():
 		var veiled := t.veiled if t.debug.is_empty() else {}
 		var left := Afterimage.copies(passes.get(i, []), actors, t.time, veiled)
 		ghosts.append_array(left.filter(func(g): return t.sees(g.at)))
-		var wait: float = (
-			DELAY.get(events[i].t, 0.0) if drawn.has(i) else apply(events[i], told.get(i, {}))
-		)
+		if not drawn.has(i):
+			apply(events[i], told.get(i, {}))
 		for j: int in impact.get(i, []):
 			apply(events[j], told.get(j, {}))
 			drawn[j] = true
+		await t.hold(waits[i])
+
+
+## How long each of `events` holds the round, by index; `told` is what Miho is told of
+## them, by index. Only what she is told holds, but what a touch sets off (Impact.of)
+## holds where it comes; the touch itself, and one that pushes a creature, holds nothing,
+## so the slide starts with it. A push holds SLIDE a tile in all, eased out (`slides`).
+func holds(events: Array, told: Dictionary) -> Array[float]:
+	var impact := Impact.of(events)
+	var shoves := Impact.shoves(events)
+	var slid := slides(events)
+	var drawn := {}
+	var out: Array[float] = []
+	for i in events.size():
+		var e: Dictionary = events[i]
+		var wait: float = DELAY.get(e.t, 0.0)
+		if not drawn.has(i) and not told.has(i):
 			wait = 0.0
-		await t.hold(wait)
+		elif _bolts.has(e.get("shot", -1)) and not drawn.has(i):
+			wait = ARC_STAGGER if e.t == &"spray" else 0.0
+		for j: int in impact.get(i, []):
+			drawn[j] = true
+		if impact.has(i) or shoves.has(i):
+			wait = 0.0
+		elif wait > 0.0 and slid.has(i):
+			wait = slid[i]
+		out.append(wait)
+	return out
+
+
+## By the index of each `move` of a push, how long it holds: a slide of n tiles takes
+## SLIDE * n, its tiles timed by an ease out. The slide ends as Afterimage.plan's does.
+static func slides(events: Array) -> Dictionary:
+	var out := {}
+	var steps: Array[int] = []
+	var id := -1
+	for i in events.size() + 1:
+		var e: Dictionary = events[i] if i < events.size() else {t = &"push", id = -1}
+		if e.t == &"push" or e.t in Afterimage.TURNS or e.t == &"move" and e.id != id:
+			var n := steps.size()
+			for k in n:
+				out[steps[k]] = (
+					SLIDE * n * (sqrt(1.0 - float(k) / n) - sqrt(1.0 - float(k + 1) / n))
+				)
+			steps.clear()
+			id = e.id if e.t == &"push" else -1
+		elif e.t == &"move":
+			steps.append(i)
+	return out
 
 
 ## Applies one event to what is drawn; `fact` is what Miho is told of it, or
-## empty. Returns how long to hold it.
-func apply(e: Dictionary, fact: Dictionary) -> float:
+## empty.
+func apply(e: Dictionary, fact: Dictionary) -> void:
 	var at: Vector2i = e.get("to", e.get("at", Vector2i(-1, -1)))
 	if not Grid.inside(at) and actors.has(e.get("id", -1)):
 		at = actors[e.id].pos
@@ -161,7 +210,9 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 			shots.erase(e.shot)
 			shots.erase(e.other)
 			flash(at, Color(1, 1, 1, 0.8))
-		&"claw", &"melee":
+		&"push":
+			flash(at, Color(1, 1, 1, 0.8))
+		&"claw", &"melee", &"crash":
 			flash(at, Palette.HURT)
 		&"drum":
 			flash(at, Color(Palette.SOUND, 0.6))
@@ -201,14 +252,11 @@ func apply(e: Dictionary, fact: Dictionary) -> float:
 			for p: Vector2i in e.tiles:
 				flash(p, Color(color, 0.8), 0.04 * Grid.cheb(p, e.at))
 	if fact.is_empty():
-		return 0.0
+		return
 	var popup := Perceived.popup_of(fact)
 	if not popup.is_empty():
 		popups.append(popup.merged({born = _term.time}))
 	_term.shown.emit(e, _term.cell_centre(fact.where))
-	if _bolts.has(e.get("shot", -1)):
-		return ARC_STAGGER if e.t == &"spray" else 0.0
-	return DELAY.get(e.t, 0.0)
 
 
 ## A tile lit up for a moment, starting `after` seconds from now.
