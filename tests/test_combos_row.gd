@@ -86,7 +86,7 @@ func test_the_row_fits_before_the_name_and_the_bar_at_every_zoom_of_a_1280x720_w
 			assert_gte(k.x, from, "after the queue: " + ctx)
 			assert_lte(k.x + 1.0, float(t.cols), "on screen: " + ctx)
 			if title.y == t.rows - 1:
-				assert_lte(k.x + 1.0, title.x, "clear of the name: " + ctx)
+				assert_gte(k.x, title.x + t.text_cells(name), "after the name: " + ctx)
 			if bar.y == t.rows - 1:
 				assert_lte(k.x + 1.0, bar.x, "clear of the bar: " + ctx)
 
@@ -118,7 +118,9 @@ func test_the_name_wins_when_the_row_is_tight() -> void:
 	var free := StatusBar.combos(t).size()
 	m.casting.picked.assign([Cards.FIRE, Cards.WOOD, Cards.EARTH])
 	var name := StatusBar._name(t, Spell.make(m.casting.picked))
-	assert_eq(StatusBar.title_at(t, name).y, float(t.rows - 1), "the name stays on the row")
+	var title := StatusBar.title_at(t, name)
+	assert_eq(title.y, float(t.rows - 1), "the name stays on the row")
+	assert_lt(title.x, StatusBar.queue_x(t) + Spell.MAX_SLOTS + 1.0, "right after the queue")
 	assert_lte(StatusBar.combos(t).size(), free)
 
 

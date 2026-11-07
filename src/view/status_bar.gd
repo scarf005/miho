@@ -5,7 +5,7 @@ extends RefCounted
 ## shortcut's label is (Infra Arcana `draw_hp`), the saved spells by their
 ## slot keys, the storey and the time. The lower one holds the talismans by their
 ## number keys, the queue of MAX_SLOTS slots (a dim dot where no tail is left for
-## another card), the compounds Miho can make now, the queued spell's name and
+## another card), the queued spell's name, the compounds Miho can make now and
 ## the noise bar.
 
 ## Cells between two compound glyphs, so that a run does not read as a word.
@@ -150,13 +150,13 @@ static func _name(t: Term, spell: Spell) -> String:
 	return "+%d %s" % [t.staged.size(), name] if not t.staged.is_empty() else name
 
 
-## Where the queued spell's name starts: on the lower row between the queue and
-## the noise bar when it fits there, else flush right on the map row above them.
+## Where the queued spell's name starts: on the lower row right after the queue when
+## it fits there before the noise bar, else flush right on the map row above them.
 static func title_at(t: Term, name: String) -> Vector2:
 	var bar := NoiseMeter.at(t)
 	var end: float = bar.x - 0.5 if bar.y == t.rows - 1 else float(t.cols)
-	var x := end - t.text_cells(name)
-	if x >= queue_x(t) + Spell.MAX_SLOTS + 0.5:
+	var x := queue_x(t) + Spell.MAX_SLOTS + 0.5
+	if x + t.text_cells(name) <= end:
 		return Vector2(x, t.rows - 1)
 	return Vector2(maxf(0.0, t.cols - t.text_cells(name)), mini(t.rows - 3, int(bar.y) - 1))
 
@@ -171,9 +171,9 @@ static func makeable(w: World) -> Array:
 	)
 
 
-## The compounds drawn after the queue, as {c, x}: as many as fit before the
-## spell's name and the noise bar, the name keeping its place, then {c = &""}
-## for the ones left out.
+## The compounds drawn after the queue and the spell's name, as {c, x}: as many as
+## fit before the noise bar, the name keeping its place, then {c = &""} for the ones
+## left out.
 static func combos(t: Term) -> Array:
 	var out := []
 	if t.world == null:
@@ -186,7 +186,7 @@ static func combos(t: Term) -> Array:
 		end = bar.x - 0.5
 	var name := _name(t, Spell.make(t.picked))
 	if name != "" and title_at(t, name).y == t.rows - 1:
-		end = minf(end, title_at(t, name).x - 1.0)
+		start = title_at(t, name).x + t.text_cells(name) + 1.0
 	var room := end - start
 	var step := 1.0 + COMBO_GAP
 	var shown := list.size()

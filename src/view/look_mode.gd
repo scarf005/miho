@@ -58,11 +58,22 @@ func shuts(tile: Vector2i) -> bool:
 
 ## The keys that act on the tile `hover` now, as [action, label] in the order of the box: each
 ## is the one that `key` or the game takes there (the exclusion keys and Enter only in look
-## mode, Enter with no talisman picked).
+## mode, Enter to walk with no talisman picked). With talismans picked, the keys of the queue
+## come first, as DCSS `direction_chooser::print_key_hints` lists them while it aims: Enter
+## hurls it at a tile not Miho's, the self key casts it on her when it goes on her, and Esc
+## empties it outside look mode (in it, Esc only stops looking).
 func hints() -> Array:
 	var out := []
 	if not Grid.inside(hover):
 		return out
+	if not m.casting.picked.is_empty():
+		if hover != m.world.player().pos:
+			out.append([&"confirm", "던지기"])
+		if m.casting.fits(Vector2i.ZERO):
+			out.append([&"self", "스스로에게 걸기"])
+		out.append([&"unpick", "하나 빼기"])
+		if not active:
+			out.append([&"cancel", "취소"])
 	if shuts(hover):
 		out.append([&"close", "닫기"])
 	if not active:

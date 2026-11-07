@@ -175,3 +175,44 @@ func test_the_range_label_needs_a_key_on_both_ends() -> void:
 	Keys.bind(&"pick_%d" % Exclusions.MAX_RADIUS, [])
 	m.refresh()
 	assert_true(_row(m).contains(Lang.t("위험구역 반지름")), _row(m))
+
+
+## The pointer on `tile` with `cards` queued and every talisman and tail in hand.
+func _queued(m: Node, cards: Array, tile: Vector2i) -> void:
+	m.world.cards.assign(Cards.ALL)
+	m.world.tail_bonus = 9
+	m.world.tails = m.world.max_tails()
+	m.casting.picked.assign(cards)
+	m.look.hover = tile
+	m.refresh()
+
+
+func test_a_queue_lists_its_keys_and_casting_on_miho_only_when_it_goes_on_her() -> void:
+	var m := _main(false)
+	var at: Vector2i = m.world.player().pos + Vector2i(2, 0)
+	_queued(m, [Cards.ORB], at)
+	for hint: Array in [[&"confirm", "던지기"], [&"unpick", "하나 빼기"], [&"cancel", "취소"]]:
+		assert_true(_lists(m, hint[0], hint[1]), _row(m))
+	assert_false(_lists(m, &"self", "스스로에게 걸기"), "a thrown orb: " + _row(m))
+	assert_false(_row(m).contains(Lang.t("이동")), _row(m))
+	_queued(m, Guise.RECIPE[Guise.SHADOW], at)
+	assert_true(_lists(m, &"self", "스스로에게 걸기"), _row(m))
+	_queued(m, Guise.RECIPE[Guise.SHADOW], m.world.player().pos)
+	assert_false(_lists(m, &"confirm", "던지기"), "nothing to throw at on Miho: " + _row(m))
+	m.world.tails = 0
+	m.refresh()
+	assert_false(_lists(m, &"self", "스스로에게 걸기"), "no tails: " + _row(m))
+	_press(m, "Escape")
+	assert_false(_row(m).contains(Lang.t("취소")), "an empty queue: " + _row(m))
+
+
+func test_in_look_mode_esc_only_stops_looking_and_the_box_does_not_offer_cancel() -> void:
+	var m := _main(false)
+	var at: Vector2i = m.world.player().pos + Vector2i(2, 0)
+	_queued(m, [Cards.ORB], at)
+	_look(m, at)
+	assert_true(_lists(m, &"confirm", "던지기"), _row(m))
+	assert_false(_row(m).contains(Lang.t("취소")), _row(m))
+	_press(m, "Escape")
+	assert_false(m.look.active)
+	assert_eq(m.casting.picked, [Cards.ORB] as Array[StringName], "the queue stays")
