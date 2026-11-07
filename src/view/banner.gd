@@ -1,6 +1,8 @@
 class_name Banner
 extends RefCounted
-## The lines over the map on the title and when a run ends, in the language shown.
+## The lines over the map on the title and when a run ends, in the language shown; an
+## ending lists the run's last log lines under them, as Infra Arcana's
+## `GameOverSummary::setup` adds the last messages.
 
 ## The line holding the seed, which a click copies.
 const SEED := 3
@@ -21,6 +23,7 @@ static func show(m: Node) -> void:
 		m.term.banner_lines = over(m.world, m.kills, m.run_seed)
 		for i in [-1, -2]:
 			m.term.banner_lines[i] = m.touch.say(m.term.banner_lines[i], "")
+		m.term.banner_log = m.messages.lines.map(Messages.shown)
 
 
 ## A press on the ending: a new run, the log, or the seed line copied.
@@ -178,13 +181,39 @@ static func copy(seed_value: int, t: Term) -> void:
 		t.banner_lines[SEED] = seed_line(seed_value, true)
 
 
-## Draws the lines of `t` on a dark layer over the map area.
+## Draws the lines of `t` on a dark layer over the map area, and the log lines under them.
 static func draw(t: Term) -> void:
 	t.draw_rect(
 		Rect2(Vector2.ZERO, Vector2(t.cols, t.map_view().y) * Term.CELL), Color(0, 0, 0, 0.8)
 	)
 	for r: Array in rows(t):
 		t.draw_text(r[2], r[1], Palette.KIND[&"miho"] if r[0] == 0 else Palette.TEXT)
+	for r: Array in log_rows(t):
+		var x: float = r[1]
+		for run: Array in r[2]:
+			x += t.draw_run(Vector2(x, r[0]), run)
+
+
+## The rows of the log lines of `t` (`banner_log`) under the banner, as [screen row, column of
+## the first run, runs]: the last lines that fit above the status rows, oldest first, wrapped
+## to the screen and lined up on the left of a block centred on it.
+static func log_rows(t: Term) -> Array:
+	var lines := rows(t)
+	if t.banner_log.is_empty() or lines.is_empty():
+		return []
+	var top := int(lines.back()[2].y) + 2
+	var shown := []
+	for k in range(t.banner_log.size() - 1, -1, -1):
+		var wrapped: Array = Keywords.rows_of(t.banner_log[k], t.cols - 1.0)
+		if top + shown.size() + wrapped.size() > t.map_view().y:
+			break
+		shown = wrapped + shown
+	var wide: float = shown.reduce(
+		func(n, row): return maxf(n, row.reduce(func(w, r): return w + Term.text_cells(r[0]), 0.0)),
+		0.0
+	)
+	var x := maxf(0.0, (t.cols - wide) / 2.0)
+	return range(shown.size()).map(func(i): return [top + i, x, shown[i]])
 
 
 ## Each row of the banner as [line index, text, position in cells]: the lines
@@ -200,7 +229,7 @@ static func rows(t: Term) -> Array:
 		rows_of_line.append(wrapped)
 		height += wrapped.size() + 1
 	var out := []
-	var y := maxi(0, (t.map_view().y - height) / 2)
+	var y := 1 if not t.banner_log.is_empty() else maxi(0, (t.map_view().y - height) / 2)
 	for i in rows_of_line.size():
 		for text: String in rows_of_line[i]:
 			var x := maxf(0.0, (t.cols - Term.text_cells(text)) / 2.0)

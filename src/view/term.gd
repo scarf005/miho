@@ -75,7 +75,13 @@ var scent := {}
 var speed := 1.0
 ## Saved spells (Settings.spells), listed on the status row by their slot keys.
 var saved := {}
-var banner_lines: Array[String] = []
+var banner_lines: Array[String] = []:
+	set(v):
+		banner_lines = v
+		banner_log = []
+## The run's log lines (Messages.shown) the banner of an ending lists under its lines;
+## new banner lines clear them.
+var banner_log: Array = []
 ## Recent message lines over the top map rows, oldest first: [text, alpha].
 var log_lines: Array = []
 ## A full-screen list over everything, or empty: {title, rows, selected, top,
@@ -377,7 +383,7 @@ func _draw_game() -> void:
 	anim.draw()
 	draw_set_transform(Vector2.ZERO)
 	if not replay:
-		if side.x > 0:
+		if side.x > 0 and banner_lines.is_empty():
 			_draw_side(actors, me_pos)
 		bar.draw(self)
 		if banner_lines.is_empty():
