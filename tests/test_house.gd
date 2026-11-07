@@ -147,6 +147,22 @@ func test_the_house_is_the_same_whenever_she_comes() -> void:
 	assert_eq(b.trail_end, a.trail_end)
 
 
+func test_the_trail_goes_on_across_the_edge_it_left_by_toward_the_hut() -> void:
+	for s in [0, 1, 2, 3, 4, 5, 3780444469]:
+		var w := World.create(s)
+		var left := w.trail_end
+		var ahead := left - Outside.beside(w)
+		_take_trail(w)
+		var across := Vector2i(
+			Grid.W - 1 - left.x if ahead.x != 0 else left.x,
+			Grid.H - 1 - left.y if ahead.y != 0 else left.y
+		)
+		assert_eq(w.trail_end, across, "seed %d: she comes in on the other side" % s)
+		var door := Grid.at(w.tiles.find(World.DOOR))
+		var toward := Vector2(door - w.trail_end).dot(Vector2(ahead))
+		assert_gt(toward, 0.0, "seed %d: the hut lies the way she went" % s)
+
+
 func test_a_walk_ends_on_the_trail_exit_and_never_crosses_it() -> void:
 	var w := World.create(3)
 	w.known.fill(1)
