@@ -26,15 +26,82 @@ func test_help_lists_every_action_with_its_current_keys() -> void:
 	menu.open(&"help")
 	var text := _text(menu.panel())
 	for action in Keys.ACTIONS:
-		if not action.begins_with("pick_"):
+		var shared: bool = action.begins_with("pick_") or action.begins_with("slot_")
+		if not shared and not Keys.MOVES.has(action):
 			assert_string_contains(text, Keys.ACTIONS[action][0])
 	assert_string_contains(text, "자동 탐험 Shift+X")
 	assert_string_contains(text, "계단으로 가기 >")
 	assert_string_contains(text, "부적 고르기 1 2 3 4 5 6 7")
 	assert_false(text.contains("1 2 3 4 5 6 7 8"), "one key per talisman Miho can hold")
+	assert_string_contains(text, " Q W E A S D ", "the saved spells share a row")
 	assert_string_contains(text, "살펴보기 X")
 	assert_string_contains(text, "기록 Ctrl+P, P")
 	assert_string_contains(text, "살피는 중")
+
+
+## Where the run that reads `text` is drawn on the page: [row, column], the first found.
+func _cell(rows: Array, text: String) -> Array:
+	for k in rows.size():
+		var x := 2.0
+		for run: Array in rows[k]:
+			x = Keywords.column(run, x)
+			if run[0] == text:
+				return [k, x]
+			x += Term.text_cells(run[0])
+	return []
+
+
+func test_help_draws_each_set_of_move_keys_as_a_square_with_the_wait_key_inside() -> void:
+	Keys.bind(&"move_nw", ["Kp 7", "Q"])
+	var menu := Menu.new()
+	menu.open(&"help", Vector2i(66, 30))
+	var rows: Array = menu.panel().rows
+	for square in [
+		["Q", "K", "U", "H", ".", "L", "B", "J", "N"], ["7", "8", "9", "4", "5", "6", "1", "2", "3"]
+	]:
+		var at: Array = square.map(func(t): return _cell(rows, t))
+		assert_false(at.has([]), "every key of %s is drawn" % [square])
+		for k in 9:
+			assert_eq(at[k][0], at[0][0] + k / 3, "%s on its row" % square[k])
+			if k % 3 > 0:
+				assert_gt(at[k][1], at[k - 1][1], "%s right of the key before it" % square[k])
+		for k in 3:
+			assert_eq(at[k + 3][1] - at[k][1], at[k + 6][1] - at[k + 3][1], "a straight column")
+
+
+func test_help_says_what_the_throw_key_does_on_its_own_row() -> void:
+	var menu := Menu.new()
+	menu.open(&"help")
+	var text := _text(menu.panel())
+	assert_string_contains(text, "이동 · 공격 · 던지기 Enter, 키패드 Enter, Space")
+
+
+func test_help_keeps_the_screens_apart_from_the_run_and_debug_keys() -> void:
+	var menu := Menu.new()
+	menu.open(&"help", Vector2i(66, 30))
+	var rows: Array = menu.panel().rows
+	var screens: Array = _cell(rows, "화면")
+	var game: Array = _cell(rows, "게임")
+	for name in ["도감", "기록", "도움말"]:
+		var at: Array = _cell(rows, name)
+		assert_true(at[0] > screens[0] and at[0] < game[0], "%s under 화면" % name)
+	for action in [&"restart", &"regenerate", &"debug", &"cheat"]:
+		var at: Array = _cell(rows, Keys.ACTIONS[action][0])
+		assert_gt(at[0], game[0], "%s under 게임" % action)
+		assert_lt(absf(at[1] - game[1]), 2.0, "%s in the column of 게임" % action)
+
+
+func test_help_fits_a_1280_by_720_screen_in_two_columns() -> void:
+	var menu := Menu.new()
+	menu.open(&"help", Vector2i(66, 30))
+	var rows: Array = menu.panel().rows
+	assert_lte(rows.size(), PanelView.fits(30, 0), "no scrolling")
+	for row: Array in rows:
+		assert_lte(PanelView.end(row), 66.0, Messages.plain(row))
+	menu.open(&"help", Vector2i(40, 30))
+	assert_gt(menu.panel().rows.size(), PanelView.fits(30, 0), "one column on a narrow screen")
+	for row: Array in menu.panel().rows:
+		assert_lte(PanelView.end(row), 40.0, Messages.plain(row))
 
 
 func test_help_scrolls_and_esc_closes_it() -> void:
