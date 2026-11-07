@@ -80,8 +80,10 @@ static func _pin_word(t: Term, local: Vector2) -> String:
 static func _rows(t: Term) -> Array:
 	var out := []
 	if t.panel.is_empty():
-		if t.replay or not t.banner_lines.is_empty():
+		if t.replay:
 			return out
+		if not t.banner_lines.is_empty():
+			return Banner.log_rows(t)
 		for card: Array in t.side_cards():
 			out.append([floori(card[1].y) + 2, card[1].x, CreatureCard.row(t, card[0], card[2])])
 		return out + t.log_rows()

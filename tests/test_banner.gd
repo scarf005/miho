@@ -222,3 +222,31 @@ func test_a_run_that_ends_in_the_house_names_the_house() -> void:
 	var w := _spent(59)
 	w.depth = World.HOUSE
 	assert_eq(Banner.over(w, 0, 1)[1], "집 · 59초")
+
+
+func _log_screen(lines: int) -> Term:
+	var t: Term = autofree(Term.new())
+	t.fit(Vector2(1280, 720), 1.0)
+	t.banner_lines.assign(_lines()[3])
+	for k in lines:
+		t.banner_log.append([["%d" % k, Palette.SIDE[k % 2]]])
+	return t
+
+
+func test_an_ending_lists_the_last_log_lines_that_fit_under_its_lines_oldest_first() -> void:
+	var t := _log_screen(40)
+	var rows := Banner.log_rows(t)
+	assert_false(rows.is_empty())
+	assert_gt(rows[0][0], Banner.rows(t).back()[2].y, "under the banner's lines")
+	assert_eq(rows.back()[0], t.map_view().y - 1, "down to the status rows")
+	var texts: Array = rows.map(func(r): return r[2][0][0])
+	var first := 40 - rows.size()
+	assert_eq(texts, range(first, 40).map(func(k): return "%d" % k), "the last lines, oldest first")
+	assert_eq(rows.back()[2][0][1], Palette.SIDE[1], "in the colours of the log")
+
+
+func test_a_short_log_is_listed_whole_and_new_banner_lines_clear_it() -> void:
+	var t := _log_screen(2)
+	assert_eq(Banner.log_rows(t).map(func(r): return r[2][0][0]), ["0", "1"])
+	t.banner_lines = Banner.title(null, false, autofree(Touch.new()))
+	assert_eq(Banner.log_rows(t), [])
