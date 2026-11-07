@@ -168,6 +168,37 @@ func test_the_hover_box_sits_on_the_far_side_of_the_map_from_the_cursor() -> voi
 	assert_eq(t.fit_far_from(Vector2i(v.x - 1, v.y - 1)).at, Vector2(Term.MAP.x, 0))
 
 
+func test_the_hover_box_leaves_the_log_rows_over_the_map_free() -> void:
+	var screen := _screen(Vector2(1280, 720), 1.0, [[["abc", Color.WHITE]]])
+	var t: Term = screen[0]
+	var v := t.map_view()
+	var low := Vector2i(v.x - 1, v.y - 1)
+	for n in [1, 3]:
+		t.log_lines = []
+		for k in n:
+			t.log_lines.append([[["log", Color.WHITE]], 1.0])
+		assert_eq(t.fit_far_from(low).at.y, float(n), "%d log rows" % n)
+		var tall: Array = range(v.y).map(func(_k): return [["abc", Color.WHITE]])
+		var fit := t.fit_far_from(low, tall)
+		assert_gte(fit.at.y, float(n), "a tall box starts under %d log rows" % n)
+		assert_lte(fit.at.y + fit.cells.y * fit.scale, float(v.y) + 0.001)
+	t.banner_lines = ["x"]
+	assert_eq(t.fit_far_from(low).at.y, 0.0, "the log is not drawn under a banner")
+
+
+func test_a_log_that_fills_a_tiny_map_still_leaves_the_box_room() -> void:
+	var screen := _screen(Vector2(640, 160), 1.0, [[["abc", Color.WHITE]]])
+	var t: Term = screen[0]
+	for k in 4:
+		t.log_lines.append([[["log", Color.WHITE]], 1.0])
+	assert_gte(t.log_height(), t.map_view().y, "the log fills the map area")
+	for p in screen[1] + [null]:
+		var fit := t.fit_far_from(p)
+		assert_true(fit.has("cells"), "laid out at %s" % p)
+		var box := Rect2(fit.at, fit.cells * fit.scale)
+		assert_true(Rect2(0, 0, t.cols, t.rows - 2).grow(0.001).encloses(box), str(box))
+
+
 func test_a_hover_that_fits_stays_one_column_at_full_size() -> void:
 	var lines := [[["abc", Color.WHITE]], [["def", Color.WHITE]]]
 	var fit := InfoBox.layout(lines, Vector2(30, 10))

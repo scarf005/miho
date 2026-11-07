@@ -440,14 +440,17 @@ func fit_far_from(p: Variant = null, lines: Array = info, extra := Vector2.ZERO)
 	return info_at(laid.fit, laid.room, p)
 
 
-## The layout of `lines` and the room it lies in; where it sits is `info_at`.
+## The layout of `lines` and the room it lies in, under the log rows shown over the map
+## (as Brogue lays its detail box under the message lines), as far as they leave half the
+## map area; where it sits is `info_at`.
 func info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
 	var v := map_view()
-	var room := Rect2(Vector2(side), Vector2(v))
+	var top := mini(log_height(), v.y / 2)
+	var room := Rect2(Vector2(side.x, side.y + top), Vector2(v.x, v.y - top))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
 	var fit := InfoBox.layout(lines, room.size, least, extra)
 	if fit.get("scale", 0.0) < least:
-		room = Rect2(Vector2.ZERO, Vector2(cols, v.y))
+		room = Rect2(Vector2(0, top), Vector2(cols, v.y - top))
 		fit = InfoBox.layout(lines, room.size, least, extra)
 		if fit.get("scale", 0.0) < least and extra != Vector2.ZERO:
 			return info_layout(lines)
@@ -462,7 +465,7 @@ func info_at(fit: Dictionary, room: Rect2, p: Variant) -> Dictionary:
 	if p != null:
 		var c: Vector2i = p - cam
 		at.x = room.end.x - wide.x if c.x < v.x / 2 else room.position.x
-		at.y = room.end.y - wide.y if c.y < v.y / 2 else 0
+		at.y = room.end.y - wide.y if c.y < v.y / 2 else room.position.y
 	return fit.merged({at = at})
 
 
@@ -476,6 +479,11 @@ func info_fit() -> Dictionary:
 func hint_fit() -> Dictionary:
 	var room := Rect2(0, 0, cols, rows if not panel.is_empty() else rows - foot)
 	return InfoBox.beside(hint, room, Vector2i(hint_at), minf(1.0, readable / (CELL.x * scale.x)))
+
+
+## The rows the log takes over the map now.
+func log_height() -> int:
+	return log_rows().size() if banner_lines.is_empty() and not replay else 0
 
 
 func _draw_log() -> void:
