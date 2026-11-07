@@ -74,6 +74,25 @@ func test_a_creature_struck_by_another_group_fights_the_caster() -> void:
 	assert_true(events.any(func(e): return e.t == &"feud" and e.rival == shooter.id))
 
 
+func test_a_wisp_that_does_no_harm_starts_no_fight() -> void:
+	var w := _world()
+	var caster := _creature(w, &"dokkaebi", Vector2i(12, 8))
+	var victim := _creature(w, &"gaekgwi", Vector2i(9, 8))
+	caster.brain.alert = Actor.HUNT
+	victim.brain.alert = Actor.HUNT
+	var spell := Bestiary.spell(&"dokkaebi", [Cards.FOX])
+	var events: Array = []
+	Cast.cast(w, caster, spell, W)
+	for i in 4:
+		events.append_array(w.act(WAIT))
+		if events.any(func(e): return e.t == &"stick"):
+			break
+	assert_true(events.any(func(e): return e.t == &"stick" and e.id == victim.id))
+	assert_false(events.any(func(e): return e.t == &"hurt" and e.id == victim.id))
+	assert_eq(victim.ties.rival, 0)
+	assert_false(events.any(func(e): return e.t == &"feud"))
+
+
 func test_one_of_its_own_group_hurts_it_but_starts_no_fight() -> void:
 	for kinds in [[&"imugi", &"imugi"], [&"imugi", &"cheonnyeon"]]:
 		var w := _world()
