@@ -83,7 +83,7 @@ static func draw(t: Term) -> void:
 	var shown := span(t)
 	for k in range(shown.x, mini(shown.x + shown.y, panel.rows.size())):
 		var y := 3 + (k - shown.x) * stride
-		if k == panel.get("selected", -1) or k == panel.get("hover", -1):
+		if acts(panel, k) and (k == panel.get("selected", -1) or k == panel.get("hover", -1)):
 			t.draw_rect(
 				Rect2(
 					Vector2(1, y) * Term.CELL, Vector2(minf(aside_x, cols) - 2, stride) * Term.CELL
@@ -99,6 +99,12 @@ static func draw(t: Term) -> void:
 	if shown.x + shown.y < panel.rows.size():
 		t.draw_glyph(Vector2(1, 3 + shown.y * stride), "▼", Palette.DIM)
 	t.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Whether row `k` of `panel` acts on Enter or a click, so the bar lights it: no row of a
+## page that is only read (`bar` false), and none of its `inert` rows, such as a blank one.
+static func acts(panel: Dictionary, k: int) -> bool:
+	return panel.get("bar", true) and not panel.get("inert", []).has(k)
 
 
 ## The parts of an example to pick from, one under another beneath it, with the keys.

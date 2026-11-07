@@ -423,11 +423,10 @@ func test_a_swipe_sideways_on_the_options_steps_the_value() -> void:
 	assert_eq(m.settings.volume, maxi(0, before - 10))
 
 
-func test_a_page_laid_out_for_a_phone_keeps_its_selection_in_view() -> void:
+func test_a_page_laid_out_for_a_phone_opens_on_its_newest_line() -> void:
 	var m := _main()
 	for i in 60:
 		m.messages.add([["줄 %d" % i, Palette.TEXT]], 0)
 	m.panels.open(&"log")
 	var shown: Vector2i = PanelView.span(m.term)
-	assert_lte(m.menu.selected, shown.x + shown.y - 1)
-	assert_gte(m.menu.selected, shown.x)
+	assert_eq(shown.x + shown.y, m.term.panel.rows.size())

@@ -174,7 +174,11 @@ func test_the_log_scrolls_and_esc_or_its_key_closes_it() -> void:
 		m.messages.add([["쪽지 %d" % i, Palette.TEXT]], 0)
 	_key(m, "P")
 	assert_eq(m.panels.overlay, &"log")
-	assert_eq(m.term.panel.selected, m.term.panel.rows.size() - 1, "it opens on the newest")
+	assert_eq(
+		m.term.panel.top,
+		m.term.panel.rows.size() - PanelView.span(m.term).y,
+		"it opens on the newest"
+	)
 	_key(m, "Home")
 	assert_eq(m.term.panel.top, 0)
 	_key(m, "Shift")
@@ -194,7 +198,7 @@ func test_the_help_page_scrolls_and_a_modifier_or_click_does_not_close_it() -> v
 	_key(m, "Shift")
 	_mouse(m, MOUSE_BUTTON_LEFT, 5, 5)
 	assert_eq(m.panels.overlay, &"help")
-	assert_eq(m.term.panel.selected, 2, "the click selects the row")
+	assert_eq(m.term.panel.selected, 0, "the click selects no row of a page that is only read")
 	_key(m, "Escape")
 	assert_eq(m.panels.overlay, &"")
 

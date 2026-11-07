@@ -42,8 +42,58 @@ func test_help_scrolls_and_esc_closes_it() -> void:
 	menu.open(&"help")
 	assert_eq(menu.key(_press("Down")), &"")
 	assert_eq(menu.key(_press("J")), &"")
-	assert_eq(menu.selected, 2)
+	assert_eq(menu.top, 2)
 	assert_eq(menu.key(_press("Escape")), &"close")
+
+
+func _log(lines: int) -> Menu:
+	var menu := Menu.new()
+	for i in lines:
+		menu.log_rows.append([["줄 %d" % i, Palette.TEXT]])
+	menu.open(&"log")
+	return menu
+
+
+func test_a_page_that_is_only_read_lights_no_row_and_its_keys_scroll_it() -> void:
+	var menu := _log(40)
+	var fits := menu._fits()
+	var last := 40 - fits
+	assert_eq(menu.top, last, "it opens on the newest")
+	menu.point(last + 1)
+	for k in 40:
+		assert_false(PanelView.acts(menu.panel(), k), "no bar on row %d" % k)
+	menu.key(_press("Up"))
+	assert_eq(menu.top, last - 1, "Up scrolls a row")
+	menu.key(_press("Down"))
+	menu.key(_press("Down"))
+	assert_eq(menu.top, 0, "Down from the end wraps to the start")
+	menu.key(_press("Up"))
+	assert_eq(menu.top, last, "Up from the start wraps to the end")
+	menu.key(_press("Home"))
+	menu.key(_press("PageDown"))
+	assert_eq(menu.top, fits)
+	menu.key(_press("End"))
+	assert_eq(menu.top, last)
+	assert_eq(menu.click(last + 1, -1), &"", "a click acts on nothing")
+	assert_eq(menu.top, last)
+
+
+func test_a_page_that_is_only_read_scrolls_from_its_end_after_the_screen_grows() -> void:
+	var menu := _log(40)
+	menu.room = Vector2i(40, 30)
+	var last := 40 - menu._fits()
+	assert_lt(last, menu.top, "the end is nearer now")
+	menu.key(_press("Up"))
+	assert_eq(menu.top, last - 1, "Up goes a row up from the end shown")
+
+
+func test_the_bar_lights_a_spell_but_not_the_line_of_an_empty_spellbook() -> void:
+	var menu := Menu.new()
+	menu.open(&"spells")
+	assert_false(PanelView.acts(menu.panel(), 0))
+	menu.queued = Spell.make([Cards.FOX])
+	menu.open(&"spells")
+	assert_true(PanelView.acts(menu.panel(), 0))
 
 
 func _options() -> Menu:

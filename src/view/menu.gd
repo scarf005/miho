@@ -160,8 +160,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 	if p == &"cheat":
 		debug.open(room)
 	if p == &"log":
-		selected = maxi(0, log_rows.size() - 1)
-		top = ListNav.reveal(0, selected, log_rows.size(), _fits())
+		top = maxi(0, log_rows.size() - _fits())
 
 
 ## A left click on the word `word` of the open page: its 도감 entry opens. Esc
@@ -184,7 +183,7 @@ func _enter(p: StringName) -> void:
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
-	var out := {title = Lang.t("도움말"), rows = _help(), words = true}
+	var out := {title = Lang.t("도움말"), rows = _help(), words = true, bar = false}
 	match page:
 		&"options":
 			out = {title = Lang.t("설정"), rows = _options()}
@@ -203,23 +202,25 @@ func panel() -> Dictionary:
 				detail = shown,
 				aside_up = from > 0,
 				aside_down = from + fit < detail.size(),
-				example = _example(list, rows, shown)
+				example = _example(list, rows, shown),
+				bar = not list.is_empty()
 			}
 		&"dispel":
-			out = {title = Lang.t("주문 해제"), rows = _dispels()}
+			out = {title = Lang.t("주문 해제"), rows = _dispels(), bar = not buffs.is_empty()}
 		&"log":
 			var none := [[[Lang.t("기록이 없다"), Palette.DIM]]]
 			out = {
 				title = Lang.t("기록"),
 				rows = log_rows if log_rows else none,
 				painted = true,
-				words = true
+				words = true,
+				bar = false
 			}
 		&"codex":
 			return codex.panel()
 		&"cheat":
 			return debug.panel()
-	out.merge({selected = selected, top = top, hover = hovered})
+	out.merge({selected = selected, top = top, hover = hovered, bar = true})
 	return out
 
 
@@ -281,6 +282,10 @@ func save(slot: StringName) -> void:
 func _move(nav: StringName) -> StringName:
 	var out := &""
 	match nav:
+		&"up", &"down", &"page_up", &"page_down", &"home", &"end" when not panel().bar:
+			# A page that is only read scrolls, with no row selected.
+			var last := maxi(0, panel().rows.size() - _fits())
+			top = ListNav.step(nav, mini(top, last), last + 1, _fits())
 		&"up", &"down", &"page_up", &"page_down", &"home", &"end":
 			var count: int = panel().rows.size()
 			selected = ListNav.step(nav, selected, count, _fits())
@@ -396,6 +401,8 @@ func click(row: int, tab: int) -> StringName:
 			return &""
 		if page == &"cheat":
 			return debug.click(row)
+		if not PanelView.acts(panel(), row):
+			return &""
 		select(row)
 		return use() if page in [&"options", &"keys", &"spells", &"dispel"] else &""
 	return &""
