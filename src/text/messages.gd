@@ -33,7 +33,8 @@ const JAR_DOES := {
 	&"coals": "쏟아졌다",
 }
 
-## {variants: {language: runs}, text, round, n}; `text` is the Korean line, and
+## {variants: {language: runs}, text, round, turn, n}; `text` is the Korean line, `round`
+## the clock of its storey, `turn` the round of the whole run (World.rounds), and
 ## `shown` the painted runs of each language, once.
 var lines: Array[Dictionary] = []
 
@@ -48,17 +49,19 @@ func saved() -> Array:
 	)
 
 
-## Adds a line that reads the same in every language.
-func add(runs: Array, round_no: int) -> void:
-	_push(_all(func(_code): return runs), round_no)
+## Adds a line that reads the same in every language; `turn` is the round of the run,
+## `round_no` where none is given.
+func add(runs: Array, round_no: int, turn := -1) -> void:
+	_push(_all(func(_code): return runs), round_no, turn)
 
 
 ## Adds a line saying `text`: a message id, or a Callable that makes the line in the
 ## language it is called in.
-func add_text(text: Variant, round_no: int) -> void:
+func add_text(text: Variant, round_no: int, turn := -1) -> void:
 	_push(
 		_all(func(_code): return [[text.call() if text is Callable else Lang.t(text), TEXT]]),
-		round_no
+		round_no,
+		turn
 	)
 
 
@@ -71,7 +74,7 @@ func add_round(before: World, after: World, events: Array) -> void:
 		by_code[code] = _render(before, after, told)
 	Lang.forced = &""
 	for k in by_code[&"ko"].size():
-		_push(_all(func(code): return by_code[code][k]), after.round_no)
+		_push(_all(func(code): return by_code[code][k]), after.round_no, after.rounds)
 
 
 func _all(runs_of: Callable) -> Dictionary:
@@ -83,19 +86,27 @@ func _all(runs_of: Callable) -> Dictionary:
 	return out
 
 
-func _push(variants: Dictionary, round_no: int) -> void:
+func _push(variants: Dictionary, round_no: int, turn: int) -> void:
 	var text := plain(variants[&"ko"])
+	turn = turn if turn >= 0 else round_no
 	var i := lines.size() - 1
 	while i >= 0 and (i == lines.size() - 1 or lines[i].round == round_no):
 		if lines[i].text == text:
 			lines[i].n += 1
 			lines[i].round = round_no
+			lines[i].turn = turn
 			lines[i].erase("shown")
 			return
 		i -= 1
-	lines.append({variants = variants, text = text, round = round_no, n = 1})
+	lines.append({variants = variants, text = text, round = round_no, turn = turn, n = 1})
 	if lines.size() > KEEP:
 		lines = lines.slice(-KEEP)
+
+
+## The round of the whole run (World.rounds) a line was told in; a line kept from before
+## lines held it has the round of its storey.
+static func turn(line: Dictionary) -> int:
+	return line.get("turn", line.round)
 
 
 ## The line as shown, in the language shown, with its count, painted once: a long

@@ -45,6 +45,10 @@ const HELP := [
 ## What the throw key does besides throwing, in the words of the hover's key hints
 ## (LookMode.hints), before the action's name on its line of the help page.
 const ALSO := {&"confirm": ["이동", "공격"]}
+## What marks the first line of a round on the log page, and the cells the lines stand in
+## to make room for it.
+const ROUND_MARK := "_"
+const MARK_CELLS := 1.5
 ## Cells the lines of a group of the help page stand in from its title.
 const INDENT := 1.0
 ## The first of a run of actions that share one line of the help page, and the line's name.
@@ -168,12 +172,23 @@ var origin_row := 0
 ## Takes what the pages list from the game `m` (main.gd).
 func sync(m: Node) -> void:
 	queued = Spell.make(m.casting.picked)
-	log_rows = m.messages.lines.map(Messages.shown)
+	log_rows = log_of(m.messages.lines)
 	seed_value = m.run_seed
 	debug.world = m.world
 	title = m.state == &"title"
 	buffs = Guise.worn(m.world, m.world.player())
 	codex.rank = Bestiary.rank(m.world.storey())
+
+
+## The rows of the log page: every message as shown, the first of each round after a dim
+## ROUND_MARK and the rest in line with it (DCSS message_window::new_cmdturn).
+static func log_of(lines: Array) -> Array:
+	var rows := []
+	for k in lines.size():
+		var first: bool = k == 0 or Messages.turn(lines[k]) != Messages.turn(lines[k - 1])
+		var mark := [ROUND_MARK if first else "", Palette.DIM, 2.0]
+		rows.append([mark, ["", Palette.DIM, 2.0 + MARK_CELLS]] + Messages.shown(lines[k]))
+	return rows
 
 
 ## Opens a page, `size` the screen in cells when it changes.

@@ -154,6 +154,67 @@ func test_a_page_that_is_only_read_scrolls_from_its_end_after_the_screen_grows()
 	assert_eq(menu.top, last - 1, "Up goes a row up from the end shown")
 
 
+func test_the_log_marks_the_first_line_of_each_round_and_lines_up_the_text() -> void:
+	var messages := Messages.new()
+	for line in [["가", 1], ["나", 1], ["다", 2], ["라", 4], ["마", 4], ["바", 4]]:
+		messages.add_text(line[0], line[1])
+	var rows := Menu.log_of(messages.lines)
+	var marked := []
+	var starts := {}
+	for k in rows.size():
+		if rows[k][0][0] != "":
+			marked.append(k)
+		var text_at: Array = _cell(rows, messages.lines[k].text)
+		assert_eq(text_at[0], k)
+		starts[text_at[1]] = true
+	assert_eq(marked, [0, 2, 3], "three rounds")
+	assert_eq(starts.size(), 1, "every line starts in one column")
+
+
+func test_the_log_marks_a_round_on_a_new_storey_whose_clock_reads_the_same() -> void:
+	var messages := Messages.new()
+	for depth in [2, 3]:
+		var w := World.create(7)
+		w.round_no = 3
+		w.rounds = depth
+		messages.add_round(w, w, [{t = &"ascend", depth = depth}])
+	assert_eq(messages.lines.size(), 2)
+	var rows := Menu.log_of(messages.lines)
+	assert_ne(rows[0][0][0], "")
+	assert_ne(rows[1][0][0], "", "a round of its own")
+
+
+func test_a_line_over_the_map_fades_by_the_rounds_of_the_run_across_a_climb() -> void:
+	var m: Node = Built.main()
+	add_child_autofree(m)
+	m.new_run(3)
+	m.state = &"play"
+	m.messages.lines.clear()
+	m.world.round_no = 40
+	m.world.rounds = 40
+	m.say("가")
+	m.world.round_no = 0
+	m.world.rounds = 41
+	m.show_log()
+	assert_eq(m.term.log_lines.size(), 1, "a round after it, on the next storey")
+	m.world.round_no = 1
+	m.world.rounds = 41 + m.LOG_FADE
+	m.show_log()
+	assert_true(m.term.log_lines.is_empty(), "gone once its rounds have passed")
+
+
+func test_the_log_page_shows_the_round_marks() -> void:
+	var m: Node = Built.main()
+	add_child_autofree(m)
+	m.new_run(3)
+	m.state = &"play"
+	m.messages.lines.clear()
+	m.messages.add_text("가", 1)
+	m.messages.add_text("나", 2)
+	m.panels.open(&"log")
+	assert_eq(m.term.panel.rows, Menu.log_of(m.messages.lines))
+
+
 func test_the_bar_lights_a_spell_but_not_the_line_of_an_empty_spellbook() -> void:
 	var menu := Menu.new()
 	menu.open(&"spells")

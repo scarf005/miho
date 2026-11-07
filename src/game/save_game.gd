@@ -167,7 +167,7 @@ func fall_back() -> bool:
 	states.base.played = 0
 	actions.clear()
 	begin()
-	messages.add_text(ROLLED_BACK, world.round_no)
+	messages.add_text(ROLLED_BACK, world.round_no, world.rounds)
 	states.base.log = messages.saved()
 	write()
 	_write_states()
