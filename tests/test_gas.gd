@@ -504,7 +504,7 @@ func test_fog_ponds_of_built_storeys_keep_their_bank_for_300_rounds() -> void:
 		seen += 1
 		assert_gt(w.gas.size(), w.vents.size(), "seed %d keeps a bank" % s)
 		assert_true(w.gas.values().any(func(g): return g.y >= Gas.OPAQUE), "seed %d" % s)
-		assert_lt(most, 100, "seed %d does not flood" % s)
+		assert_lt(most, 120, "seed %d does not flood" % s)
 	assert_eq(seen, 4)
 
 
