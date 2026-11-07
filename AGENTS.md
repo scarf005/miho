@@ -119,6 +119,8 @@ Work runs as a software factory (StrongDM, https://factory.strongdm.ai/): the pa
 
 Closing an issue of this repository is allowed (`gh issue close`, `.claude/settings.json`): when every point of an issue, or every sub-issue of a parent issue, is done on main, close it. Do not comment on it. User: "이슈 닫는 것도 이 저장소에서 허용하게 해주세요."
 
+An issue body is Korean, as its title is, and shows its frames as WebP images on the orphan `images` branch, linked through jsDelivr pinned to the commit (`https://cdn.jsdelivr.net/gh/scarf005/miho@<commit>/<sha256>.webp`). User: "이슈에 이미지들이 없으니 이해하기 힘들고 (cdn으로 이미지 올려주세요), 제목은 한글인데 본문은 또 영어이군요."
+
 Passing tests and lint do not prove a lane is done. Before merging a lane that changes anything the player sees or hears, the parent must do all of the following:
 1. Read every added or changed user-facing string in the diff against the text rules above, then read it aloud as Korean and rewrite it if a player would not say it. Before a tag, read the whole list from `just strings`.
 2. Drive the changed UI with `just shot ... --keys=...` and look at the frames.
