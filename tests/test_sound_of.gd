@@ -23,6 +23,13 @@ const SOUNDS := [
 	[{t = &"crumble"}, &"fall"],
 	[{t = &"quake", tiles = []}, &"rumble"],
 	[{t = &"pull"}, &"splash"],
+	[{t = &"soak"}, &"splash"],
+	[{t = &"wet"}, &"splash"],
+	[{t = &"burnout"}, &"hiss"],
+	[{t = &"calm"}, &"tick"],
+	[{t = &"truce"}, &"tick"],
+	[{t = &"heed"}, &"charge"],
+	[{t = &"land"}, &"foxfire"],
 	[{t = &"spot"}, &"tick"],
 	[{t = &"fade", dropped = true}, &"hiss"],
 	[{t = &"cheat", cmd = &"god", on = true}, &"click"],
@@ -134,35 +141,33 @@ const SOUNDS := [
 	[{t = &"noise", word = Traps.GONG}, &"gong"],
 	[{t = &"noise", word = "우지끈"}, &"fall"],
 ]
-## Events that only keep the books or are told by another event, so they are silent.
+## Events that only keep the books or are told by another event, so they are silent. A
+## projectile's `fly` was heard where it was cast, and flies on for rounds.
 const SILENT := [
 	{t = &"hit", spray = true},
 	{t = &"drum", wet = true},
 	{t = &"fall"},
 	{t = &"fall", depth = 2, soft = true},
 	{t = &"gas", kind = Gas.SMOKE},
-	{t = &"heed"},
-	{t = &"calm"},
-	{t = &"truce"},
-	{t = &"scatter"},
-	{t = &"shout"},
-	{t = &"spawn"},
-	{t = &"spray"},
 	{t = &"fly"},
-	{t = &"land"},
 	{t = &"fade"},
-	{t = &"soul"},
-	{t = &"prick"},
-	{t = &"sear"},
 	{t = &"burn"},
-	{t = &"burnout"},
 	{t = &"become", tile = World.ICE},
-	{t = &"trample"},
-	{t = &"soak"},
-	{t = &"wet"},
-	{t = &"ride"},
 	{t = &"cast", cards = [Cards.WATER, Cards.WOOD, Cards.FIRE]},
 ]
+## Silent events by the events, one of which always sounds in the same round
+## (`test_an_event_told_with_another_is_heard_in_its_round`).
+const TOLD_WITH := {
+	&"prick": [&"hurt"],
+	&"sear": [&"hurt"],
+	&"ride": [&"move"],
+	&"trample": [&"move"],
+	&"scatter": [&"die"],
+	&"soul": [&"die"],
+	&"shout": [&"notice"],
+	&"spawn": [&"cast"],
+	&"spray": [&"cast", &"hit"],
+}
 
 
 ## An open hall walled at the edges with no light, Miho at (4, 8).
@@ -274,6 +279,67 @@ func test_every_event_in_the_list_makes_its_sound() -> void:
 func test_the_bookkeeping_events_are_silent() -> void:
 	for e in SILENT:
 		assert_eq(Sfx.sound_of(e), &"", str(e))
+	for t: StringName in TOLD_WITH:
+		assert_eq(Sfx.sound_of({t = t}), &"", t)
+
+
+## A lit hall with a creature of `kind` at `at`, awake and slow to cast.
+func _lit(kind: StringName, at: Vector2i) -> Dictionary:
+	var w := _world()
+	w.tails = 9
+	w.cards.assign(Cards.ALL)
+	for x in [4, 8]:
+		w.set_tile(Vector2i(x, 6), World.LANTERN)
+	var foe := FloorGen.spawn(w, kind, at)
+	foe.magic.cooldown = 99
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = at
+	w.sense()
+	return {w = w, foe = foe}
+
+
+## The world before and after a round that makes an event of kind `t` in sight of Miho.
+func _round_of(t: StringName) -> Array:
+	var s := _lit(&"dokkaebi", Vector2i(6, 8))
+	var w: World = s.w
+	var me := w.player()
+	var action := {t = &"move", dir = E}
+	match t:
+		&"prick", &"trample":
+			s.foe.pos = FAR
+			w.set_tile(me.pos + E, World.THORNS if t == &"prick" else World.LEAVES)
+		&"sear":
+			w.hot[me.pos + E] = Vector2i(0, Compounds.HOT_ROUNDS)
+			s.foe.pos = FAR
+		&"ride":
+			s.foe.pos = FAR
+			Elements.stick(w, Flight.spawn(w, me, Spell.make([Cards.FOX]), E, 0), me)
+		&"scatter", &"soul":
+			s.foe.hp = 1
+			s.foe.pos = me.pos + E
+			FloorGen.spawn(w, &"dokkaebi", Vector2i(8, 9)).ties.leader = s.foe.id
+		&"shout":
+			s.foe.brain.alert = Actor.REST
+			action = {t = &"wait"}
+		&"spawn":
+			action = {t = &"cast", spells = [{cards = [Cards.ORB], dir = -E}]}
+		&"spray":
+			action = {t = &"cast", spells = [{cards = [Cards.WATER, Cards.WATER], dir = E}]}
+	w.sense()
+	var before := w.clone()
+	w.act(action)
+	return [before, w]
+
+
+func test_an_event_told_with_another_is_heard_in_its_round() -> void:
+	for t: StringName in TOLD_WITH:
+		var round := _round_of(t)
+		var facts := Perceived.of(round[0], round[1], round[1].events).facts
+		assert_true(facts.any(func(f): return f.t == t), "%s is told" % t)
+		var partners := facts.filter(func(f): return f.t in TOLD_WITH[t])
+		assert_true(
+			partners.any(func(f): return not Sfx.sounds_of(f).is_empty()), "%s is heard" % t
+		)
 
 
 func test_every_event_the_core_emits_is_sounded_or_silent_on_purpose() -> void:
@@ -282,6 +348,8 @@ func test_every_event_the_core_emits_is_sounded_or_silent_on_purpose() -> void:
 		known[pair[0].t] = true
 	for e in SILENT:
 		known[e.t] = true
+	for t: StringName in TOLD_WITH:
+		known[t] = true
 	var found := RegEx.create_from_string('\\bt = &"(\\w+)"')
 	for file in DirAccess.get_files_at("res://src/core"):
 		for m in found.search_all(FileAccess.get_file_as_string("res://src/core/" + file)):

@@ -160,6 +160,13 @@ const LEVEL := {
 	&"heat": -8.0,
 	&"relight": -8.0,
 	&"ignite": -10.0,
+	&"burnout": -10.0,
+	&"land": -8.0,
+	&"heed": -8.0,
+	&"calm": -8.0,
+	&"truce": -8.0,
+	&"soak": -8.0,
+	&"wet": -8.0,
 }
 ## The sound of what a jar holds when it breaks (Jars): a spill, a find, a tear, a fall of
 ## straw, a scatter of salt, a clatter of beans, a thud of coals. A stun and the coals' heat
@@ -458,7 +465,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"stone" if Raise.undead(e.kind) else &"foxfire"
 		&"crumble":
 			return &"fall"
-		&"pull":
+		&"pull", &"soak", &"wet":
 			return &"splash"
 		&"cast", &"hit", &"burst", &"splash":
 			var sounds := _spell_sounds(e)
@@ -499,7 +506,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"stun"
 		&"unroot", &"cloak":
 			return &"rustle"
-		&"unstun", &"unblind", &"untalon":
+		&"unstun", &"unblind", &"untalon", &"calm", &"truce":
 			return &"tick"
 		&"become":
 			if e.has("element"):
@@ -509,13 +516,13 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"" if e.kind == Gas.SMOKE else &"hiss"
 		&"scald", &"cool", &"douse", &"unmask", &"uncloak", &"dry", &"quench", &"thaw", &"sleep":
 			return &"hiss"
-		&"unflame", &"unraise":
+		&"unflame", &"unraise", &"burnout":
 			return &"hiss"
 		&"fade":
 			return &"hiss" if e.get("dropped", false) else &""
 		&"flame":
 			return &"flame"
-		&"stick", &"yelp":
+		&"stick", &"yelp", &"land":
 			return &"foxfire"
 		&"ignite", &"heat", &"relight", &"alight":
 			return &"burn"
@@ -523,7 +530,7 @@ static func sound_of(e: Dictionary) -> StringName:
 			return &"hurt"
 		&"die":
 			return &"hiss" if e.get("gone", false) else &"die"
-		&"charge", &"notice", &"feud":
+		&"charge", &"notice", &"feud", &"heed":
 			return &"charge"
 		&"omen":
 			return &"omen"
