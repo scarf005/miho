@@ -277,8 +277,9 @@ static func _build(
 		w.start = Outside.doorstep(w, _centre(goal))
 	me.pos = w.start
 	var home := rooms_by(w, w.start)
+	var kept := Outside.home(w) if outside else home
 	w.rooms.erase(goal)
-	EventRooms.build(w, home)
+	EventRooms.build(w, kept)
 	if goal.has_area():
 		w.rooms.append(goal)
 	else:
@@ -295,7 +296,7 @@ static func _build(
 	_features(w, goal, element)
 	Placement.scatter(w, goal, element)
 	_drum(w)
-	var set_room := SetRooms.build(w, home, goal)
+	var set_room := SetRooms.build(w, kept, goal)
 	if plan.has("maze"):
 		Labyrinth.furnish(w, plan)
 	_creatures(w, element)

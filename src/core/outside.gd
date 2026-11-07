@@ -42,6 +42,29 @@ static func doorstep(w: World, exit: Vector2i) -> Vector2i:
 	return out
 
 
+## The rooms Miho starts in: those round her tile and those joined to it four ways a step
+## through no doorway, wall or sky, which on open ground are all the plots round her.
+## Event rooms and the set room leave them alone (FloorGen._build).
+static func home(w: World) -> Array[Rect2i]:
+	var joined: Array[Vector2i] = [w.start]
+	var seen := {w.start: true}
+	for p in joined:
+		for d in Placement.SIDES:
+			var q := p + d
+			var t := w.tile(q)
+			if not seen.has(q) and not Terrain.wall(t) and t != World.SKY and not _gap(w, q):
+				seen[q] = true
+				joined.append(q)
+	var round := FloorGen.rooms_by(w, w.start)
+	return w.rooms.filter(func(r): return r in round or joined.any(r.has_point))
+
+
+## Whether `p` stands between walls on two opposite sides, as a doorway does.
+static func _gap(w: World, p: Vector2i) -> bool:
+	var wall := func(d): return Terrain.wall(w.tile(p + d)) and Terrain.wall(w.tile(p - d))
+	return wall.call(Vector2i.RIGHT) or wall.call(Vector2i.DOWN)
+
+
 ## Whether a way out leads from the tile Miho starts on, so `lay` keeps her there.
 static func leads_out(w: World) -> bool:
 	var sky := _sky(w)
