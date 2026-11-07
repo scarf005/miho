@@ -178,7 +178,7 @@ func _creatures(t: Term) -> Array[Dictionary]:
 	var strip := _rect(t, &"strip")
 	if t.world == null or strip.size == Vector2.ZERO:
 		return out
-	var list := t.side_list(t.world_actors(), t.world.player().pos, 99)
+	var list := t.side_list(t.world_actors(), t.world.player().pos)
 	var from := clampi(first[&"strip"], 0, maxi(0, list.size() - STRIP_CARDS))
 	var card := Vector2(strip.size.x / STRIP_CARDS, strip.size.y)
 	for k in mini(STRIP_CARDS, list.size() - from):
@@ -210,7 +210,7 @@ func _chips(t: Term) -> Array[Dictionary]:
 func _count(t: Term, kind: StringName) -> int:
 	if kind == &"saved":
 		return Keys.SLOTS.filter(func(s): return t.saved.has(s)).size()
-	return t.side_list(t.world_actors(), t.world.player().pos, 99).size()
+	return t.side_list(t.world_actors(), t.world.player().pos).size()
 
 
 ## The finger drags `dx` (the term's pixels) along the strip or the saved row at
@@ -359,7 +359,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 func _draw_strip(t: Term) -> void:
 	var strip := _rect(t, &"strip")
 	for c in _creatures(t):
-		CreatureCard.draw(t, c.actor, _cell(c.rect.position), c.rect.size.x / Term.CELL.x)
+		CreatureCard.draw(t, [c.actor], _cell(c.rect.position), c.rect.size.x / Term.CELL.x)
 	_more(t, strip, first[&"strip"] > 0, first[&"strip"] + STRIP_CARDS < _count(t, &"strip"))
 
 
