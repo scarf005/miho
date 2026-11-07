@@ -300,8 +300,8 @@ func side_at(local: Vector2) -> Vector2i:
 			return at
 	if world == null or c.x < 0 or c.x >= side.x or c.y < 0 or c.y >= rows - foot:
 		return Vector2i(-1, -1)
-	var list := side_list(world_actors(), world.player().pos)
-	return list[c.y / SIDE_ROWS].pos if c.y / SIDE_ROWS < list.size() else Vector2i(-1, -1)
+	var cards: Array = side_groups(world_actors(), world.player().pos).cards
+	return cards[c.y / SIDE_ROWS][0].pos if c.y / SIDE_ROWS < cards.size() else Vector2i(-1, -1)
 
 
 ## The creature cards on the screen, as [creature, cell of the card, cells wide].
@@ -312,8 +312,8 @@ func side_cards() -> Array:
 		return bar.side_cards(self)
 	if side.x <= 0:
 		return []
-	var list := side_list(world_actors(), world.player().pos)
-	return range(list.size()).map(func(k): return [list[k], Vector2(0, k * SIDE_ROWS), MAP.x])
+	var cards: Array = side_groups(world_actors(), world.player().pos).cards
+	return range(cards.size()).map(func(k): return [cards[k][0], Vector2(0, k * SIDE_ROWS), MAP.x])
 
 
 func _world_shots() -> Dictionary:
@@ -387,21 +387,43 @@ func _draw_game() -> void:
 		Banner.draw(self)
 
 
-## The creatures of `actors` the sidebar lists, nearest to `me_pos` first, as many as fit
-## or `limit`.
-func side_list(actors: Dictionary, me_pos: Vector2i, limit := -1) -> Array:
+## The creatures of `actors` in sight, nearest to `me_pos` first.
+func side_list(actors: Dictionary, me_pos: Vector2i) -> Array:
 	var list: Array = actors.values().filter(
 		func(a): return not a.is_miho() and revealed(a.pos) and not hatted(a)
 	)
 	list.sort_custom(func(a, b): return Grid.cheb(a.pos, me_pos) < Grid.cheb(b.pos, me_pos))
-	return list.slice(0, (rows - foot) / SIDE_ROWS if limit < 0 else limit)
+	return list
 
 
-## Creatures in sight, nearest first, as Brogue lists them (CreatureCard).
+## The cards of the sidebar: the creatures of `side_list` whose cards would look the same
+## (CreatureCard.look) as one card, as DCSS `_print_next_monster_desc` lists a run of equal
+## monsters on one line. `cards` holds as many as fit, each the creatures of one card,
+## nearest first; when some do not fit, the last row tells `hidden`, how many creatures
+## the cards left out hold.
+func side_groups(actors: Dictionary, me_pos: Vector2i) -> Dictionary:
+	var cards := []
+	var at := {}
+	for a: Actor in side_list(actors, me_pos):
+		var look := CreatureCard.look(self, a)
+		if not at.has(look):
+			at[look] = cards.size()
+			cards.append([])
+		cards[at[look]].append(a)
+	var room := rows - foot
+	var fit := room / SIDE_ROWS if cards.size() * SIDE_ROWS <= room else (room - 1) / SIDE_ROWS
+	var hidden: int = cards.slice(fit).reduce(func(n, c): return n + c.size(), 0)
+	return {cards = cards.slice(0, fit), hidden = hidden}
+
+
+## Creatures in sight, nearest first, as Brogue lists them (CreatureCard), and how many
+## more there are on the last row when they do not fit.
 func _draw_side(actors: Dictionary, me_pos: Vector2i) -> void:
-	var list := side_list(actors, me_pos)
-	for k in list.size():
-		CreatureCard.draw(self, list[k], Vector2(0, k * SIDE_ROWS), MAP.x)
+	var side_cards := side_groups(actors, me_pos)
+	for k in side_cards.cards.size():
+		CreatureCard.draw(self, side_cards.cards[k], Vector2(0, k * SIDE_ROWS), MAP.x)
+	if side_cards.hidden > 0:
+		draw_text(Vector2(0, rows - foot - 1), "+%d" % side_cards.hidden, Palette.DIM)
 
 
 ## A frame on the tile under the pointer, and what is there in a box on the
