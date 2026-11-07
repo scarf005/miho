@@ -352,14 +352,7 @@ func _draw_stat(t: Term, rect: Rect2) -> void:
 	var right := Lang.t("%s %d초") % [Messages.storey(w.depth), w.round_no]
 	t.draw_text(Vector2(_cell(rect.end).x - t.text_cells(right), at.y), right, Palette.TEXT)
 	StatusBar.buffs(t, Vector2(_cell(rect.end).x - t.text_cells(right) - 1.0, at.y))
-	var held: int = StatusBar._held(t)
-	for i in w.max_tails():
-		var c: Color = Palette.SIDE[0]
-		if i >= w.tails:
-			c = Palette.DIM
-		elif i >= w.tails - held:
-			c = Palette.CARD[Cards.EARTH]
-		t.draw_glyph(at + Vector2(i, 1), "~", c)
+	StatusBar.tails(t, at + Vector2(0, 1))
 	NoiseMeter.draw(t, Vector2(_cell(rect.end).x - NoiseMeter.width(), at.y + 1))
 
 
