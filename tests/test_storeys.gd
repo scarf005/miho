@@ -32,10 +32,11 @@ func test_the_boss_waits_only_on_the_last_storey() -> void:
 			var label := "seed %d storey %d" % [seed_value, depth]
 			assert_eq(_bosses(w), 1 if depth == 9 else 0, label)
 		var eighth := _built(seed_value, 8)
-		var guards := eighth.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
-		var walks := func(k): return not Bestiary.swims(k)
-		var walkers := eighth.actors.filter(func(a): return walks.call(a.kind)).size() - 1
-		assert_eq(walkers, FloorGen.PLAN[8].filter(walks).size() + guards, "seed %d" % seed_value)
+		var guards := eighth.sites.filter(func(s): return s.kind == &"yard").size()
+		var alone := func(k): return not Bestiary.swims(k) and not Bestiary.bands(k)
+		var walkers := eighth.actors.filter(func(a): return alone.call(a.kind)).size() - 1
+		var want := Roster.fixed(eighth).filter(alone).size() + guards
+		assert_eq(walkers, want, "seed %d" % seed_value)
 
 
 func test_peaches_grow_on_odd_storeys_from_the_third() -> void:

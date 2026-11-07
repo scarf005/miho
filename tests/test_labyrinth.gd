@@ -62,7 +62,7 @@ func _walk(w: World, to: Vector2i, open: PackedByteArray) -> bool:
 
 
 func _ways(w: World) -> PackedByteArray:
-	return Masks.floor_of(w, w.traps.keys() + _cracks(w), func(_p): return false)
+	return Masks.floor_of(w, w.traps.keys() + _cracks(w) + [w.stairs], func(_p): return false)
 
 
 func _cracks(w: World) -> Array:

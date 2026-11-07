@@ -107,21 +107,21 @@ func test_each_follower_stands_beside_its_leader_in_one_room() -> void:
 	assert_gt(bands, 0, "bands appear")
 
 
-func test_every_creature_of_the_plan_still_spawns_and_is_deterministic() -> void:
+func test_every_fixed_creature_of_the_plan_still_spawns_and_is_deterministic() -> void:
+	var fixed := func(x): return not Bestiary.bands(x.kind)
 	for depth in [1, 2, 3, 5, 8]:
 		var a := _storey(3, depth)
 		var b := _storey(3, depth)
 		var want: int = (
-			FloorGen
-			. _roster(a)
-			. filter(func(k): return not Bestiary.info(k).get("boss", false))
-			. size()
+			Roster.fixed(a).filter(func(k): return not Bestiary.info(k).get("boss", false)).size()
 		)
-		var guards := a.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
+		var guards := a.sites.filter(func(s): return s.kind == &"yard").size()
 		var maze := Labyrinth.site(a)
 		if not maze.is_empty():
-			guards += a.actors.filter(func(x): return maze.area.has_point(x.pos)).size()
-		assert_eq(a.actors.size() - 1, want + guards, "depth %d" % depth)
+			guards += (
+				a.actors.filter(fixed).filter(func(x): return maze.area.has_point(x.pos)).size()
+			)
+		assert_eq(a.actors.slice(1).filter(fixed).size(), want + guards, "depth %d" % depth)
 		assert_eq(
 			a.actors.map(func(x): return [x.kind, x.pos, x.ties.leader]),
 			b.actors.map(func(x): return [x.kind, x.pos, x.ties.leader])

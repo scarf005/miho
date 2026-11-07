@@ -598,8 +598,9 @@ func test_storeys_are_connected_with_dark_starts_and_lit_stairs() -> void:
 				cut_off.append(Grid.at(i))
 		assert_eq(cut_off, [], "seed %d tiles" % seed_value)
 		assert_true(w.lit(w.stairs), "seed %d" % seed_value)
-		var guards := w.sites.filter(func(s): return s.kind in [&"yard", &"creak"]).size()
-		assert_eq(w.actors.size() - 1, FloorGen.PLAN[1].size() + guards)
+		var guards := w.sites.filter(func(s): return s.kind == &"yard").size()
+		var fixed := w.actors.slice(1).filter(func(a): return not Bestiary.bands(a.kind))
+		assert_eq(fixed.size(), Roster.fixed(w).size() + guards, "seed %d" % seed_value)
 		for a in w.actors.slice(1):
 			assert_gt(Grid.cheb(a.pos, w.start), 3, "seed %d" % seed_value)
 	for t in features:

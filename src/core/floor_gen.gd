@@ -23,7 +23,8 @@ extends RefCounted
 ## move stand by lanterns. The creatures that walk come in bands (`bands`): those
 ## of one group stand together in one room, and follow the strongest of them.
 
-## The creatures of each storey; a boss only comes to the last storey.
+## The creatures of each storey; a boss only comes to the last storey. Those that come in no
+## band stand as listed; those that do are drawn by the rows (Roster).
 const PLAN := {
 	1:
 	[
@@ -297,7 +298,7 @@ static func _build(
 	var set_room := SetRooms.build(w, home, goal)
 	if plan.has("maze"):
 		Labyrinth.furnish(w, plan)
-	_creatures(w)
+	_creatures(w, element)
 	if plan.has("maze"):
 		Labyrinth.settle(w, plan)
 	Jars.fill(w)
@@ -848,12 +849,10 @@ static func bands(kinds: Array, rank := 1) -> Array:
 
 ## Standing watchers and bosses where they belong, then each band: its leader
 ## anywhere, its followers round it in the same room (alone where none fits).
-static func _creatures(w: World) -> void:
-	var roster := _roster(w)
-	for kind in roster:
-		if not Bestiary.bands(kind):
-			_place(w, kind)
-	for band in bands(roster, Bestiary.rank(w.depth)):
+static func _creatures(w: World, element: StringName) -> void:
+	for kind in Roster.fixed(w):
+		_place(w, kind)
+	for band in bands(Roster.drawn(w, element), Bestiary.rank(w.depth)):
 		var lead := _place(w, band[0])
 		for kind in band.slice(1):
 			var spot := Vector2i(-1, -1)
@@ -864,19 +863,6 @@ static func _creatures(w: World) -> void:
 			else:
 				var a := _arrive(w, kind, spot)
 				a.ties.leader = lead.id
-
-
-## Who lives on the storey: PLAN's, or every other one of them beside a maze, which leaves half
-## the rooms to live in.
-static func _roster(w: World) -> Array:
-	var all: Array = PLAN[w.depth]
-	if Labyrinth.site(w).is_empty():
-		return all
-	var out := []
-	for i in all.size():
-		if i % 2 == 0 or Bestiary.info(all[i]).get("boss", false):
-			out.append(all[i])
-	return out
 
 
 ## A creature of `kind` where it belongs, or null when there is no room (or a boss
