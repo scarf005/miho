@@ -11,7 +11,7 @@ extends RefCounted
 
 const PATH := "user://save.cfg"
 ## Bumped when a change to the rules would make old actions play differently.
-const VERSION := 105
+const VERSION := 106
 ## What the file of states adds to `path`.
 const STATES := ".state"
 ## Actions between two states; a new storey writes one too.
