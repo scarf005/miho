@@ -236,7 +236,7 @@ func test_the_log_page_follows_a_language_chosen_in_the_same_menu() -> void:
 	m.panels.input(right)
 	assert_eq(m.settings.language, "en")
 	m.menu.page = &"log"
-	assert_eq(Messages.plain(m.menu.panel().rows[0]), "Climbed to Floor 2")
+	assert_string_ends_with(Messages.plain(m.menu.panel().rows[0]), "Climbed to Floor 2")
 
 
 func test_the_log_and_the_hover_call_the_player_you() -> void:

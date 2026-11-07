@@ -124,7 +124,7 @@ func _translated() -> void:
 		Banner.show(self)
 	if world != null:
 		show_log()
-		menu.log_rows = messages.lines.map(Messages.shown)
+		menu.log_rows = Menu.log_of(messages.lines)
 		refresh()
 
 
@@ -572,14 +572,14 @@ func copy_seed() -> void:
 
 ## Says `text` in the log.
 func say(text: Variant) -> void:
-	messages.add_text(text, world.round_no)
+	messages.add_text(text, world.round_no, world.rounds)
 	show_log()
 
 
 ## The last few lines over the map, older ones dimmer, gone after LOG_FADE rounds.
 func show_log() -> void:
 	var recent := messages.lines.slice(-LOG_ROWS).filter(
-		func(l): return world.round_no - l.round <= LOG_FADE
+		func(l): return world.rounds - Messages.turn(l) <= LOG_FADE
 	)
 	term.log_lines = []
 	for k in recent.size():
