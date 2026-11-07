@@ -1,7 +1,8 @@
 extends GutTest
 ## 최면 sprays a line and puts the first creature it reaches to sleep, with the
-## sleep every creature has (Actor.asleep): noise or a wound wakes it, and a
-## creature that never sleeps is left as it was.
+## sleep every creature has (Actor.asleep): noise or a wound wakes it. A patrol
+## sleeps where it is hit, and a creature that never sleeps is left as it was,
+## the log telling it.
 
 const E := Vector2i(1, 0)
 const ME := Vector2i(4, 8)
@@ -99,15 +100,64 @@ func test_a_wound_wakes_it() -> void:
 
 
 func test_a_creature_that_never_sleeps_stays_awake_and_still_stops_the_line() -> void:
-	for kind in [&"dokkaebi", &"cheonha", &"saja"]:
+	for kind in [&"mulgwisin", &"cheonha", &"saja"]:
 		var w := _world()
+		w.tiles[Grid.index(ME + E * 2)] = World.POND
 		var first := _hunter(w, kind, ME + E * 2)
 		var second := _hunter(w, &"imugi", ME + E * 4)
+		var before := w.clone()
 		var events := w.act(_cast())
 		assert_false(first.asleep(), kind)
 		assert_eq(first.hp, first.max_hp, kind)
 		assert_eq(events.filter(func(e): return e.t == &"sleep").size(), 0, kind)
 		assert_false(second.asleep(), "%s stops the line" % kind)
+		var told := events.filter(func(e): return e.t == &"sleepless")
+		assert_eq(told.map(func(e): return e.id), [first.id], kind)
+		assert_ne(Sfx.sound_of(told[0]), &"", kind)
+		var lines := Messages.of(before, w, events).map(func(l): return Messages.plain(l))
+		var name: String = Bestiary.info(kind).name
+		assert_has(lines, "%s%s 잠들지 않았다" % [name, "는" if kind == &"saja" else "은"], kind)
+
+
+func test_a_patrol_falls_asleep_where_it_is_hit_and_stays_there() -> void:
+	for kind in [&"bitjaru", &"dokkaebi", &"bakjwi"]:
+		var w := _world()
+		var foe := _hunter(w, kind, ME + E * 3)
+		var events := w.act(_cast())
+		assert_eq(events.filter(func(e): return e.t == &"sleep").size(), 1, kind)
+		var at := foe.pos
+		for i in 6:
+			w.act(WAIT)
+			assert_true(foe.asleep(), kind)
+			assert_eq(foe.pos, at, "%s does not patrol or track" % kind)
+		assert_false(w.sees(foe, ME), kind)
+		assert_eq(Info.state(foe), "자는 중", kind)
+
+
+func test_a_follower_put_to_sleep_does_not_follow_its_leader() -> void:
+	var w := _world()
+	var lead := FloorGen.spawn(w, &"dokkaebi", Vector2i(Grid.W - 4, Grid.H - 3))
+	lead.brain.post = Vector2i(Grid.W - 4, 2)
+	var foe := _hunter(w, &"dokkaebi", ME + E * 3)
+	foe.ties.leader = lead.id
+	w.act(_cast())
+	var at := foe.pos
+	for i in 6:
+		w.act(WAIT)
+	assert_ne(lead.pos, Vector2i(Grid.W - 4, Grid.H - 3), "the leader walks on")
+	assert_eq(foe.pos, at)
+	assert_true(foe.asleep())
+
+
+func test_a_woken_patrol_is_awake_when_it_rests_again() -> void:
+	var w := _world()
+	var foe := _hunter(w, &"dokkaebi", ME + E * 3)
+	w.act(_cast())
+	Hearing.noise(w, ME + Vector2i(3, 3), Compounds.BOOM, "쾅", true, 0)
+	assert_false(foe.asleep())
+	assert_eq(foe.brain.alert, Actor.SEARCH)
+	foe.brain.alert = Actor.REST
+	assert_false(foe.asleep(), "it patrols again")
 
 
 func test_the_log_tells_who_fell_asleep() -> void:

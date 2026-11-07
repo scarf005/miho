@@ -189,8 +189,10 @@ func test_the_immunities_of_a_creature_are_one_line_each_word_in_its_own_colour(
 		&"bulgae": ["면역: 쇠"],
 		&"haetae": ["면역: 불"],
 		&"bulgasari": ["면역: 불 없는 주문"],
-		&"jangseung": ["면역: 소음"],
+		&"jangseung": ["면역: 소음, 최면"],
+		&"saja": ["면역: 최면"],
 		&"dokkaebi": [],
+		&"imugi": [],
 	}
 	for kind: StringName in told:
 		var lines := Info.plain(Info.creature(w, FloorGen.spawn(w, kind, at))).split("\n")

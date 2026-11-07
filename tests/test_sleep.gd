@@ -1,6 +1,6 @@
 extends GutTest
 ## A resting creature at its home is asleep: it sees nothing, even next to it.
-## Noise or a wound wakes it. A patrol never sleeps.
+## Noise or a wound wakes it. A patrol sleeps only where 최면 puts it to sleep.
 
 const E := Vector2i(1, 0)
 const WAIT := {t = &"wait"}
