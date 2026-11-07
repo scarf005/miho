@@ -3229,7 +3229,7 @@ msgid "%d단계"
 msgstr "Step %d"
 
 msgid "이동"
-msgstr "Moving"
+msgstr "Move"
 
 msgid "도감 예시 고르기"
 msgstr "Pick an example in the codex"
@@ -3566,3 +3566,15 @@ msgstr "cough"
 
 msgid "{0}을/를 구했다"
 msgstr "Saved {0}"
+
+msgid "화면"
+msgstr "Screens"
+
+msgid "마우스"
+msgstr "Mouse"
+
+msgid "저장 주문"
+msgstr "Saved spells"
+
+msgid "게임"
+msgstr "Game"

@@ -17,7 +17,38 @@ extends RefCounted
 ## buff on the selected row), or nothing. The debug commands are the one page that is a
 ## box over the game: from the options it has no page to go back to, so Esc closes it.
 
-const VALUE_COL := 18.0
+## The groups of the help page under the moves: a title and its actions.
+const HELP := [
+	[
+		"주문",
+		[&"pick_1", &"confirm", &"self", &"again", &"unpick", &"slot_1", &"spellbook", &"dispel"],
+	],
+	[
+		"탐험",
+		[
+			&"wait",
+			&"rest",
+			&"explore",
+			&"fight",
+			&"stairs",
+			&"close",
+			&"look",
+			&"describe",
+			&"exclude",
+			&"exclude_clear",
+			&"scent",
+		],
+	],
+	["화면", [&"help", &"codex", &"log", &"cancel"]],
+	["게임", [&"restart", &"regenerate", &"debug", &"cheat"]],
+]
+## What the throw key does besides throwing, in the words of the hover's key hints
+## (LookMode.hints), before the action's name on its line of the help page.
+const ALSO := {&"confirm": ["이동", "공격"]}
+## Cells the lines of a group of the help page stand in from its title.
+const INDENT := 1.0
+## The first of a run of actions that share one line of the help page, and the line's name.
+const SHARED := {&"pick_1": "부적 고르기", &"slot_1": "저장 주문"}
 ## Cells between the longest name of a list and the values beside the names.
 const GAP := 2.0
 const MOUSE := [
@@ -192,7 +223,7 @@ func _enter(p: StringName) -> void:
 
 ## What the page shows, as a Term.panel.
 func panel() -> Dictionary:
-	var out := {title = Lang.t("도움말"), rows = _help(), words = true, bar = false}
+	var out := {}
 	match page:
 		&"options":
 			var listed := _listed()
@@ -231,6 +262,8 @@ func panel() -> Dictionary:
 			return codex.panel()
 		&"cheat":
 			return debug.panel()
+		_:
+			out = {title = Lang.t("도움말"), rows = _help(), words = true, bar = false}
 	out.merge({selected = selected, top = top, hover = hovered, bar = true})
 	return out
 
@@ -675,24 +708,136 @@ func _keys() -> Array:
 	return rows
 
 
-## Every action with its keys; the talismans share a row.
-static func _help() -> Array:
-	var rows := []
-	for action in Keys.ACTIONS:
-		if action.begins_with("pick_") and action != &"pick_1":
-			continue
-		var name: String = Lang.t(Keys.ACTIONS[action][0])
-		var keys := Keys.keys_of(action).map(Keys.label)
-		var sep := ", "
-		if action == &"pick_1":
-			sep = " "
-			name = Lang.t("부적 고르기")
-			keys = []
-			for i in range(1, Cards.ALL.size() + 1):
-				keys.append("/".join(Keys.keys_of(StringName("pick_%d" % i)).map(Keys.label)))
-		rows.append([[name, Palette.TEXT], [sep.join(keys), Palette.SIDE[0], VALUE_COL]])
+## Every action with its keys, in groups under a title, side by side in two columns
+## when the screen is wide enough (DCSS _add_formatted_keyhelp).
+func _help() -> Array:
+	var groups := [_moves()]
+	for group: Array in HELP:
+		groups.append(_titled(group[0], _named(group[1].map(_help_row))))
+	var mouse := MOUSE.map(
+		func(m): return [[Lang.t(m[0]), Palette.TEXT], [Lang.t(m[1]), Palette.DIM]]
+	)
+	var mice := _titled("마우스", _named(mouse))
 	var look: String = Lang.t(LOOK[1]) % [LOOK_FAR, Exclusions.MAX_RADIUS]
-	rows.append([[Lang.t(LOOK[0]), Palette.TEXT], [look, Palette.DIM, VALUE_COL]])
-	for m in MOUSE:
-		rows.append([[Lang.t(m[0]), Palette.TEXT], [Lang.t(m[1]), Palette.DIM, VALUE_COL]])
+	var lines := Keywords.rows_of([[look, Palette.DIM]], _width(groups + [mice]) - INDENT)
+	groups.append(_titled(LOOK[0], lines.map(func(l): return [l[0] + [0.0]] + l.slice(1))))
+	groups.append(mice)
+	# The two columns that fit the screen with the fewest rows; one column if none do.
+	var count := func(gs: Array) -> int: return gs.reduce(func(n, g): return n + g.size(), 0)
+	var best := [groups.size(), 0.0, INF]
+	for k in range(1, groups.size()):
+		var right := 2.0 + _width(groups.slice(0, k)) + GAP * 2
+		var rows: int = maxi(count.call(groups.slice(0, k)), count.call(groups.slice(k)))
+		if right + _width(groups.slice(k)) <= room.x and rows < best[2]:
+			best = [k, right, rows]
+	return _beside(groups.slice(0, best[0]), groups.slice(best[0]), best[1])
+
+
+## The cells the widest line of the groups `groups` takes.
+static func _width(groups: Array) -> float:
+	var lines: Array = groups.reduce(func(all, g): return all + g, [])
+	return lines.reduce(func(n, line): return maxf(n, PanelView.end(line, 0.0)), 0.0)
+
+
+## The rows of the groups `left`, and beside them from column `right` the groups `right`.
+static func _beside(left: Array, right: Array, at: float) -> Array:
+	var one := func(gs: Array) -> Array: return gs.reduce(func(all, g): return all + g, [])
+	var a: Array = one.call(left)
+	var b: Array = one.call(right)
+	var rows := []
+	for k in maxi(a.size(), b.size()):
+		var row := _shifted(a[k], 2.0) if k < a.size() else []
+		rows.append(row + (_shifted(b[k], at) if k < b.size() else []))
 	return rows
+
+
+## A line whose runs have their columns moved `by` cells.
+static func _shifted(line: Array, by: float) -> Array:
+	return line.map(func(run): return run.map(func(v): return v + by if v is float else v))
+
+
+## A group of the help page: its title over its lines.
+static func _titled(title: String, lines: Array) -> Array:
+	var title_line := [[Lang.t(title), Palette.KIND[&"miho"], 0.0]]
+	return [title_line] + lines.map(func(line): return _shifted(line, INDENT))
+
+
+## Lines of a name and a value, the names at column 0 and the values lined up a GAP past
+## the longest name.
+static func _named(lines: Array) -> Array:
+	for line: Array in lines:
+		line[0].append(0.0)
+	return _aligned(lines)
+
+
+## An action as a line of the help page: its name and its keys. The talismans and the saved
+## spells share one line each.
+static func _help_row(action: StringName) -> Array:
+	var name: String = " · ".join(
+		(ALSO.get(action, []) + [Keys.ACTIONS[action][0]]).map(func(w): return Lang.t(w))
+	)
+	var keys := ", ".join(Keys.keys_of(action).map(Keys.label))
+	if action in SHARED:
+		name = Lang.t(SHARED[action])
+		var all: Array = Keys.SLOTS
+		if action == &"pick_1":
+			all = range(1, Cards.ALL.size() + 1).map(func(i): return StringName("pick_%d" % i))
+		keys = " ".join(all.map(func(a): return "/".join(Keys.keys_of(a).map(Keys.label))))
+	return [[name, Palette.TEXT], [keys, Palette.SIDE[0]]]
+
+
+## The move keys as a square for each set of them (the keypad, the arrows, the others), the
+## wait key of the set in the middle and the name the set's keys share over it.
+static func _moves() -> Array:
+	var sets := {}
+	for action in Keys.MOVES.keys() + [&"wait"]:
+		var dir: Vector2i = Keys.MOVES.get(action, Vector2i.ZERO)
+		for key in Keys.keys_of(action):
+			var kind := _key_set(key)
+			if action != &"wait":
+				sets.get_or_add(kind, {})
+			if sets.has(kind) and not sets[kind].has(dir):
+				sets[kind][dir] = key
+	var lines := [[], [], [], []]
+	var x := 0.0
+	for keys: Dictionary in sets.values():
+		var labels := {}
+		for dir in keys:
+			labels[dir] = _glyph(keys[dir])
+		var shared := _prefix(labels.values())
+		var widths := [0.0, 0.0, 0.0]
+		for dir in labels:
+			labels[dir] = labels[dir].trim_prefix(shared)
+			widths[dir.x + 1] = maxf(widths[dir.x + 1], Term.text_cells(labels[dir]))
+		if shared != "":
+			lines[0].append([shared.strip_edges(), Palette.DIM, x])
+		for dir in labels:
+			var at: float = x + widths.slice(0, dir.x + 1).reduce(func(n, w): return n + w, 0.0)
+			at += dir.x + 1 + (widths[dir.x + 1] - Term.text_cells(labels[dir])) / 2.0
+			lines[dir.y + 2].append([labels[dir], Palette.SIDE[0], at])
+		x += widths.reduce(func(n, w): return n + w, 0.0) + 2.0 + GAP * 2
+	return _titled("이동", lines if lines[0] else lines.slice(1))
+
+
+## Which set a key belongs to: the keypad, the arrows or the others.
+static func _key_set(key: String) -> StringName:
+	var code := OS.find_keycode_from_string(key)
+	if key.begins_with("Kp "):
+		return &"pad"
+	return &"arrows" if code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT] else &"other"
+
+
+## A key as one character where it is one with no modifier, such as the full stop, else its
+## label.
+static func _glyph(key: String) -> String:
+	var code := OS.find_keycode_from_string(key)
+	return char(code) if code > 32 and code < 127 else Keys.label(key)
+
+
+## The words every label starts with, up to the last space they share.
+static func _prefix(labels: Array) -> String:
+	var out: String = labels[0]
+	for l: String in labels:
+		while not l.begins_with(out):
+			out = out.left(-1)
+	return out.left(out.rfind(" ") + 1)

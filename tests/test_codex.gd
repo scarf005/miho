@@ -247,7 +247,8 @@ func test_the_codex_key_is_slash_and_help_keeps_shift_slash() -> void:
 	var help := Menu.new()
 	help.open(&"help")
 	var rows: Array = help.panel().rows
-	assert_true(rows.any(func(r): return r[0][0] == "도감" and r[1][0] == "/"))
+	var text := "\n".join(rows.map(func(r): return " ".join(r.map(func(run): return run[0]))))
+	assert_string_contains(text, "도감 /")
 
 
 func test_esc_and_the_codex_key_close_it() -> void:
