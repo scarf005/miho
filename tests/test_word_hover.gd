@@ -76,7 +76,7 @@ func test_the_log_over_the_map_gives_the_entry_of_a_word_in_it() -> void:
 
 func test_every_tag_of_a_creature_has_an_entry_in_the_glossary() -> void:
 	for kind in Codex.foes():
-		for tag: String in Info._traits(Codex.foe(kind), Bestiary.elements(kind)):
+		for tag: String in Info._trait_words(Codex.foe(kind), Bestiary.elements(kind)):
 			if not tag.contains(": "):
 				assert_true(Glossary.rows().has(tag), "%s: %s" % [kind, tag])
 

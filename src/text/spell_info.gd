@@ -318,7 +318,7 @@ static func returns(a: Actor, w: World) -> Array:
 	var first := w == null or (a.id == w.first_reaper and w.depth < World.FLOORS)
 	var out := [Lang.t("재등장: %d초 뒤") % World.REAPER_AGAIN, Lang.t("재등장 간격: 매번 절반")]
 	return (
-		out.slice(0, 2 if w == null else 1).map(func(l): return [[l, Palette.DIM]])
+		out.slice(0, 2 if w == null else 1).map(Info.labelled)
 		if a.kind == &"saja" and first
 		else []
 	)

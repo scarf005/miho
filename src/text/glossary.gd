@@ -13,6 +13,14 @@ static func _scent_erasers() -> Array:
 	)
 
 
+## A term as the 도감 tells it: the tag, then its rules.
+static func facts(term: String) -> Array:
+	return (
+		[[[Lang.t(term) + ".", Palette.TEXT]]]
+		+ rows()[term].map(func(r): return [[Lang.t(r), Palette.DIM]])
+	)
+
+
 static func rows() -> Dictionary:
 	var spread := roundi(Tiles.DEFAULT.spread * 100)
 	var burn := Lang.t("불타는 시간: %d초") % World.BURN_ROUNDS

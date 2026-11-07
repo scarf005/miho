@@ -274,7 +274,7 @@ static func _terrain_entries() -> Array[Dictionary]:
 			var tile := func(w: World): w.set_tile(AT, t)
 			var glyph: Array = Palette.TILES[t]
 			out.append(_feature(glyph[0], glyph[1], Tiles.of(t, "name"), tile, t))
-			var kept := func(): return Info.jar_facts() if t == World.JAR else []
+			var kept := func(): return TileActs.jar() if t == World.JAR else []
 			out.back().lines = func(): return _ground(tile) + kept.call() + TileActs.lines(t)
 	out.append_array(_extras())
 	return out
@@ -296,7 +296,7 @@ static func _status_entries() -> Array[Dictionary]:
 static func _term_entries() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for term: String in Glossary.rows():
-		out.append(_entry("·", Palette.TEXT, term, Info.term_facts.bind(term)))
+		out.append(_entry("·", Palette.TEXT, term, Glossary.facts.bind(term)))
 	return out
 
 

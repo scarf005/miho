@@ -72,7 +72,11 @@ static func _fit(rows: Array, room: Vector2, least: float, extra := Vector2.ZERO
 		return {}
 	var columns := []
 	for i in range(4, found.size(), 3):
-		columns.append([found[i], rows.slice(int(found[i + 1]), int(found[i + 2]))])
+		var lines := rows.slice(int(found[i + 1]), int(found[i + 2]))
+		# The blank row between two groups of a hover never starts a column.
+		while not columns.is_empty() and not lines.is_empty() and lines[0].is_empty():
+			lines.pop_front()
+		columns.append([found[i], lines])
 	var fit := {scale = found[0], cells = Vector2(found[1], found[2]), columns = columns}
 	if extra != Vector2.ZERO:
 		fit.example = Vector2(found[3], 0.5)
