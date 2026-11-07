@@ -137,15 +137,11 @@ func direction(d: Vector2i, hold: bool) -> void:
 			m.move(d)
 		return
 	var spell := Spell.make(picked)
-	var why := Guise.why(m.world.player(), spell, d)
+	var why := _why(spell, d)
 	if why != "":
 		_refuse(why)
 		return
-	if Elixir.barred(m.world, spell, d):
-		_refuse(Elixir.BARRED_WHY)
-		return
-	var spells := staged.duplicate()
-	spells.append({cards = picked.duplicate(), dir = d})
+	var spells := _with(d)
 	if not m.world.can({t = &"cast", spells = spells}):
 		if spell.shape == Spell.LEAP:
 			m.say("착지할 곳이 없다")
@@ -157,6 +153,25 @@ func direction(d: Vector2i, hold: bool) -> void:
 		m.forecast()
 		return
 	m.act({t = &"cast", spells = spells})
+
+
+## Whether the queue leaves in direction `d` now (Vector2i.ZERO on Miho), as `direction` casts it.
+func fits(d: Vector2i) -> bool:
+	var spell := Spell.make(picked)
+	return spell != null and _why(spell, d) == "" and m.world.can({t = &"cast", spells = _with(d)})
+
+
+## Why `spell` does not go in direction `d`, or empty.
+func _why(spell: Spell, d: Vector2i) -> String:
+	var why := Guise.why(m.world.player(), spell, d)
+	return Elixir.BARRED_WHY if why == "" and Elixir.barred(m.world, spell, d) else why
+
+
+## The spells held with Shift and the queue hurled in direction `d`.
+func _with(d: Vector2i) -> Array[Dictionary]:
+	var spells := staged.duplicate()
+	spells.append({cards = picked.duplicate(), dir = d})
+	return spells
 
 
 ## The refusal when a spell needs more tails than Miho has.

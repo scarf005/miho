@@ -1053,6 +1053,9 @@ msgstr "Saved spell 6"
 msgid "주문 하나 빼기"
 msgstr "Take back one"
 
+msgid "하나 빼기"
+msgstr "Take back one"
+
 msgid "취소 / 설정"
 msgstr "Cancel / Settings"
 
