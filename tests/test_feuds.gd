@@ -1,5 +1,5 @@
 extends GutTest
-## Groups and infighting: a creature of heaven struck by another group's spell
+## Groups and infighting: a creature of heaven hurt by another group's spell
 ## or blow fights the one that struck it for Mind.GRUDGE_ROUNDS, in place of
 ## Miho; one of its own group only makes it wary.
 
@@ -93,6 +93,29 @@ func test_a_wisp_that_does_no_harm_starts_no_fight() -> void:
 	assert_false(events.any(func(e): return e.t == &"feud"))
 
 
+func test_a_fused_lava_burst_that_sears_starts_a_fight() -> void:
+	var w := _world()
+	var caster := _creature(w, &"imugi", Vector2i(14, 8))
+	var victim := _creature(w, &"dokkaebi", Vector2i(9, 8))
+	victim.hp = 9
+	var s := Flight.spawn(w, caster, Spell.make([Cards.ORB, Cards.FIRE, Cards.EARTH]), W, 0)
+	s.fused = true
+	Compounds.land(w, s, victim.pos + Vector2i(1, 0))
+	assert_true(w.events.any(func(e): return e.t == &"sear" and e.id == victim.id))
+	assert_eq(victim.ties.rival, caster.id)
+
+
+func test_a_spray_that_sets_a_creature_alight_starts_a_fight() -> void:
+	var w := _world()
+	var caster := _creature(w, &"imugi", Vector2i(12, 8))
+	var victim := _creature(w, &"dokkaebi", Vector2i(10, 8))
+	victim.hp = 9
+	Cast.cast(w, caster, Spell.make([Cards.FIRE, Cards.FIRE, Cards.FIRE]), W)
+	assert_gt(victim.ailments.alight, 0)
+	assert_eq(victim.hp, 9, "no harm yet, only fire")
+	assert_eq(victim.ties.rival, caster.id)
+
+
 func test_one_of_its_own_group_hurts_it_but_starts_no_fight() -> void:
 	for kinds in [[&"imugi", &"imugi"], [&"imugi", &"cheonnyeon"]]:
 		var w := _world()
@@ -181,6 +204,19 @@ func test_harm_from_miho_ends_the_fight() -> void:
 	w.act({t = &"move", dir = Vector2i(1, 0)})
 	assert_eq(fighter.ties.rival, 0)
 	assert_eq(fighter.brain.alert, Actor.HUNT)
+
+
+func test_a_spell_of_miho_s_that_does_no_harm_leaves_the_fight() -> void:
+	var w := _world()
+	w.cards.assign(Cards.ALL)
+	var fighter := _creature(w, &"dokkaebi", ME + Vector2i(1, 0))
+	var rival := _creature(w, &"jangseung", Vector2i(26, 8))
+	_provoke(w, fighter, rival)
+	fighter.hp = 9
+	var events := w.act({t = &"cast", spells = [{cards = [Cards.EARTH], dir = Vector2i(1, 0)}]})
+	assert_true(events.any(func(e): return e.t == &"stun" and e.id == fighter.id))
+	assert_eq(fighter.hp, 9)
+	assert_eq(fighter.ties.rival, rival.id)
 
 
 func test_a_fighter_that_loses_its_rival_searches_where_it_saw_it_last() -> void:

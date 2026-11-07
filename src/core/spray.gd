@@ -173,7 +173,7 @@ static func cast(w: World, caster: Actor, spell: Spell, dir: Vector2i) -> void:
 			for a in rooted(w, caster, level):
 				if reaches(w, s, a):
 					Elements.root(w, a, LONE[Cards.WOOD].rounds[level - 1])
-					Mind.struck(w, a, s)
+					Mind.struck(w, a, s, false)
 
 
 ## A spray of `s` running from `from` to `to`, `to` included, for what goes on from where
@@ -542,9 +542,10 @@ static func _fire(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void
 		return
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
+			var was := Harm.mark(a)
 			if not Guise.through(w, s, a):
 				Status.ignite(w, a, true)
-			Mind.struck(w, a, s)
+			Mind.struck(w, a, s, Harm.since(a, was))
 
 
 ## The farthest creature is pushed first, so the ones behind it have room.
@@ -555,9 +556,10 @@ static func _water(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> voi
 	foes.reverse()
 	for a in foes:
 		if reaches(w, s, a):
+			var was := Harm.mark(a)
 			w.push(a, s.dir, LONE[Cards.WATER].push[level - 1])
 			if a.alive():
-				Mind.struck(w, a, s)
+				Mind.struck(w, a, s, Harm.since(a, was))
 
 
 static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
@@ -565,16 +567,17 @@ static func _gun(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	w._changed()
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
+			var was := Harm.mark(a)
 			Elements.harm(w, s, a, LONE[Cards.METAL].harm[level - 1])
 			if a.alive():
-				Mind.struck(w, a, s)
+				Mind.struck(w, a, s, Harm.since(a, was))
 
 
 static func _quake(w: World, s: Shot, tiles: Array[Vector2i], level: int) -> void:
 	for a in on(w, s, tiles):
 		if reaches(w, s, a):
 			Elements.stun(w, a, LONE[Cards.EARTH].stun[level - 1])
-			Mind.struck(w, a, s)
+			Mind.struck(w, a, s, false)
 	for p in tiles:
 		var t := w.tile(p)
 		var falls := t == World.WALL_CRACKED and level >= FELL_LEVEL

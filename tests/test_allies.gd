@@ -316,7 +316,7 @@ func test_a_shot_of_an_ally_turns_a_foe_on_the_ally_and_not_on_miho() -> void:
 	s.caster = copy.id
 	s.faction = Actor.FOX
 	s.origin = copy.pos
-	Mind.struck(w, foe, s)
+	Mind.struck(w, foe, s, true)
 	assert_eq(foe.ties.rival, copy.id)
 	assert_ne(foe.brain.alert, Actor.HUNT)
 

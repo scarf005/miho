@@ -3,7 +3,7 @@ extends RefCounted
 ## What the creatures of heaven do each round: look, then rest, search the spot
 ## they heard or saw something at, or hunt Miho. All functions act on a World.
 ##
-## Infighting (DCSS behaviour_event ME_WHACK): a creature struck by a spell or
+## Infighting (DCSS behaviour_event ME_WHACK): a creature hurt by a spell or
 ## blow of a creature of another group (Bestiary.GROUPS) fights it for
 ## GRUDGE_ROUNDS, renewed by each new blow, in place of whatever else it does:
 ## it strikes, charges at or walks to its rival while it sees it, and walks to
@@ -300,13 +300,15 @@ static func _truce(w: World, a: Actor) -> void:
 		_look(a, a.ties.rival_at)
 
 
-## A projectile struck `a`. One of Miho's shows it where she stands, so it hunts
-## her from her tile (the projectile's origin when she is gone), whatever its
-## wits. One of heaven makes it wary, and one of another group, or of an ally of
-## hers, makes it fight the caster (`provoke`), even one fallen since.
-static func struck(w: World, a: Actor, s: Shot) -> void:
+## A projectile struck `a`, and `hurt` it or not (Harm.since). One of Miho's shows it where she
+## stands, so it hunts her from her tile (the projectile's origin when she is gone),
+## whatever its wits. One of heaven makes it wary, and one that hurt it, of another
+## group or of an ally of hers, makes it fight the caster (`provoke`), even one
+## fallen since.
+static func struck(w: World, a: Actor, s: Shot, hurt: bool) -> void:
 	var caster := w.actor(s.caster)
-	provoke(w, a, caster)
+	if hurt:
+		provoke(w, a, caster)
 	if a.faction != Actor.HEAVEN or not a.alive() or s.faction == a.faction:
 		return
 	if caster != null and caster.is_miho():

@@ -25,6 +25,17 @@ static func claw_loud(me: Actor, sneak: bool) -> int:
 	return Guise.TALON_LOUD if me.buffs.talon else (1 if sneak else 3)
 
 
+## What harm `a` bears now, for `since`: its health and the rounds it burns.
+static func mark(a: Actor) -> Vector2i:
+	return Vector2i(a.hp, a.ailments.alight)
+
+
+## Whether `a` took harm since `was` (`mark`): it lost health, or caught fire, which
+## harms it every round.
+static func since(a: Actor, was: Vector2i) -> bool:
+	return a.hp < was.x or was.y <= 0 and a.ailments.alight > 0
+
+
 static func claw(w: World, me: Actor, foe: Actor) -> void:
 	var sneak := caught_unawares(w, foe)
 	var n := claw_harm(me, sneak, foe)
