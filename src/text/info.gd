@@ -77,47 +77,6 @@ const CONDITIONS := {
 const SUSPECTS := "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
 
 
-## The lines a jar's entry adds in the 도감: each thing it can hold with its chance
-## (Jars.chances) and what it does. The hover over a jar does not tell them.
-static func jar_facts() -> Array:
-	var curses: Array = Curse.NAME.values().map(func(n): return Lang.t(n))
-	var does := {
-		&"empty": "",
-		&"water":
-		(
-			Lang.t(", 주위 %d칸 %s, 불과 냄새 지움")
-			% [Grid.DIRS.size(), Lang.t(Tiles.of(World.SHALLOW, "name"))]
-		),
-		Jars.KIMCHI: Lang.t(", 체력 +%d") % World.HEAL,
-		&"effigy": Lang.t(", 무작위 저주: %s") % ", ".join(curses),
-		&"scarecrow": Lang.t(", 보는 적이 이 칸 수색"),
-		&"salt": Lang.t(", 냄새 지움"),
-		&"beans": Lang.t(", 주위 %d칸 적 기절 %d초") % [Grid.DIRS.size(), Jars.BEANS_STUN],
-		&"coals":
-		(
-			Lang.t(", 이 칸과 옆 %d칸 %s")
-			% [Placement.SIDES.size(), Lang.t(Compounds.HOT[Compounds.LAVA].name)]
-		),
-	}
-	var chances := Jars.chances()
-	var out := []
-	for k in Jars.ROWS.size():
-		var row: Dictionary = Jars.ROWS[k]
-		out.append(
-			[[Lang.t("%s: %d%%%s") % [Lang.t(row.name), chances[k], does[row.id]], Palette.DIM]]
-		)
-	return out
-
-
-## A glossary term as the 도감 tells it: the tag, then its rules.
-static func term_facts(term: String) -> Array:
-	var rules: Array = Glossary.rows()[term]
-	return (
-		[[[Lang.t(term) + ".", Palette.TEXT]]]
-		+ rules.map(func(r): return [[Lang.t(r), Palette.DIM]])
-	)
-
-
 ## A status (Status), by its key, as the 도감 tells it: name, time, what it does.
 static func status_facts(key: StringName) -> Array:
 	var time := {&"wet": Status.WET, &"alight": Status.ALIGHT, &"frozen": Compounds.FROST}
@@ -188,21 +147,38 @@ static func shot_at(w: World, p: Vector2i) -> Shot:
 	return w.shot_at(p)
 
 
-## A creature as the hover tells it: what it is, how it stands now (state,
-## conditions, sight, the harm a claw does it now), then what it strikes and
-## casts with. The sister, who does nothing, has her name, health and conditions.
+## A creature as the hover tells it, a blank row between the groups: its name and
+## health; how it stands now (state, conditions, sight, the harm a claw does it now);
+## what it strikes, casts and carries; its nature; its traits (DCSS `describe_monsters`
+## tells the state first, then a paragraph each). The sister, who does nothing, has
+## her name, health and conditions.
 static func creature(w: World, a: Actor) -> Array:
 	if a.is_miho():
 		return _miho(w, a, _head(a))
 	if a.kind == Sister.KIND:
 		return [_head(a)] + _conditions(w, a)
-	return _profile(a) + _situation(w, a) + SpellInfo.returns(a, w) + _arms(a, w.cards)
+	var now := _situation(w, a) + SpellInfo.returns(a, w)
+	return _grouped(a, now, w.cards, a.ailments.wet > 0)
 
 
-## What a creature is, whatever its state: the 도감's text. `held` are the
-## talismans Miho holds, whose drop is no news.
+## What a creature is, whatever its state: the 도감's text, in the hover's order. `held`
+## are the talismans Miho holds, whose drop is no news.
 static func creature_facts(a: Actor, held: Array) -> Array:
-	return _profile(a) + SpellInfo.returns(a, null) + _arms(a, held)
+	return _grouped(a, SpellInfo.returns(a, null), held, false)
+
+
+static func _grouped(a: Actor, now: Array, held: Array, wet: bool) -> Array:
+	var groups := [
+		[_head(a)],
+		now,
+		_arms(a, held),
+		nature(a.nature_kind(), wet, not a.sleeps()) + _eats(a),
+		_traits(a),
+	]
+	var out := []
+	for group: Array in groups.filter(func(g): return not g.is_empty()):
+		out.append_array(([[]] if not out.is_empty() else []) + group)
+	return out
 
 
 static func _head(a: Actor) -> Array:
@@ -211,11 +187,6 @@ static func _head(a: Actor) -> Array:
 	]
 	Lang.capitalize(head)
 	return head
-
-
-## Name and health, elements, weakness and immunities.
-static func _profile(a: Actor) -> Array:
-	return [_head(a)] + nature(a.nature_kind(), a.ailments.wet > 0, not a.sleeps())
 
 
 ## The elements of a creature of `kind`, what beats them and what it takes no
@@ -271,30 +242,30 @@ static func doing(w: World, a: Actor) -> String:
 static func _situation(w: World, a: Actor) -> Array:
 	var lines := []
 	if a.ally():
-		lines.append([[Lang.t(ALLY) + ".", Palette.SIDE[0]]])
+		lines.append([[Lang.t(ALLY) + ".", Palette.TEXT]])
 		if Raise.risen(a):
-			lines.append([[Lang.t("이 층에 남는다."), Palette.DIM]])
+			lines.append([[Lang.t("이 층에 남는다."), Palette.TEXT]])
 	var now := Lang.t("당신을 추격 중이다") if a.brain.alert == Actor.HUNT and not a.ally() else doing(w, a)
 	if not a.fighting():
 		lines.append([[now, Palette.ALERT[maxi(a.brain.alert, 1)]]])
-	if now == Lang.t(STATE[Actor.SEARCH]):
-		lines.append([[_search_left(a), Palette.TEXT]])
+		if now == Lang.t(STATE[Actor.SEARCH]):
+			lines.append(labelled(_search_left(a)))
 	lines.append_array(_conditions(w, a))
 	if a.fighting():
 		var rival := _name_of(w, w.actor(a.ties.rival))
-		lines.append([[Lang.t("싸우는 중: %s") % rival, Palette.ALERT[2]]])
-		lines.append([[Lang.t("  남은 시간: %d초") % a.ties.grudge, Palette.ALERT[2]]])
+		lines.append([[Lang.t("싸우는 중: %s") % rival, Palette.ALERT[maxi(a.brain.alert, 1)]]])
+		lines.append(labelled(Lang.t("  남은 시간: %d초") % a.ties.grudge))
 	if a.drumming():
-		lines.append([[Lang.t("북 치러 가는 중."), Palette.SOUND]])
+		lines.append([[Lang.t("북 치러 가는 중."), Palette.TEXT]])
 	if a.ally():
 		return lines
 	if Guise.knows(w, a):
-		lines.append([[Lang.t("당신을 볼 수 있다"), Palette.HURT]])
+		lines.append([[Lang.t("당신을 볼 수 있다"), Palette.TEXT]])
 	elif w.sees(a, w.player().pos):
 		var kind := Guise.GUISE if Guise.fools(a, w.player()) else Guise.CLOAK
-		lines.append([[Lang.t("%s한 당신을 알아볼 수 없다") % Lang.t(Guise.NAME[kind]), Palette.SIDE[0]]])
+		lines.append([[Lang.t("%s한 당신을 알아볼 수 없다") % Lang.t(Guise.NAME[kind]), Palette.TEXT]])
 	else:
-		lines.append([[Lang.t("당신을 볼 수 없다"), Palette.SIDE[0]]])
+		lines.append([[Lang.t("당신을 볼 수 없다"), Palette.TEXT]])
 	if Harm.caught_unawares(w, a):
 		lines.append(_amount("기습 피해: ", Harm.claw_harm(w.player(), true, a)))
 	return lines
@@ -305,44 +276,48 @@ static func _name_of(w: World, b: Actor) -> String:
 	return Lang.t(b.info().name if b != null and Hat.shown(w, b) else "무언가")
 
 
-## What it is like, what it strikes with, what it eats and what it leaves, then
-## the spells it casts: the list that grows longest comes last (DCSS
-## `_monster_stat_description`). Its attack and each spell are one row.
+## What it strikes with, the spells it casts and what it carries (DCSS
+## `_monster_attacks_description`, `_monster_spells_description`). Its attack and
+## each spell are one row.
 static func _arms(a: Actor, held: Array) -> Array:
 	var spec := a.info()
 	var lines := []
-	var traits := _traits(a, Bestiary.elements(a.kind))
-	var tags := traits.filter(func(t): return not t.contains(": "))
-	if not tags.is_empty():
-		lines.append(_row(tags.map(func(t): return [[t, Palette.DIM]])))
-	for t: String in traits.filter(func(t): return t.contains(": ")):
-		lines.append([[t, Palette.DIM]])
-	if not spec.get("shout", {}).is_empty():
-		lines.append([[Lang.t("말할 수 있다."), Palette.DIM]])
-	if spec.get("hat", false):
-		lines.append([[Lang.t("은신."), Palette.DIM]])
 	if spec.has("melee"):
 		lines.append(_melee(spec.melee))
-	var eats: StringName = spec.get("eats", &"")
-	if eats != &"":
-		lines.append(
-			[
-				[Lang.t("먹이: "), Palette.TEXT],
-				[Lang.t("%s 주문") % Lang.t(Cards.NAME[eats]), Palette.CARD[eats]]
-			]
-		)
-		lines.append([[Lang.t("  최대 체력: "), Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
-		lines.append([[Lang.t("  체력: "), Palette.TEXT], ["+%d" % Bestiary.GROWTH, Palette.HURT]])
+	lines.append_array(_casts(a))
 	var drop: StringName = spec.get("drop", &"")
 	if drop != &"" and not held.has(drop):
 		lines.append(
 			[
-				[Lang.t("소지품: "), Palette.TEXT],
+				[Lang.t("소지품: "), Palette.DIM],
 				[Lang.t("%s 부적") % Lang.t(Cards.NAME[drop]), Palette.CARD[drop]]
 			]
 		)
-	lines.append_array(_casts(a))
 	return lines
+
+
+## What it eats and what that gives it, told after its nature.
+static func _eats(a: Actor) -> Array:
+	var eats: StringName = a.info().get("eats", &"")
+	if eats == &"":
+		return []
+	return [
+		[
+			[Lang.t("먹이: "), Palette.DIM],
+			[Lang.t("%s 주문") % Lang.t(Cards.NAME[eats]), Palette.CARD[eats]]
+		],
+		[[Lang.t("  최대 체력: "), Palette.DIM], ["+%d" % Bestiary.GROWTH, Palette.TEXT]],
+		[[Lang.t("  체력: "), Palette.DIM], ["+%d" % Bestiary.GROWTH, Palette.TEXT]],
+	]
+
+
+## A translated `이름: 값` line as runs: the label in the one colour of labels, the
+## value in `value`.
+static func labelled(text: String, value := Palette.TEXT) -> Array:
+	var at := text.find(": ")
+	if at < 0:
+		return [[text, value]]
+	return [[text.left(at + 2), Palette.DIM], [text.substr(at + 2), value]]
 
 
 ## Parts (each a list of runs) on one row, a " · " between them.
@@ -358,7 +333,7 @@ static func _row(parts: Array) -> Array:
 ## Its attack as one row: how it strikes, then the harm, the throw and the roots
 ## it has (DCSS `_monster_attacks_description`).
 static func _melee(melee: Dictionary) -> Array:
-	var parts := [[[Lang.t("근접: %s") % Lang.t(melee.name), Palette.TEXT]]]
+	var parts := [labelled(Lang.t("근접: %s") % Lang.t(melee.name))]
 	if melee.damage > 0:
 		parts.append(SpellInfo._line("피해", str(melee.damage), Palette.HURT))
 	if melee.get("throw", 0) > 0:
@@ -406,7 +381,7 @@ static func _claws(a: Actor) -> Array:
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.
 static func _amount(before: String, n: int, after := "") -> Array:
-	var line := [[Lang.t(before), Palette.TEXT], [str(n), Palette.HURT]]
+	var line := [[Lang.t(before), Palette.DIM], [str(n), Palette.HURT]]
 	if after != "":
 		line.append([Lang.t(after), Palette.TEXT])
 	return line
@@ -423,7 +398,7 @@ static func _weakness(kind: StringName) -> Array:
 	else:
 		line.pop_back()
 	if Bestiary.info(kind).get("absorb", &"") == &"nofire":
-		line.append([Lang.t(" (불과 함께)"), Palette.DIM])
+		line.append([Lang.t(" (불과 함께)"), Palette.TEXT])
 	return line
 
 
@@ -434,14 +409,14 @@ static func _immunities(kind: StringName, wet: bool, sleepless: bool) -> Array:
 	var spec := Bestiary.info(kind)
 	var nofire: bool = spec.get("absorb", &"") == &"nofire"
 	var immune := Bestiary.immune_to(kind)
-	var words := [["불 없는 주문", Palette.DIM]] if nofire else []
+	var words := [["불 없는 주문", Palette.TEXT]] if nofire else []
 	var mixed := []
 	if not immune.is_empty():
 		var names := ", ".join(immune.map(func(c): return Lang.t(Cards.NAME[c])))
 		var shade: Color = Palette.CARD[immune[0]] if immune.size() == 1 else Palette.TEXT
 		if not nofire:
 			words.append([names, shade])
-		mixed = [[[Lang.t("내성: "), Palette.DIM]] + Lang.runs(MIXED, [[names, shade]], Palette.DIM)]
+		mixed = [[[Lang.t("내성: "), Palette.DIM]] + Lang.runs(MIXED, [[names, shade]], Palette.TEXT)]
 	if Elements.charge_of(kind) == 0 and not wet and not nofire:
 		words.append([ELECTRIC, Palette.TEXT])
 	if spec.get("deaf", false):
@@ -478,7 +453,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 		[a.brain.wary, "경계"],
 	]:
 		if c[0] > 0:
-			out.append([[Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]], Palette.TEXT]])
+			out.append(labelled(Lang.t("%s: %d초") % [Lang.t(c[1]), c[0]]))
 	for kind in [Guise.TALON, Guise.CLOAK, Guise.FLAME, Guise.RAISE, Guise.VAULT]:
 		if a.buffs.get(kind):
 			out.append([[Lang.t(Guise.NAME[kind]), Palette.TEXT]])
@@ -486,7 +461,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	if w.burning.has(a.pos) and a.ailments.alight <= 0 and not Bestiary.fireproof(a.nature_kind()):
 		var fierce := Tiles.fierce[w.tile(a.pos)] == 1
 		var fire := Lang.t("맹렬한 불" if fierce else "불")
-		out.append([[Lang.t("%s 위: %d초") % [fire, w.burning[a.pos]], Palette.TEXT]])
+		out.append(labelled(Lang.t("%s 위: %d초") % [fire, w.burning[a.pos]]))
 		out.append(_amount("  초당 피해: ", _fire_damage(fierce)))
 	if Veil.scorches(w, a.pos) and not Bestiary.fireproof(a.nature_kind()):
 		out.append(_amount("도깨비불 장막 옆 칸 초당 피해: ", World.FIRE_DAMAGE))
@@ -499,7 +474,7 @@ static func _conditions(w: World, a: Actor) -> Array:
 	if w.hot.has(a.pos) and not Compounds.spared(a):
 		var h: Vector2i = w.hot[a.pos]
 		var spec: Dictionary = Compounds.HOT[h.x]
-		out.append([[Lang.t("%s 위: %d초") % [Lang.t(spec.name), h.y], Palette.TEXT]])
+		out.append(labelled(Lang.t("%s 위: %d초") % [Lang.t(spec.name), h.y]))
 		out.append(_amount("  초당 피해: ", spec.harm))
 	out.append_array(_gas(w, a.pos))
 	return out
@@ -528,15 +503,15 @@ static func _casts(a: Actor) -> Array:
 	var own: bool = a.info().get("tails", false)
 	if has_mana:
 		var left := Lang.t("꼬리: %d/%d" if own else "마력: %d/%d")
-		out.append([[left % [a.magic.mana, Bestiary.mana(a.kind)], Palette.SIDE[0]]])
+		out.append(labelled(left % [a.magic.mana, Bestiary.mana(a.kind)]))
 		out.append([_regrows()])
 	if (a.rank >= Bestiary.DOUBLES or has_mana) and a.repertoire().size() > 1:
-		out.append([[Lang.t("동시 주술: %d개") % Aim.CASTS, Palette.TEXT]])
+		out.append(labelled(Lang.t("동시 주술: %d개") % Aim.CASTS))
 	for group: Array in _by_title(a):
 		var spell: Spell = group[0]
 		var parts: Array = [
 			[
-				[Lang.t("주문: " if own else "주술: "), Palette.TEXT],
+				[Lang.t("주문: " if own else "주술: "), Palette.DIM],
 				SpellInfo.tagged(spell.shown(), Palette.card(spell.slots.back()), group)
 			]
 		]
@@ -549,7 +524,7 @@ static func _casts(a: Actor) -> Array:
 			parts.append_array(_effects(group))
 		var keys := group.map(func(s): return s.key())
 		if a.magic.intent.any(func(plan): return Spell.make(plan.cards).key() in keys):
-			parts.append([[Lang.t("모으는 중"), Palette.HURT]])
+			parts.append([[Lang.t("모으는 중"), Palette.TEXT]])
 		elif a.magic.cooldown > 0:
 			parts.append(SpellInfo._line("다음", Lang.t("%d초 뒤") % a.magic.cooldown))
 		out.append(_row(parts))
@@ -587,7 +562,21 @@ static func _joined(values: Array) -> String:
 	return ", ".join(unique)
 
 
-static func _traits(a: Actor, elements: Array) -> Array:
+## Its traits: the tags on one row, then the `이름: 값` ones and the sentences a line each.
+static func _traits(a: Actor) -> Array:
+	var spec := a.info()
+	var traits := _trait_words(a, Bestiary.elements(a.kind))
+	var tags := traits.filter(func(t): return not t.contains(": "))
+	var lines := [] if tags.is_empty() else [_row(tags.map(func(t): return [[t, Palette.TEXT]]))]
+	lines.append_array(traits.filter(func(t): return t.contains(": ")).map(labelled))
+	if not spec.get("shout", {}).is_empty():
+		lines.append([[Lang.t("말할 수 있다."), Palette.TEXT]])
+	if spec.get("hat", false):
+		lines.append([[Lang.t("은신."), Palette.TEXT]])
+	return lines
+
+
+static func _trait_words(a: Actor, elements: Array) -> Array:
 	var spec := a.info()
 	var out := [] if a.ally() else [Lang.t(WITS[Bestiary.wits(a.kind)])]
 	if spec.get("patrol", false):

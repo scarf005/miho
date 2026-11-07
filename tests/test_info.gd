@@ -104,6 +104,52 @@ func test_a_homing_shot_in_flight_tells_whom_it_chases_and_how_it_turns() -> voi
 		assert_string_contains(text, part)
 
 
+func test_a_creature_tells_its_state_as_its_card_does_then_attacks_nature_and_traits() -> void:
+	var w := World.create(7)
+	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(2, 0))
+	var groups := Info.plain(Info.creature(w, foe)).split("\n\n")
+	assert_eq(groups.size(), 5, "\n\n".join(groups))
+	assert_string_contains(groups[1], Info.state(foe))
+	assert_string_starts_with(groups[2], "근접: ")
+	assert_string_starts_with(groups[3], "오행: ")
+	assert_string_starts_with(groups[4], Info.WITS[Bestiary.wits(foe.kind)])
+	var facts := Info.plain(Info.creature_facts(foe, [])).split("\n\n")
+	assert_eq(Array(facts).slice(1), Array(groups).slice(2), "the 도감 keeps the order")
+	var t: Term = autofree(Term.new())
+	t.world = w
+	for alert in [Actor.REST, Actor.SEARCH, Actor.HUNT]:
+		foe.brain.alert = alert
+		var card: Array = CreatureCard.row(t, foe, 40.0)[0]
+		var line: Array = Info.creature(w, foe)[2]
+		assert_eq(line[0][1], card[1], "%s / %s" % [Info.plain([line]), card[0]])
+	var rival := FloorGen.spawn(w, &"dokkaebi", w.player().pos + Vector2i(3, 0))
+	foe.ties.rival = rival.id
+	foe.ties.grudge = 3
+	var fighting: Array = Info.creature(w, foe)[2]
+	assert_eq(fighting[0][1], CreatureCard.row(t, foe, 40.0)[0][1], Info.plain([fighting]))
+	foe.brain.alert = Actor.SEARCH
+	foe.brain.target = foe.pos
+	var search := Info._search_left(foe)
+	assert_false(Info.plain(Info.creature(w, foe)).contains(search), "no search line in a fight")
+	foe.ties.grudge = 0
+	assert_string_contains(Info.plain(Info.creature(w, foe)), search, "under its search state")
+
+
+func test_a_creature_labels_share_one_colour_and_red_is_only_for_harm() -> void:
+	var w := World.create(7)
+	var at := w.player().pos + Vector2i(1, 0)
+	for kind in [&"haetae", &"bulgasari", &"saja", &"jiha", &"dokkaebi"]:
+		var lines := Info.creature(w, FloorGen.spawn(w, kind, at))
+		for line: Array in lines.slice(1):
+			for i in line.size():
+				var text: String = line[i][0]
+				if text.ends_with(": "):
+					assert_eq(line[i][1], Palette.DIM, "%s: %s" % [kind, Info.plain([line])])
+				if line[i][1] == Palette.HURT:
+					var label: String = line[i - 1][0] if i > 0 else ""
+					assert_string_ends_with(label, "피해: ", "%s: %s" % [kind, Info.plain([line])])
+
+
 func test_a_creature_tells_its_element() -> void:
 	var w := World.create(7)
 	var foe := FloorGen.spawn(w, &"haetae", w.player().pos + Vector2i(1, 0))

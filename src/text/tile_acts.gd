@@ -27,6 +27,38 @@ static func gas(kind: int) -> Array:
 	return _once(["gas", kind], _gas.bind(kind))
 
 
+## The lines a jar's entry adds: each thing it can hold with its chance (Jars.chances)
+## and what it does.
+static func jar() -> Array:
+	var curses: Array = Curse.NAME.values().map(func(n): return Lang.t(n))
+	var does := {
+		&"empty": "",
+		&"water":
+		(
+			Lang.t(", 주위 %d칸 %s, 불과 냄새 지움")
+			% [Grid.DIRS.size(), Lang.t(Tiles.of(World.SHALLOW, "name"))]
+		),
+		Jars.KIMCHI: Lang.t(", 체력 +%d") % World.HEAL,
+		&"effigy": Lang.t(", 무작위 저주: %s") % ", ".join(curses),
+		&"scarecrow": Lang.t(", 보는 적이 이 칸 수색"),
+		&"salt": Lang.t(", 냄새 지움"),
+		&"beans": Lang.t(", 주위 %d칸 적 기절 %d초") % [Grid.DIRS.size(), Jars.BEANS_STUN],
+		&"coals":
+		(
+			Lang.t(", 이 칸과 옆 %d칸 %s")
+			% [Placement.SIDES.size(), Lang.t(Compounds.HOT[Compounds.LAVA].name)]
+		),
+	}
+	var chances := Jars.chances()
+	var out := []
+	for k in Jars.ROWS.size():
+		var row: Dictionary = Jars.ROWS[k]
+		out.append(
+			[[Lang.t("%s: %d%%%s") % [Lang.t(row.name), chances[k], does[row.id]], Palette.DIM]]
+		)
+	return out
+
+
 ## The rows of the tag every tile with what bare floor takes shows.
 static func ground() -> Array:
 	return _once(["ground"], func(): return _rows(_once(["bare"], _bare)))

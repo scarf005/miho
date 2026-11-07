@@ -175,7 +175,7 @@ func test_every_named_tile_is_its_hover_facts() -> void:
 		w.set_tile(Codex.AT, t)
 		w.sense()
 		var facts := _text(Info.terrain_facts(w, Codex.AT))
-		var told := facts + ("\n" + _text(Info.jar_facts()) if t == World.JAR else "")
+		var told := facts + ("\n" + _text(TileActs.jar()) if t == World.JAR else "")
 		assert_string_starts_with(_text(Codex.detail(_entry(4, name))), told, name)
 		var hover := _text(Info.terrain(w, Codex.AT))
 		if Tiles.of(t, "crumbles") < 0:

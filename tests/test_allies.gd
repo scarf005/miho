@@ -506,7 +506,8 @@ func test_the_hover_of_a_copy_counts_the_tails_it_has_left() -> void:
 	var w := _world()
 	var copy := _copy(w, ME + E, CHEAP)
 	copy.magic.mana = 2
-	var text := str(Info.creature(w, copy))
+	var rows := Info.creature(w, copy).map(func(r): return "".join(r.map(func(run): return run[0])))
+	var text := "\n".join(rows)
 	assert_string_contains(text, "꼬리: 2/%d" % Bunsin.TAILS)
 	assert_false(text.contains("당신을"), "what it sees of her changes nothing")
 

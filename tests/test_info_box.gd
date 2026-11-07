@@ -239,3 +239,15 @@ func test_a_hover_too_big_for_any_columns_shrinks() -> void:
 	assert_lt(fit.scale, 1.0)
 	assert_lte(fit.cells.x * fit.scale, 7.0)
 	assert_lte(fit.cells.y * fit.scale, 2.0)
+
+
+func test_a_blank_row_between_groups_never_starts_a_column() -> void:
+	var line := [["가나다", Palette.TEXT]]
+	var lines := []
+	lines.resize(11)
+	lines.fill(line)
+	lines = lines + [[]] + lines.slice(1)
+	var fit := InfoBox.layout(lines, Vector2(40, 11))
+	assert_eq(fit.columns.size(), 2)
+	for column: Array in fit.columns:
+		assert_false(column[1][0].is_empty(), "a column starts with text")
