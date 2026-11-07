@@ -48,5 +48,22 @@ static func flashes(e: Dictionary) -> Array:
 	return out
 
 
+## The touches (a hit, a burst, a spray) that push a creature (Fall): those at its tile
+## back from each `push` to the shot's flight or cast or a creature's turn. They hold
+## nothing, so the slide starts with them.
+static func shoves(events: Array) -> Dictionary:
+	var out := {}
+	for i in events.size():
+		if events[i].t != &"push":
+			continue
+		for j in range(i - 1, -1, -1):
+			var e: Dictionary = events[j]
+			if e.t in [&"hit", &"burst", &"spray"] and _touches(e, events[i].at):
+				out[j] = true
+			elif e.t in [&"fly", &"spawn", &"move", &"push"] or e.t in Afterimage.TURNS:
+				break
+	return out
+
+
 static func _touches(e: Dictionary, at: Vector2i) -> bool:
 	return e.at == at or e.get("tiles", []).has(at)
