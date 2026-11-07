@@ -88,3 +88,20 @@ func test_the_rushed_round_ends_on_the_world_as_it_is() -> void:
 	m.term.rush()
 	assert_false(m.busy)
 	assert_eq(settled, [m.world])
+
+
+func test_a_climb_shows_the_next_storey_in_the_same_frame() -> void:
+	var m: Node = Built.main()
+	add_child_autofree(m)
+	m.new_run(3)
+	m.state = &"play"
+	var w: World = m.world
+	w.player().pos = w.stairs - Vector2i.RIGHT
+	w.sense()
+	m.term.show_world(w)
+	var frame := Engine.get_process_frames()
+	m.act({t = &"move", dir = Vector2i.RIGHT})
+	assert_eq(m.world.depth, 2)
+	assert_false(m.term.anim.playing)
+	assert_eq(m.term.vis, m.world.seen, "only the next storey's sight is drawn")
+	assert_eq(Engine.get_process_frames(), frame)

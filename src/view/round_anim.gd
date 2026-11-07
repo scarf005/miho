@@ -108,6 +108,10 @@ func run(events: Array, before: World, facts: Array) -> void:
 	var passes := Afterimage.plan(events)
 	var impact := Impact.of(events)
 	var waits := holds(events, told)
+	# A round that leaves the storey is drawn over the next one, so it holds nothing:
+	# the next storey shows in the same frame.
+	if before.depth != t.world.depth:
+		waits.fill(0.0)
 	var drawn := {}
 	for i in events.size():
 		var veiled := t.veiled if t.debug.is_empty() else {}
