@@ -63,7 +63,12 @@ func test_the_status_row_fits_nine_tails_and_the_saved_spells() -> void:
 	var slots := StatusBar.saved_slots(t)
 	assert_eq(t.world.max_tails(), 9)
 	assert_eq(slots.size(), 2)
-	assert_gt(slots[0].x, Term.MAP.x + 9.0, "saved spells start after the ninth tail")
+	var count := Vector2(Term.MAP.x + 9.0, t.rows - 2)
+	assert_gt(slots[0].x, count.x + Term.key_cells("9"), "saved spells start after the tail count")
+	assert_true(
+		StatusBar.status_at(t, (count + Vector2(0.1, 0.5)) * Term.CELL), "the count tells Miho"
+	)
+	assert_false(StatusBar.status_at(t, Vector2(slots[0].x + 0.1, count.y + 0.5) * Term.CELL))
 	var right := "%d층 %d초" % [World.FLOORS, 999]
 	var last: Dictionary = slots[-1]
 	assert_lt(last.x + last.width, t.cols - t.text_cells(right) - t.text_cells("디버그") - 1)

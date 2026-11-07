@@ -1,7 +1,8 @@
 class_name StatusBar
 extends RefCounted
 ## The two rows under the map. The upper one holds Miho's health, her tails
-## (those the queued spells would spend in yellow), the saved spells by their
+## (those the queued spells would spend in yellow) and their count, small as a
+## shortcut's label is (Infra Arcana `draw_hp`), the saved spells by their
 ## slot keys, the storey and the time. The lower one holds the talismans by their
 ## number keys, the queue of MAX_SLOTS slots (a dim dot where no tail is left for
 ## another card), the compounds Miho can make now, the queued spell's name and
@@ -18,13 +19,7 @@ static func draw(t: Term) -> void:
 	t.draw_glyph(Vector2(0, row), "@", Palette.glyph_color(me))
 	t.draw_pips(Vector2(1.5, row), me.hp, me.max_hp, Palette.HURT)
 	var held := _held(t)
-	for i in w.max_tails():
-		var c: Color = Palette.SIDE[0]
-		if i >= w.tails:
-			c = Palette.DIM
-		elif i >= w.tails - held:
-			c = Palette.CARD[Cards.EARTH]
-		t.draw_glyph(Vector2(Term.MAP.x + i, row), "~", c)
+	tails(t, Vector2(Term.MAP.x, row))
 	var right := Lang.t("%s %d초") % [Messages.storey(w.depth), w.round_no]
 	t.draw_text(Vector2(t.cols - t.text_cells(right), row), right, Palette.TEXT)
 	if not t.debug.is_empty():
@@ -80,6 +75,21 @@ static func draw(t: Term) -> void:
 		)
 	t.draw_text(at, name, Palette.TEXT)
 	NoiseMeter.draw(t)
+
+
+## Miho's tails from cell `at`, those the queue and the spells held with Shift would spend
+## in yellow, then how many she has.
+static func tails(t: Term, at: Vector2) -> void:
+	var w := t.world
+	var held := _held(t)
+	for i in w.max_tails():
+		var c: Color = Palette.SIDE[0]
+		if i >= w.tails:
+			c = Palette.DIM
+		elif i >= w.tails - held:
+			c = Palette.CARD[Cards.EARTH]
+		t.draw_glyph(at + Vector2(i, 0), "~", c)
+	t.draw_key(at + Vector2(w.max_tails(), 0), str(w.tails))
 
 
 ## The names of the buffs on Miho, the elixir she carries and the curses on the storey
@@ -194,7 +204,7 @@ static func saved_slots(t: Term) -> Array:
 	var out := []
 	if t.world == null:
 		return out
-	var x := Term.MAP.x + t.world.max_tails() + 1.0
+	var x := tails_end(t) + 1.0
 	for action in Keys.SLOTS:
 		if not t.saved.has(action):
 			continue
@@ -249,15 +259,16 @@ static func queue_at(t: Term, local: Vector2) -> int:
 	return i if i >= 0 and i < spell.slots.size() else -1
 
 
-## Whether a point in the term's space is on Miho's health or tails.
+## Where the tails and their count end on the upper row: the count takes the cells
+## of the most there can be, so that the saved spells after it stay where they are.
+static func tails_end(t: Term) -> float:
+	return Term.MAP.x + t.world.max_tails() + Term.key_cells(str(t.world.max_tails()))
+
+
+## Whether a point in the term's space is on Miho's health, tails or their count.
 static func status_at(t: Term, local: Vector2) -> bool:
-	var c := Vector2i((local / Term.CELL).floor())
-	return (
-		c.y == t.rows - 2
-		and t.world != null
-		and c.x >= 0
-		and c.x < Term.MAP.x + t.world.max_tails()
-	)
+	var c := local / Term.CELL
+	return floori(c.y) == t.rows - 2 and t.world != null and c.x >= 0 and c.x < tails_end(t)
 
 
 ## The talisman under a point in the term's space, or empty.
