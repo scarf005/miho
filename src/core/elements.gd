@@ -60,8 +60,9 @@ const GROUNDS: Array[StringName] = [Cards.EARTH]
 static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 	var spell := s.spell
 	if absorbed(w, s, a):
-		Mind.struck(w, a, s)
+		Mind.struck(w, a, s, false)
 		return false
+	var was := Harm.mark(a)
 	harm(w, s, a, n)
 	if (
 		spell.has(Cards.FIRE)
@@ -78,7 +79,7 @@ static func strike(w: World, s: Shot, a: Actor, n: int) -> bool:
 			root(w, a, ROOT + spell.extra(Cards.WOOD))
 		if not spell.orb and spell.has(Cards.EARTH):
 			stun(w, a, STUN + spell.extra(Cards.EARTH))
-		Mind.struck(w, a, s)
+		Mind.struck(w, a, s, Harm.since(a, was))
 	return true
 
 
@@ -192,6 +193,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 			Terrain.ignite(w, p)
 		var b := w.actor_at(p)
 		if b != null and b != center:
+			var was := Harm.mark(b)
 			if stops(w, s, b):
 				w.emit({t = &"absorb", id = b.id, at = p})
 			else:
@@ -199,7 +201,7 @@ static func splash(w: World, s: Shot, at: Vector2i, center: Actor) -> void:
 				harm(w, s, b, n)
 				if fire and Bestiary.burns(b.nature_kind()) and not Guise.through(w, s, b):
 					Status.ignite(w, b)
-			Mind.struck(w, b, s)
+			Mind.struck(w, b, s, Harm.since(b, was))
 		var o := w.shot_at(p, s)
 		if fire and o != null and not o.spell.orb:
 			o.gone = true

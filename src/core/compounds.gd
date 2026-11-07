@@ -114,6 +114,10 @@ static func land(w: World, s: Shot, at: Vector2i) -> void:
 	var struck := w.actor_at(at)
 	for c in s.spell.compounds():
 		var tiles := Spray.carried(w, c, at, s.dir, reach(s.spell, c))
+		# What the ground does (a fused lava burst sears) harms too.
+		var was := {}
+		for a in Spray.on(w, s, tiles):
+			was[a.id] = Harm.mark(a)
 		ground(w, s, c, tiles)
 		tip(w, s, c, at)
 		var line := Vector2i.ZERO if Spray.radial(c) else s.dir
@@ -121,7 +125,7 @@ static func land(w: World, s: Shot, at: Vector2i) -> void:
 			if a.alive() and (a == struck or Spray.reaches(w, s, a)):
 				strike(w, s, c, a, at)
 				if a != struck and a.alive() and not Cards.marked(c, "calm"):
-					Mind.struck(w, a, s)
+					Mind.struck(w, a, s, Harm.since(a, was.get(a.id, Harm.mark(a))))
 
 
 ## Whether `spell` has only compounds that are `calm` (Cards.COMPOUND).
@@ -450,9 +454,10 @@ static func arc(w: World, s: Shot, from: Actor) -> void:
 		at = next.pos
 		last = next
 		if Spray.reaches(w, s, next):
+			var was := Harm.mark(next)
 			Elements.shock(w, next, THUNDER, THUNDER_STUN)
 			if next.alive():
-				Mind.struck(w, next, s)
+				Mind.struck(w, next, s, Harm.since(next, was))
 
 
 static func _next_arc(w: World, s: Shot, at: Vector2i, last: Actor, struck: Dictionary) -> Actor:
