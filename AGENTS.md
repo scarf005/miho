@@ -115,6 +115,8 @@ A commit that finishes every point of an issue ends its body with `Closes #N`, s
 
 Force-push is allowed on every branch of this repository, main too, so a needed history fix (a rebase, a reworded or dropped commit) is done, never skipped or worked round. Push with `--force-with-lease`, keep every commit that is not the one being fixed, and never move a released tag. User: "그냥 이 repo는 force push 허용한다고 명시좀 해주세요. force push 핑계로 작업 버리는 일좀 막게."
 
+Closing an issue of this repository is allowed (`gh issue close`, `.claude/settings.json`): when every point of an issue, or every sub-issue of a parent issue, is done on main, close it. Do not comment on it. User: "이슈 닫는 것도 이 저장소에서 허용하게 해주세요."
+
 Passing tests and lint do not prove a lane is done. Before merging a lane that changes anything the player sees or hears, the parent must do all of the following:
 1. Read every added or changed user-facing string in the diff against the text rules above, then read it aloud as Korean and rewrite it if a player would not say it. Before a tag, read the whole list from `just strings`.
 2. Drive the changed UI with `just shot ... --keys=...` and look at the frames.

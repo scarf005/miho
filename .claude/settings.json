@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": ["Bash(gh issue close:*)"]
+  },
+  "autoMode": {
+    "allow": ["$defaults", "Closing an issue of this repository with gh issue close"]
+  }
+}
