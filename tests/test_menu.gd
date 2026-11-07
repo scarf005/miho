@@ -210,6 +210,52 @@ func test_the_seed_is_a_row_of_the_options_that_enter_asks_to_copy() -> void:
 	assert_string_contains(Messages.plain(menu.panel().rows[menu.selected]), "2715675124")
 
 
+func test_the_options_open_on_continue_and_the_keys_pass_over_the_blank_rows() -> void:
+	var menu := Menu.new()
+	menu.open(&"options", Vector2i(40, 9))
+	var listed := menu._listed()
+	assert_eq(listed[menu.selected], &"close", "Enter at once goes on with the run")
+	var blank := []
+	for k in listed.size():
+		if listed[k] == &"":
+			blank.append(k)
+			assert_false(PanelView.acts(menu.panel(), k), "no bar on blank row %d" % k)
+	assert_eq(blank.size(), 2, "three groups")
+	var seen := {}
+	for i in listed.size() * 2:
+		menu.key(_press("Down"))
+		seen[listed[menu.selected]] = true
+	assert_false(seen.has(&""))
+	assert_eq(seen.size(), listed.size() - blank.size(), "every row is reached")
+	menu.key(_press("Home"))
+	assert_eq(menu.selected, 0)
+	menu.key(_press("Up"))
+	assert_eq(menu.selected, listed.size() - 1, "Up from the first row wraps to the last")
+	menu.key(_press("Down"))
+	assert_eq(menu.selected, 0, "and Down back")
+	for k in listed.size():
+		for key in ["PageUp", "PageDown"]:
+			menu.selected = 0 if listed[k] == &"" else k
+			menu.key(_press(key))
+			assert_ne(listed[menu.selected], &"", "%s from row %d" % [key, k])
+	menu.selected = 0
+	assert_eq(menu.click(blank[0], -1), &"", "a click on a blank row does nothing")
+	assert_eq(menu.selected, 0)
+
+
+func test_the_values_of_the_options_line_up_past_the_longest_name() -> void:
+	var menu := _options()
+	var columns := {}
+	var widest := 0.0
+	for row: Array in menu.panel().rows:
+		if row.size() > 1:
+			columns[Keywords.column(row[1], 0.0)] = true
+			widest = maxf(widest, PanelView.end([row[0]]))
+	assert_eq(columns.size(), 1, "one column")
+	assert_gt(columns.keys()[0], widest)
+	assert_lte(columns.keys()[0] - widest, 3.0, "a short gap away")
+
+
 func test_options_can_save_and_quit() -> void:
 	var menu := _options()
 	assert_string_contains(_text(menu.panel()), "저장하고 끝내기")

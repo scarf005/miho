@@ -320,7 +320,7 @@ func test_the_title_does_not_offer_the_commands_and_the_saved_run_stays() -> voi
 	assert_eq(m.state, &"title")
 	await _key(m, "Escape")
 	assert_eq(m.panels.overlay, &"options")
-	var names: Array = m.term.panel.rows.map(func(r): return r[0][0])
+	var names: Array = m.term.panel.rows.map(func(r): return r[0][0] if r else "")
 	assert_false(names.has(Menu.OPTION_NAMES[&"cheat"]), "no run is being played")
 	var disk := SaveGame.load_from(path)
 	assert_eq([disk.seed_value, disk.actions.size()], [7, 3], "the saved run is as it was")
