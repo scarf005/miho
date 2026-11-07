@@ -154,10 +154,12 @@ static func _entrances(w: World) -> Array[Dictionary]:
 	return out
 
 
-## The shortest way over the `open` tiles from `from` to the edge of the map, four ways a
-## step, to the edge tile of the lowest index when several are as near. Its tiles, `from`
-## first, or none when no way leads there.
-static func trail(from: Vector2i, open: PackedByteArray) -> Array[Vector2i]:
+## The shortest way over the `open` tiles from `from` to `goal`, else to the edge of the map,
+## four ways a step, to the edge tile of the lowest index when several are as near. Its tiles,
+## `from` first, or none when no way leads there.
+static func trail(
+	from: Vector2i, open: PackedByteArray, goal := Vector2i(-1, -1)
+) -> Array[Vector2i]:
 	var parent := PackedInt32Array()
 	parent.resize(open.size())
 	parent.fill(-2)
@@ -175,7 +177,7 @@ static func trail(from: Vector2i, open: PackedByteArray) -> Array[Vector2i]:
 	var end := -1
 	for i in queue:
 		if (
-			_edge(Grid.at(i))
+			(Grid.at(i) == goal if Grid.inside(goal) else _edge(Grid.at(i)))
 			and (end < 0 or dist[i] < dist[end] or (dist[i] == dist[end] and i < end))
 		):
 			end = i

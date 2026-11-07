@@ -2,10 +2,11 @@ class_name House
 extends RefCounted
 ## The house at the end of the trail from storey 1 (World.HOUSE): a clearing of grass and leaves
 ## in a forest of bamboo under the moon, and in it a hut of wood walls with one door, boards and
-## straw. A trail of 마당 runs from the door to the nearest edge of the map, where it ends in
-## World.trail_end, the way back to storey 1. The sister (Sister) stands on a tile of the hut's
-## floor off its doorway. All from a generator of its own, so the same seed builds the same
-## house whenever Miho comes.
+## straw. A trail of 마당 runs from the door to the edge across the map from where storey 1's
+## trail leaves it, so the one goes on into the other, and ends there in World.trail_end, the
+## way back to storey 1. The sister (Sister) stands on a tile of the hut's floor off its
+## doorway. All from a generator of its own, so the same seed builds the same house whenever
+## Miho comes.
 
 const HOUSE_SALT := 0x40C5
 ## The half sizes of the clearing round the middle of the map.
@@ -47,14 +48,15 @@ static func build(w: World) -> void:
 	FloorGen.shuffle(rng, floor_tiles)
 	for p in floor_tiles.slice(0, STRAW):
 		w.tiles[Grid.index(p)] = World.STRAW
-	var out := _door_side(hut)
+	var left: Vector2i = w.storeys.get(1, {}).get("trail_end", Vector2i(-1, -1))
+	var out := _door_side(hut) if not Grid.inside(left) else -_ahead(left)
 	var door := _door(hut, out)
 	w.tiles[Grid.index(door)] = World.DOOR
 	var open := PackedByteArray()
 	open.resize(w.tiles.size())
 	for i in open.size():
 		open[i] = 0 if hut.has_point(Grid.at(i)) else 1
-	var path := Outside.trail(door + out, open)
+	var path := Outside.trail(door + out, open, _across(left))
 	for p in path:
 		w.tiles[Grid.index(p)] = World.COURTYARD
 	for i in open.size():
@@ -68,6 +70,28 @@ static func build(w: World) -> void:
 	sister.magic.cooldown = rng.randi_range(Sister.COUGH.x, Sister.COUGH.y)
 	w.rooms.assign([inside, Rect2i(middle - CLEARING, CLEARING * 2 + Vector2i.ONE)])
 	w._changed()
+
+
+## The way storey 1's trail leaves the map at `left`, an edge tile: up, down, left or right, the
+## first of those at a corner.
+static func _ahead(left: Vector2i) -> Vector2i:
+	if left.y == 0:
+		return Vector2i.UP
+	if left.y == Grid.H - 1:
+		return Vector2i.DOWN
+	return Vector2i.LEFT if left.x == 0 else Vector2i.RIGHT
+
+
+## The edge tile across the map from `left` on the way the trail leaves it, where the trail
+## comes into the house, so it goes on; (-1, -1) when there is no `left`.
+static func _across(left: Vector2i) -> Vector2i:
+	if not Grid.inside(left):
+		return left
+	var ahead := _ahead(left)
+	return Vector2i(
+		Grid.W - 1 - left.x if ahead.x != 0 else left.x,
+		Grid.H - 1 - left.y if ahead.y != 0 else left.y
+	)
 
 
 ## The way out of the wall of `hut` that faces the nearest edge of the map, the first of
