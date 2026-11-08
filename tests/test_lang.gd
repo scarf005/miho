@@ -57,6 +57,9 @@ func test_choosing_the_language_in_the_options_shows_it_without_a_restart() -> v
 	assert_eq(Lang.active(), &"en")
 	assert_string_contains(_row_text(menu, &"language"), "English")
 	menu._change(1)
+	assert_eq(Lang.active(), &"ja")
+	assert_string_contains(_row_text(menu, &"language"), "日本語")
+	menu._change(1)
 	assert_eq(Lang.active(), &"ko")
 
 
@@ -155,6 +158,16 @@ func test_every_codex_entry_reads_in_english() -> void:
 			for line in _korean(e.name + "\n" + Info.plain(Codex.detail(e))):
 				left.append("%d %s: %s" % [tab, e.name, line])
 	assert_eq(left, [], "Korean left in the English codex")
+
+
+func test_every_codex_entry_reads_in_japanese() -> void:
+	Lang.use(&"ja")
+	var left := []
+	for tab in Codex.TABS.size():
+		for e in Codex.entries(tab):
+			for line in _korean(e.name + "\n" + Info.plain(Codex.detail(e))):
+				left.append("%d %s: %s" % [tab, e.name, line])
+	assert_eq(left, [], "Korean left in the Japanese codex")
 
 
 func test_every_menu_page_reads_in_english() -> void:
@@ -261,3 +274,20 @@ func test_euro_follows_a_final_consonant_but_not_rieul() -> void:
 	assert_eq(with.call("물"), "물로")
 	assert_eq(with.call("재"), "재로")
 	assert_eq(Info.plain([Lang.runs("{0}을/를", [["물", Palette.TEXT]], Palette.TEXT)]), "물을")
+
+
+func test_japanese_is_listed_and_a_japanese_system_starts_in_it() -> void:
+	assert_true(Lang.NAMES.has(&"ja"))
+	assert_eq(Lang.detect("ja"), &"ja")
+	assert_eq(Lang.detect("ko"), &"ko")
+	assert_eq(Lang.detect("fr"), &"en")
+
+
+func test_a_japanese_line_gets_no_korean_particle_and_no_english_fix() -> void:
+	Lang.use(&"ja")
+	var line := Messages.plain(
+		Lang.runs("{0}이/가 {1}을/를 먹고 커졌다", [["도깨비", Color.WHITE], ["복숭아", Color.WHITE]], Color.WHITE)
+	)
+	assert_false(line.contains("/"))
+	assert_false(line.contains("이"))
+	assert_true(line.contains("トッケビ"))

@@ -425,7 +425,7 @@ explore-check save="~/.local/share/godot/app_userdata/미호/save.cfg" rounds="4
     {{ godot }} --headless --path . --import
     {{ godot }} --headless --path . -s tools/explore_check.gd -- {{ save }} {{ rounds }} {{ back }}
 
-# Print every Korean string literal under src/ with no English entry in assets/i18n; exits 1 if any.
+# Print every Korean string literal under src/ with no entry in one of the assets/i18n tables (English, Japanese); exits 1 if any.
 i18n-check: rust
     #!/usr/bin/env bash
     set -uo pipefail

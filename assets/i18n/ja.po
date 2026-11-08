@@ -1,0 +1,3594 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ja\n"
+
+msgid "도깨비"
+msgstr "トッケビ"
+
+msgid "장승"
+msgstr "チャンスン"
+
+msgid "용"
+msgstr "竜"
+
+msgid "짐승"
+msgstr "獣"
+
+msgid "저승"
+msgstr "冥府"
+
+msgid "도깨비불"
+msgstr "トッケビ火"
+
+msgid "저승불"
+msgstr "冥府の火"
+
+msgid "혼불"
+msgstr "魂火"
+
+msgid "미호"
+msgstr "ミホ"
+
+msgid "낄낄"
+msgstr "ヒヒヒ"
+
+msgid "방망이"
+msgstr "棍棒"
+
+msgid "맞아"
+msgstr "痛っ"
+
+msgid "외다리 도깨비"
+msgstr "一本足のトッケビ"
+
+msgid "으라차"
+msgstr "よいしょ"
+
+msgid "씨름"
+msgstr "相撲"
+
+msgid "져"
+msgstr "投げられた"
+
+msgid "부지깽이 도깨비"
+msgstr "火かき棒のトッケビ"
+
+msgid "부지깽이"
+msgstr "火かき棒"
+
+msgid "빗자루 도깨비"
+msgstr "箒のトッケビ"
+
+msgid "빗자루"
+msgstr "箒"
+
+msgid "감투 도깨비"
+msgstr "帽子のトッケビ"
+
+msgid "박치기"
+msgstr "頭突き"
+
+msgid "이무기"
+msgstr "イムギ"
+
+msgid "쉭"
+msgstr "シュッ"
+
+msgid "불개"
+msgstr "プルゲ"
+
+msgid "컹컹"
+msgstr "ワンワン"
+
+msgid "이빨"
+msgstr "牙"
+
+msgid "물려"
+msgstr "噛まれた"
+
+msgid "해태"
+msgstr "ヘテ"
+
+msgid "으르렁"
+msgstr "グルル"
+
+msgid "앞발"
+msgstr "前足"
+
+msgid "아가리"
+msgstr "あぎと"
+
+msgid "천하대장군"
+msgstr "天下大将軍"
+
+msgid "이놈"
+msgstr "こいつめ"
+
+msgid "지하여장군"
+msgstr "地下女将軍"
+
+msgid "불가사리"
+msgstr "プルガサリ"
+
+msgid "끼긱"
+msgstr "キーッ"
+
+msgid "천년 이무기"
+msgstr "千年イムギ"
+
+msgid "크아앙"
+msgstr "ガオー"
+
+msgid "저승사자"
+msgstr "冥府の使者"
+
+msgid "오랏줄"
+msgstr "縄"
+
+msgid "강철이"
+msgstr "カンチョリ"
+
+msgid "우르릉"
+msgstr "ゴロゴロ"
+
+msgid "어둑시니"
+msgstr "オドクシニ"
+
+msgid "손톱"
+msgstr "爪"
+
+msgid "긁혀"
+msgstr "引っかかれた"
+
+msgid "두억시니"
+msgstr "トゥオクシニ"
+
+msgid "우어어"
+msgstr "ウオオ"
+
+msgid "주먹"
+msgstr "拳"
+
+msgid "여우불"
+msgstr "狐火"
+
+msgid "구슬"
+msgstr "玉"
+
+msgid "불"
+msgstr "火"
+
+msgid "물"
+msgstr "水"
+
+msgid "나무"
+msgstr "木"
+
+msgid "쇠"
+msgstr "金"
+
+msgid "흙"
+msgstr "土"
+
+msgid "들불"
+msgstr "野火"
+
+msgid "용암"
+msgstr "溶岩"
+
+msgid "유탄"
+msgstr "榴弾"
+
+msgid "서리"
+msgstr "霜"
+
+msgid "단비"
+msgstr "恵みの雨"
+
+msgid "증기"
+msgstr "蒸気"
+
+msgid "가시"
+msgstr "棘"
+
+msgid "진흙"
+msgstr "泥"
+
+msgid "용광로"
+msgstr "溶鉱炉"
+
+msgid "도약"
+msgstr "跳躍"
+
+msgid "늪"
+msgstr "沼"
+
+msgid "목책"
+msgstr "木柵"
+
+msgid "봉화"
+msgstr "烽火"
+
+msgid "오작교"
+msgstr "烏鵲橋"
+
+msgid "안개비"
+msgstr "霧雨"
+
+msgid "땅꺼짐"
+msgstr "陥没"
+
+msgid "그믐"
+msgstr "晦日"
+
+msgid "이간질"
+msgstr "離間"
+
+msgid "낙뢰"
+msgstr "落雷"
+
+msgid "고요"
+msgstr "静寂"
+
+msgid "윤회"
+msgstr "輪廻"
+
+msgid "상극"
+msgstr "相剋"
+
+msgid "황룡"
+msgstr "黄龍"
+
+msgid "뜨거운 땅"
+msgstr "熱い地面"
+
+msgid "뜨거운 쇠"
+msgstr "熱い鉄"
+
+msgid "화르륵"
+msgstr "ボッ"
+
+msgid "둥"
+msgstr "ドン"
+
+msgid "안개"
+msgstr "霧"
+
+msgid "연기"
+msgstr "煙"
+
+msgid "향 연기"
+msgstr "香の煙"
+
+msgid "늪 기체"
+msgstr "沼ガス"
+
+msgid "쾅"
+msgstr "ドカン"
+
+msgid "그림자"
+msgstr "影"
+
+msgid "둔갑"
+msgstr "変化"
+
+msgid "아직 처치한 적이 없다"
+msgstr "まだ倒した敵がいない"
+
+msgid "탁"
+msgstr "コツ"
+
+msgid "펑"
+msgstr "パン"
+
+msgid "캥"
+msgstr "キャン"
+
+msgid "퍽"
+msgstr "ボコッ"
+
+msgid "꺼진 등불"
+msgstr "消えた灯籠"
+
+msgid "부서진 등불"
+msgstr "壊れた灯籠"
+
+msgid "부서진 문"
+msgstr "壊れた扉"
+
+msgid "부서진 벽"
+msgstr "壊れた壁"
+
+msgid "재"
+msgstr "灰"
+
+msgid "멀리뛰기"
+msgstr "幅跳び"
+
+msgid "유도 구슬"
+msgstr "誘導玉"
+
+msgid "철갑탄"
+msgstr "徹甲弾"
+
+msgid "비격진"
+msgstr "飛撃震"
+
+msgid "%s %d칸"
+msgstr "%s %dマス"
+
+msgid " %d발"
+msgstr " %d発"
+
+msgid "탕"
+msgstr "パン"
+
+msgid "콰르릉"
+msgstr "ゴロゴロ"
+
+msgid "웅"
+msgstr "ブーン"
+
+msgid "휙"
+msgstr "ヒュッ"
+
+msgid "불길"
+msgstr "炎"
+
+msgid "물줄기"
+msgstr "水流"
+
+msgid "권총"
+msgstr "拳銃"
+
+msgid "소총"
+msgstr "小銃"
+
+msgid "산탄"
+msgstr "散弾銃"
+
+msgid "쿵"
+msgstr "ドスン"
+
+msgid "철벅"
+msgstr "バシャッ"
+
+msgid "젖음"
+msgstr "濡れ"
+
+msgid "불붙음"
+msgstr "炎上"
+
+msgid "얼어붙음"
+msgstr "凍結"
+
+msgid "우지끈"
+msgstr "バキッ"
+
+msgid "드르륵"
+msgstr "ガラガラ"
+
+msgid "쨍"
+msgstr "ガーン"
+
+msgid "타닥"
+msgstr "パチパチ"
+
+msgid "바닥"
+msgstr "床"
+
+msgid "지녔을 때"
+msgstr "所持時"
+
+msgid "벽"
+msgstr "壁"
+
+msgid "문"
+msgstr "扉"
+
+msgid "등불"
+msgstr "灯籠"
+
+msgid "대숲"
+msgstr "竹林"
+
+msgid "사각"
+msgstr "ザクッ"
+
+msgid "마루"
+msgstr "板の間"
+
+msgid "삐걱"
+msgstr "ギシッ"
+
+msgid "깊은 물"
+msgstr "深い水"
+
+msgid "금 간 벽"
+msgstr "ひび割れた壁"
+
+msgid "무너진 벽"
+msgstr "崩れた壁"
+
+msgid "하늘"
+msgstr "空"
+
+msgid "창문"
+msgstr "窓"
+
+msgid "하늘다리"
+msgstr "空の橋"
+
+msgid "열린 문"
+msgstr "開いた扉"
+
+msgid "북"
+msgstr "太鼓"
+
+msgid "찌익"
+msgstr "ビリッ"
+
+msgid "찢어진 북"
+msgstr "破れた太鼓"
+
+msgid "풀"
+msgstr "草"
+
+msgid "마른 짚"
+msgstr "干し藁"
+
+msgid "갈대"
+msgstr "葦"
+
+msgid "바스락"
+msgstr "カサッ"
+
+msgid "쓰러진 갈대"
+msgstr "倒れた葦"
+
+msgid "낙엽"
+msgstr "落ち葉"
+
+msgid "얕은 물"
+msgstr "浅い水"
+
+msgid "기둥"
+msgstr "柱"
+
+msgid "나무벽"
+msgstr "木の壁"
+
+msgid "얼음"
+msgstr "氷"
+
+msgid "가시덤불"
+msgstr "茨の茂み"
+
+msgid "징 함정"
+msgstr "銅鑼の罠"
+
+msgid "허방다리"
+msgstr "落とし穴"
+
+msgid "불씨 함정"
+msgstr "火種の罠"
+
+msgid "덩굴 함정"
+msgstr "蔓の罠"
+
+msgid "혼불 제단"
+msgstr "魂火の祭壇"
+
+msgid "타오르는 제단"
+msgstr "燃え盛る祭壇"
+
+msgid "도깨비불 장막"
+msgstr "トッケビ火の幕"
+
+msgid "석등"
+msgstr "石灯籠"
+
+msgid "두루마리 서가"
+msgstr "巻物の書棚"
+
+msgid "읽은 서가"
+msgstr "読んだ書棚"
+
+msgid "병풍"
+msgstr "屏風"
+
+msgid "장독"
+msgstr "甕"
+
+msgid "쨍그랑"
+msgstr "ガシャン"
+
+msgid "향로"
+msgstr "香炉"
+
+msgid "마당"
+msgstr "庭"
+
+msgid "석상"
+msgstr "石像"
+
+msgid "낡은 마루"
+msgstr "朽ちた床"
+
+msgid "댕"
+msgstr "ゴーン"
+
+msgid "철컥"
+msgstr "ガチャ"
+
+msgid "끽"
+msgstr "キュッ"
+
+msgid "툭"
+msgstr "ポトッ"
+
+msgid "천상누각 꼭대기에 사람이 되는 영약이 있다"
+msgstr "天上楼閣の頂上に人間になれる霊薬がある"
+
+msgid "아무 키나 눌러 시작"
+msgstr "何かキーを押して開始"
+
+msgid "Enter 이어하기 · N 새로 시작"
+msgstr "Enter 続ける · N 最初から"
+
+msgid "사람이 되었다"
+msgstr "人間になった"
+
+msgid "쓰러졌다"
+msgstr "倒れた"
+
+msgid "%s · %d초"
+msgstr "%s · %d秒"
+
+msgid "%s · %d분 %d초"
+msgstr "%s · %d分 %d秒"
+
+msgid "처치 %d"
+msgstr "撃破 %d"
+
+msgid "시드 %d"
+msgstr "シード %d"
+
+msgid "%s키를 눌러 재시작"
+msgstr "%sキーでリスタート"
+
+msgid "적"
+msgstr "敵"
+
+msgid "주문"
+msgstr "呪文"
+
+msgid "조합"
+msgstr "組み合わせ"
+
+msgid "물건"
+msgstr "アイテム"
+
+msgid "지형지물"
+msgstr "地形"
+
+msgid "상태이상"
+msgstr "状態異常"
+
+msgid "용어"
+msgstr "用語"
+
+msgid "영약"
+msgstr "霊薬"
+
+msgid "복숭아"
+msgstr "桃"
+
+msgid "주문서"
+msgstr "呪文書"
+
+msgid "도감"
+msgstr "図鑑"
+
+msgid "%s 부적"
+msgstr "%s護符"
+
+msgid "내려가는 계단"
+msgstr "下り階段"
+
+msgid "오솔길"
+msgstr "小道"
+
+msgid "집"
+msgstr "家"
+
+msgid "계단"
+msgstr "階段"
+
+msgid "맹렬한 불"
+msgstr "猛火"
+
+msgid "냄새 %d초 전"
+msgstr "匂い %d秒前"
+
+msgid "%s (%d, %d) %d칸"
+msgstr "%s (%d, %d) %dマス"
+
+msgid "쉬는 곳"
+msgstr "休憩所"
+
+msgid "목표"
+msgstr "目標"
+
+msgid "디버그 "
+msgstr "デバッグ "
+
+msgid "놓친 지 %d/%d초"
+msgstr "見失って %d/%d秒"
+
+msgid "%d초 뒤 주술"
+msgstr "%d秒後に呪術"
+
+msgid "주술 가능"
+msgstr "呪術可能"
+
+msgid "마력 %d/%d"
+msgstr "魔力 %d/%d"
+
+msgid "조준 %s"
+msgstr "照準 %s"
+
+msgid "쉬는 중"
+msgstr "休憩中"
+
+msgid "수색 중"
+msgstr "捜索中"
+
+msgid "추격 중"
+msgstr "追跡中"
+
+msgid "당신을 추격 중이다"
+msgstr "あなたを追跡中"
+
+msgid "당신에게 오는 중"
+msgstr "あなたへ向かっている"
+
+msgid "냄새를 쫓는 중"
+msgstr "匂いを追跡中"
+
+msgid "둔함"
+msgstr "鈍感"
+
+msgid "영리함"
+msgstr "利口"
+
+msgid "교활함"
+msgstr "狡猾"
+
+msgid "흔적."
+msgstr "痕跡。"
+
+msgid "묶임"
+msgstr "拘束"
+
+msgid "기절"
+msgstr "気絶"
+
+msgid "경계"
+msgstr "警戒"
+
+msgid "시간: %d초"
+msgstr "時間: %d秒"
+
+msgid "가연성"
+msgstr "可燃性"
+
+msgid "번질 확률: %d%%"
+msgstr "延焼確率: %d%%"
+
+msgid "인화성"
+msgstr "引火性"
+
+msgid "초당 피해: %d"
+msgstr "毎秒ダメージ: %d"
+
+msgid "함정"
+msgstr "罠"
+
+msgid "흔적"
+msgstr "痕跡"
+
+msgid "약점"
+msgstr "弱点"
+
+msgid "대상: 그 원소가 든 주문"
+msgstr "対象: その属性を含む呪文"
+
+msgid "젖은 적 시간: %d초"
+msgstr "濡れた敵の時間: %d秒"
+
+msgid "오행: "
+msgstr "五行: "
+
+msgid "자는 중"
+msgstr "睡眠中"
+
+msgid "지키는 중"
+msgstr "守備中"
+
+msgid "따라가는 중"
+msgstr "追従中"
+
+msgid "순찰 중"
+msgstr "巡回中"
+
+msgid "돌아가는 중"
+msgstr "帰還中"
+
+msgid "싸우는 중: %s"
+msgstr "戦闘中: %s"
+
+msgid "  남은 시간: %d초"
+msgstr "  残り時間: %d秒"
+
+msgid "북 치러 가는 중."
+msgstr "太鼓を叩きに向かっている。"
+
+msgid "기습 피해: "
+msgstr "奇襲ダメージ: "
+
+msgid "무언가"
+msgstr "何か"
+
+msgid "근접: %s"
+msgstr "近接: %s"
+
+msgid "던짐"
+msgstr "投擲"
+
+msgid "말할 수 있다."
+msgstr "話せる。"
+
+msgid "보임: %d칸 안, 도깨비불 붙음"
+msgstr "見える: %dマス以内、トッケビ火が付いている"
+
+msgid "먹이: "
+msgstr "餌: "
+
+msgid "%s 주문"
+msgstr "%s呪文"
+
+msgid "  최대 체력: "
+msgstr "  最大体力: "
+
+msgid "  체력: "
+msgstr "  体力: "
+
+msgid "소지품: "
+msgstr "所持品: "
+
+msgid "적 옆: %d/%d초"
+msgstr "敵の隣: %d/%d秒"
+
+msgid "둔갑할 모습: %s"
+msgstr "変化先: %s"
+
+msgid "발톱 피해: "
+msgstr "爪ダメージ: "
+
+msgid "약점: "
+msgstr "弱点: "
+
+msgid " (불과 함께)"
+msgstr " (火を含む)"
+
+msgid "불 없는 주문"
+msgstr "火を含まない呪文"
+
+msgid "면역: "
+msgstr "無効: "
+
+msgid "수색: %d번 더"
+msgstr "捜索: あと%d回"
+
+msgid "눈멂"
+msgstr "盲目"
+
+msgid "%s: %d초"
+msgstr "%s: %d秒"
+
+msgid "%s 위"
+msgstr "%s上"
+
+msgid "%s 위: %d초"
+msgstr "%s上: %d秒"
+
+msgid "  초당 피해: "
+msgstr "  毎秒ダメージ: "
+
+msgid " 붙음: %d초"
+msgstr " 付着: %d秒"
+
+msgid ": %d초"
+msgstr ": %d秒"
+
+msgid "마력: %d/%d"
+msgstr "魔力: %d/%d"
+
+msgid "주술: "
+msgstr "呪術: "
+
+msgid "간격"
+msgstr "間隔"
+
+msgid "모으는 중"
+msgstr "溜め中"
+
+msgid "다음"
+msgstr "次"
+
+msgid "%d초 뒤"
+msgstr "%d秒後"
+
+msgid "마력"
+msgstr "魔力"
+
+msgid "순찰"
+msgstr "巡回"
+
+msgid "잠들지 않음"
+msgstr "眠らない"
+
+msgid "발소리: %d칸"
+msgstr "足音: %dマス"
+
+msgid "불에 탐"
+msgstr "燃える"
+
+msgid "체력: +%d"
+msgstr "体力: +%d"
+
+msgid "꼬리: 모두 회복"
+msgstr "尻尾: 全回復"
+
+msgid "가득 찼을 때 최대 체력: +%d"
+msgstr "満タン時の最大体力: +%d"
+
+msgid "%s 주문서"
+msgstr "%s呪文書"
+
+msgid "%s: %d초 남음"
+msgstr "%s: 残り%d秒"
+
+msgid "초당 피해: "
+msgstr "毎秒ダメージ: "
+
+msgid "뿜는 기체: "
+msgstr "噴出ガス: "
+
+msgid "쓰러진 %s"
+msgstr "倒れた%s"
+
+msgid ": %d초 전"
+msgstr ": %d秒前"
+
+msgid "젖음: %d초"
+msgstr "濡れ: %d秒"
+
+msgid "소음: 없음"
+msgstr "騒音: なし"
+
+msgid "막음: 길, 주문"
+msgstr "遮断: 通路, 呪文"
+
+msgid "빛: %d칸"
+msgstr "光: %dマス"
+
+msgid "막음: 시야"
+msgstr "遮断: 視界"
+
+msgid "여닫을 때 소음: %d"
+msgstr "開閉時の騒音: %d"
+
+msgid "칠 때 소음: 층 전체"
+msgstr "叩いた時の騒音: 階全体"
+
+msgid "찢어짐: 구슬, 부딪침"
+msgstr "裂ける: 玉, 衝突"
+
+msgid "다시 켜짐: 불, 수색하는 적"
+msgstr "再点灯: 火, 捜索中の敵"
+
+msgid "막음: 시야, 빛"
+msgstr "遮断: 視界, 光"
+
+msgid "막음: 길, 시야, 빛"
+msgstr "遮断: 通路, 視界, 光"
+
+msgid "부서짐: 구슬, 밀침, 도약"
+msgstr "壊れる: 玉, 押し出し, 跳躍"
+
+msgid "막음: 길, 시야"
+msgstr "遮断: 通路, 視界"
+
+msgid "타격: 쓰러짐"
+msgstr "打撃: 倒れる"
+
+msgid "막음: 길"
+msgstr "遮断: 通路"
+
+msgid "타격: 깨짐"
+msgstr "打撃: 割れる"
+
+msgid "%s 초당 피해: %d"
+msgstr "%s 毎秒ダメージ: %d"
+
+msgid "소음: %d"
+msgstr "騒音: %d"
+
+msgid "근접 소음: %d"
+msgstr "近接騒音: %d"
+
+msgid "사라짐: 추락한 적"
+msgstr "消える: 落下した敵"
+
+msgid "층당 추락 피해: %d"
+msgstr "階ごとの落下ダメージ: %d"
+
+msgid "지날 때 피해: %d"
+msgstr "通過時のダメージ: %d"
+
+msgid "작동: 하늘로 추락"
+msgstr "作動: 空へ墜落"
+
+msgid "작동: 진행 방향 앞 %d칸에 불"
+msgstr "作動: 進行方向の%dマス先に火"
+
+msgid "함정."
+msgstr "罠。"
+
+msgid "부서질 때 소음: %d"
+msgstr "壊れた時の騒音: %d"
+
+msgid "부딪칠 때 소음: %d"
+msgstr "ぶつかった時の騒音: %d"
+
+msgid "인화성."
+msgstr "引火性。"
+
+msgid "가연성."
+msgstr "可燃性。"
+
+msgid "시야 막음: %d 이상"
+msgstr "視界遮断: %d以上"
+
+msgid "불타는 중"
+msgstr "燃焼中"
+
+msgid "밝음."
+msgstr "明るい。"
+
+msgid "어두움: %d칸 안에서만 보임"
+msgstr "暗い: %dマス以内でのみ見える"
+
+msgid "꼬리: %d/%d"
+msgstr "尻尾: %d/%d"
+
+msgid "어둠"
+msgstr "闇"
+
+msgid "위로"
+msgstr "上へ"
+
+msgid "오른쪽 위로"
+msgstr "右上へ"
+
+msgid "오른쪽으로"
+msgstr "右へ"
+
+msgid "오른쪽 아래로"
+msgstr "右下へ"
+
+msgid "아래로"
+msgstr "下へ"
+
+msgid "왼쪽 아래로"
+msgstr "左下へ"
+
+msgid "왼쪽으로"
+msgstr "左へ"
+
+msgid "왼쪽 위로"
+msgstr "左上へ"
+
+msgid "기다리기"
+msgstr "待機"
+
+msgid "던지기"
+msgstr "投げる"
+
+msgid "부적 1"
+msgstr "護符 1"
+
+msgid "부적 2"
+msgstr "護符 2"
+
+msgid "부적 3"
+msgstr "護符 3"
+
+msgid "부적 4"
+msgstr "護符 4"
+
+msgid "부적 5"
+msgstr "護符 5"
+
+msgid "부적 6"
+msgstr "護符 6"
+
+msgid "부적 7"
+msgstr "護符 7"
+
+msgid "같은 주문 다시"
+msgstr "同じ呪文をもう一度"
+
+msgid "저장 주문 1"
+msgstr "保存呪文 1"
+
+msgid "저장 주문 2"
+msgstr "保存呪文 2"
+
+msgid "저장 주문 3"
+msgstr "保存呪文 3"
+
+msgid "저장 주문 4"
+msgstr "保存呪文 4"
+
+msgid "저장 주문 5"
+msgstr "保存呪文 5"
+
+msgid "저장 주문 6"
+msgstr "保存呪文 6"
+
+msgid "주문 하나 빼기"
+msgstr "呪文を一つ戻す"
+
+msgid "하나 빼기"
+msgstr "一つ戻す"
+
+msgid "취소 / 설정"
+msgstr "キャンセル / 設定"
+
+msgid "계단으로 가기"
+msgstr "階段へ行く"
+
+msgid "자동 탐험"
+msgstr "自動探索"
+
+msgid "자동 공격"
+msgstr "自動攻撃"
+
+msgid "살펴보기"
+msgstr "見る"
+
+msgid "쉬기"
+msgstr "休む"
+
+msgid "문 닫기"
+msgstr "扉を閉める"
+
+msgid "자세히 보기"
+msgstr "詳細を見る"
+
+msgid "자세히"
+msgstr "詳細"
+
+msgid "위험구역 표시"
+msgstr "危険区域を表示"
+
+msgid "위험구역 모두 지우기"
+msgstr "危険区域をすべて消す"
+
+msgid "냄새 보기"
+msgstr "匂いを見る"
+
+msgid "디버그 보기"
+msgstr "デバッグ表示"
+
+msgid "도움말"
+msgstr "ヘルプ"
+
+msgid "크레딧"
+msgstr "クレジット"
+
+msgid "Neo둥근모"
+msgstr "NeoDunggeunmo"
+
+msgid "음악과 효과음"
+msgstr "音楽と効果音"
+
+msgid "재시작"
+msgstr "リスタート"
+
+msgid "아직 계단을 찾지 못했다"
+msgstr "まだ階段を見つけていない"
+
+msgid "더 탐험할 곳이 없다"
+msgstr "探索できる場所がない"
+
+msgid "꼬리가 이미 다 자랐다"
+msgstr "尻尾はすでに生え揃っている"
+
+msgid "부적이 모자라다"
+msgstr "護符が足りない"
+
+msgid "아직 던진 주문이 없다"
+msgstr "まだ投げた呪文がない"
+
+msgid "보이는 적이 없다"
+msgstr "見える敵がいない"
+
+msgid "겨눌 곳이 없다"
+msgstr "狙う先がない"
+
+msgid "어느 쪽 문을 닫을까? 방향키"
+msgstr "どちらの扉を閉める？ 方向キー"
+
+msgid "닫을 문이 없다"
+msgstr "閉める扉がない"
+
+msgid "너무 다쳐서 싸울 수 없다"
+msgstr "傷が深くて戦えない"
+
+msgid "위험구역"
+msgstr "危険区域"
+
+msgid "위험구역 (반지름 %d)"
+msgstr "危険区域 (半径 %d)"
+
+msgid "왼쪽 클릭"
+msgstr "左クリック"
+
+msgid "옆 칸으로 한 걸음, 먼 칸까지 걷기"
+msgstr "隣のマスへ一歩、遠いマスまで歩く"
+
+msgid "부적 고르고 클릭"
+msgstr "護符を選んでクリック"
+
+msgid "그쪽으로 던지기"
+msgstr "その方向へ投げる"
+
+msgid "오른쪽 클릭"
+msgstr "右クリック"
+
+msgid "취소"
+msgstr "キャンセル"
+
+msgid "가리키기"
+msgstr "指す"
+
+msgid "무엇이 있는지 보기"
+msgstr "何があるか見る"
+
+msgid "단어 왼쪽 클릭"
+msgstr "単語を左クリック"
+
+msgid "도감에서 열기"
+msgstr "図鑑で開く"
+
+msgid "살피는 중"
+msgstr "観察中"
+
+msgid "소리 크기"
+msgstr "音量"
+
+msgid "음악 크기"
+msgstr "音楽の音量"
+
+msgid "브라운관 효과"
+msgstr "ブラウン管効果"
+
+msgid "화면 크기"
+msgstr "画面サイズ"
+
+msgid "움직임 속도"
+msgstr "移動速度"
+
+msgid "언어"
+msgstr "言語"
+
+msgid "한글 기호"
+msgstr "ハングル記号"
+
+msgid "명장면 다시보기"
+msgstr "名場面を見返す"
+
+msgid "키 설정"
+msgstr "キー設定"
+
+msgid "처음부터"
+msgstr "最初から"
+
+msgid "저장하고 끝내기"
+msgstr "保存して終了"
+
+msgid "계속"
+msgstr "続ける"
+
+msgid "설정"
+msgstr "設定"
+
+msgid "기록"
+msgstr "記録"
+
+msgid "꼬리 %d"
+msgstr "尻尾 %d"
+
+msgid "꺼짐"
+msgstr "オフ"
+
+msgid "맞춤"
+msgstr "フィット"
+
+msgid "켜짐"
+msgstr "オン"
+
+msgid "모두 기본값"
+msgstr "すべて初期値"
+
+msgid "부적 고르기"
+msgstr "護符を選ぶ"
+
+msgid "멀리서 {0} 소리를 들었다"
+msgstr "遠くで{0}の音が聞こえた"
+
+msgid "꼬리가 {0}개로 늘었다"
+msgstr "尻尾が{0}本に増えた"
+
+msgid "{0}을/를 발견했다"
+msgstr "{0}を発見した"
+
+msgid "{0}에게 들켰다"
+msgstr "{0}に見つかった"
+
+msgid "{0}이/가 {1}"
+msgstr "{0}が{1}"
+
+msgid "{0}의 {1}에 {2} 피해를 {3} 입었다"
+msgstr "{0}の{1}でダメージを{3}受けた"
+
+msgid "{0}의 {1}에 {2}이/가 {3} 피해를 {4} 입었다"
+msgstr "{0}の{1}で{2}がダメージを{4}受けた"
+
+msgid "{0}이/가 {1}에게 덤벼들었다"
+msgstr "{0}が{1}に襲いかかった"
+
+msgid "{0}이/가 {1} 소리쳤다"
+msgstr "{0}が{1}と叫んだ"
+
+msgid "{0}이/가 싸움을 멈췄다"
+msgstr "{0}が戦いをやめた"
+
+msgid "{0}이/가 {1}을/를 먹고 커졌다"
+msgstr "{0}が{1}を食べて大きくなった"
+
+msgid "{0}"
+msgstr "{0}"
+
+msgid "{0}으로 추락했다"
+msgstr "{0}へ墜落した"
+
+msgid "{0}으로 내려왔다"
+msgstr "{0}へ降りてきた"
+
+msgid "{0}이/가 하늘로 떨어졌다"
+msgstr "{0}が空へ落ちた"
+
+msgid "%d층"
+msgstr "%d階"
+
+msgid "{0}을 얻었다"
+msgstr "{0}を手に入れた"
+
+msgid "{0}가 떨어졌다"
+msgstr "{0}が落ちた"
+
+msgid "체력을 {0} 회복했다"
+msgstr "体力を{0}回復した"
+
+msgid "최대 체력이 {0} 늘었다"
+msgstr "最大体力が{0}増えた"
+
+msgid "복숭아를 먹었다. "
+msgstr "桃を食べた。"
+
+msgid "{0}의 {1}"
+msgstr "{0}の{1}"
+
+msgid "눈이 멀었다"
+msgstr "目が見えなくなった"
+
+msgid "기절했다"
+msgstr "気絶した"
+
+msgid "밀려났다"
+msgstr "押し戻された"
+
+msgid "멀리 뛰었다"
+msgstr "跳んだ"
+
+msgid "주문이 멈춘 자리로 옮겨 갔다"
+msgstr "呪文が止まった場所へ移った"
+
+msgid "{0}과/와 자리를 바꿨다"
+msgstr "{0}と位置を入れ替えた"
+
+msgid "{0}이/가 자랐다"
+msgstr "{0}が育った"
+
+msgid "얼어붙었다"
+msgstr "凍りついた"
+
+msgid "젖었다"
+msgstr "濡れた"
+
+msgid "말랐다"
+msgstr "乾いた"
+
+msgid "{0}에게 {1}"
+msgstr "{0}に{1}"
+
+msgid "불이 붙었다"
+msgstr "火がついた"
+
+msgid "맹렬한 불이 붙었다"
+msgstr "猛火がついた"
+
+msgid "{0}의 불이 꺼졌다"
+msgstr "{0}の火が消えた"
+
+msgid "녹았다"
+msgstr "溶けた"
+
+msgid "{0}이/가 생겼다"
+msgstr "{0}ができた"
+
+msgid "{0}이/가 남았다"
+msgstr "{0}が残った"
+
+msgid "{0}이/가 식었다"
+msgstr "{0}が冷めた"
+
+msgid "{0}에게는 통하지 않았다"
+msgstr "{0}には効かなかった"
+
+msgid "{0}이/가 {1}을/를 일부 막았다"
+msgstr "{0}が{1}を一部防いだ"
+
+msgid "{0}이/가 {1}을/를 보고 살피러 갔다"
+msgstr "{0}が{1}を見て様子を見に行った"
+
+msgid "{0}이/가 수색을 멈췄다"
+msgstr "{0}が捜索をやめた"
+
+msgid "{0}이/가 붙었다"
+msgstr "{0}がくっついた"
+
+msgid "{0}이/가 {1}에게 붙었다"
+msgstr "{0}が{1}にくっついた"
+
+msgid "여우불이 {0} 울었다"
+msgstr "狐火が{0}と鳴いた"
+
+msgid "{0}의 모습으로 둔갑했다"
+msgstr "{0}の姿に変化した"
+
+msgid "{0}이/가 풀렸다"
+msgstr "{0}が解けた"
+
+msgid "{0}이/가 사라졌다"
+msgstr "{0}が消えた"
+
+msgid "풀 수 있는 주문이 없다"
+msgstr "解ける呪文がない"
+
+msgid "주문 해제"
+msgstr "呪文解除"
+
+msgid "당신을 왼쪽 클릭"
+msgstr "自分を左クリック"
+
+msgid " 붙음"
+msgstr " 付着"
+
+msgid "눈앞에서 둔갑: 추격"
+msgstr "目の前で変化: 追跡"
+
+msgid "망자"
+msgstr "亡者"
+
+msgid "객귀"
+msgstr "ケッキ"
+
+msgid "물어뜯기"
+msgstr "噛みつき"
+
+msgid "달걀귀신"
+msgstr "卵鬼"
+
+msgid "%s 면역인 적"
+msgstr "%s無効の敵"
+
+msgid "%s 면역인 적: +%d"
+msgstr "%s無効の敵: +%d"
+
+msgid "은신한 당신을 놓치면: 의심 가는 칸에 도깨비불을 쏨"
+msgstr "隠れ身のあなたを見失うと: 怪しいマスにトッケビ火を撃つ"
+
+msgid "은신한 당신을 추격할 때: 냄새부터 따라감"
+msgstr "隠れ身のあなたを追う時: まず匂いをたどる"
+
+msgid "둔갑: 속지 않음"
+msgstr "変化: 騙されない"
+
+msgid "문을 열었다"
+msgstr "扉を開けた"
+
+msgid "문을 닫았다"
+msgstr "扉を閉めた"
+
+msgid "문이 열렸다"
+msgstr "扉が開いた"
+
+msgid "문이 닫혔다"
+msgstr "扉が閉まった"
+
+msgid "{0}이/가 문을 열었다"
+msgstr "{0}が扉を開けた"
+
+msgid "{0}이/가 문을 닫았다"
+msgstr "{0}が扉を閉めた"
+
+msgid "{0}이/가 젖은 북을 쳤다"
+msgstr "{0}が濡れた太鼓を叩いた"
+
+msgid "{0}이/가 북을 쳤다"
+msgstr "{0}が太鼓を叩いた"
+
+msgid "북이 젖었다"
+msgstr "太鼓が濡れた"
+
+msgid "{0}이/가 피어올랐다"
+msgstr "{0}が立ち上った"
+
+msgid "{0}을/를 찾았다"
+msgstr "{0}を見つけた"
+
+msgid "{0}이/가 {1}을/를 밟았다"
+msgstr "{0}が{1}を踏んだ"
+
+msgid "{0}이/가 {1}을/를 건드렸다"
+msgstr "{0}が{1}に触れた"
+
+msgid "{0}을/를 밟았다"
+msgstr "{0}を踏んだ"
+
+msgid "{0}이/가 쓰러졌다"
+msgstr "{0}が倒れた"
+
+msgid "벽이 무너졌다"
+msgstr "壁が崩れた"
+
+msgid "바닥이 무너졌다"
+msgstr "床が崩れた"
+
+msgid "{0}이/가 타올랐다. 꼬리가 모두 돌아오고 하나 더 돋았다"
+msgstr "{0}が燃え上がった。尻尾がすべて戻り、もう一本生えた"
+
+msgid "두루마리를 읽었다. 이 층의 지도가 드러났다"
+msgstr "巻物を読んだ。この階の地図が現れた"
+
+msgid "꼬리가 모두 돌아왔다"
+msgstr "尻尾がすべて戻った"
+
+msgid "{0}으로 내려갔다"
+msgstr "{0}へ下りた"
+
+msgid "{0}으로 갔다"
+msgstr "{0}へ行った"
+
+msgid "{0}으로 올라갔다"
+msgstr "{0}へ上がった"
+
+msgid "{0}이/가 오고 있다"
+msgstr "{0}が近づいている"
+
+msgid "{0}이/가 나타났다"
+msgstr "{0}が現れた"
+
+msgid "{0}이/가 폭발했다"
+msgstr "{0}が爆発した"
+
+msgid "{0}이/가 꺼졌다"
+msgstr "{0}が崩れた"
+
+msgid "{0}이/가 깨어났다"
+msgstr "{0}が目覚めた"
+
+msgid "영약을 마시고 {0}"
+msgstr "霊薬を飲み、{0}"
+
+msgid "{0}에 {1}"
+msgstr "{0}に{1}"
+
+msgid "{0}이/가 재가 되었다"
+msgstr "{0}が灰になった"
+
+msgid "등불이 꺼졌다"
+msgstr "灯籠の火が消えた"
+
+msgid "{0}이/가 등불을 다시 켰다"
+msgstr "{0}が灯籠をつけ直した"
+
+msgid "등불이 다시 켜졌다"
+msgstr "灯籠が再び灯った"
+
+msgid "벽에 금이 갔다"
+msgstr "壁にひびが入った"
+
+msgid "금 간 벽이 무너졌다"
+msgstr "ひび割れた壁が崩れた"
+
+msgid "창문이 깨졌다"
+msgstr "窓が割れた"
+
+msgid "병풍이 쓰러졌다"
+msgstr "屏風が倒れた"
+
+msgid "장독이 깨졌다"
+msgstr "甕が割れた"
+
+msgid "향로가 쓰러졌다"
+msgstr "香炉が倒れた"
+
+msgid "{0}이/가 부서졌다"
+msgstr "{0}が壊れた"
+
+msgid "{0}이/가 맹렬한 불에 타 피해를 {1} 입었다"
+msgstr "{0}が猛火に焼かれ、ダメージを{1}受けた"
+
+msgid "{0}이/가 불에 타 피해를 {1} 입었다"
+msgstr "{0}が火に焼かれ、ダメージを{1}受けた"
+
+msgid "맹렬한 불에 타 피해를 {0} 입었다"
+msgstr "猛火に焼かれ、ダメージを{0}受けた"
+
+msgid "불에 타 피해를 {0} 입었다"
+msgstr "火に焼かれ、ダメージを{0}受けた"
+
+msgid "{0}이/가 {1}에 데어 피해를 {2} 입었다"
+msgstr "{0}が{1}で火傷を負い、ダメージを{2}受けた"
+
+msgid "{0}에 데어 피해를 {1} 입었다"
+msgstr "{0}で火傷を負い、ダメージを{1}受けた"
+
+msgid "{0}이/가 가시에 찔려 피해를 {1} 입었다"
+msgstr "{0}が棘に刺され、ダメージを{1}受けた"
+
+msgid "가시에 찔려 피해를 {0} 입었다"
+msgstr "棘に刺され、ダメージを{0}受けた"
+
+msgid "{0}의 {1}에 {2}이/가 피해를 {3} 입었다"
+msgstr "{0}の{1}で{2}がダメージを{3}受けた"
+
+msgid "{0}에게 피해를 {1} 주었다"
+msgstr "{0}にダメージを{1}与えた"
+
+msgid "{0}이/가 피해를 {1} 입었다"
+msgstr "{0}がダメージを{1}受けた"
+
+msgid "피해를 {0} 입었다"
+msgstr "ダメージを{0}受けた"
+
+msgid "소음"
+msgstr "騒音"
+
+msgid "근접 소음"
+msgstr "近接騒音"
+
+msgid "디버그"
+msgstr "デバッグ"
+
+msgid "싸우는 중"
+msgstr "戦闘中"
+
+msgid "뿌리기"
+msgstr "散布"
+
+msgid "만드는 법"
+msgstr "作り方"
+
+msgid "오행 부적만"
+msgstr "五行の護符のみ"
+
+msgid "모양"
+msgstr "形"
+
+msgid "투사체 없이 닿는 칸"
+msgstr "飛び道具なしで届くマス"
+
+msgid "만드는 법: "
+msgstr "作り方: "
+
+msgid "넣으면: "
+msgstr "入れると: "
+
+msgid " · 꼬리: %d"
+msgstr " · 尻尾: %d"
+
+msgid "빛"
+msgstr "光"
+
+msgid "없음"
+msgstr "なし"
+
+msgid "자신에게"
+msgstr "自分に"
+
+msgid "모습"
+msgstr "姿"
+
+msgid "마지막으로 처치한 적"
+msgstr "最後に倒した敵"
+
+msgid "시간"
+msgstr "時間"
+
+msgid "%d초"
+msgstr "%d秒"
+
+msgid "%s 한 장마다"
+msgstr "%s1枚につき"
+
+msgid "추격 중이 아닌 적"
+msgstr "追跡中でない敵"
+
+msgid "발톱"
+msgstr "爪"
+
+msgid "기습"
+msgstr "奇襲"
+
+msgid "%s 소음"
+msgstr "%s騒音"
+
+msgid "둘레 %d칸"
+msgstr "周囲%dマス"
+
+msgid "보임"
+msgstr "見える"
+
+msgid "바로 옆에서만"
+msgstr "すぐ隣からのみ"
+
+msgid "둘레의 불, 켜진 등불"
+msgstr "周囲の火、点いた灯籠"
+
+msgid "피해"
+msgstr "ダメージ"
+
+msgid "곧게 %d칸"
+msgstr "まっすぐ%dマス"
+
+msgid "밀침"
+msgstr "押し出し"
+
+msgid "%d칸"
+msgstr "%dマス"
+
+msgid "불, 등불"
+msgstr "火、灯籠"
+
+msgid "금"
+msgstr "ひび"
+
+msgid "무너짐"
+msgstr "崩れる"
+
+msgid "모두"
+msgstr "すべて"
+
+msgid "%d명"
+msgstr "%d体"
+
+msgid "거리"
+msgstr "距離"
+
+msgid "대상"
+msgstr "対象"
+
+msgid "최대 수"
+msgstr "最大数"
+
+msgid "보이는 가까운 적 %s"
+msgstr "見える近くの敵 %s"
+
+msgid "보이는 칸만"
+msgstr "見えるマスのみ"
+
+msgid "바로 옆 적 피해"
+msgstr "すぐ隣の敵へのダメージ"
+
+msgid "%d칸 앞 %s"
+msgstr "%dマス先 %s"
+
+msgid "보이는 적 모두, 당신"
+msgstr "見える敵すべて、あなた"
+
+msgid "보이는 적 모두"
+msgstr "見える敵すべて"
+
+msgid "%d칸 안 첫 벽과 그 양옆"
+msgstr "%dマス以内の最初の壁とその両隣"
+
+msgid "초당 피해"
+msgstr "毎秒ダメージ"
+
+msgid "%s 양"
+msgstr "%s量"
+
+msgid "지날 때 피해"
+msgstr "通過時のダメージ"
+
+msgid "땅"
+msgstr "地面"
+
+msgid "끝 벽"
+msgstr "端の壁"
+
+msgid "보이는 꺼진 등불"
+msgstr "見える消えた灯籠"
+
+msgid "끝 칸 소음"
+msgstr "端のマスの騒音"
+
+msgid "하늘, 깊은 물"
+msgstr "空、深い水"
+
+msgid "냄새"
+msgstr "匂い"
+
+msgid "싸움"
+msgstr "戦い"
+
+msgid "추격 중인 적"
+msgstr "追跡中の敵"
+
+msgid "체력"
+msgstr "体力"
+
+msgid "약점인 적 피해"
+msgstr "弱点の敵へのダメージ"
+
+msgid "%d칸, 바깥으로"
+msgstr "%dマス、外側へ"
+
+msgid "폭발 반지름"
+msgstr "爆発半径"
+
+msgid "폭발 피해"
+msgstr "爆発ダメージ"
+
+msgid "주위 벽"
+msgstr "周囲の壁"
+
+msgid "멈춘 곳에서 %d칸 안 첫 벽과 그 양옆"
+msgstr "止まった場所から%dマス以内の最初の壁とその両隣"
+
+msgid "멈춘 곳 %s"
+msgstr "止まった場所 %s"
+
+msgid "당신의 "
+msgstr "あなたの"
+
+msgid "적의 "
+msgstr "敵の"
+
+msgid "오행"
+msgstr "五行"
+
+msgid "전기"
+msgstr "電気"
+
+msgid "막는 원소가 섞인 주문: ×%d"
+msgstr "防ぐ属性が混ざった呪文: ×%d"
+
+msgid "내성"
+msgstr "耐性"
+
+msgid "해당 주문에 피해를 절반만 입음"
+msgstr "その呪文のダメージを半分しか受けない"
+
+msgid "내성: "
+msgstr "耐性: "
+
+msgid "{0}이/가 섞인 주문"
+msgstr "{0}が混ざった呪文"
+
+msgid "불에 타지 않음"
+msgstr "燃えない"
+
+msgid "피해 없음: %s"
+msgstr "ダメージなし: %s"
+
+msgid "초당 %d칸"
+msgstr "毎秒%dマス"
+
+msgid "남은 시간"
+msgstr "残り時間"
+
+msgid "꼬리: %d"
+msgstr "尻尾: %d"
+
+msgid "바꿔치기"
+msgstr "入れ替え"
+
+msgid "멈춘 칸으로"
+msgstr "止まったマスへ"
+
+msgid "맞힌 적"
+msgstr "命中した敵"
+
+msgid "자리 교환"
+msgstr "位置交換"
+
+msgid "벽, 닫힌 문, 등불"
+msgstr "壁、閉じた扉、灯籠"
+
+msgid "%s %d발"
+msgstr "%s %d発"
+
+msgid "발당 피해"
+msgstr "1発あたりのダメージ"
+
+msgid "맞히면"
+msgstr "命中時"
+
+msgid "사거리"
+msgstr "射程"
+
+msgid "가장 가까운 적"
+msgstr "最も近い敵"
+
+msgid "교활한 적"
+msgstr "狡猾な敵"
+
+msgid "폭발"
+msgstr "爆発"
+
+msgid "나무 적"
+msgstr "木の敵"
+
+msgid "%s %d초"
+msgstr "%s %d秒"
+
+msgid "멈춘 곳에 직각으로 %d칸"
+msgstr "止まった場所で直角に%dマス"
+
+msgid "어둠 %d칸"
+msgstr "闇 %dマス"
+
+msgctxt "creature"
+msgid "도"
+msgstr "ト"
+
+msgctxt "creature"
+msgid "외"
+msgstr "足"
+
+msgctxt "creature"
+msgid "부"
+msgstr "棒"
+
+msgctxt "creature"
+msgid "빗"
+msgstr "箒"
+
+msgctxt "creature"
+msgid "감"
+msgstr "笠"
+
+msgctxt "creature"
+msgid "장"
+msgstr "チ"
+
+msgctxt "creature"
+msgid "이"
+msgstr "イ"
+
+msgctxt "creature"
+msgid "불"
+msgstr "火"
+
+msgctxt "creature"
+msgid "해"
+msgstr "ヘ"
+
+msgctxt "creature"
+msgid "천"
+msgstr "天"
+
+msgctxt "creature"
+msgid "지"
+msgstr "地"
+
+msgctxt "creature"
+msgid "가"
+msgstr "ガ"
+
+msgctxt "creature"
+msgid "용"
+msgstr "龍"
+
+msgctxt "creature"
+msgid "사"
+msgstr "冥"
+
+msgctxt "creature"
+msgid "강"
+msgstr "キ"
+
+msgctxt "creature"
+msgid "어"
+msgstr "闇"
+
+msgctxt "creature"
+msgid "두"
+msgstr "ク"
+
+msgctxt "creature"
+msgid "객"
+msgstr "ケ"
+
+msgctxt "creature"
+msgid "달"
+msgstr "卵"
+
+msgctxt "talisman"
+msgid "여"
+msgstr "狐"
+
+msgctxt "talisman"
+msgid "구"
+msgstr "玉"
+
+msgctxt "talisman"
+msgid "화"
+msgstr "火"
+
+msgctxt "talisman"
+msgid "수"
+msgstr "水"
+
+msgctxt "talisman"
+msgid "목"
+msgstr "木"
+
+msgctxt "talisman"
+msgid "금"
+msgstr "金"
+
+msgctxt "talisman"
+msgid "토"
+msgstr "土"
+
+msgctxt "talisman"
+msgid "들"
+msgstr "野"
+
+msgctxt "talisman"
+msgid "용"
+msgstr "溶"
+
+msgctxt "talisman"
+msgid "유"
+msgstr "榴"
+
+msgctxt "talisman"
+msgid "서"
+msgstr "霜"
+
+msgctxt "talisman"
+msgid "단"
+msgstr "雨"
+
+msgctxt "talisman"
+msgid "증"
+msgstr "蒸"
+
+msgctxt "talisman"
+msgid "가"
+msgstr "棘"
+
+msgctxt "talisman"
+msgid "균"
+msgstr "裂"
+
+msgctxt "talisman"
+msgid "진"
+msgstr "泥"
+
+msgctxt "talisman"
+msgid "광"
+msgstr "炉"
+
+msgctxt "talisman"
+msgid "약"
+msgstr "跳"
+
+msgctxt "talisman"
+msgid "늪"
+msgstr "沼"
+
+msgctxt "talisman"
+msgid "최"
+msgstr "催"
+
+msgctxt "talisman"
+msgid "발"
+msgstr "爪"
+
+msgctxt "talisman"
+msgid "책"
+msgstr "柵"
+
+msgctxt "talisman"
+msgid "봉"
+msgstr "烽"
+
+msgctxt "talisman"
+msgid "은"
+msgstr "隠"
+
+msgctxt "talisman"
+msgid "작"
+msgstr "鵲"
+
+msgctxt "talisman"
+msgid "안"
+msgstr "霧"
+
+msgctxt "talisman"
+msgid "꺼"
+msgstr "陥"
+
+msgctxt "talisman"
+msgid "믐"
+msgstr "闇"
+
+msgctxt "talisman"
+msgid "이"
+msgstr "離"
+
+msgctxt "talisman"
+msgid "낙"
+msgstr "雷"
+
+msgctxt "talisman"
+msgid "고"
+msgstr "静"
+
+msgctxt "talisman"
+msgid "윤"
+msgstr "輪"
+
+msgctxt "talisman"
+msgid "극"
+msgstr "剋"
+
+msgctxt "talisman"
+msgid "룡"
+msgstr "龍"
+
+msgctxt "word"
+msgid "불"
+msgstr "火"
+
+msgid "  최대 양: %d"
+msgstr "  最大量: %d"
+
+msgid " 부적"
+msgstr "護符"
+
+msgid "%d 복사했다"
+msgstr "%dをコピーした"
+
+msgid "%d초마다 %d"
+msgstr "%d秒ごとに%d"
+
+msgid "%d칸 안, 도깨비불 붙음"
+msgstr "%dマス以内、トッケビ火が付く"
+
+msgid "%d칸 앞에서 직각으로 %d칸"
+msgstr "%dマス先で直角に%dマス"
+
+msgid "%d칸 이상 날아간 뒤 폭발 피해"
+msgstr "%dマス以上飛んだ後に爆発ダメージ"
+
+msgid "%d칸 이상 날아간 뒤 피해"
+msgstr "%dマス以上飛んだ後にダメージ"
+
+msgid "%s 갈까?"
+msgstr "%sへ行く？"
+
+msgid "%s 뒤 맨 끝"
+msgstr "%sの後の末尾"
+
+msgid "%s 속: 바로 옆에서만 보임"
+msgstr "%sの中: すぐ隣からのみ見える"
+
+msgid "%s 체력"
+msgstr "%s 体力"
+
+msgid "%s 최대 양: %d"
+msgstr "%s 最大量: %d"
+
+msgid "%s 폭발에 쓰러졌다"
+msgstr "%sの爆発で倒れた"
+
+msgid "%s 한 장마다 +%d칸"
+msgstr "%s1枚につき+%dマス"
+
+msgid "%s, 곧게 %d칸"
+msgstr "%s、直進%dマス"
+
+msgid "%s, 생물"
+msgstr "%s、生物"
+
+msgid "%s: 맨 앞, 또는 %s"
+msgstr "%s: 先頭、または%s"
+
+msgid "%s에 쓰러졌다"
+msgstr "%sで倒れた"
+
+msgid "%s에게 쓰러졌다"
+msgstr "%sに倒された"
+
+msgid "%s의 %s에 쓰러졌다"
+msgstr "%sの%sで倒された"
+
+msgid "%s이 됨"
+msgstr "%sになる"
+
+msgid "%s키를 눌러 기록 보기"
+msgstr "%sキーで記録を見る"
+
+msgid "%s한 당신을 알아볼 수 없다"
+msgstr "%s中のあなたを見分けられない"
+
+msgid "+%d칸"
+msgstr "+%dマス"
+
+msgid ", 냄새 지움"
+msgstr "、匂いを消す"
+
+msgid ", 반지름 %d"
+msgstr "、半径%d"
+
+msgid ", 보는 적이 이 칸 수색"
+msgstr "、見ている敵がこのマスを捜索する"
+
+msgid ", 무작위 저주: %s"
+msgstr "、ランダムな呪い: %s"
+
+msgid "객귀의 저주"
+msgstr "ケッキの呪い"
+
+msgid "시체: %d초 뒤 되살아남"
+msgstr "死体: %d秒後に蘇る"
+
+msgid "되살아난 적: %s"
+msgstr "蘇った敵: %s"
+
+msgid "%d층부터: %s"
+msgstr "%d階から: %s"
+
+msgid "저승의 저주"
+msgstr "冥府の呪い"
+
+msgid "시선의 저주"
+msgstr "視線の呪い"
+
+msgid "%s: %d초 일찍 옴"
+msgstr "%s: %d秒早く来る"
+
+msgid "알림: 오기 %d초 전"
+msgstr "通知: 来る%d秒前"
+
+msgid "이미 오는 중이면 바로 나타난다."
+msgstr "すでに向かっている場合はすぐに現れる。"
+
+msgid "걸린 층에서만 효과가 있다."
+msgstr "かかった階でのみ効果がある。"
+
+msgid "적의 어두운 곳 시야: +%d칸"
+msgstr "暗所での敵の視界: +%dマス"
+
+msgid "오한이 든다..."
+msgstr "悪寒がする…"
+
+msgid "누군가가 지켜보는 느낌이 든다..."
+msgstr "誰かに見られている気がする…"
+
+msgid "{0}에서 {1}이/가 나왔다"
+msgstr "{0}から{1}が出てきた"
+
+msgid ", 이 칸과 옆 %d칸 %s"
+msgstr "、このマスと隣の%dマス %s"
+
+msgid ", 주위 %d칸 %s, 불과 냄새 지움"
+msgstr "、周囲%dマス %s、火と匂いを消す"
+
+msgid ", 주위 %d칸 적 기절 %d초"
+msgstr "、周囲%dマスの敵を%d秒気絶させる"
+
+msgid ", 체력 +%d"
+msgstr "、体力+%d"
+
+msgid "{0}으로 이동했다"
+msgstr "{0}へ移動した"
+
+msgid "{0}을/를 껐다"
+msgstr "{0}を消した"
+
+msgid "{0}을/를 먹었다. 체력을 {1} 회복했다"
+msgstr "{0}を食べた。体力が{1}回復した"
+
+msgid "{0}을/를 불러냈다"
+msgstr "{0}を呼び出した"
+
+msgid "{0}을/를 없앴다"
+msgstr "{0}を取り除いた"
+
+msgid "{0}을/를 옮겼다"
+msgstr "{0}を動かした"
+
+msgid "{0}을/를 켰다"
+msgstr "{0}をつけた"
+
+msgid "{0}이/가 {1}을/를 모으기 시작했다"
+msgstr "{0}が{1}を溜め始めた"
+
+msgid "{0}이/가 돋았다"
+msgstr "{0}が生えた"
+
+msgid "{0}이/가 불빛에 사라졌다"
+msgstr "{0}が光に消えた"
+
+msgid "{0}이/가 잠들었다"
+msgstr "{0}が眠った"
+
+msgid "{0}은/는 잠들지 않았다"
+msgstr "{0}は眠らなかった"
+
+msgid "{0}했다"
+msgstr "{0}を使った"
+
+msgid "가까운 적끼리 둘씩"
+msgstr "近い敵同士で2体ずつ"
+
+msgid "가림: %s"
+msgstr "遮蔽: %s"
+
+msgid "가속"
+msgstr "加速"
+
+msgid "가연성·인화성 칸"
+msgstr "可燃性・引火性のマス"
+
+msgid "감소: 초당 %d%%"
+msgstr "減衰: 毎秒%d%%"
+
+msgid "감투 쓴 적: 보임"
+msgstr "笠をかぶった敵: 見える"
+
+msgid "건너는 것"
+msgstr "渡るもの"
+
+msgid "경계한 적: %d칸 안"
+msgstr "警戒した敵: %dマス以内"
+
+msgid "경로"
+msgstr "経路"
+
+msgid "고른 부적도, 저장한 주문도 없다"
+msgstr "選んだ護符も保存した呪文もない"
+
+msgid "고정"
+msgstr "固定"
+
+msgid "공격"
+msgstr "攻撃"
+
+msgid "관통"
+msgstr "貫通"
+
+msgid "균열"
+msgstr "裂け目"
+
+msgid "그 칸으로 이동"
+msgstr "そのマスへ移動"
+
+msgid "그 칸의 적"
+msgstr "そのマスの敵"
+
+msgid "금이 감"
+msgstr "ひびが入る"
+
+msgid "기다릴 때 들킴: %s"
+msgstr "待つと見つかる: %s"
+
+msgid "기다릴 때 추락: %d층"
+msgstr "待つと墜落: %d階"
+
+msgid "기다릴 때 피해: %d"
+msgstr "待つとダメージ: %d"
+
+msgid "기록이 없다"
+msgstr "記録がない"
+
+msgid "김치"
+msgstr "キムチ"
+
+msgid "깨어 있는 적이 보여서 쉴 수 없다"
+msgstr "起きている敵が見えるので休めない"
+
+msgid "깨어 있는 적이 보여서 탐험할 수 없다"
+msgstr "起きている敵が見えるので探索できない"
+
+msgid "깨어 있을 때: 옆 칸의 꺼진 등불을 먼저 켬"
+msgstr "起きている間: 隣の消えた灯籠を先に点ける"
+
+msgid "깨어남: 소음, 피해"
+msgstr "目覚め: 騒音、ダメージ"
+
+msgid "꺼지지 않는 칸"
+msgstr "沈まないマス"
+
+msgid "꼬리 무제한"
+msgstr "尻尾無制限"
+
+msgid "꼬리가 %d개 모자라다"
+msgstr "尻尾が%d本足りない"
+
+msgid "끝: 수색 중"
+msgstr "終了: 捜索中"
+
+msgid "끝: 쉬는 중"
+msgstr "終了: 休憩中"
+
+msgid "나왔다"
+msgstr "出てきた"
+
+msgid "남김: 당신이 선 칸"
+msgstr "残すもの: あなたのいるマス"
+
+msgid "남는 시간: %d초"
+msgstr "残り時間: %d秒"
+
+msgid "남은 냄새: %d초 이내"
+msgstr "残った匂い: %d秒以内"
+
+msgid "후각이 뛰어나다"
+msgstr "鼻が利く"
+
+msgid "지워짐: 냄새"
+msgstr "消えるもの: 匂い"
+
+msgid "냄새가 남지 않음."
+msgstr "匂いが残らない。"
+
+msgid "놓치면: 마지막으로 본 곳, 냄새를 따라감"
+msgstr "見失うと: 最後に見た場所へ行き、匂いを辿る"
+
+msgid "다른 부적과 섞을 수 없는 주문이다"
+msgstr "他の護符と混ぜられない呪文だ"
+
+msgid "다시"
+msgstr "再び"
+
+msgid "다시 볼 수 있게 되었다"
+msgstr "再び見えるようになった"
+
+msgid "다시 켜짐"
+msgstr "再点灯"
+
+msgid "다음 피해: ×%d"
+msgstr "次のダメージ: ×%d"
+
+msgid "피해 ×%d"
+msgstr "ダメージ ×%d"
+
+msgid "달라붙음"
+msgstr "貼り付く"
+
+msgid "대기"
+msgstr "待機"
+
+msgid "던진 곳 수색"
+msgstr "投げた場所を捜索"
+
+msgid "덩굴"
+msgstr "蔓"
+
+msgid "도깨비불 장막 옆 칸 초당 피해: "
+msgstr "トッケビ火の幕の隣のマスへの毎秒ダメージ: "
+
+msgid "동시 주술: %d개"
+msgstr "同時呪術: %d個"
+
+msgid "두 곳에서 %d"
+msgstr "両方の場所で%d"
+
+msgid "둘러봄: %d번"
+msgstr "見回す: %d回"
+
+msgid "뒤로"
+msgstr "戻る"
+
+msgid "듣지 못하는 적: 소음 면역"
+msgstr "聞こえない敵: 騒音無効"
+
+msgid "들은 적: 추격 중이 아니면 당신을 본 곳을 수색"
+msgstr "聞いた敵: 追跡中でなければあなたを見た場所を捜索する"
+
+msgid "등불 켜기"
+msgstr "灯籠を点ける"
+
+msgid "디버그 명령"
+msgstr "デバッグコマンド"
+
+msgid "땅속 덩굴"
+msgstr "地中の蔓"
+
+msgid "떨어져 쓰러졌다"
+msgstr "落ちて倒れた"
+
+msgid "마침표(.)"
+msgstr "ピリオド(.)"
+
+msgid "막는 것"
+msgstr "防ぐもの"
+
+msgid "맞은 북"
+msgstr "叩かれた太鼓"
+
+msgid "맞은 적"
+msgstr "命中した敵"
+
+msgid "지도 밝히기"
+msgstr "マップを明らかにする"
+
+msgid "먹은 뒤 냄새: %d초 동안 진함"
+msgstr "食べた後の匂い: %d秒間濃い"
+
+msgid "멈춘 곳 %s의 불, 등불"
+msgstr "止まった場所の%sの火、灯籠"
+
+msgid "멈춘 곳 소음"
+msgstr "止まった場所の騒音"
+
+msgid "메뉴"
+msgstr "メニュー"
+
+msgid "면역"
+msgstr "無効"
+
+msgid "모으던 주문: 취소"
+msgstr "溜めていた呪文: キャンセル"
+
+msgid "무리: 대장을 따라다님"
+msgstr "群れ: 頭領についていく"
+
+msgid "무적"
+msgstr "無敵"
+
+msgid "묶였다"
+msgstr "拘束された"
+
+msgid "묶임 %d초"
+msgstr "拘束 %d秒"
+
+msgid "묶임: %d초"
+msgstr "拘束: %d秒"
+
+msgid "문닫기"
+msgstr "閉める"
+
+msgid "물: %d초 동안 소음 없음"
+msgstr "水: %d秒間騒音なし"
+
+msgid "당신이 선 칸, 계단으로 가는 길이 끊기는 칸"
+msgstr "あなたのいるマス、階段への道を断つマス"
+
+msgid "당신이 보는 거리: %d칸"
+msgstr "あなたの見える距離: %dマス"
+
+msgid "당신은 범위 안의 소음을 모두 들을 수 있다."
+msgstr "あなたは範囲内の騒音をすべて聞くことができる。"
+
+msgid "당신을 보면: 추격 중"
+msgstr "あなたを見ると: 追跡中"
+
+msgid "당신을 볼 수 없다"
+msgstr "あなたが見えない"
+
+msgid "당신을 볼 수 있다"
+msgstr "あなたが見える"
+
+msgid "발견: 밝은 칸 또는 %d칸 안"
+msgstr "発見: 明るいマス、または%dマス以内"
+
+msgid "발사 빛"
+msgstr "発砲光"
+
+msgid "발톱 피해"
+msgstr "爪ダメージ"
+
+msgid "발톱 피해: +%d"
+msgstr "爪ダメージ: +%d"
+
+msgid "밝음"
+msgstr "明るい"
+
+msgid "밟으면"
+msgstr "踏むと"
+
+msgid "밟으면: 묶임 %d초"
+msgstr "踏むと: %d秒間拘束"
+
+msgid "작동: 주위 %d×%d 모두 묶임"
+msgstr "作動: 周囲%d×%dをすべて拘束"
+
+msgid "소음: 층 전체"
+msgstr "騒音: 階全体"
+
+msgid "방향키 아래"
+msgstr "下矢印キー"
+
+msgid "방향키 오른쪽"
+msgstr "右矢印キー"
+
+msgid "방향키 왼쪽"
+msgstr "左矢印キー"
+
+msgid "방향키 위"
+msgstr "上矢印キー"
+
+msgid "방향키로 커서 이동 (Shift는 %d칸), Enter 걷기, 위험구역 키로 표시 (그 위에서 1-%d 반지름), Esc 끝"
+msgstr "矢印キーでカーソル移動 (Shiftで%dマス)、Enterで歩く、危険区域キーで表示 (その上で1-%dで半径)、Escで終了"
+
+msgid "번개"
+msgstr "雷"
+
+msgid "번지는 속도: 초당 %d칸"
+msgstr "広がる速さ: 毎秒%dマス"
+
+msgid "번질 확률"
+msgstr "広がる確率"
+
+msgid "범위"
+msgstr "範囲"
+
+msgid "범위: 소음 값만큼의 칸, 벽을 돌아서"
+msgstr "範囲: 騒音値と同じマス数、壁を回り込む"
+
+msgid "벽까지 직선"
+msgstr "壁まで直進"
+
+msgid "보이는 적, 가까운 적부터 남은 체력만큼"
+msgstr "見える敵、近い敵から残り体力の分だけ"
+
+msgid "보이지 않음."
+msgstr "見えない。"
+
+msgid "보지 못해도 당신을 쫓아감"
+msgstr "見えなくてもあなたを追ってくる"
+
+msgid "부적 얻기"
+msgstr "護符を得る"
+
+msgid "부적 제단"
+msgstr "護符の祭壇"
+
+msgid "부적 칸이 가득 찼다"
+msgstr "護符欄がいっぱいだ"
+
+msgid "부채꼴 %d°"
+msgstr "扇形 %d°"
+
+msgid "부채꼴 %d° 안의 적"
+msgstr "扇形%d°内の敵"
+
+msgid "북 치기: 추격 중 걸어서 %d칸 안"
+msgstr "太鼓を叩く: 追跡中、徒歩%dマス以内"
+
+msgid "북 치는 적: 당신을 쫓는 영리한 적, 걸어서 %d칸 안"
+msgstr "太鼓を叩く敵: あなたを追う賢い敵、徒歩%dマス以内"
+
+msgid "북: %d초 동안 소음 없음"
+msgstr "太鼓: %d秒間騒音なし"
+
+msgid "북소리를 들은 적: 북 친 적이 당신을 마지막으로 본 곳을 수색"
+msgstr "太鼓の音を聞いた敵: 太鼓を叩いた敵があなたを最後に見た場所を捜索する"
+
+msgid "불붙음: 불이 든 주문에 맞을 때"
+msgstr "炎上: 火を含む呪文に当たったとき"
+
+msgid "불에 타 쓰러졌다"
+msgstr "焼け死んだ"
+
+msgid "불타는 시간: %d초"
+msgstr "燃える時間: %d秒"
+
+msgid "불탄 뒤: %s"
+msgstr "燃えた後: %s"
+
+msgid "불탄 뒤: 재"
+msgstr "燃えた後: 灰"
+
+msgid "빈 독"
+msgstr "空の甕"
+
+msgid "빛: 맞은 대상을 따라 움직임"
+msgstr "光: 当たった対象に付いて動く"
+
+msgid "빼기"
+msgstr "外す"
+
+msgid "새로 시작"
+msgstr "新しく始める"
+
+msgid "소금"
+msgstr "塩"
+
+msgid "속도"
+msgstr "速度"
+
+msgid "쇠발톱"
+msgstr "鉄爪"
+
+msgid "수색"
+msgstr "捜索"
+
+msgid "수색 끝: 경계가 끝난 뒤"
+msgstr "捜索終了: 警戒が終わった後"
+
+msgid "수색: 경계가 끝날 때까지"
+msgstr "捜索: 警戒が終わるまで"
+
+msgid "수색을 시작했다"
+msgstr "捜索を始めた"
+
+msgid "수색하는 적: 추격 중이 아닌 적"
+msgstr "捜索する敵: 追跡中でない敵"
+
+msgid "순간이동"
+msgstr "テレポート"
+
+msgid "순간이동했다"
+msgstr "テレポートした"
+
+msgid "쉬거나 수색 중: 당신의 냄새를 따라감"
+msgstr "休憩中か捜索中: あなたの匂いを辿る"
+
+msgid "쉴 때: 방 사이를 돌아다님"
+msgstr "休むとき: 部屋の間を歩き回る"
+
+msgid "쉼표(,)"
+msgstr "コンマ(,)"
+
+msgid "스스로에게 걸기"
+msgstr "自分にかける"
+
+msgid "스스로에겐 %s만 걸 수 있다"
+msgstr "自分には%sしかかけられない"
+
+msgid "시드"
+msgstr "シード"
+
+msgid "시드 %d 복사했다"
+msgstr "シード%dをコピーした"
+
+msgid "시드를 복사했다"
+msgstr "シードをコピーした"
+
+msgid "시야: 없음"
+msgstr "視界: なし"
+
+msgid "시야를 막음."
+msgstr "視界を遮る。"
+
+msgid "시작: 당신을 봄, 주문에 맞음"
+msgstr "開始: あなたを見る、呪文に当たる"
+
+msgid "시작: 소음, 흔적, 날아오는 주문"
+msgstr "開始: 騒音、痕跡、飛んでくる呪文"
+
+msgid "시작: 추격을 시작할 때"
+msgstr "開始: 追跡を始めたとき"
+
+msgid "시체"
+msgstr "死体"
+
+msgid "쏜 칸"
+msgstr "放った場所"
+
+msgid "쏟아졌다"
+msgstr "こぼれた"
+
+msgid "쓰러진 허수아비"
+msgstr "倒れたカカシ"
+
+msgid "안 남는 칸: %s"
+msgstr "残らない場所: %s"
+
+msgid "어두운 곳 시야: +%d칸"
+msgstr "暗所の視界: +%dマス"
+
+msgid "어두움"
+msgstr "暗闇"
+
+msgid "여우불 소음: 던진 곳을 수색"
+msgstr "狐火の騒音: 投げた場所を捜索"
+
+msgid "옆 칸 초당 피해: %d"
+msgstr "隣のマスの毎秒ダメージ: %d"
+
+msgid "외침"
+msgstr "叫び"
+
+msgid "움직이지 않음."
+msgstr "動かない。"
+
+msgid "움직일 수 없다."
+msgstr "動けない。"
+
+msgid "움직일 수도, 주문을 쓸 수도 없다."
+msgstr "動くことも呪文を使うこともできない。"
+
+msgid "위치 감지"
+msgstr "位置感知"
+
+msgid "재등장: %d초 뒤"
+msgstr "再出現: %d秒後"
+
+msgid "재등장 간격: 매번 절반"
+msgstr "再出現の間隔: 毎回半分"
+
+msgid "위험구역 너머는 탐험할 수 없다"
+msgstr "危険区域の先は探索できない"
+
+msgid "위험구역 너머로는 갈 수 없다"
+msgstr "危険区域の先へは行けない"
+
+msgid "은신"
+msgstr "隠れ身"
+
+msgid "은신."
+msgstr "隠れ身。"
+
+msgid "이 칸으로 이동할 때 들킴: %s"
+msgstr "このマスへ移動すると見つかる: %s"
+
+msgid "이 칸으로 이동할 때 추락: %d층"
+msgstr "このマスへ移動すると転落: %d階"
+
+msgid "이 칸으로 이동할 때 피해: %d"
+msgstr "このマスへ移動するとダメージ: %d"
+
+msgid "이어하기"
+msgstr "続ける"
+
+msgid "이어하던 판을 지우고 새로 시작할까?"
+msgstr "続きの記録を消して新しく始める？"
+
+msgid "있음"
+msgstr "あり"
+
+msgid "잠듦"
+msgstr "眠り"
+
+msgid "저장한 주문이 없다"
+msgstr "保存した呪文がない"
+
+msgid "적 멈춤"
+msgstr "敵を止める"
+
+msgid "적 모두, 벽 한 칸"
+msgstr "敵全員、壁1マス"
+
+msgid "적 소환"
+msgstr "敵を召喚"
+
+msgid "적 옆에서 %d초, 주문 사용, 피해"
+msgstr "敵の隣で%d秒、呪文の使用、ダメージ"
+
+msgid "적 이동"
+msgstr "敵を移動"
+
+msgid "적 제거"
+msgstr "敵を除去"
+
+msgid "적: 소음이 난 곳을 수색"
+msgstr "敵: 騒音のした場所を捜索"
+
+msgid "적에게 보임: %d칸 안"
+msgstr "敵に見つかる: %dマス以内"
+
+msgid "적에게 보임: 시야 안 어디서나"
+msgstr "敵に見つかる: 視界内のどこでも"
+
+msgid "적에게 피해"
+msgstr "敵にダメージ"
+
+msgid "작동: 밟은 생물, 지나간 투사체"
+msgstr "作動: 踏んだ生き物、通過した飛び道具"
+
+msgid "밟는 적: 추격 중인 적"
+msgstr "踏む敵: 追跡中の敵"
+
+msgid "적을 모두 없앴다"
+msgstr "敵をすべて消した"
+
+msgid "정말 처음부터 시작할까?"
+msgstr "本当に最初からやり直す？"
+
+msgid "정신을 차렸다"
+msgstr "我に返った"
+
+msgid "정지"
+msgstr "停止"
+
+msgid "정지 중 소음"
+msgstr "停止中の騒音"
+
+msgid "젖은 적 "
+msgstr "濡れた敵の"
+
+msgid "제웅"
+msgstr "藁人形"
+
+msgid "제자리 수색"
+msgstr "その場で捜索"
+
+msgid "제한 없음"
+msgstr "制限なし"
+
+msgid "이동 불가"
+msgstr "移動不可"
+
+msgid "이동 불가."
+msgstr "移動不可。"
+
+msgid "넘을 수 있음: 주문, %s"
+msgstr "越えられる: 呪文、%s"
+
+msgid "주문을 보면: 날아가는 칸을 수색"
+msgstr "呪文を見ると: 飛んだマスを捜索"
+
+msgid "주문을 보면: 쏜 곳에서 추격"
+msgstr "呪文を見ると: 放った場所から追跡"
+
+msgid "주문을 보면: 쏜 곳을 수색"
+msgstr "呪文を見ると: 放った場所を捜索"
+
+msgid "주위 %d칸, 피해 %d"
+msgstr "周囲%dマス、ダメージ %d"
+
+msgid "지금"
+msgstr "今"
+
+msgid "지나간 가연성·인화성 칸"
+msgstr "通過した可燃性・引火性のマス"
+
+msgid "지속 시간"
+msgstr "持続時間"
+
+msgid "지워짐"
+msgstr "消えた"
+
+msgid "지워짐: %s"
+msgstr "消えた: %s"
+
+msgid "물 주문"
+msgstr "水の呪文"
+
+msgid "지진"
+msgstr "地震"
+
+msgid "진한 냄새 남는 시간: %d초"
+msgstr "強い匂いが残る時間: %d秒"
+
+msgid "진흙 착지 소음"
+msgstr "泥への着地騒音"
+
+msgid "찢어졌다"
+msgstr "裂けた"
+
+msgid "착지 소음"
+msgstr "着地騒音"
+
+msgid "착지 후: "
+msgstr "着地後: "
+
+msgid "착지한 칸만"
+msgstr "着地したマスのみ"
+
+msgid "착지할 곳이 없다"
+msgstr "着地できる場所がない"
+
+msgid "체력 회복"
+msgstr "体力回復"
+
+msgid "체력을 모두 회복했다"
+msgstr "体力をすべて回復した"
+
+msgid "최면"
+msgstr "催眠"
+
+msgid "추격"
+msgstr "追跡"
+
+msgid "추격 중인 적: 수색하지 않음"
+msgstr "追跡中の敵: 捜索しない"
+
+msgid "추격: 항상"
+msgstr "追跡: 常に"
+
+msgid "추격을 시작했다"
+msgstr "追跡を始めた"
+
+msgid "추락"
+msgstr "転落"
+
+msgid "충돌 소음"
+msgstr "衝突騒音"
+
+msgid "층 이동"
+msgstr "階移動"
+
+msgid "칸"
+msgstr "マス"
+
+msgid "칸당 %s"
+msgstr "1マスにつき%s"
+
+msgid "키 입력 대기"
+msgstr "キー入力待ち"
+
+msgid "키패드 "
+msgstr "テンキー "
+
+msgid "키패드 ."
+msgstr "テンキー ."
+
+msgid "타격: %s, 이 칸과 옆 %d칸"
+msgstr "打撃: %s、このマスと隣の%dマス"
+
+msgid "타격: 옆 가연성·인화성 칸에 불"
+msgstr "打撃: 隣の可燃性・引火性のマスに火"
+
+msgid "관통탄"
+msgstr "貫通弾"
+
+msgid "탄환"
+msgstr "弾丸"
+
+msgid "탐험"
+msgstr "探索"
+
+msgid "팥"
+msgstr "小豆"
+
+msgid "풀려났다"
+msgstr "解放された"
+
+msgid "풀림: 피해, 주문, 적 옆 %d초 연속"
+msgstr "解除: ダメージ、呪文、敵の隣で%d秒連続"
+
+msgid "피해: ×%d"
+msgstr "ダメージ: ×%d"
+
+msgid "하나"
+msgstr "一つ"
+
+msgid "한 번에 부술 수 있다"
+msgstr "一度に壊せる"
+
+msgid "풀림"
+msgstr "解除"
+
+msgid "허수아비"
+msgstr "カカシ"
+
+msgid "화면을 눌러 시작"
+msgstr "画面をタップして開始"
+
+msgid "회복: %d초마다 %d"
+msgstr "回復: %d秒ごとに%d"
+
+msgid "회전"
+msgstr "回転"
+
+msgid "횟수: 적마다 한 번"
+msgstr "回数: 敵ごとに1回"
+
+msgid "효과: 사람이 됨"
+msgstr "効果: 人間になる"
+
+msgid "흩어졌다"
+msgstr "散った"
+
+msgctxt "spell"
+msgid "꺼짐"
+msgstr "消火"
+
+msgctxt "button"
+msgid "주문서"
+msgstr "呪文書"
+
+msgctxt "button"
+msgid "탐험"
+msgstr "探索"
+
+msgctxt "banner"
+msgid "사람이 되었다"
+msgstr "人間になった"
+
+msgctxt "banner"
+msgid "쓰러졌다"
+msgstr "倒れた"
+
+msgid "숯"
+msgstr "炭"
+
+msgid "생성"
+msgstr "生成"
+
+msgid "궤적"
+msgstr "軌跡"
+
+msgid "{0}이/가 {1}이/가 되었다"
+msgstr "{0}が{1}になった"
+
+msgid "{0}이/가 됨"
+msgstr "{0}になる"
+
+msgid "불: {0}이/가 됨"
+msgstr "火: {0}になる"
+
+msgid "식으면: {0}"
+msgstr "冷めると: {0}"
+
+msgid "{0}을/를 {1}으로/로 바꾼다."
+msgstr "{0}を{1}に変える。"
+
+msgid "멈춘 곳 {2}의 {0}을/를 {1}으로/로 바꾼다."
+msgstr "止まった場所{2}の{0}を{1}に変える。"
+
+msgid "당신"
+msgstr "あなた"
+
+msgid "정보창 고정"
+msgstr "情報ウィンドウを固定"
+
+msgid "불여우"
+msgstr "火狐"
+
+msgid "불 면역을 %d 피해까지 무시"
+msgstr "火無効を%dダメージまで無視"
+
+msgid "{0}으로/로 변했다"
+msgstr "{0}に変わった"
+
+msgid "{0} 변신이 풀렸다"
+msgstr "{0}の変身が解けた"
+
+msgid "분신"
+msgstr "分身"
+
+msgctxt "talisman"
+msgid "분"
+msgstr "分"
+
+msgctxt "talisman"
+msgid "령"
+msgstr "霊"
+
+msgid "아군"
+msgstr "味方"
+
+msgid "자리 바꿈: 걸어 들어갈 때"
+msgstr "位置交換: 歩いて入ったとき"
+
+msgid "함께 올라감: %d칸 안에 있을 때"
+msgstr "一緒に上がる: %dマス以内にいるとき"
+
+msgid "주문: "
+msgstr "呪文: "
+
+msgid "꼬리"
+msgstr "尻尾"
+
+msgid "옆 빈 칸"
+msgstr "隣の空きマス"
+
+msgid "%s의 꼬리 수"
+msgstr "%sの尻尾の数"
+
+msgid "쓰는 주문"
+msgstr "使う呪文"
+
+msgid "당신이 마지막에 던진 것 (꼬리 %d개 이하)"
+msgstr "あなたが最後に投げたもの (尻尾%d本以下)"
+
+msgid "%s의 "
+msgstr "%sの"
+
+msgid "둔한"
+msgstr "鈍い"
+
+msgid "영리한"
+msgstr "賢い"
+
+msgid "교활한"
+msgstr "狡猾な"
+
+msgid "후각이 뛰어난"
+msgstr "鼻の利く"
+
+msgid "%s 적, %s 적, 추격 중인 적에게는 효과가 없다."
+msgstr "%s敵、%s敵、追跡中の敵には効果がない。"
+
+msgid "%s 적은 쫓아온다."
+msgstr "%s敵は追ってくる。"
+
+msgid "%s 적과 %s 적은 의심 가는 칸에 도깨비불을 쏜다."
+msgstr "%s敵と%s敵は怪しいマスにトッケビ火を放つ。"
+
+msgid "{0} 눈앞에서 {1}할까?"
+msgstr "{0}の目の前で{1}する？"
+
+msgid "주문을 쓸까?"
+msgstr "呪文を使う？"
+
+msgid "사령술"
+msgstr "死霊術"
+
+msgid "{0}이/가 되살아났다"
+msgstr "{0}が蘇った"
+
+msgid "{0}을/를 썼다"
+msgstr "{0}を使った"
+
+msgid "{0}을/를 걸었다"
+msgstr "{0}をかけた"
+
+msgid "다음 낙하 피해"
+msgstr "次の落下ダメージ"
+
+msgid "다음 낙하 피해: 0"
+msgstr "次の落下ダメージ: 0"
+
+msgid "이미 건 주문은 다시 걸 수 없다"
+msgstr "すでにかけた呪文は再びかけられない"
+
+msgid "지속 시간: 다음 층까지"
+msgstr "持続時間: 次の階まで"
+
+msgid "시야에 보이는 시체를 아군으로 되살린다. 강한 적은 %s으로, 약한 적은 %s로."
+msgstr "視界に見える死体を味方として蘇らせる。強い敵は%sに、弱い敵は%sに。"
+
+msgid "이 층에 남는다."
+msgstr "この階に残る。"
+
+msgid "물귀신"
+msgstr "水鬼"
+
+msgctxt "creature"
+msgid "물"
+msgstr "水"
+
+msgid "손아귀"
+msgstr "握り"
+
+msgid "잡혀"
+msgstr "捕まえられ"
+
+msgid "수중"
+msgstr "水中"
+
+msgid "이동: %s"
+msgstr "移動: %s"
+
+msgid "끌어당김"
+msgstr "引き寄せ"
+
+msgid "끌려갔다"
+msgstr "引きずられた"
+
+msgid "서 있는 물이 없어지면 사라진다."
+msgstr "立っている水がなくなると消える。"
+
+msgid "물 밖에서 맞으면 적 옆의 빈 %s 끌려간다."
+msgstr "水の外で攻撃されると、敵の隣の空き%sへ引きずられる。"
+
+msgid "풀린 뒤에야 다시 묶을 수 있다."
+msgstr "解放された後でないと再び拘束できない。"
+
+msgid "마우스 뒤로/앞으로 버튼"
+msgstr "マウスの戻る/進むボタン"
+
+msgid "도감에서 뒤로/앞으로 가기"
+msgstr "図鑑で戻る/進む"
+
+msgid "Alt+왼쪽/오른쪽"
+msgstr "Alt+左/右"
+
+msgid "%d단계"
+msgstr "%d段階"
+
+msgid "이동"
+msgstr "移動"
+
+msgid "도감 예시 고르기"
+msgstr "図鑑の例を選ぶ"
+
+msgid "[ ]"
+msgstr "[ ]"
+
+msgid "%d칸 안의 적, 최대 %d번"
+msgstr "%dマス以内の敵、最大%d回"
+
+msgid "옮겨붙음"
+msgstr "連鎖"
+
+msgid "날아오는 투사체를 피할 수 있다."
+msgstr "飛んでくる飛び道具を避けられる。"
+
+msgid "{0}이/가 벽에 부딪혀 피해를 {1} 입었다"
+msgstr "{0}が壁にぶつかってダメージを{1}受けた"
+
+msgid "벽에 부딪혀 피해를 {0} 입었다"
+msgstr "壁にぶつかってダメージを{0}受けた"
+
+msgid "벽에 부딪혀 쓰러졌다"
+msgstr "壁にぶつかって倒れた"
+
+msgid "벽에 부딪히면 남은 칸 수만큼 벽과 함께 피해를 입는다."
+msgstr "壁にぶつかると、残りマス数だけ壁と共にダメージを受ける。"
+
+msgid "박쥐"
+msgstr "コウモリ"
+
+msgctxt "creature"
+msgid "박"
+msgstr "コ"
+
+msgid "삼족오"
+msgstr "サムジョゴ"
+
+msgctxt "creature"
+msgid "삼"
+msgstr "サ"
+
+msgid "부리"
+msgstr "くちばし"
+
+msgid "쪼여"
+msgstr "つつかれ"
+
+msgid "까악"
+msgstr "カァ"
+
+msgid "비행"
+msgstr "飛行"
+
+msgid "불규칙한 움직임"
+msgstr "不規則な動き"
+
+msgid "%d번에 1번은 아무 방향으로 움직인다."
+msgstr "%d回に1回はランダムな方向へ動く。"
+
+msgid "넘을 수 있음: %s"
+msgstr "越えられる: %s"
+
+msgid "밟지 않음: 함정, %s"
+msgstr "踏まない: 罠、%s"
+
+msgid "부딪친 벽의 피해"
+msgstr "ぶつかった壁へのダメージ"
+
+msgid "남은 칸 수"
+msgstr "残りマス数"
+
+msgid "%s %d장"
+msgstr "%s %d枚"
+
+msgid "앞으로 %d×%d칸"
+msgstr "前方%d×%dマス"
+
+msgid "구슬 없이는 던질 수 없다"
+msgstr "玉がなければ投げられない"
+
+msgid "%d칸 안 무작위 빈 칸"
+msgstr "%dマス以内のランダムな空きマス"
+
+msgid "발사 간격"
+msgstr "発射間隔"
+
+msgid "%d방향"
+msgstr "%d方向"
+
+msgctxt "creature"
+msgid "광"
+msgstr "炉"
+
+msgid "마지막 저장 지점으로 돌아왔다"
+msgstr "最後のセーブ地点に戻った"
+
+msgid "근접신관"
+msgstr "近接信管"
+
+msgid "작동: 날아가는 중 %d칸 안의 적"
+msgstr "作動: 飛行中に%dマス以内の敵"
+
+msgid "터질 때 %s 위의 적: 피해 %d"
+msgstr "爆発時に%s上にいる敵: ダメージ %d"
+
+msgid "바로 옆 적 피해"
+msgstr "すぐ隣の敵へのダメージ"
+
+msgid "즉시"
+msgstr "即時"
+
+msgid "밟으면: %s"
+msgstr "踏むと: %s"
+
+msgid "떠나면: %s"
+msgstr "離れると: %s"
+
+msgid "소화"
+msgstr "消火"
+
+msgid "소화."
+msgstr "消火。"
+
+msgid "붙지 않음: %s"
+msgstr "燃え移らない: %s"
+
+msgid "깔리지 않음: %s"
+msgstr "敷かれない: %s"
+
+msgid "불: 폭발"
+msgstr "火: 爆発"
+
+msgid "폭발 피해: "
+msgstr "爆発ダメージ: "
+
+msgid "폭발 소음: %d"
+msgstr "爆発騒音: %d"
+
+msgid "불붙음: %d초"
+msgstr "炎上: %d秒"
+
+msgid "땅."
+msgstr "地面。"
+
+msgid "막음: 기체"
+msgstr "遮断: 気体"
+
+msgid "막음: 시야, 기체"
+msgstr "遮断: 視界, 気体"
+
+msgid "막음: 길, 기체"
+msgstr "遮断: 通路, 気体"
+
+msgid "만드는 주문: %s"
+msgstr "作る呪文: %s"
+
+msgid "부딪침"
+msgstr "衝突"
+
+msgid "영약을 마실까?"
+msgstr "霊薬を飲む？"
+
+msgid "영약을 얻었다"
+msgstr "霊薬を手に入れた"
+
+msgid "영약을 지닌 동안에는 걸 수 없다"
+msgstr "霊薬を持っている間はかけられない"
+
+msgid "영약 받기"
+msgstr "霊薬を受け取る"
+
+msgid "이 층의 모든 적이 당신을 쫓는다."
+msgstr "この階のすべての敵があなたを追う。"
+
+msgid "최대 꼬리: %d"
+msgstr "最大尻尾: %d"
+
+msgid "꼬리 회복: 초당 %d"
+msgstr "尻尾の回復: 毎秒%d"
+
+msgid "걸 수 없는 주문: %s, %s"
+msgstr "かけられない呪文: %s、%s"
+
+msgid "예"
+msgstr "はい"
+
+msgid "아니요"
+msgstr "いいえ"
+
+msgid "닫기"
+msgstr "閉じる"
+
+msgid "위험구역 지우기"
+msgstr "危険区域を消す"
+
+msgid "위험구역 줄이기"
+msgstr "危険区域を縮める"
+
+msgid "위험구역 반지름"
+msgstr "危険区域の半径"
+
+msgid "지도 생성"
+msgstr "マップ生成"
+
+msgid "정통"
+msgstr "王道"
+
+msgid "섬"
+msgstr "島"
+
+msgid "순환"
+msgstr "循環"
+
+msgid "대숲 길"
+msgstr "竹林の道"
+
+msgid "함정 회랑"
+msgstr "罠の回廊"
+
+msgid "방"
+msgstr "部屋"
+
+msgid "보통"
+msgstr "普通"
+
+msgid "갈대 정원"
+msgstr "葦の庭"
+
+msgid "불타기 쉬운 곳간"
+msgstr "燃えやすい蔵"
+
+msgid "안개 연못"
+msgstr "霧の池"
+
+msgid "경보 복도"
+msgstr "警報の廊下"
+
+msgid "깨어나는 석상"
+msgstr "目覚める石像"
+
+msgid "무너지는 마루"
+msgstr "崩れる床"
+
+msgid "늪지"
+msgstr "沼地"
+
+msgid "누각"
+msgstr "楼閣"
+
+msgid "고리 회랑"
+msgstr "環状回廊"
+
+msgid "천상 대로"
+msgstr "天上大路"
+
+msgid "쌍탑"
+msgstr "双塔"
+
+msgid "부서진 층"
+msgstr "壊れた階"
+
+msgid "흩어진 정자"
+msgstr "散らばる東屋"
+
+msgid "연못 정원"
+msgstr "池の庭園"
+
+msgid "겹누각"
+msgstr "重ね楼閣"
+
+msgid "무너진 정자"
+msgstr "崩れた東屋"
+
+msgid "겹누각 성채"
+msgstr "重ね楼閣の城塞"
+
+msgid "대숲 층"
+msgstr "竹林の階"
+
+msgid "물 찬 층"
+msgstr "水没した階"
+
+msgid "나무벽 층"
+msgstr "木壁の階"
+
+msgid "가운데 뚫린 층"
+msgstr "中央が抜けた階"
+
+msgid "무너진 석굴"
+msgstr "崩れた石窟"
+
+msgid "어긋난 전각"
+msgstr "ずれた殿閣"
+
+msgid "좌우 대칭 전각"
+msgstr "左右対称の殿閣"
+
+msgid "꺾인 복도"
+msgstr "折れ曲がる廊下"
+
+msgid "미궁"
+msgstr "迷宮"
+
+msgid "{0} 지도를 만들었다. 시드: {1}, 모양: {2}"
+msgstr "{0}のマップを作った。シード: {1}、形: {2}"
+
+msgid ", 미궁: {0}"
+msgstr "、迷宮: {0}"
+
+msgid ", 원소: {0}, 빛: {1}"
+msgstr "、属性: {0}、光: {1}"
+
+msgid ", 특수 방: {0}"
+msgstr "、特殊部屋: {0}"
+
+msgid "층"
+msgstr "階"
+
+msgid "무작위"
+msgstr "ランダム"
+
+msgid "다음 시드로 생성"
+msgstr "次のシードで生成"
+
+msgid "여동생"
+msgstr "妹"
+
+msgid "{0}이/가 기침했다"
+msgstr "{0}が咳をした"
+
+msgid "콜록"
+msgstr "ゴホッ"
+
+msgid "{0}을/를 구했다"
+msgstr "{0}を救った"
+
+msgid "화면"
+msgstr "画面"
+
+msgid "마우스"
+msgstr "マウス"
+
+msgid "저장 주문"
+msgstr "保存した呪文"
+
+msgid "게임"
+msgstr "ゲーム"
+
+msgid "디버그 사용"
+msgstr "デバッグ使用"

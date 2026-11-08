@@ -28,7 +28,7 @@ enabled=PackedStringArray()
 [internationalization]
 
 locale/fallback="ko"
-locale/translations=PackedStringArray("res://assets/i18n/en.po")
+locale/translations=PackedStringArray("res://assets/i18n/en.po", "res://assets/i18n/ja.po")
 
 [rendering]
 

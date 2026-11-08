@@ -72,7 +72,7 @@ static func _for() -> Dictionary:
 static func _regex(words: Array, particles := "") -> RegEx:
 	var keys := words.duplicate()
 	keys.sort_custom(func(a: String, b: String): return a.length() > b.length())
-	var edge := "[가-힣A-Za-z0-9]"  # i18n: keep
+	var edge := "[가-힣A-Za-z0-9\\x{30A0}-\\x{30FF}\\x{4E00}-\\x{9FFF}]"  # i18n: keep
 	var after := "" if particles == "" else "(?:%s)?" % particles
 	var find := "(?<!%s)(%s)%s(?!%s)" % [edge, "|".join(PackedStringArray(keys)), after, edge]
 	return RegEx.create_from_string(("" if Lang.active() == &"ko" else "(?i)") + find)
@@ -294,12 +294,37 @@ static func rows_of(runs: Array, width: float) -> Array:
 			continue
 		var words: PackedStringArray = run[0].split(" ")
 		for i in words.size():
-			var word: String = (" " if i > 0 else "") + words[i]
-			if x > 0.0 and x + Term.text_cells(word) > width:
-				out.append([])
-				x = 0.0
-				word = word.lstrip(" ")
-			if word != "":
-				out[-1].append(piece(run, word))
-				x += Term.text_cells(word)
+			for part in _breakable((" " if i > 0 else "") + words[i]):
+				var word: String = part
+				if x > 0.0 and x + Term.text_cells(word) > width:
+					out.append([])
+					x = 0.0
+					word = word.lstrip(" ")
+				if word != "":
+					out[-1].append(piece(run, word))
+					x += Term.text_cells(word)
 	return out
+
+
+## Kana, kanji and their punctuation: written without spaces, so a row may end
+## between any two of them.
+static func _cjk(c: int) -> bool:
+	return (c >= 0x3000 and c <= 0x30FF) or (c >= 0x4E00 and c <= 0x9FFF) or (c >= 0xFF00 and c <= 0xFFEF)
+
+
+## Characters a row does not start with: closing marks, the long vowel mark, the
+## middle dot and small kana.
+const _NO_START := "。、，．」』）】〕！？：；ー・ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ"
+
+
+## `word` cut between every two CJK characters, except before one a row does
+## not start with; other text stays whole.
+static func _breakable(word: String) -> Array:
+	var parts := []
+	var from := 0
+	for i in range(1, word.length()):
+		if _cjk(word.unicode_at(i - 1)) and _cjk(word.unicode_at(i)) and not word[i] in _NO_START:
+			parts.append(word.substr(from, i - from))
+			from = i
+	parts.append(word.substr(from))
+	return parts
