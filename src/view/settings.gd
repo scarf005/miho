@@ -5,7 +5,7 @@ extends RefCounted
 ## reads and writes them through Keys.
 
 const PATH := "user://settings.cfg"
-const NAMES := ["volume", "music", "crt", "zoom", "speed", "scent", "language"]
+const NAMES := ["volume", "music", "crt", "zoom", "speed", "scent", "language", "korean_symbols"]
 ## Cell scales; 0 fits the whole map.
 const ZOOMS := [0.0, 1.0, 1.25, 1.5]
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -28,6 +28,8 @@ var speed := 1.0
 var scent := true
 ## The language code (Lang.NAMES); with none saved, the system's.
 var language := String(Lang.detect())
+## Creatures and talismans keep their Hangul symbols in the other languages.
+var korean_symbols := true
 ## The highlight replay of each storey left behind: off, with no row in the options
 ## and not read from the file, until it is wanted again.
 var replay := false
@@ -82,6 +84,8 @@ func from_config(c: ConfigFile) -> void:
 	scent = smelled if smelled is bool else scent
 	var code = c.get_value("settings", "language", language)
 	language = code if code is String and Lang.NAMES.has(StringName(code)) else language
+	var kept = c.get_value("settings", "korean_symbols", korean_symbols)
+	korean_symbols = kept if kept is bool else korean_symbols
 	spells = {}
 	for slot in Keys.SLOTS:
 		var key = c.get_value("spells", slot, "")
@@ -102,6 +106,7 @@ static func _one_of(v: Variant, allowed: Array, fallback: float) -> float:
 ## Shows every string in the language.
 func apply_language() -> void:
 	Lang.use(language)
+	Lang.korean_symbols = korean_symbols
 
 
 ## Sets the master bus to the volume, silent at 0.

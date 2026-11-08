@@ -202,7 +202,7 @@ static func _add_casts(out: Array[Dictionary]) -> void:
 ## What `_add_casts` adds, made once in each language: name -> {spells, texts, parts, recipes,
 ## titles}, a recipe's each, the fewest talismans first.
 static func _casts(out: Array[Dictionary]) -> Dictionary:
-	var code := Lang.active()
+	var code := Lang.key()
 	if _cast_names.has(code):
 		return _cast_names[code]
 	var known := {}

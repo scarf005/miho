@@ -1197,6 +1197,9 @@ msgstr "Move speed"
 msgid "언어"
 msgstr "Language"
 
+msgid "한글 기호"
+msgstr "Hangul symbols"
+
 msgid "명장면 다시보기"
 msgstr "Replay highlights"
 

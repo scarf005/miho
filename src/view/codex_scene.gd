@@ -172,7 +172,7 @@ static func of(key: Variant, cards := []) -> Dictionary:
 ## and for one with neither, or none to strike with that moves, how it walks up to Miho.
 ## Made once for each creature, rank and language: the 도감 lists every creature again on each key.
 static func foe(kind: StringName, rank: int) -> Dictionary:
-	var key := [kind, rank, Lang.active()]
+	var key := [kind, rank, Lang.key()]
 	if not _foes.has(key):
 		_foes[key] = _foe_of(kind, rank)
 	return _foes[key]
