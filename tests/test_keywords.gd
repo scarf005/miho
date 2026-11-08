@@ -150,3 +150,12 @@ func test_the_word_resistance_opens_its_entry_that_tells_half_harm() -> void:
 	var at := Keywords.locate("내성")
 	assert_eq(at.x, 6)
 	assert_string_contains(Info.plain(Codex.detail(Codex.entries(at.x)[at.y])), "해당 주문에 피해를 절반만 입음")
+
+
+func test_a_japanese_name_is_not_a_link_inside_a_longer_kanji_word() -> void:
+	Lang.forced = &"ja"
+	var inside := Keywords.word_at([["耐性値", Palette.TEXT]], 0.0, 0.5)
+	var apart := Keywords.word_at([["耐性の", Palette.TEXT]], 0.0, 0.5)
+	Lang.forced = &""
+	assert_eq(inside, "")
+	assert_eq(apart, "耐性")

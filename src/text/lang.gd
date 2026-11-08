@@ -7,7 +7,7 @@ extends RefCounted
 ## no comparison, save or rng reads a translated string.
 
 ## Language code -> its name, written in that language.
-const NAMES := {&"ko": "한국어", &"en": "English"}  # i18n: keep
+const NAMES := {&"ko": "한국어", &"en": "English", &"ja": "日本語"}  # i18n: keep
 const FALLBACK := &"en"
 ## The final consonant ㄹ, by its place among the finals of a Hangul syllable.
 const RIEUL := 8
@@ -30,10 +30,11 @@ static func _testing() -> bool:
 	)
 
 
-## The language for a player with no choice saved: Korean on a Korean system,
-## else English.
-static func detect() -> StringName:
-	return &"ko" if OS.get_locale_language() == "ko" else FALLBACK
+## The language for a player with no choice saved: the system's when the game
+## has it, else English.
+static func detect(system := OS.get_locale_language()) -> StringName:
+	var code := StringName(system)
+	return code if NAMES.has(code) else FALLBACK
 
 
 ## The language shown now.

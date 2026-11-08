@@ -35,3 +35,12 @@ func test_cells_follow_the_width_the_font_draws() -> void:
 
 func test_a_word_wider_than_the_screen_takes_a_row_of_its_own() -> void:
 	assert_eq(Keywords.rows_of([["가나다라마 바", Palette.TEXT]], 3.0).map(_text), ["가나다라마", "바"])
+
+
+func test_japanese_wraps_between_characters_but_not_before_a_closing_mark() -> void:
+	var rows := Keywords.rows_of([["あなたはトッケビに殴られて倒れた。", Palette.TEXT]], 6.0)
+	assert_gt(rows.size(), 1)
+	for row: Array in rows:
+		assert_lte(row.reduce(func(n, r): return n + Term.text_cells(r[0]), 0.0), 6.0)
+		assert_false(_text(row)[0] in "。、ー・っ")
+	assert_eq("".join(rows.map(_text)), "あなたはトッケビに殴られて倒れた。")
