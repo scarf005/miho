@@ -3578,3 +3578,6 @@ msgstr "Saved spells"
 
 msgid "게임"
 msgstr "Game"
+
+msgid "디버그 사용"
+msgstr "Debug used"
