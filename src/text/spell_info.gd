@@ -208,17 +208,17 @@ static func spell(s: Spell) -> Array:
 	if s.shape == Spell.SPRAY:
 		lines.append_array(_spray(s))
 		if s.level() > 0:
-			lines.append_array(_lines(_reacts(s, s.slots[0]), Palette.CARD[s.slots[0]]))
+			lines.append_array(_reacts(s, s.slots[0]))
 		if not _flame(s):
 			lines.append(_pair(MUZZLE) if s.gun() else _line("빛", "없음"))
 		return lines + _lines(_sounds(s)) + ward(s)
 	lines.append_array(_shape(s))
 	lines.append_array(_fuse(Flight.fused(s)))
 	if s.edged():
-		lines.append_array(_lines(blast(s), Palette.HURT))
+		lines.append_array(blast(s))
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(_effect(s, e) + _reacts(s, e, true), Palette.CARD[e]))
+			lines.append_array(_lines(_effect(s, e), Palette.CARD[e]) + _reacts(s, e, true))
 	if s.has(Cards.WATER):
 		lines.append(_pair(_soak(), Palette.CARD[Cards.WATER]))
 	for c in s.compounds():
@@ -363,7 +363,7 @@ static func _spray(s: Spell) -> Array:
 				_line("범위", Lang.t("%d칸") % Spray.LONE[Cards.FIRE].reach[i]),
 				_line("모양", Lang.t(FAN_NAME) % Spray.FAN_ANGLE),
 				_line("소음", _noise(s.cast_noise())),
-				_line("피해", "0", Palette.HURT),
+				_harm("피해", 0),
 				[[Lang.t("가연성."), Palette.TEXT]],
 			]
 		Cards.WATER:
@@ -411,7 +411,7 @@ static func _fan(r: int, name := "", angle := Spray.FAN_ANGLE) -> Array:
 static func _gun(level: int) -> Array:
 	var row: Dictionary = Spray.LONE[Cards.METAL]
 	var name: String = row.name[level - 1]
-	var harm := _line("피해", "%d" % row.harm[level - 1], Palette.HURT)
+	var harm := _harm("피해", row.harm[level - 1])
 	if level >= Spray.SHOTGUN_LEVEL:
 		return (
 			_lines(_fan(row.reach[level - 1], Lang.t(name) + ", ", row.angle[level - 1])) + [harm]
@@ -438,7 +438,7 @@ static func _compound(s: Spell) -> Array:
 		plain[Cards.EARTH].append(["벽", "금이 감"])
 	for e in Cards.ELEMENTS:
 		if s.has(e):
-			lines.append_array(_lines(plain[e] + _reacts(s, e), Palette.CARD[e]))
+			lines.append_array(_lines(plain[e], Palette.CARD[e]) + _reacts(s, e))
 	if s.has(Cards.WATER):
 		lines.append(_pair(_soak(), Palette.CARD[Cards.WATER]))
 	return lines
@@ -601,7 +601,7 @@ static func shot(w: World, s: Shot) -> Array:
 		]
 	]
 	lines.append_array(_nature(spell))
-	lines.append(_line("피해", str(s.spell.damage(s.distance())), Palette.HURT))
+	lines.append(_harm("피해", s.spell.damage(s.distance())))
 	if s.turn > 0:
 		var t := w.actor(s.target)
 		lines.append(_line("대상", "없음" if t == null else Lang.t(t.info().name)))
@@ -754,13 +754,7 @@ static func _shape(s: Spell) -> Array:
 			lines.append(_line("모양", Lang.t("%s %d발") % [Lang.t(s.wisp()), s.shots()]))
 			if mine:
 				lines.append(_line("대상", "보이는 적, 가까운 적부터 남은 체력만큼"))
-			lines.append(
-				(
-					_line("발당 피해", str(s.damage(0)), Palette.HURT)
-					if s.damage(0) > 0
-					else _line("피해", "0", Palette.HURT)
-				)
-			)
+			lines.append(_harm("발당 피해", s.damage(0)) if s.damage(0) > 0 else _harm("피해", 0))
 			if s.pierces():
 				lines.append(_line(PIERCE, THROUGH_ALL if s.bores() else THROUGH))
 			lines.append(_line("회전", Lang.t("칸당 %s") % Lang.t(_turn(s.turn()))))
@@ -808,10 +802,15 @@ static func _arc() -> String:
 static func blast(s: Spell) -> Array:
 	var near := s.blast(s.damage(0))
 	var far := s.blast(s.damage(Spell.MOMENTUM))
-	var out := [["폭발 반지름", "%d" % Grid.NEAR], ["폭발 피해", "%d" % near]]
+	var out := [_line("폭발 반지름", "%d" % Grid.NEAR), _harm("폭발 피해", near)]
 	if far > near:
-		out.append([Lang.t(FAR_BLAST) % Spell.MOMENTUM, "%d" % far])
+		out.append(_harm(Lang.t(FAR_BLAST) % Spell.MOMENTUM, far))
 	return out
+
+
+## A harm line: its number in the red of harm, unless there is none.
+static func _harm(label: String, n: int) -> Array:
+	return _line(label, str(n), Palette.HURT if n > 0 else Palette.TEXT)
 
 
 ## 여우 홀림: what a hovering wisp of 여 alone is heard as (Lure).
@@ -827,10 +826,10 @@ static func _blasts_first(s: Spell) -> bool:
 
 static func _orb_harm(s: Spell) -> Array:
 	if _blasts_first(s):
-		return [_line("바로 옆 적 피해", "%d" % s.damage(0), Palette.HURT)]
+		return [_harm("바로 옆 적 피해", s.damage(0))]
 	return [
-		_line("피해", "%d" % s.damage(0), Palette.HURT),
-		_line(Lang.t(FAR) % Spell.MOMENTUM, "%d" % s.damage(Spell.MOMENTUM), Palette.HURT),
+		_harm("피해", s.damage(0)),
+		_harm(Lang.t(FAR) % Spell.MOMENTUM, s.damage(Spell.MOMENTUM)),
 	]
 
 
@@ -856,15 +855,6 @@ static func _effect(s: Spell, e: StringName) -> Array:
 			var out := [["꺼짐", Lang.t("멈춘 곳 %s의 불, 등불") % _square(Grid.NEAR)]]
 			if s.orb:
 				out.append(["밀침", Lang.t("%d칸") % (Spray.PLAIN_PUSH + s.extra(e))])
-				out.append(
-					[
-						becomes(World.SHALLOW),
-						(
-							Lang.t("멈춘 곳 %s의 %s")
-							% [_square(Grid.NEAR), Lang.t(Tiles.of(World.FLOOR, "name"))]
-						)
-					]
-				)
 			return out
 		Cards.WOOD:
 			if s.orb:
@@ -888,9 +878,9 @@ static func _effect(s: Spell, e: StringName) -> Array:
 	return [["기절", Lang.t("%d초") % (Elements.STUN + s.extra(e))], thud]
 
 
-## What element `e` of `s` makes of the tiles it reaches (Terrain.react), as
-## [what they become, tiles] lines read from the Tiles rows; `at_stop` for a
-## spell that reaches the round where it stops.
+## What element `e` of `s` makes of the tiles it reaches (Terrain.react), read
+## from the Tiles rows, a sentence a line: "진흙을 바닥으로 바꾼다."; `at_stop` for a
+## spell that reaches the round where it stops, where an orb of water also floods the floor.
 static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 	var changes := {}
 	if e in Terrain.reacting(s) and e != Cards.METAL:
@@ -898,21 +888,27 @@ static func _reacts(s: Spell, e: StringName, at_stop := false) -> Array:
 			var change: Variant = Tiles.of(t, "reacts").get(e)
 			if change != null and (at_stop or Spray.holds(s, t)):
 				changes.get_or_add(change, []).append(Lang.t(Tiles.of(t, "name")))
+	if at_stop and s.orb and e == Cards.WATER:
+		changes.get_or_add(World.SHALLOW, []).append(Lang.t(Tiles.of(World.FLOOR, "name")))
+	var told := "멈춘 곳 {2}의 {0}을/를 {1}으로/로 바꾼다." if at_stop else "{0}을/를 {1}으로/로 바꾼다."
+	var color: Color = Palette.CARD[e]
 	return changes.keys().map(
 		func(to):
-			var from := ", ".join(changes[to])
-			return [
-				becomes(to), Lang.t("멈춘 곳 %s의 %s") % [_square(Grid.NEAR), from] if at_stop else from
+			var names := [
+				[", ".join(changes[to]), color],
+				[Tiles.of(to, "name"), color],
+				[_square(Grid.NEAR), Palette.TEXT]
 			]
+			return Lang.runs(told, names, Palette.TEXT)
 	)
 
 
-## The label of what turns into tile kind `to`: "바닥이 됨".
+## What turns into tile kind `to`, as a tile tells it: "바닥이 됨".
 static func becomes(to: int) -> String:
 	return turned(Tiles.of(to, "name"))
 
 
-## The label of what turns into what is called `name`.
+## What turns into what is called `name`, as a tile tells it.
 static func turned(name: String) -> String:
 	var runs := Lang.runs("{0}이/가 됨", [[name, LABEL]], LABEL)
 	return "".join(runs.map(func(r): return r[0]))

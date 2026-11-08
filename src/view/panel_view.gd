@@ -111,7 +111,7 @@ static func _draw_choices(t: Term, choices: Dictionary) -> void:
 		if k == choices.at or k == choices.lit:
 			var alpha := 0.15 if k == choices.at else 0.07
 			t.draw_rect(
-				Rect2(at * Term.CELL, Vector2(t.cols - at.x, 1) * Term.CELL),
+				Rect2(at * Term.CELL, Vector2(choices.wide, 1) * Term.CELL),
 				Color(Palette.TEXT, alpha)
 			)
 		t.draw_text(at, choices.names[k], Palette.TEXT if k == choices.at else Palette.DIM)
@@ -119,9 +119,7 @@ static func _draw_choices(t: Term, choices: Dictionary) -> void:
 		t.draw_glyph(choices.from - Vector2(1, 0), "▲", Palette.DIM)
 	if last < choices.names.size():
 		t.draw_glyph(choices.from + Vector2(-1, choices.fit - 1), "▼", Palette.DIM)
-	var keys: Vector2 = (
-		choices.from + Vector2(t.cols - choices.from.x - 2.0, choices.at - choices.top)
-	)
+	var keys: Vector2 = choices.from + Vector2(choices.wide - 2.0, choices.at - choices.top)
 	t.draw_key(keys, "[", Palette.DIM)
 	t.draw_key(keys + Vector2(1, 0), "]", Palette.DIM)
 
@@ -133,7 +131,10 @@ static func choice_at(t: Term, local: Vector2) -> int:
 		return -1
 	var k := floori(local.y / Term.CELL.y - choices.from.y) + int(choices.top)
 	var last: int = mini(choices.top + choices.fit, choices.names.size())
-	var on: bool = local.x / Term.CELL.x >= choices.from.x and k >= choices.top and k < last
+	var x := local.x / Term.CELL.x
+	var on: bool = (
+		x >= choices.from.x and x < choices.from.x + choices.wide and k >= choices.top and k < last
+	)
 	return k if on else -1
 
 

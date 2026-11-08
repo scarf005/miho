@@ -135,19 +135,26 @@ func test_a_creature_tells_its_state_as_its_card_does_then_attacks_nature_and_tr
 	assert_string_contains(Info.plain(Info.creature(w, foe)), search, "under its search state")
 
 
-func test_a_creature_labels_share_one_colour_and_red_is_only_for_harm() -> void:
+func test_labels_share_one_colour_and_red_is_only_for_harm_done() -> void:
 	var w := World.create(7)
 	var at := w.player().pos + Vector2i(1, 0)
+	var boxes := {}
 	for kind in [&"haetae", &"bulgasari", &"saja", &"jiha", &"dokkaebi"]:
-		var lines := Info.creature(w, FloorGen.spawn(w, kind, at))
-		for line: Array in lines.slice(1):
+		boxes[kind] = Info.creature(w, FloorGen.spawn(w, kind, at)).slice(1)
+	for cards: Array in [[Cards.FIRE], [Cards.METAL]]:
+		boxes[str(cards)] = SpellInfo.spell(Spell.make(cards))
+	assert_string_contains(Info.plain(boxes[str([Cards.FIRE])]), "피해: 0", "a spell of no harm")
+	for what in boxes:
+		for line: Array in boxes[what]:
+			var told := "%s: %s" % [what, Info.plain([line])]
 			for i in line.size():
-				var text: String = line[i][0]
-				if text.ends_with(": "):
-					assert_eq(line[i][1], Palette.DIM, "%s: %s" % [kind, Info.plain([line])])
-				if line[i][1] == Palette.HURT:
-					var label: String = line[i - 1][0] if i > 0 else ""
-					assert_string_ends_with(label, "피해: ", "%s: %s" % [kind, Info.plain([line])])
+				var label: String = line[i - 1][0] if i > 0 else ""
+				if line[i][0].ends_with(": "):
+					assert_eq(line[i][1], Palette.DIM, told)
+				if label.ends_with("피해: "):
+					assert_eq(line[i][1] == Palette.HURT, line[i][0] != "0", told)
+				elif line[i][1] == Palette.HURT:
+					fail_test(told)
 
 
 func test_a_creature_tells_its_element() -> void:

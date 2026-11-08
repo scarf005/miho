@@ -33,13 +33,12 @@ func _run(lines: Array, word: String) -> Array:
 	return []
 
 
-func test_fierce_is_red_on_yellow_and_flammable_orange() -> void:
+func test_fierce_and_flammable_are_drawn_as_one_kind_of_tag() -> void:
 	var fierce := _run([Keywords.runs("인화성.", Palette.DIM)], "인화성")
-	assert_eq(fierce[1], Palette.FIERCE_TEXT)
-	assert_eq(Keywords.back(fierce), Palette.FIERCE_BACK)
 	var flammable := _run([Keywords.runs("가연성.", Palette.DIM)], "가연성")
-	assert_eq(flammable[1], Palette.FLAMMABLE)
-	assert_eq(Keywords.back(flammable).a, 0.0, "orange text has no background")
+	assert_eq(fierce[1], flammable[1])
+	assert_eq(Keywords.back(fierce), Palette.FIERCE_BACK)
+	assert_eq(Keywords.back(flammable), Palette.FLAMMABLE)
 
 
 func test_a_word_is_coloured_only_whole() -> void:

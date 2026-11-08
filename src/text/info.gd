@@ -381,7 +381,7 @@ static func _claws(a: Actor) -> Array:
 
 ## A line of text with a harm number in the middle: `before`, n, `after`.
 static func _amount(before: String, n: int, after := "") -> Array:
-	var line := [[Lang.t(before), Palette.DIM], [str(n), Palette.HURT]]
+	var line := [[Lang.t(before), Palette.DIM], [str(n), Palette.HURT if n > 0 else Palette.TEXT]]
 	if after != "":
 		line.append([Lang.t(after), Palette.TEXT])
 	return line

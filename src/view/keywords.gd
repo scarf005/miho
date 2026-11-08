@@ -3,7 +3,7 @@ extends RefCounted
 ## One rule that colours a word by what it means, for every screen that writes
 ## text: the hover, the 도감, the sidebar and the log all pass their runs
 ## through it. A run is [text, Color] and may carry a background Color and, in a
-## panel row, the column it starts at. 인화성 is red on yellow, 가연성 orange, a
+## panel row, the column it starts at. 인화성 and 가연성 are dark in a yellow and an orange box, a
 ## status that harms its holder BAD and one that helps it GOOD. A word is
 ## coloured only whole, never as part of a longer one. A run with a colour of
 ## its own is left as it is, unless it is nothing but such a word. It is also the
@@ -45,7 +45,9 @@ static var _last := []
 
 ## The Korean word -> [text colour] or [text colour, background colour].
 static func _table() -> Dictionary:
-	var out := {"인화성": [Palette.FIERCE_TEXT, Palette.FIERCE_BACK], "가연성": [Palette.FLAMMABLE]}
+	var out := {
+		"인화성": [Palette.FIRE_TAG, Palette.FIERCE_BACK], "가연성": [Palette.FIRE_TAG, Palette.FLAMMABLE]
+	}
 	for word: String in Status.NAME.values() + HARM:
 		out[word] = [Palette.BAD]
 	for word: String in BOON:

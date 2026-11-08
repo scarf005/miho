@@ -55,7 +55,7 @@ func test_a_click_on_a_word_of_the_detail_opens_its_entry_and_esc_goes_back() ->
 	var codex: Codex = m.menu.codex
 	assert_eq(Vector2i(codex.tab, codex.selected), Keywords.locate("가연성"))
 	assert_eq(Codex.entries(codex.tab)[codex.selected].name, "가연성")
-	assert_eq(m.term.panel.rows[codex.selected][1][0], "가연성")
+	assert_eq(m.term.panel.rows[codex.selected].back()[0], "가연성")
 	var shown := PanelView.span(m.term)
 	assert_true(codex.selected >= shown.x and codex.selected < shown.x + shown.y, "in view")
 	_esc(m)

@@ -9,6 +9,8 @@ extends RefCounted
 ## Language code -> its name, written in that language.
 const NAMES := {&"ko": "한국어", &"en": "English"}  # i18n: keep
 const FALLBACK := &"en"
+## The final consonant ㄹ, by its place among the finals of a Hangul syllable.
+const RIEUL := 8
 
 ## While true every string stays Korean and `use` changes nothing: the tests
 ## (GUT) read Korean. A test of the language sets it false and back.
@@ -71,12 +73,13 @@ static func t_in(msgid: String, context: String) -> String:
 
 
 ## `closed` after a word ending in a final consonant, else `open`: Korean
-## particles. Nothing in another language.
+## particles; 으로 takes 로 after ㄹ as well (물로). Nothing in another language.
 static func particle(word: String, closed: String, open: String) -> String:
 	if active() != &"ko":
 		return ""
 	var c := word.unicode_at(word.length() - 1) if word != "" else 0
-	return closed if c >= 0xAC00 and c <= 0xD7A3 and (c - 0xAC00) % 28 != 0 else open
+	var final := (c - 0xAC00) % 28 if c >= 0xAC00 and c <= 0xD7A3 else 0
+	return closed if final != 0 and not (closed == "으로" and final == RIEUL) else open  # i18n: keep
 
 
 ## A sentence as runs: `template` (a message id) in `base` colour with `{0}`,

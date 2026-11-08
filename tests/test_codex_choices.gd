@@ -273,3 +273,39 @@ func test_the_leap_is_one_entry_and_its_word_opens_the_talisman() -> void:
 	assert_eq(Keywords.locate(Guise.NAME[Guise.VAULT]).x, tabs[0], "the word opens it")
 	var ward := Info.plain(SpellInfo.own(Guise.VAULT))
 	assert_string_contains(ward, "%s 소음" % Guise.NAME[Guise.VAULT])
+
+
+func test_the_example_stands_right_after_a_short_detail() -> void:
+	var codex := Codex.new()
+	codex.room = Vector2i(68, 18)
+	var shown := codex.panel()
+	var widest: float = shown.aside.reduce(
+		func(n: float, l: Array) -> float: return maxf(n, Term.text_cells(Info.plain([l]))), 0.0
+	)
+	assert_lt(widest, codex.room.x - CodexSim.beside(1.0) - shown.aside_x, "a short detail")
+	assert_between(shown.example.at.x, shown.aside_x + widest, shown.aside_x + widest + 3.0)
+	assert_eq(shown.choices.from.x, shown.example.at.x, "the parts stay under the example")
+
+
+func test_the_glossary_lists_its_terms_in_order_with_no_glyph_column() -> void:
+	var codex := Codex.new()
+	codex.room = Vector2i(68, 18)
+	codex.go(Codex.TABS.size() - 1)
+	var rows: Array = codex.panel().rows
+	var names := rows.map(func(r): return r[0][0])
+	var sorted := names.duplicate()
+	sorted.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	assert_eq(names, sorted)
+	assert_true(
+		rows.all(func(r): return r.size() == 1 and r[0][2] == 2.0), "the name starts the row"
+	)
+
+
+func test_the_pointer_right_of_the_choices_lights_none() -> void:
+	var m := _main()
+	_codex(m, TALISMANS)
+	var choices: Dictionary = m.term.panel.choices
+	var y: float = (choices.from.y + 1.5) * Term.CELL.y
+	assert_eq(PanelView.choice_at(m.term, Vector2((choices.from.x + 0.5) * Term.CELL.x, y)), 1)
+	var past: float = (choices.from.x + choices.wide + 0.5) * Term.CELL.x
+	assert_eq(PanelView.choice_at(m.term, Vector2(past, y)), -1)

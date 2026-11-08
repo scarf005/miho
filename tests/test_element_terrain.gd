@@ -254,7 +254,10 @@ func test_the_forecast_of_a_spray_matches_the_round() -> void:
 func test_a_spray_hover_leaves_out_what_its_shape_cannot_reach() -> void:
 	var read := func(picked: Array) -> String:
 		return Info.plain(SpellInfo.spell(Spell.make(picked)))
-	assert_false(read.call([WOOD, FIRE, WOOD]).contains("금 간 벽이 됨"), "a fan leaves walls out")
+	var cracked := [[Tiles.of(World.WALL_CRACKED, "name"), Palette.TEXT]]
+	var cracks := Info.plain([Lang.runs("{0}으로/로 바꾼다.", cracked, Palette.TEXT)])
+	assert_string_contains(read.call([ORB, WOOD]), cracks, "an orb of wood cracks walls")
+	assert_false(read.call([WOOD, FIRE, WOOD]).contains(cracks), "a fan leaves walls out")
 
 
 ## An element's hover names a tile only if its spray's real cover can hold that tile.

@@ -3060,8 +3060,11 @@ msgstr "Fire: turns to {0}"
 msgid "식으면: {0}"
 msgstr "Cools to {0}"
 
-msgid "멈춘 곳 %s의 %s"
-msgstr "In the %s at the stop: %s"
+msgid "{0}을/를 {1}으로/로 바꾼다."
+msgstr "Turns {0} into {1}."
+
+msgid "멈춘 곳 {2}의 {0}을/를 {1}으로/로 바꾼다."
+msgstr "Turns {0} in the {2} at the stop into {1}."
 
 msgid "당신"
 msgstr "you"
