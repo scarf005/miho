@@ -6,7 +6,8 @@ extends RefCounted
 ## spellbook lists the queued spell and the saved ones, with what the selected
 ## one does, and a slot key saves it to that slot; the 도감 (Codex) lists every
 ## creature, spell, compound, item and terrain feature; the log lists the past
-## messages; the dispel page lists the buffs on Miho to drop; the debug commands
+## messages; the credits list the notices of what the game is made with (NOTICES); the
+## dispel page lists the buffs on Miho to drop; the debug commands
 ## (DebugMenu) list the Cheat commands. Every page
 ## moves as ListNav says, scrolls with the wheel, lights the row under the
 ## pointer, and a click selects it.
@@ -91,6 +92,7 @@ const OPTIONS := [
 	&"log",
 	&"help",
 	&"keys",
+	&"credits",
 	&"",
 	&"close",
 	&"seed",
@@ -114,6 +116,7 @@ const OPTION_NAMES := {
 	&"dispel": "주문 해제",
 	&"log": "기록",
 	&"help": "도움말",
+	&"credits": "크레딧",
 	&"seed": "시드",
 	&"cheat": "디버그 명령",
 	&"restart": "처음부터",
@@ -121,6 +124,21 @@ const OPTION_NAMES := {
 	&"close": "계속",
 }
 const RESTART_SURE := "정말 처음부터 시작할까?"
+## What the credits list after Godot's own notices: each a title, where its source is and
+## the file of its notice.
+const NOTICES := [
+	["godot-rust", "https://github.com/godot-rust/gdext", "res://assets/licenses/godot-rust.txt"],
+	["glam", "https://github.com/bitshifter/glam-rs", "res://assets/licenses/glam.txt"],
+	["libc", "https://github.com/rust-lang/libc", "res://assets/licenses/libc.txt"],
+	["Neo둥근모", "https://neodgm.dalgona.dev", "res://assets/fonts/NeoDunggeunmo-OFL.txt"],
+	["음악과 효과음", "", "res://assets/licenses/music.txt"],
+	["Brogue CE", "https://github.com/tmewett/BrogueCE", "res://assets/licenses/brogue-ce.txt"],
+	[
+		"Dungeon Crawl Stone Soup",
+		"https://github.com/crawl/crawl",
+		"res://assets/licenses/dcss.txt"
+	],
+]
 const MODIFIERS := [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]
 
 var settings := Settings.new()
@@ -150,6 +168,9 @@ var chosen: Spell
 var buffs := []
 ## The messages the log page lists, as rows.
 var log_rows: Array = []
+## The lines of the credits, wrapped to the screen width `credit_width` they were made for.
+var credit_rows: Array = []
+var credit_width := -1
 ## The 도감 page's tab, entry and scroll; it keeps them when closed.
 var codex := Codex.new()
 ## The debug commands page; it keeps its row when closed.
@@ -216,6 +237,7 @@ func open(p: StringName, size := Vector2i.ZERO) -> void:
 		top = ListNav.reveal(0, selected, _listed().size(), _fits())
 	if p == &"log":
 		top = maxi(0, log_rows.size() - _fits())
+	credit_width = -1
 
 
 ## A left click on the word `word` of the open page: its 도감 entry opens. Esc
@@ -273,6 +295,8 @@ func panel() -> Dictionary:
 				words = true,
 				bar = false
 			}
+		&"credits":
+			out = {title = Lang.t("크레딧"), rows = _credits(), painted = true, bar = false}
 		&"codex":
 			return codex.panel()
 		&"cheat":
@@ -496,7 +520,7 @@ func scroll_by(lines: int, aside: bool) -> void:
 ## Enter on the selected row.
 func use() -> StringName:
 	match page:
-		&"help", &"log":
+		&"help", &"log", &"credits":
 			return _leave()
 		&"spells":
 			return _choose()
@@ -512,7 +536,7 @@ func use() -> StringName:
 func _use_option() -> StringName:
 	var row: StringName = _listed()[selected]
 	match row:
-		&"keys", &"codex", &"spells", &"dispel", &"log", &"help":
+		&"keys", &"codex", &"spells", &"dispel", &"log", &"help", &"credits":
 			_enter(row)
 			return &""
 		&"cheat":
@@ -721,6 +745,55 @@ func _keys() -> Array:
 		rows.append([[Lang.t(Keys.ACTIONS[action][0]), Palette.TEXT], [keys, Palette.SIDE[0]]])
 	rows.append([[Lang.t("모두 기본값"), Palette.TEXT]])
 	return rows
+
+
+## The credits as rows: Godot's license, the parts of Godot under other licenses and those
+## licenses (Godot's "Complying with licenses"), then each of NOTICES, every line wrapped to
+## the screen. Made again only when the width changes.
+func _credits() -> Array:
+	if credit_width == room.x:
+		return credit_rows
+	var parts := []
+	for c: Dictionary in Engine.get_copyright_info():
+		for part: Dictionary in c.parts:
+			parts.append("\n".join([c.name] + Array(part.copyright) + [part.license]))
+	var notices := [
+		["Godot Engine", "https://godotengine.org", Engine.get_license_text()],
+		["", "", "\n\n".join(parts)],
+	]
+	var licenses := Engine.get_license_info()
+	for name: String in licenses:
+		notices.append([name, "", licenses[name]])
+	for n: Array in NOTICES:
+		notices.append([Lang.t(n[0]), n[1], FileAccess.get_file_as_string(n[2])])
+	credit_rows = []
+	credit_width = room.x
+	for n: Array in notices:
+		if n[0] != "":
+			var head := [[n[0], Palette.KIND[&"miho"]], ["  " + n[1], Palette.DIM]]
+			credit_rows.append_array(Keywords.rows_of(head, room.x - 4.0))
+		for line in n[2].strip_edges(false, true).replace("\t", "    ").split("\n"):
+			var cut := _cut(line, room.x - 4.0)
+			credit_rows.append_array(Keywords.rows_of([[cut, Palette.TEXT]], room.x - 4.0))
+		credit_rows.append([])
+	return credit_rows
+
+
+## `line` with a space put into each word wider than `width` cells where its row ends, so that
+## Keywords.rows_of breaks it there (a rule of dashes in a license).
+static func _cut(line: String, width: float) -> String:
+	var words := line.split(" ")
+	for i in words.size():
+		var word := words[i]
+		var cut := ""
+		while Term.text_cells(word) > width:
+			var k := word.length() - 1
+			while k > 1 and Term.text_cells(word.left(k)) > width:
+				k -= 1
+			cut += word.left(k) + " "
+			word = word.substr(k)
+		words[i] = cut + word
+	return " ".join(words)
 
 
 ## Every action with its keys, in groups under a title, side by side in two columns

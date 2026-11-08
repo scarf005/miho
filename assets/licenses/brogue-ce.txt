@@ -1,0 +1,10 @@
+Copyright 2012 Brian Walker, and the Brogue CE contributors.
+GNU Affero General Public License, version 3 or later.
+
+Ideas and algorithms taken from the Brogue CE source:
+- Light: paintLight (Light.c), the fade of a light with distance.
+- Gas: updateVolumetricMedia.
+- Rooms: designCrossRoom, designSymmetricalCrossRoom, designCircularRoom, designChunkyRoom, designLakes, createWreath, addLoops.
+- Placement: spawnDungeonFeature and the dungeon feature table.
+- Traps, sneak attacks, flying and flitting creatures, liquid-bound creatures.
+- The terminal screen, the creature sidebar and the bolt glyphs.

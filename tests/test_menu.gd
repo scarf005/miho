@@ -371,6 +371,47 @@ func test_the_options_open_on_continue_and_the_keys_pass_over_the_blank_rows() -
 	assert_eq(menu.selected, 0)
 
 
+func test_the_credits_row_opens_the_notices_and_esc_goes_back_to_it() -> void:
+	for title in [false, true]:
+		var menu := Menu.new()
+		menu.open(&"options", Vector2i(60, 30))
+		menu.title = title
+		var row := menu._listed().find(&"credits")
+		assert_gt(row, menu._listed().find(&""), "with the screens")
+		menu.selected = row
+		assert_eq(menu.key(_press("Enter")), &"")
+		assert_eq(menu.page, &"credits")
+		assert_eq(menu.key(_press("Escape")), &"")
+		assert_eq([menu.page, menu.selected], [&"options", row])
+
+
+func test_the_credits_show_godot_and_every_notice_file_and_only_scroll() -> void:
+	var squeeze := func(s: String) -> String: return s.replace(" ", "").replace("\t", "")
+	for cols in [60, 40]:
+		var menu := Menu.new()
+		menu.open(&"credits", Vector2i(cols, 30))
+		var shown := menu.panel()
+		var text := " ".join(
+			shown.rows.map(func(r): return "".join(r.map(func(run): return run[0])))
+		)
+		text = squeeze.call(text)
+		assert_string_contains(text, squeeze.call(Engine.get_license_text().get_slice("\n", 0)))
+		for license: String in Engine.get_license_info():
+			assert_string_contains(text, license)
+		for n: Array in Menu.NOTICES:
+			var file := FileAccess.get_file_as_string(n[2])
+			assert_gt(file.length(), 0, n[2])
+			assert_string_contains(text, squeeze.call(n[0] + " " + n[1]))
+			for line in file.strip_edges().split("\n", false):
+				assert_string_contains(text, squeeze.call(line), n[2])
+		var widest: float = shown.rows.reduce(func(w, r): return maxf(w, PanelView.end(r)), 0.0)
+		assert_lte(widest, cols - 2.0, "every line fits a screen %d cells wide" % cols)
+		assert_false(PanelView.acts(shown, 0), "no row to select")
+		menu.key(_press("PageDown"))
+		assert_gt(menu.top, 0)
+		assert_eq(menu.key(_press("Escape")), &"close")
+
+
 func test_the_values_of_the_options_line_up_past_the_longest_name() -> void:
 	var menu := _options()
 	var columns := {}

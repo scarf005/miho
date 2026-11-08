@@ -1,0 +1,6 @@
+The music (assets/music/) and the sound effects (assets/sfx/) were made with Stable Audio 3 (stable-audio-3-medium, https://huggingface.co/stabilityai/stable-audio-3-optimized).
+
+Stability AI Community License Agreement, Last Updated: July 5, 2024
+https://stability.ai/community-license-agreement
+
+IV(c)(iii): "You own any outputs generated from the Models or Derivative Works to the extent permitted by applicable law."
