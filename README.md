@@ -1,8 +1,8 @@
 # 미호
 
-구미호 미호가 9층짜리 천상누각을 올라 꼭대기의 영약을 찾는 로그라이크입니다. 층을 오를 때마다 꼬리가 하나씩 늘고, 음양오행 부적을 엮어 주문을 만듭니다.
-
 ![5층 화면](https://cdn.jsdelivr.net/gh/scarf005/miho@064a741f75b61d6607af59c10ca1478eae62e706/4aeaea0cd39bbb29fa45d6e6e0988ea0ffe1e068fd3f164a7cc36deee37bb75d.webp)
+
+주문 조합 잠입 액션 로그라이크!
 
 ## 플레이
 
