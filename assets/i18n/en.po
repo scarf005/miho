@@ -1098,6 +1098,15 @@ msgstr "Debug view"
 msgid "도움말"
 msgstr "Help"
 
+msgid "크레딧"
+msgstr "Credits"
+
+msgid "Neo둥근모"
+msgstr "NeoDunggeunmo"
+
+msgid "음악과 효과음"
+msgstr "Music and sound effects"
+
 msgid "재시작"
 msgstr "Restart"
 

@@ -1,0 +1,10 @@
+Copyright 1997-2022 Linley Henzell, the dev team, and the contributors.
+GNU General Public License, version 2 or later.
+
+Ideas and algorithms taken from the Dungeon Crawl Stone Soup source:
+- Auto-fight (autofight.lua), auto-explore and travel exclusions.
+- Levels: delve (dgn-delve.cc), caves, onion city, mirrored buildings, the Gauntlet.
+- Spells: Foxfire, Orb of Destruction, Chain Lightning, Spellforged Servitor, Death Channel and Animate Dead.
+- Monsters: bands, followers on the stairs, swap_check, infighting, shouts, mons_should_fire.
+- The noise bar, the seed in the options, the message log and the help page layout.
+- Descriptions: _monster_stat_description, _monster_attacks_description.
