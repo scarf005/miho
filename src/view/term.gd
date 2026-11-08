@@ -82,6 +82,8 @@ var banner_lines: Array[String] = []:
 ## The run's log lines (Messages.shown) the banner of an ending lists under its lines;
 ## new banner lines clear them.
 var banner_log: Array = []
+## Drawn small in the bottom right corner under the banner: the game's version on the title.
+var version := ""
 ## Recent message lines over the top map rows, oldest first: [text, alpha].
 var log_lines: Array = []
 ## A full-screen list over everything, or empty: {title, rows, selected, top,

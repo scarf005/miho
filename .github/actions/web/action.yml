@@ -1,5 +1,7 @@
 name: web
 description: Build the web export in build/web.
+inputs:
+  version: { description: "The version the title shows; the commit when empty.", default: "" }
 
 runs:
   using: composite
@@ -55,4 +57,5 @@ runs:
     - shell: bash
       run: '"$GODOT" --headless --path . --import'
     - shell: bash
-      run: just web
+      env: { VERSION: "${{ inputs.version }}" }
+      run: just web "${VERSION:-${GITHUB_SHA::7}}"

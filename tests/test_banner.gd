@@ -250,3 +250,19 @@ func test_a_short_log_is_listed_whole_and_new_banner_lines_clear_it() -> void:
 	assert_eq(Banner.log_rows(t).map(func(r): return r[2][0][0]), ["0", "1"])
 	t.banner_lines = Banner.title(null, false, autofree(Touch.new()))
 	assert_eq(Banner.log_rows(t), [])
+
+
+func test_the_title_shows_the_version_of_the_build_and_the_ending_does_not() -> void:
+	var m: Node = Built.main()
+	m.save_path = ""
+	add_child_autofree(m)
+	m.show_title()
+	assert_eq(m.term.version, "", "a plain run of the project has none")
+	ProjectSettings.set_setting("application/config/version", "1.0.0")
+	m.show_title()
+	assert_eq(m.term.version, "1.0.0")
+	m.new_run(3)
+	m.state = &"over"
+	Banner.show(m)
+	assert_eq(m.term.version, "")
+	ProjectSettings.set_setting("application/config/version", null)

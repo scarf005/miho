@@ -17,8 +17,11 @@ static var clipboard := DisplayServer.clipboard_set
 ## Writes the lines of the state the game `m` (main.gd) is in: the title's or the
 ## ending's. Nothing in play.
 static func show(m: Node) -> void:
+	m.term.version = ""
 	if m.state == &"title":
 		m.term.banner_lines = title(m.pending, m.erasing, m.touch)
+		# Set by `just dist` and `just web` for the build; a plain run of the project has none.
+		m.term.version = ProjectSettings.get_setting("application/config/version", "")
 	elif m.state == &"over":
 		m.term.banner_lines = over(m.world, m.kills, m.run_seed)
 		for i in [-1, -2]:
@@ -192,6 +195,8 @@ static func draw(t: Term) -> void:
 		var x: float = r[1]
 		for run: Array in r[2]:
 			x += t.draw_run(Vector2(x, r[0]), run)
+	if t.version != "":
+		t.draw_key(Vector2(t.cols - Term.key_cells(t.version) - 1, t.map_view().y - 1), t.version)
 
 
 ## The rows of the log lines of `t` (`banner_log`) under the banner, as [screen row, column of

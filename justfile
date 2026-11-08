@@ -150,16 +150,22 @@ lint:
     gdformat --check src tests
     gdlint src tests
 
-# Export the web build to build/web.
-web: rust-web
+# Export the web build to build/web, with the version the title shows if one is given: just web 0.3.1
+web version="": rust-web
     #!/usr/bin/env bash
     set -euo pipefail
+    v={{ quote(trim_start_match(version, "v")) }}
+    [[ "$v" =~ ^[0-9A-Za-z._-]*$ ]] || { echo "error: a version holds only 0-9, A-Z, a-z, '.', '_' and '-': $v" >&2; exit 1; }
     mkdir -p build/web
+    [ -e build/project.bak ] || cp project.godot build/project.bak
+    trap 'mv build/project.bak project.godot' EXIT
+    # The title shows the version (Banner.show).
+    [ -z "$v" ] || sed -i "/^\[application\]$/a config/version=\"$v\"" project.godot
     # The template from `just web-template` is used when it exists, else the official one.
     # Its fallback text server reads no ICU data, and the editor packs a file of that name in place of its own.
     if [ -f "{{ template }}" ]; then
         [ -e build/export_presets.bak ] || cp export_presets.cfg build/export_presets.bak
-        trap 'mv build/export_presets.bak export_presets.cfg; rm -f icudt_godot.dat' EXIT
+        trap 'mv build/project.bak project.godot; mv build/export_presets.bak export_presets.cfg; rm -f icudt_godot.dat' EXIT
         sed -i 's|^custom_template/release=.*|custom_template/release="{{ template }}"|' export_presets.cfg
         printf 0 > icudt_godot.dat
     fi
@@ -224,14 +230,18 @@ rust-dist platform:
 dist version platform: rust import
     #!/usr/bin/env bash
     set -euo pipefail
+    v={{ quote(trim_start_match(version, "v")) }}
+    [[ "$v" =~ ^[0-9A-Za-z._-]+$ ]] || { echo "error: a version holds only 0-9, A-Z, a-z, '.', '_' and '-': $v" >&2; exit 1; }
     {{ just_executable() }} --justfile "{{ justfile() }}" --working-directory . rust-dist {{ platform }}
-    v={{ trim_start_match(version, "v") }}
     code=$(awk -F. '{ print $1 * 10000 + $2 * 100 + $3 }' <<<"$v")
     out=build/dist
     conf=
     mkdir -p "$out"
     cp export_presets.cfg "$out/presets.bak"
-    trap 'mv "$out/presets.bak" export_presets.cfg; [ -z "$conf" ] || gio trash "$conf"' EXIT
+    cp project.godot "$out/project.bak"
+    trap 'mv "$out/presets.bak" export_presets.cfg; mv "$out/project.bak" project.godot; [ -z "$conf" ] || gio trash "$conf"' EXIT
+    # The title shows the version (Banner.show).
+    sed -i "/^\[application\]$/a config/version=\"$v\"" project.godot
     sed -i -e "s|^version/name=.*|version/name=\"$v\"|" -e "s|^version/code=.*|version/code=$code|" \
         -e "s|^application/short_version=.*|application/short_version=\"$v\"|" -e "s|^application/version=.*|application/version=\"$v\"|" \
         -e "s|^application/file_version=.*|application/file_version=\"$v.0\"|" -e "s|^application/product_version=.*|application/product_version=\"$v.0\"|" \
