@@ -86,6 +86,7 @@ const OPTIONS := [
 	&"speed",
 	&"scent",
 	&"language",
+	&"korean_symbols",
 	&"",
 	&"codex",
 	&"spells",
@@ -109,6 +110,7 @@ const OPTION_NAMES := {
 	&"speed": "움직임 속도",
 	&"scent": "냄새 보기",
 	&"language": "언어",
+	&"korean_symbols": "한글 기호",
 	&"replay": "명장면 다시보기",
 	&"codex": "도감",
 	&"keys": "키 설정",
@@ -622,6 +624,9 @@ func _change(step: int) -> StringName:
 				codes.find(StringName(settings.language)) + step, codes.size()
 			)]
 			settings.apply_language()
+		&"korean_symbols":
+			settings.korean_symbols = not settings.korean_symbols
+			settings.apply_language()
 		&"replay":
 			settings.replay = not settings.replay
 		_:
@@ -708,6 +713,7 @@ func _options() -> Array:
 		&"speed": "%dx" % int(settings.speed),
 		&"scent": _on(settings.scent),
 		&"replay": _on(settings.replay),
+		&"korean_symbols": _on(settings.korean_symbols),
 		&"seed": Lang.t("%d 복사했다") % seed_value if copied else str(seed_value),
 	}
 	var rows := []

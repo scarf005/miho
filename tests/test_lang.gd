@@ -7,11 +7,13 @@ const SEED := 114
 
 func before_each() -> void:
 	Lang.locked = false
+	Lang.korean_symbols = false
 
 
 func after_each() -> void:
 	Lang.use(&"ko")
 	Lang.locked = true
+	Lang.korean_symbols = true
 	TranslationServer.set_locale("ko")
 
 
@@ -274,6 +276,52 @@ func test_euro_follows_a_final_consonant_but_not_rieul() -> void:
 	assert_eq(with.call("물"), "물로")
 	assert_eq(with.call("재"), "재로")
 	assert_eq(Info.plain([Lang.runs("{0}을/를", [["물", Palette.TEXT]], Palette.TEXT)]), "물을")
+
+
+func test_the_symbols_stay_hangul_in_other_languages_until_the_option_is_off() -> void:
+	var glyph: String = Bestiary.info(&"dokkaebi").glyph
+	var talisman: String = Cards.GLYPH[Cards.FOX]
+	for code: StringName in [&"en", &"ja"]:
+		Lang.use(code)
+		Lang.korean_symbols = true
+		assert_eq(Lang.t(glyph, "creature"), glyph, "%s creature" % code)
+		assert_eq(Lang.t(talisman, "talisman"), talisman, "%s talisman" % code)
+		assert_ne(Lang.t("도깨비"), "도깨비", "%s name is still translated" % code)
+		Lang.korean_symbols = false
+		assert_ne(Lang.t(glyph, "creature"), glyph, "%s creature off" % code)
+		assert_ne(Lang.t(talisman, "talisman"), talisman, "%s talisman off" % code)
+	Lang.use(&"en")
+	assert_eq(Lang.t(glyph, "creature"), "D")
+
+
+func test_the_option_defaults_to_on_and_survives_a_settings_reload() -> void:
+	var s := Settings.new()
+	assert_true(s.korean_symbols)
+	s.korean_symbols = false
+	var c := ConfigFile.new()
+	assert_eq(c.parse(s.to_config().encode_to_text()), OK)
+	var back := Settings.new()
+	back.from_config(c)
+	assert_false(back.korean_symbols)
+	c.set_value("settings", "korean_symbols", "no")
+	back.korean_symbols = true
+	back.from_config(c)
+	assert_true(back.korean_symbols, "a wrong value keeps the current one")
+
+
+func test_toggling_the_option_in_the_menu_changes_the_symbols_at_once() -> void:
+	var menu := Menu.new()
+	menu.settings = Settings.new()
+	menu.settings.language = "en"
+	menu.settings.apply_language()
+	menu.open(&"options")
+	menu.selected = Menu.OPTIONS.find(&"korean_symbols")
+	var glyph: String = Bestiary.info(&"dokkaebi").glyph
+	assert_eq(Lang.t(glyph, "creature"), glyph)
+	assert_eq(menu._change(1), &"changed")
+	assert_false(menu.settings.korean_symbols)
+	assert_eq(Lang.t(glyph, "creature"), "D")
+	assert_string_contains(_row_text(menu, &"korean_symbols"), "Off")
 
 
 func test_japanese_is_listed_and_a_japanese_system_starts_in_it() -> void:

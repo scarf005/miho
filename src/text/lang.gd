@@ -9,8 +9,14 @@ extends RefCounted
 ## Language code -> its name, written in that language.
 const NAMES := {&"ko": "한국어", &"en": "English", &"ja": "日本語"}  # i18n: keep
 const FALLBACK := &"en"
+## The contexts of the one-letter symbols that draw a creature or a talisman.
+const SYMBOLS := ["creature", "talisman"]
 ## The final consonant ㄹ, by its place among the finals of a Hangul syllable.
 const RIEUL := 8
+
+## While true the symbols stay Hangul in every language (도 for 도깨비), as the
+## names are translated; false draws the letters of the language (D).
+static var korean_symbols := true
 
 ## While true every string stays Korean and `use` changes nothing: the tests
 ## (GUT) read Korean. A test of the language sets it false and back.
@@ -47,15 +53,23 @@ static func active() -> StringName:
 	return code if NAMES.has(code) else FALLBACK
 
 
+## The language shown, and in the others whether the symbols are Hangul: what a
+## cache of text keeps one copy of for.
+static func key() -> StringName:
+	var code := active()
+	return code if code == &"ko" or korean_symbols else StringName(code + "-")
+
+
 static func use(code: StringName) -> void:
 	if not locked and NAMES.has(code):
 		TranslationServer.set_locale(code)
 
 
 ## `msgid` in the language shown; itself when it has no entry. An entry with a
-## `context` wins over the one without.
+## `context` wins over the one without. A symbol stays Hangul while
+## `korean_symbols` holds.
 static func t(msgid: String, context := "") -> String:
-	if msgid == "":
+	if msgid == "" or (korean_symbols and context in SYMBOLS):
 		return msgid
 	if context != "":
 		var special := t_in(msgid, context)

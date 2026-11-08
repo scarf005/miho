@@ -113,14 +113,15 @@ static func turn(line: Dictionary) -> int:
 ## log is reopened often.
 static func shown(line: Dictionary) -> Array:
 	var code := Lang.active()
+	var key := Lang.key()
 	if not line.has("shown"):
 		line.shown = {}
-	if not line.shown.has(code):
+	if not line.shown.has(key):
 		var runs: Array = line.variants.get(code, line.variants[&"ko"])
-		line.shown[code] = Keywords.paint(
+		line.shown[key] = Keywords.paint(
 			runs if line.n == 1 else runs + [[" ×%d" % line.n, Palette.DIM]]
 		)
-	return line.shown[code]
+	return line.shown[key]
 
 
 ## The name of storey `depth` on every screen: 집 for the house (World.HOUSE), else N층.

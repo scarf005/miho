@@ -31,7 +31,8 @@ extends Node
 ## --depth=n builds the storeys up to n and puts Miho on n, with its tails.
 ## --replay=seconds also saves out-replay.png that long into the first
 ## highlight replay. --zoom=1.5 sets the cell scale (0 fits the whole map).
-## --lang=en shows English (Korean otherwise).
+## --lang=en or --lang=ja shows English or Japanese (Korean otherwise); --symbols=0 draws the
+## letters of that language, not Hangul, for creatures and talismans.
 ## --crt=n sets the CRT strength, 0-100 (50 by default).
 ## --still stops what only sways, as flames, so that two pictures of one state match.
 ## Runs start from default settings and keys, and never save them. They keep no
@@ -68,6 +69,7 @@ static func attach(main: Node) -> void:
 	main.settings.path = ""
 	main.settings.zoom = float(args.get("zoom", "0"))
 	main.settings.language = args.get("lang", "ko")
+	main.settings.korean_symbols = args.get("symbols", "1") != "0"
 	main.settings.crt = clampi(int(args.get("crt", str(Crt.MIDDLE))), 0, 100)
 	Keys.reset()
 	main.apply()

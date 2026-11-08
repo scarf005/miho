@@ -57,7 +57,7 @@ static func _table() -> Dictionary:
 
 ## The words and the pattern that finds them in the language shown.
 static func _for() -> Dictionary:
-	var code := Lang.active()
+	var code := Lang.key()
 	if not _tables.has(code):
 		var words := {}
 		var table := _table()
@@ -169,7 +169,7 @@ static func terms() -> Array:
 ## tab, name -> where it is as (tab, index), and the RegEx that finds the names
 ## whole, or with a particle after them, in a text.
 static func _entries() -> Dictionary:
-	var code := Lang.active()
+	var code := Lang.key()
 	if not _listed.has(code):
 		var tabs := {}
 		var at := {}
@@ -248,7 +248,7 @@ static func entry(word: String) -> Array:
 	var at := locate(word)
 	if at.x < 0:
 		return []
-	var code := Lang.active()
+	var code := Lang.key()
 	var part := part_of(word)
 	if _last.size() == 3 and _last[0] == code and _last[1] == [at, part]:
 		return _last[2]

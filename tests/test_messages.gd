@@ -247,3 +247,17 @@ func test_a_peach_that_comes_into_sight_is_told_once() -> void:
 	after.known[Grid.index(SEEN)] = 1
 	assert_has(Messages.of(w, after, []).map(Messages.plain), "복숭아를 발견했다")
 	assert_does_not_have(Messages.of(after, after, []).map(Messages.plain), "복숭아를 발견했다")
+
+
+func test_a_shown_line_is_told_again_when_the_korean_symbols_option_flips() -> void:
+	var line := {variants = {&"ko": [["가", Palette.TEXT]], &"ja": [["か", Palette.TEXT]]}, n = 1}
+	Lang.forced = &"ja"
+	Lang.korean_symbols = false
+	var first := Messages.shown(line)
+	Lang.korean_symbols = true
+	var again := Messages.shown(line)
+	Lang.korean_symbols = true
+	Lang.forced = &""
+	assert_eq(line.shown.keys().size(), 2)
+	assert_eq(first, [["か", Palette.TEXT]])
+	assert_eq(again, [["か", Palette.TEXT]])
