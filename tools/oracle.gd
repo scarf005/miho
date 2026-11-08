@@ -574,7 +574,7 @@ func _forge(save: SaveGame, w: World) -> void:
 		_play(save, w, {t = &"cheat", cmd = cmd})
 	_play(save, w, {t = &"cheat", cmd = &"floor", depth = 4})
 	for n in 4:
-		_play(save, w, _summon(w))
+		_play(save, w, _summon(w, [Sister.KIND]))
 	var furnace: Array = Cards.spell_of(&"furnace").duplicate()
 	var beacon: Array = Cards.spell_of(&"beacon").duplicate()
 	for scene in [
@@ -587,7 +587,9 @@ func _forge(save: SaveGame, w: World) -> void:
 		[furnace, Vector2i.DOWN],
 		[furnace, Vector2i.ZERO]
 	]:
-		while save.actions.size() % FORECAST_EVERY != FORECAST_EVERY - 1:
+		if w.outcome != &"":
+			return
+		while w.outcome == &"" and save.actions.size() % FORECAST_EVERY != FORECAST_EVERY - 1:
 			_play(save, w, {t = &"wait"})
 		_play(save, w, {t = &"cheat", cmd = &"tails"})
 		_play(save, w, {t = &"cast", spells = [{cards = scene[0], dir = scene[1]}]})
@@ -725,11 +727,13 @@ func _buff() -> Dictionary:
 	return {t = &"cast", spells = [{cards = cards, dir = Vector2i.ZERO}]}
 
 
-## The next kind in turn on a free tile near Miho.
-func _summon(w: World) -> Dictionary:
+## The next kind in turn, but those of `spared`, on a free tile near Miho.
+func _summon(w: World, spared := []) -> Dictionary:
 	var kinds := Bestiary.KINDS.keys()
 	for k in kinds.size():
 		var kind: StringName = kinds[(_kind_at + k) % kinds.size()]
+		if kind in spared:
+			continue
 		for r in range(1, 6):
 			for dy in range(-r, r + 1):
 				for dx in range(-r, r + 1):
