@@ -131,6 +131,7 @@ const NOTICES := [
 	["glam", "https://github.com/bitshifter/glam-rs", "res://assets/licenses/glam.txt"],
 	["libc", "https://github.com/rust-lang/libc", "res://assets/licenses/libc.txt"],
 	["Neo둥근모", "https://neodgm.dalgona.dev", "res://assets/fonts/NeoDunggeunmo-OFL.txt"],
+	["DotGothic16", "https://fonts.google.com/specimen/DotGothic16", "res://assets/fonts/DotGothic16-OFL.txt"],
 	["음악과 효과음", "", "res://assets/licenses/music.txt"],
 	["Brogue CE", "https://github.com/tmewett/BrogueCE", "res://assets/licenses/brogue-ce.txt"],
 	[
