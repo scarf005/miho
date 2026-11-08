@@ -368,6 +368,39 @@ func test_a_saved_run_with_debug_actions_plays_back_to_the_same_world() -> void:
 	)
 
 
+func test_a_debug_command_marks_the_run_for_good_and_the_ending_shows_it() -> void:
+	var w := World.create(5)
+	var run := SaveGame.new(PATH, 5)
+	for action in [{t = &"wait"}, {t = &"cheat", cmd = &"god"}, {t = &"cheat", cmd = &"god"}]:
+		w.act(action)
+		run.record(action, 0, false)
+	assert_false(Cheat.on(w, &"god"), "the toggle is off again")
+	assert_true(Cheat.used(w), "the run stays marked")
+	run.flush()
+	var back := SaveGame.load_from(PATH)
+	assert_true(back.replay())
+	assert_true(Cheat.used(back.world), "Continue keeps the mark")
+	assert_true(Cheat.used(Snapshot.world(Snapshot.of(w))), "so does a state of the run")
+	var clean := World.create(5)
+	clean.act({t = &"wait"})
+	assert_false(Cheat.used(clean))
+	for ending in [&"won", &"rescued"]:
+		w.outcome = ending
+		clean.outcome = ending
+		var marked := Banner.over(w, 2, 5)
+		var plain := Banner.over(clean, 2, 5)
+		assert_eq(marked.size(), plain.size())
+		var differ := range(plain.size()).filter(func(k): return marked[k] != plain[k])
+		assert_eq(differ.size(), 1, "one line tells the run used debug commands")
+		assert_string_starts_with(marked[differ[0]], plain[differ[0]])
+
+
+func test_a_command_the_rules_refuse_leaves_the_run_unmarked() -> void:
+	var w := World.create(5)
+	w.act({t = &"cheat", cmd = &"heal"})
+	assert_false(Cheat.used(w), "Miho has full health, so 체력 회복 is refused")
+
+
 func test_a_save_whose_cheat_lacks_its_parts_is_not_loaded() -> void:
 	for bad in [
 		{t = &"cheat", cmd = &"teleport"}, {t = &"cheat"}, {t = &"cheat", cmd = &"nothing"}

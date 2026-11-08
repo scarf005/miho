@@ -183,6 +183,7 @@ func test_toggling_the_view_shows_everything_and_changes_nothing() -> void:
 	assert_true(m.debugging)
 	assert_false(m.term.debug.is_empty())
 	assert_eq(_sig(m.world), before)
+	assert_false(Cheat.used(m.world), "a view that only shows does not mark the run")
 	m._key(_press("F3"))
 	assert_false(m.debugging)
 	assert_true(m.term.debug.is_empty())

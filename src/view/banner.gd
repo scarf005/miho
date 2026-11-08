@@ -93,7 +93,7 @@ static func over(w: World, kills: int, seed_value: int) -> Array[String]:
 	return [
 		head,
 		_time(w),
-		Lang.t("처치 %d") % kills,
+		Lang.t("처치 %d") % kills + (" · " + Lang.t("디버그 사용") if Cheat.used(w) else ""),
 		seed_line(seed_value, false),
 		Lang.t("%s키를 눌러 기록 보기") % log_key,
 		Lang.t("%s키를 눌러 재시작") % OS.get_keycode_string(AGAIN),

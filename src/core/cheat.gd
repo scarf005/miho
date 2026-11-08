@@ -6,12 +6,15 @@ extends RefCounted
 ## put. The four toggles are kept in World.cheats and copied with it: 무적 (Miho
 ## takes no harm), 꼬리 무제한 (casting spends no tails), 지도 밝히기 (every tile
 ## known and seen) and 적 멈춤 (creatures take no turns); 지도 생성 turns the last two on.
+## The first command played marks the run for good (`used`), and the ending tells it.
 ## Harming a creature goes
 ## by Harm.hurt, so a death drops its scroll and gives Miho a tail.
 
 ## What every spell is said to cost the tails Miho may spend while they are free.
 const UNLIMITED := 1000000
 const TOGGLES: Array[StringName] = [&"god", &"tails", &"reveal", &"halt"]
+## The mark in World.cheats of a run a command was played in; no command has its name.
+const USED := &"used"
 ## The name of each command, as the debug list and the log say it.
 const NAME := {
 	&"teleport": "순간이동",
@@ -60,6 +63,11 @@ const ARGS := {
 
 static func on(w: World, toggle: StringName) -> bool:
 	return w.cheats.get(toggle, false)
+
+
+## Whether a command was played in the run of `w`.
+static func used(w: World) -> bool:
+	return on(w, USED)
 
 
 ## What casting `spell` costs in tails.
@@ -143,6 +151,7 @@ static func handled(w: World, action: Dictionary) -> bool:
 	var me := w.player()
 	var foe := w.actor(action.get("id", -1))
 	var e := {t = &"cheat", cmd = action.cmd}
+	w.cheats[USED] = true
 	match action.cmd:
 		&"teleport":
 			_carry(w, me, action.at)
