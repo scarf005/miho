@@ -288,15 +288,17 @@ static func _status_entries() -> Array[Dictionary]:
 		var lines := Info.status_facts.bind(key)
 		out.append(_entry(glyph[0], glyph[1], Status.NAME[key], lines, key))
 	for name: String in Info.CONDITIONS:
-		out.append(_entry("·", Palette.TEXT, name, Info.condition_facts.bind(name), name))
+		out.append(_entry("", Palette.TEXT, name, Info.condition_facts.bind(name), name))
 	return out
 
 
-## The glossary's terms.
+## The glossary's terms, in the order of their names in the language shown (DCSS
+## `lookup-help.cc` sorts every list it looks up).
 static func _term_entries() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for term: String in Glossary.rows():
-		out.append(_entry("·", Palette.TEXT, term, Glossary.facts.bind(term)))
+		out.append(_entry("", Palette.TEXT, term, Glossary.facts.bind(term)))
+	out.sort_custom(func(a, b): return a.name.naturalnocasecmp_to(b.name) < 0)
 	return out
 
 
@@ -400,8 +402,10 @@ static func _by_words(line: Array, width: float) -> Array:
 func panel() -> Dictionary:
 	var list := entries(tab, rank)
 	var rows := []
+	var glyphs := list.any(func(e): return e.glyph != "")
 	for e in list:
-		rows.append([[e.glyph, e.color, 2.0], [e.name, Palette.TEXT, 4.0]])
+		var row := [[e.glyph, e.color, 2.0]] if e.glyph != "" else []
+		rows.append(row + [[e.name, Palette.TEXT, 4.0 if glyphs else 2.0]])
 	var lines := _lines(list)
 	var fits := _lines_fit()
 	scroll = clampi(scroll, 0, maxi(0, lines.size() - fits))
@@ -427,7 +431,9 @@ func panel() -> Dictionary:
 
 
 ## The example beside `entry`, the selected one (CodexSim): empty when it has none or
-## the screen has no room for one. A creature's reads as its entry does, at `rank`.
+## the screen has no room for one. A creature's reads as its entry does, at `rank`. It
+## stands right after the widest line of the detail, so a short detail leaves no empty
+## middle (Infra Arcana `set_info_scrreen_panel` keeps the text and what it shows together).
 func _example(entry: Dictionary, side: float) -> Dictionary:
 	var parts := SpellScene.parts(entry.scene)
 	var k := CodexSim.scale_for(
@@ -436,11 +442,18 @@ func _example(entry: Dictionary, side: float) -> Dictionary:
 	if parts.is_empty() or k == 0.0:
 		return {}
 	part = posmod(part, parts.size())
+	var widest: float = detail(entry, part).reduce(
+		func(n: float, line: Array) -> float:
+			return maxf(n, Term.text_cells("".join(line.map(func(r): return r[0])))),
+		0.0
+	)
+	var right := room.x - CodexSim.beside(k) + 1.0
 	return {
 		entry = [tab, selected, part],
 		scene = parts[part],
 		rank = rank if tab == 0 else 0,
 		scale = k,
+		at = Vector2(minf(right, side + ceilf(widest) + 2.0), CodexSim.TOP),
 	}
 
 
@@ -450,7 +463,7 @@ func _choices(entry: Dictionary, example: Dictionary) -> Dictionary:
 	if example.is_empty() or parts.size() < 2:
 		return {}
 	var k: float = example.scale
-	var from := Vector2(room.x - CodexSim.beside(k) + 1.0, CodexSim.TOP + CodexScene.VIEW.y * k)
+	var from := Vector2(example.at.x, CodexSim.TOP + CodexScene.VIEW.y * k)
 	var fit: int = room.y - int(from.y) - int(CodexSim.FOOT)
 	part_top = ListNav.reveal(part_top, part, parts.size(), fit)
 	return {
@@ -458,6 +471,7 @@ func _choices(entry: Dictionary, example: Dictionary) -> Dictionary:
 		at = part,
 		lit = lit,
 		from = from,
+		wide = ceilf(CodexScene.VIEW.x * k),
 		top = part_top,
 		fit = fit,
 	}

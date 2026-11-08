@@ -226,7 +226,8 @@ func test_a_mark_reads_as_the_hover_without_the_floors_name() -> void:
 func test_the_glossary_tells_each_shared_rule_once_by_its_tag() -> void:
 	var tab := Codex.TABS.find("용어")
 	var terms := Glossary.rows()
-	assert_eq(_names(tab), terms.keys())
+	assert_eq_deep(_names(tab).filter(func(n): return not terms.has(n)), [])
+	assert_eq(_names(tab).size(), terms.size())
 	for term: String in terms:
 		assert_eq(_text(Codex.detail(_entry(tab, term))), term + ".\n" + "\n".join(terms[term]))
 	var w := Codex.stage()
@@ -290,7 +291,7 @@ func test_the_detail_follows_the_selected_entry_and_the_status_tab_tells_each_st
 		menu.key(_press("Right"))
 	var panel := menu.panel()
 	assert_eq(panel.tab, tab)
-	var names: Array = panel.rows.map(func(r): return r[1][0])
+	var names: Array = panel.rows.map(func(r): return r.back()[0])
 	for key in Status.NAME:
 		assert_has(names, Status.NAME[key])
 		var text := _text(Codex.detail(_entry(tab, Status.NAME[key])))

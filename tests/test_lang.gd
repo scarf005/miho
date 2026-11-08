@@ -114,8 +114,8 @@ func test_a_world_played_with_the_same_actions_ends_the_same_in_both_languages()
 func test_keywords_colour_the_english_word_and_the_log_keeps_both_languages() -> void:
 	Lang.use(&"en")
 	var runs := Keywords.runs("Flammable. Combustible.", Palette.TEXT)
-	assert_eq(runs[0], ["Flammable", Palette.FLAMMABLE])
-	assert_eq(runs[2], ["Combustible", Palette.FIERCE_TEXT, Palette.FIERCE_BACK])
+	assert_eq(runs[0], ["Flammable", Palette.FIRE_TAG, Palette.FLAMMABLE])
+	assert_eq(runs[2], ["Combustible", Palette.FIRE_TAG, Palette.FIERCE_BACK])
 	assert_eq(
 		Keywords.runs("Flammables", Palette.TEXT),
 		[["Flammables", Palette.TEXT]],
@@ -123,7 +123,7 @@ func test_keywords_colour_the_english_word_and_the_log_keeps_both_languages() ->
 	)
 	Lang.use(&"ko")
 	assert_eq(Keywords.runs("Flammable", Palette.TEXT), [["Flammable", Palette.TEXT]])
-	assert_eq(Keywords.runs("가연성", Palette.TEXT)[0][1], Palette.FLAMMABLE)
+	assert_eq(Keywords.runs("가연성", Palette.TEXT)[0][2], Palette.FLAMMABLE)
 
 
 func test_korean_particles_do_not_reach_english_lines() -> void:
@@ -252,3 +252,12 @@ func test_the_log_and_the_hover_call_the_player_you() -> void:
 	Lang.use(&"en")
 	assert_eq(quench.call(), "Your fire went out")
 	assert_true(Info.plain(Info.creature(w, me)).begins_with("You "))
+
+
+func test_euro_follows_a_final_consonant_but_not_rieul() -> void:
+	var with := func(word: String):
+		return Info.plain([Lang.runs("{0}으로/로", [[word, Palette.TEXT]], Palette.TEXT)])
+	assert_eq(with.call("흙"), "흙으로")
+	assert_eq(with.call("물"), "물로")
+	assert_eq(with.call("재"), "재로")
+	assert_eq(Info.plain([Lang.runs("{0}을/를", [["물", Palette.TEXT]], Palette.TEXT)]), "물을")

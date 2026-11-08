@@ -89,10 +89,11 @@ const BUBBLE := Color(0.75, 0.9, 1.0)
 const BAD := Color(1.0, 0.4, 0.34)
 const GOOD := Color(0.45, 0.9, 0.5)
 const BAD_FOE := Color(0.86, 0.62, 0.58)
-## The word 가연성 and the word 인화성 (red on yellow), wherever they are written.
+## The words 가연성 (on orange) and 인화성 (on yellow), dark in a box of their own,
+## wherever they are written.
 const FLAMMABLE := Color(1.0, 0.6, 0.15)
-const FIERCE_TEXT := Color(0.85, 0.05, 0.05)
 const FIERCE_BACK := Color(1.0, 0.86, 0.2)
+const FIRE_TAG := Color(0.12, 0.05, 0.02)
 ## status (Status.of) -> [glyph, colour]: the mark by a creature that holds it,
 ## in the colour of harm to its holder.
 const STATUS := {&"wet": ["~", BAD], &"alight": ["§", BAD], &"frozen": ["◇", BAD]}
