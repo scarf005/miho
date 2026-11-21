@@ -24,6 +24,9 @@ const BIG := 48
 const SMALL := 16
 ## Pixels between the lines of wisps chasing one creature.
 const LINE_GAP := 5.0
+## Cells a box keeps free above it at the top of the screen, so its top border is a
+## line of its own and clears the curve of the CRT.
+const TOP_GAP := 0.5
 ## Cells each character takes, measured once (text_cells).
 static var _widths := {}
 
@@ -475,7 +478,7 @@ func fit_far_from(p: Variant = null, lines: Array = info, extra := Vector2.ZERO)
 ## map area; where it sits is `info_at`.
 func info_layout(lines: Array, extra := Vector2.ZERO) -> Dictionary:
 	var v := map_view()
-	var top := mini(log_height(), v.y / 2)
+	var top := maxf(mini(log_height(), v.y / 2), TOP_GAP)
 	var room := Rect2(Vector2(side.x, side.y + top), Vector2(v.x, v.y - top))
 	var least := minf(1.0, readable / (CELL.x * scale.x))
 	var fit := InfoBox.layout(lines, room.size, least, extra)
@@ -507,7 +510,7 @@ func info_fit() -> Dictionary:
 
 ## The layout of the hint under the cell the pointer is in, inside the screen.
 func hint_fit() -> Dictionary:
-	var room := Rect2(0, 0, cols, rows if not panel.is_empty() else rows - foot)
+	var room := Rect2(0, TOP_GAP, cols, (rows if not panel.is_empty() else rows - foot) - TOP_GAP)
 	return InfoBox.beside(hint, room, Vector2i(hint_at), minf(1.0, readable / (CELL.x * scale.x)))
 
 

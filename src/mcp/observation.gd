@@ -215,10 +215,15 @@ static func _ally(k: World, a: Actor) -> String:
 	return line
 
 
+## How alert `a` is, a creature on patrol told apart from a resting one as its hover does.
+static func _alert(a: Actor) -> String:
+	return "patrolling" if Info.state(a) == Lang.t("순찰 중") else ALERTS[a.brain.alert]
+
+
 static func _creature(k: World, a: Actor) -> String:
 	var line := (
 		"%s %s (%d,%d) hp %d/%d, %s"
-		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, ALERTS[a.brain.alert]]
+		% [a.info().glyph, a.info().name, a.pos.x, a.pos.y, a.hp, a.max_hp, _alert(a)]
 	)
 	if Guise.knows(k, a):
 		line += ", sees Miho"

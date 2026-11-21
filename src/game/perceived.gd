@@ -86,11 +86,15 @@ static func _veiled(before: World, after: World) -> Dictionary:
 
 
 ## A `state` fact for each creature in sight at the end whose mark Miho was
-## not shown before: it was out of sight, or marked differently.
+## not shown before: it was out of sight, or marked differently. A notice or heed that
+## a later hunt or search of the round replaced (`_outdone`) keeps its popup but is
+## `quiet`: the log tells only the last one.
 func _tell_marks(before: World, after: World) -> void:
 	var covered := {}
 	for f in facts:
-		if TELLS.has(f.t):
+		if _outdone(after, f):
+			f.quiet = true
+		elif TELLS.has(f.t):
 			covered[[TELLS[f.t], f.id]] = true
 	for a in after.actors:
 		var mark := mark_of(a)
@@ -101,6 +105,15 @@ func _tell_marks(before: World, after: World) -> void:
 			continue
 		if not covered.has([mark, a.id]):
 			facts.append({t = &"state", id = a.id, mark = mark, where = a.pos, i = -1})
+
+
+## True when `f` is a notice or heed of a creature in sight at the end that then went
+## on to search or to hunt, as a 장승 hit by a 여우불 notices and then searches.
+static func _outdone(after: World, f: Dictionary) -> bool:
+	var a := after.actor(f.id) if f.t == &"notice" or f.t == &"heed" else null
+	if a == null or not a.alive() or not Hat.shown(after, a) or mark_of(a) == "x":
+		return false
+	return a.brain.alert != Actor.REST and Palette.ALERT_MARK[a.brain.alert] != TELLS[f.t]
 
 
 ## Where the useful things first come into Miho's sight in the round from

@@ -186,6 +186,33 @@ func test_explore_walks_many_rounds_and_stops_with_a_reason() -> void:
 	assert_string_contains(r.text, "rounds walked: %d, stopped:" % tools.world.round_no)
 
 
+## A 도깨비 spawned two steps from Miho, awake and patrolling.
+func _patrol(tools: GameTools) -> Actor:
+	var w := tools.world
+	var a := FloorGen.spawn(w, &"dokkaebi", Grid.at(Travel.search(w).dist.find(2)))
+	w.sense()
+	return a
+
+
+func test_explore_refused_for_a_creature_in_sight_says_so() -> void:
+	var tools := _game()
+	_patrol(tools)
+	assert_true(Travel.watched(tools.world))
+	var r := _call(tools, "act", {action = "explore"})
+	assert_true(r.error)
+	assert_string_contains(r.text, "in sight")
+	assert_false(r.text.contains("nowhere left"))
+
+
+func test_a_patrolling_creature_reads_as_patrolling() -> void:
+	var tools := _game()
+	var a := _patrol(tools)
+	assert_eq(Info.state(a), "순찰 중")
+	var lines: Array = _call(tools, "observe").text.split("\n")
+	var line: Array = lines.filter(func(l): return l.contains("도깨비 ("))
+	assert_string_contains(line[0], ", patrolling")
+
+
 func test_a_walk_that_would_step_next_to_fire_is_not_taken_and_says_why() -> void:
 	var tools := _game(2)
 	var dist: PackedInt32Array = Travel.search(tools.world).dist

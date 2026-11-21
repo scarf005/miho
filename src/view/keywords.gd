@@ -33,6 +33,9 @@ const PARTICLES := "이|가|을|를|은|는|의|에서|에게|에|으로|로|과
 const TAB_ORDER := [6, 5, 4, 3, 2, 1, 0]
 ## What parts the recipes in a word (SpellInfo.tagged).
 const RECIPES := ", "
+## Characters a row does not start with: closing marks, the long vowel mark, the
+## middle dot and small kana.
+const _NO_START := "。、，．」』）】〕！？：；ー・ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ"
 
 ## language -> {words: shown word -> colours, find: the RegEx for them}, made
 ## when first needed.
@@ -309,12 +312,11 @@ static func rows_of(runs: Array, width: float) -> Array:
 ## Kana, kanji and their punctuation: written without spaces, so a row may end
 ## between any two of them.
 static func _cjk(c: int) -> bool:
-	return (c >= 0x3000 and c <= 0x30FF) or (c >= 0x4E00 and c <= 0x9FFF) or (c >= 0xFF00 and c <= 0xFFEF)
-
-
-## Characters a row does not start with: closing marks, the long vowel mark, the
-## middle dot and small kana.
-const _NO_START := "。、，．」』）】〕！？：；ー・ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ"
+	return (
+		(c >= 0x3000 and c <= 0x30FF)
+		or (c >= 0x4E00 and c <= 0x9FFF)
+		or (c >= 0xFF00 and c <= 0xFFEF)
+	)
 
 
 ## `word` cut between every two CJK characters, except before one a row does
