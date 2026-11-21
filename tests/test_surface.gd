@@ -271,6 +271,16 @@ func test_miho_walking_into_reeds_is_told_in_the_log() -> void:
 	assert_has(lines, "갈대가 쓰러졌다")
 
 
+func test_miho_walking_into_leaves_logs_that_they_crumbled() -> void:
+	var w := _world()
+	_put(w, w.player().pos + E, World.LEAVES)
+	w.sense()
+	var after := w.preview({t = &"move", dir = E})
+	var lines := Messages.of(w, after, after.events).map(Messages.plain)
+	assert_has(lines, "낙엽이 바스러졌다")
+	assert_does_not_have(lines, "낙엽이 쓰러졌다")
+
+
 func test_leaves_are_gone_once_trodden_and_rustle_only_then() -> void:
 	var w := _world()
 	_put(w, Vector2i(5, 8), World.LEAVES)

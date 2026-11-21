@@ -441,7 +441,11 @@ static func _ground_line(before: World, e: Dictionary) -> Variant:
 		&"blast":
 			return _t("{0}이/가 폭발했다", [_gas(e.kind)])
 		&"trample":
-			return _t("{0}이/가 쓰러졌다", [_named(Tiles.of(e.was, "name"))])
+			# A tile trodden down to bare floor crumbled; one that lies down fell.
+			var trodden := _named(Tiles.of(e.was, "name"))
+			if Tiles.of(e.was, "trample") == World.FLOOR:
+				return _t("{0}이/가 바스러졌다", [trodden])
+			return _t("{0}이/가 쓰러졌다", [trodden])
 		&"collapse":
 			return _t("벽이 무너졌다")
 		&"quake":
