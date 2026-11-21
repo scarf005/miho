@@ -399,6 +399,8 @@ func _act(args: Dictionary) -> Dictionary:
 	var action := _action(args)
 	if action.has("error"):
 		return _fail(action.error)
+	if action.t == &"explore" and Travel.watched(world):
+		return _fail("A creature in sight stops exploring.")
 	if WALKS.has(action.t):
 		return _walk(_next(action), WALKS[action.t])
 	if not world.can(action):
