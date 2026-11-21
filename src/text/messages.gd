@@ -149,6 +149,8 @@ static func _render(before: World, after: World, told: Dictionary) -> Array:
 	var out := []
 	var last := {}
 	for f in told.facts:
+		if f.get("quiet", false):
+			continue
 		if f.t == &"noise":
 			out.append(_t("멀리서 {0} 소리를 들었다", [[f.word, Palette.SOUND]]))
 			continue

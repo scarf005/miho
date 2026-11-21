@@ -105,6 +105,29 @@ func test_a_mark_changing_in_sight_is_told() -> void:
 	assert_eq(_lines(r[0], r[1], []), ["도깨비가 추격을 시작했다"] as Array[String])
 
 
+## A creature that starts to hunt and then searches in one round, as a 장승 hit by a
+## 여우불 does, tells only "수색을 시작했다"; heed then notice tells only "들켰다", and a
+## blind hunter that notices tells "들켰다" under its mark x. The notice keeps its "!"
+## popup and sound: only its line goes.
+func test_a_creature_is_told_by_the_alert_it_ends_the_round_in() -> void:
+	var r := _round(SEEN, SEEN, Actor.SEARCH, [])
+	var noticed := [{t = &"notice", id = r[2], at = SEEN}]
+	assert_eq(_lines(r[0], r[1], noticed), ["도깨비가 수색을 시작했다"] as Array[String])
+	var shown := Perceived.of(r[0], r[1], noticed).facts.filter(func(f): return f.i == 0)
+	assert_eq(shown.map(Perceived.popup_of).map(func(p): return p.text), ["!"], "popup, sound")
+	var hunts := _round(SEEN, SEEN, Actor.HUNT, [])
+	var both := [
+		{t = &"heed", id = hunts[2], kind = &"ash", at = SEEN},
+		{t = &"notice", id = hunts[2], at = SEEN},
+	]
+	assert_eq(_lines(hunts[0], hunts[1], both), ["도깨비에게 들켰다"] as Array[String])
+	var blind := _round(SEEN, SEEN, Actor.HUNT, [])
+	for w: World in [blind[0], blind[1]]:
+		w.actor(blind[2]).ailments.blind = 2
+	var seen := [{t = &"notice", id = blind[2], at = SEEN}]
+	assert_eq(_lines(blind[0], blind[1], seen), ["도깨비에게 들켰다"] as Array[String])
+
+
 func test_a_hidden_notice_gives_no_popup() -> void:
 	var r := _round(HIDDEN, HIDDEN, Actor.HUNT, [])
 	var events := [{t = &"notice", id = r[2], at = HIDDEN}]
