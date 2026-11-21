@@ -165,7 +165,22 @@ func test_the_hover_box_sits_on_the_far_side_of_the_map_from_the_cursor() -> voi
 	var t: Term = screen[0]
 	var v := t.map_view()
 	assert_eq(t.fit_far_from(Vector2i(0, 0)).at, Vector2(Term.MAP.x + v.x - 2.5, v.y - 1.0))
-	assert_eq(t.fit_far_from(Vector2i(v.x - 1, v.y - 1)).at, Vector2(Term.MAP.x, 0))
+	assert_eq(t.fit_far_from(Vector2i(v.x - 1, v.y - 1)).at.x, float(Term.MAP.x))
+
+
+func test_a_box_at_the_top_of_the_screen_keeps_a_gap_above_its_border() -> void:
+	var screen := _screen(Vector2(1280, 720), 1.0, [[["abc", Color.WHITE]]])
+	var t: Term = screen[0]
+	var v := t.map_view()
+	var tall: Array = range(2 * v.y).map(func(_k): return [["abc", Color.WHITE]])
+	for p in [Vector2i(v.x - 1, v.y - 1), null]:
+		var fit := t.fit_far_from(p, tall)
+		assert_gt(fit.at.y, 0.0, "map box at %s" % p)
+		assert_lte(fit.at.y + fit.cells.y * fit.scale, float(v.y) + 0.001, "bottom on screen")
+	t.hint_at = Vector2(10.5, t.rows - 0.5)
+	for n in range(1, t.rows):
+		t.hint = tall.slice(0, n)
+		assert_gt(t.hint_fit().at.y, 0.0, "word box of %d lines above the bottom row" % n)
 
 
 func test_the_hover_box_leaves_the_log_rows_over_the_map_free() -> void:
@@ -183,7 +198,7 @@ func test_the_hover_box_leaves_the_log_rows_over_the_map_free() -> void:
 		assert_gte(fit.at.y, float(n), "a tall box starts under %d log rows" % n)
 		assert_lte(fit.at.y + fit.cells.y * fit.scale, float(v.y) + 0.001)
 	t.banner_lines = ["x"]
-	assert_eq(t.fit_far_from(low).at.y, 0.0, "the log is not drawn under a banner")
+	assert_lt(t.fit_far_from(low).at.y, 1.0, "the log is not drawn under a banner")
 
 
 func test_a_log_that_fills_a_tiny_map_still_leaves_the_box_room() -> void:
